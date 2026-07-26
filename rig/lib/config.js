@@ -54,4 +54,25 @@ function validateVariant(serverName, variant) {
   }
 }
 
-module.exports = { TRANSPORTS, CREDENTIAL_SAFETY, SUPPORTED_HOSTS, loadUserConfig, validate };
+function validateCatalogueManifest(config) {
+  const { validateRigJson, loadCatalog } = require('./catalog');
+  return validateRigJson(config, loadCatalog());
+}
+
+function validateAny(config) {
+  if (config && config.schema_version === 1 && config.services && !config.mcp_servers) {
+    return validateCatalogueManifest(config);
+  }
+  return validate(config);
+}
+
+module.exports = {
+  TRANSPORTS,
+  CREDENTIAL_SAFETY,
+  SUPPORTED_HOSTS,
+  loadUserConfig,
+  validate,
+  validateCatalogueManifest,
+  validateRigJson: validateCatalogueManifest,
+  validateAny,
+};

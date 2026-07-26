@@ -23,6 +23,20 @@
 > or implementation context must not edit this file; a genuine conflict returns
 > to grilling.
 
+> **Revision note (2026-07-26, later the same day) — D10.** `AT-GATE-2`'s
+> integrity clause is re-grilled. It previously required a comparison against
+> committed upstream state and a separately reviewed commit, backed by branch
+> protection and code ownership. The intent owner rejected that mechanism
+> because it charges every Gate 1 edit to the repository's commit history, which
+> organisations audit, and asked for a control that does not run through git.
+> The replacement is a signature over Gate 1's digest that only a physically
+> present human can produce, verified by the gate before anything else runs.
+>
+> This is a mechanism change, not a verdict change. The ID set remains **45**,
+> no case is added or removed, and the size of the Gate-2 traceability table is
+> unaffected. Rationale and residual risks:
+> [`spec/business-spec.md`](spec/business-spec.md) §8 and §9.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -36,15 +50,21 @@ only when the product intent is met.
   `technical-spec.md` is the sole versioned Gate-2 authority; every normative
   SOW, task-list, coverage-plan, or later-ruling statement either traces to it
   or is rejected as non-authoritative.
-- **AT-GATE-2 (specification before code; ordering is the requirement) [D5].**
-  *Given* a contradictory, incomplete, placeholder-bearing, or unapproved
-  Gate 2, *when* code tests are green, *then* completion still fails and no
-  code-correctness result may promote the build. The specification gate runs
-  **before** the code tests in the same command that gates a push, and a
+- **AT-GATE-2 (specification before code; ordering is the requirement)
+  [D5, D10].** *Given* a contradictory, incomplete, placeholder-bearing, or
+  unapproved Gate 2, *when* code tests are green, *then* completion still fails
+  and no code-correctness result may promote the build. The specification gate
+  runs **before** the code tests in the same command that gates a push, and a
   failing gate short-circuits them so they do not execute at all. A gate that
-  exists but runs after, or alongside, the code tests fails this case. In
-  addition, the gate compares Gate 1 against its committed upstream state and
-  fails on any local edit not landed as its own reviewed commit.
+  exists but runs after, or alongside, the code tests fails this case.
+
+  *And given* an edit to either Gate 1 file, *when* the gate runs, *then* it
+  recomputes the digest of both files, finds that the recorded signature no
+  longer verifies, and fails — so a context cannot reach the approved mark by
+  moving it. The signature must attest that a human was physically present when
+  it was made: a signer an agent could operate unattended does not satisfy this
+  case, and neither does any check that a context editing Gate 1 could satisfy
+  by itself.
 - **AT-GATE-3 (independent semantic review) [D8].** *Given* mechanical
   authority and traceability checks pass, *when* a review evaluates Gate 2,
   *then* every Gate-1 rule has one testable implementation contract and no two

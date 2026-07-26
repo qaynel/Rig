@@ -20,17 +20,16 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 
 ## Project Context
 
-- Tier 1 is the markdown-only bootstrap: fixed file list by default, no
-  installed runtime, no keys, no `.env` handling. Optional `--hosts` /
-  `RIG_HOSTS` may use the repo-local payload manifest at install time and
-  requires `node` on `PATH`.
-- Tier 2 Basic is the credentialed multi-host MCP configurator. Its active docs
-  live in `project-dev-docs/tier-2-design-docs/basic/`.
-- Tier 2 Basic targets the full Rig adapter matrix for deliverability, but
-  each MCP renderer remains #7-gated by doc-backed verification before it ships.
-- Basic uses one JSON manifest, semantic MCP servers, compatibility variants,
-  host-native renderers, non-destructive config merge, and value-free credential
-  references.
+- Tier 1 is the markdown-only bootstrap: fixed file list, no catalogue
+  resolver, no runtime, no keys, no `.env` handling.
+- Active delivery beyond the bootstrap is **mandatory agent-tech-safety
+  baseline + à-la-carte catalogue** (`family → group → service → grade`).
+  Fixed Basic / mid / Advanced install packages are deprecated (GA-9g).
+- Active design docs live in `project-dev-docs/current/`
+  and the operator guide in `docs/advanced/operator.md`.
+- The legacy MCP-configurator CLI remains as a compatibility path; its
+  historical design is archived under
+  `project-dev-docs/archive/`.
 
 ## Working Rules
 

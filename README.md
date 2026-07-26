@@ -6,14 +6,19 @@
 </figure>
 
 ---
-Rig is a curated, host-agnostic toolbox for coding agents. Tier 1 installs a
-markdown-only workflow into any repository: one shared router, an always-on
-Ponytail implementation rule, and focused skills for intent, design, execution,
-TDD, debugging, and code review.
+Rig is a curated, host-agnostic toolbox for coding agents. It ships two
+delivery surfaces:
 
-It starts no processes, needs no API keys, and installs no dependencies.
+1. **Markdown bootstrap (Tier 1)** — one shared router, an always-on Ponytail
+   implementation rule, and focused skills for intent, design, execution, TDD,
+   debugging, and code review. No processes, API keys, or dependencies.
+2. **Baseline + à-la-carte catalogue** — make the agent harness safe first,
+   then let the user pick engineering capabilities as
+   `family → group → service → grade` (Development · Testing · Infrastructure ·
+   Product-Security). Fixed Basic / mid / Advanced install packages are
+   retired; the catalogue is the product.
 
-## Install Tier 1
+## Install the markdown bootstrap
 
 From this checkout:
 
@@ -21,11 +26,10 @@ From this checkout:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Tier 1 currently installs from a local Rig checkout. The pinned release/git-ref
-bootstrap path described in the foundational design is not shipped yet.
+The bootstrap currently installs from a local Rig checkout. The pinned
+release/git-ref path described in the foundational design is not shipped yet.
 
-The bootstrap prompts for the tier when run interactively. Automation can make
-the same choice explicitly:
+Interactively it prompts for the bootstrap tier; automation can be explicit:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
@@ -104,81 +108,31 @@ Install Rig as a native Hermes plugin (`plugin.yaml`): it injects the active
 mode through `pre_llm_call`, registers `/rig` mode switching, and exposes the
 skills as `rig:<skill>`.
 
-## Install Tier 2 (MCP)
+## Baseline + à-la-carte catalogue
 
-Tier 2 "Basic" adds one capability on top of Tier 1: a **credentialed
-multi-host MCP configurator**. Declare an MCP server and its credential slots
-once, and Rig emits the correct config for every host you selected, writes
-`.env.example`, gitignores `.env`, and installs a secret guard so no key reaches
-git. It still starts no processes and stores no secret values.
+After the harness is safe, Rig offers a scan-recommended menu. The user selects
+leaf services and grades in `rig.json`; missing dependencies auto-pull only
+their exact required slices. Install grafts onto existing agent infrastructure
+and always keeps the sanitation, drift, secret, git, and CI floors.
+
+```text
+inspect → host review → recommend → select (rig.json) → plan → apply → check
+```
 
 ```sh
-node rig/materialize.js --target /path/to/repository --manifest rig.config.json
+node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
+node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
+node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
+node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
+node .rig/bin/check.js --scope repo
 ```
 
-Uninstall removes only the MCP files and entries Rig owns:
+Operator details: [`docs/advanced/operator.md`](docs/advanced/operator.md).
+Design sources: [`project-dev-docs/current/`](project-dev-docs/current/).
 
-```sh
-node rig/materialize.js --target /path/to/repository --uninstall
-```
-
-### Manifest
-
-`rig.config.json` selects hosts and declares MCP servers. Credentials are
-**env-var names only** — never values; the validator rejects anything
-key-shaped.
-
-```json
-{
-  "hosts": ["claude", "cursor", "codex"],
-  "mcp_servers": [
-    {
-      "name": "app-db",
-      "variants": [
-        {
-          "id": "stdio",
-          "transport": "stdio",
-          "credential_safety": "manual_note_required",
-          "command": "npx",
-          "args": ["-y", "@example/db-mcp"],
-          "credentials": ["APP_DB_TOKEN"]
-        }
-      ]
-    }
-  ]
-}
-```
-
-For a remote server use `"transport": "http"` with a `"url"` instead of
-`command`/`args`.
-
-### Per-host MCP behavior
-
-Rig emits a native MCP config file for every host that supports one, and a
-manual note for the rest. Cursor and GitHub Copilot load the secret from
-`.env` / inputs on their own; the other emitting hosts also print a note to wire
-the env var.
-
-| Host | Emitted MCP file |
-|---|---|
-| Claude Code | `.mcp.json` |
-| Cursor | `.cursor/mcp.json` |
-| Codex / VS Code Codex | `.codex/config.toml` |
-| GitHub Copilot | `.vscode/mcp.json` |
-| OpenCode | `opencode.json` |
-| pi | `.omp/mcp.json` |
-| Gemini CLI | `.gemini/settings.json` |
-| Kiro | `.kiro/settings/mcp.json` |
-| Devin | `.devin/config.json` |
-| OpenClaw | `.openclaw/openclaw.json` |
-| CodeWhale | `.codewhale/mcp.json` |
-| Swival | `.swival/mcp.json` |
-| Windsurf, Cline, Hermes, Copilot CLI, Antigravity | note only — no native MCP file |
-| `generic` | not supported for MCP |
-
-Per-host token syntax and credential mechanics are documented in
-`docs/agent-portability.md` and
-`project-dev-docs/tier-2-design-docs/basic/basic-design.md`.
+The legacy MCP-configurator CLI (`node rig/materialize.js --target … --manifest …`)
+remains available as a compatibility path; it is no longer a separate install
+tier.
 
 ## Curation Spine
 
@@ -195,19 +149,17 @@ Per-host token syntax and credential mechanics are documented in
 The curated skills label their checks by workflow phase. They merge the
 distinctive parts of each workflow instead of concatenating source documents.
 
-## Tier 1 Boundary
+## Markdown bootstrap boundary
 
-Tier 1 is intentionally a dumb bootstrap with a fixed file list by default. It
-has no sync engine, installed runtime, keys, or `.env` handling. Optional
-`--hosts` / `RIG_HOSTS` reuses the Tier 2 payload filter (`rig/lib/payload.js`)
-at install time so a narrow install matches the materializer; without that flag
-the full fixed list remains the oracle. The shared layout is predictable so
-Tier 2 (above) describes it without changing the installed shape.
+The Tier 1 bootstrap is intentionally a dumb install with a fixed file list. It
+has no catalogue resolver, runtime, keys, or `.env` handling. The shared layout
+is predictable so the catalogue materializer can describe it without reshaping
+what was installed.
 
-The workflow is advisory because Tier 1 ships markdown only. Claude and other
-hook-capable hosts can provide real tool-boundary enforcement in a later tier;
-Cursor cannot. Rig states that limitation instead of claiming prose is a hard
-guardrail.
+The workflow is advisory because the bootstrap ships markdown only. Claude and
+other hook-capable hosts can provide real tool-boundary enforcement where the
+host supports it; Cursor cannot. Rig states that limitation instead of claiming
+prose is a hard guardrail.
 
 ## Verify
 
@@ -219,9 +171,5 @@ The test bootstraps a fresh temporary repository and checks the complete shared
 payload, every instruction adapter, preservation of existing host files, the
 markdown-only boundary, and absence of secret placeholders.
 
-For the Tier 2 materializer and the full CI gate (rule copies, version pins, and
-the complete Node suite), run:
-
-```sh
-npm test
-```
+Catalogue acceptance lives in `tests/advanced-*.test.js` and is included in
+`npm test`.

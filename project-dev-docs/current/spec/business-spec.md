@@ -56,6 +56,29 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > remains open. Gate 2 must be rewritten and re-frozen against this file and
 > [`../acceptance.md`](../acceptance.md) at their current 45-case set.
 
+> **Revision note (2026-07-26, later the same day) — D10, Gate 1 integrity.**
+> Re-grilled once more by the intent owner after Gate 2 design work surfaced
+> that the D5 mechanism did not fit how this repository is actually used. D5
+> protected Gate 1 through repository process: a comparison against committed
+> upstream state, a separately reviewed commit, and branch protection with code
+> ownership. The intent owner rejected that mechanism on the grounds that
+> organisations audit commit traces and a stream of commits maintaining agent
+> documentation is itself a cost, and asked for a control that does not run
+> through git at all.
+>
+> **D10 replaces the process control with a cryptographic one.** The gate
+> recomputes Gate 1's digest and verifies a signature over it that only a
+> physically present human can produce. This is a strengthening rather than a
+> relaxation: branch protection is bypassable by anyone holding push rights,
+> whereas the signature is not forgeable by an agent holding the entire
+> repository.
+>
+> The case count stays at **45**. `AT-GATE-2` changes mechanism, not verdict; no
+> case is added or removed and the Gate-2 traceability table is unaffected in
+> size.
+>
+> **This revision is frozen.** Its residual risks are recorded in §9.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -273,14 +296,24 @@ Evaluation is ordered:
    first-wire correctness. Green code tests cannot compensate for a failed or
    unapproved specification gate.
 
-**Gate integrity is mechanical, not clerical (D5).** This file and
-[`../acceptance.md`](../acceptance.md) are protected at the repository level:
-the specification gate compares them against their committed upstream state and
-fails on any local edit that has not landed as its own reviewed commit, and
-branch protection plus code ownership guard those paths. The specification gate
-runs **before** the code tests and short-circuits them. Ordering is the
-requirement, not mere presence — a suite that can go green while the
-specification gate is unrun or failing is the exact defect this revision
+**Gate integrity is mechanical, not clerical (D5, revised D10).** This file and
+[`../acceptance.md`](../acceptance.md) are protected by signature rather than by
+repository process. At freeze, the intent owner signs the combined SHA-256
+digest of both files with a key that attests hardware user presence. The
+specification gate recomputes that digest and verifies that signature before
+anything else runs. An agent holding full repository and shell access can edit
+these files, and can edit the recorded digest and signature sitting beside them,
+but it cannot produce a signature that verifies — so an edited Gate 1 fails the
+gate instead of quietly moving the bar it is measured against.
+
+Hardware-attested presence is the floor for this use specifically. Where the
+product elsewhere permits a weaker user-configured signer, Gate 1 integrity does
+not inherit that allowance: a signer an agent could operate with no human
+present would defeat the entire control.
+
+The specification gate runs **before** the code tests and short-circuits them.
+Ordering is the requirement, not mere presence — a suite that can go green while
+the specification gate is unrun or failing is the exact defect this revision
 exists to close.
 
 **Review is independent by construction (D8).** Gate 2, and every one of the
@@ -311,3 +344,12 @@ mistake them for oversights.
 - **A user-global write has global blast radius (D9).** Installing in one
   repository changes behavior in every project that host opens. This is
   disclosed in the D3 install line; there is no separate prompt.
+- **Gate 1 integrity depends on a key the intent owner must hold (D10).** If
+  that key is lost, or was never obtained, nothing protects Gate 1 from an agent
+  that can write the repository. The honest fallback is a visible multi-file
+  edit rather than a barrier, and it must be described that way rather than
+  presented as protection.
+- **A signature stops forgery, not persuasion (D10).** An agent that asks the
+  intent owner to approve a Gate 1 revision, and receives that approval, is
+  through the control by design. D10 defends against a silent edit, not against
+  a maintainer who has been convinced.
