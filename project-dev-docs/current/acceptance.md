@@ -146,7 +146,11 @@ only when the product intent is met.
 - **AT-BASE-4 (exact user activation; no self-authorization).** *Given* any
   policy edit, including an agent-proposed edit, *when* the user has not
   approved the exact new policy digest, *then* active permissions do not
-  change. Approval activates only that exact revision.
+  change. Approval activates only that exact revision. A user may grant an
+  agent delegated policy-edit mode for future proposal authoring, but that
+  delegation is not activation consent; installed base prompts must forbid the
+  agent from inferring consent from prior approvals, chat context, task
+  urgency, tool access, or the delegation itself.
 - **AT-BASE-5 (complete user control, truthful result).** *Given* exact user
   approval to permit a category or disable enforcement globally, *when* a
   formerly restricted action is attempted, *then* it is no longer secretly

@@ -314,12 +314,19 @@ The installed result remains B1 configuration:
 - Validate the policy, then identify an activation revision by SHA-256 over its
   exact file bytes. Formatting, whitespace, or key-order changes therefore
   require a fresh activation.
+- Let agents draft policy candidates only when the user requests that exact
+  proposal or has granted delegated policy-edit mode. Delegation is proposal
+  authority only: it is status-visible, revocable, and never activates
+  permissions without exact-revision approval.
 - Prefer a verified host-native user-presence approval that attests the exact
   digest and prevents replay. Where the host cannot provide that contract,
   require an external user-presence cryptographic signature whose private
   material remains outside the repository. Both paths produce the same
   activation receipt; an ordinary prompt, repository file, or CLI flag is not
   proof of user approval.
+- Put strict wording in every installed base prompt: prior approvals, delegated
+  edit mode, chat context, tool access, urgency, or broad task wording are not
+  policy activation consent.
 - Store exact one-use approvals clone-locally and uncommitted. Bind each to the
   normalized full action envelope: active policy digest, repository identity,
   host/surface, rule category, tool or method, destination, working directory,

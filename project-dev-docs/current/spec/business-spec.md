@@ -105,7 +105,10 @@ Host-agnostic; config-only (B1).
     drift prevention + secret + git/CI floors), but the user may configure or
     disable any part of it, including all enforcement.
   - A policy revision is inert until the user approves that exact revision.
-    An agent may propose a revision but cannot activate its own proposal.
+    An agent may propose a revision, and the user may grant an agent explicit
+    delegated policy-edit mode for future proposals, but neither path lets the
+    agent activate its own proposal. Delegation is proposal authority, not
+    consent.
   - Disabled controls genuinely stop restricting the agent. Rig records what
     is disabled or did not run and never reports a stale or fabricated
     protected, scanned, passed, or verified state.
@@ -147,6 +150,12 @@ Host-agnostic; config-only (B1).
     external signature. Where neither is available, activation is **refused and
     reported unavailable**. Rig specifies the signer interface and verifies
     signatures; it ships no signing binary and stores no key material.
+  - **Agent prompts must not invent policy consent.** Every installed base
+    prompt states that prior approvals, delegated edit mode, chat wording, tool
+    access, urgency, or a broad task request never authorize activation. The
+    agent may draft only under an explicit current request or a recorded
+    delegated-edit receipt, and every activation still needs exact-revision
+    user approval.
   - **Writes outside the repository are permitted, attributed, and never
     destructive (D9).** Where a vendor ships only a user-global surface, Rig
     may write host configuration outside the repository by appending or

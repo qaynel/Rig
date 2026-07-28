@@ -93,8 +93,10 @@
       validated bytes; verified host-native user-presence approval with an
       external user-presence signature fallback; clone-local, atomically
       consumed one-use approvals bound to the normalized full action envelope;
-      no Rig-imposed time expiry; revocation/status; and narrow-by-default plus
-      explicit category-wide permanent allowances.
+      no Rig-imposed time expiry; revocation/status; delegated policy-edit mode
+      that permits proposal authoring but never activation; strict base-prompt
+      wording against inferred consent; and narrow-by-default plus explicit
+      category-wide permanent allowances.
 - [ ] Freeze contracts for real service dispositions/bindings, vetted
       first-enable history scanning, bounded non-no-op remediation, policy
       enforcement across shell/web/network-capable MCP, complete per-axis
@@ -141,8 +143,9 @@ technical specification to primary evidence.
 - [x] Create hostile-input fixtures: malicious `AGENTS.md`, escaping symlink,
       oversized file, credential-bearing staged diff.
 - [ ] Add policy/approval fixtures: exact-byte edits, agent self-authorization,
-      signature and native-attestation paths, replay, changed action envelopes,
-      atomic consumption, revocation, disabled/re-enabled controls, shell/web/MCP
+      delegated edit receipts, inferred-consent prompt failures, signature and
+      native-attestation paths, replay, changed action envelopes, atomic
+      consumption, revocation, disabled/re-enabled controls, shell/web/MCP
       parity, near-matches, and permanent allowance scopes.
 
 ### 1b. Acceptance suite (current Gate 1)
