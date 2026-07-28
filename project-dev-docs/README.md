@@ -30,6 +30,8 @@ catalogue is the product.
 
 | Path | Role |
 |---|---|
+| [`handoff.md`](current/handoff.md) | **Start here when picking the work up cold.** Current gate status, the eight locked design decisions, live digests, the two remaining freeze blockers, and the traps found the hard way. |
+| [`reviews/`](current/reviews/) | Report-only Gate-2 review receipts, each pinned to the exact content digest reviewed. A receipt whose digest is not the current one is void. |
 | [`reference/`](current/reference/) | The official source documents implementation is built from: the agent-harness security playbook, the host and CI capability reports, the mutation and product-security taxonomies, and the testing-pipeline vision. Held as captured. |
 | [`spec/product-spec.md`](current/spec/product-spec.md) | Product-level design and the shipping plan it sits under. |
 | [`spec/business-spec.md`](current/spec/business-spec.md) | Re-grilled business intent: problem, users, complete catalogue, user-controlled safety policy, verified coverage, and correctness properties. |
