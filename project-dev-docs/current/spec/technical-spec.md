@@ -1,17 +1,17 @@
 # Tier 2 Advanced - Implementation Design (GATE 2 CANDIDATE v0.3)
 
 > **Status: CANDIDATE. Not frozen. Not yet reviewed.** This version is written
-> against the Gate 1 frozen on 2026-07-26 at 45 cases, including the D10
-> integrity revision. It supersedes v0.2 in full. Implementation may not begin
-> against a candidate: §16 lists what must be true before this file may be
-> marked `FROZEN`.
+> against the Gate 1 amended on 2026-07-27 at 45 cases, including the D10
+> integrity and delegated policy-edit revisions. It supersedes v0.2 in full.
+> Implementation may not begin against a candidate: §16 lists what must be true
+> before this file may be marked `FROZEN`.
 
 **Gate 1 pins.** This candidate is written against exactly these bytes:
 
 | Gate 1 file | SHA-256 |
 |---|---|
-| `business-spec.md` | `d874df9e012703e29c49532990d0809fdb227e55dcb480528e4b071b61f0293c` |
-| `acceptance.md` | `5d1ddb0e89004c05fbe7733c6caa69f300e8fe97c3cbdb153dda2cd40afc1541` |
+| `business-spec.md` | `960f7722e8b4bd6d962f547ba0266f7d21bbbed4a37c262b6f9d827a7fd93214` |
+| `acceptance.md` | `995897aa8ccd88a7ede2255eecafb08e9451328ad087c0e096472798e780eb01` |
 
 If either digest changes, this candidate is stale and every review receipt bound
 to it is void.
@@ -24,8 +24,7 @@ is asserted rather than proven — recorded here so the reviewer knows it.
 
 **Gate 1 integrity (D10).** Gate 1 is protected by signature, not by repository
 process. The specification gate verifies an SSHSIG signature over the exact
-message below, in namespace `rig-gate1`, against the trust record, before it
-runs any other check:
+message below, in namespace `rig-gate1`, before it runs any other check:
 
 ```text
 rig-gate1-freeze-v1
@@ -35,9 +34,24 @@ acceptance.md <sha256>
 
 Lowercase hex, one trailing newline, paths exactly as written. The signature
 must come from a key that attests hardware user presence; §7.4's downgrade
-allowance does not apply here. There is no upstream-branch comparison, no branch
-protection requirement, and no code-ownership requirement anywhere in this
-design — GA-11 withdrew all three.
+allowance does not apply here.
+
+This is a **source-repository** control and its artifacts live beside Gate 1:
+
+| Path | Role |
+|---|---|
+| `project-dev-docs/current/gate1.sig` | Detached SSHSIG signature over the message above. |
+| `project-dev-docs/current/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only. |
+
+Do not confuse these with `.rig/policy/allowed-signers` in §3.2, which is a
+**target-repository** artifact governing policy activation in a user's repo.
+They use the same primitive and the same presence floor, but they are separate
+trust stores with separate lifecycles: one guards Rig's own acceptance oracle
+during development, the other guards a user's safety policy after install.
+Neither can authorize the other.
+
+There is no upstream-branch comparison, no branch-protection requirement, and no
+code-ownership requirement anywhere in this design — GA-11 withdrew all three.
 
 When re-frozen, this document is the single Gate-2 source of truth for
 implementing the a-la-carte delivery model. A SOW, task list, coverage plan, or
@@ -110,6 +124,13 @@ degraded to an ordinary confirmation, or treated as successful. Rig specifies
 the signer interface and verifies signatures; it ships no signing binary and
 stores no key material.
 
+Agents may draft policy revisions only when the user asks for that exact draft
+or when a user-approved delegated policy-edit mode is active. Delegation is
+proposal authority, not activation consent: every active permission change still
+requires fresh approval of the exact revision. Installed base prompts state this
+as a hard rule and forbid inferring policy consent from prior approvals, chat
+context, task urgency, tool access, or the delegation itself.
+
 **Writes outside the repository are permitted, attributed, and never
 destructive (D9).** Where a vendor ships only a user-global surface, Rig appends
 or performs a namespaced additive merge, never an overwrite, and discloses the
@@ -159,7 +180,7 @@ These decisions are implementation constraints, not suggestions:
 | AD-16 | Write failed, vacuous, coverage-gap, disabled/unrun, activation-pending, and evidence-stale state where Gate 1 requires visibility. Routine current-epoch passes remain omitted from failure reports. |
 | AD-17 | Reuse Basic's MCP resolver/renderers only for evidence-backed supported paths through the Infrastructure compatibility slice. Unsupported MCP, including `pi`, is retired from every legacy and catalogue emission path without deleting user-owned files. |
 | AD-18 | Drive implementation from a complete executable transcription of Gate 1. The specification gate runs before code correctness; `npm test` remains the full code gate. |
-| AD-19 | Validate candidate policy bytes strictly, hash the exact bytes with SHA-256, and keep the last activated bytes as a separate immutable snapshot. Unapproved edits are inert. |
+| AD-19 | Validate candidate policy bytes strictly, hash the exact bytes with SHA-256, and keep the last activated bytes as a separate immutable snapshot. Unapproved edits are inert. Agents may write policy candidates only under an explicit current user request or a recorded delegated policy-edit receipt; delegated edit mode authorizes proposal authoring only and never activates permissions. |
 | AD-20 | Prefer a verified host-native user-presence approval that attests the exact digest. Otherwise require an external SSHSIG signature verified through `ssh-keygen -Y verify` against a namespaced challenge. Where neither is available, **refuse activation and report it unavailable** — there is no third path. Both available methods produce one common, replay-resistant activation receipt; repository markers and ordinary TTY prompts are insufficient. Rig never invokes a signing binary and never stores key material. |
 | AD-21 | Store one-use approvals clone-locally and uncommitted. Bind them to the complete normalized action and active policy, consume atomically before dispatch, and keep them valid only until used, changed, revoked, or expired by the native host; Rig adds no clock timeout. |
 | AD-22 | Evaluate one normalized action policy across shell, built-in web, and network-capable MCP adapters. Narrow permanent allowances are the default authoring path; explicit category-wide allowance and global enforcement disablement remain available. |
@@ -664,6 +685,10 @@ node rig/materialize.js check \
 node rig/materialize.js policy status \
   --target <repo>
 
+node rig/materialize.js policy propose \
+  --target <repo> --policy <network-policy.json> \
+  --out <policy-proposal.json>
+
 node rig/materialize.js policy activate \
   --target <repo> --policy <network-policy.json> \
   --approval <policy-approval.json>
@@ -677,7 +702,9 @@ node rig/materialize.js approvals revoke \
 
 The CLI remains argument parsing and orchestration. Domain logic stays under
 `rig/lib/`. Approval files contain a verified host-native attestation or
-external user-presence signature; a bare digest flag is never approval.
+external user-presence signature; a bare digest flag is never approval. A
+delegated policy-edit receipt may authorize an agent to write future candidate
+proposals, but it is never accepted as a policy activation approval.
 
 Before inspection, onboarding resolves policy state:
 
@@ -965,11 +992,14 @@ The policy stores explicit boolean leaves. Initial leaves are:
 | Surface | `git.pre_commit` | Local pre-commit dispatcher enforcement. |
 | Surface | `ci.repo` | Whole-repo CI enforcement and report upload. |
 
-Group switches such as `sanitation`, `drift`, `host`, `all_controls`,
+Group names such as `sanitation`, `drift`, `host`, `all_controls`,
 `all_enforcement`, and `all_baseline` are authoring conveniences. The editor
-expands them to explicit leaves before writing the candidate policy; they are
-not persisted precedence layers. This prevents a parent and child from
-prescribing incompatible outcomes.
+expands them into writes against the persisted section switches and leaves
+defined in §7.2 before the candidate policy is written; they are never stored as
+keys and add no precedence layer of their own. Validation rejects a policy
+document that contains one as a key. §7.2 defines the complete two-level
+evaluation model, and this paragraph is a constraint on what may exist on disk
+rather than a third level.
 
 Control code may be materialized while dormant so a later approved policy can
 enable it without fetching machinery. A disabled control is not invoked. A
@@ -1016,13 +1046,35 @@ conceptual shape is:
 }
 ```
 
-`enabled`, `controls.enabled`, `enforcement.enabled`, and `network.enabled` are
-the persisted global conveniences. Effective state is the logical AND of the
-applicable global switch, group switch, leaf, and surface. A false parent
-preserves its child values so re-enabling restores the user's prior choices,
-but every affected pair enters a fresh evidence generation. Other group
-conveniences such as `drift` are editor operations that update the explicit
-leaves and do not add another precedence layer.
+There are exactly **two** persisted levels, and no others:
+
+1. **Section switches** — `enabled`, `controls.enabled`, `enforcement.enabled`,
+   and `network.enabled`. These are persisted and are real precedence.
+2. **Leaves** — the individual control and surface booleans.
+
+Effective state is the logical AND of the top-level `enabled`, the applicable
+section switch, and the leaf. Nothing else participates. A false section switch
+preserves its child values so re-enabling restores the user's prior choices, but
+every affected pair enters a fresh evidence generation.
+
+The `sanitation`, `drift`, `host`, `all_controls`, `all_enforcement`, and
+`all_baseline` names from §7.1 are **editor operations, not stored keys**. They
+expand at authoring time into writes against the two levels above — `drift` sets
+both `drift.*` leaves, `all_enforcement` sets `enforcement.enabled` — and never
+appear in the persisted document. They add no third precedence layer, and a
+policy file containing one of those names as a key is rejected by validation.
+
+This is the point §7.1 makes about parents and children not prescribing
+incompatible outcomes, stated as a rule about what may exist on disk rather than
+about how evaluation resolves. Two persisted levels can conflict only in the one
+direction the AND already defines: a false section switch disables its leaves and
+cannot be overridden by a true leaf.
+
+**Status reports at leaf granularity, always.** When a leaf is inactive because
+its section switch is false, status names that leaf as disabled *and* names the
+section switch as the reason. It never reports a group as the disabled unit,
+because `AT-BASE-5` requires status to name every disabled or unrun control, and
+a user who reads "controls disabled" cannot tell which protections stopped.
 
 The four protected categories apply consistently after host events are
 normalized, even though two categories are broader than literal network
@@ -1047,7 +1099,14 @@ conflicting prose has no effect.
 
 ### 7.3 Candidate, active snapshot, and exact revision identity
 
-The user edits `.rig/network-policy.json` as a candidate. Activation:
+The user edits `.rig/network-policy.json` as a candidate. An agent may write a
+candidate only in two cases: the user requested that exact proposal in the
+current interaction, or an active delegated policy-edit receipt grants proposal
+authority. The receipt is Git-lite state: repository-bound, visible in status,
+revocable, and recorded with the proposal receipts it authorized. It never
+authorizes activation.
+
+Activation:
 
 1. reads bounded UTF-8 bytes and rejects a BOM, duplicate keys, unknown keys,
    invalid enums, malformed matchers, and value-shaped credentials;
@@ -1069,6 +1128,12 @@ Before the first user revision, the immutable shipped policy above is the safe
 active default. It enables every leaf and denies every protected category. The
 candidate materialized for the user begins byte-identical to that default.
 There is no implicit path from an edited candidate to active permissions.
+
+Every installed base prompt and host pointer carries the same boundary in
+mandatory language: delegated edit mode, prior approvals, chat phrasing, tool
+access, urgency, or broad instructions such as "fix the policy" are not consent
+to activate a policy. The agent must treat activation consent as present only
+when Rig verifies the exact-revision approval receipt.
 
 ### 7.4 User-presence approval and recovery
 
@@ -1384,6 +1449,7 @@ frozen verdict enum. All secret-shaped evidence is redacted before writing.
 | Gate 1 integrity | Recomputed digests plus a namespaced SSHSIG signature from a hardware-presence key; fail closed on a missing, invalid, or weak-signer signature. No git dependency. |
 | Claim status | Declared field and evidence bundle must agree; disagreement in either direction fails the gate. |
 | Install stub | Fetches a released tag by name; downloads to a file before executing; never pipes network output to a shell. |
+| Test target | Every target named in §12 must exist and must report results; a missing file is a coverage gap, never a pass. Runner exit codes are not trusted alone, because `node --test` exits 0 for a target it could not find. |
 
 No network access is required for onboarding mechanics. A selected service may
 later call an existing repo tool that uses network access, but its shell/web/MCP
@@ -1653,9 +1719,19 @@ and then executed. Rig's own default policy denies `remote_content_execution`,
 and an installer that violates the product's own rule in its first five seconds
 cannot be defended to the user it is about to lecture.
 
-`AT-DIST-1`'s "pinned source reference" is satisfied by a released tag. The
-failure it forbids is installing from a moving branch, which would hand a
-stranger half-finished work.
+**Every install resolves to, and records, one concrete tag.** `latest` is a
+selector, not a reference: the stub resolves it to a specific release tag before
+fetching anything, and writes that exact tag into the install receipt. Two
+strangers installing a month apart may receive different versions — that is what
+"latest" means and what every installer does — but each install is afterwards
+identifiable, reproducible by name, and never sourced from a moving branch.
+
+This is the reading of `AT-DIST-1`'s "pinned source reference" that this design
+adopts: the reference Rig fetches is always a concrete immutable release tag,
+recorded, never a branch. It is a narrower reading than "the same version
+forever," and it is recorded here as a reading rather than left implicit,
+because the phrase admits both. The failure the case exists to forbid is handing
+a stranger whatever happens to be on `prod` at that second.
 
 **Release plumbing.** The inherited npm publish workflow is deleted: the package
 is `private`, so tagging a release would otherwise fail on a publish step that
@@ -1675,6 +1751,15 @@ Set equality is asserted against Gate 1 as read from disk, not against a number
 written here. The count above is documentation; if it disagrees with the file,
 the file wins and the gate fails.
 
+**Every named executable target must be proven to exist and to have run.**
+`node --test <missing-file>` prints `Could not find` and **exits 0**, so a
+traceability row naming a test file that does not exist would otherwise read as
+green — the identical silent-skip failure this design rejects for service
+bindings in §4.2 and §8.1. The gate therefore stats every target named in the
+table and fails on absence, and the runner asserts that each named target
+actually reported results rather than trusting an aggregate exit code. A test
+target that vanishes is a coverage gap, never a pass.
+
 | Gate 1 case | Design mechanism | Primary executable evidence |
 |---|---|---|
 | AT-GATE-1 | This file is the only document with role `gate2-authority`; current SOW/task/coverage files are explicitly subordinate and every copied mechanism traces to an AD/section anchor. | `advanced-spec-gate.test.js`: reject a second authority, orphan normative ruling, or invalid anchor; accept the real tree only when authority is singular. |
@@ -1690,7 +1775,7 @@ the file wins and the gate fails.
 | AT-BASE-1 | Safe shipped policy runs sanitation first; an exactly activated disablement continues with disabled/not-run state and no verdict. | Prove default ordering and separately prove approved disablement unlocks menu without clean/protected evidence. |
 | AT-BASE-2 | One evaluator and action envelope govern verified shell/web/MCP adapters; unsupported surfaces are explicit gaps and MCP is re-evaluated after preferred routing. | Equivalent allow/deny actions across all three surfaces plus unsupported-axis and no-MCP-bypass fixtures. |
 | AT-BASE-3 | Install authoritative `.rig/network-policy.json`, explanatory `.rig/network-rules.md`, and pointers to both; enforcement reads active JSON only. | Conflicting prose cannot change a decision; every host instruction locates both artifacts. |
-| AT-BASE-4 | Sections 7.3/7.4 exact-byte digest, active snapshot, verified host-native or external user-presence approval, repository/sequence binding, and replay rejection. | Accept both verified paths; reject byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, and unsigned candidate. |
+| AT-BASE-4 | Sections 7.3/7.4 exact-byte digest, active snapshot, delegated proposal-authoring boundary, verified host-native or external user-presence approval, repository/sequence binding, and replay rejection. | Accept both verified activation paths; accept agent proposal only with current explicit request or delegated-edit receipt; reject delegated edit as activation consent, byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, unsigned candidate, and base prompts that imply prior approval or delegation can authorize activation. |
 | AT-BASE-5 | Explicit independent control/surface leaves, group/global authoring expansion, actual unwiring/non-blocking, unrelated function continuity, and truthful status. | Disable one control, one surface, one category, then all enforcement; verify requested effects and every status label. |
 | AT-BASE-6 | Evidence keys include policy digest, control/surface, enablement generation, implementation, and inputs; disable invalidates and re-enable increments. | A pre-disable pass cannot verify the re-enabled generation until a fresh run completes. |
 | AT-P1 | Same exhaustive typed graft evidence as AT-SHAPE-1; aliases must resolve to its real parameterized test. | `AT-P1` evidence alias to the substantive AT-SHAPE-1 test, never a tautological assertion. |
@@ -1721,15 +1806,16 @@ the file wins and the gate fails.
 | AT-PRESENCE-1 | §7.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. FIDO floor with a FIDO-authorized downgrade ceremony; Rig verifies and never signs. | Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert a plain key is rejected before the ceremony and disclosed in status after it. Assert no signing binary ships and no private key material is written. |
 | AT-HOME-1 | §6.4 append or namespaced additive merge only, with §6.5 disclosure. | Seed a user-global file with hand-written values, install, and assert byte-for-byte survival of every pre-existing value plus a disclosure line. A wholesale rewrite or an undisclosed write fails. |
 | AT-HOME-2 | §6.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
-| AT-DIST-1 | §11.4 committed root install stub fetching a released tag by name; `publish.yml` deleted; `package.json` at `5.0.0`, private. | In a container with only git, curl and sh and no checkout, run the stub against an empty repo and assert a working install. Assert the stub never pipes to a shell. Assert no publish workflow exists and that tagging `v5.0.0` cannot invoke npm publish. |
+| AT-DIST-1 | §11.4 committed root install stub resolving `latest` to one concrete release tag before fetching, recording that tag in the install receipt; `publish.yml` deleted; `package.json` at `5.0.0`, private. | In a container with only git, curl and sh and no checkout, run the stub against an empty repo and assert a working install. **Assert the resolved reference is a release tag and never a branch**, that the receipt names the exact tag installed, and that two runs against the same tag produce byte-identical trees. Assert the stub downloads to a file and never pipes to a shell. Assert no publish workflow exists and that tagging `v5.0.0` cannot invoke npm publish. |
 
 The specification gate also:
 
 0. **first**, recomputes the SHA-256 of `business-spec.md` and `acceptance.md`,
-   rebuilds the `rig-gate1-freeze-v1` message, and verifies its SSHSIG signature
-   in namespace `rig-gate1` against `.rig/policy/allowed-signers`, requiring a
-   hardware-presence key. Every later check is meaningless if Gate 1 has moved,
-   so nothing else runs until this passes;
+   rebuilds the `rig-gate1-freeze-v1` message, and verifies
+   `project-dev-docs/current/gate1.sig` in namespace `rig-gate1` against
+   `project-dev-docs/current/gate1.allowed-signers`, requiring a
+   hardware-presence key type. Every later check is meaningless if Gate 1 has
+   moved, so nothing else runs until this passes;
 1. confirms those digests match the pins recorded in this file's header;
 2. rejects a second Gate-2 authority or a subordinate superseding mechanism;
 3. rejects unresolved mechanism markers and forbidden catalogue filler;
@@ -2003,6 +2089,20 @@ npm test
   template engine or generated filler. Every fragment must name concrete checks
   and pass the shared service-shape contract.
 
+- **The §7.4 downgrade ceremony weakens the guarantee `AT-PRESENCE-1` makes.**
+  After a downgrade, the allowed signer is an ordinary key on disk, and an agent
+  that can read it can produce a valid activation signature with no human
+  present. "No presence, no activation" then holds by the user's key hygiene
+  rather than by anything Rig verifies. This is within Gate 1's letter — the
+  case requires "a user-configured external signature" and does not specify
+  hardware — and it was chosen deliberately by the intent owner over a FIDO-only
+  floor, because a FIDO-only floor permanently strands every user without a
+  security key on the fifteen hosts that have no native prompt. It is recorded
+  here rather than absorbed silently: the ceremony is gated behind a
+  FIDO-authorized bootstrap so a weak signer cannot admit itself, the reduced
+  floor is named in every status output thereafter, and D10 bars the downgrade
+  from Gate 1 integrity entirely. An independent review flagged this as
+  machinery Gate 1 does not require, and that reading is correct.
 - **Four verified hosts is a narrow base.** The initially advertised hosts have
   similar permission models, so the enforcement design is shaped by their
   conventions and may fit later hosts poorly. Recorded in Gate 1 §9 as accepted.
@@ -2051,6 +2151,15 @@ combine internal modules, but must preserve:
 - atomic apply, policy, approval, and receipt evidence;
 - exact per-axis host/CI contracts, additive/approved CI bootstrap, and real
   first-wire gates;
+- the build/claim split: every roster axis emitted, only bundle-complete axes
+  advertised, declared status cross-checked against evidence both ways, and no
+  file anywhere enumerating the advertised hosts;
+- the claim line in install output and run reports, with no prompt or flag on
+  the unverified path;
+- refusal as a terminal activation state, and the FIDO presence floor;
+- user-global writes that append, attribute from the first install, and remove
+  only their own repository's entries;
+- the install stub, and the absence of a publish workflow;
 - report behavior and B1 containment;
 - all frozen Gate 1 acceptance cases.
 
@@ -2059,23 +2168,47 @@ Implementation must not edit `business-spec.md` / `acceptance.md` or
 
 ## 16. Candidate Freeze Blockers
 
-Version 0.3 deliberately remains a candidate. It cannot be marked `FROZEN`
-until:
+**Freeze and release are different events, and conflating them deadlocks the
+project.** Gate 1 §8 orders the gates: the specification gate proves the
+*specification* is sound, and only then may the code gate evaluate
+implementation. A freeze condition that depends on implementation output would
+make Gate 2 unfreezable until the work it authorises is finished, and
+unstartable until it is frozen. v0.2's blocker list had exactly that shape.
 
-1. the exact per-axis contracts and official/first-wire evidence required by
-   Section 10 are authored inside this sole authority for every axis this
-   product **advertises** as `verified`. Axes shipping as `emitted` do not block
-   this, which is the whole point of the D1/D2 split;
-2. all 115 leaves replace TODO/generic/repeated content and pass the exact-digest
-   fresh catalogue review;
-3. the Section 12 specification gate and complete **45-ID** executable oracle
-   exist and are red only for missing product behavior, not stale assertions;
+### 16.1 Freeze blockers — properties of this document
+
+Version 0.3 remains a candidate until all of the following hold. Every one is
+checkable against the specification alone:
+
+1. traceability is exact set equality against Gate 1's ID set, and every row
+   names a real design anchor and a substantive executable target;
+2. no unresolved mechanism marker, contradiction, or placeholder remains in this
+   file;
+3. a fresh-session report-only review of the final candidate digest, run under a
+   model different from the one named in the authoring-context block, returns no
+   blocker and an empty `unresolved` set;
 4. the intent owner has signed the frozen Gate-1 message with a
-   hardware-presence key and the gate verifies that signature (D10). Without it
-   the gate cannot pass at all, so this blocker gates every other one;
-5. a fresh-context report-only review of the final candidate digest, run under a
-   model different from the one named in this file's authoring-context block,
-   finds no unresolved or contradictory mechanism.
+   hardware-presence key, and that signature verifies (D10). This is provable
+   with `ssh-keygen -Y verify` directly and does **not** wait for the gate script
+   — Slice 1 automates the check, it does not create the requirement.
+
+When these hold, this file is marked `FROZEN` and implementation begins.
+
+### 16.2 Release blockers — properties of the built product
+
+These do **not** block the freeze. They block advertising the catalogue path as
+supported, and §11.3 owns the ordered form:
+
+1. every axis the product **advertises** as `verified` has its exact per-axis
+   contract, official evidence, and passing first wire recorded in this
+   authority. Axes shipping as `emitted` do not block release, which is the
+   entire point of the D1/D2 split;
+2. all 115 leaves replace TODO/generic/repeated content and pass the
+   exact-digest fresh catalogue review;
+3. the §12 specification gate and complete **45-ID** executable oracle exist and
+   are green;
+4. `npm test` passes on the final source state, with the specification gate
+   ordered first.
 
 Green legacy/current code tests cannot remove any blocker.
 
