@@ -819,3 +819,62 @@ Rejected on the way to this ruling, and why:
 - **A digest pinned in Gate 2, unsigned.** Forces a visible multi-file edit, so
   it is an audit trail and a deterrent — but it is not a barrier, and the
   product does not describe deterrents as protection.
+
+## GA-12 — The lifecycle re-grill (2026-07-28)
+
+Recorded after a sweep of the frozen Gate 1 for unstated behavior rather than
+for wrong behavior. The finding that motivated it: the intent described how Rig
+arrives in a repository in great detail and said almost nothing about how it
+leaves, how it fails, or what it does with what it finds. `AT-HOME-2` already
+obliged Rig to remove its own entries from a user-global file and report what it
+removed, while nothing said what removal does to the repository Rig actually
+modified — including the CI job Rig inserts into the user's pipeline.
+
+Eight rulings, taken one at a time with the intent owner:
+
+| ID | Product ruling |
+|---|---|
+| GA-12a (D11) | Repo-side uninstall is v1 scope. Every write to a file Rig does not exclusively own is delimited by managed-block markers and recorded in an install manifest as it happens; uninstall walks that manifest in reverse and removes exactly Rig's content. Rig also keeps a pre-modification copy of each touched file, used **as evidence and never as a restore**: the copy is diffed against the result so removal can be reported *verified clean* or *best-effort with the file named*, mirroring the install claim split. Restoring the copy was rejected — it would silently destroy every edit the user made after installing. |
+| GA-12b (D11) | Usage artifacts are not installation state. Reports and run history survive uninstall by default; purging them is an explicit user request that names what it will delete. |
+| GA-12c (D12) | Delegated policy-edit mode is scoped to the session it was given in and is never persisted. Revocation is ending the session; it needs no approval ceremony, because a control that can only be tightened where the approval surface is reachable cannot be tightened on the hosts that most need it. Because no grant can exist on disk, an agent in a later session asserting delegation is unverifiable by construction and is refused. `AT-BASE-4`'s "recorded delegated-edit receipt" is withdrawn — nothing is recorded. |
+| GA-12d (D13) | There is no user-editable invariant tier. The prohibition on agent self-activation is a Rig product rule shipped with the baseline, not a clause in the user's policy. The user may disable enforcement wholesale and be told they are unprotected; what cannot exist is a configuration permitting self-activation alongside a claim of protection. |
+| GA-12e (D14) | An interrupted install leaves its applied work in place, marked incomplete, and resumes from the manifest on re-run; uninstall backs it out through the same teardown path. No partially applied control may report as enabled or protecting. |
+| GA-12f (D15) | Findings stay on the machine that produced them: reports are excluded from version control and never uploaded as build artifacts, and CI emits a verdict with counts and rule identities without printing detail to the log. |
+| GA-12g (D16) | Matched secret content does not reach the model by default. Detection is deterministic; the agent reads counts, rule identities, and locations. Model-assisted triage is an explicit opt-in disclosed where it is enabled. |
+| GA-12h (D17) | The specification gate is armed by the presence of the signer identity. On an armed repository a missing signature is a failure, not a downgrade. An unarmed repository runs and reports Gate 1 unprotected. |
+| GA-12i (D18) | Version migration is out of scope and recorded as a deliberate exclusion. Rig ships as a source archive plus install stub, not through a package manager, so there is no upgrade channel; taking a newer Rig is a reinstall, which is already required to be idempotent. |
+
+The ID set moves from 45 to **52**. `D18` adds no case.
+
+Rejected on the way to these rulings, and why:
+
+- **Snapshot-restore as the uninstall mechanism.** The intent owner first
+  proposed returning to the pre-install state — the last commit, or a snapshot
+  of the harness as it was. It guarantees a byte-exact return and silently
+  discards every edit the user made to those files since installing. On a file
+  like `AGENTS.md`, which a user edits continuously, that is data loss dressed as
+  cleanliness. The snapshot survives as evidence for the clean/best-effort claim,
+  which is the part of the idea that was load-bearing.
+- **Transactional install with automatic rollback.** Rejected as a second
+  implementation of a teardown path the product already commits to building, and
+  because the classic failure of transactional installers is a failed rollback
+  leaving worse debris than the original failure.
+- **Invariant clauses held in a separate file or repository.** Proposed from
+  general access-control practice, where it assumes IAM: service accounts,
+  branch protection, absent merge rights. Rig's agent has full shell access, so a
+  second file is reached exactly as easily as the first. This is the same
+  reasoning that withdrew D5, and it was applied again rather than re-litigated.
+- **Expiring or use-counted delegation grants.** A clock defends against a threat
+  that exact-revision activation approval already contains, and it would make Rig
+  store new state whose staleness it would then have to keep honest. The intent
+  owner went further than the recommendation and removed persistence entirely.
+- **Model-assisted secret triage as the default, with redaction as the guard.**
+  Rejected because it makes the redaction step load-bearing and one bug in it
+  ships a live credential to a third party. This is recorded as a deliberate
+  inversion of the product's usual "configurability over paternalism" rule, on
+  the ground that it is the only failure in the product that cannot be undone by
+  re-running something.
+- **Treating a missing Gate 1 signature as unprotected-but-passing.** This was
+  the behavior implied by the existing §9 language and it made D10 opt-out: any
+  context wanting to edit Gate 1 could delete the signature first. Found during
+  this sweep and fixed by GA-12h rather than carried into freeze.

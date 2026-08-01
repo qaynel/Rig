@@ -1,4 +1,4 @@
-# Tier 2 Advanced — Gate 1 (RE-GRILLED AND FROZEN 2026-07-26)
+# Tier 2 Advanced — Gate 1 (RE-GRILLED AND FROZEN 2026-07-28)
 
 **Frozen business intent + acceptance tests** for the Advanced à-la-carte delivery model. This is the
 clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
@@ -55,6 +55,8 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > **This revision is frozen.** All nine decisions are recorded and no decision
 > remains open. Gate 2 must be rewritten and re-frozen against this file and
 > [`../acceptance.md`](../acceptance.md) at their current 45-case set.
+> *(The 45-case instruction here is historical: superseded by the 2026-07-28
+> note below, which moves the set to 52.)*
 
 > **Revision note (2026-07-26, later the same day) — D10, Gate 1 integrity.**
 > Re-grilled once more by the intent owner after Gate 2 design work surfaced
@@ -78,6 +80,32 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > size.
 >
 > **This revision is frozen.** Its residual risks are recorded in §9.
+
+> **Revision note (2026-07-28) — D11-D18, the lifecycle revision.** Re-grilled
+> with [`../acceptance.md`](../acceptance.md) after a sweep for unstated
+> behavior. The finding behind it: this Gate 1 specified in detail how Rig
+> arrives in a repository and said almost nothing about how it leaves, how it
+> fails, or what it does with what it finds. `AT-HOME-2` obliged Rig to remove
+> its own entries from a user-global file and report what it removed, while
+> nothing anywhere said what removal does to the repository Rig actually
+> modified — including the CI job Rig inserts into the user's own pipeline
+> under `AT-CI-1`. A product a stranger can install under `AT-DIST-1` and cannot
+> cleanly remove is not finished.
+>
+> Eight decisions were taken, `D11`-`D18`, marked at their point of effect here
+> and in [`../acceptance.md`](../acceptance.md). Seven change observable product
+> behavior and add seven cases; the ID set moves from 45 to **52**. `D18` is a
+> scope exclusion and adds none.
+>
+> One of them is a defect fix. `D17` closes a hole in `D10`: the gate defined
+> only the *edited*-signature case, so a **missing** signature fell through to
+> §9's honest-fallback language and passed — meaning any context that wanted to
+> edit Gate 1 could delete the signature first and proceed under a warning. The
+> gate is now armed by the presence of the signer identity, and absence of a
+> signature on an armed repository is a failure rather than a downgrade.
+>
+> **This revision is frozen.** Gate 2 is reopened by it and must be rewritten
+> and re-frozen against the 52-case set.
 
 ## 1. Problem & outcome
 
@@ -106,9 +134,21 @@ Host-agnostic; config-only (B1).
     disable any part of it, including all enforcement.
   - A policy revision is inert until the user approves that exact revision.
     An agent may propose a revision, and the user may grant an agent explicit
-    delegated policy-edit mode for future proposals, but neither path lets the
+    delegated policy-edit mode, but neither path lets the
     agent activate its own proposal. Delegation is proposal authority, not
-    consent.
+    consent. **That delegation is scoped to the session it was given in and is
+    never written to disk (D12)** — so it ends when the session ends, needs no
+    revocation ceremony, and an agent in a later session claiming to hold it is
+    refused, because nothing exists that could substantiate the claim.
+  - **The prohibition on agent self-activation is a product rule, not a user
+    policy clause (D13).** No policy the user can write and no proposal an agent
+    can make removes it. The user may disable Rig's enforcement entirely and be
+    told truthfully that they are unprotected; what cannot exist is a
+    configuration that permits an agent to activate its own edits while Rig
+    still reports protection. Holding such invariants in a separate file or
+    repository was considered and rejected: an agent with full shell access
+    reaches the second file as easily as the first, which is the reasoning that
+    withdrew D5.
   - Disabled controls genuinely stop restricting the agent. Rig records what
     is disabled or did not run and never reports a stale or fabricated
     protected, scanned, passed, or verified state.
@@ -153,9 +193,9 @@ Host-agnostic; config-only (B1).
   - **Agent prompts must not invent policy consent.** Every installed base
     prompt states that prior approvals, delegated edit mode, chat wording, tool
     access, urgency, or a broad task request never authorize activation. The
-    agent may draft only under an explicit current request or a recorded
-    delegated-edit receipt, and every activation still needs exact-revision
-    user approval.
+    agent may draft only under an explicit current request or a delegation given
+    in the current session (D12), and every activation still needs
+    exact-revision user approval.
   - **Writes outside the repository are permitted, attributed, and never
     destructive (D9).** Where a vendor ships only a user-global surface, Rig
     may write host configuration outside the repository by appending or
@@ -165,6 +205,38 @@ Host-agnostic; config-only (B1).
     the first installation onward, so that uninstalling one repository leaves
     every other repository's configuration intact and reinstalling replaces
     rather than accumulates.
+  - **Removal is part of the product (D11).** Rig can be taken out of a
+    repository as completely as it was put in. Every write Rig makes to a file
+    it does not exclusively own is delimited by managed-block markers and
+    recorded in an install manifest as it happens, so uninstall removes exactly
+    Rig's own content — across its files, the grafted instruction file, hooks,
+    the CI job, host configuration, and any user-global file — and leaves every
+    user-owned byte untouched. Rig also keeps a copy of each file as it stood
+    before Rig first modified it, used to prove the result is clean and never to
+    restore over the user's later work. Where a managed block can no longer be
+    located, removal is reported as best-effort with the file named, never as
+    clean. Usage artifacts such as reports are not installation state and
+    survive removal unless the user explicitly asks for a purge.
+  - **An interrupted install resumes; a partial install claims nothing (D14).**
+    A transition-install that fails partway leaves its applied work in place and
+    marked incomplete, and re-running it continues from the manifest rather than
+    restarting or duplicating. Uninstall remains available to back it out
+    through the same teardown path. Until it completes, no partially applied
+    control is reported as enabled or protecting anything.
+  - **Findings stay on the machine that produced them (D15).** Reports are
+    excluded from version control, are not committed, and are not uploaded as
+    build artifacts. In CI the job emits a pass/fail verdict with counts and
+    rule identities and does not print finding detail to the log, because on a
+    public repository the log is as readable as the artifact and a secret-scan
+    report is a map of the repository's secrets.
+  - **Matched secret content does not reach the model by default (D16).**
+    Credential detection is deterministic. The agent may read counts, rule
+    identities, and locations; matched content enters an agent's context only
+    when the user has explicitly enabled model-assisted triage, and that choice
+    is disclosed where it is made. The host's model is a third party, and a
+    credential in a third party's context cannot be unsent, only rotated. This
+    is the one place the product deliberately inverts its preference for
+    configurability over paternalism.
   - **No Rig runtime / model key** in the installed repo (B1 / #11).
 
 ## 3. In scope / out of scope
@@ -185,6 +257,19 @@ install stub that fetches a pinned source reference, retires the inherited npm
 publish workflow, and cuts the first production release. Correctness without a
 delivery path is not a shipped product, and the audit found no delivery path
 existed.
+
+**Also in scope (D11) — removal.** The install manifest, managed-block markers,
+pre-modification copies, and the uninstall path that consumes them. This is the
+counterpart to D7: a product a stranger can install without this checkout must
+also be one they can remove without it.
+
+**Out of scope (D18) — version migration.** Rig is distributed as a source
+archive and an install stub, not through a package manager, so there is no
+upgrade channel to specify and no migration between installed versions. Taking a
+newer Rig is a reinstall, which is already required to be idempotent, and the
+manifest already records what the previous install put where. This is recorded
+as a deliberate exclusion rather than left silent, so that a later reader does
+not read the absence as an oversight.
 
 **Out of scope → Tier 3:** Cap A (local-model / LangGraph runtime); persistent cross-session memory
 store; semantic-brain runtime judgment (goal-drift / tool-chain intent) + isolation infrastructure
@@ -305,7 +390,7 @@ Evaluation is ordered:
    first-wire correctness. Green code tests cannot compensate for a failed or
    unapproved specification gate.
 
-**Gate integrity is mechanical, not clerical (D5, revised D10).** This file and
+**Gate integrity is mechanical, not clerical (D5, revised D10, D17).** This file and
 [`../acceptance.md`](../acceptance.md) are protected by signature rather than by
 repository process. At freeze, the intent owner signs the combined SHA-256
 digest of both files with a key that attests hardware user presence. The
@@ -314,6 +399,18 @@ anything else runs. An agent holding full repository and shell access can edit
 these files, and can edit the recorded digest and signature sitting beside them,
 but it cannot produce a signature that verifies — so an edited Gate 1 fails the
 gate instead of quietly moving the bar it is measured against.
+
+**The gate is armed by the signer identity, not by the signature (D17).** A
+repository holding the signer identity file is armed: a signature that is
+missing, malformed, or non-verifying is a **failure**, not a downgrade to a
+warning. Absence had previously fallen through to the honest-fallback language
+in §9, which made the whole control opt-out — a context that wanted to edit Gate
+1 could delete the signature first and proceed under a line of output the user
+skims. A repository with no signer identity at all is unarmed: the gate runs,
+reports Gate 1 as unprotected in those words, and does not block, so that work
+before a key exists and a stranger who cloned the repository under `AT-DIST-1`
+can both still run the suite. Disarming therefore requires deleting the signer
+identity itself, which is a deliberate act rather than a cleanup.
 
 Hardware-attested presence is the floor for this use specifically. Where the
 product elsewhere permits a weaker user-configured signer, Gate 1 integrity does
@@ -330,7 +427,7 @@ exists to close.
 session by a different model**. Review is report-only and its receipt is pinned
 to the exact content digest reviewed. There is no human sampling step; the
 intent owner accepts that a shared blind spot between authoring and reviewing
-models is a residual risk, recorded in §10.
+models is a residual risk, recorded in §9.
 
 These are workflow separations, not staffing requirements. A single maintainer
 may run the product, design, implementation, review, and acceptance stages
@@ -362,3 +459,29 @@ mistake them for oversights.
   intent owner to approve a Gate 1 revision, and receives that approval, is
   through the control by design. D10 defends against a silent edit, not against
   a maintainer who has been convinced.
+- **Arming is not tamper-proof, only loud (D17).** An agent with full write
+  access can delete the signer identity file as easily as the signature and land
+  the repository back in unarmed mode. From inside the repository, "never armed"
+  and "deliberately disarmed" are not distinguishable, because distinguishing
+  them needs an anchor outside the repository and this product has none — the
+  same absence of infrastructure-level access control that produced D10 in the
+  first place. D17 raises the cost of the bypass from deleting a signature to
+  deleting the maintainer's identity file, and makes the second act visible. It
+  does not make it impossible.
+- **An edit inside a managed block is lost on removal (D11).** Managed blocks
+  are Rig-owned territory and their markers say so, but a user who edits inside
+  one loses that edit when the block is removed. Relatedly, a file whose markers
+  have been stripped or rewritten by another tool can only be reported
+  best-effort at uninstall, leaving the user manual work. Both are preferred to
+  the alternative, which was restoring a pre-install snapshot over months of the
+  user's own edits.
+- **Deterministic-only secret detection leaves triage to the user (D16).**
+  Refusing to route matched content through the host's model means Rig cannot
+  tell a live credential from a test fixture, so users will see false positives
+  and sort them by hand unless they opt into model-assisted triage. This cost was
+  accepted because the failure it avoids — a real credential in a third party's
+  context — cannot be undone.
+- **Local-only findings cost shared visibility (D15).** Keeping reports off the
+  repository and out of CI artifacts means a team has no shared history of what
+  its checks found, and a CI failure tells a reviewer only that something failed
+  and how much. Reproducing the detail requires running the check locally.

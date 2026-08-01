@@ -30,12 +30,12 @@ catalogue is the product.
 
 | Path | Role |
 |---|---|
-| [`handoff.md`](current/handoff.md) | **Start here when picking the work up cold.** Current gate status, the eight locked design decisions, live digests, the two remaining freeze blockers, and the traps found the hard way. |
+| [`handoff.md`](current/handoff.md) | **Start here when picking the work up cold.** Current gate status, the locked design decisions, live digests, the remaining freeze blockers, and the traps found the hard way. |
 | [`reviews/`](current/reviews/) | Report-only Gate-2 review receipts, each pinned to the exact content digest reviewed. A receipt whose digest is not the current one is void. |
 | [`reference/`](current/reference/) | The official source documents implementation is built from: the agent-harness security playbook, the host and CI capability reports, the mutation and product-security taxonomies, and the testing-pipeline vision. Held as captured. |
 | [`spec/product-spec.md`](current/spec/product-spec.md) | Product-level design and the shipping plan it sits under. |
 | [`spec/business-spec.md`](current/spec/business-spec.md) | Re-grilled business intent: problem, users, complete catalogue, user-controlled safety policy, verified coverage, and correctness properties. |
-| [`spec/technical-spec.md`](current/spec/technical-spec.md) | Sole candidate Gate-2 implementation authority, at v0.3 against the 45-case Gate 1. Still a **candidate**: §16 lists what must be true before it may be frozen, and implementation may not begin against a candidate. |
+| [`spec/technical-spec.md`](current/spec/technical-spec.md) | Sole Gate-2 implementation authority — but **reopened** by the 2026-07-28 Gate 1 revision. It is v0.3 written against the superseded 45-case set and must be rewritten against the current 52 before it can be a freeze candidate again. Implementation may not begin against it. |
 | [`spec/host-coverage-spec.md`](current/spec/host-coverage-spec.md) | Host and CI coverage dispositions, evidence rules, and the roster acceptance cases. |
 | [`acceptance.md`](current/acceptance.md) | Frozen acceptance criteria and tests. The verdict here outranks any implementer's claim. |
 | [`sow.md`](current/sow.md) | Scope, deliverables, delivery status, definition of done, and remaining work. |

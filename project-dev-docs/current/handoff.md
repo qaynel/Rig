@@ -1,4 +1,4 @@
-# Handoff — Tier 2 Advanced, 2026-07-27
+# Handoff — Tier 2 Advanced, 2026-07-28
 
 For the next agent picking this up on another machine. Read this, then
 `spec/business-spec.md` → `acceptance.md` → `spec/technical-spec.md`.
@@ -11,15 +11,26 @@ until Gate 2 freezes, and `rig-implementation` takes over after.
 
 ## 1. Where the project actually is
 
-Gate 1 is frozen at **45 cases**. Gate 2 (`spec/technical-spec.md`) is at
-**v0.3 CANDIDATE — not frozen, not currently reviewed**. No implementation may
-begin against a candidate.
+Gate 1 was re-grilled on 2026-07-28 and is frozen at **52 cases** (was 45). The
+lifecycle revision `D11`-`D18` added removal, install-failure, report-disclosure,
+and secret-handling behavior that Gate 1 had never stated, and fixed one defect
+in `D10`. Read the 2026-07-28 revision note in both Gate 1 files first; the
+rationale and the rejected alternatives are in the `GA-12` log entry.
 
-Two freeze blockers remain, and only two. Both are in §16.1:
+Gate 2 (`spec/technical-spec.md`) is **reopened by that revision**. It is v0.3,
+written against the 45-case set, and its header pins the two superseded Gate 1
+digests. It is not a candidate for freeze in that state — it must be rewritten
+against the 52-case set before anything else. No implementation may begin
+against it.
 
-1. **A clean fresh-model review at the current digest.** There is none right
-   now — see §4 below. This is the blocker most likely to be misread as done.
-2. **The intent owner's FIDO signature over the Gate 1 message.** Not yet
+Freeze blockers, in order:
+
+1. **Gate 2 rewritten against the 52-case set**, with the traceability table
+   matching all 52 IDs exactly and the Gate 1 digests in its header re-pinned to
+   the values in §3.
+2. **A clean fresh-model review at that new digest.** Every existing receipt is
+   void — see §4. This is the blocker most likely to be misread as done.
+3. **The intent owner's FIDO signature over the Gate 1 message.** Not yet
    produced. Exact commands in §5.
 
 Everything else on the old blocker list moved to §16.2 as *release* blockers,
@@ -49,12 +60,15 @@ obtain. Do not silently re-open them; they are recorded at length in the Gate 2
 
 | File | SHA-256 |
 |---|---|
-| `spec/business-spec.md` | `960f7722e8b4bd6d962f547ba0266f7d21bbbed4a37c262b6f9d827a7fd93214` |
-| `acceptance.md` | `995897aa8ccd88a7ede2255eecafb08e9451328ad087c0e096472798e780eb01` |
+| `spec/business-spec.md` | `e17bc722e22fe18298e318a6bc28bd11acc057866decacf2b727a634ba1d8069` |
+| `acceptance.md` | `19ee3b8a90c056aa26bbbf4ce4cf98e1a7329aecff734d6f116b82754cdec7a8` |
 | `spec/technical-spec.md` | `75bfc8a09ffac829b04f6b97cdc660cbfb0d32fe441f319bf90eb36f3e5d146c` |
 
-The first two are pinned in the Gate 2 header and **currently match**. If you
-change Gate 1, re-pin them or the gate is incoherent.
+The first two are pinned in the Gate 2 header and **no longer match** — Gate 2
+still carries the 2026-07-27 values. That is expected: Gate 2 is reopened, and
+re-pinning is part of rewriting it, not a separate errand. Do not re-pin the
+header while leaving the body written against 45 cases; a matching digest over
+stale content is worse than a visibly stale one.
 
 ## 4. Review state — read this carefully
 
@@ -65,12 +79,13 @@ change Gate 1, re-pin them or the gate is incoherent.
 | `gate2-v0.3-round1-6279bf02.review.json` | `6279bf02` (stale) | pass — 3 minor, 0 blockers |
 | `gate2-v0.3-round2.review.json` | `d8b7ba8d` (stale) | pass — 2 minor, 0 blockers |
 
-Round 3 was started against the current bytes and **was killed before writing a
-receipt**. Gate 2 has therefore never been reviewed in its present form, which
-includes the §16 freeze/release split, the delegated-policy-edit mechanism, and
-the missing-test-target rule.
+Round 3 was started against the then-current bytes and **was killed before
+writing a receipt**. Gate 2 has therefore never been reviewed in its present
+form, and its present form is itself now superseded by the 2026-07-28 Gate 1
+revision. Both receipts and the abandoned round 3 are historical only.
 
-Do not treat the round 2 pass as covering the current file. Re-run:
+Do not treat any existing pass as covering the file you will produce. Review
+after the Gate 2 rewrite, not before:
 
 ```sh
 node scripts/review-receipt.js \
@@ -118,17 +133,30 @@ its own Gate 1 edits, which is the one attack D10 exists to stop.
 
 ## 6. Ordered next steps
 
-1. Re-run the review (§4). Triage findings; amend Gate 2 if warranted, which
-   changes the digest and voids the receipt — that is the mechanism working.
-2. Intent owner signs (§5).
-3. Mark Gate 2 `FROZEN` and pin the reviewed digest.
-4. **Slice 1** — `scripts/check-advanced-spec.js`: Gate 1 signature check first,
-   then authority, traceability set equality at 45, placeholder rejection,
+1. **Rewrite Gate 2 against the 52-case set.** The 2026-07-28 revision adds a
+   removal path with an install manifest, managed-block markers, and
+   pre-modification copies; resumable partial installs; local-only findings with
+   no artifact upload and no detail in CI logs; deterministic secret detection
+   with opt-in model triage; session-scoped delegation with nothing persisted;
+   and an armed/unarmed specification gate. The manifest and markers are now
+   load-bearing at install time, not only at uninstall — `AT-SHAPE-1` requires
+   them at the moment of every write.
+2. Run the review (§4) against the rewritten file. Triage findings; amend Gate 2
+   if warranted, which changes the digest and voids the receipt — that is the
+   mechanism working.
+3. Intent owner signs (§5).
+4. Mark Gate 2 `FROZEN` and pin the reviewed digest.
+5. **Slice 1** — `scripts/check-advanced-spec.js`: Gate 1 signature check first,
+   then authority, traceability set equality at **52**, placeholder rejection,
    receipt validation. Wire ahead of the code tests in `npm test`; add
-   `npm run test:code`.
-5. Transcribe all 45 cases into substantive tests. See the warning in §7 about
+   `npm run test:code`. The signature check implements `D17`: signer identity
+   present means a missing or non-verifying signature **fails**; no signer
+   identity means run and report Gate 1 unprotected. Do not write the earlier
+   behavior where a missing signature merely warns — that was the defect this
+   revision closed.
+6. Transcribe all 52 cases into substantive tests. See the warning in §7 about
    the existing test files.
-6. Slices 2–14 per Gate 2 §13.
+7. Slices 2–14 per Gate 2 §13, re-derived against the rewritten Gate 2.
 
 ## 7. Traps discovered the hard way
 
@@ -152,18 +180,32 @@ its own Gate 1 edits, which is the one attack D10 exists to stop.
   catalogue and delivery CLI", it actually contains the 432 placeholders and the
   implementation built against the withdrawn design. Do not read it as delivered
   work.
+- **`sow.md` and `tasklist.md` are stale.** They were updated for `D10` and the
+  delegated-edit ruling, not for `D11`-`D18`. They describe no removal path, no
+  install manifest, and the old delegated-edit persistence. They are subordinate
+  documents and cannot override Gate 2, but the specification gate checks for
+  contradictions — bring them forward when Gate 2 is rewritten, not before.
 - **`rg` is not installed** in this workspace; use `grep -RIn`.
 - **Concurrent sessions have edited these files.** Re-read before editing and
   check digests after; a session on another machine amended Gate 1 and Gate 2
   while this one had uncommitted changes. It merged cleanly, but verify rather
   than assume.
 
-## 8. Open question for the intent owner
+## 8. The sequencing question is closed
 
-Gate 1 has been revised four times in two days: D1–D9, D10, and the
-delegated-policy-edit ruling. Every revision voids the pins and every review
-receipt. Freezing while revisions are still landing simply re-opens the gate.
+The previous handoff asked the intent owner to confirm whether the
+delegated-policy-edit ruling was the last Gate 1 revision before freeze. It was
+not. A deliberate sweep for unstated behavior on 2026-07-28 produced seven
+questions and eight rulings (`GA-12`), all answered in one session by the intent
+owner.
 
-**Confirm the delegated-policy-edit ruling is the last one before freeze**, or
-expect another review cycle. This is a sequencing decision, not a product one,
-and it is the cheapest thing on this page to get wrong.
+That sweep is complete and nothing from it is left open. The queue it worked
+through was: repo-side uninstall and its restore semantics; delegation
+revocation; user-editable invariant clauses; install atomicity; report location
+and disclosure; secret content reaching the model; and the missing-signature
+behavior of the gate. No item was deferred.
+
+The honest expectation to set: this closes the *known* gaps in stated intent. It
+does not promise that Gate 2 design work will surface none — D10 itself came out
+of Gate 2 design. If one appears, it returns here rather than being absorbed,
+and that is the pipeline working rather than a failure of this freeze.

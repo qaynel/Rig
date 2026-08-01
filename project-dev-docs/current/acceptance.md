@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED AND FROZEN 2026-07-26)
+# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED AND FROZEN 2026-07-28)
 
 > **Revision note (2026-07-25).** This file was re-grilled with
 > [`spec/business-spec.md`](spec/business-spec.md). Together they are the complete
@@ -37,6 +37,32 @@
 > unaffected. Rationale and residual risks:
 > [`spec/business-spec.md`](spec/business-spec.md) §8 and §9.
 
+> **Revision note (2026-07-28) — D11-D18, the lifecycle revision.** Re-grilled
+> with [`spec/business-spec.md`](spec/business-spec.md) after a sweep for
+> unstated behavior found that Gate 1 specified how Rig arrives in a repository
+> and never how it leaves, fails, or discloses what it finds. `AT-HOME-2`
+> already obliged Rig to remove its own entries from a user-global file and
+> report what it removed, while nothing said what removal does to the repository
+> Rig actually modified — including the CI job `AT-CI-1` has Rig insert into the
+> user's own pipeline.
+>
+> Eight decisions were taken, marked `D11`-`D18` at their point of effect. Seven
+> new cases: `AT-UNINSTALL-1`, `AT-UNINSTALL-2`, `AT-UNINSTALL-3`,
+> `AT-INSTALL-1`, `AT-REPORT-1`, `AT-SECRET-1`, `AT-BASE-7`. Revised:
+> `AT-GATE-2`, `AT-SHAPE-1`, `AT-BASE-4`, `AT-B3`, `AT-CI-1`, `AT-CI-3`. The ID
+> set grows from 45 to **52**, and the Gate-2 traceability table must match that
+> set exactly.
+>
+> One revision is a defect fix rather than an addition. `AT-GATE-2` previously
+> defined only the *edited*-signature case, so a missing signature fell through
+> to §9's honest-fallback language and passed. That made D10 bypassable in one
+> move: delete `gate1.sig`, and the gate reports unprotected while the edit
+> proceeds. D17 arms the gate on the presence of the signer identity instead.
+>
+> **Frozen.** All eight decisions are recorded and no case is left open. A design
+> or implementation context must not edit this file; a genuine conflict returns
+> to grilling.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -51,7 +77,7 @@ only when the product intent is met.
   SOW, task-list, coverage-plan, or later-ruling statement either traces to it
   or is rejected as non-authoritative.
 - **AT-GATE-2 (specification before code; ordering is the requirement)
-  [D5, D10].** *Given* a contradictory, incomplete, placeholder-bearing, or
+  [D5, D10, D17].** *Given* a contradictory, incomplete, placeholder-bearing, or
   unapproved Gate 2, *when* code tests are green, *then* completion still fails
   and no code-correctness result may promote the build. The specification gate
   runs **before** the code tests in the same command that gates a push, and a
@@ -65,6 +91,18 @@ only when the product intent is met.
   it was made: a signer an agent could operate unattended does not satisfy this
   case, and neither does any check that a context editing Gate 1 could satisfy
   by itself.
+
+  *And given* a repository where the signer identity file is present — the
+  repository is **armed** — *when* the signature is missing, malformed, or does
+  not verify, *then* the gate **fails**. Absence is not treated as an unprotected
+  mode. A design under which deleting the signature downgrades the gate to a
+  warning fails this case, because it makes the control opt-out by anything that
+  can delete a file. *And given* no signer identity file at all — the repository
+  is **unarmed** — *then* the gate runs, reports Gate 1 as unprotected in those
+  words, and does not block: a stranger who cloned the repository under
+  `AT-DIST-1`, and the project's own work before a key exists, must both be able
+  to run the suite. Arming is therefore a one-way step in practice: disarming
+  requires deleting the signer identity itself, not merely a signature.
 - **AT-GATE-3 (independent semantic review) [D8].** *Given* mechanical
   authority and traceability checks pass, *when* a review evaluates Gate 2,
   *then* every Gate-1 rule has one testable implementation contract and no two
@@ -82,11 +120,18 @@ only when the product intent is met.
 
 ### A. Archetype — the shared service shape (every catalogue service must pass)
 
-- **AT-SHAPE-1 (install grafts, never clobbers).** *Given* a repo onboarded on a chosen host, *when*
+- **AT-SHAPE-1 (install grafts, never clobbers) [D11].** *Given* a repo onboarded on a chosen host, *when*
   the user selects any service S at any grade, *then* Rig installs S's convention adapted to this
   repo's language/framework, and preserves every pre-existing user-owned value.
   An existing `AGENTS.md` is appended-to/referenced, never replaced; an approved
   structured file receives only a verified namespaced additive merge.
+
+  *And* every insertion into a file Rig does not exclusively own is delimited by
+  machine-recognisable managed-block markers, and every mutation — created,
+  appended, or patched, inside the repository or user-global — is recorded in an
+  install manifest at the time it is made. Freehand editing of a shared file
+  fails this case: an unmarked, unrecorded write cannot be removed later without
+  guessing, and `AT-UNINSTALL-1` depends on never having to guess.
 - **AT-SHAPE-2 (scan recommends, never gates).** *Given* the repo profile, *when* the menu is shown,
   *then* each service is marked applicable/not-recommended, *and* the user can still install a
   not-recommended service successfully (e.g. E2E on a UI-less library).
@@ -143,14 +188,24 @@ only when the product intent is met.
   agent, *when* it loads the installed rules, *then* those rules point to the
   authoritative `.rig/network-policy.json` and explanatory
   `.rig/network-rules.md`; prose cannot override the structured policy.
-- **AT-BASE-4 (exact user activation; no self-authorization).** *Given* any
+- **AT-BASE-4 (exact user activation; no self-authorization) [D12].** *Given* any
   policy edit, including an agent-proposed edit, *when* the user has not
   approved the exact new policy digest, *then* active permissions do not
   change. Approval activates only that exact revision. A user may grant an
-  agent delegated policy-edit mode for future proposal authoring, but that
+  agent delegated policy-edit mode for proposal authoring, but that
   delegation is not activation consent; installed base prompts must forbid the
   agent from inferring consent from prior approvals, chat context, task
   urgency, tool access, or the delegation itself.
+
+  *And* that delegation is **scoped to the session in which it was given and is
+  never persisted**. Rig writes no grant to disk, so *given* an agent in a fresh
+  session that asserts it holds delegated policy-edit mode, *then* the claim is
+  unverifiable by construction and the agent is refused: there is no artifact
+  that could substantiate it, and a design that stores one fails this case.
+  Revocation is ending the session; it takes effect immediately and requires no
+  approval ceremony, because a control that can only be tightened when the
+  approval surface is reachable cannot be tightened on the hosts that most need
+  it.
 - **AT-BASE-5 (complete user control, truthful result).** *Given* exact user
   approval to permit a category or disable enforcement globally, *when* a
   formerly restricted action is attempted, *then* it is no longer secretly
@@ -161,6 +216,20 @@ only when the product intent is met.
   re-enabled through approved policy activation, *when* it next applies, *then*
   enforcement resumes and no result from before or during disablement is reused
   as current evidence.
+- **AT-BASE-7 (self-authorization is not a policy setting) [D13].** *Given* a
+  policy revision that purports to grant an agent authority to activate its own
+  proposals, *when* it is activated, *then* activation still requires the user
+  and Rig does not report the resulting configuration as protected. The
+  prohibition on agent self-activation is a **Rig product rule shipped with the
+  baseline, not a clause in the user's editable policy** — there is no policy
+  the user can write, or an agent can propose, that makes it false. The user may
+  disable Rig's enforcement wholesale under `AT-BASE-5`, and is then truthfully
+  reported as unprotected; what the user cannot do is hold a configuration that
+  permits self-activation *and* a claim that Rig is protecting them. A design
+  that implements this as an invariant clause held in a separate file or
+  repository fails this case: an agent with full repository and shell access
+  reaches a second file exactly as easily as the first, which is the same
+  reasoning that withdrew D5.
 
 ### C. Per-property
 
@@ -196,13 +265,14 @@ only when the product intent is met.
 - **AT-B2 (semantic drift guard).** *Given* the control is enabled, two
   non-identical contexts where one is stale/deprecated are flagged by the
   agent-based semantic guard.
-- **AT-B3 (real first-enable history scan).** *Given* the leak-scanner service is
+- **AT-B3 (real first-enable history scan) [D16].** *Given* the leak-scanner service is
   first enabled, *when* activation runs, *then* a real history scan completes
   before the service is marked active. A finding, missing scanner, or execution
   failure is nonzero and produces an actionable redacted report; activation
   requires remediation plus a clean re-scan or a waiver scoped to the exact
   current findings. The enabled staged-secret floor remains installed even
-  when history activation fails.
+  when history activation fails. The scan is deterministic and its matched
+  content is governed by `AT-SECRET-1`.
 - **AT-B4 (pre-commit harness re-scan).** *Given* enabled sanitation and staged
   changes to harness/config files, *when* commit is attempted, *then* the
   changed harness is actually scanned and blocking findings stop the commit.
@@ -261,16 +331,19 @@ only when the product intent is met.
   any legacy or catalogue install path runs, *then* Rig emits no MCP
   configuration for that host. A previously emitted user-owned file is
   preserved and receives migration guidance rather than silent deletion.
-- **AT-CI-1 (integrate existing CI).** *Given* a verified supported CI
+- **AT-CI-1 (integrate existing CI) [D15].** *Given* a verified supported CI
   configuration exists, *when* Rig is approved, *then* it additively adds the
-  enabled repo-scope Rig gate and actionable report upload without changing
-  unrelated jobs or user values.
+  enabled repo-scope Rig gate and its actionable result without changing
+  unrelated jobs or user values. The result is a pass/fail verdict with finding
+  counts and rule identities; the finding detail stays on the machine that ran
+  the check, per `AT-REPORT-1`.
 - **AT-CI-2 (bootstrap absent CI).** *Given* no CI exists, *when* the user
   selects a verified provider and explicitly approves creation, *then* Rig
   creates a minimal provider-native pipeline; before approval it creates none.
-- **AT-CI-3 (safe, idempotent, real execution).** *Given* an integrated or
+- **AT-CI-3 (safe, idempotent, real execution) [D15].** *Given* an integrated or
   bootstrapped pipeline, *then* it runs all enabled baseline controls and
-  selected executable services, uploads actionable reports, requests only
+  selected executable services, emits an actionable verdict without uploading
+  or logging finding detail, requests only
   necessary permissions, uses no repository secrets, and a second apply makes
   no duplicate or material change.
 - **AT-CI-4 (unknown config and first wire).** *Given* unknown, malformed, or
@@ -340,6 +413,80 @@ only when the product intent is met.
   inherited npm publish workflow no longer exists, so tagging cannot fail on a
   private package. A build that passes every other case but cannot be installed
   by someone who does not have this checkout is not a shipped product.
+
+### G. Install lifecycle, removal, and finding disclosure (2026-07-28)
+
+- **AT-INSTALL-1 (an interrupted install resumes; a partial one never claims to
+  protect) [D14].** *Given* a transition-install that fails partway — crash,
+  interrupt, permission denial, or full disk — *then* the writes already applied
+  stay in place, the install manifest records exactly how far it got, and the
+  install is marked incomplete. *When* the user re-runs it, *then* it resumes
+  from the manifest rather than starting over or duplicating applied work.
+  *When* the user instead runs uninstall, *then* the partial install is removed
+  under `AT-UNINSTALL-1` — the same teardown path, not a second one. *And* until
+  the install completes, no partially applied control is reported as enabled,
+  installed, or protecting anything; an incomplete baseline that reports itself
+  as active fails this case, which is the failure this decision exists to
+  prevent.
+- **AT-UNINSTALL-1 (uninstall returns the repository, not just the directory)
+  [D11].** *Given* Rig installed across every surface it uses — its own files, a
+  grafted `AGENTS.md`, a pre-commit hook, a CI job added under `AT-CI-1`, host
+  configuration, and any user-global file written under `AT-HOME-1` — *when* the
+  user uninstalls, *then* Rig walks its install manifest in reverse and removes
+  exactly what it wrote, and every byte the user owns survives unchanged. Files
+  Rig exclusively owns are deleted; files Rig only added to have their managed
+  blocks removed and nothing else. Teardown order is the reverse of install:
+  a reference is removed before the thing it points to, so an interrupted
+  uninstall cannot leave a hook calling a binary that no longer exists. *And*
+  Rig reports exactly what it removed. Deleting Rig's own directory and
+  declaring the repository clean fails this case, because the CI job, the hook,
+  and the grafted instruction file are all still there.
+- **AT-UNINSTALL-2 (verified clean, or honestly best-effort) [D11].** *Given*
+  Rig kept a copy of every file as it stood immediately before Rig first
+  modified it, *when* uninstall completes, *then* it diffs the result against
+  those copies and reports what still differs. A repository whose touched files
+  differ from their pre-install state only by the user's own subsequent edits is
+  reported **verified clean**; one where a managed block cannot be located —
+  because the markers were edited away, or the file was rewritten by another
+  tool — is reported **best-effort, with the specific file named for manual
+  review**, and is never called clean. *And* the stored copies are evidence
+  only: uninstall never restores them over the current file, because doing so
+  would silently destroy every edit the user made after installing. A design
+  that reverts a snapshot on top of user work fails this case. The same
+  verified-versus-advisory split that governs install claims under `AT-CLAIM-2`
+  governs removal claims here.
+- **AT-UNINSTALL-3 (usage artifacts are not installation state) [D11].**
+  *Given* a repository that has been using Rig — accumulated reports, run
+  history, and any post-install configuration the user filled in themselves —
+  *when* the user uninstalls, *then* those artifacts survive by default and only
+  installation grafts are removed. *When* the user explicitly asks for a purge,
+  *then* usage artifacts are removed too, and the purge names what it will
+  delete before deleting it. Silently destroying a user's report history because
+  they removed the tool that produced it fails this case.
+- **AT-REPORT-1 (findings stay on the machine that produced them) [D15].**
+  *Given* any Rig check that writes a report, *when* it runs, *then* that report
+  is written to a location Rig has excluded from version control, is not
+  committed, and is not uploaded as a build artifact. *And given* the same check
+  running in CI, *when* it fails, *then* the job emits a pass/fail verdict with
+  finding counts and rule identities and does **not** print finding detail to
+  the job log. Withholding an artifact upload while printing the same content to
+  a log fails this case: on a public repository the log is as readable as the
+  artifact, and a secret-scan report is a map of the repository's secrets. The
+  redaction required by `AT-B3` remains in force as a second line of defence, so
+  that a report which never leaves the machine is *also* redacted.
+- **AT-SECRET-1 (matched secret content never reaches the model by default)
+  [D16].** *Given* the leak scanner or any check whose output contains
+  credential material, *when* it runs under default configuration, *then* the
+  detection is deterministic and the agent may read counts, rule identities, and
+  locations but never the matched content. *When* the user has explicitly
+  enabled model-assisted triage, *then* and only then may finding content enter
+  the agent's context, and the choice is disclosed at the point of enabling with
+  the reason: the host's model is a third party, and a credential in a third
+  party's context cannot be unsent — only rotated. A default that routes matched
+  content through the host brain fails this case even if it is disclosed. This
+  is the one place the product's preference for configurability over paternalism
+  is deliberately inverted, because it is the one failure that cannot be undone
+  by re-running anything.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product
