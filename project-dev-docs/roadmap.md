@@ -77,12 +77,12 @@ Not copied from another document — each line was checked against the files tod
 
 | Thing | State |
 |---|---|
-| Requirements (`acceptance.md`) | **Done.** 52 checks, frozen. |
-| Build plan (`technical-spec.md`) | **Stale.** Covers 45 of the 52. Seven are missing entirely. |
-| Which seven are missing | `AT-BASE-7`, `AT-INSTALL-1`, `AT-REPORT-1`, `AT-SECRET-1`, `AT-UNINSTALL-1`, `AT-UNINSTALL-2`, `AT-UNINSTALL-3` |
-| The plan's record of which requirements it was written against | **Wrong.** It points at old fingerprints (`960f7722…`, `995897aa…`); the live files are `e17bc722…` and `19ee3b8a…`. |
-| Signature protection on the requirements | **Off.** Neither `gate1.sig` nor `gate1.allowed-signers` exists. |
-| Past reviews of the build plan | **Both expired.** They were reviews of older versions; the plan has changed since. |
+| Requirements (`acceptance.md`) | **Done.** 52 checks, frozen. Amended 2026-08-13 by D19, which changed a mechanism, not a verdict — still 52. |
+| Build plan (`technical-spec.md`) | **Rewritten 2026-08-13.** Covers all 52. Still a *candidate*: §16.1 lists what must hold before it can be frozen. |
+| The seven that had been missing | `AT-BASE-7`, `AT-INSTALL-1`, `AT-REPORT-1`, `AT-SECRET-1`, `AT-UNINSTALL-1`, `AT-UNINSTALL-2`, `AT-UNINSTALL-3` — all now have mechanisms and traceability rows. |
+| The plan's record of which requirements it was written against | **Correct.** Re-pinned to `604e80bd…` and `ee9f80b9…`, checked equal to the live files. |
+| Signature protection on the requirements | **Off.** Neither `gate1.sig` nor `gate1.allowed-signers` exists. This is step 3, and it is yours. |
+| Past reviews of the build plan | **Both expired.** They were reviews of older versions; the plan has changed since. A fresh review is step 2. |
 | The automated check that enforces all this | **Doesn't exist yet.** `scripts/check-advanced-spec.js` has never been written. It's the first thing step 5 builds. |
 | A way for anyone to install the product | **Doesn't exist.** No `install.sh`. Version still says `4.8.4`. |
 | The review tool | **Exists and works** — `scripts/review-receipt.js`. |

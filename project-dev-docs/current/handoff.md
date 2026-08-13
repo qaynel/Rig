@@ -60,8 +60,8 @@ obtain. Do not silently re-open them; they are recorded at length in the Gate 2
 
 | File | SHA-256 |
 |---|---|
-| `spec/business-spec.md` | `e17bc722e22fe18298e318a6bc28bd11acc057866decacf2b727a634ba1d8069` |
-| `acceptance.md` | `19ee3b8a90c056aa26bbbf4ce4cf98e1a7329aecff734d6f116b82754cdec7a8` |
+| `spec/business-spec.md` | `604e80bd7eac9a6e24827d8a6ca2b7214015185b08832df734dfb43e8b8040a2` |
+| `acceptance.md` | `ee9f80b907a0b948f669011c0f3e51d1a91c4c4f7f876123a5986e23f6ce3ff1` |
 | `spec/technical-spec.md` | `75bfc8a09ffac829b04f6b97cdc660cbfb0d32fe441f319bf90eb36f3e5d146c` |
 
 The first two are pinned in the Gate 2 header and **no longer match** — Gate 2
