@@ -63,6 +63,34 @@
 > or implementation context must not edit this file; a genuine conflict returns
 > to grilling.
 
+> **Revision note (2026-08-13) — D19, the presence floor is a property, not an
+> artifact.** `AT-GATE-2`'s third sentence required the *signature* to attest
+> physical presence. Design work went to satisfy it and found that no SSH
+> signature does that, a FIDO one included. `ssh-keygen` records attestation
+> data only at key generation, `ssh-keygen -Y verify` has no option that
+> consults it, and the allowed-signers file grammar has no `verify-required` or
+> `no-touch-required` — those are a certificate option and a key-generation flag
+> respectively. Verification proves the signature math and that the key is
+> listed. Nothing downstream establishes that a real authenticator was involved,
+> so a key type is a naming convention that a determined agent can emit for
+> itself.
+>
+> The clause was therefore unsatisfiable as written, by any key that exists. D19
+> restates the floor as the property the control actually needs — **a key no
+> agent on the intent owner's machine can produce a signature under without a
+> live human act** — and makes the intent owner, not the artifact, the one who
+> attests the key meets it. This is a correction of a false requirement, not a
+> relaxation: the defeated threat is identical, and every mechanism that
+> satisfied the old wording satisfies the new one unchanged.
+>
+> The case count stays at **52**. `AT-GATE-2` changes mechanism, not verdict; no
+> case is added or removed and the size of the Gate-2 traceability table is
+> unaffected. The new residual risk — that the gate cannot check the key's class
+> and takes the intent owner's word for it — is recorded in
+> [`spec/business-spec.md`](spec/business-spec.md) §9.
+>
+> **Frozen.** The decision is recorded and no case is left open.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -87,10 +115,18 @@ only when the product intent is met.
   *And given* an edit to either Gate 1 file, *when* the gate runs, *then* it
   recomputes the digest of both files, finds that the recorded signature no
   longer verifies, and fails — so a context cannot reach the approved mark by
-  moving it. The signature must attest that a human was physically present when
-  it was made: a signer an agent could operate unattended does not satisfy this
-  case, and neither does any check that a context editing Gate 1 could satisfy
-  by itself.
+  moving it. The signing key must be one that no agent holding the intent
+  owner's machine can produce a signature under without a live human act: a
+  signer an agent could operate unattended does not satisfy this case, and
+  neither does any check that a context editing Gate 1 could satisfy by itself.
+  A key whose private half the agent can read, or load once and then reuse
+  silently, fails on that test alone. **The gate verifies the signature; the
+  intent owner attests the key** (D19). No signature format available to this
+  product proves an authenticator was involved, so a design that claims to check
+  the key's class from the artifact fails this case for describing a check that
+  does not exist. At freeze the intent owner records which key class was used,
+  in the signer identity file, and that record is a statement rather than a
+  proof.
 
   *And given* a repository where the signer identity file is present — the
   repository is **armed** — *when* the signature is missing, malformed, or does

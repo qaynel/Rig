@@ -107,6 +107,34 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > **This revision is frozen.** Gate 2 is reopened by it and must be rewritten
 > and re-frozen against the 52-case set.
 
+> **Revision note (2026-08-13) — D19, Gate 1 integrity, second correction.**
+> Re-grilled by the intent owner after Gate 2 design work went to satisfy D10's
+> presence floor and found the floor unsatisfiable. D10 required a signature
+> that *attests* hardware user presence. No SSH signature does: `ssh-keygen`
+> records authenticator attestation only at key generation, its verification
+> mode has no option that consults it, and the allowed-signers grammar cannot
+> express a touch or user-verification requirement at all. Verification
+> establishes that the signature is mathematically sound and that the key is
+> listed — nothing more. A key type is therefore a naming convention, and an
+> agent that can already write the signer identity file can emit a key bearing
+> that convention.
+>
+> **D19 restates the floor as a property of the key rather than a claim about
+> the artifact.** The requirement is that no agent holding the intent owner's
+> machine can produce a signature under that key without a live human act. The
+> intent owner attests the key meets it; the gate verifies the signature. The
+> threat closed is exactly the threat D10 closed — an agent silently re-signing
+> its own edits to the acceptance oracle — and every key that satisfied the old
+> wording satisfies this one. What changes is that Gate 1 no longer instructs
+> Gate 2 to build a check that cannot be built, and no longer implies a
+> guarantee the gate cannot deliver.
+>
+> The case count stays at **52**. `AT-GATE-2` changes mechanism, not verdict.
+> The residual risk this creates is recorded in §9.
+>
+> **This revision is frozen.** Its effect on Gate 2 is confined to the presence
+> floor: §8 below and the corresponding gate step.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -390,10 +418,12 @@ Evaluation is ordered:
    first-wire correctness. Green code tests cannot compensate for a failed or
    unapproved specification gate.
 
-**Gate integrity is mechanical, not clerical (D5, revised D10, D17).** This file and
+**Gate integrity is mechanical, not clerical (D5, revised D10, D17, D19).** This
+file and
 [`../acceptance.md`](../acceptance.md) are protected by signature rather than by
 repository process. At freeze, the intent owner signs the combined SHA-256
-digest of both files with a key that attests hardware user presence. The
+digest of both files with a key that no agent on their machine can operate
+without a live human act. The
 specification gate recomputes that digest and verifies that signature before
 anything else runs. An agent holding full repository and shell access can edit
 these files, and can edit the recorded digest and signature sitting beside them,
@@ -412,10 +442,24 @@ before a key exists and a stranger who cloned the repository under `AT-DIST-1`
 can both still run the suite. Disarming therefore requires deleting the signer
 identity itself, which is a deliberate act rather than a cleanup.
 
-Hardware-attested presence is the floor for this use specifically. Where the
+**The floor is a property of the key, and the intent owner attests it (D19).**
+The requirement is that the private half is not usable by an agent that holds
+the machine: it cannot be read off disk, and it cannot be loaded once and then
+reused silently. A key held in the machine's secure element behind a per-signature
+biometric meets it; so does a detached hardware authenticator; a plain on-disk
+key does not, and neither does one parked in a long-lived agent. Where the
 product elsewhere permits a weaker user-configured signer, Gate 1 integrity does
 not inherit that allowance: a signer an agent could operate with no human
 present would defeat the entire control.
+
+The gate cannot check this property, and does not pretend to. No signature
+format available here carries proof that an authenticator was involved, so the
+key class is recorded by the intent owner alongside the signer identity as a
+statement of what they used. The verification that does happen — signature
+valid, key listed — is what stops the silent edit, because the agent's obstacle
+is that it cannot sign as the intent owner at all, not that a checker would
+catch the wrong sort of key. Specifying a check that cannot be implemented would
+buy nothing and cost the reader their trust in the rest of this section.
 
 The specification gate runs **before** the code tests and short-circuits them.
 Ordering is the requirement, not mere presence — a suite that can go green while
@@ -468,6 +512,22 @@ mistake them for oversights.
   first place. D17 raises the cost of the bypass from deleting a signature to
   deleting the maintainer's identity file, and makes the second act visible. It
   does not make it impossible.
+- **The key's class is attested, not proven (D19).** The gate checks that the
+  signature verifies against a listed key. It cannot check that the key is the
+  hard-to-operate one the intent owner says it is, because no signature format
+  available to this product carries that evidence. If the intent owner signs
+  with a plain on-disk key while recording something stronger, Gate 1 reads as
+  protected and is not. This is a risk taken knowingly in exchange for not
+  writing a requirement that no implementation could satisfy; the previous
+  wording did not remove the risk, it concealed it behind a check that would
+  have had to be faked to ship.
+- **A substituted signer defeats the gate under any key type (D19).** An agent
+  that can write the repository can replace the signer identity file with a key
+  of its own and sign its Gate 1 edits with that. A key-type requirement never
+  closed this, since the type string is chosen by whoever writes the file. What
+  stands against it is the same thing D17 relies on: the substitution is a
+  visible change to a short, stable file the intent owner can read. Detecting it
+  needs an anchor outside the repository, and this product has none.
 - **An edit inside a managed block is lost on removal (D11).** Managed blocks
   are Rig-owned territory and their markers say so, but a user who edits inside
   one loses that edit when the block is removed. Relatedly, a file whose markers
