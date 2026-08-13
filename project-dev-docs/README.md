@@ -1,11 +1,15 @@
 # Rig project development docs
 
-Two directories, and nothing else:
+Two directories and one map:
 
 - **[`current/`](current/)** — the live pipeline. Everything here is being built
   against right now.
 - **[`archive/`](archive/)** — superseded material. Kept because active docs
   still cite it, not because it is current.
+- **[`roadmap.md`](roadmap.md)** — the eight steps from where the project is now
+  to a shipped product, in plain terms, with a goal at the end of each. A map
+  only: it decides nothing, and where it disagrees with Gate 1 or Gate 2, the
+  gate wins.
 
 ## What Rig delivers
 
@@ -35,7 +39,7 @@ catalogue is the product.
 | [`reference/`](current/reference/) | The official source documents implementation is built from: the agent-harness security playbook, the host and CI capability reports, the mutation and product-security taxonomies, and the testing-pipeline vision. Held as captured. |
 | [`spec/product-spec.md`](current/spec/product-spec.md) | Product-level design and the shipping plan it sits under. |
 | [`spec/business-spec.md`](current/spec/business-spec.md) | Re-grilled business intent: problem, users, complete catalogue, user-controlled safety policy, verified coverage, and correctness properties. |
-| [`spec/technical-spec.md`](current/spec/technical-spec.md) | Sole Gate-2 implementation authority — but **reopened** by the 2026-07-28 Gate 1 revision. It is v0.3 written against the superseded 45-case set and must be rewritten against the current 52 before it can be a freeze candidate again. Implementation may not begin against it. |
+| [`spec/technical-spec.md`](current/spec/technical-spec.md) | Sole Gate-2 implementation authority. Rewritten 2026-08-13 against the current 52-case Gate 1 and re-pinned to its digests. Still a **candidate**: §16.1 lists what must hold before it may be marked `FROZEN`, and implementation may not begin against a candidate. |
 | [`spec/host-coverage-spec.md`](current/spec/host-coverage-spec.md) | Host and CI coverage dispositions, evidence rules, and the roster acceptance cases. |
 | [`acceptance.md`](current/acceptance.md) | Frozen acceptance criteria and tests. The verdict here outranks any implementer's claim. |
 | [`sow.md`](current/sow.md) | Scope, deliverables, delivery status, definition of done, and remaining work. |
