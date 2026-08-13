@@ -1,8 +1,9 @@
 # Tier 2 Advanced - Implementation Design (GATE 2 CANDIDATE v0.3)
 
 > **Status: CANDIDATE. Not frozen. Not yet reviewed.** This version is written
-> against the Gate 1 amended on 2026-07-27 at 45 cases, including the D10
-> integrity and delegated policy-edit revisions. It supersedes v0.2 in full.
+> against the Gate 1 amended on 2026-08-13 at 52 cases, including the D11-D18
+> install-lifecycle revisions and the D19 correction to the Gate 1 presence
+> floor. It supersedes v0.2 in full.
 > Implementation may not begin against a candidate: §16 lists what must be true
 > before this file may be marked `FROZEN`.
 
@@ -10,8 +11,8 @@
 
 | Gate 1 file | SHA-256 |
 |---|---|
-| `business-spec.md` | `960f7722e8b4bd6d962f547ba0266f7d21bbbed4a37c262b6f9d827a7fd93214` |
-| `acceptance.md` | `995897aa8ccd88a7ede2255eecafb08e9451328ad087c0e096472798e780eb01` |
+| `business-spec.md` | `604e80bd7eac9a6e24827d8a6ca2b7214015185b08832df734dfb43e8b8040a2` |
+| `acceptance.md` | `ee9f80b907a0b948f669011c0f3e51d1a91c4c4f7f876123a5986e23f6ce3ff1` |
 
 If either digest changes, this candidate is stale and every review receipt bound
 to it is void.
@@ -33,15 +34,18 @@ acceptance.md <sha256>
 ```
 
 Lowercase hex, one trailing newline, paths exactly as written. The signature
-must come from a key that attests hardware user presence; §7.4's downgrade
-allowance does not apply here.
+must come from a key that no agent on the intent owner's machine can operate
+without a live human act (`AT-GATE-2`, D19). The gate verifies the signature and
+the listing; the key's class is recorded by the intent owner beside the signer
+identity and is not derivable from the artifact. §7.4's weaker policy floor does
+not apply here.
 
 This is a **source-repository** control and its artifacts live beside Gate 1:
 
 | Path | Role |
 |---|---|
 | `project-dev-docs/current/gate1.sig` | Detached SSHSIG signature over the message above. |
-| `project-dev-docs/current/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only. |
+| `project-dev-docs/current/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only, plus a comment line per identity recording the key class the intent owner attests it to be (D19). Its presence arms the check (D17). |
 
 Do not confuse these with `.rig/policy/allowed-signers` in §3.2, which is a
 **target-repository** artifact governing policy activation in a user's repo.
@@ -129,7 +133,9 @@ or when a user-approved delegated policy-edit mode is active. Delegation is
 proposal authority, not activation consent: every active permission change still
 requires fresh approval of the exact revision. Installed base prompts state this
 as a hard rule and forbid inferring policy consent from prior approvals, chat
-context, task urgency, tool access, or the delegation itself.
+context, task urgency, tool access, or the delegation itself. Delegation is
+scoped to the session it was given in and is never written to disk, so a later
+session cannot produce anything that proves it held the grant (D12).
 
 **Writes outside the repository are permitted, attributed, and never
 destructive (D9).** Where a vendor ships only a user-global surface, Rig appends
@@ -180,7 +186,7 @@ These decisions are implementation constraints, not suggestions:
 | AD-16 | Write failed, vacuous, coverage-gap, disabled/unrun, activation-pending, and evidence-stale state where Gate 1 requires visibility. Routine current-epoch passes remain omitted from failure reports. |
 | AD-17 | Reuse Basic's MCP resolver/renderers only for evidence-backed supported paths through the Infrastructure compatibility slice. Unsupported MCP, including `pi`, is retired from every legacy and catalogue emission path without deleting user-owned files. |
 | AD-18 | Drive implementation from a complete executable transcription of Gate 1. The specification gate runs before code correctness; `npm test` remains the full code gate. |
-| AD-19 | Validate candidate policy bytes strictly, hash the exact bytes with SHA-256, and keep the last activated bytes as a separate immutable snapshot. Unapproved edits are inert. Agents may write policy candidates only under an explicit current user request or a recorded delegated policy-edit receipt; delegated edit mode authorizes proposal authoring only and never activates permissions. |
+| AD-19 | Validate candidate policy bytes strictly, hash the exact bytes with SHA-256, and keep the last activated bytes as a separate immutable snapshot. Unapproved edits are inert. Agents may write policy candidates only under an explicit current user request, of which session-scoped delegated edit mode is one form; delegation authorizes proposal authoring only, never activation, and is **never persisted** (D12), so a fresh session's claim to hold it is unverifiable by construction and refused. |
 | AD-20 | Prefer a verified host-native user-presence approval that attests the exact digest. Otherwise require an external SSHSIG signature verified through `ssh-keygen -Y verify` against a namespaced challenge. Where neither is available, **refuse activation and report it unavailable** — there is no third path. Both available methods produce one common, replay-resistant activation receipt; repository markers and ordinary TTY prompts are insufficient. Rig never invokes a signing binary and never stores key material. |
 | AD-21 | Store one-use approvals clone-locally and uncommitted. Bind them to the complete normalized action and active policy, consume atomically before dispatch, and keep them valid only until used, changed, revoked, or expired by the native host; Rig adds no clock timeout. |
 | AD-22 | Evaluate one normalized action policy across shell, built-in web, and network-capable MCP adapters. Narrow permanent allowances are the default authoring path; explicit category-wide allowance and global enforcement disablement remain available. |
@@ -190,7 +196,7 @@ These decisions are implementation constraints, not suggestions:
 | AD-25 | Write user-global host configuration by append or namespaced additive merge only, never overwrite. Attribute every written entry to a repository identity from the **first** installation, using a generated ID stored clone-locally under `git rev-parse --git-path rig/`, with remote URL and repository realpath carried as entry metadata so removal reports name something a human recognises. The ID is never committed, so one user's uninstall cannot remove another user's entries. Uninstall removes only the current repository's entries; reinstall replaces them in place. |
 | AD-26 | Emit a per-host claim line in install output and every run report, stating `verified` or `emitted — enforcement unverified, please report`, and naming any configuration written outside the repository. Never gate the unverified path behind a prompt, extra flag, or blocking acknowledgement. Silence and friction are both failures. |
 | AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint: the stub and the source share one origin, so a pin protects nothing an attacker could not also edit. Download to a file and execute it; never pipe the network into a shell, because Rig's own default policy denies exactly that. Delete the inherited npm publish workflow and move `package.json` to `5.0.0`, still `private`. |
-| AD-28 | Verify Gate 1's integrity by signature, not repository process: recompute both digests, verify the namespaced SSHSIG signature from a hardware-presence-attesting key, and fail closed. Run this check first in the specification gate, and run the specification gate first in `npm test`, short-circuiting the code tests. Provide `npm run test:code` for the development loop. The gate has no exemption, skip, or progress input of any kind. |
+| AD-28 | Verify Gate 1's integrity by signature, not repository process: recompute both digests, verify the namespaced SSHSIG signature against the listed signer identity, and fail closed. Verify the signature, not the key's class — per D19 no signature format here proves an authenticator was involved, and the intent owner attests the class instead. Run this check first in the specification gate, and run the specification gate first in `npm test`, short-circuiting the code tests. Provide `npm run test:code` for the development loop. The gate has no exemption, skip, or progress input of any kind. |
 | AD-29 | Produce every review receipt through a wrapper that invokes the reviewer non-interactively with an explicit model flag and itself writes the model ID, the digest it computed over the reviewed bytes, and the timestamp. The reviewing agent supplies findings only, and never authors the fields that certify its own independence. |
 
 ### Rejected Approaches
@@ -405,6 +411,7 @@ rig.json                              # user-owned committed selection
   network-policy.json                 # user-owned candidate safety policy
   network-rules.md                    # Rig-owned explanatory guide
   catalog-receipt.json                # Rig-owned install evidence
+  install-manifest.jsonl              # Rig-owned append-only journal of every mutation (§6.6)
   catalog-routing.md                  # Rig-owned selected-service router
   context-index.json                  # Rig-owned central context map
   sync-map.json                       # Rig-owned exact-copy groups
@@ -444,6 +451,11 @@ This keeps normal clones and worktrees distinct. Private signer material lives
 outside the target repository in the user-controlled host/OS approval facility.
 The committed public trust record lets clean CI checkouts verify the active
 bundle, but changing or deleting it cannot bootstrap a new signer.
+
+The same clone-local directory holds the §6.6 preimage store — the bytes of each
+touched path as it stood immediately before Rig first modified it. It is
+uncommitted for the reason below and for one of its own: a preimage of a
+user-owned configuration file can contain that user's credentials.
 
 The same clone-local directory holds `install-id`, a generated identifier
 created at first install and used to attribute every entry Rig writes to a
@@ -702,9 +714,9 @@ node rig/materialize.js approvals revoke \
 
 The CLI remains argument parsing and orchestration. Domain logic stays under
 `rig/lib/`. Approval files contain a verified host-native attestation or
-external user-presence signature; a bare digest flag is never approval. A
-delegated policy-edit receipt may authorize an agent to write future candidate
-proposals, but it is never accepted as a policy activation approval.
+external user-presence signature; a bare digest flag is never approval. There is
+no on-disk delegated policy-edit receipt to present either: per §7.3 delegation
+lives in the session and nothing records it.
 
 Before inspection, onboarding resolves policy state:
 
@@ -973,6 +985,94 @@ as the verified one. Only the claim differs. A design that makes the honest path
 harder to use suppresses the reports that would promote it, and would make Rig
 quieter about its weakest axes precisely where it should be loudest.
 
+### 6.6 Install manifest, resume, and removal
+
+Everything in this subsection follows from one rule in `AT-SHAPE-1`: a mutation
+is recorded **at the time it is made**, not reconstructed afterwards. Removal
+that has to infer what install did will eventually infer wrong, and
+`AT-UNINSTALL-1` depends on never having to guess.
+
+**The manifest.** `.rig/install-manifest.jsonl` is an append-only journal, one
+JSON object per line, covering every mutation Rig makes — created, appended, or
+patched, inside the repository or user-global. Append-only and line-delimited
+because a crash mid-write can then truncate only the final line, which parses as
+damaged and is discarded, instead of corrupting the whole document. Each record
+carries a monotonic `seq`, the absolute `path`, the `ownership` class from §6.1,
+the `operation` (`create_owned`, `replace_owned`, `append_managed`,
+`merge_namespaced`, `global_append`), the managed-block marker identity where
+one applies, the `install_id` from §3.2, and a `state`.
+
+**Records are written before the mutation, not after.** A record lands as
+`state: "pending"`; the mutation is then applied; a second record with the same
+`seq` and `state: "applied"` supersedes it and carries the post-write digest.
+Last write per `seq` wins. The ordering is the point: a record written after its
+mutation means a crash in between leaves an applied write that nothing knows
+about, and that write is then unremovable without guessing. A record written
+before means a crash in between leaves a `pending` entry for a mutation that may
+never have happened, and every removal step is written to be idempotent —
+delete-if-present, unmarker-if-present — so a `pending` entry costs a wasted
+check and nothing else. Wrong in the harmless direction, deliberately.
+
+**Preimages.** Immediately before Rig first modifies a path it stores that
+path's bytes content-addressed under the clone-local Rig directory returned by
+`git rev-parse --git-path rig`, alongside `install-id`, and names the digest in
+the manifest record. Only the first modification of a path is stored; later ones
+already have their preimage. They live clone-local and uncommitted for the same
+reason `install-id` does, plus one of their own: a preimage of a user-owned
+configuration file can contain that user's credentials, and committing it would
+publish them. If the clone-local directory is gone, uninstall degrades to
+best-effort and says so, which is `AT-UNINSTALL-2`'s honest branch working as
+designed rather than a failure.
+
+**Incomplete installs never claim to protect.** The manifest header carries
+`complete: false` from the first record until the install's final record lands.
+While it is false, `policy status`, the §6.5 claim-disclosure line, and every
+run report state that the install is incomplete and report no control as
+enabled, installed, or protecting anything — not even a control whose own writes
+did land. A half-installed baseline that reports itself active is the exact
+failure `AT-INSTALL-1` exists to prevent, and it is worse than no install,
+because the user stops looking.
+
+**Resume, not restart.** Re-running a transition-install with an incomplete
+manifest resumes from it. Each `applied` record is verified against its recorded
+digest and skipped; each `pending` record is re-checked against the file — a
+managed block is present or absent, an owned file matches its digest or does not
+— and applied only if it did not land. Applied work is never duplicated and the
+install never starts over. A `pending` record whose file state cannot be
+classified blocks with the path named, under the `conflicting/unknown` class of
+§6.1.
+
+**Removal walks the manifest in reverse.** Install writes a target before any
+reference to it; uninstall therefore walks descending `seq` and a reference is
+always removed before its target, so an interrupted uninstall cannot leave a
+hook calling a binary that is already gone. Files Rig exclusively owns are
+deleted. Files Rig only added to have their managed block removed and nothing
+else, and chained hooks are restored per §6.1. User-global entries are removed
+by `install_id` per §6.4. Uninstall then reports exactly what it removed. There
+is no second teardown path for a partial install: an interrupted install is
+removed by this one, over the manifest it did write.
+
+**Verified clean, or named best-effort.** After removal, each touched path is
+diffed against its preimage. A path differing only by the user's own later edits
+is reported **verified clean**; a path whose managed block cannot be located,
+because the markers were edited away or another tool rewrote the file, is
+reported **best-effort** with that specific file named for manual review, and is
+never called clean. Preimages are evidence for this diff only. Uninstall never
+writes one back over the current file: doing so would destroy every edit the
+user made after installing, which is a larger loss than the leftover block it
+would clean up. This is the same verified-versus-advisory split §6.5 applies to
+install claims, pointed at removal.
+
+**Usage artifacts are not installation state.** Removal touches only what the
+manifest records. Accumulated run reports under `reports/rig/`, run history, and
+post-install configuration the user filled in themselves — `rig.json` and
+`.rig/network-policy.json`, both user-owned in §3.2 — are not manifest entries
+and survive. `uninstall --purge` removes them too, and prints the complete list
+of what it will delete before deleting anything. Destroying a user's report
+history because they removed the tool that produced it fails `AT-UNINSTALL-3`,
+and a purge that deletes first and lists afterwards fails it for the same
+reason.
+
 ## 7. Default-On, User-Controlled Safety Baseline
 
 ### 7.1 Independent controls and enforcement surfaces
@@ -990,7 +1090,7 @@ The policy stores explicit boolean leaves. Initial leaves are:
 | Surface | `host.web` | Mechanical enforcement at a verified built-in web-tool boundary. |
 | Surface | `host.mcp` | Mechanical enforcement at a verified network-capable MCP boundary. |
 | Surface | `git.pre_commit` | Local pre-commit dispatcher enforcement. |
-| Surface | `ci.repo` | Whole-repo CI enforcement and report upload. |
+| Surface | `ci.repo` | Whole-repo CI enforcement and verdict emission (counts and rule identities only; no artifact upload, `AT-REPORT-1`). |
 
 Group names such as `sanitation`, `drift`, `host`, `all_controls`,
 `all_enforcement`, and `all_baseline` are authoring conveniences. The editor
@@ -1097,14 +1197,50 @@ must be allowed. A broad allow for one category cannot bypass another.
 Every installed agent pointer identifies the JSON policy as authoritative;
 conflicting prose has no effect.
 
+**Self-activation is not expressible in this schema (D13, `AT-BASE-7`).** There
+is no key that grants an agent authority to activate its own proposals, and
+validation rejects any document that invents one — an unknown key is already a
+hard rejection under §7.3's activation step 1, so this needs no new machinery,
+only the guarantee that no such key is ever added. The prohibition is a Rig
+product rule compiled into the activation path itself: activation requires a
+verified user-presence approval of the exact digest, and no branch reads policy
+to decide whether that requirement applies.
+
+Two failure directions are ruled out together. A policy that *purports* to grant
+self-activation is rejected at validation and never becomes active, so nothing
+downstream has to honour it. And if enforcement is disabled wholesale under
+`AT-BASE-5`, the user is truthfully reported unprotected — what cannot exist is
+a configuration that permits self-activation while status still claims Rig is
+protecting them.
+
+This rule is **not** held as an invariant clause in a second file or a separate
+repository. An agent with repository and shell access reaches a second file
+exactly as easily as the first, so a split would add ceremony and no protection
+— the same reasoning that withdrew D5. What makes the rule hold is that it is
+not data anywhere: it is the absence of a schema key plus an activation path
+with no policy-driven branch around its approval check. Removing it means
+editing Rig's own shipped source, which is a different act with different
+visibility, and one Gate 1 integrity covers on the source side.
+
 ### 7.3 Candidate, active snapshot, and exact revision identity
 
 The user edits `.rig/network-policy.json` as a candidate. An agent may write a
-candidate only in two cases: the user requested that exact proposal in the
-current interaction, or an active delegated policy-edit receipt grants proposal
-authority. The receipt is Git-lite state: repository-bound, visible in status,
-revocable, and recorded with the proposal receipts it authorized. It never
-authorizes activation.
+candidate only when the user requested that exact proposal in the current
+interaction. Delegated policy-edit mode is one form that request takes — a
+standing grant for the rest of the session — and it authorizes proposal
+authoring only, never activation.
+
+**Delegation is session-scoped and Rig persists no record of it (D12).** An
+earlier version of this section kept a repository-bound delegated policy-edit
+receipt. That receipt is removed. It was an artifact whose only function was to
+let a context prove, later, that someone had granted it authority — and the
+context reading it is the same context that can write it. So an agent in a fresh
+session asserting it holds delegated edit mode is refused, and the refusal needs
+no lookup: the claim is unverifiable by construction, because nothing on disk
+could ever have substantiated it. Revocation is ending the session. It takes
+effect immediately and needs no approval ceremony, which matters because a
+control that can only be tightened where the approval surface is reachable
+cannot be tightened on the hosts that most need it.
 
 Activation:
 
@@ -1163,23 +1299,44 @@ user retains the full catalogue and the complete baseline. What they cannot do
 is *loosen* anything. That is the correct failure direction, and status says so
 plainly rather than implying a defect.
 
-**The presence floor.** The default floor is hardware-attested: an
-`allowed-signers` entry must be a FIDO key type (`sk-ssh-ed25519@openssh.com` or
-`sk-ecdsa-*`), must not carry `no-touch-required`, and carries `verify-required`.
-OpenSSH then refuses a signature that does not demonstrate user presence, so
-Rig verifies presence rather than assuming it.
+**The presence floor, and what Rig can actually check about it (D19).** An
+earlier version of this section required an `allowed-signers` entry to be a FIDO
+key type, to omit `no-touch-required`, and to carry `verify-required`, and
+claimed that OpenSSH would then refuse a signature not demonstrating presence.
+That is not implementable. `verify-required` and `no-touch-required` are not
+allowed-signers options — the first is a certificate option, the second a
+key-generation flag — and the allowed-signers grammar admits only
+`cert-authority`, `namespaces`, `valid-after`, and `valid-before`. Attestation
+data is recorded at key generation and `ssh-keygen -Y verify` has no option that
+consults it. Verification establishes two things: the signature is sound, and
+the key is listed.
 
-An ordinary key may become an allowed signer only through a one-time downgrade
-ceremony authorized by a FIDO key or a verified host-native prompt. A weak signer
-can never authorize its own admission. After a downgrade, every `policy status`
-output names the reduced floor for the life of the install, because the
-distinction between a key a human must touch and a key an agent can read is the
-whole of the control, and a user who has given that up should not have to
-remember it.
+So the floor is **declared, verified where it can be, and disclosed always**:
 
-The downgrade allowance does **not** extend to Gate 1 integrity (D10). A signer
-an agent can operate unattended would let that agent re-sign its own edits to the
-acceptance oracle, which is the single case the mechanism exists to prevent.
+- Rig verifies the signature and the listing. That is the part that holds, and
+  it is the part that matters, because the agent's obstacle is that it cannot
+  sign as the user at all.
+- Rig reads the entry's key-type string and records it as the signer's
+  **declared** class. A `sk-` type is evidence of intent, not proof of hardware;
+  whoever writes the file chooses the string.
+- Every `policy status` output names the declared class for the life of the
+  install. Disclosure was always the real control here, and it survives the
+  correction intact.
+
+The one-time downgrade ceremony is **removed**. It gated a transition between
+two states Rig cannot tell apart, which made it ritual rather than mechanism: a
+context able to write `allowed-signers` was never stopped by the ceremony, and a
+user who genuinely wanted a plain key was merely delayed. What replaces it is
+the status line above, which is what the ceremony existed to guarantee.
+
+Gate 1 integrity keeps a stricter rule of its own (D10, D19). Its signing key
+must be one no agent on the intent owner's machine can operate without a live
+human act — a secure-element key behind a per-signature biometric, or a detached
+authenticator, but never a readable on-disk key or one parked in a long-lived
+agent. Rig cannot verify that property either; per `AT-GATE-2` the intent owner
+attests it in the signer identity file and the gate verifies the signature. The
+distinction from the policy floor is the consequence, not the check: an agent
+that re-signs Gate 1 rewrites the definition of correct.
 
 An ordinary CLI confirmation, retyped digest, environment flag, committed
 `approved=true`, unattended key available to the agent, or unverified host
@@ -1301,6 +1458,33 @@ When `drift.semantic` is enabled, the verified host reviewer compares
 and current input digests. Missing, malformed, stale, or note-only reviewer
 output is a gap, never a pass.
 
+**Matched secret content does not reach the model by default (D16,
+`AT-SECRET-1`).** Secret detection is deterministic — `secrets.deterministic`,
+the staged regex floor, and the vetted external scanner of §6.3 — and never
+delegated to the host's model. Detection produces two separated outputs: a
+**disclosable** record of counts, rule identities, and locations, and a
+**restricted** record holding matched content, which is written only to the
+local report under the redaction of `AT-B3` and `AT-REPORT-1`.
+
+Everything Rig hands the agent is built from the disclosable record. The agent
+can see that three findings matched `aws-access-key-id` at named
+file-and-line positions and act on that; it cannot read the matched bytes. This
+is a boundary in what is constructed, not a filter applied afterwards, because a
+redactor that runs late fails open the first time a new finding shape slips past
+its patterns.
+
+Model-assisted triage flips this, and only the user can flip it. Enabling it is
+an explicit policy change activated the same way as any other, and the point of
+enabling states the reason in the user's own terms: the host's model is a third
+party, and a credential in a third party's context cannot be unsent — it can
+only be rotated. That asymmetry is why this one setting is default-closed while
+the product elsewhere prefers configurability to paternalism. Every other
+failure mode here is recoverable by re-running something; this one is not.
+
+A default that routes matched content through the host's model fails
+`AT-SECRET-1` even when it is disclosed, so the disclosure is not an alternative
+to the default being closed.
+
 When `secrets.deterministic` is enabled, the dispatcher runs the high-precision
 patterns and tracked-`.env` block over staged or whole-repo scope as applicable.
 This control is independent from the selected Product-Security leak-scanner
@@ -1414,12 +1598,31 @@ Required fields:
 Run-report status values written to disk are `failed`, `vacuous`, and
 `coverage_gap`. Control/policy status separately records `disabled`, `not_run`,
 `pending`, and evidence-stale states required by Section 7.9. Routine
-current-epoch pass reports are omitted. CI uploads `reports/rig/` as artifacts.
+current-epoch pass reports are omitted.
 Local report names use a timestamp plus content hash and exclusive creation to
 avoid concurrent writers.
 
 Security findings use the same evidence/fix-context conventions plus the
 frozen verdict enum. All secret-shaped evidence is redacted before writing.
+
+**A report stays on the machine that produced it (D15, `AT-REPORT-1`).**
+`reports/rig/` is written inside the repository and excluded from version
+control by a managed `.gitignore` block that install adds and uninstall removes,
+recorded in the §6.6 manifest like any other write. Rig never commits a report
+and **never uploads one as a build artifact**. An earlier version of this
+section had CI upload `reports/rig/`; that is withdrawn, and Slice 10 carries
+the same correction.
+
+The exclusion is only half of it, because a job log is as public as an artifact.
+In CI a failing check emits a **verdict, finding counts, and rule identities**,
+and nothing else — no matched content, no surrounding lines, no file excerpts.
+Paths are named only where the rule identity already implies them. Withholding
+the artifact while printing the same findings to the log would satisfy the
+letter and lose the whole point: on a public repository a secret-scan report is
+a map of the repository's secrets, and the log is the easier of the two to read.
+Detail stays local, where the person who can act on it already is. The `AT-B3`
+redaction still applies underneath, so a report that never leaves the machine is
+*also* redacted — two independent failures are needed to disclose anything.
 
 ## 9. Trust, Safety, and Failure Boundaries
 
@@ -1446,7 +1649,7 @@ frozen verdict enum. All secret-shaped evidence is redacted before writing.
 | Partial failure | Roll back current transaction; keep prior receipt/install intact. |
 | User-global file | Append or namespaced additive merge only; every pre-existing value survives byte-for-byte; entries attributed to the writing repository from the first install; removal touches only this repository's entries. |
 | Install identity | Generated, clone-local, never committed; a linked worktree is a distinct installation. |
-| Gate 1 integrity | Recomputed digests plus a namespaced SSHSIG signature from a hardware-presence key; fail closed on a missing, invalid, or weak-signer signature. No git dependency. |
+| Gate 1 integrity | Recomputed digests plus a namespaced SSHSIG signature verified against the listed signer identity; fail closed on a missing, malformed, or non-verifying signature when armed. The key's class is attested by the intent owner and is not checkable from the artifact (D19). No git dependency. |
 | Claim status | Declared field and evidence bundle must agree; disagreement in either direction fails the gate. |
 | Install stub | Fetches a released tag by name; downloads to a file before executing; never pipes network output to a shell. |
 | Test target | Every target named in §12 must exist and must report results; a missing file is a coverage gap, never a pass. Runner exit codes are not trusted alone, because `node --test` exits 0 for a target it could not find. |
@@ -1594,7 +1797,7 @@ The initial provider roster is exactly `github-actions`, `gitlab_ci`,
 `circleci`, `jenkins`, `buildkite`, and `azure_pipelines`. Each provider uses
 the same axis-local contract/evidence rule as executable host adapters:
 provider/version, exact config paths and schemas, owned merge boundary,
-collision behavior, minimum permissions, report-upload form, first/repeated
+collision behavior, minimum permissions, verdict-emission form, first/repeated
 apply, official documentation, adapter/fixture digests, and a real first-wire
 run.
 
@@ -1607,8 +1810,10 @@ CI detection yields one of:
 - `collision`: Rig's standalone path/namespace is already user-owned.
 
 For `verified_existing`, the content-bound plan adds one namespaced Rig job or
-step that runs `.rig/bin/check.js --scope repo` and uploads actionable
-`reports/rig/` output. The merge preserves all unrelated jobs, values,
+step that runs `.rig/bin/check.js --scope repo` and emits a verdict with finding
+counts and rule identities. It uploads nothing and prints no finding detail
+(`AT-REPORT-1`); `reports/rig/` stays on the runner and dies with it. The merge
+preserves all unrelated jobs, values,
 permissions, comments/format where the verified adapter contract promises
 them, and user secrets. Apply requires exact plan approval and is idempotent.
 
@@ -1617,7 +1822,7 @@ user explicitly selects one of the six verified providers. The resulting
 minimal provider-native pipeline requires exact plan approval before creation.
 It requests only documented minimum permissions, references no repository
 secrets, runs all enabled repo-applicable controls and selected executable
-services, and uploads actionable reports.
+services, and emits the same verdict-and-counts output with no artifact upload.
 
 `unknown`, `malformed`, and `collision` return nonzero, record the exact reason,
 and preserve every byte. They never degrade to advisory success or emit a
@@ -1742,7 +1947,7 @@ The repository's default branch is `prod`; no workflow may reference `main` or
 ## 12. Acceptance Traceability
 
 The specification gate extracts the distinct acceptance IDs from Gate 1 and
-requires exact set equality with the primary rows below, currently **45 IDs**.
+requires exact set equality with the primary rows below, currently **52 IDs**.
 Every row must name an existing design anchor and a substantive executable test
 title containing the same ID. Explicit evidence aliases are permitted only for
 Gate-1 properties that point to another case; tautological assertions are not.
@@ -1763,10 +1968,10 @@ target that vanishes is a coverage gap, never a pass.
 | Gate 1 case | Design mechanism | Primary executable evidence |
 |---|---|---|
 | AT-GATE-1 | This file is the only document with role `gate2-authority`; current SOW/task/coverage files are explicitly subordinate and every copied mechanism traces to an AD/section anchor. | `advanced-spec-gate.test.js`: reject a second authority, orphan normative ruling, or invalid anchor; accept the real tree only when authority is singular. |
-| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature from a hardware-presence key. The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Separately mutate one Gate-1 byte and prove the signature check fails; re-sign with a non-FIDO key and prove it still fails. |
+| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature against `gate1.allowed-signers`. The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Separately mutate one Gate-1 byte and prove the signature check fails. Arm a fixture with a signer identity and prove that a missing, malformed, and non-verifying signature each **fail** rather than warn; then remove the identity and prove the gate runs, reports Gate 1 unprotected in those words, and does not block. Re-sign an armed fixture with a key absent from `allowed-signers` and prove it fails. |
 | AT-GATE-3 | A fresh-context report-only review receipt binds exact Gate-1/Gate-2 digests and records one testability/conflict verdict per Gate-1 ID with `unresolved=[]`. Per AD-29 the receipt's model ID, digest, and timestamp are written by the invoking wrapper, not the reviewing agent, and the wrapper refuses to run under the model named in this file's authoring-context block. | Reject stale digests, missing IDs/anchors/targets, conflicts, same-context review, and a receipt whose model matches the authoring model; prove the agent cannot author its own model/digest fields. |
 | AT-GATE-4 | Workflow receipts record distinct implementation and review context/run IDs, not named staff; implementation diffs cannot change pinned Gate 1 or self-approve. | Accept one maintainer with distinct contexts; reject identical implementer/reviewer context and changed Gate-1 digests. |
-| AT-SHAPE-1 | All leaves/grades use the typed ownership/CAS/rollback graft path; no pack can bypass it. | Iterate 115 leaves x 3 grades against seeded user instructions/config; preserve bytes/keys and prove idempotent repeat apply. |
+| AT-SHAPE-1 | All leaves/grades use the typed ownership/CAS/rollback graft path; no pack can bypass it. Every insertion into a file Rig does not exclusively own is delimited by managed-block markers, and every mutation is recorded in the §6.6 manifest at the time it is made. | Iterate 115 leaves x 3 grades against seeded user instructions/config; preserve bytes/keys and prove idempotent repeat apply. Assert every write is bracketed by markers and has a manifest record whose digest matches the file after the write; assert an unmarked or unrecorded write is impossible by driving each graft path and diffing the observed write set against the journal. |
 | AT-SHAPE-2 | Recommendation emits every leaf but resolution consumes only user-confirmed `rig.json`. | A UI-less library marks E2E not recommended, then user selection still plans/applies it. |
 | AT-SHAPE-3 | Identity is grade-invariant; fragments/check sets are strict cumulative supersets. | Catalogue-wide 115-leaf grade set and identity test. |
 | AT-SHAPE-4 | Deterministic named-slice fixed point preserves explicit grades and cannot represent whole-group pulls. | Missing/lower-grade/transitive/cycle fixtures prove only exact slices are added. |
@@ -1775,7 +1980,7 @@ target that vanishes is a coverage gap, never a pass.
 | AT-BASE-1 | Safe shipped policy runs sanitation first; an exactly activated disablement continues with disabled/not-run state and no verdict. | Prove default ordering and separately prove approved disablement unlocks menu without clean/protected evidence. |
 | AT-BASE-2 | One evaluator and action envelope govern verified shell/web/MCP adapters; unsupported surfaces are explicit gaps and MCP is re-evaluated after preferred routing. | Equivalent allow/deny actions across all three surfaces plus unsupported-axis and no-MCP-bypass fixtures. |
 | AT-BASE-3 | Install authoritative `.rig/network-policy.json`, explanatory `.rig/network-rules.md`, and pointers to both; enforcement reads active JSON only. | Conflicting prose cannot change a decision; every host instruction locates both artifacts. |
-| AT-BASE-4 | Sections 7.3/7.4 exact-byte digest, active snapshot, delegated proposal-authoring boundary, verified host-native or external user-presence approval, repository/sequence binding, and replay rejection. | Accept both verified activation paths; accept agent proposal only with current explicit request or delegated-edit receipt; reject delegated edit as activation consent, byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, unsigned candidate, and base prompts that imply prior approval or delegation can authorize activation. |
+| AT-BASE-4 | Sections 7.3/7.4 exact-byte digest, active snapshot, session-scoped and unpersisted proposal-authoring delegation, verified host-native or external user-presence approval, repository/sequence binding, and replay rejection. | Accept both verified activation paths; accept an agent proposal only under a current explicit request. Reject delegated edit as activation consent, byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, unsigned candidate, and base prompts that imply prior approval or delegation can authorize activation. **Assert no delegation grant is written anywhere** — scan the repository, the clone-local Rig directory, and every user-global surface after granting delegation — and assert a fresh session asserting delegated edit mode is refused. |
 | AT-BASE-5 | Explicit independent control/surface leaves, group/global authoring expansion, actual unwiring/non-blocking, unrelated function continuity, and truthful status. | Disable one control, one surface, one category, then all enforcement; verify requested effects and every status label. |
 | AT-BASE-6 | Evidence keys include policy digest, control/surface, enablement generation, implementation, and inputs; disable invalidates and re-enable increments. | A pre-disable pass cannot verify the re-enabled generation until a fresh run completes. |
 | AT-P1 | Same exhaustive typed graft evidence as AT-SHAPE-1; aliases must resolve to its real parameterized test. | `AT-P1` evidence alias to the substantive AT-SHAPE-1 test, never a tautological assertion. |
@@ -1786,35 +1991,45 @@ target that vanishes is a coverage gap, never a pass.
 | AT-P6 | Authored-service gate plus executable-first honest disposition runner (AD-15); inventory alone cannot pass. | Iterate all 115 leaves, execute each declared evidence target or valid surfaceless predicate, and prove every convention-only fallback carries a service-specific named reason. |
 | AT-B1 | Enabled exact-copy control runs byte checker at enabled git/CI surfaces; approved disablement stops it and reports disabled. | Drift duplicate under both scopes, then disable only that control without affecting others. |
 | AT-B2 | Enabled semantic control requires current schema-validated host review over index, changes, aliases, and input digests. | Non-identical stale context fails; missing/stale/note-only reviewer output is a gap. |
-| AT-B3 | Vetted external scanner, documented full-history argv, pending activation, clean/finding/missing/error handling, exact-finding waiver, and staged-control independence. | Fake vetted executables prove actual full-history invocation, all failure paths, clean activation, waiver binding, and post-remediation re-scan. |
+| AT-B3 | Vetted external scanner, documented full-history argv, pending activation, clean/finding/missing/error handling, exact-finding waiver, staged-control independence, and redaction of all secret-shaped evidence before writing (§8.3), which stands as the second line of defence under `AT-REPORT-1`. | Fake vetted executables prove actual full-history invocation, all failure paths, clean activation, waiver binding, and post-remediation re-scan. Seed a known credential and assert it appears nowhere in the written report. |
 | AT-B4 | Enabled pre-commit dispatcher invokes the real bounded sanitation detector over staged harness/config bytes. | Stage malicious `AGENTS.md`, spy on input hashes, and reject a note-only result. |
 | AT-B5 | Exact four-verdict mapping, blocker/uncertainty precedence, freshness validation, and no verdict when disabled. | Cover all verdicts, malformed/stale review, deterministic blocker, uncertainty, and disabled path. |
 | AT-B6 | Read-only typed proposal, exact user-presence approval, preimage CAS, no-op rejection, transactional exact-diff verification/rollback, and fresh re-scan. | Wrong/stale/no-op, exact success, injected partial failure, unapproved extra write, observed-diff mismatch, and fresh sanitation fixtures. |
-| AT-B7 | Diff development scope, repo CI scope, dependency-order fail-fast, shared runner, and actionable failed/vacuous/gap reports. | Prove distinct inputs, dependency-not-run, report contents/upload, visible gaps/vacuity, and omitted routine passes. |
+| AT-B7 | Diff development scope, repo CI scope, dependency-order fail-fast, shared runner, and actionable failed/vacuous/gap reports written locally only. | Prove distinct inputs, dependency-not-run, local report contents, visible gaps/vacuity, and omitted routine passes. |
 | AT-HOST-1 | Section 10.1 complete per-axis emission/event/matcher/deny/proceed/merge/preservation/idempotence contract. | Validate every field and real event plus first/repeated apply for each verified axis. |
 | AT-HOST-2 | Common evaluator denies four categories, names rule/category, passes near-matches, consumes exact one-use once, and honors activated permanent choices. | Cross-adapter deny/near-match plus changed/replayed/concurrent/failed-dispatch/revoked/native-expired one-use and narrow/category-wide permanent fixtures. |
 | AT-HOST-3 | Evidence is axis-local and includes exact official citation, vendor/version/date, adapter/fixture digest, and real first wire. An axis without a bundle is `emitted`, not exempt from being built. | Mutate each field, share one bundle, or stale the adapter digest; `verified` must be lost — and the axis must still emit its configuration afterwards. |
 | AT-HOST-4 | Release blocks on the advertised set only. `status` is declared per `{host, axis}` and cross-checked against its bundle in both directions (AD-13). No file enumerates the advertised hosts. | Turn each contract/evidence/first-wire field missing in turn across the whole matrix; prove release blocks only for `verified` cells. Separately grep the tree for a hard-coded four-host list and fail if one exists, then add a first-wire bundle and prove promotion needs no Gate 1 edit. |
 | AT-HOST-5 | Shared MCP disposition governs legacy/catalogue; unsupported `pi` emits nothing; user-owned old file survives with guidance. | Fresh/adopt/upgrade through both entrypoints; zero new config and byte-identical seeded user file. |
-| AT-CI-1 | Exact provider adapter additively merges one Rig gate/upload into verified existing CI under plan approval. | Seed all six provider configs and deep-compare every unrelated user value after integration. |
+| AT-CI-1 | Exact provider adapter additively merges one Rig gate into verified existing CI under plan approval, and that gate is removable under `AT-UNINSTALL-1` from its §6.6 manifest record. | Seed all six provider configs and deep-compare every unrelated user value after integration; then uninstall and assert the job is gone and every unrelated value survives byte-for-byte. |
 | AT-CI-2 | Absent CI creates nothing until explicit verified-provider selection and exact plan approval. | No-choice/wrong-approval cases write nothing; each verified choice creates only its minimal native pipeline. |
-| AT-CI-3 | CI runs all enabled repo controls/services, uploads reports, requests minimum permissions, uses no repo secrets, and repeats idempotently. | Parse/execute all six outputs; check effective binding manifest, permissions, no secrets, upload, and zero second-apply diff. |
+| AT-CI-3 | CI runs all enabled repo controls/services, emits verdict plus counts and rule identities with no artifact upload (`AT-REPORT-1`), requests minimum permissions, uses no repo secrets, and repeats idempotently. | Parse/execute all six outputs; check effective binding manifest, permissions, no secrets, and zero second-apply diff. Assert no provider config contains an artifact-upload step for `reports/rig/` and that no job log line carries finding detail. |
 | AT-CI-4 | Unknown/malformed/collision config is byte-preserved/nonzero; target integration stays pending until a real provider-run receipt bound to exact config/commit/adapter/policy succeeds. | Reject fabricated/stale/local-only receipts and validate captured successful first-wire fixtures for every emitted provider integration. |
 | AT-CLAIM-1 | §10.1 status table: `verified` and `emitted` are both built and emitted; only evidence-backed `unsupported`/`advisory` may emit nothing. No code path skips a host for lack of verification. | Install on all 19 hosts and all six providers with an empty advertised set; assert every host receives its configuration and none is skipped. Assert the emitted byte set for an `emitted` axis equals the set it would receive as `verified`. |
 | AT-CLAIM-2 | §6.5 claim line in install output and every run report, naming status in user-facing words and disclosing any out-of-repo write. | Capture install output and a run report per host; assert an exact status phrase for each and assert a user-global write is named. A host present in the install with no claim line fails. |
 | AT-CLAIM-3 | §6.5: no prompt, flag, or acknowledgement on the unverified path. | Drive install and run non-interactively on an `emitted` host with stdin closed; assert completion with no prompt and no extra argument. Diff the invocation surface of an `emitted` host against a `verified` one and assert equality. |
-| AT-PRESENCE-1 | §7.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. FIDO floor with a FIDO-authorized downgrade ceremony; Rig verifies and never signs. | Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert a plain key is rejected before the ceremony and disclosed in status after it. Assert no signing binary ships and no private key material is written. |
+| AT-PRESENCE-1 | §7.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
 | AT-HOME-1 | §6.4 append or namespaced additive merge only, with §6.5 disclosure. | Seed a user-global file with hand-written values, install, and assert byte-for-byte survival of every pre-existing value plus a disclosure line. A wholesale rewrite or an undisclosed write fails. |
 | AT-HOME-2 | §6.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
 | AT-DIST-1 | §11.4 committed root install stub resolving `latest` to one concrete release tag before fetching, recording that tag in the install receipt; `publish.yml` deleted; `package.json` at `5.0.0`, private. | In a container with only git, curl and sh and no checkout, run the stub against an empty repo and assert a working install. **Assert the resolved reference is a release tag and never a branch**, that the receipt names the exact tag installed, and that two runs against the same tag produce byte-identical trees. Assert the stub downloads to a file and never pipes to a shell. Assert no publish workflow exists and that tagging `v5.0.0` cannot invoke npm publish. |
+| AT-INSTALL-1 | §6.6 append-only manifest with record-before-mutate ordering, `applied` supersede carrying the post-write digest, resume from the manifest, and the `complete: false` header that suppresses every protection claim. Teardown of a partial install is the §6.6 removal path, not a second one. | Interrupt an install at each write boundary — crash, signal, permission denial, and a full-disk write failure — and assert applied writes stay, the manifest records how far it got, and the install is marked incomplete. Assert no partially applied control is reported as enabled, installed, or protecting anything, in `policy status`, the §6.5 claim line, and a run report. Re-run and assert resume applies only what did not land, with no duplicated work and no restart. Separately uninstall the partial install and assert it is removed by the same teardown path. |
+| AT-UNINSTALL-1 | §6.6 reverse-`seq` walk over the manifest; owned files deleted, managed blocks stripped from files Rig only added to, chained hooks restored, user-global entries removed by `install_id` per §6.4; removal report names what went. | Install across every surface at once — Rig's own files, a grafted `AGENTS.md`, a pre-commit hook, an `AT-CI-1` CI job, host configuration, and a user-global file — then uninstall and assert each is gone and every byte the user owns survives unchanged. Assert teardown order is the reverse of install by killing uninstall mid-run and asserting no hook references a removed target. Assert the report enumerates exactly what was removed. Deleting `.rig/` and declaring the repository clean must fail the case. |
+| AT-UNINSTALL-2 | §6.6 clone-local content-addressed preimage store, post-removal diff, and the verified-clean versus named-best-effort split mirroring §6.5. | Uninstall a repository whose touched files carry the user's own later edits and assert **verified clean**. Edit a managed block's markers away, uninstall, and assert **best-effort** with that exact file named and the result never called clean; do the same for a file another tool rewrote. Assert no preimage is ever written back over a current file, by seeding a post-install user edit and asserting it survives. Delete the clone-local store and assert removal degrades to best-effort and says so rather than claiming clean. |
+| AT-UNINSTALL-3 | §6.6 removal touches only manifest entries; `reports/rig/`, run history, `rig.json`, and `.rig/network-policy.json` are user-owned per §3.2 and are not entries. `--purge` lists before deleting. | Accumulate reports and run history, hand-edit `.rig/network-policy.json`, uninstall, and assert all of it survives byte-for-byte. Then `--purge` and assert the complete deletion list is printed **before** anything is deleted and matches what is deleted. A purge that deletes first, or a default uninstall that removes report history, fails. |
+| AT-REPORT-1 | §8.3 reports written under `reports/rig/`, excluded from version control by a managed `.gitignore` block recorded in the §6.6 manifest; no commit, no artifact upload; §10.2 and Slice 10 emit verdict, counts, and rule identities only. | Run every report-writing check and assert each output path is git-ignored and uncommitted. Assert no provider config for any of the six providers contains an artifact-upload step for `reports/rig/`. Force a failing check in each provider and assert the job log carries a verdict, finding counts, and rule identities and **no** finding detail — asserted by seeding a known matched string and grepping the whole captured log for it. Assert `AT-B3` redaction still applied to the local file. |
+| AT-SECRET-1 | §7.8 deterministic detection with separated disclosable and restricted records; everything handed to the agent is built from the disclosable record; model-assisted triage is default-closed and enabled only by an activated policy change disclosed at the point of enabling. | Seed known credentials, run under default configuration, and assert the agent-visible surface carries counts, rule identities, and locations and never the matched bytes — grep every string crossing that boundary for the seeded value. Assert detection is deterministic across repeated runs. Enable model-assisted triage through the normal activation path and assert content is admitted only then, and that the enabling point states the third-party reason. A default that admits content fails even when disclosed. |
+| AT-BASE-7 | §7.2: no schema key can express self-activation, unknown keys are rejected at activation step 1, and the approval requirement has no policy-driven branch around it. Not held in a second file or repository. | Author policy revisions that purport to grant agent self-activation under plausible key spellings and assert each is rejected at validation and never becomes active. Assert that no activation path consults policy to decide whether approval is required, by mutating each policy field in turn and asserting the approval check still runs. Disable enforcement wholesale under `AT-BASE-5` and assert status reports unprotected rather than protected. Assert no separate invariant file or repository exists for this rule. |
 
 The specification gate also:
 
 0. **first**, recomputes the SHA-256 of `business-spec.md` and `acceptance.md`,
    rebuilds the `rig-gate1-freeze-v1` message, and verifies
    `project-dev-docs/current/gate1.sig` in namespace `rig-gate1` against
-   `project-dev-docs/current/gate1.allowed-signers`, requiring a
-   hardware-presence key type. Every later check is meaningless if Gate 1 has
+   `project-dev-docs/current/gate1.allowed-signers`. Presence of that identity
+   file arms the check: armed, a missing, malformed, or non-verifying signature
+   fails; unarmed, the gate reports Gate 1 unprotected in those words and
+   continues (D17). It does not test the key's class, which per D19 no signature
+   here carries. Every later check is meaningless if Gate 1 has
    moved, so nothing else runs until this passes;
 1. confirms those digests match the pins recorded in this file's header;
 2. rejects a second Gate-2 authority or a subordinate superseding mechanism;
@@ -1833,13 +2048,13 @@ the gate (GA-11).
 
 ## 13. Ordered Tracer-Bullet Slices
 
-All slices below are pending under Gate 1 dated 2026-07-26 at 45 cases. Existing
+All slices below are pending under Gate 1 as amended 2026-08-13 at 52 cases. Existing
 code may be reused only after its current behavior passes the revised test —
 roughly 1,450 lines of `rig/lib` Advanced modules and 19 test files exist from
 the withdrawn design and are reusable spine, not reusable evidence. Each slice
 leaves one runnable check and keeps all prior checks green.
 
-**`npm test` is red from Slice 1 until Slice 14, by construction.** The
+**`npm test` is red from Slice 1 until Slice 15, by construction.** The
 specification gate runs first and fails while Gate 2 is a candidate, so the code
 tests never execute. That is `AT-GATE-2` working, not a defect. `npm run
 test:code` runs the code tests alone and is the signal to watch during the
@@ -1849,14 +2064,16 @@ build; it is expected green continuously. Feature-branch pushes may go out with
 ### Slice 1 - Specification authority and complete executable oracle
 
 Implement the Section 12 specification gate with the Gate-1 signature check
-first, pin the Gate-1 digests, transcribe all **45** IDs into substantive tests,
+first, pin the Gate-1 digests, transcribe all **52** IDs into substantive tests,
 and remove or rewrite the obsolete tests that assert a non-disableable baseline
 or tautological aliases. Add `npm run test:code`; wire the gate ahead of the
 code tests in `npm test`. Do not edit Gate 1.
 
 This slice includes the one manual step in the project: once the verifier
-exists, the intent owner signs the frozen Gate-1 message with a FIDO key. Until
-that signature exists the gate cannot pass, by design.
+exists, the intent owner signs the frozen Gate-1 message with a key meeting the
+`AT-GATE-2` floor and records its class beside the signer identity. Until that
+signature exists the repository is unarmed and the gate reports Gate 1
+unprotected; once the identity file lands, a missing signature fails.
 
 Verification:
 
@@ -1924,10 +2141,19 @@ Extend the existing plan/apply spine with exact plan approval, policy/adapters,
 control wiring/unwiring, real read-only remediation proposals, preimage CAS,
 no-op rejection, observed-diff equality, rollback, and fresh sanitation.
 
+This slice also lands the §6.6 **manifest writer**, because every later slice
+writes through this spine and a mutation that predates the writer is a mutation
+nothing can remove. Deliver the append-only journal, the write-record-then-mutate
+ordering, the `applied` supersede with post-write digest, the clone-local
+preimage store, and the `complete: false` header that suppresses every
+"protecting" claim while an install is in flight. Resume and removal consume
+this and arrive in Slice 12; what must be true here is that no write escapes the
+journal.
+
 Verification:
 
 ```sh
-node --test tests/advanced-plan.test.js tests/advanced-apply.test.js tests/advanced-graft.test.js tests/advanced-remediation.test.js
+node --test tests/advanced-plan.test.js tests/advanced-apply.test.js tests/advanced-graft.test.js tests/advanced-remediation.test.js tests/advanced-install-manifest.test.js
 ```
 
 ### Slice 7 - Policy-aware git/CI controls and evidence epochs
@@ -1978,13 +2204,21 @@ node --test tests/advanced-hosts.test.js tests/advanced-enforcement.test.js test
 
 Author exact provider contracts/evidence, additive existing-config adapters,
 collision refusal, explicit absent-CI provider selection and plan approval,
-least-privilege/no-secret pipelines, report upload, idempotence, and real
-first-run receipts.
+least-privilege/no-secret pipelines, idempotence, and real first-run receipts.
+
+**Findings never leave the runner (`AT-REPORT-1`).** Every emitted pipeline
+prints a verdict, finding counts, and rule identities, and nothing more. No
+provider adapter uploads `reports/rig/`, and none echoes finding detail into the
+job log — the log is as readable as an artifact on a public repository. This
+slice replaces the report-upload behavior earlier drafts specified across all
+six providers, so the adapters and their fixtures must be checked for it rather
+than only for what they now emit.
 
 Verification:
 
 ```sh
-node --test tests/advanced-ci-floor.test.js tests/advanced-apply.test.js
+node --test tests/advanced-ci-floor.test.js tests/advanced-apply.test.js \
+  tests/advanced-report-disclosure.test.js
 ```
 
 ### Slice 11 - User-global writes, attribution, and claim disclosure
@@ -2001,7 +2235,38 @@ Verification:
 node --test tests/advanced-global-writes.test.js tests/advanced-claims.test.js
 ```
 
-### Slice 12 - Distribution
+### Slice 12 - Install resume and complete removal
+
+Every surface Rig writes now exists, so this is the first point at which
+removal can be proved against the whole of it rather than against a subset.
+Implement §6.6 resume — verify each `applied` record against its digest and skip
+it, re-check each `pending` record against the file and apply only what did not
+land — and the reverse-`seq` teardown that removes Rig's own files, strips
+managed blocks from files Rig only added to, restores chained hooks, and drops
+user-global entries by `install_id`. Implement the post-removal diff against the
+preimage store that reports **verified clean** or names each best-effort file,
+and `uninstall --purge`, which lists usage artifacts before deleting them and
+leaves them alone otherwise.
+
+The load-bearing tests are the destructive ones. Interrupt an install at each
+write boundary and assert the writes already applied stay, the manifest records
+how far it got, and nothing reports itself as protecting anything; then re-run
+and assert no duplicated work; then instead uninstall the partial install and
+assert the same teardown path removes it. Install across every surface at once —
+Rig's own files, a grafted `AGENTS.md`, a pre-commit hook, an `AT-CI-1` CI job,
+host configuration, and a user-global file — then uninstall and assert every
+byte the user owns survives unchanged and the report names exactly what went.
+Edit a managed block's markers away and assert the result is best-effort with
+that file named, never clean, and that no preimage is written back over the
+user's current file.
+
+Verification:
+
+```sh
+node --test tests/advanced-install-resume.test.js tests/advanced-uninstall.test.js
+```
+
+### Slice 13 - Distribution
 
 Author the committed root `install.sh`, delete the inherited npm publish
 workflow, move `package.json` to `5.0.0`, and prove a stranger with only git,
@@ -2013,7 +2278,7 @@ Verification:
 node --test tests/advanced-distribution.test.js
 ```
 
-### Slice 13 - Author all 115 service packs
+### Slice 14 - Author all 115 service packs
 
 Replace every TODO/generic/repeated fragment with service-specific identity,
 scope/exclusions, applicability, dependencies, cumulative grades, honest
@@ -2035,7 +2300,7 @@ node --test tests/advanced-catalogue.test.js tests/advanced-services.test.js
 node scripts/check-advanced-spec.js
 ```
 
-### Slice 14 - Complete matrix, fresh specification review, and regression
+### Slice 15 - Complete matrix, fresh specification review, and regression
 
 Run every frozen acceptance case over representative repo/host fixtures,
 all exact host/CI contracts and first wires, malicious/disabled/re-enabled
@@ -2089,20 +2354,24 @@ npm test
   template engine or generated filler. Every fragment must name concrete checks
   and pass the shared service-shape contract.
 
-- **The §7.4 downgrade ceremony weakens the guarantee `AT-PRESENCE-1` makes.**
-  After a downgrade, the allowed signer is an ordinary key on disk, and an agent
-  that can read it can produce a valid activation signature with no human
-  present. "No presence, no activation" then holds by the user's key hygiene
-  rather than by anything Rig verifies. This is within Gate 1's letter — the
-  case requires "a user-configured external signature" and does not specify
-  hardware — and it was chosen deliberately by the intent owner over a FIDO-only
-  floor, because a FIDO-only floor permanently strands every user without a
-  security key on the fifteen hosts that have no native prompt. It is recorded
-  here rather than absorbed silently: the ceremony is gated behind a
-  FIDO-authorized bootstrap so a weak signer cannot admit itself, the reduced
-  floor is named in every status output thereafter, and D10 bars the downgrade
-  from Gate 1 integrity entirely. An independent review flagged this as
-  machinery Gate 1 does not require, and that reading is correct.
+- **On the external-signer path, "no presence, no activation" holds by the
+  user's key hygiene, not by anything Rig verifies (D19).** If the allowed
+  signer is an ordinary key on disk, an agent that can read it produces a valid
+  activation signature with no human present, and Rig cannot tell. This is
+  within Gate 1's letter — `AT-PRESENCE-1` requires "a user-configured external
+  signature" and specifies no key class — but it is a real ceiling on the
+  fifteen hosts that have no native prompt, and every `policy status` names the
+  declared signer class so the user is never left assuming otherwise.
+
+  The earlier design answered this with a FIDO floor plus a one-time
+  FIDO-authorized downgrade ceremony. That has been removed, because the check
+  it rested on does not exist: nothing in SSHSIG verification distinguishes a
+  hardware signer from a software one, so the ceremony gated a transition
+  between two states Rig cannot observe. An independent review had already
+  flagged the ceremony as machinery Gate 1 does not require; that reading was
+  correct, and the mechanism turned out to be unimplementable as well as
+  unrequired. The residual risk above is the honest form of what the ceremony
+  was pretending to remove.
 - **Four verified hosts is a narrow base.** The initially advertised hosts have
   similar permission models, so the enforcement design is shaped by their
   conventions and may fit later hosts poorly. Recorded in Gate 1 §9 as accepted.
@@ -2156,7 +2425,8 @@ combine internal modules, but must preserve:
   file anywhere enumerating the advertised hosts;
 - the claim line in install output and run reports, with no prompt or flag on
   the unverified path;
-- refusal as a terminal activation state, and the FIDO presence floor;
+- refusal as a terminal activation state, and the declared-and-disclosed
+  presence floor;
 - user-global writes that append, attribute from the first install, and remove
   only their own repository's entries;
 - the install stub, and the absence of a publish workflow;
@@ -2187,8 +2457,11 @@ checkable against the specification alone:
 3. a fresh-session report-only review of the final candidate digest, run under a
    model different from the one named in the authoring-context block, returns no
    blocker and an empty `unresolved` set;
-4. the intent owner has signed the frozen Gate-1 message with a
-   hardware-presence key, and that signature verifies (D10). This is provable
+4. the intent owner has signed the frozen Gate-1 message with a key meeting the
+   `AT-GATE-2` floor — one no agent on their machine can operate without a live
+   human act — has recorded that key's class beside the signer identity, and the
+   signature verifies (D10, D19). What is checkable here is the signature; the
+   class is the intent owner's attestation. This is provable
    with `ssh-keygen -Y verify` directly and does **not** wait for the gate script
    — Slice 1 automates the check, it does not create the requirement.
 
@@ -2205,7 +2478,7 @@ supported, and §11.3 owns the ordered form:
    entire point of the D1/D2 split;
 2. all 115 leaves replace TODO/generic/repeated content and pass the
    exact-digest fresh catalogue review;
-3. the §12 specification gate and complete **45-ID** executable oracle exist and
+3. the §12 specification gate and complete **52-ID** executable oracle exist and
    are green;
 4. `npm test` passes on the final source state, with the specification gate
    ordered first.
