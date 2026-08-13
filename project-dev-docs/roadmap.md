@@ -224,15 +224,22 @@ brew install --cask secretive
 #    public key, and export the SSH_AUTH_SOCK line the app shows you.
 ssh-add -l                      # your new key should be listed
 
-# 1. Switch the check on. This file holds your PUBLIC key only, and it is the
+# 1. Save the copied public key to a file, and point one variable at it.
+#    Everything below uses $PUBKEY, so this is the only path you edit.
+mkdir -p ~/.ssh
+pbpaste > ~/.ssh/rig-gate1.pub
+PUBKEY=~/.ssh/rig-gate1.pub
+cat "$PUBKEY"                   # sanity: one line, "ecdsa-sha2-... AAAA..."
+
+# 2. Switch the check on. This file holds your PUBLIC key only, and it is the
 #    whole of what the gate trusts — see the warning below.
-KEY="$(pbpaste | awk '{print $1" "$2}')"        # keytype + key data, no comment
 {
   printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n'
-  printf '%s namespaces="rig-gate1" %s\n' "vaibhav.kodiyan@winmore.io" "$KEY"
+  printf '%s namespaces="rig-gate1" %s\n' \
+    "vaibhav.kodiyan@winmore.io" "$(awk '{print $1" "$2}' "$PUBKEY")"
 } > project-dev-docs/current/gate1.allowed-signers
 
-# 2. Build the message FROM THE FILES, read it, then sign it.
+# 3. Build the message FROM THE FILES, read it, then sign it.
 {
   printf 'rig-gate1-freeze-v1\n'
   printf 'business-spec.md %s\n' \
@@ -243,15 +250,22 @@ KEY="$(pbpaste | awk '{print $1" "$2}')"        # keytype + key data, no comment
 cat /tmp/gate1.msg              # read it. three lines. then sign, immediately.
 
 #    Signing goes through the agent, so -f takes the PUBLIC key.
-ssh-keygen -Y sign -f <your-public-key>.pub -n rig-gate1 /tmp/gate1.msg   # Touch ID prompts here
+ssh-keygen -Y sign -f "$PUBKEY" -n rig-gate1 /tmp/gate1.msg   # Touch ID prompts here
 mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
 
-# 3. Confirm it verifies, and record your fingerprint somewhere off this Mac.
+# 4. Confirm it verifies. The output ends with the key fingerprint —
+#    save that in your password manager, off this Mac.
 ssh-keygen -Y verify -f project-dev-docs/current/gate1.allowed-signers \
   -I vaibhav.kodiyan@winmore.io -n rig-gate1 \
   -s project-dev-docs/current/gate1.sig < /tmp/gate1.msg
-ssh-keygen -lf <your-public-key>.pub    # save this fingerprint in your password manager
 ```
+
+Every path above is either literal or `$PUBKEY`. Nothing in these blocks is a
+`<placeholder>` you have to substitute — angle brackets inside a shell command
+are redirections, not blanks, so a pasted placeholder silently eats the argument
+next to it and the command fails somewhere unrelated. An earlier version of this
+step had exactly that bug, and it surfaced as `Too few arguments for sign:
+missing namespace`, because `-f` swallowed the `-n` flag.
 
 Note the file paths in step 2: `business-spec.md` lives under `current/spec/`,
 `acceptance.md` directly under `current/`. They are not in the same directory,
