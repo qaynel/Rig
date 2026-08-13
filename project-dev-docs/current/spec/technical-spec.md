@@ -45,7 +45,7 @@ This is a **source-repository** control and its artifacts live beside Gate 1:
 | Path | Role |
 |---|---|
 | `project-dev-docs/current/gate1.sig` | Detached SSHSIG signature over the message above. |
-| `project-dev-docs/current/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only, plus a comment line per identity recording the key class the intent owner attests it to be (D19). Its presence arms the check (D17). |
+| `project-dev-docs/current/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only, each entry carrying `namespaces="rig-gate1"`, plus a comment line per identity recording the key class the intent owner attests it to be (D19). Its presence arms the check (D17). |
 
 Do not confuse these with `.rig/policy/allowed-signers` in §3.2, which is a
 **target-repository** artifact governing policy activation in a user's repo.
@@ -56,6 +56,35 @@ Neither can authorize the other.
 
 There is no upstream-branch comparison, no branch-protection requirement, and no
 code-ownership requirement anywhere in this design — GA-11 withdrew all three.
+
+**The signers file is the trust root, and it sits inside what it protects.**
+This is the sharpest limit of the design and it is deliberate, not overlooked. A
+context that can write the repository can replace `gate1.allowed-signers` with a
+key of its own and re-sign its edits to Gate 1; nothing cryptographic prevents
+that, because the only thing that could is an anchor outside the repository and
+GA-11 withdrew every git-shaped candidate for one. Gate 1 §9 records it under
+D17 and D19.
+
+Two mechanisms make the substitution expensive rather than free, and both are
+cheap enough to be worth having:
+
+- **The gate names the signer on every run.** When the check passes it prints
+  the SHA-256 fingerprint of the key it verified against, and the principal it
+  matched, whether or not anything else is wrong. A swapped trust root then
+  announces itself on every `npm test` to the one person who knows their own
+  fingerprint, instead of hiding until somebody reads a diff. This converts
+  D17's "loud" from a property of the commit history into a property of the
+  ordinary development loop.
+- **The entry is namespace-restricted.** Each `gate1.allowed-signers` line
+  carries `namespaces="rig-gate1"`, which OpenSSH does support in this file
+  (unlike the options D19 removed). A signature the intent owner produced for
+  any other purpose — git commit signing uses namespace `git` — then cannot be
+  presented here, so the key's authority is scoped to this one use even if the
+  key is later reused elsewhere.
+
+Neither closes the hole. They make it a change the intent owner sees rather than
+one they have to go looking for, which is the honest ceiling for a control whose
+verifier and trust root live on the same disk as the adversary.
 
 When re-frozen, this document is the single Gate-2 source of truth for
 implementing the a-la-carte delivery model. A SOW, task list, coverage plan, or
@@ -1968,7 +1997,7 @@ target that vanishes is a coverage gap, never a pass.
 | Gate 1 case | Design mechanism | Primary executable evidence |
 |---|---|---|
 | AT-GATE-1 | This file is the only document with role `gate2-authority`; current SOW/task/coverage files are explicitly subordinate and every copied mechanism traces to an AD/section anchor. | `advanced-spec-gate.test.js`: reject a second authority, orphan normative ruling, or invalid anchor; accept the real tree only when authority is singular. |
-| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature against `gate1.allowed-signers`. The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Separately mutate one Gate-1 byte and prove the signature check fails. Arm a fixture with a signer identity and prove that a missing, malformed, and non-verifying signature each **fail** rather than warn; then remove the identity and prove the gate runs, reports Gate 1 unprotected in those words, and does not block. Re-sign an armed fixture with a key absent from `allowed-signers` and prove it fails. |
+| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature against `gate1.allowed-signers`, then names the principal and key fingerprint it verified against (§1). The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Separately mutate one Gate-1 byte and prove the signature check fails. Arm a fixture with a signer identity and prove that a missing, malformed, and non-verifying signature each **fail** rather than warn; then remove the identity and prove the gate runs, reports Gate 1 unprotected in those words, and does not block. Re-sign an armed fixture with a key absent from `allowed-signers` and prove it fails. Substitute the whole trust root — a self-consistent fixture with edited Gate-1 files, an attacker key, and a matching signature — and assert the gate passes *but* prints a fingerprint differing from the recorded one, since this is the documented residual and the output is the only thing standing against it. Assert a signature made in a namespace other than `rig-gate1` is rejected by the `namespaces=` restriction. |
 | AT-GATE-3 | A fresh-context report-only review receipt binds exact Gate-1/Gate-2 digests and records one testability/conflict verdict per Gate-1 ID with `unresolved=[]`. Per AD-29 the receipt's model ID, digest, and timestamp are written by the invoking wrapper, not the reviewing agent, and the wrapper refuses to run under the model named in this file's authoring-context block. | Reject stale digests, missing IDs/anchors/targets, conflicts, same-context review, and a receipt whose model matches the authoring model; prove the agent cannot author its own model/digest fields. |
 | AT-GATE-4 | Workflow receipts record distinct implementation and review context/run IDs, not named staff; implementation diffs cannot change pinned Gate 1 or self-approve. | Accept one maintainer with distinct contexts; reject identical implementer/reviewer context and changed Gate-1 digests. |
 | AT-SHAPE-1 | All leaves/grades use the typed ownership/CAS/rollback graft path; no pack can bypass it. Every insertion into a file Rig does not exclusively own is delimited by managed-block markers, and every mutation is recorded in the §6.6 manifest at the time it is made. | Iterate 115 leaves x 3 grades against seeded user instructions/config; preserve bytes/keys and prove idempotent repeat apply. Assert every write is bracketed by markers and has a manifest record whose digest matches the file after the write; assert an unmarked or unrecorded write is impossible by driving each graft path and diffing the observed write set against the journal. |
@@ -2029,7 +2058,10 @@ The specification gate also:
    file arms the check: armed, a missing, malformed, or non-verifying signature
    fails; unarmed, the gate reports Gate 1 unprotected in those words and
    continues (D17). It does not test the key's class, which per D19 no signature
-   here carries. Every later check is meaningless if Gate 1 has
+   here carries. On success it **names the signer it verified against** — the
+   matched principal and the key's SHA-256 fingerprint — so a replaced trust
+   root is visible in ordinary output rather than only in a diff (§1). Every
+   later check is meaningless if Gate 1 has
    moved, so nothing else runs until this passes;
 1. confirms those digests match the pins recorded in this file's header;
 2. rejects a second Gate-2 authority or a subordinate superseding mechanism;
@@ -2320,6 +2352,19 @@ npm test
 
 ## 14. Risks and Explicit Limits
 
+- **Gate 1's trust root lives inside what it protects.** `gate1.allowed-signers`
+  is the whole of the verifier's trust, and a context that can write the
+  repository can replace it and re-sign. §1 states the ceiling and the two
+  mitigations — the gate naming the signer fingerprint on every run, and the
+  `namespaces="rig-gate1"` restriction — and Gate 1 §9 accepts the residual
+  under D17 and D19. An independent review of the signing scheme raised this as
+  its headline finding and proposed protected-branch, CODEOWNER, or
+  reviewed-commit anchoring; all three are the mechanism GA-11 withdrew by name,
+  so the finding is accepted as a limit rather than closed by re-adopting them.
+  Worth stating plainly: this gate is local and git-independent, so the
+  "untrusted contributor opens a PR" version of the attack is not in its threat
+  model. The version that is — the local agent substituting the root — is real
+  and is the one the mitigations address.
 - **Semantic sanitation and drift judgment inherit the host model's limits.**
   The static floor, bounded evidence, fail-closed verdict, and human approval
   are Tier 2 defenses. Sandboxing, egress control, DLP, immutable telemetry, and

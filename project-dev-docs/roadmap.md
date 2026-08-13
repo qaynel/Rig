@@ -206,42 +206,103 @@ unless a human does something live.** Your Touch ID satisfies that, free, today.
 so the system runs in "unarmed" mode where a missing signature isn't a failure.
 Three things to do — get a key, switch the check on, then sign.
 
+**Build the message yourself.** Every command below runs in *your* shell, not an
+agent's. That is not ceremony: `ssh-keygen` signs exactly the bytes it is handed
+and has no idea they are supposed to be hashes of two particular files. If you
+sign a message an agent prepared, you have signed whatever that agent put in it,
+with a perfectly valid signature. Never sign a message file you did not just
+generate from the files you are approving.
+
 ```sh
 # 0. One-time: a key that lives in this Mac's secure element and needs your
 #    fingerprint for every single signature. The private half never exists as
 #    a file, so nothing on disk can be stolen or reused by an agent.
+#    Name it something dedicated, e.g. "Winmore Rig Gate 1 Signing", and use it
+#    for nothing else — not GitHub, not servers, not git commit signing.
 brew install --cask secretive
-#    Then in Secretive: create a key, tick "Authenticate before use", and copy
-#    its public key. Secretive prints the SSH_AUTH_SOCK line to export.
+#    Then in Secretive: create the key, tick "Authenticate before use", copy its
+#    public key, and export the SSH_AUTH_SOCK line the app shows you.
+ssh-add -l                      # your new key should be listed
 
-# 1. Switch the check on. This file holds your PUBLIC key only.
-printf '%s %s\n' "<your-principal>" "<paste the public key line>" \
-  > project-dev-docs/current/gate1.allowed-signers
-printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n' \
-  >> project-dev-docs/current/gate1.allowed-signers
+# 1. Switch the check on. This file holds your PUBLIC key only, and it is the
+#    whole of what the gate trusts — see the warning below.
+KEY="$(pbpaste | awk '{print $1" "$2}')"        # keytype + key data, no comment
+{
+  printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n'
+  printf '%s namespaces="rig-gate1" %s\n' "vaibhav.kodiyan@winmore.io" "$KEY"
+} > project-dev-docs/current/gate1.allowed-signers
 
-# 2. Build the message (it names both files and their fingerprints) and sign it.
+# 2. Build the message FROM THE FILES, read it, then sign it.
+{
+  printf 'rig-gate1-freeze-v1\n'
+  printf 'business-spec.md %s\n' \
+    "$(shasum -a 256 project-dev-docs/current/spec/business-spec.md | awk '{print $1}')"
+  printf 'acceptance.md %s\n' \
+    "$(shasum -a 256 project-dev-docs/current/acceptance.md         | awk '{print $1}')"
+} > /tmp/gate1.msg
+cat /tmp/gate1.msg              # read it. three lines. then sign, immediately.
+
 #    Signing goes through the agent, so -f takes the PUBLIC key.
-printf 'rig-gate1-freeze-v1\nbusiness-spec.md %s\nacceptance.md %s\n' \
-  "$(shasum -a 256 project-dev-docs/current/spec/business-spec.md | cut -d' ' -f1)" \
-  "$(shasum -a 256 project-dev-docs/current/acceptance.md          | cut -d' ' -f1)" \
-  > /tmp/gate1.msg
 ssh-keygen -Y sign -f <your-public-key>.pub -n rig-gate1 /tmp/gate1.msg   # Touch ID prompts here
 mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
 
-# 3. Confirm it verifies.
+# 3. Confirm it verifies, and record your fingerprint somewhere off this Mac.
 ssh-keygen -Y verify -f project-dev-docs/current/gate1.allowed-signers \
-  -I <your-principal> -n rig-gate1 \
+  -I vaibhav.kodiyan@winmore.io -n rig-gate1 \
   -s project-dev-docs/current/gate1.sig < /tmp/gate1.msg
+ssh-keygen -lf <your-public-key>.pub    # save this fingerprint in your password manager
 ```
 
-Two things not to do. Don't put `verify-required` or `no-touch-required` in the
-signers file — they are not valid there and `ssh-keygen` will reject the file;
-the old version of this step had that bug. And don't sign with a plain
-`~/.ssh/id_ed25519`: nothing will stop you, and nothing will protect you either.
+Note the file paths in step 2: `business-spec.md` lives under `current/spec/`,
+`acceptance.md` directly under `current/`. They are not in the same directory,
+and a command that gets that wrong silently produces an empty digest.
+
+Three things not to do. Don't put `verify-required` or `no-touch-required` in
+the signers file — they are not valid there and `ssh-keygen` will reject the
+file. Don't sign with a plain `~/.ssh/id_ed25519`: nothing will stop you, and
+nothing will protect you either. And don't reuse this key for anything else; a
+dedicated key keeps the blast radius of any mistake to this one gate.
 
 A hardware key still works and still satisfies this, if you buy one later. The
 signers file is the only thing that would change.
+
+### What this does not protect against, and what to watch
+
+`gate1.allowed-signers` is the trust root, and it lives in the repository it
+protects. An agent that can write the repo can replace your key with its own,
+re-sign its own edits, and the verify command will happily print
+`Good "rig-gate1" signature`. The principal string is just a label; it proves
+nothing about you. Nothing cryptographic fixes this from inside the repository,
+and the git-based fixes — protected branches, code owners, reviewed commits —
+are the ones you rejected in GA-11 for charging every requirements edit to
+commit history.
+
+What we do instead, and why it is worth the little it costs: the gate will print
+the fingerprint of the key it verified against on **every** run. You will know
+your own fingerprint — that is what step 3 saves to your password manager. A
+swapped trust root then shows up in ordinary output every time you run the
+tests, rather than waiting for someone to read a diff. That turns a silent
+substitution into a loud one. It does not make it impossible, and this file
+should never claim it does.
+
+The `namespaces="rig-gate1"` restriction in your signer line is the other cheap
+guard: it scopes the key's authority to this one use, so a signature you made
+for some other purpose can never be replayed here.
+
+### If you lose the key
+
+Secure Enclave keys cannot be backed up or moved to another Mac — that is the
+same non-exportability that makes them worth using. New laptop, logic-board
+repair, or a wiped machine means the old key is gone for good.
+
+This is smaller than it sounds. Verifying **old** signatures needs only the
+public key, which is committed, so nothing already signed becomes unverifiable.
+What you lose is the ability to sign the *next* change, and recovering is four
+commands: create a new key in Secretive, replace the line in
+`gate1.allowed-signers`, re-run step 2 against the current files, commit both.
+There is no revocation list and no key ceremony, because there is one signer and
+that file is the entire trust store. Do the same on suspected compromise or if
+the key ever leaves your sole control.
 
 **Timing:** this step doesn't depend on steps 1 or 2. Do it today if you like.
 The only downside of signing early: if the rewrite in step 1 turns up a genuine
