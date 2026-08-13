@@ -217,29 +217,42 @@ generate from the files you are approving.
 # 0. One-time: a key that lives in this Mac's secure element and needs your
 #    fingerprint for every single signature. The private half never exists as
 #    a file, so nothing on disk can be stolen or reused by an agent.
-#    Name it something dedicated, e.g. "Winmore Rig Gate 1 Signing", and use it
-#    for nothing else — not GitHub, not servers, not git commit signing.
+#    Name it something dedicated, e.g. "Rig Gate 1 Signing", and use it for
+#    nothing else — not GitHub, not servers, not git commit signing.
 brew install --cask secretive
-#    Then in Secretive: create the key, tick "Authenticate before use", copy its
-#    public key, and export the SSH_AUTH_SOCK line the app shows you.
-ssh-add -l                      # your new key should be listed
+#    Then in Secretive: create the key and tick "Authenticate before use".
 
-# 1. Save the copied public key to a file, and point one variable at it.
-#    Everything below uses $PUBKEY, so this is the only path you edit.
-mkdir -p ~/.ssh
-pbpaste > ~/.ssh/rig-gate1.pub
-PUBKEY=~/.ssh/rig-gate1.pub
-cat "$PUBKEY"                   # sanity: one line, "ecdsa-sha2-... AAAA..."
+# 1. Point the agent at Secretive and confirm the key is there.
+#    Secretive shows this socket path in its setup screen; it is also fixed:
+export SSH_AUTH_SOCK=~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+ssh-add -L                      # your key should be listed, in full
 
-# 2. Switch the check on. This file holds your PUBLIC key only, and it is the
+# 2. Point one variable at the key file Secretive already wrote, and one at the
+#    identity you want recorded. These two lines are the only ones you edit.
+#    Do NOT use the clipboard for this — copying the wrong thing writes garbage
+#    into the trust root, and it has already happened once.
+SECRETIVE=~/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/PublicKeys
+
+#    List what is there, with fingerprints, and decide which key is the real one:
+for f in "$SECRETIVE"/*.pub; do echo; echo "$f"; ssh-keygen -lf "$f"; done
+
+#    Then set PUBKEY by typing the full path of the one you chose. Type it out
+#    or tab-complete it — do not paste a placeholder, because angle brackets in
+#    a shell command are redirections and will silently eat the next argument.
+PUBKEY="$SECRETIVE/REPLACE_WITH_THE_FILENAME_YOU_CHOSE.pub"
+PRINCIPAL=vaibhav               # any stable label; it is not an email address
+
+ssh-keygen -lf "$PUBKEY"        # sanity: prints a fingerprint, not an error
+
+# 3. Switch the check on. This file holds your PUBLIC key only, and it is the
 #    whole of what the gate trusts — see the warning below.
 {
   printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n'
   printf '%s namespaces="rig-gate1" %s\n' \
-    "vaibhav.kodiyan@winmore.io" "$(awk '{print $1" "$2}' "$PUBKEY")"
+    "$PRINCIPAL" "$(awk '{print $1" "$2}' "$PUBKEY")"
 } > project-dev-docs/current/gate1.allowed-signers
 
-# 3. Build the message FROM THE FILES, read it, then sign it.
+# 4. Build the message FROM THE FILES, read it, then sign it.
 {
   printf 'rig-gate1-freeze-v1\n'
   printf 'business-spec.md %s\n' \
@@ -253,19 +266,28 @@ cat /tmp/gate1.msg              # read it. three lines. then sign, immediately.
 ssh-keygen -Y sign -f "$PUBKEY" -n rig-gate1 /tmp/gate1.msg   # Touch ID prompts here
 mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
 
-# 4. Confirm it verifies. The output ends with the key fingerprint —
+# 5. Confirm it verifies. The output ends with the key fingerprint —
 #    save that in your password manager, off this Mac.
 ssh-keygen -Y verify -f project-dev-docs/current/gate1.allowed-signers \
-  -I vaibhav.kodiyan@winmore.io -n rig-gate1 \
+  -I "$PRINCIPAL" -n rig-gate1 \
   -s project-dev-docs/current/gate1.sig < /tmp/gate1.msg
 ```
 
-Every path above is either literal or `$PUBKEY`. Nothing in these blocks is a
-`<placeholder>` you have to substitute — angle brackets inside a shell command
-are redirections, not blanks, so a pasted placeholder silently eats the argument
-next to it and the command fails somewhere unrelated. An earlier version of this
-step had exactly that bug, and it surfaced as `Too few arguments for sign:
-missing namespace`, because `-f` swallowed the `-n` flag.
+Two lines are yours to edit — `PUBKEY` and `PRINCIPAL`. Everything else is
+literal or derived. Two rules learned the hard way:
+
+**Never paste an angle-bracket placeholder into a shell command.** Angle
+brackets are redirections, not blanks. A pasted `<your-key>.pub` is consumed by
+the shell, the flag before it swallows the flag after it, and the command fails
+somewhere unrelated — this surfaced once as `Too few arguments for sign: missing
+namespace`, because `-f` had eaten the `-n`.
+
+**Never build the trust root from the clipboard.** An earlier version of this
+step used `pbpaste`, and the clipboard turned out to hold the instruction text
+rather than the key, so the literal string `pbpaste >` was written into
+`gate1.allowed-signers` as if it were a public key. Read the key from the file
+Secretive already wrote instead; it is the only copy that cannot be the wrong
+thing.
 
 Note the file paths in step 2: `business-spec.md` lives under `current/spec/`,
 `acceptance.md` directly under `current/`. They are not in the same directory,
