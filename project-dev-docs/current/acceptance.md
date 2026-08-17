@@ -91,6 +91,34 @@
 >
 > **Frozen.** The decision is recorded and no case is left open.
 
+> **Revision note (2026-08-17) — the host-tier amendment.** Re-grilled after
+> the executable-specification-gate design found that Rig ships one
+> configuration for every host and has never observed enforcement fire on any
+> of them, while four cases existed solely to draw a verified/unverified tier
+> the product never implemented. The owner's decision is to ship all 19 hosts
+> and six providers with **no tier** — no verified vs unverified distinction in
+> Rig's output or data — and to prove every axis the same way, by automated
+> tests asserting the correct bytes land in the correct paths, never by a human
+> exercising a host.
+>
+> **Deleted (4):** `AT-HOST-3`, `AT-HOST-4`, `AT-CLAIM-2`, `AT-CLAIM-3` — each
+> drew a distinction that no longer exists. **Revised:** `AT-CLAIM-1` (whole
+> roster built through one uniform path, no host skipped), `AT-HOST-1` (contract
+> bar moves from "an axis called verified" to "any axis Rig emits", covering all
+> 19), `AT-P4` (points at the rewritten roster case). `AT-HOME-1` absorbs the
+> out-of-repository write disclosure from the deleted `AT-CLAIM-2` — a
+> transparency requirement unrelated to host tiers. `AT-UNINSTALL-2` drops a
+> dangling cross-reference to the deleted `AT-CLAIM-2`; its own verdict is
+> unchanged.
+>
+> The ID set shrinks from **52** to **48**, and the Gate-2 traceability table
+> must match that set exactly. This unwinds the tier introduced by `D1`, `D2`,
+> and `D3` (2026-07-26); the residual honest statement — that Rig documents each
+> surface but has not observed enforcement firing — lives in the host registry
+> header, not in a per-host claim.
+>
+> **Frozen.** The decision is recorded and no case is left open.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -280,10 +308,8 @@ only when the product intent is met.
   runtime secret injection only in Infrastructure; correctness-static-analysis
   in Development is distinct from security SAST in Product-Security).
 - **AT-P4 honest host/CI coverage** — see Sections E and F: Rig builds and
-  emits for the whole roster (AT-CLAIM-1), advertises verified enforcement only
-  where a first wire proves it (AT-HOST-4), and discloses the difference in the
-  user's own output (AT-CLAIM-2). Genuine vendor absence degrades explicitly
-  and no axis emits anything speculative.
+  emits for the whole roster through one uniform path (AT-CLAIM-1) and no axis
+  emits anything speculative. Genuine vendor absence degrades explicitly.
 - **AT-P5 highly configurable.** *Given* recommendations and safety defaults,
   *when* the user changes service selections/grades or activates an exact policy
   revision, *then* the resulting install and permissions match the user's
@@ -330,8 +356,8 @@ only when the product intent is met.
 
 ### E. Host, hook, CI, and evidence claims
 
-- **AT-HOST-1 (complete per-axis contract).** *Given* a host live-hook axis is
-  called verified, *when* its contract is inspected, *then* Gate 2 names the
+- **AT-HOST-1 (complete per-axis contract).** *Given* any host live-hook axis
+  Rig emits, *when* its contract is inspected, *then* Gate 2 names the
   exact emitted path/filename, vendor input/event schema and matcher fields,
   deny response and exit behavior, deliberate-proceed protocol, owned merge
   boundary, user-config preservation, and first/repeated-apply behavior.
@@ -341,27 +367,6 @@ only when the product intent is met.
   denied. Every deny names the category and rule. Legitimate near-matches pass;
   exact one-use user approval permits only the unchanged action once; activated
   permanent policy choices take precedence thereafter.
-- **AT-HOST-3 (evidence is per axis) [D2].** *Given* any host or CI capability
-  marked **verified**, *then* its own evidence bundle records authoritative
-  vendor documentation for the exact claimed surface/behavior, vendor/version
-  and verification date, fixtures/results, and first-wire evidence for
-  executable behavior. One host-level citation cannot verify multiple axes. An
-  axis that is built and emitted without this bundle is not marked verified and
-  is not advertised; it is not thereby exempt from `AT-CLAIM-1` or
-  `AT-CLAIM-2`.
-- **AT-HOST-4 (release blocks on the advertised set) [D1, D2].** *Given* any
-  executable axis that Rig **advertises as verified** lacks a complete
-  contract, official evidence, or passing first-wire result, *then* the initial
-  release is blocked. Release is *not* blocked by an axis that is built,
-  emitted, and honestly disclosed as unverified. A genuinely unsupported vendor
-  axis degrades explicitly and emits no speculative config.
-
-  The initial advertised set is exactly **Claude Code, Cursor, Codex, and
-  GitHub Actions**. This is a floor on honesty, not a ceiling on ambition: an
-  axis promotes into the advertised set the moment its first wire passes, and
-  that promotion must require **no edit to this file**. A design that hard-codes
-  the four-host list anywhere that a promotion would have to change fails this
-  case.
 - **AT-HOST-5 (unsupported MCP is retired everywhere).** *Given* verified
   evidence that a host, including the `pi` fixture, does not support MCP, *when*
   any legacy or catalogue install path runs, *then* Rig emits no MCP
@@ -392,23 +397,11 @@ only when the product intent is met.
 - **AT-CLAIM-1 (build the whole roster) [D1].** *Given* onboarding on any host
   in the 19-host roster or any of the six CI providers, *when* the user
   installs, *then* Rig emits that host's or provider's configuration and no
-  user receives less than the pre-revision product gave them. A host is never
-  skipped, silently or otherwise, on the grounds that its enforcement is
-  unverified. Emitting nothing is permitted only for an evidence-backed
-  genuinely unsupported axis, which degrades explicitly.
-- **AT-CLAIM-2 (say which it is, every time) [D3].** *Given* any installed
-  host, *when* Rig writes install output or a run report, *then* that host's
-  claim status is stated in user-facing words: `verified`, or
-  `emitted — enforcement unverified, please report`. Silence fails this case:
-  an undisclosed binding reads to the user as a working one. The disclosure
-  also names any configuration written outside the repository.
-- **AT-CLAIM-3 (disclosure does not gate) [D3].** *Given* a host whose
-  enforcement is unverified, *when* the user installs or runs, *then* Rig does
-  **not** interpose a confirmation prompt, an extra flag, or a blocking
-  acknowledgement on that path. The unverified path is as usable as the
-  verified one; only the claim differs. A design that makes the unverified path
-  harder to use suppresses the field reports that promote it and fails this
-  case.
+  user receives less than the pre-revision product gave them. No code path
+  skips a host, silently or otherwise, and every host is emitted through the
+  same code path — none is a second-class citizen carrying a degraded surface.
+  Emitting nothing is permitted only for an evidence-backed genuinely
+  unsupported axis, which degrades explicitly.
 - **AT-PRESENCE-1 (no presence, no activation) [D6].** *Given* a policy
   activation attempt, *when* a verified host-native user-presence prompt is
   available, *then* it is used; *when* it is not, a user-configured external
@@ -420,9 +413,10 @@ only when the product intent is met.
 - **AT-HOME-1 (global writes append, never overwrite) [D9].** *Given* a host
   whose only configuration surface is user-global, *when* Rig writes it, *then*
   the write is an append or a namespaced additive merge; every pre-existing
-  user value survives byte-for-byte; and the write is disclosed under
-  `AT-CLAIM-2`. A destructive or wholesale rewrite of a user-global file fails
-  this case, as does an undisclosed one.
+  user value survives byte-for-byte; and the write is disclosed in the user's
+  own output, naming the file written outside the repository. A destructive or
+  wholesale rewrite of a user-global file fails this case, as does an
+  undisclosed one.
 - **AT-HOME-2 (multi-repository attribution) [D9].** *Given* Rig installed from
   repository A and repository B, both appending to one user-global
   configuration, *then* each installation's entries carry the identity of the
@@ -489,8 +483,8 @@ only when the product intent is met.
   only: uninstall never restores them over the current file, because doing so
   would silently destroy every edit the user made after installing. A design
   that reverts a snapshot on top of user work fails this case. The same
-  verified-versus-advisory split that governs install claims under `AT-CLAIM-2`
-  governs removal claims here.
+  verified-clean versus best-effort split above is self-contained: removal
+  claims are governed by it and by nothing outside this case.
 - **AT-UNINSTALL-3 (usage artifacts are not installation state) [D11].**
   *Given* a repository that has been using Rig — accumulated reports, run
   history, and any post-install configuration the user filled in themselves —

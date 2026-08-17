@@ -135,6 +135,37 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > **This revision is frozen.** Its effect on Gate 2 is confined to the presence
 > floor: §8 below and the corresponding gate step.
 
+> **Revision note (2026-08-17) — the host-tier amendment.** Re-grilled with
+> [`../acceptance.md`](../acceptance.md) after the executable-specification-gate
+> design found that Rig ships one configuration for every host and has never
+> observed enforcement fire on any of them, while the verified/unverified tier
+> introduced by `D1`, `D2`, and `D3` (2026-07-26) drew a distinction the product
+> never implemented. The owner's decision is to ship all 19 hosts and six
+> providers with **no tier** — no verified vs unverified distinction in Rig's
+> output or data — and to prove every axis the same way, by automated tests
+> asserting the correct bytes land in the correct paths, never by a human
+> exercising a host.
+>
+> This unwinds `D1`/`D2`/`D3`. In §2, the *"Rig builds for every host; Rig
+> claims only what it has run"* rule is rewritten to require every host emitted
+> through **one uniform path** with no second-class surface, and the *"An
+> unverified axis says so, and does not ask"* rule is removed with its tier. §3
+> and §6's property 4 drop the advertised/first-wired language. In §9 the *"Four
+> verified hosts is a narrow base"* risk is replaced by the honest residual that
+> Rig documents each surface but has not observed enforcement fire on any host —
+> a statement whose home is the host registry header, not user-facing output.
+> The out-of-repository write disclosure (`D9`) is unaffected; it was never part
+> of the tier.
+>
+> The acceptance ID set shrinks from **52** to **48**
+> ([`../acceptance.md`](../acceptance.md)), and the Gate-2 traceability table
+> must match that set exactly.
+>
+> **This revision is frozen.** The decision is recorded and no decision remains
+> open. Gate 2 must be re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current set, under a re-signed
+> combined digest (§8).
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -201,18 +232,16 @@ Host-agnostic; config-only (B1).
     surfaceless result must name the exact reason nothing can run. An
     unreasoned fallback, a generic convention, a missing, malformed, silent, or
     fake-green binding is a coverage gap, never a pass.
-  - **Rig builds for every host; Rig claims only what it has run (D1, D2).**
+  - **Rig builds and emits for every host, through one uniform path.**
     Adapters are built and configuration emitted for the complete supported
-    roster, so no user of any host receives less than they receive today.
-    Enforcement is *advertised as verified* only for an axis with a real
-    passing first wire. Every other axis ships as emitted-but-unverified. The
-    release gate binds the advertised set, not the built set.
-  - **An unverified axis says so, and does not ask (D3).** Install output and
-    run reports state each host's claim status in the user's own words:
-    verified, or emitted with enforcement unverified and an invitation to
-    report. Rig does not gate the unverified path behind a confirmation prompt:
-    a prompt suppresses exactly the field reports that promote the remaining
-    axes, and an undisclosed binding reads to the user as a working one.
+    roster, so no user of any host receives less than they receive today. No
+    code path skips a host, silently or otherwise, and every host is emitted
+    through the same code path — none is a second-class citizen carrying a
+    degraded surface. Emitting nothing is permitted only for an evidence-backed
+    genuinely unsupported axis, which degrades explicitly. Rig draws no
+    verified-versus-unverified tier in its output or data, and proves every
+    emitted axis the same way: by automated tests that the correct bytes land
+    in the correct paths, never by a human exercising a host.
   - **Approval is never silently skipped (D6).** User-presence approval uses a
     verified host-native prompt where one exists, otherwise a user-configured
     external signature. Where neither is available, activation is **refused and
@@ -274,9 +303,8 @@ as the default baseline); the complete 115-service **à-la-carte catalogue**
 (Development · Testing · Infrastructure · Product-Security); the **repo-scan
 recommendation lens**; the **drift-prevention lifecycle** (rule + exact-copy +
 semantic guard); user-controlled security/network policy; **built adapters and
-emitted configuration for all 19 hosts and six CI providers, with verified
-enforcement advertised for the first-wired subset and honest
-emitted-but-unverified disclosure everywhere else** (D1, D2, D3); and per-host
+emitted configuration for all 19 hosts and six CI providers, each emitted
+through one uniform path with no verified/unverified tier**; and per-host
 install docs.
 
 **Also in scope (D7) — the delivery path.** A shipped product must be
@@ -387,13 +415,13 @@ profiling; Infrastructure keeps capacity load); runtime secret *injection* → *
    controls that actually ran may be reported as protection.
 3. **Mutually exclusive services (MECE)** — no service's scope duplicates or subsets another's; where
    two could combine, they are combined.
-4. **Honest host/CI coverage (D1, D2, D3)** — every *advertised* executable
-   axis has a complete evidence-backed contract and a successful first-wire
-   result before initial release. Axes that are built and emitted without a
-   first wire are not advertised as verified and say so in the user's output.
-   Unsupported axes degrade explicitly; no axis emits speculative
-   configuration. The distinction the product must never blur is between "we
-   installed this" and "we have seen this work".
+4. **Honest host/CI coverage** — Rig builds and emits for the whole roster
+   through one uniform path (no host a second-class citizen) and no axis emits
+   speculative configuration. Genuine vendor absence degrades explicitly. Rig
+   draws no verified/unverified tier: every emitted axis is proven the same
+   way, by automated tests that the correct bytes land in the correct paths,
+   and the honest statement that enforcement has not been observed firing lives
+   in the host registry header rather than a per-host claim.
 5. **Highly configurable** — the `family → group → service → grade` dial and
    the user security/network policy hold end-to-end; recommendations and
    defaults never override an explicitly approved user choice.
@@ -488,12 +516,16 @@ mistake them for oversights.
   review and reaches users. This is the direct carry-over risk from the run
   that produced 432 `TODO` fragments under a prior agent deployment on this
   same scope.
-- **Four verified hosts is a narrow base (D2).** The initially verified hosts
-  have similar permission models, so the enforcement design will be shaped by
-  their particular conventions and may fit later hosts poorly.
+- **Enforcement is documented, not observed (host-tier amendment).** Rig ships
+  one configuration for all 19 hosts and its automated tests prove the correct
+  bytes land in the correct paths — not that a deny actually fires on any host.
+  No host's enforcement has been observed firing, and Rig makes no claim that it
+  has. The honest statement of this lives in the host registry header, not in
+  user-facing output; a user who wants it reads it there.
 - **A user-global write has global blast radius (D9).** Installing in one
   repository changes behavior in every project that host opens. This is
-  disclosed in the D3 install line; there is no separate prompt.
+  disclosed at install time in the user's own output, naming the file written
+  outside the repository (AT-HOME-1); there is no separate prompt.
 - **Gate 1 integrity depends on a key the intent owner must hold (D10).** If
   that key is lost, or was never obtained, nothing protects Gate 1 from an agent
   that can write the repository. The honest fallback is a visible multi-file
