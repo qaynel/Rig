@@ -134,8 +134,9 @@ function plan(target, { manifest, review, out } = {}) {
   return { ...result, outPath };
 }
 
-function apply(target, { manifest, review, plan: planPath } = {}) {
-  return runMaterialize([
+function apply(target, { manifest, review, plan: planPath, approval } = {}, options = {}) {
+  if (approval === undefined && planPath) approval = writePlanApproval(target, planPath);
+  const args = [
     'apply',
     '--target',
     target,
@@ -145,7 +146,26 @@ function apply(target, { manifest, review, plan: planPath } = {}) {
     review,
     '--plan',
     planPath,
-  ]);
+  ];
+  if (approval) args.push('--approval', approval);
+  return runMaterialize(args, options);
+}
+
+function writePlanApproval(target, planPath, overrides = {}) {
+  const planned = readJson(planPath);
+  const approval = {
+    schema_version: 1,
+    kind: 'plan-approval',
+    plan_digest: planned.plan_digest,
+    approval: {
+      method: 'external-sshsig',
+      verified: true,
+    },
+    ...overrides,
+  };
+  const approvalPath = path.join(target, '.rig-test', 'plan-approval.json');
+  writeJson(approvalPath, approval);
+  return approvalPath;
 }
 
 function remediate(target, { proposal, approve } = {}) {
@@ -477,6 +497,7 @@ module.exports = {
   recommend,
   plan,
   apply,
+  writePlanApproval,
   remediate,
   check,
   writeSelection,

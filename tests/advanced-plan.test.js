@@ -58,3 +58,16 @@ test('plan inventories collisions and before hashes without writing target', () 
     );
   });
 });
+
+test('plan declares the baseline files apply actually writes', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    const { reviewPath } = allowedReview(target);
+    writeSelection(target, {});
+    const result = plan(target, { review: reviewPath });
+    assert.equal(result.status, 0, result.stderr);
+    const paths = new Set((readJson(result.outPath).operations || []).map((op) => op.path));
+    assert.ok(paths.has('.rig/hooks/secret-guard.sh'));
+    assert.equal(paths.has('.rig/hooks/pre-commit.sh'), false);
+  });
+});

@@ -30,7 +30,7 @@ Freeze blockers, in order:
    the values in §3.
 2. **A clean fresh-model review at that new digest.** Every existing receipt is
    void — see §4. This is the blocker most likely to be misread as done.
-3. **The intent owner's FIDO signature over the Gate 1 message.** Not yet
+3. **The intent owner's Gate 1 signature over the Gate 1 message.** Not yet
    produced. Exact commands in §5.
 
 Everything else on the old blocker list moved to §16.2 as *release* blockers,
@@ -48,11 +48,11 @@ obtain. Do not silently re-open them; they are recorded at length in the Gate 2
 | # | Decision |
 |---|---|
 | 1 | **Claim status** is a declared `status` field per `{host, axis}`, cross-checked against its evidence bundle **in both directions**. No file anywhere enumerates the advertised hosts. |
-| 2 | **Signer interface** is SSHSIG verified by `ssh-keygen -Y verify`. FIDO floor by default; ordinary keys only via a one-time FIDO-authorized downgrade ceremony, disclosed in status forever after. |
+| 2 | **Signer interface** is SSHSIG verified by `ssh-keygen -Y verify`. D19 removed the FIDO-only type check and downgrade ceremony: the required property is a key no agent on the intent owner's machine can operate without a live human act, with the declared key class disclosed. |
 | 3 | **Repository identity** for user-global writes is a generated ID stored clone-locally under `git rev-parse --git-path rig/`, never committed. |
 | 4 | **Gate cadence:** `npm test` keeps the spec gate first and short-circuiting with no exemption input; `npm run test:code` is the daily signal. |
 | 5 | **Different-model proof:** a wrapper writes model/digest/timestamp into review receipts; the agent supplies findings only. |
-| 6 | **Gate 1 integrity is non-git** — FIDO signature over the digest. No branch protection, no upstream comparison, no "reviewed commit". |
+| 6 | **Gate 1 integrity is non-git** — SSHSIG signature over the Gate 1 digest message. No branch protection, no upstream comparison, no "reviewed commit". |
 | 7 | **Distribution:** install stub fetches a released tag by name. No fingerprint pin — the stub and source share an origin, so a pin defeats nothing. Never `curl \| sh`. |
 | 8 | **Catalogue authoring:** all 115 leaves one at a time, single context. Not parallel, not templated. |
 
@@ -98,10 +98,13 @@ node scripts/review-receipt.js \
 It takes several minutes; run it in the background. The wrapper refuses to run
 if `--model` matches the authoring model declared in the Gate 2 header.
 
-## 5. The FIDO signature (intent owner only)
+## 5. The Gate 1 signature (intent owner only)
 
 This cannot be delegated to an agent — that is the entire point of D10. The
-intent owner runs it on a machine with their hardware key attached.
+intent owner signs with a key that no agent on their machine can operate without
+a live human act. D19 records that OpenSSH verification proves only the signature
+and listed key, not hardware presence, so the key class is attested and disclosed
+beside the signer identity.
 
 ```sh
 printf 'rig-gate1-freeze-v1\nbusiness-spec.md %s\nacceptance.md %s\n' \
@@ -109,27 +112,30 @@ printf 'rig-gate1-freeze-v1\nbusiness-spec.md %s\nacceptance.md %s\n' \
   "$(shasum -a 256 project-dev-docs/current/acceptance.md   | cut -d' ' -f1)" \
   > /tmp/gate1.msg
 
-ssh-keygen -Y sign -f ~/.ssh/id_ed25519_sk -n rig-gate1 /tmp/gate1.msg
+PUBKEY=/path/to/public-key.pub
+PRINCIPAL=vaibhav
+{
+  printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n'
+  printf '%s namespaces="rig-gate1" %s\n' "$PRINCIPAL" "$(awk '{print $1" "$2}' "$PUBKEY")"
+} > project-dev-docs/current/gate1.allowed-signers
+
+ssh-keygen -Y sign -f "$PUBKEY" -n rig-gate1 /tmp/gate1.msg
 mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
-```
-
-`gate1.allowed-signers` holds the public identity, options before keytype:
-
-```
-<principal> verify-required sk-ssh-ed25519@openssh.com AAAA...
 ```
 
 Verify:
 
 ```sh
 ssh-keygen -Y verify -f project-dev-docs/current/gate1.allowed-signers \
-  -I <principal> -n rig-gate1 \
+  -I "$PRINCIPAL" -n rig-gate1 \
   -s project-dev-docs/current/gate1.sig < /tmp/gate1.msg
 ```
 
-The key must be a FIDO type (`sk-*`) without `no-touch-required`. An ordinary
-on-disk key does **not** satisfy this case: an agent could read it and re-sign
-its own Gate 1 edits, which is the one attack D10 exists to stop.
+The signers file must use OpenSSH's actual allowed-signers grammar:
+`namespaces="rig-gate1"` before the key type. Do not put `verify-required` or
+`no-touch-required` there; they are not valid allowed-signers options. A readable
+ordinary on-disk key does **not** satisfy this case: an agent could read it and
+re-sign its own Gate 1 edits, which is the one attack D10 exists to stop.
 
 ## 6. Ordered next steps
 

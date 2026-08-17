@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { root, readJson } = require('./helpers/advanced');
+const { validateCatalog } = require('../rig/lib/catalog');
 
 const expectedPath = path.join(
   __dirname,
@@ -72,6 +73,31 @@ test('strict grade growth: maximal ⊃ mid ⊃ minimal check IDs', () => {
       `${service.id} maximal must strictly grow beyond minimal`,
     );
   }
+});
+
+test('catalog validator rejects missing strict grade growth', () => {
+  const service = {
+    id: 'development.example.demo',
+    family: 'development',
+    group: 'example',
+    owns: ['example.demo'],
+    checks: {
+      minimal: ['core'],
+      mid: [],
+      maximal: ['extra'],
+    },
+  };
+  assert.throws(
+    () => validateCatalog({ services: [service] }),
+    /mid must strictly grow beyond minimal/,
+  );
+
+  service.checks.mid = ['middle'];
+  service.checks.maximal = [];
+  assert.throws(
+    () => validateCatalog({ services: [service] }),
+    /maximal must strictly grow beyond mid/,
+  );
 });
 
 test('MECE scope-map spot checks (Gate 1 AT-P3)', () => {

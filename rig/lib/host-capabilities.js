@@ -146,7 +146,7 @@ function getCapabilities(host) {
   return REGISTRY[host] || DEFAULT_CAPABILITIES;
 }
 
-function materializeHostAdapters(target, host) {
+function materializeHostAdapters(target, host, writeFile = null) {
   const caps = getCapabilities(host);
   const emitted_live_hooks = [];
   const pointers = [];
@@ -156,12 +156,15 @@ function materializeHostAdapters(target, host) {
   if (caps.live_hook === 'verified') {
     // Thin additive marker only when verified — no speculative hook bodies for others.
     const hookSurface = (caps.surfaces && caps.surfaces.hooks) || 'host-native hooks';
-    const marker = path.join(target, '.rig', 'hooks', 'semantic-review.hint.md');
-    fs.mkdirSync(path.dirname(marker), { recursive: true });
-    fs.writeFileSync(
-      marker,
-      `# Verified live-hook host: ${host}\n\nInvoke semantic drift review via ${hookSurface}.\n`,
-    );
+    const rel = '.rig/hooks/semantic-review.hint.md';
+    const contents = `# Verified live-hook host: ${host}\n\nInvoke semantic drift review via ${hookSurface}.\n`;
+    if (writeFile) {
+      writeFile(rel, contents);
+    } else {
+      const marker = path.join(target, rel);
+      fs.mkdirSync(path.dirname(marker), { recursive: true });
+      fs.writeFileSync(marker, contents);
+    }
     emitted_live_hooks.push('.rig/hooks/semantic-review.hint.md');
   }
   return { capabilities: caps, emitted_live_hooks, pointers };

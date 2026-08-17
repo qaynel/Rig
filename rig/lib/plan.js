@@ -45,7 +45,7 @@ function createPlan(target, manifest, review, catalog = loadCatalog()) {
     '.rig/bin/secret-guard.sh',
     '.rig/catalog-routing.md',
     '.rig/service-bindings.json',
-    '.rig/hooks/pre-commit.sh',
+    '.rig/hooks/secret-guard.sh',
   ];
   for (const rel of baselineFiles) {
     notePreimage(rel);

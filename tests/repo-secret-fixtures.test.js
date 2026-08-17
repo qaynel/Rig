@@ -27,7 +27,12 @@ function publishableFiles(root) {
 function secretShapedLines(root, files = publishableFiles(root)) {
   const hits = [];
   for (const rel of files) {
-    const body = fs.readFileSync(path.join(root, rel));
+    let body;
+    try {
+      body = fs.readFileSync(path.join(root, rel));
+    } catch {
+      continue;
+    }
     if (body.includes(0)) continue;
     body.toString('utf8').split(/\r?\n/).forEach((line, index) => {
       if (floor.test(line)) hits.push(`${rel}:${index + 1}`);

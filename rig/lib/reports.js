@@ -25,7 +25,7 @@ function writeReport(target, report) {
     summary: redact(report.summary || ''),
     reason: redact(report.reason || ''),
     evidence: (report.evidence || []).map((e) => redact(typeof e === 'string' ? e : JSON.stringify(e))),
-    fix_context: report.fix_context || [],
+    fix_context: (report.fix_context || []).map((c) => redact(typeof c === 'string' ? c : JSON.stringify(c))),
     rerun: report.rerun || ['node', '.rig/bin/check.js', '--scope', report.scope || 'repo'],
   };
   const digest = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 12);

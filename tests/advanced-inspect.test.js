@@ -50,6 +50,25 @@ test('inspect rejects escaping symlinks', () => {
   });
 });
 
+test('inspect traverses in-repo directory symlinks without raw EISDIR crashes', () => {
+  withRepo((target) => {
+    const real = path.join(target, '.claude', 'skills', 'real');
+    const alias = path.join(target, '.claude', 'skills', 'alias');
+    fs.mkdirSync(real, { recursive: true });
+    fs.writeFileSync(path.join(real, 'SKILL.md'), 'Use the local skill.\n');
+    try {
+      fs.symlinkSync(real, alias, 'dir');
+    } catch {
+      return;
+    }
+
+    const result = inspect(target, { host: 'claude' });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const body = readJson(result.outPath);
+    assert.ok(body.inputs.some((input) => input.path === '.claude/skills/alias/SKILL.md'));
+  });
+});
+
 test('inspect rejects or bounds oversized harness files', () => {
   withRepo((target) => {
     seedOversizedHarnessFile(target, MAX_HARNESS_BYTES + 2048);

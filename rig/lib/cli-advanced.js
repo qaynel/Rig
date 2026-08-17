@@ -65,11 +65,15 @@ function runAdvanced(subcommand, argv) {
     const manifestPath = parseFlag(argv, '--manifest');
     const reviewPath = parseFlag(argv, '--review');
     const planPath = parseFlag(argv, '--plan');
-    if (!manifestPath || !reviewPath || !planPath) {
-      throw new Error('rig: apply requires --manifest --review --plan');
+    const approvalPath = parseFlag(argv, '--approval');
+    if (!manifestPath || !reviewPath || !planPath || !approvalPath) {
+      throw new Error('rig: apply requires --manifest --review --plan --approval');
     }
-    const result = applyPlan(target, readJson(manifestPath), readJson(reviewPath), readJson(planPath));
+    const result = applyPlan(target, readJson(manifestPath), readJson(reviewPath), readJson(planPath), {
+      approval: readJson(approvalPath),
+    });
     if (result.historyScanNote) console.log(result.historyScanNote);
+    if (!result.ok) process.exit(1);
     return;
   }
 

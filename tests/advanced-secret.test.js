@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync, execFileSync } = require('node:child_process');
 const {
   withRepo,
+  withTempDir,
   createRepoFixture,
   allowedReview,
   writeSelection,
@@ -39,28 +40,69 @@ test('staged credential-shaped diff is blocked by secret floor', () => {
   });
 });
 
-test('first enable of selectable pre-commit secret service scans history', () => {
-  withRepo((target) => {
-    createRepoFixture('generic-git', target);
+test('first enable of selectable pre-commit secret service invokes a vetted history scanner', () => {
+  withTempDir('rig-scanner-bin-', (binDir) => {
+    const marker = path.join(binDir, 'marker.txt');
     fs.writeFileSync(
-      path.join(target, 'old-leak.js'),
-      `module.exports = '${FAKE_CREDENTIAL}';\n`,
+      path.join(binDir, 'gitleaks'),
+      `#!/bin/sh\necho "$*" > "${marker}"\nexit 0\n`,
+      { mode: 0o755 },
     );
-    execFileSync('git', ['add', 'old-leak.js'], { cwd: target, stdio: 'pipe' });
-    execFileSync('git', ['commit', '-m', 'historic leak'], { cwd: target, stdio: 'pipe' });
 
-    const { reviewPath } = allowedReview(target);
-    writeSelection(target, {
-      'product-security.secrets.precommit-leak-scanner': 'minimal',
+    withRepo((target) => {
+      createRepoFixture('generic-git', target);
+      fs.writeFileSync(
+        path.join(target, 'old-leak.js'),
+        `module.exports = '${FAKE_CREDENTIAL}';\n`,
+      );
+      execFileSync('git', ['add', 'old-leak.js'], { cwd: target, stdio: 'pipe' });
+      execFileSync('git', ['commit', '-m', 'historic leak'], { cwd: target, stdio: 'pipe' });
+
+      const { reviewPath } = allowedReview(target);
+      writeSelection(target, {
+        'product-security.secrets.precommit-leak-scanner': 'minimal',
+      });
+      const planned = plan(target, { review: reviewPath });
+      assert.equal(planned.status, 0, planned.stderr);
+      const applied = apply(target, { review: reviewPath, plan: planned.outPath }, {
+        env: { PATH: `${binDir}:${process.env.PATH}` },
+      });
+      assert.equal(applied.status, 0, applied.stderr);
+      assert.match(fs.readFileSync(marker, 'utf8'), /detect .*--source \./);
+      const receipt = JSON.parse(
+        fs.readFileSync(path.join(target, '.rig', 'catalog-receipt.json'), 'utf8'),
+      );
+      assert.equal(receipt.history_scan.status, 'verified');
     });
-    const planned = plan(target, { review: reviewPath });
-    assert.equal(planned.status, 0, planned.stderr);
-    const applied = apply(target, { review: reviewPath, plan: planned.outPath });
-    assert.equal(applied.status, 0, applied.stderr);
-    assert.match(
-      applied.stdout + applied.stderr + JSON.stringify(planned),
-      /history|historic|first.?enable|scan/i,
-      'first enable must invoke history scan',
+  });
+});
+
+test('first enable fails closed on history scanner findings but leaves staged floor installed', () => {
+  withTempDir('rig-scanner-bin-', (binDir) => {
+    fs.writeFileSync(
+      path.join(binDir, 'gitleaks'),
+      '#!/bin/sh\necho "historic finding" >&2\nexit 1\n',
+      { mode: 0o755 },
     );
+
+    withRepo((target) => {
+      createRepoFixture('generic-git', target);
+      const { reviewPath } = allowedReview(target);
+      writeSelection(target, {
+        'product-security.secrets.precommit-leak-scanner': 'minimal',
+      });
+      const planned = plan(target, { review: reviewPath });
+      assert.equal(planned.status, 0, planned.stderr);
+      const applied = apply(target, { review: reviewPath, plan: planned.outPath }, {
+        env: { PATH: `${binDir}:${process.env.PATH}` },
+      });
+      assert.notEqual(applied.status, 0, 'history scanner findings must fail activation');
+      assert.ok(fs.existsSync(path.join(target, '.rig', 'hooks', 'secret-guard.sh')));
+      assert.equal(
+        fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')),
+        false,
+        'failed activation must not mark the service active',
+      );
+    });
   });
 });

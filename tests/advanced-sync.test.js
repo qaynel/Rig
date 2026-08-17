@@ -58,3 +58,42 @@ test('byte-exact copy check fails when a registered duplicate drifts', () => {
     assert.notEqual(ci.status, 0, 'CI whole-repo check must also fail on drift');
   });
 });
+
+test('byte-exact copy check reports missing copies and keeps checking groups', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    const { reviewPath } = allowedReview(target);
+    writeSelection(target, {});
+    const planned = plan(target, { review: reviewPath });
+    assert.equal(planned.status, 0, planned.stderr);
+    assert.equal(apply(target, { review: reviewPath, plan: planned.outPath }).status, 0);
+
+    fs.mkdirSync(path.join(target, 'docs'), { recursive: true });
+    fs.writeFileSync(path.join(target, 'docs', 'canonical.md'), 'same\n');
+    fs.writeFileSync(path.join(target, 'docs', 'copy.md'), 'different\n');
+    writeJson(path.join(target, '.rig', 'sync-map.json'), {
+      groups: [
+        {
+          id: 'missing',
+          canonical: '.rig/baseline/drift-rule.md',
+          copies: ['docs/missing.md'],
+        },
+        {
+          id: 'drift',
+          canonical: 'docs/canonical.md',
+          copies: ['docs/copy.md'],
+        },
+      ],
+    });
+
+    const result = spawnSync('node', [path.join(target, '.rig', 'bin', 'check-copies.js')], {
+      cwd: target,
+      encoding: 'utf8',
+      shell: false,
+    });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /missing copy: docs\/missing\.md/);
+    assert.match(result.stderr, /byte drift: docs\/copy\.md != docs\/canonical\.md/);
+    assert.doesNotMatch(result.stderr, /ENOENT/);
+  });
+});

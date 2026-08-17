@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const {
   withRepo,
   createRepoFixture,
@@ -11,6 +12,7 @@ const {
   writeSelection,
   plan,
   apply,
+  writePlanApproval,
   readJson,
 } = require('./helpers/advanced');
 
@@ -21,9 +23,59 @@ test('apply is compare-and-swap on preimages and writes receipt last', () => {
     writeSelection(target, { 'development.documentation.adrs': 'minimal' });
     const planned = plan(target, { review: reviewPath });
     assert.equal(planned.status, 0, planned.stderr);
-    const result = apply(target, { review: reviewPath, plan: planned.outPath });
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.equal(result.status, 0, result.stderr);
     assert.ok(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')));
+  });
+});
+
+test('apply requires exact plan approval before writing', () => {
+  withRepo((target) => {
+    createRepoFixture('existing-agents-router', target);
+    const { reviewPath } = allowedReview(target);
+    writeSelection(target, { 'development.documentation.adrs': 'minimal' });
+    const planned = plan(target, { review: reviewPath });
+    assert.equal(planned.status, 0, planned.stderr);
+
+    const missing = apply(target, { review: reviewPath, plan: planned.outPath, approval: null });
+    assert.notEqual(missing.status, 0, 'missing approval must fail closed');
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')), false);
+
+    const approvalPath = writePlanApproval(target, planned.outPath, { plan_digest: '0'.repeat(64) });
+    const wrong = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
+    assert.notEqual(wrong.status, 0, 'wrong approval digest must fail closed');
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')), false);
+  });
+});
+
+test('apply rejects a tampered plan snapshot', () => {
+  withRepo((target) => {
+    createRepoFixture('existing-agents-router', target);
+    const { reviewPath } = allowedReview(target);
+    writeSelection(target, { 'development.documentation.adrs': 'minimal' });
+    const planned = plan(target, { review: reviewPath });
+    assert.equal(planned.status, 0, planned.stderr);
+
+    const body = readJson(planned.outPath);
+    body.catalog_digest = 'corrupt';
+    body.harness_digest = 'corrupt';
+    body.effective_services.push({
+      service_id: 'testing.e2e.browser-automation',
+      selected_grade: 'maximal',
+      required_slices: [],
+    });
+    body.plan_digest = '0'.repeat(64);
+    fs.writeFileSync(planned.outPath, `${JSON.stringify(body, null, 2)}\n`);
+
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
+    assert.notEqual(result.status, 0, 'tampered plan must fail closed');
+    assert.equal(
+      fs.existsSync(path.join(target, '.rig', 'services', 'testing.e2e.browser-automation.md')),
+      false,
+      'apply must not install services from a tampered plan',
+    );
   });
 });
 
@@ -35,13 +87,65 @@ test('apply refuses stale preimages (CAS)', () => {
     const planned = plan(target, { review: reviewPath });
     assert.equal(planned.status, 0, planned.stderr);
     fs.writeFileSync(path.join(target, 'AGENTS.md'), '# changed after plan\n');
-    const result = apply(target, { review: reviewPath, plan: planned.outPath });
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.notEqual(result.status, 0, 'stale preimage must fail closed');
     assert.equal(
       fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')),
       false,
       'failed apply must not write a new receipt',
     );
+  });
+});
+
+test('apply rolls back host adapter and git hook writes on failure', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    const userHook = path.join(target, '.git', 'hooks', 'pre-commit');
+    fs.writeFileSync(userHook, '#!/bin/sh\necho user hook\n', { mode: 0o755 });
+
+    const { reviewPath } = allowedReview(target, { host: 'codex' });
+    writeSelection(target, {});
+    const planned = plan(target, { review: reviewPath });
+    assert.equal(planned.status, 0, planned.stderr);
+
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    const receipt = path.join(target, '.rig', 'catalog-receipt.json');
+    fs.mkdirSync(receipt, { recursive: true });
+    const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
+    assert.notEqual(result.status, 0, 'receipt path collision must fail');
+    assert.equal(
+      fs.existsSync(path.join(target, '.rig', 'hooks', 'semantic-review.hint.md')),
+      false,
+      'host adapter marker must roll back',
+    );
+    assert.equal(fs.readFileSync(userHook, 'utf8'), '#!/bin/sh\necho user hook\n');
+    assert.equal(
+      fs.existsSync(path.join(target, '.git', 'hooks', 'pre-commit.rig-chained')),
+      false,
+      'chained backup must roll back',
+    );
+  });
+});
+
+test('approved remediation applies a bounded rewrite', () => {
+  withRepo((target) => {
+    createRepoFixture('malicious-agents', target);
+    const proposal = {
+      schema_version: 1,
+      actions: [{ op: 'rewrite', path: 'AGENTS.md', content: '# cleaned\n' }],
+    };
+    const proposalPath = path.join(target, '.rig-test', 'proposal.json');
+    fs.mkdirSync(path.dirname(proposalPath), { recursive: true });
+    fs.writeFileSync(proposalPath, `${JSON.stringify(proposal, null, 2)}\n`);
+    const digest = crypto.createHash('sha256').update(JSON.stringify(proposal)).digest('hex');
+
+    const result = require('./helpers/advanced').remediate(target, {
+      proposal: proposalPath,
+      approve: digest,
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
   });
 });
 
@@ -52,12 +156,13 @@ test('apply is idempotent when re-run with identical inputs', () => {
     writeSelection(target, {});
     const planned = plan(target, { review: reviewPath });
     assert.equal(planned.status, 0, planned.stderr);
-    assert.equal(apply(target, { review: reviewPath, plan: planned.outPath }).status, 0);
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    assert.equal(apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath }).status, 0);
     const receipt1 = fs.readFileSync(
       path.join(target, '.rig', 'catalog-receipt.json'),
       'utf8',
     );
-    assert.equal(apply(target, { review: reviewPath, plan: planned.outPath }).status, 0);
+    assert.equal(apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath }).status, 0);
     const receipt2 = fs.readFileSync(
       path.join(target, '.rig', 'catalog-receipt.json'),
       'utf8',
@@ -76,7 +181,8 @@ test('exclusive lock is acquired; stale lock is not auto-broken', () => {
     writeSelection(target, {});
     const planned = plan(target, { review: reviewPath });
     assert.equal(planned.status, 0, planned.stderr);
-    const result = apply(target, { review: reviewPath, plan: planned.outPath });
+    const approvalPath = writePlanApproval(target, planned.outPath);
+    const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.notEqual(result.status, 0, 'must not auto-break install lock');
     assert.match(result.stderr + result.stdout, /lock/i);
   });

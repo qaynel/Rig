@@ -17,7 +17,9 @@ const KNOWN_RESTRICTIONS = new Set([
 ]);
 
 function loadCatalog(catalogPath = CATALOG_PATH) {
-  return JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+  validateCatalog(catalog);
+  return catalog;
 }
 
 function servicesOf(catalog) {
@@ -57,11 +59,17 @@ function validateCatalog(catalog) {
     }
     const mid = new Set([...checks.minimal, ...checks.mid]);
     const maximal = new Set([...checks.minimal, ...checks.mid, ...checks.maximal]);
-    if (maximal.size <= checks.minimal.length) {
-      throw new Error(`rig catalog: ${service.id} maximal must strictly grow beyond minimal`);
+    if (mid.size <= checks.minimal.length) {
+      throw new Error(`rig catalog: ${service.id} mid must strictly grow beyond minimal`);
+    }
+    if (maximal.size <= mid.size) {
+      throw new Error(`rig catalog: ${service.id} maximal must strictly grow beyond mid`);
     }
     for (const id of checks.minimal) {
       if (!mid.has(id)) throw new Error(`rig catalog: ${service.id} mid missing minimal check ${id}`);
+    }
+    for (const id of mid) {
+      if (!maximal.has(id)) throw new Error(`rig catalog: ${service.id} maximal missing mid check ${id}`);
     }
   }
   return { ids, owns };

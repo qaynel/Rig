@@ -54,11 +54,31 @@ function collectHarnessFiles(target) {
   for (const dir of HARNESS_DIRS) {
     const abs = path.join(target, dir);
     if (!fs.existsSync(abs)) continue;
-    const walk = (d) => {
+    const walk = (d, ancestors = new Set()) => {
+      const real = realpathOrNull(d);
+      if (real && ancestors.has(real)) return;
+      const nextAncestors = new Set(ancestors);
+      if (real) nextAncestors.add(real);
       for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
         const p = path.join(d, entry.name);
-        if (entry.isDirectory()) walk(p);
-        else out.push(p);
+        if (entry.isDirectory()) {
+          walk(p, nextAncestors);
+          continue;
+        }
+        if (entry.isSymbolicLink()) {
+          const resolved = realpathOrNull(p);
+          if (resolved && (resolved.startsWith(target + path.sep) || resolved === target)) {
+            try {
+              if (fs.statSync(p).isDirectory()) {
+                walk(p, nextAncestors);
+                continue;
+              }
+            } catch {
+              /* inspectTarget records unreadable symlinks below */
+            }
+          }
+        }
+        out.push(p);
       }
     };
     walk(abs);

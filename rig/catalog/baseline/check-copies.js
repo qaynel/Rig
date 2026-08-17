@@ -33,6 +33,11 @@ function main() {
         failed = true;
         continue;
       }
+      if (!fs.existsSync(copy)) {
+        console.error(`missing copy: ${copyRel}`);
+        failed = true;
+        continue;
+      }
       if (fs.lstatSync(copy).isSymbolicLink()) {
         const real = fs.realpathSync(copy);
         if (!real.startsWith(root + path.sep)) {
@@ -40,11 +45,6 @@ function main() {
           failed = true;
           continue;
         }
-      }
-      if (!fs.existsSync(copy)) {
-        console.error(`missing copy: ${copyRel}`);
-        failed = true;
-        continue;
       }
       const copyBytes = fs.readFileSync(copy);
       if (!canonBytes.equals(copyBytes)) {

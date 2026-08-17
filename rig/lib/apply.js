@@ -4,15 +4,18 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 const { loadCatalog, servicesOf, catalogDigest, validateRigJson, isReviewAccepted, validateReview } = require('./catalog');
-const { createPlan } = require('./plan');
+const { resolve } = require('./resolve');
 const { materializeHostAdapters } = require('./host-capabilities');
 const { planCiIntegration } = require('./ci-adapters');
 const { GUARD_SCRIPT, SHIM } = require('./guard');
+const { writeReport } = require('./reports');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
+const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -35,6 +38,128 @@ function composeServiceMarkdown(service, grade, slices) {
     }
   }
   return `${parts.join('\n\n')}\n`;
+}
+
+function planDigest(plan) {
+  const snapshot = { ...plan };
+  delete snapshot.digest;
+  delete snapshot.plan_digest;
+  delete snapshot.summary;
+  return crypto.createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function validatePlanSnapshot(plan, manifest, review, catalog) {
+  if (!plan || typeof plan !== 'object' || !plan.plan_digest) {
+    throw new Error('apply requires a plan digest');
+  }
+  const digest = planDigest(plan);
+  if (plan.plan_digest !== digest || (plan.digest && plan.digest !== digest)) {
+    throw new Error('apply: plan digest mismatch');
+  }
+  if (plan.catalog_digest !== catalogDigest(catalog)) {
+    throw new Error('apply: plan catalog digest mismatch');
+  }
+  if (plan.harness_digest !== review.harness_digest) {
+    throw new Error('apply: plan harness digest mismatch');
+  }
+  const resolved = resolve(catalog, manifest.services || {});
+  const expectedServices = Object.entries(resolved.effective).map(([service_id, entry]) => ({
+    service_id,
+    ...entry,
+  }));
+  if (JSON.stringify(plan.order || []) !== JSON.stringify(resolved.order)) {
+    throw new Error('apply: plan order does not match rig.json');
+  }
+  if (JSON.stringify(plan.effective_services || []) !== JSON.stringify(expectedServices)) {
+    throw new Error('apply: plan services do not match rig.json');
+  }
+}
+
+function validatePlanApproval(approval, planDigestValue) {
+  if (!approval || typeof approval !== 'object') {
+    throw new Error('apply: --approval <plan-approval.json> is required');
+  }
+  if (approval.schema_version !== 1 || approval.kind !== 'plan-approval') {
+    throw new Error('apply: invalid plan approval receipt');
+  }
+  if (approval.plan_digest !== planDigestValue) {
+    throw new Error('apply: approval digest mismatch');
+  }
+  const method = approval.approval && approval.approval.method;
+  if (
+    approval.approval?.verified !== true ||
+    !['host-native', 'external-sshsig'].includes(method)
+  ) {
+    throw new Error('apply: approval receipt is not verified');
+  }
+}
+
+function findExecutable(name) {
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    if (!dir) continue;
+    const candidate = path.join(dir, name);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch {
+      /* keep looking */
+    }
+  }
+  return null;
+}
+
+function gitStateDigest(target) {
+  const hash = crypto.createHash('sha256');
+  for (const args of [
+    ['show-ref', '--head'],
+    ['rev-list', '--objects', '--all'],
+  ]) {
+    const result = spawnSync('git', args, {
+      cwd: target,
+      encoding: 'utf8',
+      shell: false,
+      timeout: 60 * 1000,
+    });
+    hash.update(result.status === 0 ? result.stdout : `git:${args.join(' ')}:${result.status}`);
+  }
+  return hash.digest('hex');
+}
+
+function runFirstEnableHistoryScan(target) {
+  const scanner =
+    (findExecutable('gitleaks') && {
+      name: 'gitleaks',
+      command: findExecutable('gitleaks'),
+      args: ['detect', '--source', '.', '--no-banner', '--redact'],
+    }) ||
+    (findExecutable('trufflehog') && {
+      name: 'trufflehog',
+      command: findExecutable('trufflehog'),
+      args: ['git', 'file://.', '--only-verified', '--fail'],
+    });
+  if (!scanner) {
+    return { ok: false, status: 'missing_scanner', reason: 'no vetted history scanner found on PATH' };
+  }
+  const before = gitStateDigest(target);
+  const result = spawnSync(scanner.command, scanner.args, {
+    cwd: target,
+    encoding: 'utf8',
+    shell: false,
+    timeout: 10 * 60 * 1000,
+  });
+  const after = gitStateDigest(target);
+  if (before !== after) {
+    return { ok: false, status: 'stale_history', scanner: scanner.name, reason: 'git history changed during scan' };
+  }
+  if (result.error || result.status !== 0) {
+    return {
+      ok: false,
+      status: 'failed',
+      scanner: scanner.name,
+      reason: result.stderr || result.stdout || String(result.error || 'history scanner exited non-zero'),
+    };
+  }
+  return { ok: true, status: 'verified', scanner: scanner.name, git_state_digest: after };
 }
 
 function acquireLock(target) {
@@ -65,10 +190,12 @@ function ensureLine(file, line) {
 }
 
 function applyPlan(target, manifest, review, plan, options = {}) {
-  validateRigJson(manifest, loadCatalog());
+  const catalog = loadCatalog();
+  validateRigJson(manifest, catalog);
   const validated = validateReview(review);
   if (!isReviewAccepted(validated)) throw new Error(`apply refuses review verdict ${validated.verdict}`);
-  if (!plan || !plan.plan_digest) throw new Error('apply requires a plan digest');
+  validatePlanSnapshot(plan, manifest, validated, catalog);
+  validatePlanApproval(options.approval, plan.plan_digest);
 
   // Idempotent short-circuit: identical selection already applied.
   const receiptPath = path.join(target, '.rig', 'catalog-receipt.json');
@@ -93,7 +220,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       ) {
         // Still ensure pointer line once (no-op if present).
         ensureLine(path.join(target, 'AGENTS.md'), POINTER_LINE);
-        return { ok: true, receipt: existing, historyScanNote: existing.history_scan || '', idempotent: true };
+        const historyScanNote = existing.history_scan ? 'history scan already verified' : '';
+        return { ok: true, receipt: existing, historyScanNote, idempotent: true };
       }
     } catch {
       /* fall through to full apply */
@@ -121,7 +249,6 @@ function applyPlan(target, manifest, review, plan, options = {}) {
   let historyScanNote = '';
 
   try {
-    const catalog = loadCatalog();
     const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
 
     const writeOwned = (rel, contents, mode) => {
@@ -133,6 +260,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         created.push(rel);
       }
       fs.writeFileSync(abs, contents, mode ? { mode } : undefined);
+    };
+
+    const ensureLineOwned = (rel, line) => {
+      const abs = path.join(target, rel);
+      const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
+      if (body.split('\n').includes(line)) return;
+      const sep = body && !body.endsWith('\n') ? '\n' : '';
+      writeOwned(rel, `${body}${sep}${line}\n`);
     };
 
     // Baseline phase
@@ -153,11 +288,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));
 
     // Pointer graft
-    const agents = path.join(target, 'AGENTS.md');
-    if (fs.existsSync(agents) && !backups.has('AGENTS.md')) {
-      backups.set('AGENTS.md', fs.readFileSync(agents));
-    }
-    ensureLine(agents, POINTER_LINE);
+    ensureLineOwned('AGENTS.md', POINTER_LINE);
 
     // Services
     const bindings = {};
@@ -180,7 +311,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/service-bindings.json', `${JSON.stringify(bindings, null, 2)}\n`);
 
     // Host adapters
-    materializeHostAdapters(target, validated.host || 'generic');
+    materializeHostAdapters(target, validated.host || 'generic', writeOwned);
 
     // CI adapter (verified only)
     const ci = planCiIntegration(target);
@@ -194,18 +325,28 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       const hooksDir = path.join(gitDir, 'hooks');
       fs.mkdirSync(hooksDir, { recursive: true });
       const hook = path.join(hooksDir, 'pre-commit');
-      const chained = path.join(hooksDir, 'pre-commit.rig-chained');
       if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
-        if (fs.existsSync(chained)) fs.rmSync(chained, { force: true });
-        fs.renameSync(hook, chained);
+        writeOwned('.git/hooks/pre-commit.rig-chained', fs.readFileSync(hook), 0o755);
       }
-      fs.writeFileSync(hook, SHIM, { mode: 0o755 });
+      writeOwned('.git/hooks/pre-commit', SHIM, 0o755);
     }
 
-    if (manifest.services && manifest.services['product-security.secrets.precommit-leak-scanner']) {
-      historyScanNote = 'first-enable history scan invoked for precommit-leak-scanner';
-      // Soft history scan: search tracked files for secret-shaped tokens.
-      // Non-blocking here beyond noting; staged floor remains authoritative.
+    let historyScan = null;
+    if (manifest.services && manifest.services[LEAK_SCANNER_SERVICE]) {
+      historyScan = runFirstEnableHistoryScan(target);
+      if (!historyScan.ok) {
+        historyScanNote = `first-enable history scan failed: ${historyScan.reason}`;
+        writeReport(target, {
+          service_id: LEAK_SCANNER_SERVICE,
+          status: 'failed',
+          summary: 'First-enable history scan failed',
+          reason: historyScan.reason,
+          fix_context: ['install gitleaks or trufflehog, remediate findings, then re-run apply'],
+        });
+        fs.rmSync(lockPath, { force: true });
+        return { ok: false, historyScanNote, historyScan };
+      }
+      historyScanNote = 'first-enable history scan verified for precommit-leak-scanner';
     }
 
     const receipt = {
@@ -216,7 +357,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       order: plan.order || [],
       services: installed,
       installed,
-      history_scan: historyScanNote || null,
+      history_scan: historyScan || null,
       ci: { status: ci.status, provider: ci.provider || null },
     };
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
@@ -242,7 +383,38 @@ function remediate(target, proposal, approveDigest) {
   if (!approveDigest || approveDigest !== digest) {
     throw new Error('remediate: approval digest mismatch; refusing write');
   }
-  // Consent-gated writes would apply here; digest mismatch already fails closed.
+  if (!Array.isArray(proposal.actions) || proposal.actions.length === 0) {
+    throw new Error('remediate: actions required');
+  }
+  const root = path.resolve(target);
+  const backups = new Map();
+  const created = [];
+  try {
+    for (const action of proposal.actions) {
+      if (!action || action.op !== 'rewrite') {
+        throw new Error(`remediate: unsupported action ${action && action.op}`);
+      }
+      if (typeof action.path !== 'string' || typeof action.content !== 'string') {
+        throw new Error('remediate: rewrite requires path and content');
+      }
+      const abs = path.resolve(root, action.path);
+      if (!abs.startsWith(root + path.sep) && abs !== root) {
+        throw new Error(`remediate: out-of-root path ${action.path}`);
+      }
+      const before = fs.existsSync(abs) ? fs.readFileSync(abs) : null;
+      if (before && before.toString('utf8') === action.content) {
+        throw new Error(`remediate: no-op rewrite ${action.path}`);
+      }
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      if (before) backups.set(action.path, before);
+      else created.push(action.path);
+      fs.writeFileSync(abs, action.content);
+    }
+  } catch (error) {
+    for (const rel of created) fs.rmSync(path.join(root, rel), { force: true });
+    for (const [rel, bytes] of backups.entries()) fs.writeFileSync(path.join(root, rel), bytes);
+    throw error;
+  }
   return { ok: true, digest };
 }
 

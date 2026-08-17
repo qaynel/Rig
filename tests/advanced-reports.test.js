@@ -15,6 +15,7 @@ const {
   readJson,
   FAKE_CREDENTIAL,
 } = require('./helpers/advanced');
+const { writeReport } = require('../rig/lib/reports');
 
 test('reports only write failed/vacuous/coverage_gap and redact secrets', () => {
   withRepo((target) => {
@@ -66,5 +67,22 @@ test('routine passes are omitted from reports/rig', () => {
         }
       }
     }
+  });
+});
+
+test('reports redact secret-shaped fix context', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    const reportPath = writeReport(target, {
+      service_id: 'baseline.secret-redaction',
+      status: 'failed',
+      summary: 'failed',
+      reason: 'redaction check',
+      evidence: [],
+      fix_context: [`rotate ${FAKE_CREDENTIAL}`],
+    });
+    const report = readJson(reportPath);
+    assert.doesNotMatch(JSON.stringify(report), new RegExp(FAKE_CREDENTIAL));
+    assert.deepEqual(report.fix_context, ['rotate [REDACTED]']);
   });
 });
