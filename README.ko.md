@@ -99,7 +99,7 @@ inspect → host review → recommend → select (rig.json) → plan → apply �
 ```
 
 운영자 가이드: [`docs/advanced/operator.md`](docs/advanced/operator.md).
-설계: [`project-dev-docs/current/`](project-dev-docs/current/).
+설계 및 추론: [`wiki/`](wiki/).
 
 레거시 MCP 설정 CLI는 호환 경로로 남아 있으며, 더 이상 별도의 설치
 tier가 아니다.

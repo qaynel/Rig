@@ -548,7 +548,7 @@ shipped behavior; do not describe anything not yet green.
       `docs/advanced/ci-floor.md` (all six provider dispositions and verified
       contracts).
 - [ ] **Stale references.** Remove or redirect any remaining user-facing
-      reference to a deprecated tier package. The `project-dev-docs` paths were
-      already rewritten during the 2026-07-25 reorganization; this box covers
+      reference to a deprecated tier package. The wiki paths were rewritten
+      during the 2026-08-19 reorganization; this box covers
       product prose, not doc paths.
 - [ ] `npm test` — full CI gate green, including the copy checker.

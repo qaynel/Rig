@@ -105,7 +105,7 @@ inspect → host review → recommend → select (rig.json) → plan → apply �
 ```
 
 Detalles del operador: [`docs/advanced/operator.md`](docs/advanced/operator.md).
-Diseño: [`project-dev-docs/current/`](project-dev-docs/current/).
+Diseño y razonamiento: [`wiki/`](wiki/).
 
 La CLI legacy del configurador MCP sigue disponible como compatibilidad; ya no
 es un tier de instalación separado.

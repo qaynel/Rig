@@ -211,7 +211,7 @@ test('the ignore rules protecting secrets are still in force', () => {
 });
 
 test('the Gate 1 signer artifacts carry public material only', () => {
-  const dir = path.join(repoRoot, 'project-dev-docs', 'current');
+  const dir = path.join(repoRoot, 'wiki', 'gate1');
   for (const name of ['gate1.sig', 'gate1.allowed-signers']) {
     const file = path.join(dir, name);
     if (!fs.existsSync(file)) continue; // unarmed repositories are legitimate

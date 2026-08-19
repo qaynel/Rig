@@ -73,7 +73,7 @@ test('TP-C5.4 default-host setup emits the shared Codex block once', () => {
 // TP-C9 (Task 9): the two renderers shipping on unverified host assumptions
 // must carry their "confirm on first wire" caveat verbatim, inside their own
 // setup block, and nowhere else. Canonical text:
-// project-dev-docs/archive/deprecated-tier-taxonomy/basic/first-wire-caveats.md
+// wiki/sources/superseded/deprecated-tier-taxonomy/basic/first-wire-caveats.md
 function hostBlock(target, display) {
   const block = read(target, '.rig/mcp-setup.md').split('\n\n').find((b) => b.startsWith(`${display}:`));
   assert.ok(block, `${display} block exists in .rig/mcp-setup.md`);

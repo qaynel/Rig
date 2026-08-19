@@ -26,11 +26,12 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Active delivery beyond the bootstrap is **mandatory agent-tech-safety
   baseline + à-la-carte catalogue** (`family → group → service → grade`).
   Fixed Basic / mid / Advanced install packages are deprecated (GA-9g).
-- Active design docs live in `project-dev-docs/current/`
-  and the operator guide in `docs/advanced/operator.md`.
+- Project knowledge starts at `wiki/Home.md`; current authorities live under
+  `wiki/gate1/` and `wiki/gate2/`, with live state in `wiki/status.md`.
+  The operator guide remains at `docs/advanced/operator.md`.
 - The legacy MCP-configurator CLI remains as a compatibility path; its
   historical design is archived under
-  `project-dev-docs/archive/`.
+  `wiki/sources/superseded/deprecated-tier-taxonomy/`.
 
 ## Working Rules
 
@@ -39,6 +40,9 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Preserve Gate 1 acceptance artifacts unless the task is explicitly routed back
   to grilling.
 - For design work, update the relevant decision log and companion spec together.
+- File every reasoning trace supplied by the intent owner under
+  `wiki/reasoning/` verbatim, then update its topic hubs and decision index in
+  the same change; follow `wiki/reasoning/README.md`.
 - When asking the user to choose, give concrete options plus a recommendation.
   Keep one decision per question unless the user asks for a broader menu.
 

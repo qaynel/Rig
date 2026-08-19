@@ -2,8 +2,8 @@
 
 > **This file is a map, not a rulebook.** It tells you what order to do things
 > in. It does not decide anything. The two documents that actually decide things
-> are [`current/acceptance.md`](current/acceptance.md) and
-> [`current/spec/technical-spec.md`](current/spec/technical-spec.md). If this
+> are [`gate1/acceptance.md`](../gate1/acceptance.md) and
+> [`gate2/technical-spec.md`](../gate2/technical-spec.md). If this
 > file ever disagrees with either of them, **they are right and this file is
 > wrong** — go fix this file. Never do something because this file said so.
 
@@ -90,9 +90,9 @@ Not copied from another document — each line was checked against the files tod
 To re-check the fingerprints yourself at any time:
 
 ```sh
-shasum -a 256 project-dev-docs/current/spec/business-spec.md \
-              project-dev-docs/current/acceptance.md \
-              project-dev-docs/current/spec/technical-spec.md
+shasum -a 256 wiki/gate1/business-spec.md \
+              wiki/gate1/acceptance.md \
+              wiki/gate2/technical-spec.md
 ```
 
 ⚠️ **One thing that looks like progress and isn't.** There is a file called
@@ -163,10 +163,10 @@ in the plan's header.
 
 ```sh
 node scripts/review-receipt.js \
-  --target project-dev-docs/current/spec/technical-spec.md \
-  --gate1 project-dev-docs/current/spec/business-spec.md,project-dev-docs/current/acceptance.md \
+  --target wiki/gate2/technical-spec.md \
+  --gate1 wiki/gate1/business-spec.md,wiki/gate1/acceptance.md \
   --model <any model other than the one that wrote the plan> \
-  --out project-dev-docs/current/reviews/gate2-v0.4-round1.review.json
+  --out wiki/sources/reviews/gate2-v0.4-round1.review.json
 ```
 
 Takes several minutes — run it in the background.
@@ -250,27 +250,27 @@ ssh-keygen -lf "$PUBKEY"        # sanity: prints a fingerprint, not an error
   printf '# key class attested by the intent owner: Secure Enclave, biometric per signature\n'
   printf '%s namespaces="rig-gate1" %s\n' \
     "$PRINCIPAL" "$(awk '{print $1" "$2}' "$PUBKEY")"
-} > project-dev-docs/current/gate1.allowed-signers
+} > wiki/gate1/gate1.allowed-signers
 
 # 4. Build the message FROM THE FILES, read it, then sign it.
 {
   printf 'rig-gate1-freeze-v1\n'
   printf 'business-spec.md %s\n' \
-    "$(shasum -a 256 project-dev-docs/current/spec/business-spec.md | awk '{print $1}')"
+    "$(shasum -a 256 wiki/gate1/business-spec.md | awk '{print $1}')"
   printf 'acceptance.md %s\n' \
-    "$(shasum -a 256 project-dev-docs/current/acceptance.md         | awk '{print $1}')"
+    "$(shasum -a 256 wiki/gate1/acceptance.md         | awk '{print $1}')"
 } > /tmp/gate1.msg
 cat /tmp/gate1.msg              # read it. three lines. then sign, immediately.
 
 #    Signing goes through the agent, so -f takes the PUBLIC key.
 ssh-keygen -Y sign -f "$PUBKEY" -n rig-gate1 /tmp/gate1.msg   # Touch ID prompts here
-mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
+mv /tmp/gate1.msg.sig wiki/gate1/gate1.sig
 
 # 5. Confirm it verifies. The output ends with the key fingerprint —
 #    save that in your password manager, off this Mac.
-ssh-keygen -Y verify -f project-dev-docs/current/gate1.allowed-signers \
+ssh-keygen -Y verify -f wiki/gate1/gate1.allowed-signers \
   -I "$PRINCIPAL" -n rig-gate1 \
-  -s project-dev-docs/current/gate1.sig < /tmp/gate1.msg
+  -s wiki/gate1/gate1.sig < /tmp/gate1.msg
 ```
 
 Two lines are yours to edit — `PUBKEY` and `PRINCIPAL`. Everything else is

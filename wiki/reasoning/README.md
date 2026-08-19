@@ -1,0 +1,63 @@
+# Reasoning traces
+
+Where new thinking lands. This is the intake for everything the project reasons
+out from here on: grilling answers, design arguments, review responses, decisions
+made in chat, notes written on the way to a decision.
+
+## The rule
+
+**A trace is written once and never edited.** It records what was thought at a
+moment in time. If the thinking later turns out wrong, that is what the topic
+hub is for — the hub gets rewritten, the trace stays as it was.
+
+This split is the whole point. A wiki whose pages are freely rewritten loses its
+history; a wiki that never rewrites accumulates contradictions. Keeping the
+record immutable and the synthesis mutable gets both.
+
+## Filing a trace
+
+One file per trace, at `reasoning/YYYY-MM-DD-<slug>.md`. Two traces on the same
+day get different slugs. The header is four lines:
+
+```markdown
+---
+date: 2026-08-19
+source: intent owner | agent | review
+topics: gate1-signing, policy-model
+decisions: D20, GA-14a
+---
+```
+
+- **`source`** — who produced the thinking. `intent owner` for the human whose
+  rulings are Gate 1 authority; `agent` for a design or implementation context;
+  `review` for a report-only reviewer.
+- **`topics`** — the hub slugs this touches, so the trace is reachable from the
+  subject rather than only from its date.
+- **`decisions`** — any decision IDs it creates, changes, or argues about. Leave
+  empty if it creates none; a trace does not have to decide anything.
+
+Then the trace itself, verbatim. Do not summarise it on the way in. Summarising
+is what the hub does, and doing it twice means the second version is the only one
+anybody reads.
+
+## After filing
+
+Two follow-ups, both in the same change as the trace:
+
+1. **Update every hub named in `topics:`** so it reflects the new thinking and
+   cites the trace by filename.
+2. **Update [`../index/decisions.md`](../index/decisions.md)** if the trace
+   created or changed a decision ID.
+
+A trace filed without those follow-ups is invisible to anyone who arrives by
+subject, which is how most people arrive.
+
+## What does not go here
+
+- **Gate 1 or Gate 2 edits.** Those are gate documents with their own revision
+  process. A trace may argue for a change; it cannot be the change.
+- **Anything the repository already records.** Commit history, code structure,
+  test output. If it can be recovered by reading the repo, it does not need a
+  trace.
+- **Status.** Current state lives in [`../status.md`](../status.md) and is
+  rewritten as it changes. A trace is dated and permanent; status is neither.

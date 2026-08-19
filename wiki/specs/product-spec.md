@@ -391,7 +391,7 @@ Files: **new** `rig/tier-2/hooks/protect-gate1.sh`,
 ### 9.6 S6 — ETL self-verify recipe
 
 Files: **new** `rig/tier-2/recipes/etl-self-verify/RECIPE.md`, a manifest
-entry for it, and `project-dev-docs/current/spec/etl-recipe-dogfood.md`
+entry for it, and `wiki/specs/etl-recipe-dogfood.md`
 (evidence).
 
 1. `RECIPE.md` instructs the *host* agent to author `scripts/verify.sh` in the
@@ -408,6 +408,6 @@ entry for it, and `project-dev-docs/current/spec/etl-recipe-dogfood.md`
 S1 ships alone first — it *is* the production release. S2 → S3 sequentially
 (schema before engine); S4 and S5 in parallel after S3; S6 last (it consumes
 S4's credential slots and S5's hook mechanics). S7 follows the frozen
-catalogue Gate 1/2 docs under `project-dev-docs/current/`. Tag
+catalogue Gate 1/2 docs under `wiki/gate1/` and `wiki/gate2/`. Tag
 `v5.1.0` when S3 lands (materializer spine) and `v5.2.0` when S6 lands
 (first recipe); every tag re-runs the full S1 release checklist.

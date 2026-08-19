@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Gate 1 §7 acceptance tests for Tier 2 Advanced — frozen oracle in
-// project-dev-docs/current/acceptance.md.
+// wiki/gate1/acceptance.md.
 // Do NOT edit Gate 1. Traceability: impl-design §12. Expected RED until Phase 3
 // ships catalogue subcommands (missing inspect/recommend/plan/apply/check).
 const test = require('node:test');

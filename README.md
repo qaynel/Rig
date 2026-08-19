@@ -128,7 +128,7 @@ node .rig/bin/check.js --scope repo
 ```
 
 Operator details: [`docs/advanced/operator.md`](docs/advanced/operator.md).
-Design sources: [`project-dev-docs/current/`](project-dev-docs/current/).
+Design sources and reasoning: [`wiki/`](wiki/).
 
 The legacy MCP-configurator CLI (`node rig/materialize.js --target … --manifest …`)
 remains available as a compatibility path; it is no longer a separate install

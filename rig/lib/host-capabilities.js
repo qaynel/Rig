@@ -1,6 +1,6 @@
 // Host capability registry (impl-design §10, AD-13).
 // Evidence-gated: an axis is only 'verified' with an official-doc citation.
-// Sources (persisted): project-dev-docs/current/reference/
+// Sources (persisted): wiki/sources/reference/
 //   host-ci-capability-verification.raw.md (2026-07-24) and
 //   host-config-surfaces-verification.raw.md (2026-07-25).
 // `mcp`: 'repo' = committable per-repo file; 'user_global' = advisory only

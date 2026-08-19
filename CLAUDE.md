@@ -17,6 +17,9 @@ Tier 1 supports the repository's static agent-host entrypoints through
 - `rig/bootstrap.sh` is a fixed copy list by default. Optional `--hosts` /
   `RIG_HOSTS` delegates to `rig/lib/payload.js` and requires `node` on `PATH`.
 - `tests/rig-bootstrap.test.js` proves the fresh-repo multi-host install.
+- `wiki/Home.md` is the project knowledge entrypoint. File future intent-owner
+  reasoning verbatim under `wiki/reasoning/`, then update its topic hubs and
+  decision index as `wiki/reasoning/README.md` requires.
 
 Tier 1 must remain markdown-only in installed repositories: no installed
 runtime, secrets, sync engine, or generated `.env` files. The host-filtered

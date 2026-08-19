@@ -35,12 +35,12 @@
 | Version | 0.5 |
 | Prepared | 2026-07-24 |
 | Amended | 2026-07-26 (readiness audit: specification-gate ordering, approval-facility and distribution dependencies) |
-| Business spec | [`spec/business-spec.md`](spec/business-spec.md) |
-| Acceptance oracle | [`acceptance.md`](acceptance.md) |
-| Governing design | [`spec/technical-spec.md`](spec/technical-spec.md) |
-| Coverage spec | [`spec/host-coverage-spec.md`](spec/host-coverage-spec.md) |
+| Business spec | [`gate1/business-spec.md`](../gate1/business-spec.md) |
+| Acceptance oracle | [`gate1/acceptance.md`](../gate1/acceptance.md) |
+| Governing design | [`gate2/technical-spec.md`](../gate2/technical-spec.md) |
+| Coverage spec | [`specs/host-coverage-spec.md`](host-coverage-spec.md) |
 | Build list | [`tasklist.md`](tasklist.md) |
-| Decision history | [`../archive/grilling/advanced-grilling.md`](../archive/grilling/advanced-grilling.md) (the `GA-#` log) |
+| Decision history | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md) (the `GA-#` log) |
 | Estimate class | Rough order of magnitude (ROM), expected accuracy +/- 30% |
 | Commercial status | Rates, fees, payment terms, and start date are not included |
 
@@ -764,7 +764,7 @@ truthful degradation.
 
 This SOW scopes what Rig *does* once installed. It does not scope how Rig
 reaches a target repository. That shipping path is specified separately in
-[`spec/product-spec.md`](spec/product-spec.md) §5/§9.1 slice S1 — a committed
+[`specs/product-spec.md`](product-spec.md) §5/§9.1 slice S1 — a committed
 pinned-source install stub (`rig/install.sh` with `RIG_REPO`/`RIG_REF`), a
 retired `publish.yml`, and the first production tag `v5.0.0` — and that slice is
 **frozen in design but unimplemented**. As audited 2026-07-26:
@@ -793,7 +793,7 @@ The following are excluded:
   immutable telemetry;
 - the visual capability-management dashboard;
 - ~~repository-wide deprecated-tier terminology refactoring or archival~~ (done
-  2026-07-24 under `project-dev-docs/archive/deprecated-tier-taxonomy/`);
+  2026-07-24 under `wiki/sources/superseded/deprecated-tier-taxonomy/`);
 - a second installer or replacement of the Basic CLI;
 - a YAML/template-engine migration or a new validation dependency;
 - installation of testing, security, infrastructure, or MCP engines into a

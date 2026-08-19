@@ -11,9 +11,9 @@ This plan records candidate paths for widening catalogue coverage from the
 original 4-host / 1-CI-provider state to the full `SUPPORTED_HOSTS` union. Its
 two research reports are inputs, not release-verification bundles:
 
-- [`../reference/host-ci-capability-verification.raw.md`](../reference/host-ci-capability-verification.raw.md)
+- [`../sources/reference/host-ci-capability-verification.raw.md`](../sources/reference/host-ci-capability-verification.raw.md)
   (2026-07-24) — four capability axes × 19 hosts + 5 CI providers.
-- [`../reference/host-config-surfaces-verification.raw.md`](../reference/host-config-surfaces-verification.raw.md)
+- [`../sources/reference/host-config-surfaces-verification.raw.md`](../sources/reference/host-config-surfaces-verification.raw.md)
   (2026-07-25) — repo-scoped vs user-global surfaces; closes the PARTIAL/CNV
   gaps and reverses two earlier assumptions.
 

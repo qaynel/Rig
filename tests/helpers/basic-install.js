@@ -1,5 +1,5 @@
 // Shared Gate-1 install seam + fixtures for the Tier 2 Basic acceptance tests
-// (SC7 / §9 of project-dev-docs/archive/deprecated-tier-taxonomy/basic/basic-design.md).
+// (SC7 / §9 of wiki/sources/superseded/deprecated-tier-taxonomy/basic/basic-design.md).
 //
 // The materializer + secret guard do not exist yet, so these acceptance tests
 // are RED until the build phase ships them, then GREEN — real red-then-green.
