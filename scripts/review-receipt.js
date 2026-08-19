@@ -3,16 +3,14 @@
 
 // AD-29 review wrapper.
 //
-// Invokes a reviewer non-interactively under an explicit model and writes the
-// receipt itself. The reviewing agent contributes `findings` and nothing else:
-// it never authors the model id, the digest, or the timestamp, because those
-// are the fields that certify its own independence.
+// Starts a fresh reviewer session and writes the receipt itself. The reviewing
+// agent contributes `findings` and nothing else: it never authors the digest or
+// timestamp that bind those findings to the reviewed bytes.
 //
 //   node scripts/review-receipt.js --target <file> --model <id> --out <receipt>
 //
-// AT-GATE-3 additionally requires a different model than the authoring context.
-// For a Gate 2 target the authoring model is declared in the document header;
-// this script reads it and refuses to run under the same one.
+// AT-GATE-3 requires a fresh reviewer session. This process starts the
+// non-interactive reviewer and binds its receipt to the reviewed bytes.
 
 const { createHash } = require('node:crypto');
 const { readFileSync, writeFileSync } = require('node:fs');
@@ -38,15 +36,6 @@ const gate1Paths = (arg('gate1') || '').split(',').filter(Boolean);
 
 const targetBytes = readFileSync(targetPath);
 const targetDigest = createHash('sha256').update(targetBytes).digest('hex');
-
-// Refuse a same-model review. The authoring model is self-declared in the
-// document, which is the one asserted link in this chain (recorded as a
-// residual risk in the Gate 2 header), but a declared value we can read is
-// still worth enforcing against.
-const authoring = /Authored by `([^`]+)`/.exec(targetBytes.toString('utf8'));
-if (authoring && authoring[1] === model) {
-  fail(`refusing same-model review: target declares authoring model ${authoring[1]}`);
-}
 
 const gate1 = gate1Paths.map((p) => ({
   path: p,
@@ -139,8 +128,6 @@ writeFileSync(
       target: targetPath,
       target_digest: targetDigest,
       gate1: gate1.map(({ path, digest }) => ({ path, digest })),
-      reviewer_model: model,
-      authoring_model: authoring ? authoring[1] : null,
       reviewed_at: new Date().toISOString(),
       verdict: reported.verdict,
       findings: reported.findings || [],

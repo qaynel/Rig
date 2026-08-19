@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "wrapper_version": 1,
+  "kind": "report-only-review",
+  "target": "project-dev-docs/current/spec/technical-spec.md",
+  "target_digest": "2028f91128b5024f7420082ae25f24d78bb5b5c5f85089f7c5fe3b6fab9c9834",
+  "gate1": [
+    {
+      "path": "project-dev-docs/current/spec/business-spec.md",
+      "digest": "eba3cc5bf17685b53cf06ed8f7e65a6e00615a431c5bad97fb28f396433c6018"
+    },
+    {
+      "path": "project-dev-docs/current/acceptance.md",
+      "digest": "eff3c92e49d68bc3495ed75c35f94bbb4aca77ec9892f26889c7f0430c408c2a"
+    }
+  ],
+  "reviewer_model": "claude-sonnet-5",
+  "authoring_model": "claude-opus-5",
+  "reviewed_at": "2026-08-19T12:36:47.293Z",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "contradiction",
+      "anchor": "header (pre-§1, \"The signers file is the trust root...\") vs §8.4 (D10, D19 presence floor)",
+      "detail": "Gate 2's header, distinguishing `project-dev-docs/current/gate1.allowed-signers` from the target-repo `.rig/policy/allowed-signers`, states: 'Same primitive and same presence floor, separate trust stores with separate lifecycles.' But §8.4 states the opposite: 'Gate 1 integrity keeps a stricter rule of its own (D10, D19). Its signing key must be one no agent on the intent owner's machine can operate without a live human act — a secure-element key behind a per-signature biometric, or a detached authenticator, but never a readable on-disk key or one parked in a long-lived agent,' explicitly contrasted with the ordinary policy-activation floor discussed earlier in the same section. This tracks Gate 1's own D19 language: 'Where the product elsewhere permits a weaker user-configured signer, Gate 1 integrity does not inherit that allowance.' Gate 1 is explicit that the ordinary external-signer fallback used for policy activation (§8.4, AD-20) is deliberately weaker than the Gate-1-integrity floor. Gate 2's header claim that the two trust stores share 'the same presence floor' directly contradicts both Gate 2's own §8.4 and Gate 1's D19 text. An implementer following the header could conclude the ordinary `.rig/policy/allowed-signers` fallback needs no hardware/biometric guarantee because 'the floor is the same' as Gate 1 integrity — or, read the other way, that Gate 1 integrity is satisfied by an ordinary on-disk key because it shares the (weaker) policy floor. Either reading defeats the exact property D10/D17/D19 exist to guarantee."
+    },
+    {
+      "severity": "major",
+      "category": "testability",
+      "anchor": "AT-GATE-3 / AD-29 / \"Authoring context\" header block, §15",
+      "detail": "AD-29 and the header's 'Authoring context' block make the reviewer's model identity wrapper-attested — 'the reviewing agent supplies findings only, and never authors the fields that certify its own independence.' But the authoring model it is compared against is only 'self-declared by the authoring context... asserted rather than proven' (header; repeated in §15: 'The authoring model is self-declared'). AT-GATE-3 requires review 'in a fresh session by a different model than the authoring context' and states 'A same-model... review does not satisfy this case.' The §13 evidence cell for AT-GATE-3 can only reject 'a receipt whose model matches the authoring model' by string-comparing the wrapper-verified reviewer identity against an unverified authoring-side string. If that authoring declaration is wrong — through template copy-paste, a proxy/router obscuring true model identity, or an honest self-report error — a genuinely same-model review passes the check with nothing able to catch it, since only one side of the comparison is independently attested. This is a materially weaker guarantee than Gate 1's 'different model' requirement, and unlike every other field this document protects with a wrapper (digest, timestamp, reviewer model), the one input that actually establishes independence has no analogous protection — so the check cannot fail for the right reason when that input is wrong."
+    }
+  ],
+  "unresolved": []
+}

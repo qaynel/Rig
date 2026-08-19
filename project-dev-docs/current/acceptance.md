@@ -119,6 +119,27 @@
 >
 > **Frozen.** The decision is recorded and no case is left open.
 
+> **Revision note (2026-08-19) — D8 review separation.** Re-grilled with
+> [`spec/business-spec.md`](spec/business-spec.md) after review established that
+> a self-declared authoring-model label cannot prove model separation. `AT-GATE-3`
+> now requires a fresh review session, report-only operation, and an exact-digest
+> receipt; model identity is not an acceptance condition. The ID set remains
+> **48** and Gate 2 must be re-frozen against this amendment.
+
+> **Revision note (2026-08-19, later the same day) — D20, policy-signer
+> recovery.** Re-grilled with [`spec/business-spec.md`](spec/business-spec.md)
+> after a Gate 2 review found the technical design had built a full,
+> Gate-1-unbacked recovery ceremony for the policy-activation signer. D20
+> gives it a real, bounded recovery path instead: a distinct, pre-registered
+> recovery credential approved at the same live-human-act floor Gate 1
+> already requires for its own protection, with exhaustion of every
+> registered credential a deliberate, permanent refusal rather than grounds
+> for another fallback. New case: `AT-PRESENCE-2`. The ID set grows from
+> **48** to **49**, and the Gate-2 traceability table must match that set
+> exactly.
+>
+> **Frozen.** The decision is recorded and no case is left open.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -171,11 +192,10 @@ only when the product intent is met.
   authority and traceability checks pass, *when* a review evaluates Gate 2,
   *then* every Gate-1 rule has one testable implementation contract and no two
   clauses prescribe incompatible outcomes before the code gate may start. The
-  review must be performed in a **fresh session by a different model** than the
-  authoring context, must be report-only, and its receipt must be pinned to the
-  exact content digest reviewed. A same-model, same-session, or unpinned review
-  does not satisfy this case. The same rule governs the 115-leaf catalogue
-  review.
+  review must be performed in a **fresh session**, must be report-only, and its
+  receipt must be pinned to the exact content digest reviewed. A same-session or
+  unpinned review does not satisfy this case. The same rule governs the 115-leaf
+  catalogue review.
 - **AT-GATE-4 (workflow, not staffing).** *Given* a repository maintained by one
   person, *when* that person runs separate implementation and fresh-context
   review agents, *then* the workflow satisfies separation without requiring
@@ -410,6 +430,43 @@ only when the product intent is met.
   an ordinary prompt, or treated as successful. Rig verifies signatures and
   specifies the signer interface; a design that ships a signing binary or
   stores key material fails this case.
+- **AT-PRESENCE-2 (lost policy signer: recovery is real, bounded, and
+  terminates) [D20].** *Given* the policy-activation signer from
+  `AT-PRESENCE-1` is lost or compromised, *when* the user attempts recovery,
+  *then* the recovery approval must clear the same live-human-act floor Gate 1
+  requires for its own protection (D10/D19) — an ordinary host-native
+  confirmation prompt does **not** satisfy this case, only a credential class
+  no agent on the user's machine could operate unattended does.
+
+  *And given* a candidate recovery credential, *when* Rig evaluates whether it
+  may authorise recovery, *then* it is accepted only if it is cryptographically
+  distinct from the everyday signing key, was registered as a recovery
+  credential while an already-valid credential was in force, and is not stored
+  anywhere the repository, Rig's own working state, or the agent can read
+  unattended. A design in which an agent designates a fresh key as the
+  recovery credential *after* asserting the everyday key is lost fails this
+  case, as does one that stores or derives the recovery credential from the
+  everyday key's material or location.
+
+  *And given* first-time signer setup, *when* it completes, *then* Rig offers
+  to generate a set of recovery credentials at that time, and makes the same
+  offer to add more every time signer setup is run again while a valid
+  credential still exists. *And given* the everyday signer and every
+  registered recovery credential are simultaneously unavailable, *when*
+  recovery is attempted, *then* it is **refused permanently** for that policy
+  trust state: no forced override, no undocumented reset command, and no
+  substitute fallback may be invented to route around the exhausted list. This
+  refusal is a terminal state, not a downgrade to a weaker check.
+
+  *And given* an authorised recovery completes, *then* its consequences —
+  invalidating pending policy edits, burning outstanding one-use approvals,
+  and resetting evidence-epoch tracking — take effect only as a result of that
+  authorisation and are recorded in a disclosed recovery receipt; a design in
+  which an agent triggers those consequences unilaterally by asserting
+  recovery is needed fails this case, and so does one that applies them
+  silently. This case is independent of `AT-GATE-2`: the Gate 1 integrity
+  signer (D10/D19) keeps no recovery path of its own, and nothing here creates
+  one for it.
 - **AT-HOME-1 (global writes append, never overwrite) [D9].** *Given* a host
   whose only configuration surface is user-global, *when* Rig writes it, *then*
   the write is an append or a namespaced additive merge; every pre-existing

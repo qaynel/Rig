@@ -878,3 +878,60 @@ Rejected on the way to these rulings, and why:
   the behavior implied by the existing §9 language and it made D10 opt-out: any
   context wanting to edit Gate 1 could delete the signature first. Found during
   this sweep and fixed by GA-12h rather than carried into freeze.
+
+## GA-13 — D8 review separation correction (2026-08-19)
+
+The intent owner ruled that the independent semantic-review requirement is a
+fresh reviewer session, report-only operation, and a receipt pinned to the
+reviewed bytes. A different-model requirement is withdrawn: the authoring
+model was only self-declared, so comparing it with the review wrapper's model
+label could not establish actual model separation.
+
+`AT-GATE-3` keeps its semantic-coverage and contradiction verdicts. The ID set
+remains 48; this changes only the separation mechanism. Model identity is not a
+release condition or receipt field.
+
+## GA-14 — Policy-signer recovery (2026-08-19)
+
+A Gate 2 review of `technical-spec.md` (round 2) flagged that the design had
+built a full recovery ceremony for the policy-activation signer — a
+`trust.json` bootstrap/rotation record plus a bootstrap step invalidating
+pending edits, one-use approvals, and evidence epochs — with no Gate 1
+requirement behind it, and noted a recovery/reset path is exactly the kind of
+mechanism the D5→D10→D17→D19 sequence spent four revisions keeping out of an
+agent's reach. The intent owner chose to grill and add the requirement rather
+than strip the capability from Gate 2.
+
+| ID | Product ruling |
+|---|---|
+| GA-14a | Recovering a lost or compromised policy signer must clear the same live-human-act floor Gate 1 already sets for its own protection (D10/D19) — a credential class no agent on the user's machine could operate unattended. An ordinary host-native confirmation popup was considered and rejected: it proves only that a UI event fired, not that an agent couldn't have triggered or synthesised it. |
+| GA-14b | The recovery credential must be cryptographically distinct from the everyday signing key and live in a genuinely separate failure domain — not merely a different key file beside the first, but kept outside any storage the repository, Rig's working state, or the agent can reach on its own. A pair of keys an attacker who compromises one location gets both of does not satisfy this. |
+| GA-14c | A credential counts as a recovery credential only if it was registered while an already-valid credential was in force. Without this, an agent facing a "lost key" situation could simply designate a fresh key as the recovery credential itself, which defeats the control entirely. |
+| GA-14d | Rig offers to generate a set of recovery credentials the first time the everyday signer is set up, and offers to add more every subsequent time signer setup runs while a valid credential still exists. This is the chosen mitigation against lockout — a pool established upfront and topped up over time — rather than a "reinitialise from scratch" escape hatch considered and rejected below. |
+| GA-14e | If the everyday signer and every registered recovery credential are ever all lost together, recovery is refused permanently for that policy trust state. No forced override, no undocumented reset command, and no new fallback may be invented to route around the exhausted list — otherwise that fallback quietly becomes the real root of trust. |
+| GA-14f | Recovery's consequences — invalidating pending policy edits, burning one-use approvals, resetting evidence-epoch tracking — are effects of an authorised recovery, never its trigger. An agent may request a recovery ceremony; it cannot complete one, and it cannot cause those consequences by merely asserting recovery is needed. Every recovery is disclosed via a receipt, never applied silently. |
+| GA-14g | This is a separate trust domain from the Gate 1 integrity signer (D10/D19). That signer keeps no recovery path at all, and D20 does not add one to it — the two are documented independently so the design stays auditable. |
+
+Rejected on the way to this ruling, and why:
+
+- **Reinitialisation as an implicit recovery fallback.** Treating "start over
+  with a fresh trust root" as part of recovery would make deleting state, or a
+  `--force` flag, the real recovery authority — anything that can trigger the
+  fallback bypasses every credential check above it. If Rig ever supports
+  starting over after a genuine lockout, that has to be a distinct,
+  separately named concept with no cryptographic claim of continuing the old
+  trust state, and it is out of scope here rather than smuggled in as
+  recovery.
+- **An unlimited or self-extending recovery chain.** A recovery-for-the-
+  recovery-mechanism pattern (lose the recovery credential, fall back to a
+  weaker mechanism, lose that too, fall back again) was rejected because the
+  system is only as strong as its weakest fallback; GA-14e fixes the bottom of
+  that chain at "refuse."
+- **The everyday signing key doubling as its own recovery credential.**
+  Rejected as circular: if recovery used the same key class as ordinary
+  activation, losing that key would strand recovery too, which is the exact
+  failure recovery exists to solve.
+
+The ID set moves from 48 to **49** (`AT-PRESENCE-2`). Exact recovery-credential
+mechanism, generation flow, storage prompt, and count/threshold remain a Gate
+2 decision.

@@ -166,6 +166,40 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > [`../acceptance.md`](../acceptance.md) at their current set, under a re-signed
 > combined digest (§8).
 
+> **Revision note (2026-08-19) — D8 review separation.** Re-grilled with
+> [`../acceptance.md`](../acceptance.md) after review found that a different
+> model cannot be established from a self-declared authoring-model label. The
+> review requirement is therefore a fresh session, report-only operation, and
+> an exact-digest-bound receipt. Model identity is not a release condition.
+> The case count remains **48**; `AT-GATE-3` changes its separation mechanism,
+> not its required semantic review outcome. Gate 2 must be re-frozen against
+> this amendment.
+
+> **Revision note (2026-08-19, later the same day) — D20, policy-signer
+> recovery.** Re-grilled with [`../acceptance.md`](../acceptance.md) after a
+> Gate 2 review found the technical design had built a full recovery ceremony
+> for the policy-activation signer — a `trust.json` bootstrap/rotation record
+> plus a bootstrap step that invalidates pending edits, burns one-use
+> approvals, and resets evidence epochs — with no Gate 1 requirement behind
+> it. Gate 1 had never said what happens when that signer is lost, and an
+> unrequested reset path is exactly the kind of lever the D5→D10→D17→D19
+> sequence spent four revisions keeping out of an agent's reach.
+>
+> D20 gives the policy signer a real, bounded recovery path rather than
+> leaving the gap silent or stripping the capability from Gate 2 outright: a
+> distinct, separately stored, pre-registered recovery credential (or set of
+> them), approved through the same live-human-act floor Gate 1 already
+> requires for its own protection, with exhaustion of every registered
+> credential treated as a deliberate, permanent dead end rather than grounds
+> for inventing another fallback.
+>
+> One case is added: `AT-PRESENCE-2`. The ID set grows from **48** to **49**,
+> and the Gate-2 traceability table must match that set exactly.
+>
+> **This revision is frozen.** Gate 2 must be rewritten and re-frozen against
+> this file and [`../acceptance.md`](../acceptance.md) at their current
+> 49-case set, under a re-signed combined digest (§8).
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -247,6 +281,30 @@ Host-agnostic; config-only (B1).
     external signature. Where neither is available, activation is **refused and
     reported unavailable**. Rig specifies the signer interface and verifies
     signatures; it ships no signing binary and stores no key material.
+  - **A lost policy signer has one authorised recovery path, and it terminates
+    (D20).** Recovering from a lost or compromised policy-activation signer
+    requires proof of human presence at least as strong as the floor Gate 1
+    already sets for protecting these frozen documents themselves — a key no
+    agent on the user's machine can operate without a live human act, never an
+    ordinary confirmation prompt. The credential that proves it must be
+    cryptographically distinct from the everyday signing key, kept outside any
+    storage the repository, Rig, or the agent can reach on its own, and
+    counts as a recovery credential only if it was registered while an
+    already-valid credential was in force — an agent cannot designate its own
+    replacement key as recovery and call that a fix. Rig offers to generate a
+    set of recovery credentials the first time the everyday signer is set up,
+    and offers the same option to add more every time signer setup runs again
+    while a valid credential still exists. If the everyday signer and every
+    registered recovery credential are ever all lost together, recovery is
+    **refused permanently** for that policy trust state: no forced override,
+    no silent reset, and no new fallback invented to route around the
+    exhausted list. Recovery's consequences — invalidating pending policy
+    edits, burning one-use approvals, and resetting evidence-epoch tracking —
+    follow only from an authorised recovery event and are never something an
+    agent triggers on its own by asserting one is needed, and every recovery
+    is disclosed to the user rather than applied silently. This is a distinct
+    trust domain from the Gate 1 integrity signer (D10/D19): that signer keeps
+    no recovery path at all, and this decision does not add one.
   - **Agent prompts must not invent policy consent.** Every installed base
     prompt states that prior approvals, delegated edit mode, chat wording, tool
     access, urgency, or a broad task request never authorize activation. The
@@ -334,8 +392,10 @@ store; semantic-brain runtime judgment (goal-drift / tool-chain intent) + isolat
 **Deferred to Gate 2 (product design), not Gate 1:** the catalogue-selection
 manifest; exact policy schema and parser; host-specific paths, event schemas,
 deny payloads, merge mechanics, and matchers; the multi-host executable test
-strategy; report/security-verdict formats; and the graft mechanism. Gate 2 must
-preserve the Gate-1 requirement for one machine-readable policy plus a
+strategy; report/security-verdict formats; the graft mechanism; and the exact
+recovery-credential mechanism (key type, generation flow, and storage
+prompt) plus how many recovery credentials Rig offers or requires (D20). Gate
+2 must preserve the Gate-1 requirement for one machine-readable policy plus a
 user-facing guide and always-on agent pointers to both.
 **Backlogged (README / future scope), not this pipeline:** the visual capability-management
 dashboard. **Done 2026-07-24:** deprecated-tier-vocabulary archive under
@@ -496,10 +556,9 @@ exists to close.
 
 **Review is independent by construction (D8).** Gate 2, and every one of the
 115 service leaves, is authored in one context and reviewed in a **fresh
-session by a different model**. Review is report-only and its receipt is pinned
-to the exact content digest reviewed. There is no human sampling step; the
-intent owner accepts that a shared blind spot between authoring and reviewing
-models is a residual risk, recorded in §9.
+session**. Review is report-only and its receipt is pinned to the exact content
+digest reviewed. There is no human sampling step; the intent owner accepts that
+the authoring and reviewing contexts can share a blind spot, recorded in §9.
 
 These are workflow separations, not staffing requirements. A single maintainer
 may run the product, design, implementation, review, and acceptance stages
@@ -512,8 +571,8 @@ These are accepted, not solved. They are recorded so a later reader does not
 mistake them for oversights.
 
 - **Nothing checks the reviewer (D8).** Human sampling was declined. If the
-  reviewing model shares a blind spot with the authoring model, filler passes
-  review and reaches users. This is the direct carry-over risk from the run
+  reviewing context shares a blind spot with the authoring context, filler
+  passes review and reaches users. This is the direct carry-over risk from the run
   that produced 432 `TODO` fragments under a prior agent deployment on this
   same scope.
 - **Enforcement is documented, not observed (host-tier amendment).** Rig ships
@@ -577,3 +636,12 @@ mistake them for oversights.
   repository and out of CI artifacts means a team has no shared history of what
   its checks found, and a CI failure tells a reviewer only that something failed
   and how much. Reproducing the detail requires running the check locally.
+- **An exhausted recovery-credential list is a deliberate dead end (D20).** If
+  a user loses the everyday policy signer and every credential they ever
+  registered for recovery, Rig will not invent a further fallback to let them
+  back in — the same choice already made for the Gate 1 integrity signer
+  (D10), applied here to a separate trust domain. The mitigation is upfront:
+  Rig offers a set of recovery credentials at setup and again at every later
+  signer setup, so a user who takes the offer has more than one chance to
+  avoid this state, but taking none of them is still possible, and it still
+  ends here.

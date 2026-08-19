@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "wrapper_version": 1,
+  "kind": "report-only-review",
+  "target": "project-dev-docs/current/spec/technical-spec.md",
+  "target_digest": "31a430e615963a480b33ba967761fd3e0a24590ba493e375cb071a6104fc132b",
+  "gate1": [
+    {
+      "path": "project-dev-docs/current/spec/business-spec.md",
+      "digest": "24a93d856829a25e49b0ba6382c5c76b03e67d500a9fd646bd8e47fe743bd000"
+    },
+    {
+      "path": "project-dev-docs/current/acceptance.md",
+      "digest": "b70c7e189f8735057cddbfac4680d69ed825ea66dd8f204f2eda97077ddce8bd"
+    }
+  ],
+  "reviewed_at": "2026-08-19T13:17:54.449Z",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "contradiction",
+      "anchor": "§17.1 Candidate Freeze Blockers, item 3",
+      "detail": "§17.1 item 3 requires 'a fresh-session report-only review of the final candidate digest, run under a model different from the one named in the authoring-context block.' This directly contradicts Gate 1's 2026-08-19 D8 revision, which states in business-spec.md: 'a different model cannot be established from a self-declared authoring-model label ... Model identity is not a release condition,' and in acceptance.md: 'AT-GATE-3 now requires a fresh review session, report-only operation, and an exact-digest receipt; model identity is not an acceptance condition.' Gate 2's own AD-29 and its AT-GATE-3 traceability row correctly drop the model-difference requirement (fresh session + report-only + exact-digest receipt only), so §17.1 also contradicts the rest of the same document. Worse, 'the authoring-context block' that item 3 refers to does not exist anywhere else in this Gate 2 document, so the clause names an undefined artifact and cannot be mechanically checked. Left as written, this freeze blocker either reintroduces the unenforceable model-declaration check D8 explicitly withdrew, or blocks freeze on a condition nothing in the document can satisfy."
+    },
+    {
+      "severity": "major",
+      "category": "overreach",
+      "anchor": "§4.2 (`.rig/policy/trust.json`) and §8.4 ('Signer recovery')",
+      "detail": "Gate 2 introduces a policy-signer 'trust.json' described as a 'signed public bootstrap/rotation record,' plus a full recovery ceremony: 'Signer recovery is a separate user-presence bootstrap. It invalidates pending policy edits, one-use approvals, and current evidence epochs, and records a recovery receipt.' Gate 1 never asks for signer rotation or recovery for the network-policy activation signer — AT-PRESENCE-1 and AT-BASE-4 specify activation, delegation-scoping, and refusal-when-unavailable, and neither mentions rotation, bootstrap, or recovery. The §13 traceability rows for AT-BASE-4 and AT-PRESENCE-1 test digest/sequence/replay/delegation behavior in detail but contain no assertion touching 'trust.json,' 'rotation,' 'bootstrap,' or 'recovery.' This is machinery invented beyond Gate 1's requirement, with a plausible attack-relevant blind spot (a recovery/reset path is exactly the kind of mechanism the D5→D10→D17→D19 sequence spent four revisions trying to keep out of agent reach) and zero acceptance-test coverage to constrain it."
+    },
+    {
+      "severity": "minor",
+      "category": "coverage",
+      "anchor": "Gate 1 business-spec.md §3 ('and per-host install docs')",
+      "detail": "Gate 1 §3 lists 'per-host install docs' as an explicit in-scope deliverable alongside the host/CI adapters and catalogue. Gate 2 has no corresponding artifact, file-tree entry, slice, or release-gate condition for it: §4.1/§4.2's file trees list only machine-consumed contracts (registry JSON, byte-landing tests, `.rig/network-rules.md`, `.rig/services/*.md`), §11.1's per-axis contract is a JSON schema plus a test, Slice 9's verification is `advanced-hosts.test.js`, and neither §12.3 (release gate) nor §16 (implementation handoff) mentions authoring human-facing per-host install documentation. Nothing in this design would produce that deliverable or block release for its absence."
+    },
+    {
+      "severity": "minor",
+      "category": "testability",
+      "anchor": "§13 traceability table, rows AT-P1 and AT-P4",
+      "detail": "The 'primary executable evidence' column for AT-P1 and AT-P4 reads, verbatim, 'AT-P1 evidence alias to the substantive AT-SHAPE-1 test, never a tautological assertion' and 'AT-P4 evidence alias to the substantive AT-CLAIM-1 test, never a tautological assertion.' Gate 1 permits an alias but requires it not be tautological; asserting 'never a tautological assertion' about itself is exactly the kind of self-referential claim that can't fail for the right reason — it describes a property of the row rather than naming what the aliased test checks. Sibling rows for the same section (AT-P2, AT-P3, AT-P5, AT-P6) all name concrete mechanics instead. This is minor because AT-SHAPE-1 and AT-CLAIM-1 do carry substantive evidence elsewhere in the same table, but the alias rows themselves are not independently verifiable as written."
+    }
+  ],
+  "unresolved": []
+}

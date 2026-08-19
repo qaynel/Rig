@@ -1,9 +1,11 @@
-# Tier 2 Advanced - Implementation Design (GATE 2 CANDIDATE v0.4)
+# Tier 2 Advanced - Implementation Design (GATE 2 CANDIDATE v0.5)
 
 > **Status: CANDIDATE. Not frozen. Not yet reviewed.** This version is written
-> against the Gate 1 amended on 2026-08-17 at 48 cases — the host-tier amendment
-> that unwinds D1/D2/D3 and removes the verified/unverified tier from Rig's
-> output and data. It supersedes v0.3 in full. Implementation may not begin
+> against the Gate 1 amended on 2026-08-19 at 49 cases. It includes the D8 review
+> separation correction, the D20 policy-signer recovery amendment, and the
+> host-tier amendment that unwinds D1/D2/D3 and removes the verified/unverified
+> tier from Rig's output and data. It supersedes v0.4 in full. Implementation
+> may not begin
 > against a candidate: §16 lists what must be true before this file may be
 > marked `FROZEN`.
 
@@ -11,17 +13,11 @@
 
 | Gate 1 file | SHA-256 |
 |---|---|
-| `business-spec.md` | `eba3cc5bf17685b53cf06ed8f7e65a6e00615a431c5bad97fb28f396433c6018` |
-| `acceptance.md` | `eff3c92e49d68bc3495ed75c35f94bbb4aca77ec9892f26889c7f0430c408c2a` |
+| `business-spec.md` | `5f26ce2b9438ac5c11efafe07b0612647fd64d8b5c4d3ab4fa2342a1bf7d5da0` |
+| `acceptance.md` | `9ec0ac94238063b808e1b01bdc2c5b142d2b7c9410cb5d0ef2663d9baa4a86f7` |
 
 If either digest changes, this candidate is stale and every review receipt bound
 to it is void.
-
-**Authoring context.** Authored by `claude-opus-5`. `AT-GATE-3` requires the
-review to run in a fresh session under a *different* model; the review wrapper
-reads this field and refuses to run under the same one. This field is
-self-declared by the authoring context and is the one link in the D8 chain that
-is asserted rather than proven — recorded here so the reviewer knows it.
 
 **Gate 1 integrity (D10, D17, D19).** Gate 1 is protected by signature, not by
 repository process. The specification gate verifies an SSHSIG signature over the
@@ -49,8 +45,11 @@ Source-repository artifacts, sitting beside Gate 1:
 
 Do not confuse these with `.rig/policy/allowed-signers` in §3.2: that is a
 **target-repository** artifact governing policy activation in a user's repo.
-Same primitive and same presence floor, separate trust stores with separate
-lifecycles. Neither can authorize the other.
+Same SSHSIG primitive, different presence floors: `.rig/policy/allowed-signers`
+uses §8.4's declared-and-disclosed policy-activation floor, while
+`gate1.allowed-signers` uses the stricter D10/D19 Gate 1 floor requiring a
+signer no agent can operate without a live human act. Separate trust stores with
+separate lifecycles. Neither can authorize the other.
 
 **The signers file is the trust root, and it sits inside what it protects.** A
 context that can write the repository can replace `gate1.allowed-signers` with a
@@ -84,9 +83,11 @@ later ruling cannot supersede it.
 
 **Version history.** v0.1 was frozen 2026-07-24 and withdrawn by the 2026-07-25
 re-grill. v0.2 absorbed 2026-07-26 rulings but was superseded the same day.
-v0.3 was rewritten against D1-D19 at 52 cases. v0.4 is rewritten against the
-2026-08-17 host-tier amendment at 48 cases and removes every trace of the
-verified/unverified tier from Rig's output and data.
+v0.3 was rewritten against D1-D19 at 52 cases. v0.4 was rewritten against the
+2026-08-17 host-tier amendment at 48 cases and removed every trace of the
+verified/unverified tier from Rig's output and data. v0.5 adds D20's bounded
+policy-signer recovery path and rewrites the Gate-2 traceability set to 49
+cases.
 
 **Default branch.** It is `prod`. `origin/main` does not exist, and any
 workflow naming `main` or `master` is wrong. D10 removed the branch dependency
@@ -136,6 +137,19 @@ activation is refused and reported unavailable. It is never silently skipped,
 degraded to an ordinary confirmation, or treated as successful. Rig specifies
 the signer interface and verifies signatures; it ships no signing binary and
 stores no key material.
+
+**Lost policy-signer recovery is pre-registered and terminal (D20).** A lost or
+compromised policy-activation signer can be replaced only by a recovery
+credential that was registered while the old trust state still had a valid
+credential. Recovery credentials are distinct hardware-backed SSHSIG security
+key identities, verified under their own namespace, and their private material
+stays outside the repository, Rig state, and unattended agent reach. Rig offers
+three recovery credentials at first signer setup and offers to add more on
+later signer setup while a valid credential remains. If the everyday signer and
+every registered recovery credential are gone, recovery is permanently refused
+for that policy trust state. Invalidating pending edits, burning one-use
+approvals, and resetting evidence epochs happen only after an authorized
+recovery receipt is written; an agent request cannot trigger them by itself.
 
 Agents may draft policy revisions only when the user asks for that exact draft
 or when a user-approved delegated policy-edit mode is active. Delegation is
@@ -224,7 +238,8 @@ These are implementation constraints, not suggestions:
 | AD-26 | **Disclose the out-of-repository blast radius at install time, per `AT-HOME-1`.** The install line names any configuration written outside the repository. There is no per-host claim string in install output or run reports — no `verified` or `emitted` label, no "please report" invitation, no framing that draws a tier. The honest observation that Rig has not seen enforcement fire on any host is a statement about the product, its home is the host registry header, and a user who wants it reads it there. |
 | AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell, because Rig's own default policy denies exactly that. Delete the inherited npm publish workflow and move `package.json` to `5.0.0`, still `private`. |
 | AD-28 | Verify Gate 1's integrity by signature, not repository process: recompute both digests, verify the namespaced SSHSIG signature against the listed signer identity, and fail closed. Verify the signature, not the key's class — per D19 no signature format here proves an authenticator was involved, and the intent owner attests the class instead. Run this check first in the specification gate, and run the specification gate first in `npm test`, short-circuiting the code tests. Provide `npm run test:code` for the development loop. The gate has no exemption, skip, or progress input of any kind. |
-| AD-29 | Produce every review receipt through a wrapper that invokes the reviewer non-interactively with an explicit model flag and itself writes the model ID, the digest it computed over the reviewed bytes, and the timestamp. The reviewing agent supplies findings only, and never authors the fields that certify its own independence. |
+| AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
+| AD-30 | Recover a lost or compromised policy-activation signer only through a pre-registered recovery identity in `.rig/policy/recovery.allowed-signers`, verified as an SSHSIG security-key signature under namespace `rig-policy-recovery`. Registration requires an already-valid credential, records a registration receipt in `.rig/policy/trust.json`, and rejects a recovery key whose fingerprint matches an everyday signer. First signer setup offers three recovery identities; later signer setup offers to add more while any valid credential remains. Exhausting the everyday signer and every registered recovery identity is terminal for that policy trust state. Recovery side effects are applied only after a valid recovery receipt is committed. |
 
 ### 2.1 Rejected approaches
 
@@ -292,6 +307,13 @@ These are implementation constraints, not suggestions:
   unattributed first entry can never be safely removed.
 - A prune subsystem for orphaned user-global entries: `AT-HOME-2` does not ask
   for it.
+- A `trust.json` bootstrap, reset, or start-fresh command that can replace the
+  policy signer without a pre-registered recovery signature: this makes the
+  reset command the real root of trust.
+- An infinite recovery chain where a weaker fallback recovers the recovery
+  mechanism: the system is only as strong as that weakest fallback.
+- Reusing the everyday policy signer as its own recovery credential: circular
+  recovery does not survive the loss it claims to handle.
 - Parallel or template-driven catalogue authoring: the failure this project is
   recovering from was 432 placeholder files produced at volume. Leaves are
   authored one at a time.
@@ -340,12 +362,12 @@ Relevant existing seams:
 | `scripts/check-rule-copies.js` | Source-repo exact-copy guard | Pattern for target-local `.rig/sync-map.json` checking. |
 
 Blocking gaps still open at the last audit and still unresolved as work
-begins under v0.4:
+begins under v0.5:
 
 - `.rig/network-policy.json`, its guide, exact activation, trusted
-  user-presence approval, clone-local one-use approval, and shell/web/MCP
-  evaluation do not exist; manifest validation explicitly rejects baseline
-  disablement;
+  user-presence approval, bounded policy-signer recovery, clone-local one-use
+  approval, and shell/web/MCP evaluation do not exist; manifest validation
+  explicitly rejects baseline disablement;
 - every selected service receives generic `process.exit(0)` diff/repo
   bindings, and absent bindings are silently skipped in source and installed
   runners;
@@ -361,7 +383,7 @@ begins under v0.4:
   bootstrap, collision handling, and target first-run verification are
   incomplete;
 - traceability/tests encode the withdrawn non-disableable baseline and the
-  withdrawn verified/unverified tier, and omit the current 48-case set.
+  withdrawn verified/unverified tier, and omit the current 49-case set.
 
 Important constraints:
 
@@ -436,15 +458,17 @@ rig.json                              # user-owned committed selection
   catalog-receipt.json                # Rig-owned install evidence
   install-manifest.jsonl              # Rig-owned append-only journal (§7.6)
   catalog-routing.md                  # Rig-owned selected-service router
+  install-docs.md                     # Rig-owned per-host install runbook
   context-index.json                  # Rig-owned central context map
   sync-map.json                       # Rig-owned exact-copy groups
   service-bindings.json               # Rig-owned argv bindings
   service-activation.json             # Rig-owned activation/evidence epochs
   global-writes.json                  # Rig-owned ledger of out-of-repo writes
   policy/
-    trust.json                        # signed public bootstrap/rotation record
+    trust.json                        # public signed trust-state and recovery receipts
     active.json                       # exact active bytes + activation receipt
     allowed-signers                   # public verification identities
+    recovery.allowed-signers          # public pre-registered recovery identities
   baseline/
     drift-rule.md
     sanitation-review.json
@@ -471,9 +495,11 @@ Clone-local one-use approvals live below the path returned by
 `git rev-parse --git-path rig`, never an assumed `.git` directory, and are
 never committed, copied into install receipts, or uploaded as CI artifacts.
 Private signer material lives outside the target repository in the
-user-controlled host/OS approval facility. The committed public trust record
-lets clean CI checkouts verify the active bundle, but changing or deleting it
-cannot bootstrap a new signer.
+user-controlled host/OS approval facility. Recovery credential material also
+lives outside the repository and Rig state, and must require a live human act
+before it can sign. The committed public trust record lets clean CI checkouts
+verify the active bundle and registered recovery identities, but changing or
+deleting it cannot bootstrap a new signer.
 
 The same clone-local directory holds the §7.6 preimage store — the bytes of
 each touched path as it stood immediately before Rig first modified it. It is
@@ -1003,9 +1029,13 @@ repository or user-global. Append-only and line-delimited so a crash
 mid-write truncates only the final line, which parses as damaged and is
 discarded. Each record carries a monotonic `seq`, the absolute `path`, the
 `ownership` class from §7.1, the `operation` (`create_owned`,
-`replace_owned`, `append_managed`, `merge_namespaced`, `global_append`), the
-managed-block marker identity where one applies, the `install_id` from §4.2,
-and a `state`.
+`replace_owned`, `append_managed`, `merge_namespaced`,
+`global_merge_namespaced`, `global_append`), the managed-block marker identity
+where one applies, the `install_id` from §4.2, and a `state`. For user-global
+surfaces, a JSON or TOML namespaced additive merge records
+`global_merge_namespaced` and a line-oriented or markdown fenced append records
+`global_append` (§7.4), so a record names its write shape rather than hiding
+it behind one code.
 
 **Records are written before the mutation, not after.** A record lands as
 `state: "pending"`; the mutation is then applied; a second record with the
@@ -1053,8 +1083,11 @@ edits is reported **verified clean**; a path whose managed block cannot be
 located, because the markers were edited away or another tool rewrote the
 file, is reported **best-effort** with that specific file named, and is never
 called clean. Preimages are evidence for this diff only; uninstall never
-writes one back over the current file. This is the same verified-versus-
-advisory split applied to removal.
+writes one back over the current file. Both words are per-path removal-report
+vocabulary about one file's observed end state, scoped to uninstall output.
+They are not the host/axis claim vocabulary §11.1 withdrew — that withdrawal
+removed the `advisory` tier outright — and they are outside the surfaces
+`AT-CLAIM-1` asserts against.
 
 **Usage artifacts are not installation state.** Removal touches only what the
 manifest records. Accumulated run reports under `reports/rig/`, run history,
@@ -1062,6 +1095,31 @@ and post-install configuration the user filled in themselves — `rig.json`
 and `.rig/network-policy.json`, both user-owned in §4.2 — are not manifest
 entries and survive. `uninstall --purge` removes them too, and prints the
 complete list of what it will delete before deleting anything.
+
+### 7.7 Per-host install documentation
+
+Gate 1 (GA-1) scopes "per-host install documentation" into Tier 2 Advanced:
+"proper documentation for proper installation for each host," the named
+analog of Basic's `.rig/mcp-setup.md` runbook (PD8). PD8's standard carries
+over unchanged: the manual step must be *easy*, not merely documented.
+
+`.rig/install-docs.md` is a single Rig-owned file, fully regenerated on every
+`apply` so it never drifts from the current install. It carries one labeled,
+copy-pasteable section per host in the roster:
+
+- for a host with at least one `emitted` axis (§11.1), the section names
+  exactly what was written — the axis, the path, and the format — and, where
+  an axis needs a manual completion step (a config-path export, an `.env`
+  load line, or an equivalent one-time action), gives the literal command
+  rather than a description of one, exactly as PD8's per-host wiring blocks
+  did for MCP;
+- for a host whose every axis is `unsupported`, the section cites the vendor
+  absence instead of an empty stub.
+
+The file is generated content, not user-editable install state: it is
+Rig-owned in `.rig/`, deleted on uninstall per §7.1, and carries no claim
+label (`verified`, `advertised`) per §7.5 and AD-26 — it documents what was
+written, not a tier of confidence in it.
 
 ## 8. Default-On, User-Controlled Safety Baseline
 
@@ -1207,7 +1265,7 @@ Activation:
 Enforcement reads only a fully valid active bundle. Editing the candidate
 changes no permission until activation succeeds; the previous valid bundle
 remains active and status reports `pending_activation`. Any formatting or
-byte change requires a new approval. The committed bundle and signed public
+byte change requires a new approval. The committed bundle and public signed
 `.rig/policy/trust.json` let CI verify the same revision without a private
 key.
 
@@ -1221,7 +1279,7 @@ mandatory language: delegated edit mode, prior approvals, chat phrasing,
 tool access, urgency, or broad instructions such as "fix the policy" are
 not consent to activate a policy.
 
-### 8.4 User-presence approval and recovery
+### 8.4 User-presence approval, signer setup, and recovery
 
 Two approval methods produce the same receipt:
 
@@ -1276,10 +1334,66 @@ digest, a fresh nonce, and any native expiry. After user presence and before
 commit, activation re-reads and revalidates the candidate, acquires an
 exclusive lock, and compare-and-swaps the previous sequence/receipt.
 
-Signer recovery is a separate user-presence bootstrap. It invalidates
-pending policy edits, one-use approvals, and current evidence epochs, and
-records a recovery receipt. An agent command cannot silently reset or replace
-the trust root.
+Policy signer setup writes only public verification material into the
+repository. The ordinary signer list is `.rig/policy/allowed-signers`;
+pre-registered recovery identities live separately in
+`.rig/policy/recovery.allowed-signers`. Both files use SSHSIG allowed-signers
+format with namespace restrictions:
+
+- `rig-policy-activation` for ordinary policy activation and one-use
+  approvals;
+- `rig-policy-recovery` for recovery credentials.
+
+First signer setup establishes the ordinary policy signer through the same
+user-presence approval flow as activation. Later signer setup rotates the
+ordinary signer only after a valid ordinary activation signature or a valid
+recovery signature authorizes the new public signer set. Once an ordinary
+credential is valid, first signer setup offers to create **three** recovery
+identities. On every later signer setup while a valid credential still exists,
+Rig offers to add more. The generation flow is:
+
+1. the user chooses an output path outside the target repository, outside the
+   clone-local Rig directory, and outside any path Rig will copy into reports
+   or CI artifacts;
+2. Rig invokes the platform OpenSSH `ssh-keygen` security-key flow for a
+   `sk-*` key with user verification required where OpenSSH exposes it;
+3. the user performs the authenticator touch/PIN/biometric act for each key;
+4. Rig records only the public key, its fingerprint, the declared class, and a
+   registration receipt signed by the currently valid ordinary or recovery
+   credential.
+
+The recovery identity must be cryptographically distinct from every ordinary
+policy signer: matching public-key fingerprints are rejected. A recovery entry
+is valid only if its registration receipt is already part of the current
+`.rig/policy/trust.json` chain before the ordinary signer is reported lost or
+compromised. A fresh key generated after that point cannot be accepted as a
+recovery credential for the old trust state.
+
+Recovery verifies a versioned challenge containing repository identity, current
+trust-state digest, the lost/compromised signer fingerprint, the replacement
+ordinary signer set digest, a monotonic recovery sequence, previous recovery
+receipt digest, and a fresh nonce. Rig verifies the SSHSIG signature against the
+pre-registered recovery identity under `rig-policy-recovery`; it never invokes a
+signing binary and never stores recovery private material.
+
+After that verification, and only after the recovery receipt has been fsynced
+and atomically committed, Rig applies recovery consequences:
+
+- pending candidate policy bytes are preserved but marked stale, so they cannot
+  be activated without a fresh exact-byte approval under the new trust state;
+- clone-local one-use approvals from the prior trust epoch are deleted;
+- evidence generations for enabled controls are incremented, making prior
+  current-epoch evidence stale;
+- `policy status` discloses the recovery sequence, replacement signer
+  fingerprint, recovery credential fingerprint, and the recovery consequences.
+
+If the ordinary policy signer and every pre-registered recovery identity are
+unavailable, recovery is refused permanently for that policy trust state with
+reason `recovery_credentials_exhausted`. There is no `--force`, no reset command
+that claims continuity with the old trust state, and no fallback to an ordinary
+confirmation prompt. A user may still start an unrelated new repository trust
+state by deleting Rig's policy artifacts by hand, but Rig must report that as a
+new untrusted initialization, not recovery of the old state.
 
 ### 8.5 One-use approvals
 
@@ -1430,7 +1544,10 @@ invalidates the current generation. Re-enablement creates a new generation
 and status remains `pending`/`not_run` until fresh evidence exists. Allowed
 status states are `disabled`, `not_run`, `pending`, `coverage_gap`, `failed`,
 and `verified`. None may be relabeled as protected/scanned/passed/verified
-without current-epoch evidence.
+without current-epoch evidence. Here `verified` is a control/tool status
+meaning the leaf holds fresh current-epoch evidence; it is a distinct concept
+from the withdrawn host/axis tier vocabulary of §11.1 and never appears as a
+per-host claim in install output or run reports.
 
 ## 9. Runnable Services and Reports
 
@@ -1496,8 +1613,10 @@ Required fields:
 ```
 
 Run-report status values written to disk are `failed`, `vacuous`, and
-`coverage_gap`. Control/policy status separately records `disabled`,
-`not_run`, `pending`, and evidence-stale states required by §8.9. Routine
+`coverage_gap`. Control/policy status is a separate enum — `disabled`,
+`not_run`, `pending`, `coverage_gap`, `failed`, and `verified` — required by
+§8.9, where `verified` means the leaf holds fresh current-epoch evidence and is
+not a host/axis claim. Routine
 current-epoch pass reports are omitted. Local report names use a timestamp
 plus content hash and exclusive creation to avoid concurrent writers.
 
@@ -1527,6 +1646,7 @@ repository's secrets, and the log is the easier of the two to read. The
 | Candidate policy | Bounded exact bytes; strict duplicate/unknown-key/schema rejection; never used for enforcement until approved. |
 | Active policy | Exact snapshot digest, repository/sequence-bound verified attestation or signature, atomic receipt last; fail closed on missing/stale/replay. |
 | User-presence trust | Verified host attestation or external signer outside the repo; repo flags, TTY text, and unattended keys are insufficient. |
+| Policy signer recovery | Pre-registered `sk-*` SSHSIG recovery identity under `rig-policy-recovery`; registration must predate loss and be signed by an already-valid credential. No ordinary prompt, same-key recovery, unregistered fresh key, or reset fallback can replace the signer. Recovery side effects occur only after the receipt commits. |
 | One-use approval | Clone-local, complete action binding, exclusive atomic consumption before dispatch, no retarget/replay/share. |
 | Host action event | Axis-specific schema validation and normalization; malformed/unknown event is a gap/deny per the contract, never implicit allow. |
 | Source fragments | Catalogue allowlist only; verify source catalogue digest before use. |
@@ -1577,9 +1697,14 @@ shape of contract and are proven the same way:
 |---|---|---|
 | emitted | The axis has a complete contract (below) and its byte-landing test lands the correct bytes on a fresh target. | Yes — a missing contract or a failing byte-landing test blocks release. |
 | unsupported | The vendor exposes no surface at all for this axis. The registry cites the absence; nothing is emitted. | No. |
-| advisory | The axis has an instruction pointer only, because the vendor has no live hook and no configuration surface for it. | No. |
 
-There is no `verified` label and no `advertised` label. The distinction the
+There is no `verified` label, no `advertised` label, and no `advisory` tier on
+any host or axis: those two emissions are the whole vocabulary. An axis either
+has a complete contract and emits, or the vendor exposes no surface and it is
+`unsupported`; an instruction pointer standing in for a missing mechanism is
+not a third state. This host/axis emission vocabulary is distinct from the
+control/tool evidence status of §8.9 and §9.3, where `verified` legitimately
+means a control leaf holds fresh current-epoch evidence. The distinction the
 withdrawn tier drew — "we shipped this" versus "we have watched enforcement
 fire" — does not appear anywhere in the emitted product. The honest observation
 that Rig has not observed enforcement fire on any host lives in the
@@ -1651,7 +1776,7 @@ Rules:
 
 The current registry's aggregate citations and
 `.rig/hooks/semantic-review.hint.md` markers do **not** satisfy this
-contract. As of this v0.4 candidate, no host axis holds a complete emitted
+contract. As of this v0.5 candidate, no host axis holds a complete emitted
 bundle. Every axis moves to `emitted` as its contract is authored and its
 byte-landing test is added; the axes for which the vendor exposes no surface
 are `unsupported` from the outset.
@@ -1752,7 +1877,7 @@ The catalogue path ships when the gates pass in this order:
 
 1. `technical-spec.md` is the sole frozen Gate-2 authority and pins the
    current Gate-1 digests;
-2. traceability covers the exact Gate-1 ID set (currently 48) and every row
+2. traceability covers the exact Gate-1 ID set (currently 49) and every row
    names a testable mechanism and executable target;
 3. placeholder/contradiction checks and a fresh-context exact-digest
    semantic review pass with no unresolved item;
@@ -1760,10 +1885,13 @@ The catalogue path ships when the gates pass in this order:
    fresh-context per-leaf semantic/MECE review;
 5. every `emitted` `{host, axis}` pair in the roster and every provider has
    its complete §11 contract and a passing byte-landing test;
-6. all Gate-1-derived executable acceptance tests pass, including policy,
+6. every host in the roster has a current §7.7 `.rig/install-docs.md`
+   section — an emission summary and manual step for an `emitted` host, an
+   absence citation for a wholly `unsupported` one;
+7. all Gate-1-derived executable acceptance tests pass, including policy,
    approval, binding, history, remediation, host, and CI cases;
-7. legacy Basic and Tier 1 suites remain green;
-8. `npm test` passes on the same final source state.
+8. legacy Basic and Tier 1 suites remain green;
+9. `npm test` passes on the same final source state.
 
 The release commitment and the build commitment are the same set. A missing
 contract or a failing byte-landing test on an `emitted` axis blocks release;
@@ -1809,7 +1937,7 @@ workflow may reference `main` or `master`.
 ## 13. Acceptance Traceability
 
 The specification gate extracts the distinct acceptance IDs from Gate 1 and
-requires exact set equality with the primary rows below, currently **48
+requires exact set equality with the primary rows below, currently **49
 IDs**. Every row must name an existing design anchor and a substantive
 executable test title containing the same ID. Explicit evidence aliases are
 permitted only for Gate-1 properties that point to another case;
@@ -1829,8 +1957,8 @@ results rather than trusting an aggregate exit code.
 | Gate 1 case | Design mechanism | Primary executable evidence |
 |---|---|---|
 | AT-GATE-1 | This file is the only document with role `gate2-authority`; SOW/task/coverage files are subordinate and every copied mechanism traces to an AD/section anchor. | `advanced-spec-gate.test.js`: reject a second authority, orphan normative ruling, or invalid anchor; accept the real tree only when authority is singular. |
-| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete 48-ID traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature against `gate1.allowed-signers`, then names the principal and key fingerprint it verified against. The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Mutate one Gate-1 byte and prove the signature check fails. Arm a fixture with a signer identity and prove that a missing, malformed, and non-verifying signature each **fail** rather than warn; then remove the identity and prove the gate runs, reports Gate 1 unprotected in those words, and does not block. Re-sign an armed fixture with a key absent from `allowed-signers` and prove it fails. Substitute the whole trust root (self-consistent fixture with edited Gate-1 files, an attacker key, and a matching signature) and assert the gate passes *but* prints a fingerprint differing from the recorded one. Assert a signature made in a namespace other than `rig-gate1` is rejected by the `namespaces=` restriction. |
-| AT-GATE-3 | A fresh-context report-only review receipt binds exact Gate-1/Gate-2 digests and records one testability/conflict verdict per Gate-1 ID with `unresolved=[]`. Per AD-29 the receipt's model ID, digest, and timestamp are written by the invoking wrapper; the wrapper refuses to run under the model named in this file's authoring-context block. | Reject stale digests, missing IDs/anchors/targets, conflicts, same-context review, and a receipt whose model matches the authoring model; prove the agent cannot author its own model/digest fields. |
+| AT-GATE-2 | The spec gate is the first element of `npm test` and short-circuits the code tests with `&&`; it requires status `FROZEN`, current Gate-1 digests, complete 49-ID traceability, no unresolved mechanism markers, and a current semantic-review receipt. Its **first** check (AD-28) recomputes both Gate-1 digests and verifies the namespaced SSHSIG signature against `gate1.allowed-signers`, then names the principal and key fingerprint it verified against. The gate has no exemption, skip, or progress input. | Prove open, contradictory, incomplete, and unreviewed spec fixtures short-circuit before an executable code-test sentinel ever runs. Mutate one Gate-1 byte and prove the signature check fails. Arm a fixture with a signer identity and prove that a missing, malformed, and non-verifying signature each **fail** rather than warn; then remove the identity and prove the gate runs, reports Gate 1 unprotected in those words, and does not block. Re-sign an armed fixture with a key absent from `allowed-signers` and prove it fails. Substitute the whole trust root (self-consistent fixture with edited Gate-1 files, an attacker key, and a matching signature) and assert the gate passes *but* prints a fingerprint differing from the recorded one. Assert a signature made in a namespace other than `rig-gate1` is rejected by the `namespaces=` restriction. |
+| AT-GATE-3 | A fresh-session report-only review receipt binds exact Gate-1/Gate-2 digests and records one testability/conflict verdict per Gate-1 ID with `unresolved=[]`. Per AD-29 the wrapper writes the digest and timestamp; the reviewer supplies findings only. | Reject stale digests, missing IDs/anchors/targets, conflicts, same-session review, and receipts whose binding fields are agent-authored; prove the reviewer cannot author its own digest/timestamp fields. |
 | AT-GATE-4 | Workflow receipts record distinct implementation and review context/run IDs, not named staff; implementation diffs cannot change pinned Gate 1 or self-approve. | Accept one maintainer with distinct contexts; reject identical implementer/reviewer context and changed Gate-1 digests. |
 | AT-SHAPE-1 | All leaves/grades use the typed ownership/CAS/rollback graft path; no pack can bypass it. Every insertion into a file Rig does not exclusively own is delimited by managed-block markers, and every mutation is recorded in the §7.6 manifest at the time it is made. | Iterate 115 leaves x 3 grades against seeded user instructions/config; preserve bytes/keys and prove idempotent repeat apply. Assert every write is bracketed by markers and has a manifest record whose digest matches the file after the write; assert an unmarked or unrecorded write is impossible by driving each graft path and diffing the observed write set against the journal. |
 | AT-SHAPE-2 | Recommendation emits every leaf but resolution consumes only user-confirmed `rig.json`. | A UI-less library marks E2E not recommended, then user selection still plans/applies it. |
@@ -1845,10 +1973,10 @@ results rather than trusting an aggregate exit code.
 | AT-BASE-5 | Explicit independent control/surface leaves, group/global authoring expansion, actual unwiring/non-blocking, unrelated function continuity, and truthful status. | Disable one control, one surface, one category, then all enforcement; verify requested effects and every status label. |
 | AT-BASE-6 | Evidence keys include policy digest, control/surface, enablement generation, implementation, and inputs; disable invalidates and re-enable increments. | A pre-disable pass cannot verify the re-enabled generation until a fresh run completes. |
 | AT-BASE-7 | §8.2: no schema key can express self-activation, unknown keys are rejected at activation step 1, and the approval requirement has no policy-driven branch around it. Not held in a second file or repository. | Author policy revisions that purport to grant agent self-activation under plausible key spellings and assert each is rejected at validation and never becomes active. Assert that no activation path consults policy to decide whether approval is required, by mutating each policy field in turn and asserting the approval check still runs. Disable enforcement wholesale under `AT-BASE-5` and assert status reports unprotected rather than protected. Assert no separate invariant file or repository exists for this rule. |
-| AT-P1 | Same exhaustive typed graft evidence as AT-SHAPE-1; aliases must resolve to its real parameterized test. | `AT-P1` evidence alias to the substantive AT-SHAPE-1 test, never a tautological assertion. |
+| AT-P1 | Same exhaustive typed graft evidence as AT-SHAPE-1; aliases must resolve to its real parameterized test. | `AT-P1` runs the AT-SHAPE-1 target directly: 115 leaves x 3 grades against seeded user instructions/config, marker-bracketed writes with a manifest record whose digest matches the post-write file, and an unmarked/unrecorded write proven impossible by diffing the observed write set against the journal. No separate placeholder file backs `AT-P1`. |
 | AT-P2 | Aggregate safe-default, exact activation, disablement, cross-surface enforcement, truthful status, and re-enable behavior from AT-BASE-1..6. | One aggregate scenario invokes substantive baseline cases; no string-equality placeholder. |
 | AT-P3 | Global `owns` uniqueness, authored adjacent exclusions, frozen perf/load and secret-injection boundaries, plus semantic MECE receipt. | Exact scope-map tests and per-adjacent-pair `mece=pass` at current catalogue digest. |
-| AT-P4 | One uniform emission path per §11.1: every `{host, axis}` in the roster is emitted through the same code path, proven by axis-local byte-landing tests, with `unsupported` the only status permitted to emit nothing. This is AT-CLAIM-1's mechanism, re-anchored after the tier's removal. | `AT-P4` evidence alias to the substantive `AT-CLAIM-1` test, never a tautological assertion. |
+| AT-P4 | One uniform emission path per §11.1: every `{host, axis}` in the roster is emitted through the same code path, proven by axis-local byte-landing tests, with `unsupported` the only status permitted to emit nothing. This is AT-CLAIM-1's mechanism, re-anchored after the tier's removal. | `AT-P4` runs the AT-CLAIM-1 target directly: installs across all 19 hosts and six providers, asserts every host receives its configuration through the same code path with byte sets differing only in the contract's named vendor-specific fields, and asserts no host/axis claim string (`verified`, `advertised`, `please report`) appears anywhere. No separate placeholder file backs `AT-P4`. |
 | AT-P5 | `rig.json` owns selection; activated policy owns permissions; planning/apply bind both exact digests and defaults never override either. | Override recommendation/grade and default deny, then verify install and enforcement follow the user choices. |
 | AT-P6 | Authored-service gate plus executable-first honest disposition runner (AD-15); inventory alone cannot pass. | Iterate all 115 leaves, execute each declared evidence target or valid surfaceless predicate, and prove every convention-only fallback carries a service-specific named reason. |
 | AT-B1 | Enabled exact-copy control runs byte checker at enabled git/CI surfaces; approved disablement stops it and reports disabled. | Drift duplicate under both scopes, then disable only that control without affecting others. |
@@ -1865,8 +1993,9 @@ results rather than trusting an aggregate exit code.
 | AT-CI-2 | Absent CI creates nothing until explicit verified-provider selection and exact plan approval. | No-choice/wrong-approval cases write nothing; each verified choice creates only its minimal native pipeline. |
 | AT-CI-3 | CI runs all enabled repo controls/services, emits verdict plus counts and rule identities with no artifact upload (`AT-REPORT-1`), requests minimum permissions, uses no repo secrets, and repeats idempotently. | Parse/execute all six outputs; check effective binding manifest, permissions, no secrets, and zero second-apply diff. Assert no provider config contains an artifact-upload step for `reports/rig/` and that no job log line carries finding detail. |
 | AT-CI-4 | Unknown/malformed/collision config is byte-preserved/nonzero; every integrated or bootstrapped provider is proven by its byte-landing test on a fresh repo fixture. | Reject fabricated/stale/local-only receipts; validate captured byte-landing fixtures for every emitted provider integration. |
-| AT-CLAIM-1 | §11.1 one-uniform-path emission: every host in the 19-host roster and every provider in the six-provider roster is on the same code path, produces the same shape of contract, and is proven by a byte-landing test. `unsupported` is the only status permitted to emit nothing. No host is a second-class citizen carrying a degraded surface. | Install on all 19 hosts and all six providers; assert every host receives its configuration through the same code path, that the emitted byte set for any two hosts of the same axis type differs only in the vendor-specific fields the contract names, and that no host is skipped. Assert the emitted bytes for any axis pair on any host equal what the byte-landing test asserts. Grep the whole tree for a "verified" or "advertised" or "please report" host string in user-facing output and fail if one exists. |
+| AT-CLAIM-1 | §11.1 one-uniform-path emission: every host in the 19-host roster and every provider in the six-provider roster is on the same code path, produces the same shape of contract, and is proven by a byte-landing test. `unsupported` is the only status permitted to emit nothing. No host is a second-class citizen carrying a degraded surface. | Install on all 19 hosts and all six providers; assert every host receives its configuration through the same code path, that the emitted byte set for any two hosts of the same axis type differs only in the vendor-specific fields the contract names, and that no host is skipped. Assert the emitted bytes for any axis pair on any host equal what the byte-landing test asserts. Assert no host/axis claim string (`verified`, `advertised`, or `please report`) appears in install output, run reports, or per-host registry projections, and fail if one exists; control/policy evidence-status output is exempt because there `verified` is a fresh-evidence status, not a host claim. |
 | AT-PRESENCE-1 | §8.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
+| AT-PRESENCE-2 | §8.4/AD-30 recovery uses only pre-registered, distinct `sk-*` SSHSIG recovery identities under `rig-policy-recovery`; registration requires an already-valid credential and recovery exhaustion is terminal for the current policy trust state. Authorized recovery writes a disclosed receipt before invalidating pending candidates, burning one-use approvals, or resetting evidence generations. | First signer setup offers exactly three recovery identities and later valid signer setup offers to add more. Accept a recovery signed by a pre-registered distinct recovery key and assert the receipt, replacement signer, stale pending candidate, deleted prior one-use approvals, incremented evidence generations, and disclosed status. Reject ordinary confirmation, same-key recovery, a fresh post-loss key, a recovery key under the activation namespace, a missing registration receipt, and exhausted registered credentials with reason `recovery_credentials_exhausted`; assert none of those rejected attempts changes candidate bytes, approvals, evidence generations, or signer state. |
 | AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository. | Seed a user-global file with hand-written values, install, and assert byte-for-byte survival of every pre-existing value **and** that the install line names the out-of-repo file it wrote. A wholesale rewrite fails; an install that writes outside the repo and does not name the file fails. |
 | AT-HOME-2 | §7.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
 | AT-DIST-1 | §12.4 committed root install stub resolving `latest` to one concrete release tag before fetching, recording that tag in the install receipt; `publish.yml` deleted; `package.json` at `5.0.0`, private. | In a container with only git, curl and sh and no checkout, run the stub against an empty repo and assert a working install. **Assert the resolved reference is a release tag and never a branch**, that the receipt names the exact tag installed, and that two runs against the same tag produce byte-identical trees. Assert the stub downloads to a file and never pipes to a shell. Assert no publish workflow exists and that tagging `v5.0.0` cannot invoke npm publish. |
@@ -1898,9 +2027,8 @@ The specification gate also:
 4. compares Gate-1 IDs, trace rows, and executable test titles for exact
    coverage, reading the ID set from Gate 1 rather than from a written
    count;
-5. validates exact-digest fresh-context Gate-2 and 115-leaf catalogue review
-   receipts, including that each receipt's wrapper-written model differs
-   from this file's declared authoring model;
+5. validates exact-digest fresh-session Gate-2 and 115-leaf catalogue review
+   receipts;
 6. runs before all code correctness tests and short-circuits their
    promotion on failure.
 
@@ -1910,7 +2038,7 @@ commit" anywhere in the gate (GA-11).
 
 ## 14. Ordered Tracer-Bullet Slices
 
-All slices below are pending under Gate 1 as amended 2026-08-17 at 48
+All slices below are pending under Gate 1 as amended 2026-08-19 at 49
 cases. Existing code may be reused only after its current behavior passes
 the revised test — roughly 1,450 lines of `rig/lib` Advanced modules and 19
 test files exist from the withdrawn design and are reusable spine, not
@@ -1926,7 +2054,7 @@ during the build.
 ### Slice 1 - Specification authority and complete executable oracle
 
 Implement the §13 specification gate with the Gate-1 signature check
-first, pin the Gate-1 digests, transcribe all **48** IDs into substantive
+first, pin the Gate-1 digests, transcribe all **49** IDs into substantive
 tests, and remove or rewrite the obsolete tests that assert a
 non-disableable baseline, the withdrawn tier, or tautological aliases. Add
 `npm run test:code`; wire the gate ahead of the code tests in `npm test`.
@@ -1974,10 +2102,10 @@ node --test tests/advanced-policy.test.js tests/advanced-config.test.js
 ### Slice 4 - User-presence and one-use approval lifecycle
 
 Implement verified host-native-first/external-signature fallback, common
-receipts, bootstrap/rotation/recovery, clone/worktree-local approval
-storage, full action normalization, exclusive consumption, list/revoke,
-and native expiry handling. Repository/TTY self-authorization remains
-impossible.
+receipts, signer setup/rotation, pre-registered recovery, clone/worktree-local
+approval storage, full action normalization, exclusive consumption,
+list/revoke, and native expiry handling. Repository/TTY self-authorization
+remains impossible.
 
 Verification:
 
@@ -2050,9 +2178,11 @@ Implement §11.1 for the **whole** 19-host roster on one code path. For
 every `{host, axis}` pair, author the complete contract and a byte-landing
 test that asserts the correct bytes land at the correct path on a fresh
 target. `unsupported` axes emit nothing and cite the vendor absence; that
-is the only status permitted to emit nothing. There is no `verified` label
-and no `advertised` label in the emitted product; a grep for either in
-user-facing output is a test assertion.
+is the only status permitted to emit nothing. No host/axis claim label
+(`verified` or `advertised`) appears in install output, run reports, or
+per-host registry projections; that surface-scoped assertion is a test
+assertion. Control/policy evidence status, where `verified` means a leaf holds
+fresh current-epoch evidence, is a separate surface and is exempt.
 
 The registry header records once — in prose, in one place — that Rig has
 not observed enforcement fire on any host. That sentence appears nowhere
@@ -2062,10 +2192,15 @@ must find nothing.
 Retire unsupported `pi` MCP from legacy and catalogue paths without
 deleting user-owned files.
 
+Author §7.7's `.rig/install-docs.md` generator alongside the adapters: one
+labeled, copy-pasteable section per host, naming exactly what was emitted
+and any manual completion step verbatim, or citing the vendor absence for a
+wholly `unsupported` host.
+
 Verification:
 
 ```sh
-node --test tests/advanced-hosts.test.js tests/advanced-enforcement.test.js tests/basic-renderers.test.js
+node --test tests/advanced-hosts.test.js tests/advanced-enforcement.test.js tests/basic-renderers.test.js tests/advanced-install-docs.test.js
 ```
 
 ### Slice 10 - One-uniform-path CI adapters and bootstrap
@@ -2256,13 +2391,9 @@ npm test
   write the repository, and the fallback is a visible multi-file edit — a
   deterrent, which this document does not call protection. A signature
   stops forgery but not persuasion.
-- **The authoring model is self-declared.** D8's wrapper proves the
-  *reviewer's* model, and the D10 signature proves Gate 1 has not moved,
-  but the authoring-context block in this file's header is asserted by
-  the authoring context.
 - **Nothing checks the reviewer's competence.** Human sampling was
   declined in Gate 1 §9. A blind spot shared between authoring and
-  reviewing models passes review and reaches users.
+  reviewing contexts passes review and reaches users.
 
 None of these limits changes Gate 1. A request to remove the default-on
 posture or complete user disablement, weaken truthful/gap reporting,
@@ -2314,24 +2445,26 @@ implementation.
 
 ### 17.1 Freeze blockers — properties of this document
 
-Version 0.4 remains a candidate until all of the following hold. Every one
+Version 0.5 remains a candidate until all of the following hold. Every one
 is checkable against the specification alone:
 
-1. traceability is exact set equality against Gate 1's current 48-ID set,
+1. traceability is exact set equality against Gate 1's current 49-ID set,
    and every row names a real design anchor and a substantive executable
    target;
 2. no unresolved mechanism marker, contradiction, or placeholder remains
    in this file;
-3. a fresh-session report-only review of the final candidate digest, run
-   under a model different from the one named in the authoring-context
-   block, returns no blocker and an empty `unresolved` set;
+3. a fresh-session report-only review of the final candidate digest returns no
+   blocker and an empty `unresolved` set;
 4. the intent owner has signed the frozen Gate-1 message with a key
    meeting the `AT-GATE-2` floor — one no agent on their machine can
    operate without a live human act — has recorded that key's class beside
    the signer identity, and the signature verifies (D10, D19). This is
    provable with `ssh-keygen -Y verify` directly and does **not** wait for
    the gate script — Slice 1 automates the check, it does not create the
-   requirement.
+   requirement. The freeze commit lands `gate1.sig` and `gate1.allowed-signers`
+   and records the verified key fingerprint in its commit message, so the
+   manual verification is repository-visible from freeze onward rather than
+   only after Slice 1.
 
 When these hold, this file is marked `FROZEN` and implementation begins.
 
@@ -2346,7 +2479,7 @@ path as supported, and §12.3 owns the ordered form:
    the vendor absence and emit nothing;
 2. all 115 leaves replace TODO/generic/repeated content and pass the
    exact-digest fresh catalogue review;
-3. the §13 specification gate and complete **48-ID** executable oracle
+3. the §13 specification gate and complete **49-ID** executable oracle
    exist and are green;
 4. `npm test` passes on the final source state, with the specification
    gate ordered first.

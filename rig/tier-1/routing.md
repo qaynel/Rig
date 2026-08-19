@@ -11,6 +11,16 @@ hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`;
 source checkout, those sources live at `rig/tier-1/skills/<name>/SKILL.md` and
 `skills/rig/SKILL.md`.
 
+## Communication Policy
+
+Follow the governing instruction or skill for the work itself. The final message
+you send to the user is a separate artifact: write it in plain, semantic
+language, not as a walkthrough of documents, sections, or subsection numbers.
+State what the issue is, why it matters, and — where applicable — the options for
+resolving it. Favor clarity: the meaning should be sharp and the prose plain,
+never wooden or needlessly dense. Track the underlying references internally and
+reproduce the exact citations on request.
+
 ## Pipeline
 
 For a new feature or behavioral change, use the phases in order:

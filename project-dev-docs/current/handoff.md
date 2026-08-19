@@ -95,8 +95,8 @@ node scripts/review-receipt.js \
   --out project-dev-docs/current/reviews/gate2-v0.3-round3.review.json
 ```
 
-It takes several minutes; run it in the background. The wrapper refuses to run
-if `--model` matches the authoring model declared in the Gate 2 header.
+It takes several minutes; run it in the background. The wrapper starts a fresh
+non-interactive reviewer session and binds its receipt to the reviewed bytes.
 
 ## 5. The Gate 1 signature (intent owner only)
 
