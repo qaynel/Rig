@@ -8,6 +8,10 @@ shaped the way it is, and what is true right now.
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
 [glossary](glossary.md) if a term or ID is unfamiliar.
 
+**If you are an agent working on this project:** this wiki is your first source
+of truth. Read it before grepping the code, keep it in sync with the branch, and
+update it as part of your change — never as an afterthought.
+
 ---
 
 ## The four kinds of page

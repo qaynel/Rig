@@ -32,8 +32,15 @@ recreate the placeholder failure at greater scale. [Rejected approaches](../inde
 - Frozen service obligation: [Gate 1 AT-SHAPE-5/6](../gate1/acceptance.md#a-archetype--the-shared-service-shape-every-catalogue-service-must-pass)
 - Exact checks: [Gate 2 §5.6](../gate2/technical-spec.md#56-authored-service-gate)
 - Audit history: [advanced grilling GA-10](../sources/logs/advanced-grilling.md)
+- First-leaf behavior ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-confirmations.md)
+- Bounded first-leaf design: [lint-format vertical slice](../specs/lint-format-vertical-slice.md)
 
 ## What is still open
 
 No leaf has passed this gate because the gate itself is unimplemented and all
 115 leaves still need sequential authorship. [Status](../status.md#what-exists-in-the-code-today)
+
+The first tracer leaf reuses repository-owned formatter and linter commands,
+reports missing commands as coverage gaps, and keeps maximal-grade autofix
+explicit while checks and CI remain read-only. This is a pre-freeze experiment,
+not evidence that the whole 115-leaf gate has passed.

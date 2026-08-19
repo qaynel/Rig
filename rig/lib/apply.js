@@ -16,6 +16,7 @@ const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
 const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
+const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -189,6 +190,61 @@ function ensureLine(file, line) {
   fs.writeFileSync(file, `${body}${sep}${line}\n`);
 }
 
+function lintFormatBinding(target, grade, ci) {
+  let scripts = {};
+  let packageError = null;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'));
+    if (!pkg.scripts || typeof pkg.scripts !== 'object' || Array.isArray(pkg.scripts)) {
+      packageError = 'package.json has no scripts object';
+    } else {
+      scripts = pkg.scripts;
+    }
+  } catch (error) {
+    packageError = `package.json is missing or malformed: ${error.message}`;
+  }
+
+  const binding = {
+    disposition: 'convention',
+    grade,
+    checks: {},
+  };
+  const npmCheck = (id, script) => {
+    if (scripts[script]) {
+      binding.checks[id] = {
+        diff: ['npm', 'run', '--silent', script],
+        repo: ['npm', 'run', '--silent', script],
+      };
+    } else {
+      binding.checks[id] = {
+        coverage_gap: packageError
+          ? `${packageError}; required script "${script}" is not discoverable`
+          : `package.json script "${script}" is missing`,
+      };
+    }
+  };
+
+  npmCheck('lint-format-formatter-clean', 'format:check');
+  if (grade === 'mid' || grade === 'maximal') {
+    npmCheck('lint-format-linter-clean', 'lint');
+  }
+  if (grade === 'maximal') {
+    const fixScript = scripts.format ? 'format' : scripts['lint:fix'] ? 'lint:fix' : null;
+    binding.checks['lint-format-ci-gate-and-explicit-fix'] =
+      ci.artifact && fixScript
+        ? {
+            required_paths: [ci.artifact.relativePath],
+            fix: ['npm', 'run', '--silent', fixScript],
+          }
+        : {
+            coverage_gap: !ci.artifact
+              ? 'no supported CI adapter was emitted for maximal lint-format'
+              : 'package.json script "format" or "lint:fix" is missing',
+          };
+  }
+  return binding;
+}
+
 function applyPlan(target, manifest, review, plan, options = {}) {
   const catalog = loadCatalog();
   validateRigJson(manifest, catalog);
@@ -290,6 +346,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // Pointer graft
     ensureLineOwned('AGENTS.md', POINTER_LINE);
 
+    const ci = planCiIntegration(target);
+
     // Services
     const bindings = {};
     const installed = {};
@@ -302,10 +360,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       writeOwned(`.rig/services/${id}.md`, body);
       if (grade) {
         installed[id] = { grade, slices: entry.required_slices || [] };
-        bindings[id] = {
-          diff: [process.execPath, '-e', 'process.exit(0)'],
-          repo: [process.execPath, '-e', 'process.exit(0)'],
-        };
+        // rig: author convention adapters one leaf at a time; generalize after
+        // a second real binding proves a shared shape.
+        bindings[id] = id === LINT_FORMAT_SERVICE
+          ? lintFormatBinding(target, grade, ci)
+          : {
+              diff: [process.execPath, '-e', 'process.exit(0)'],
+              repo: [process.execPath, '-e', 'process.exit(0)'],
+            };
       }
     }
     writeOwned('.rig/service-bindings.json', `${JSON.stringify(bindings, null, 2)}\n`);
@@ -314,7 +376,6 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     materializeHostAdapters(target, validated.host || 'generic', writeOwned);
 
     // CI adapter (verified only)
-    const ci = planCiIntegration(target);
     if (ci.artifact) {
       writeOwned(ci.artifact.relativePath, ci.artifact.contents);
     }
