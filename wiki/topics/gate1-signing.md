@@ -33,7 +33,7 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 
 - Frozen integrity rules: [Gate 1](../gate1/business-spec.md)
 - Verification mechanism: [Gate 2 AD-28 and §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
-- Owner ceremony: [roadmap Step 3](../specs/roadmap.md#step-3--sign-the-requirements-with-a-key-an-agent-cant-use)
+- Owner ceremony sequencing: [status](../status.md#ordered-next-steps)
 
 ## What is still open
 

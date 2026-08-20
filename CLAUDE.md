@@ -41,8 +41,11 @@ reproduced on request.
 - `skills/rig/SKILL.md` is the unchanged Rig source component.
 - `.claude/skills/` and `.agents/skills/` are install targets for native Claude
   and Codex discovery; their payloads must stay identical.
-- `rig/bootstrap.sh` is a fixed copy list by default. Optional `--hosts` /
-  `RIG_HOSTS` delegates to `rig/lib/payload.js` and requires `node` on `PATH`.
+- `rig/bootstrap.sh` installs from `rig/manifest.json` through
+  `rig/lib/payload.js`; optional `--hosts` / `RIG_HOSTS` selects a host subset.
+- `plugin.yaml` and root `__init__.py` are the first-class Hermes plugin. The
+  Hermes tests and the `.venv`/pandas-backed benchmark import in `npm test` are
+  part of the supported surface.
 - `tests/rig-bootstrap.test.js` proves the fresh-repo multi-host install.
 - `wiki/Home.md` is the project knowledge entrypoint. File future intent-owner
   reasoning verbatim under `wiki/reasoning/`, then update its topic hubs and

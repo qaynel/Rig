@@ -51,10 +51,11 @@ Titled "Implement Advanced a-la-carte catalogue and delivery CLI". It actually
 contains the 432 placeholders and an implementation built against a design that
 was subsequently withdrawn. Do not read it as delivered work.
 
-## `scripts/uninstall.js` is not a head start
+## The legacy uninstaller was not a head start
 
-Leftover from an older, unrelated plugin. It deletes a config file and a
-status-line entry. It has nothing to do with the uninstall feature D11 describes.
+`scripts/uninstall.js` was leftover from an older, unrelated plugin and was
+deleted in the 2026-08-20 cleanup pass. If a branch resurrects it, do not reuse
+it for D11 uninstall work; the current path is `rig/lib/uninstall.js`.
 
 ## A live review receipt can look like a stale one
 

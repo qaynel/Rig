@@ -32,10 +32,10 @@ rejected. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approaches)
 
 - Frozen delivery requirement: [Gate 1](../gate1/business-spec.md)
 - Compatibility and release: [Gate 2 §12](../gate2/technical-spec.md#12-compatibility-and-rollout)
-- Operator sequence: [roadmap](../specs/roadmap.md)
+- Cleanup survey rulings: [reasoning trace](../reasoning/2026-08-20-cleanup-survey-decisions.md)
 
 ## What is still open
 
-`install.sh` does not exist, the package remains `4.8.4`, and the inherited npm
-publish workflow remains. Distribution is Slice 13 after the preceding product
+`install.sh` does not exist and the package remains `4.8.4`. The inherited npm
+publish workflow has been deleted. Distribution is Slice 13 after the preceding product
 mechanisms exist. [Status](../status.md#what-exists-in-the-code-today)

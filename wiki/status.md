@@ -117,7 +117,7 @@ Steps 1, 2, 4, 5 are agent work. **Step 3 is the intent owner's alone.**
 | `scripts/check-advanced-spec.js` — the specification gate | **Does not exist.** Slice 1 builds it. |
 | `npm run test:code` | **Does not exist.** `npm test` has no spec gate and runs code tests unconditionally. |
 | `install.sh` | **Does not exist.** No delivery path. |
-| `.github/workflows/publish.yml` | **Still present.** Must be deleted before a release can be tagged. |
+| `.github/workflows/publish.yml` | **Deleted 2026-08-20** by the cleanup pass. The package remains private, so inherited npm publishing stays rejected. |
 | `package.json` version | **`4.8.4`**, private. Gate 2 §12.4 requires `5.0.0`. |
 | `scripts/review-receipt.js` | **Exists and works.** |
 | 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, the vertical-slice probe — current state and ordered path to production tracked in [its own roadmap](specs/lint-format-roadmap.md)). 428 files still contain `TODO(Slice 10)`. |
@@ -149,16 +149,47 @@ rejected-approaches list.
 
 ## Known documentation debt
 
-- **[`specs/roadmap.md`](specs/roadmap.md) is stale.** Checked 2026-08-13. It
-  says 52 checks (now 49), describes the verified/emitted host tier that the
-  2026-08-17 amendment removed, and pins superseded digests. Its plain-language
-  stage structure is still sound; its facts are not.
-- **[`specs/sow.md`](specs/sow.md) and [`specs/tasklist.md`](specs/tasklist.md)
-  are stale.** Written for D10 and the delegated-edit ruling, not for D11–D20.
-  They describe no removal path, no install manifest, and the old delegated-edit
-  persistence. Subordinate documents, so they cannot override Gate 2 — but the
-  specification gate checks for contradictions, so they must be brought forward
-  when Gate 2 freezes, not before.
+- **`specs/roadmap.md`, `specs/sow.md`, and `specs/tasklist.md` were removed**
+  by the 2026-08-20 cleanup pass. They were subordinate pre-refactor documents
+  with stale acceptance counts, retired host-tier vocabulary, and superseded
+  delegated-edit mechanics.
+- **`benchmarks/` is future-use test support.** It is not referenced by CI,
+  README, or docs; only `tests/correctness.test.js` and `tests/behavior.test.js`
+  require its modules. The cleanup ruling kept it in place.
+- **`rig/catalog/services/**` still holds 428 `TODO(Slice 10)` placeholder
+  fragments** (of 808 files, 216 KB `catalog.json`). Expected pre-Slice-10 per
+  the "1 of 115 authored" row above; the noise is not a defect. Recorded as
+  [cleanup punch list](#cleanup-punch-list) item 8.
 - **Gate 1 and Gate 2 contain relative links to the pre-wiki layout.** Neither
   file was edited during the move, deliberately, so their digests still verify.
   See [the path map](index/path-map.md) for the translation.
+
+---
+
+## Cleanup punch list
+
+Queued 2026-08-20 from a branch-wide cleanup survey, then executed in the same
+day's cleanup pass. Full findings and the reasoning behind each ruling are in
+[`reasoning/2026-08-20-cleanup-survey-decisions.md`](reasoning/2026-08-20-cleanup-survey-decisions.md).
+
+Do not silently reopen a ruling below. If new information changes one, file a
+new reasoning trace before acting.
+
+| # | Item | Outcome |
+|---|---|---|
+| 1 | `AGENTS.md` and `GEMINI.md` are byte-identical, no drift guard. | **Keep both.** Intentional multi-host serving; not a defect. |
+| 2 | `.github/workflows/publish.yml`. | **Deleted.** Wiki already flagged; also broken (private package). |
+| 3 | ~30 exports in `rig/lib/*.js` with zero external callers. | **Deferred.** Speculative surface from the two landing commits (`3e3feeb`, `8dcaa49`), not a runtime concern. Remove opportunistically when a file is next touched, or as one mechanical sweep. Full symbol list in the reasoning trace. |
+| 4 | 6 command files copied across `.agents/workflows/`, `.opencode/command/`, `commands/*.toml`. | **Keep all three.** Intentional multi-host serving; not a defect. |
+| 5 | `__init__.py` at repo root (Hermes plugin). | **Documented as first-class** in `CLAUDE.md`'s architecture section. Do not move the file; do not drop the `.venv`/pandas step from `npm test`. See [`reasoning/2026-08-20-hermes-first-class.md`](reasoning/2026-08-20-hermes-first-class.md). |
+| 6 | `tests/basic-guard-{chain,floor,scanner}.test.js` reimplement `initRepo`/`git`. | **Moved shared shims** into `tests/helpers/basic-install.js`. |
+| 7 | `rig/bootstrap.sh` duplicates `rig/manifest.json`'s install list. | **Cleaned up.** The bootstrap now installs through `rig/lib/payload.js`, so `rig/manifest.json` is the one payload list. |
+| 8 | 428 `TODO(Slice 10)` catalogue placeholders. | **Keep as TODO.** Status now recorded above under "Known documentation debt". |
+| 9 | Two unrelated uninstallers (`scripts/uninstall.js` legacy, `rig/lib/uninstall.js` current). | **Deleted the legacy `scripts/uninstall.js`.** |
+| 10 | `benchmarks/` not referenced by CI, README, or docs. | **Kept.** Documented above under "Known documentation debt". |
+| 11 | `wiki/specs/{roadmap,sow,tasklist}.md` are pre-refactor and self-flag stale. | **Removed all three.** |
+| 12 | `docs/pr-reviews/` is empty. | **Keep for future use.** |
+
+Low-value items surfaced in the survey (long `apply.js`, growing
+`check-rule-copies.js` list, tiny `receipt.js`, unmapped hidden install-target
+roots) are handled at the discretion of whoever next touches those files.
