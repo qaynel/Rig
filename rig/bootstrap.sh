@@ -91,6 +91,7 @@ echo "Installing Rig Tier 1 into $TARGET_ROOT"
 # Tier 2 materializer only when another tier needs composition or drift checks.
 install_markdown rig/tier-1/routing.md .rig/routing.md
 install_markdown rig/tier-1/rules/rig.md .rig/rules/rig.md
+install_markdown rig/tier-1/rules/communication.md .rig/rules/communication.md
 install_markdown rig/tier-1/skills/grilling/SKILL.md .rig/skills/grilling/SKILL.md
 install_markdown rig/tier-1/skills/product-design/SKILL.md .rig/skills/product-design/SKILL.md
 install_markdown skills/rig/SKILL.md .rig/skills/implementation/SKILL.md

@@ -1,9 +1,11 @@
 # Rig Router
 
-Read this file before acting. Apply `.rig/rules/rig.md` to every coding
-task, then choose the smallest set of skills whose trigger matches the work.
-In this source checkout, use `rig/tier-1/rules/rig.md` instead.
-Read each chosen skill completely before proceeding.
+Read this file before acting. Apply `.rig/rules/rig.md` to every coding task
+and `.rig/rules/communication.md` to every message you send the user, then
+choose the smallest set of skills whose trigger matches the work. In this
+source checkout, use `rig/tier-1/rules/rig.md` and
+`rig/tier-1/rules/communication.md` instead. Read each chosen skill completely
+before proceeding.
 
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`;
@@ -13,13 +15,11 @@ source checkout, those sources live at `rig/tier-1/skills/<name>/SKILL.md` and
 
 ## Communication Policy
 
-Follow the governing instruction or skill for the work itself. The final message
-you send to the user is a separate artifact: write it in plain, semantic
-language, not as a walkthrough of documents, sections, or subsection numbers.
-State what the issue is, why it matters, and — where applicable — the options for
-resolving it. Favor clarity: the meaning should be sharp and the prose plain,
-never wooden or needlessly dense. Track the underlying references internally and
-reproduce the exact citations on request.
+Every message to the user follows `.rig/rules/communication.md`: PM framing,
+least viable information with the overall picture intact, options with real
+costs, one recommendation, one decision per question. Wiki paths, section
+numbers, and decision IDs stay out of the first-pass reply; they belong in the
+wiki and the diff, and are reproduced on request.
 
 ## Pipeline
 
