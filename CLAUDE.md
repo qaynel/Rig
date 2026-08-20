@@ -25,13 +25,13 @@ Reference it, update it, maintain it; it is part of the deliverable.
 
 ## Talking to the user
 
-The language policy governs chat, not the wiki. When you bring a decision to the
-user, give just enough real, concrete information to decide: the options and
-their consequences, in plain language, without jargon or complex delivery. The
-user should come away aware of the choices and what each one costs. Include a
-recommendation, and keep one decision per question unless the user asks for a
-broader menu. Maintaining the wiki is the agent's own record-keeping; the user's
-chat is for decisions, kept plain.
+Every message to the user follows `rig/tier-1/rules/communication.md` (installed
+as `.rig/rules/communication.md`). Treat the user as your product manager: send
+the least information needed to decide, with the overall picture intact — the
+problem, the real options with their business costs, one recommendation, one
+decision per question. Wiki paths, section numbers, and decision IDs stay out
+of the first-pass reply; they belong in the wiki and the diff, and are
+reproduced on request.
 
 ## Architecture
 

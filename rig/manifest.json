@@ -3,6 +3,7 @@
   "payload": [
     { "op": "copy", "from": "rig/tier-1/routing.md", "to": ".rig/routing.md", "host": "neutral" },
     { "op": "copy", "from": "rig/tier-1/rules/rig.md", "to": ".rig/rules/rig.md", "host": "neutral" },
+    { "op": "copy", "from": "rig/tier-1/rules/communication.md", "to": ".rig/rules/communication.md", "host": "neutral" },
     { "op": "copy", "from": "rig/tier-1/skills/grilling/SKILL.md", "to": ".rig/skills/grilling/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/tier-1/skills/product-design/SKILL.md", "to": ".rig/skills/product-design/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "skills/rig/SKILL.md", "to": ".rig/skills/implementation/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
