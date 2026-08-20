@@ -35,6 +35,10 @@ trust-boundary failures. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-a
 
 ## What is still open
 
-Gate 2 currently contradicts itself about whether an apply failure rolls back
-the whole transaction or leaves prior writes for resume. That boundary blocks
-freeze and must be settled before the apply engine is implemented. [Status](../status.md#the-blocker-round-3-failed)
+**Resolved 2026-08-20.** Gate 2 no longer has two apply-failure models: failed
+apply leaves completed writes in place, records progress in the install
+manifest, and resumes on retry. `rig/lib/apply.js` implements that
+record-before-mutate path for the writes apply performs. Remaining lifecycle
+work is the full preimage/removal side of Slice 12, not the rollback/resume
+boundary. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+[Status](../status.md#the-blocker-round-3-failed--one-finding-now-resolved-in-candidate-text)

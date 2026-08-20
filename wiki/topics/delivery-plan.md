@@ -43,8 +43,9 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 ## What is still open
 
 No implementation slice may start while Gate 2 is a failed candidate. The next
-work is to resolve its four round-3 findings, re-review the new digest, have the
-intent owner sign Gate 1, and freeze Gate 2. [Status](../status.md#ordered-next-steps)
+work is to resolve its remaining three round-3 findings, re-review the new
+digest, have the intent owner sign Gate 1, and freeze Gate 2.
+[Status](../status.md#ordered-next-steps)
 
 A prior fork remains live above this plan: whether to author the catalogue
 horizontally (freeze all specs, then have the agent burn all 115 leaves at once)

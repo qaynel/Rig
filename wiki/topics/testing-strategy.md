@@ -32,9 +32,12 @@ as pass were rejected. [Rejected approaches](../index/rejected.md)
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)
 - Traceability and slices: [Gate 2 §13–14](../gate2/technical-spec.md#13-acceptance-traceability)
 - Captured testing sources: [testing vision](../sources/reference/testing-pipeline-vision.raw.md) and [mutation taxonomy](../sources/reference/mutation-testing-taxonomy.raw.md)
+- First real interrupted-apply evidence: [AT-INSTALL-1 resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md)
 
 ## What is still open
 
-The executable specification gate is missing and current advanced tests are not
-credible release evidence. Slice 1 must make the intended failures observable
-before later slices turn them green. [Status](../status.md#what-exists-in-the-code-today)
+The executable specification gate is missing, so the current advanced suite as a
+whole is not credible release evidence. The apply and lint-format interrupted
+install probes now exercise real `AT-INSTALL-1` manifest/resume behavior, but
+Slice 1 must still make the full intended failure set observable before later
+slices turn it green. [Status](../status.md#what-exists-in-the-code-today)
