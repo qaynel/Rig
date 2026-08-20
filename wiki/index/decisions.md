@@ -5,9 +5,9 @@ Every ruling this project has made, across four ID schemes, in one place.
 | Scheme | Count | What it is | Defined in |
 |---|---|---|---|
 | `G#` | 16 | Foundational grilling — what Rig is and how it is built. | [`sources/logs/grill-decisions.md`](../sources/logs/grill-decisions.md) |
-| `GA-#` | 65 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md) |
+| `GA-#` | 66 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
 | `D#` | 20 | Gate 1 revisions — rulings that changed frozen intent. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
-| `AD-#` | 30 | Gate 2 mechanisms — frozen implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
+| `AD-#` | 31 | Gate 2 mechanisms — frozen implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
 The relationship: a `GA-` ruling is the conversation, the matching `D#` is what
 that ruling did to frozen intent, and an `AD-#` is the mechanism Gate 2 built to
@@ -86,6 +86,7 @@ Implementation constraints, not suggestions.
 | AD-28 | Verify Gate 1 by signature, first in the spec gate, spec gate first in `npm test`. No exemption input. | [the specification gate](../topics/specification-gate.md) |
 | AD-29 | Review receipts produced by a wrapper that writes the digest and timestamp itself. | [review receipts](../topics/review-receipts.md) |
 | AD-30 | Recovery only through pre-registered distinct `sk-*` identities under `rig-policy-recovery`. | [policy-signer recovery](../topics/policy-signer-recovery.md) |
+| AD-31 | Catalogue support ships vertically: lint-format first, then the remaining leaves. | [the delivery plan](../topics/delivery-plan.md) |
 
 ---
 
@@ -152,6 +153,7 @@ parent.
 | GA-12 | 2026-07-28 | The lifecycle re-grill. Nine rulings (`a`–`i`) becoming D11–D18: uninstall, usage artifacts, session-scoped delegation, no invariant tier, install resume, local-only findings, deterministic secrets, arming, migration excluded. |
 | GA-13 | 2026-08-19 | D8 review separation corrected. A different model cannot be established from a self-declared label; the requirement is a fresh session, report-only, digest-bound receipt. |
 | GA-14 | 2026-08-19 | Policy-signer recovery. Seven rulings (`a`–`g`) becoming D20: live-human-act floor, distinct failure domain, prior registration required, credentials offered at setup, exhaustion terminal, consequences follow authorisation, separate trust domain from Gate 1. |
+| GA-15 | 2026-08-20 | Close the catalogue delivery fork in favor of vertically promoting `development.code-quality.lint-format` to the first production leaf instead of waiting for horizontal all-leaf authorship. |
 
 ### Re-grill sub-rulings
 
@@ -191,6 +193,7 @@ so no decision ID is hidden inside its parent summary.
 | GA-14e | Losing the everyday signer and every registered recovery credential is terminal for that trust state. |
 | GA-14f | Pending-edit, one-use-approval, and evidence-epoch invalidation follows authorized recovery and never triggers it; every recovery gets a receipt. |
 | GA-14g | Policy recovery is a separate trust domain; the Gate 1 signer keeps no recovery path. |
+| GA-15 | Vertically deploy `development.code-quality.lint-format` first; the other 114 leaves remain commitments, but they no longer block the first leaf's production path. |
 
 ---
 
