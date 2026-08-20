@@ -33,12 +33,11 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 ## Authorities and sources
 
 - Current ordered design: [Gate 2 §14](../gate2/technical-spec.md#14-ordered-tracer-bullet-slices)
-- Plain-language roadmap: [roadmap](../specs/roadmap.md)
-- Historical task breakdown: [task list](../specs/tasklist.md)
 - Approved wiki migration design: [reasoning trace](../reasoning/2026-08-19-wiki-design.md)
 - Product-direction review: [reasoning trace](../reasoning/2026-08-19-product-direction-review.md)
 - First vertical-slice handoff (lint-format): [reasoning trace](../reasoning/2026-08-19-lint-format-vertical-slice.md)
 - First-attempt retrospective (what not to do): [reasoning trace](../reasoning/2026-08-20-first-attempt-retrospective.md)
+- Cleanup survey rulings: [reasoning trace](../reasoning/2026-08-20-cleanup-survey-decisions.md)
 
 ## What is still open
 

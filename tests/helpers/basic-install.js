@@ -9,7 +9,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 
 const root = path.join(__dirname, '..', '..');
 
@@ -67,4 +67,34 @@ function withRepo(fn) {
   }
 }
 
-module.exports = { root, materialize, uninstall, exampleServer, valueShaped, walk, withRepo };
+function git(target, args) {
+  return execFileSync('git', args, { cwd: target, stdio: 'pipe' });
+}
+
+function gitResult(target, args, env = {}) {
+  return spawnSync('git', args, {
+    cwd: target,
+    env: { ...process.env, ...env },
+    encoding: 'utf8',
+  });
+}
+
+function initRepo(target) {
+  git(target, ['init', '-q']);
+  git(target, ['config', 'user.email', 'test@example.com']);
+  git(target, ['config', 'user.name', 'Rig Test']);
+  git(target, ['config', 'commit.gpgsign', 'false']);
+}
+
+module.exports = {
+  root,
+  materialize,
+  uninstall,
+  exampleServer,
+  valueShaped,
+  walk,
+  withRepo,
+  git,
+  gitResult,
+  initRepo,
+};

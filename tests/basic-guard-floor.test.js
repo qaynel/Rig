@@ -4,21 +4,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
-const { materialize, exampleServer, withRepo } = require('./helpers/basic-install');
+const { materialize, exampleServer, withRepo, git, initRepo } = require('./helpers/basic-install');
 
 const secret = (...parts) => parts.join('');
-
-function git(target, args) {
-  return execFileSync('git', args, { cwd: target, stdio: 'pipe' });
-}
-
-function initRepo(target) {
-  git(target, ['init', '-q']);
-  git(target, ['config', 'user.email', 'test@example.com']);
-  git(target, ['config', 'user.name', 'Rig Test']);
-  git(target, ['config', 'commit.gpgsign', 'false']);
-}
 
 function installedRepo(fn) {
   withRepo((target) => {

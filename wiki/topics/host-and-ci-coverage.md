@@ -34,6 +34,7 @@ CI verification were rejected. [Rejected approaches](../index/rejected.md)
 - Frozen uniform-path intent: [Gate 1 §2](../gate1/business-spec.md)
 - Host and provider contracts: [Gate 2 §11](../gate2/technical-spec.md#11-host-and-ci-coverage-one-uniform-path)
 - Captured evidence: [host/CI reference](../sources/reference/host-ci-capability-verification.raw.md) and [config-surface reference](../sources/reference/host-config-surfaces-verification.raw.md)
+- Hermes first-class plugin ruling: [reasoning trace](../reasoning/2026-08-20-hermes-first-class.md)
 
 ## What is still open
 

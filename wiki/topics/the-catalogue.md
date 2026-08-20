@@ -34,11 +34,12 @@ they hide or override the user's actual per-service choice. [Rejected approaches
 - Catalogue decisions: [advanced grilling GA-9](../sources/logs/advanced-grilling.md)
 - Product-direction review: [reasoning trace](../reasoning/2026-08-19-product-direction-review.md)
 - First-attempt retrospective (what not to do): [reasoning trace](../reasoning/2026-08-20-first-attempt-retrospective.md)
+- Cleanup survey rulings: [reasoning trace](../reasoning/2026-08-20-cleanup-survey-decisions.md)
 
 ## What is still open
 
-All 115 leaves are release commitments, but none is yet semantically authored;
-432 placeholder files remain. This is implementation work after Gate 2 freeze,
+All 115 leaves are release commitments, but only the lint-format probe has real
+authored behavior; 428 placeholder fragments remain. This is implementation work after Gate 2 freeze,
 not a reason to narrow the catalogue. The intent owner attributes the stall to
 context rot, and how the leaves get authored — horizontal freeze-then-burn vs
 vertical slice-first — is an open delivery fork. [Product-direction review](../reasoning/2026-08-19-product-direction-review.md)

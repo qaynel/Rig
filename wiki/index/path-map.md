@@ -14,9 +14,9 @@
 | `project-dev-docs/current/spec/technical-spec.md` | [`wiki/gate2/technical-spec.md`](../gate2/technical-spec.md) |
 | `project-dev-docs/current/spec/product-spec.md` | [`wiki/specs/product-spec.md`](../specs/product-spec.md) |
 | `project-dev-docs/current/spec/host-coverage-spec.md` | [`wiki/specs/host-coverage-spec.md`](../specs/host-coverage-spec.md) |
-| `project-dev-docs/current/sow.md` | [`wiki/specs/sow.md`](../specs/sow.md) |
-| `project-dev-docs/current/tasklist.md` | [`wiki/specs/tasklist.md`](../specs/tasklist.md) |
-| `project-dev-docs/roadmap.md` | [`wiki/specs/roadmap.md`](../specs/roadmap.md) |
+| `project-dev-docs/current/sow.md` | Removed 2026-08-20 by cleanup ruling |
+| `project-dev-docs/current/tasklist.md` | Removed 2026-08-20 by cleanup ruling |
+| `project-dev-docs/roadmap.md` | Removed 2026-08-20 by cleanup ruling |
 | `project-dev-docs/current/reference/*` | [`wiki/sources/reference/`](../sources/reference/) |
 | `project-dev-docs/current/reviews/*` | [`wiki/sources/reviews/`](../sources/reviews/) |
 | `project-dev-docs/archive/grilling/*` | [`wiki/sources/logs/`](../sources/logs/) |
