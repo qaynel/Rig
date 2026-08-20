@@ -1,5 +1,6 @@
 ---
 name: rig-product-design
+status: ready
 description: Turn frozen business intent into a thorough, bounded technical design before implementation.
 ---
 

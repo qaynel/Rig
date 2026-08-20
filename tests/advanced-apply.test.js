@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Transactional apply: lock, CAS, rollback, idempotence (impl-design §5.6, Slice 6).
+// Apply: lock, CAS, manifest-and-resume, idempotence (impl-design §6.6/§7.6, Slice 6, AT-INSTALL-1).
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -98,11 +98,12 @@ test('apply refuses stale preimages (CAS)', () => {
   });
 });
 
-test('apply rolls back host adapter and git hook writes on failure', () => {
+test('apply keeps host adapter and git hook writes in place on failure and resumes (AT-INSTALL-1)', () => {
   withRepo((target) => {
     createRepoFixture('generic-git', target);
     const userHook = path.join(target, '.git', 'hooks', 'pre-commit');
-    fs.writeFileSync(userHook, '#!/bin/sh\necho user hook\n', { mode: 0o755 });
+    const originalHook = '#!/bin/sh\necho user hook\n';
+    fs.writeFileSync(userHook, originalHook, { mode: 0o755 });
 
     const { reviewPath } = allowedReview(target, { host: 'codex' });
     writeSelection(target, {});
@@ -114,17 +115,26 @@ test('apply rolls back host adapter and git hook writes on failure', () => {
     fs.mkdirSync(receipt, { recursive: true });
     const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.notEqual(result.status, 0, 'receipt path collision must fail');
-    assert.equal(
+
+    const chainedBackup = path.join(target, '.git', 'hooks', 'pre-commit.rig-chained');
+    assert.ok(
       fs.existsSync(path.join(target, '.rig', 'hooks', 'semantic-review.hint.md')),
-      false,
-      'host adapter marker must roll back',
+      'writes already applied before the failure point must stay, not roll back',
     );
-    assert.equal(fs.readFileSync(userHook, 'utf8'), '#!/bin/sh\necho user hook\n');
-    assert.equal(
-      fs.existsSync(path.join(target, '.git', 'hooks', 'pre-commit.rig-chained')),
-      false,
-      'chained backup must roll back',
+    assert.match(
+      fs.readFileSync(userHook, 'utf8'),
+      /Rig secret guard shim/,
+      'the git hook write already applied before the failure point must stay, not roll back',
     );
+    assert.equal(fs.readFileSync(chainedBackup, 'utf8'), originalHook, 'the original hook must be preserved as a chained backup');
+    assert.equal(fs.existsSync(receipt), true, 'the directory collision itself is untouched by apply');
+
+    // Clear the obstruction and resume: already-applied writes must not be
+    // redone or re-chained a second time.
+    fs.rmSync(receipt, { recursive: true, force: true });
+    const resumed = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
+    assert.equal(resumed.status, 0, resumed.stderr);
+    assert.equal(fs.readFileSync(chainedBackup, 'utf8'), originalHook, 'resume must not re-chain the already-chained backup');
   });
 });
 

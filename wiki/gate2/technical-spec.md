@@ -219,7 +219,7 @@ These are implementation constraints, not suggestions:
 | AD-7 | Treat target harness files as hostile bytes: bounded reads, no execution, redacted evidence, fail-closed uncertainty. |
 | AD-8 | Keep remediation separate and read-only until approval. Exact proposal approval, unchanged preimages, transactional writes, observed-diff equality, no-op rejection, rollback, and a fresh sanitation run are required before success. |
 | AD-9 | Graft through typed create/replace-owned/ensure-line/structured-merge/hook operations; never arbitrary shell plans. |
-| AD-10 | Apply under an exclusive target lock with compare-and-swap preimages, rollback, baseline-first phases, and activation receipt last. |
+| AD-10 | Apply under an exclusive target lock with compare-and-swap preimages, baseline-first phases, the §7.6 append-only install manifest recording every write before it happens, and activation receipt last. A failed apply never rolls back: writes already recorded `applied` stay in place, the receipt (the final write) is absent, and re-running resumes from the manifest per `AT-INSTALL-1`. |
 | AD-11 | Materialize service prose once under `.rig/services/`; host surfaces get thin pointers only. |
 | AD-12 | Ship every default control's dormant implementation, but wire and execute only the independent controls and enforcement surfaces enabled by the active policy. Installed code is not evidence that a control ran. |
 | AD-13 | **One uniform emission path for every `{host, axis}` in the roster.** No verified/unverified tier exists in Rig's output or data. Every emitted axis carries the same shape of contract and is proven by an automated byte-landing test that asserts the correct bytes land in the correct paths on a fresh target. `unsupported` axes emit nothing and cite the vendor absence. The honest observation that enforcement has not been seen firing on any host lives in the host registry header, and appears nowhere in per-run user-facing output. |
@@ -317,6 +317,12 @@ These are implementation constraints, not suggestions:
 - Parallel or template-driven catalogue authoring: the failure this project is
   recovering from was 432 placeholder files produced at volume. Leaves are
   authored one at a time.
+- Transactional rollback on a failed apply, as a second teardown path
+  alongside §7.6 removal. This was already rejected once at the business-spec
+  level (GA-12) and briefly reappeared in this file's own §6.6/§10 as an
+  unreconciled leftover; the round-3 review (`AT-INSTALL-1`) caught the
+  contradiction. The manifest-and-resume model in §7.6 is the only failure
+  behavior an apply has.
 
 ## 3. Current-State Trace
 
@@ -876,12 +882,17 @@ enabled control/surface wiring, services, pointers/adapters, CI, final
 receipts. Service runners require the complete final receipt, so no selected
 service can operate against partial policy or binding state.
 
-If any operation fails:
-
-- new files from this transaction are removed;
-- appended/merged files are restored from preimages;
-- the prior hook is restored;
-- no new receipt is written.
+Every one of those writes goes through the §7.6 install manifest: a `pending`
+record lands before the write, an `applied` record carrying the post-write
+digest supersedes it after. If any operation fails, apply does **not** roll
+back — that would be a second teardown path alongside §7.6 removal, already
+rejected once (GA-12) and again by the round-3 review (`AT-INSTALL-1`). Writes
+already recorded `applied` stay exactly where they landed. Because
+`.rig/catalog-receipt.json` is the last write in the sequence, no receipt
+exists and nothing downstream reports the install as active, enabled, or
+protecting anything. Re-running apply resumes from the manifest per §7.6: each
+`applied` path is skipped once its on-disk digest matches, each not-yet-landed
+write proceeds, and nothing is duplicated or restarted.
 
 The lock records PID and start time for diagnostics but is never
 auto-broken. The user removes a stale lock explicitly after verifying no
@@ -1660,7 +1671,7 @@ repository's secrets, and the log is the easier of the two to read. The
 | CI config | Provider-native adapter, namespaced additive ownership, exact plan approval, collision refusal, least privilege, real first wire. |
 | Reports | Repo-local, schema-validated, redacted, no telemetry. |
 | Concurrent apply | Exclusive lock plus before-hash compare-and-swap. |
-| Partial failure | Roll back current transaction; keep prior receipt/install intact. |
+| Partial failure | No rollback (§6.6/§7.6, `AT-INSTALL-1`): applied writes stay, the manifest records exactly how far apply got, the absent final receipt marks the install incomplete, and re-running resumes rather than restarting or duplicating. |
 | User-global file | Append or namespaced additive merge only; every pre-existing value survives byte-for-byte; entries attributed to the writing repository from the first install; removal touches only this repository's entries. |
 | Install identity | Generated, clone-local, never committed; a linked worktree is a distinct installation. |
 | Gate 1 integrity | Recomputed digests plus a namespaced SSHSIG signature verified against the listed signer identity; fail closed on a missing, malformed, or non-verifying signature when armed. The key's class is attested by the intent owner and is not checkable from the artifact (D19). No git dependency. |

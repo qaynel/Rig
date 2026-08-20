@@ -21,6 +21,48 @@ function loadBindings(target) {
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
 }
 
+function runBinding(serviceId, binding, scope, target) {
+  const checks = binding.checks && Object.entries(binding.checks);
+  if (!checks) {
+    const argv = binding[scope] || binding.repo;
+    if (!argv || !Array.isArray(argv) || !argv.length) {
+      return { status: 1, kind: 'coverage_gap', reason: `No argv binding for scope ${scope}` };
+    }
+    const [command, ...rest] = argv;
+    return runArgv(command, rest, target);
+  }
+
+  for (const [checkId, check] of checks) {
+    if (!check || typeof check !== 'object') {
+      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` };
+    }
+    if (check.coverage_gap) {
+      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${check.coverage_gap}` };
+    }
+    for (const rel of check.required_paths || []) {
+      const abs = typeof rel === 'string' ? path.resolve(target, rel) : '';
+      if (!abs || (!abs.startsWith(path.resolve(target) + path.sep) && abs !== path.resolve(target))) {
+        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required path` };
+      }
+      if (!fs.existsSync(abs)) {
+        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing ${rel}` };
+      }
+    }
+    if (check.fix && (!Array.isArray(check.fix) || !check.fix.length)) {
+      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` };
+    }
+    const argv = check[scope] || check.repo;
+    if (!argv) continue;
+    if (!Array.isArray(argv) || !argv.length) {
+      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` };
+    }
+    const [command, ...rest] = argv;
+    const result = runArgv(command, rest, target);
+    if (result.error || result.status !== 0) return { ...result, checkId };
+  }
+  return { status: 0, stdout: '', stderr: '' };
+}
+
 function checkCopies(target) {
   const script = path.join(target, '.rig', 'bin', 'check-copies.js');
   if (!fs.existsSync(script)) return { status: 0 };
@@ -78,6 +120,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
   const catalog = loadCatalog();
   const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
   let failedEarlier = null;
+  let failure = null;
 
   for (const serviceId of selected) {
     if (failedEarlier) {
@@ -121,36 +164,40 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
       continue;
     }
 
-    if (!binding) continue;
-    const argv = binding[scope] || binding.repo;
-    if (!argv || !Array.isArray(argv) || !argv.length) {
+    if (!binding) {
+      // rig: dependency-only slices predate runnable slice bindings; keep their
+      // legacy skip until the first authored dependency adapter defines one.
+      if (!service && !receipt.services?.[serviceId] && !receipt.installed?.[serviceId]) continue;
       writeReport(target, {
         service_id: serviceId,
         scope,
         status: 'coverage_gap',
         summary: 'Missing binding',
-        reason: `No argv binding for scope ${scope}`,
+        reason: 'No service binding is installed',
         fix_context: ['coverage_gap'],
       });
-      continue;
+      return { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
     }
-    const [command, ...rest] = argv;
-    const result = runArgv(command, rest, target);
+    const result = runBinding(serviceId, binding, scope, target);
     if (result.error || result.status !== 0) {
       failedEarlier = serviceId;
+      const reason = result.reason || result.stderr || result.stdout || String(result.error || 'non-zero exit');
       writeReport(target, {
         service_id: serviceId,
         scope,
-        status: result.error && /ENOENT/.test(String(result.error)) ? 'coverage_gap' : 'failed',
+        status:
+          result.kind === 'coverage_gap' || (result.error && /ENOENT/.test(String(result.error)))
+            ? 'coverage_gap'
+            : 'failed',
         summary: `${serviceId} failed`,
-        reason: result.stderr || result.stdout || String(result.error || 'non-zero exit'),
-        fix_context: [`rerun ${JSON.stringify(argv)}`],
+        reason,
+        fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
       });
-      return { status: 1, stdout: result.stdout, stderr: result.stderr };
+      failure = { status: 1, stdout: result.stdout || '', stderr: result.stderr || `${reason}\n` };
     }
   }
 
-  return { status: 0, stdout: '', stderr: '' };
+  return failure || { status: 0, stdout: '', stderr: '' };
 }
 
-module.exports = { runArgv, runChecks, checkCopies };
+module.exports = { runArgv, runBinding, runChecks, checkCopies };

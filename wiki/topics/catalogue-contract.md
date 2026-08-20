@@ -32,9 +32,16 @@ either user-choice violations or unnecessary machinery. [Gate 2 §2.1](../gate2/
 - Business rules: [Gate 1 §2 and §5](../gate1/business-spec.md)
 - Exact schema and algorithms: [Gate 2 §5](../gate2/technical-spec.md#5-catalogue-contract)
 - Original rulings: [advanced grilling](../sources/logs/advanced-grilling.md)
+- First convention-leaf ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-confirmations.md)
+- Bounded first-leaf design: [lint-format vertical slice](../specs/lint-format-vertical-slice.md)
 
 ## What is still open
 
 The contract is designed but not frozen or implemented. The authored-service
 gate must later prove that mechanically valid leaves also carry real,
 service-specific meaning. [Authored-service gate](authored-service-gate.md)
+
+For the lint-format tracer, convention means adapting to repository-owned
+commands rather than installing a toolchain. Missing commands are a coverage
+gap, and the maximal-grade fix command is recorded for explicit use but never
+run by a check or CI.

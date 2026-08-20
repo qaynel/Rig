@@ -242,8 +242,37 @@
       "owns": [
         "code-quality.lint-format"
       ],
-      "excludes": [],
-      "delivery": "convention",
+      "excludes": [
+        "code-quality.typecheck",
+        "correctness-static-analysis",
+        "complexity-static",
+        "code-quality.code-review"
+      ],
+      "disposition": {
+        "kind": "convention",
+        "reason": "Formatter and linter choice belongs to the repository; Rig verifies its existing package scripts instead of installing or fabricating a toolchain.",
+        "binding": {
+          "discovery": [
+            "package-json-script:format:check",
+            "package-json-script:lint",
+            "package-json-script:format|lint:fix"
+          ],
+          "diff": [
+            "npm",
+            "run",
+            "--silent",
+            "format:check"
+          ],
+          "repo": [
+            "npm",
+            "run",
+            "--silent",
+            "format:check"
+          ],
+          "timeout_ms": 600000,
+          "expected_observable_result": "Every included repository-owned formatter and linter exits zero without changing source files."
+        }
+      },
       "fragments": {
         "identity": "catalog/services/development/code-quality/lint-format/identity.md",
         "minimal": "catalog/services/development/code-quality/lint-format/minimal.md",
@@ -252,13 +281,13 @@
       },
       "checks": {
         "minimal": [
-          "lint-format-core"
+          "lint-format-formatter-clean"
         ],
         "mid": [
-          "lint-format-extended"
+          "lint-format-linter-clean"
         ],
         "maximal": [
-          "lint-format-thorough"
+          "lint-format-ci-gate-and-explicit-fix"
         ]
       },
       "slices": {
@@ -288,9 +317,25 @@
         "any": [
           "source-code"
         ],
-        "not_recommended_without": []
+        "not_recommended_without": [
+          "package-json"
+        ]
       },
-      "surfaceless_reason": "No applicable surface was detected."
+      "surfaceless_reason": null,
+      "acceptance_evidence": [
+        {
+          "check_id": "lint-format-formatter-clean",
+          "target": "tests/advanced-lint-format.test.js"
+        },
+        {
+          "check_id": "lint-format-linter-clean",
+          "target": "tests/advanced-lint-format.test.js"
+        },
+        {
+          "check_id": "lint-format-ci-gate-and-explicit-fix",
+          "target": "tests/advanced-lint-format.test.js"
+        }
+      ]
     },
     {
       "id": "development.code-quality.typecheck",

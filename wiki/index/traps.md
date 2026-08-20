@@ -7,13 +7,20 @@ hard way. Read this before believing anything looks fine.
 
 ## The suite is green and means nothing
 
-238 tests pass. `advanced-catalogue` and `advanced-services` pass 6/6. And **432
-files still contain `TODO(Slice 10)`**.
+This was true of all 19 `tests/advanced-*.test.js` files as of 2026-08-19: 238
+tests passed, `advanced-catalogue` and `advanced-services` passed 6/6, and 432
+files still contained `TODO(Slice 10)`. Most of those files assert inventory
+and non-emptiness, and a file containing the literal text `TODO` is
+non-empty — calibrated to pass against placeholder content, not a foundation
+to extend.
 
-The 19 `tests/advanced-*.test.js` files assert inventory and non-emptiness, and a
-file containing the literal text `TODO` is non-empty. They are calibrated to pass
-against placeholder content. They are not a foundation to extend — a meaningful
-rewrite has to make most of them fail first.
+One leaf has since broken this pattern on purpose:
+`advanced-lint-format.test.js` was rewritten to reject `TODO`/placeholder
+content and exercise the real formatter/linter/CI-fix commands, and
+`advanced-apply.test.js` exercises apply's real manifest/resume mechanics
+(see [status](../status.md)). The other 18 files and 428 remaining
+`TODO(Slice 10)` fragments are still exactly this trap. A green suite still
+tells you nothing until a given file is checked against this list.
 
 ## `node --test <missing-file>` exits 0
 
@@ -51,13 +58,16 @@ status-line entry. It has nothing to do with the uninstall feature D11 describes
 
 ## A live review receipt can look like a stale one
 
-Three receipts sit in [`sources/reviews/`](../sources/reviews/). Two are void —
-bound to superseded bytes. The third, `gate2-v0.5-round3`, is bound to the
-**current** technical-spec digest, and its verdict is fail.
-
-The habit of treating receipts as historical is correct for the first two and
-wrong for the third. Always compare `target_digest` against the live file before
-concluding anything.
+Through 2026-08-20, `gate2-v0.5-round3` in [`sources/reviews/`](../sources/reviews/)
+was bound to the **current** technical-spec digest with verdict fail, while the
+other two receipts there were void — bound to superseded bytes. It is easy to
+skim the void/live split by which receipt is oldest and get it backwards; the
+habit of treating receipts as historical was correct for the first two and
+wrong for the third. (Editing Gate 2 to resolve round-3's blocker finding has
+since voided round-3 too — see [status](../status.md) — so as of this writing
+all three are void. The lesson still applies to whatever the next live receipt
+is.) Always compare `target_digest` against the live file before concluding
+anything.
 
 ## A matching digest over stale content is worse than a stale one
 

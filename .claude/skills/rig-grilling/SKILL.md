@@ -1,5 +1,6 @@
 ---
 name: rig-grilling
+status: ready
 description: Establish business intent and independently authored acceptance tests before technical scoping or implementation.
 ---
 

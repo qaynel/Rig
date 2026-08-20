@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 # Host & CI Coverage — Subordinate Evidence and Work Plan
 
 > **SUBORDINATE DRAFT — Gate 2 reopened 2026-07-25; status audited

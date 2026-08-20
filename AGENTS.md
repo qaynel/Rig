@@ -36,11 +36,18 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Preserve Gate 1 acceptance artifacts unless the task is explicitly routed back
   to grilling.
 - For design work, update the relevant decision log and companion spec together.
+- Treat `wiki/Home.md` as the first source of truth. Read the wiki — status,
+  topic hubs, indexes — before grepping the code, and keep it in sync with the
+  branch: any change that moves what is true updates the wiki in the same
+  change. A wiki that has drifted from the branch is a defect. Reference it,
+  maintain it, update it.
 - File every reasoning trace supplied by the intent owner under
   `wiki/reasoning/` verbatim, then update its topic hubs and decision index in
   the same change; follow `wiki/reasoning/README.md`.
-- When asking the user to choose, give concrete options plus a recommendation.
-  Keep one decision per question unless the user asks for a broader menu.
+- When you bring a decision to the user, give just enough real, concrete
+  information to decide — the options and their consequences — in plain
+  language, without jargon or complex delivery. Include a recommendation, and
+  keep one decision per question unless the user asks for a broader menu.
 
 ## Rig Implementation Rule
 

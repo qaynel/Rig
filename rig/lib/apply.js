@@ -1,4 +1,5 @@
-// Transactional apply with lock, CAS, rollback (impl-design §5.6, AD-10).
+// Apply with lock, CAS, and an append-only install manifest for resume
+// (impl-design §6.6/§7.6, AD-10, AT-INSTALL-1).
 'use strict';
 
 const fs = require('node:fs');
@@ -16,9 +17,59 @@ const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
 const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
+const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+const MANIFEST_REL = '.rig/install-manifest.jsonl';
+
+// Clone-local, never committed (§4.2): a linked worktree must not share
+// identity, and a shared committed ID would let one clone's uninstall strip
+// entries from another clone's global config.
+function gitPath(target, rel) {
+  const result = spawnSync('git', ['rev-parse', '--git-path', rel], {
+    cwd: target,
+    encoding: 'utf8',
+    shell: false,
+  });
+  const out = (result.stdout || '').trim();
+  return path.isAbsolute(out) ? out : path.join(target, out);
+}
+
+function getInstallId(target) {
+  const idPath = gitPath(target, path.join('rig', 'install-id'));
+  fs.mkdirSync(path.dirname(idPath), { recursive: true });
+  if (fs.existsSync(idPath)) return fs.readFileSync(idPath, 'utf8').trim();
+  const id = crypto.randomUUID();
+  fs.writeFileSync(idPath, `${id}\n`);
+  return id;
+}
+
+// Append-only journal, one record per line (§7.6). A crash mid-write
+// truncates only the final line, which fails to parse and is discarded.
+function readManifest(target) {
+  const file = path.join(target, MANIFEST_REL);
+  if (!fs.existsSync(file)) return [];
+  const records = [];
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      records.push(JSON.parse(line));
+    } catch {
+      /* damaged final line; discard */
+    }
+  }
+  const bySeq = new Map();
+  for (const record of records) bySeq.set(record.seq, record); // last write per seq wins
+  return [...bySeq.values()];
+}
+
+function appendManifestRecord(target, record) {
+  const file = path.join(target, MANIFEST_REL);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
 }
 
 function readSource(rel) {
@@ -189,6 +240,61 @@ function ensureLine(file, line) {
   fs.writeFileSync(file, `${body}${sep}${line}\n`);
 }
 
+function lintFormatBinding(target, grade, ci) {
+  let scripts = {};
+  let packageError = null;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'));
+    if (!pkg.scripts || typeof pkg.scripts !== 'object' || Array.isArray(pkg.scripts)) {
+      packageError = 'package.json has no scripts object';
+    } else {
+      scripts = pkg.scripts;
+    }
+  } catch (error) {
+    packageError = `package.json is missing or malformed: ${error.message}`;
+  }
+
+  const binding = {
+    disposition: 'convention',
+    grade,
+    checks: {},
+  };
+  const npmCheck = (id, script) => {
+    if (scripts[script]) {
+      binding.checks[id] = {
+        diff: ['npm', 'run', '--silent', script],
+        repo: ['npm', 'run', '--silent', script],
+      };
+    } else {
+      binding.checks[id] = {
+        coverage_gap: packageError
+          ? `${packageError}; required script "${script}" is not discoverable`
+          : `package.json script "${script}" is missing`,
+      };
+    }
+  };
+
+  npmCheck('lint-format-formatter-clean', 'format:check');
+  if (grade === 'mid' || grade === 'maximal') {
+    npmCheck('lint-format-linter-clean', 'lint');
+  }
+  if (grade === 'maximal') {
+    const fixScript = scripts.format ? 'format' : scripts['lint:fix'] ? 'lint:fix' : null;
+    binding.checks['lint-format-ci-gate-and-explicit-fix'] =
+      ci.artifact && fixScript
+        ? {
+            required_paths: [ci.artifact.relativePath],
+            fix: ['npm', 'run', '--silent', fixScript],
+          }
+        : {
+            coverage_gap: !ci.artifact
+              ? 'no supported CI adapter was emitted for maximal lint-format'
+              : 'package.json script "format" or "lint:fix" is missing',
+          };
+  }
+  return binding;
+}
+
 function applyPlan(target, manifest, review, plan, options = {}) {
   const catalog = loadCatalog();
   validateRigJson(manifest, catalog);
@@ -244,22 +350,52 @@ function applyPlan(target, manifest, review, plan, options = {}) {
   }
 
   const lockPath = acquireLock(target);
-  const backups = new Map();
-  const created = [];
+  const installId = getInstallId(target);
+  const existingRecords = readManifest(target);
+  const appliedByPath = new Map();
+  let seq = 0;
+  for (const record of existingRecords) {
+    seq = Math.max(seq, record.seq);
+    if (record.state === 'applied') appliedByPath.set(record.path, record);
+  }
   let historyScanNote = '';
 
   try {
     const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
 
-    const writeOwned = (rel, contents, mode) => {
+    // Record-before-mutate (§7.6): a `pending` record lands, then the write,
+    // then an `applied` record carrying the post-write digest supersedes it.
+    // A failure between the two leaves a truthful `pending` entry, never an
+    // unrecorded write. Resuming skips any path whose applied digest already
+    // matches what's on disk, so applied work is never redone or duplicated.
+    const writeOwned = (rel, contents, mode, ownershipOverride) => {
       const abs = path.join(target, rel);
-      fs.mkdirSync(path.dirname(abs), { recursive: true });
-      if (fs.existsSync(abs)) {
-        if (!backups.has(rel)) backups.set(rel, fs.readFileSync(abs));
-      } else {
-        created.push(rel);
+      const already = appliedByPath.get(rel);
+      if (already) {
+        const current = fs.existsSync(abs) ? sha256File(abs) : null;
+        if (current === already.digest) return;
       }
+      const ownership = ownershipOverride || (fs.existsSync(abs) ? 'replace_owned' : 'create_owned');
+      seq += 1;
+      appendManifestRecord(target, {
+        seq,
+        path: rel,
+        ownership,
+        operation: ownership,
+        install_id: installId,
+        state: 'pending',
+      });
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, contents, mode ? { mode } : undefined);
+      appendManifestRecord(target, {
+        seq,
+        path: rel,
+        ownership,
+        operation: ownership,
+        install_id: installId,
+        state: 'applied',
+        digest: sha256File(abs),
+      });
     };
 
     const ensureLineOwned = (rel, line) => {
@@ -267,7 +403,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
       if (body.split('\n').includes(line)) return;
       const sep = body && !body.endsWith('\n') ? '\n' : '';
-      writeOwned(rel, `${body}${sep}${line}\n`);
+      writeOwned(rel, `${body}${sep}${line}\n`, undefined, 'append_managed');
     };
 
     // Baseline phase
@@ -290,6 +426,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // Pointer graft
     ensureLineOwned('AGENTS.md', POINTER_LINE);
 
+    const ci = planCiIntegration(target);
+
     // Services
     const bindings = {};
     const installed = {};
@@ -302,10 +440,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       writeOwned(`.rig/services/${id}.md`, body);
       if (grade) {
         installed[id] = { grade, slices: entry.required_slices || [] };
-        bindings[id] = {
-          diff: [process.execPath, '-e', 'process.exit(0)'],
-          repo: [process.execPath, '-e', 'process.exit(0)'],
-        };
+        // rig: author convention adapters one leaf at a time; generalize after
+        // a second real binding proves a shared shape.
+        bindings[id] = id === LINT_FORMAT_SERVICE
+          ? lintFormatBinding(target, grade, ci)
+          : {
+              diff: [process.execPath, '-e', 'process.exit(0)'],
+              repo: [process.execPath, '-e', 'process.exit(0)'],
+            };
       }
     }
     writeOwned('.rig/service-bindings.json', `${JSON.stringify(bindings, null, 2)}\n`);
@@ -314,7 +456,6 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     materializeHostAdapters(target, validated.host || 'generic', writeOwned);
 
     // CI adapter (verified only)
-    const ci = planCiIntegration(target);
     if (ci.artifact) {
       writeOwned(ci.artifact.relativePath, ci.artifact.contents);
     }
@@ -365,13 +506,12 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     fs.rmSync(lockPath, { force: true });
     return { ok: true, receipt, historyScanNote };
   } catch (error) {
-    // Rollback
-    for (const rel of created) {
-      fs.rmSync(path.join(target, rel), { force: true });
-    }
-    for (const [rel, bytes] of backups.entries()) {
-      fs.writeFileSync(path.join(target, rel), bytes);
-    }
+    // No rollback (§6.6/§7.6, AT-INSTALL-1): writes already recorded
+    // `applied` in the manifest stay in place. `.rig/catalog-receipt.json`
+    // is the last write in the sequence, so its absence is itself the
+    // "incomplete" signal — nothing else claims to be installed until it
+    // exists. Re-running apply resumes from the manifest instead of
+    // restarting or duplicating what already landed.
     fs.rmSync(lockPath, { force: true });
     throw error;
   }

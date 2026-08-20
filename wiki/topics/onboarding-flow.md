@@ -35,6 +35,9 @@ distinct consent and trust boundaries. [Rejected approaches](../index/rejected.m
 
 ## What is still open
 
-The round-3 review found contradictory partial-apply behavior between §6.6 and
-§7.6. Gate 2 must decide the rollback/resume boundary before this flow can
-freeze. [Current blocker](../status.md#the-blocker-round-3-failed)
+The round-3 rollback/resume contradiction between §6.6 and §7.6 is resolved:
+apply now has one partial-failure behavior, preserving completed writes for
+manifest-backed resume instead of rolling them back. Gate 2 still cannot freeze
+until the remaining three round-3 findings are resolved and a fresh review
+passes. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+[Status](../status.md#ordered-next-steps)

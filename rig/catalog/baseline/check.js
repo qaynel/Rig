@@ -37,6 +37,45 @@ function runArgv(command, argv, cwd) {
   });
 }
 
+function runBinding(serviceId, binding, scope, repoRoot) {
+  const checks = binding.checks && Object.entries(binding.checks);
+  if (!checks) {
+    const argv = binding[scope] || binding.repo;
+    if (!argv || !Array.isArray(argv) || argv.length === 0) {
+      return { status: 1, message: `${serviceId}: missing ${scope} binding\n` };
+    }
+    const [command, ...rest] = argv;
+    return runArgv(command, rest, repoRoot);
+  }
+
+  for (const [checkId, check] of checks) {
+    if (check.coverage_gap) {
+      return { status: 1, message: `${checkId}: coverage gap: ${check.coverage_gap}\n` };
+    }
+    for (const rel of check.required_paths || []) {
+      const abs = typeof rel === 'string' ? path.resolve(repoRoot, rel) : '';
+      if (!abs || (!abs.startsWith(repoRoot + path.sep) && abs !== repoRoot)) {
+        return { status: 1, message: `${checkId}: required installed path is invalid\n` };
+      }
+      if (!fs.existsSync(abs)) {
+        return { status: 1, message: `${checkId}: required installed path is missing: ${rel}\n` };
+      }
+    }
+    if (check.fix && (!Array.isArray(check.fix) || check.fix.length === 0)) {
+      return { status: 1, message: `${checkId}: explicit fix binding is malformed\n` };
+    }
+    const argv = check[scope] || check.repo;
+    if (!argv) continue;
+    if (!Array.isArray(argv) || argv.length === 0) {
+      return { status: 1, message: `${checkId}: ${scope} binding is malformed\n` };
+    }
+    const [command, ...rest] = argv;
+    const result = runArgv(command, rest, repoRoot);
+    if (result.error || result.status !== 0) return result;
+  }
+  return { status: 0, stdout: '', stderr: '' };
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, '..', '..');
@@ -58,13 +97,13 @@ function main() {
 
   for (const serviceId of selected) {
     const binding = bindings[serviceId];
-    if (!binding) continue;
-    const argv = binding[args.scope] || binding.repo;
-    if (!argv || !Array.isArray(argv) || argv.length === 0) continue;
-    const [command, ...rest] = argv;
-    const result = runArgv(command, rest, repoRoot);
-    if (result.status !== 0) {
-      process.stderr.write(result.stderr || result.stdout || `${serviceId} failed\n`);
+    if (!binding) {
+      process.stderr.write(`${serviceId}: coverage gap: binding is missing\n`);
+      process.exit(1);
+    }
+    const result = runBinding(serviceId, binding, args.scope, repoRoot);
+    if (result.error || result.status !== 0) {
+      process.stderr.write(result.message || result.stderr || result.stdout || `${serviceId} failed\n`);
       process.exit(result.status || 1);
     }
   }
@@ -79,4 +118,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseArgs, runArgv };
+module.exports = { parseArgs, runArgv, runBinding };

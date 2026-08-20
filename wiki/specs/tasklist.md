@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 # Tier 2 Advanced — Build Task List (agent-followable)
 
 > **PAUSED — Gate 2 reopened 2026-07-25; status audited 2026-07-26.**

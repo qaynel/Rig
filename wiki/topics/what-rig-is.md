@@ -36,9 +36,14 @@ taxonomy remains only as historical evidence and compatibility context.
 - Technical shape: [Gate 2 §3–4](../gate2/technical-spec.md#3-current-state-trace)
 - Origin: [foundational log](../sources/logs/grill-decisions.md) and [advanced log](../sources/logs/advanced-grilling.md)
 - Historical taxonomy: [superseded tier docs](../sources/superseded/deprecated-tier-taxonomy/README.md)
+- Product-direction review: [reasoning trace](../reasoning/2026-08-19-product-direction-review.md)
+- First-attempt retrospective (what not to do): [reasoning trace](../reasoning/2026-08-20-first-attempt-retrospective.md)
 
 ## What is still open
 
 The product identity is settled; delivery is not. Gate 2 is still a failed
 candidate and the catalogue implementation must not start until it freezes.
+The intent owner frames Tier 2 not as a competitor to Tier 1 but as its
+repo-targeted refinement: the same workflow, onboarding only the context and
+skills relevant to the specific project. [Product-direction review](../reasoning/2026-08-19-product-direction-review.md)
 [Current status](../status.md)
