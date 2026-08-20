@@ -1,6 +1,13 @@
+---
+status: draft
+---
+
 # Lint-format vertical slice
 
-Status: bounded pre-freeze tracer design, 2026-08-20.
+Status: bounded pre-freeze tracer design, 2026-08-20. For this leaf's current
+state and the ordered path from here to production, see
+[the lint-format roadmap](lint-format-roadmap.md) — that file is kept current;
+this one is the fixed design record.
 
 ## Outcome
 

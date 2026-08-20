@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 # Preliminary Statement of Work
 
 > **HOLD — Gate 2 reopened 2026-07-25; status audited 2026-07-26.** This SOW is

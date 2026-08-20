@@ -1,5 +1,6 @@
 ---
 name: rig-debugging
+status: ready
 description: Find root causes through a tight reproduction loop, ranked hypotheses, boundary evidence, and defense in depth.
 ---
 

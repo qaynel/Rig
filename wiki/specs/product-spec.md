@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 # Rig — Production Foundational Design
 
 Consolidated 2026-07-17 as the Gate 2 plan for shipping Rig to production.

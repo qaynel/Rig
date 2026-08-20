@@ -1,3 +1,7 @@
+---
+status: draft
+---
+
 # Roadmap — from here to a shipped product
 
 > **This file is a map, not a rulebook.** It tells you what order to do things
