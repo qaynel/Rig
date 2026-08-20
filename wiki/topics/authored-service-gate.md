@@ -34,6 +34,7 @@ recreate the placeholder failure at greater scale. [Rejected approaches](../inde
 - Audit history: [advanced grilling GA-10](../sources/logs/advanced-grilling.md)
 - First-leaf behavior ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-confirmations.md)
 - Bounded first-leaf design: [lint-format vertical slice](../specs/lint-format-vertical-slice.md)
+- Current state and ordered path to production for this leaf: [lint-format roadmap](../specs/lint-format-roadmap.md)
 
 ## What is still open
 

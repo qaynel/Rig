@@ -67,3 +67,7 @@ resolved in both Gate 2's candidate text and `rig/lib/apply.js`. [Resolution](..
 The remaining question this fork asked — green-and-cheap vs.
 spec-hole-found-early — reads as the latter: the hole was real, and finding it
 on one leaf instead of 115 is the point of running the probe at all.
+
+This one leaf's own current state and the ordered path from here to it
+counting as a production leaf — not just a probe — is tracked separately and
+kept current: [lint-format roadmap](../specs/lint-format-roadmap.md).

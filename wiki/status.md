@@ -120,7 +120,7 @@ Steps 1, 2, 4, 5 are agent work. **Step 3 is the intent owner's alone.**
 | `.github/workflows/publish.yml` | **Still present.** Must be deleted before a release can be tagged. |
 | `package.json` version | **`4.8.4`**, private. Gate 2 §12.4 requires `5.0.0`. |
 | `scripts/review-receipt.js` | **Exists and works.** |
-| 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, the vertical-slice probe). 428 files still contain `TODO(Slice 10)`. |
+| 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, the vertical-slice probe — current state and ordered path to production tracked in [its own roadmap](specs/lint-format-roadmap.md)). 428 files still contain `TODO(Slice 10)`. |
 | `tests/advanced-*.test.js` | **20 files, all green.** `advanced-lint-format.test.js` and `advanced-apply.test.js` assert real behavior (rejects placeholder content, exercises the real formatter/linter, exercises apply's manifest/resume). The rest are still calibrated to pass against placeholder content — see [traps](index/traps.md). |
 
 The committed suite passing tells you nothing about specification health, and
