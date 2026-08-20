@@ -59,3 +59,11 @@ check on "intent clear, code cheap." The build brief and its three acceptance
 probes — including the deliberate mid-install interrupt that exercises the
 `AT-INSTALL-1` rollback-vs-resume contradiction — are the handoff trace.
 [Lint-format vertical slice](../reasoning/2026-08-19-lint-format-vertical-slice.md)
+
+Probe 3 did exactly what it was built for: it forced the contradiction out of
+the spec and into the running code (a failed apply rolled back the
+already-applied lint-format writes and left no manifest). That is now
+resolved in both Gate 2's candidate text and `rig/lib/apply.js`. [Resolution](../reasoning/2026-08-20-resolve-at-install-1.md)
+The remaining question this fork asked — green-and-cheap vs.
+spec-hole-found-early — reads as the latter: the hole was real, and finding it
+on one leaf instead of 115 is the point of running the probe at all.

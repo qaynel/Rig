@@ -108,10 +108,26 @@ four revisions keeping out of an agent's reach. The intent owner grills the
 requirement rather than stripping the capability. **Set moves to 49.**
 
 Gate 2 v0.5 is written against it, reviewed at its exact bytes — and **fails**,
-with `AT-INSTALL-1` unresolved. That is where the project stands; see
-[status](../status.md).
+with `AT-INSTALL-1` unresolved.
 
 **The wiki is built.** `project-dev-docs/` becomes `wiki/`.
+
+## 2026-08-20 — Vertical-slice probe, and AT-INSTALL-1 resolved
+
+The intent owner's first attempt at authoring the full catalogue at once is
+retrospected and abandoned mid-flight; the agreed test becomes one real leaf
+first. `development.code-quality.lint-format` is authored end to end, and its
+third acceptance probe — a deliberate mid-apply interrupt — forces the
+round-3 blocker out of the spec and into running code: a failed apply rolled
+back the already-applied writes and left no manifest. `rig/lib/apply.js` had
+never implemented §7.6's manifest at all.
+
+The blocker is resolved: §6.6, §10, and `AD-10` are edited to state the
+manifest-and-resume model as apply's only failure behavior, and
+`rig/lib/apply.js` gets the `.rig/install-manifest.jsonl` record-before-mutate
+and resume mechanics. Gate 2's digest changes; the round-3 receipt is void.
+Three round-3 findings remain open. That is where the project stands; see
+[status](../status.md).
 
 ---
 

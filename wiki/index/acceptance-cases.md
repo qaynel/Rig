@@ -118,8 +118,9 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 | `AT-REPORT-1` | Findings stay on the machine that produced them — not in artifacts, not in logs. | [services and reports](../topics/services-and-reports.md) |
 | `AT-SECRET-1` | Matched secret content never reaches the model by default. | [drift and secret controls](../topics/drift-and-secret-controls.md) |
 
-`AT-INSTALL-1` is currently **unresolved** in the live round-3 review — see
-[status](../status.md).
+`AT-INSTALL-1`'s round-3 finding (Gate 2 §6.6/§10 contradicted it) is
+**resolved** as of 2026-08-20 — see [status](../status.md). Three other
+round-3 findings remain open.
 
 ---
 

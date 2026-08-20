@@ -1,4 +1,4 @@
-# Status — checked 2026-08-19
+# Status — checked 2026-08-20
 
 Where the project actually is. Every line below was checked against the files on
 this date, not copied from another document.
@@ -11,10 +11,14 @@ note. Permanent things belong in [`topics/`](topics/); dated things belong in
 
 ## The one-line version
 
-Gate 1 is finished and frozen at **49 acceptance cases**. Gate 2 has been
-rewritten to match, has been reviewed at its exact current bytes, and **the
-review failed**. Fixing those findings is the next job. No code may be written
-until Gate 2 freezes.
+Gate 1 is finished and frozen at **49 acceptance cases**. Gate 2's round-3
+review failed on four findings; the deliberate lint-format vertical-slice probe
+(intent owner-agreed, see [`reasoning/2026-08-19-lint-format-vertical-slice.md`](reasoning/2026-08-19-lint-format-vertical-slice.md))
+confirmed the blocker finding live in the running code, and it is now resolved
+in both Gate 2's candidate text and `rig/lib/apply.js` — see
+[`reasoning/2026-08-20-resolve-at-install-1.md`](reasoning/2026-08-20-resolve-at-install-1.md).
+Three major/minor findings from round 3 remain open, and a fresh round-4
+review has not been run. No further code may be written until Gate 2 freezes.
 
 ---
 
@@ -32,10 +36,12 @@ until Gate 2 freezes.
 |---|---|
 | `gate1/business-spec.md` | `5f26ce2b9438ac5c11efafe07b0612647fd64d8b5c4d3ab4fa2342a1bf7d5da0` |
 | `gate1/acceptance.md` | `9ec0ac94238063b808e1b01bdc2c5b142d2b7c9410cb5d0ef2663d9baa4a86f7` |
-| `gate2/technical-spec.md` | `c0333c368613574e5010e69641ed284da35556a37ea575c0b40b0abe2edce2a6` |
+| `gate2/technical-spec.md` | `4926f253673e7daee73a4e8a76576a47620d618fa68832a943ec02683cbcdcc3` |
 
-Both Gate 1 digests **match** the pins in the Gate 2 header. Gate 2 is written
-against the right bytes. Re-check at any time:
+The Gate 2 digest changed from `c0333c36…` on 2026-08-20 when §6.6, §10, and
+AD-10 were edited to resolve the round-3 blocker finding (see below). Both
+Gate 1 digests still **match** the pins in the Gate 2 header — this edit did
+not touch Gate 1. Re-check at any time:
 
 ```sh
 shasum -a 256 wiki/gate1/business-spec.md wiki/gate1/acceptance.md wiki/gate2/technical-spec.md
@@ -46,26 +52,25 @@ no more and no fewer. See [acceptance cases](index/acceptance-cases.md).
 
 ---
 
-## The blocker: round 3 failed
+## The blocker: round 3 failed — one finding now resolved in candidate text
 
 [`sources/reviews/gate2-v0.5-round3.review.json`](sources/reviews/gate2-v0.5-round3.review.json)
-is bound to `c0333c36…` — **the current technical-spec bytes**. It is a live
-receipt, not a historical one, and its verdict is **fail** with `AT-INSTALL-1`
-unresolved.
+was bound to `c0333c36…`, the technical-spec bytes as they stood through
+2026-08-19. That receipt is now **void** — not because it was wrong, but
+because the bytes it reviewed have changed (§6.6, §10, AD-10) to fix the exact
+contradiction it caught. This is the mechanism working: an edit that resolves
+a finding changes the digest and voids the receipt that found it.
 
-This is the single most misreadable fact in the project. Earlier receipts were
-void because they were bound to superseded bytes. This one is not void. It is a
-current, valid review that says the current document is wrong.
+| Severity | Where | The contradiction | Status |
+|---|---|---|---|
+| ~~blocker~~ | §6.6 / §10 / AD-10 vs §7.6 | Two incompatible answers for the same failure. §6.6/§10/AD-10 said a failed apply rolls everything back; §7.6 and `AT-INSTALL-1` say applied writes stay in place and the install resumes. The lint-format vertical-slice probe confirmed the running code did the rollback thing and produced no manifest at all. | **Resolved 2026-08-20.** §6.6, §10, and AD-10 now state the manifest-and-resume model as the only failure behavior; the rejected-approaches list names the rollback branch explicitly. `rig/lib/apply.js` implements the `.rig/install-manifest.jsonl` record-before-mutate/resume mechanics for the write path apply already exercises. See [`reasoning/2026-08-20-resolve-at-install-1.md`](reasoning/2026-08-20-resolve-at-install-1.md). |
+| major | AD-30 / §8.4 vs D19 | D20 recovery credentials are described as "hardware-backed" without qualification, when D19 established that no SSHSIG key type proves hardware presence. Gate 2 discloses this limitation for the other two signers and not for this one. `AT-PRESENCE-2` also has no test for an agent registering a fraudulent recovery key while holding a valid credential. | Open. |
+| major | §1 / `AT-BASE-2` vs §11.1 / AD-26 | §1 says the policy is evaluated "wherever a verified host surface exists", while §11.1 bans `verified` as host/axis vocabulary and `AT-CLAIM-1` greps for it. The two senses are never disambiguated. | Open. |
+| minor | §8.8 vs `AT-SECRET-1` | Enabling model-assisted triage is supposed to let matched content reach the agent, but no channel is described through which it could, so the case has no mechanism to test. | Open. |
 
-| Severity | Where | The contradiction |
-|---|---|---|
-| **blocker** | §6.6 / §10 vs §7.6 | Two incompatible answers for the same failure. §6.6 says a failed apply rolls everything back; §7.6 and `AT-INSTALL-1` say applied writes stay in place and the install resumes. Permission denial mid-apply hits both. Slice 12's own test cannot pass against §6.6 as written. |
-| major | AD-30 / §8.4 vs D19 | D20 recovery credentials are described as "hardware-backed" without qualification, when D19 established that no SSHSIG key type proves hardware presence. Gate 2 discloses this limitation for the other two signers and not for this one. `AT-PRESENCE-2` also has no test for an agent registering a fraudulent recovery key while holding a valid credential. |
-| major | §1 / `AT-BASE-2` vs §11.1 / AD-26 | §1 says the policy is evaluated "wherever a verified host surface exists", while §11.1 bans `verified` as host/axis vocabulary and `AT-CLAIM-1` greps for it. The two senses are never disambiguated. |
-| minor | §8.8 vs `AT-SECRET-1` | Enabling model-assisted triage is supposed to let matched content reach the agent, but no channel is described through which it could, so the case has no mechanism to test. |
-
-Full text in the receipt. Fixing these edits Gate 2, which changes its digest,
-which voids this receipt — that is the mechanism working, not a problem.
+Full text of the original finding is in the void receipt. Three findings
+remain open; Gate 2 cannot freeze until all four are resolved and a fresh
+review passes at the final bytes.
 
 ### Older receipts, both void
 
@@ -82,8 +87,9 @@ the intent owner chose to grill the requirement rather than strip the capability
 
 ## Ordered next steps
 
-1. **Resolve the four round-3 findings** in Gate 2. The blocker needs a real
-   ruling on where rollback ends and resume begins — it is not a wording fix.
+1. **Resolve the remaining three round-3 findings** in Gate 2. The blocker
+   (rollback vs. resume) is done — see above. AD-30/§8.4 vs D19,
+   §1/`AT-BASE-2` vs §11.1/AD-26, and §8.8 vs `AT-SECRET-1` are still open.
 2. **Re-review** at the new digest:
    ```sh
    node scripts/review-receipt.js \
@@ -114,8 +120,8 @@ Steps 1, 2, 4, 5 are agent work. **Step 3 is the intent owner's alone.**
 | `.github/workflows/publish.yml` | **Still present.** Must be deleted before a release can be tagged. |
 | `package.json` version | **`4.8.4`**, private. Gate 2 §12.4 requires `5.0.0`. |
 | `scripts/review-receipt.js` | **Exists and works.** |
-| 115 catalogue leaves | **0 authored.** 432 files still contain `TODO(Slice 10)`. |
-| `tests/advanced-*.test.js` | **19 files, all green, all worthless.** Calibrated to pass against placeholder content. |
+| 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, the vertical-slice probe). 428 files still contain `TODO(Slice 10)`. |
+| `tests/advanced-*.test.js` | **20 files, all green.** `advanced-lint-format.test.js` and `advanced-apply.test.js` assert real behavior (rejects placeholder content, exercises the real formatter/linter, exercises apply's manifest/resume). The rest are still calibrated to pass against placeholder content — see [traps](index/traps.md). |
 
 The committed suite passing tells you nothing about specification health, and
 will not until Slice 1 lands. See [traps](index/traps.md).

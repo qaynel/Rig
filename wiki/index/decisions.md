@@ -65,7 +65,7 @@ Implementation constraints, not suggestions.
 | AD-7 | Treat target harness files as hostile bytes: bounded reads, no execution, redacted evidence. | [sanitation and remediation](../topics/sanitation-and-remediation.md) |
 | AD-8 | Remediation separate and read-only until exact approval. | [sanitation and remediation](../topics/sanitation-and-remediation.md) |
 | AD-9 | Graft through typed operations; never arbitrary shell plans. | [graft mechanics](../topics/graft-mechanics.md) |
-| AD-10 | Apply under exclusive lock with CAS preimages, rollback, receipt last. | [graft mechanics](../topics/graft-mechanics.md) |
+| AD-10 | Apply under exclusive lock with CAS preimages, the §7.6 manifest recording every write, and receipt last; no rollback branch — a failed apply resumes. *(Amended 2026-08-20: dropped rollback, resolving the round-3 `AT-INSTALL-1` blocker.)* | [install manifest and removal](../topics/install-manifest-removal.md) |
 | AD-11 | Materialize service prose once under `.rig/services/`; host surfaces get pointers. | [graft mechanics](../topics/graft-mechanics.md) |
 | AD-12 | Ship dormant implementations; wire only what the active policy enables. Installed code is not evidence a control ran. | [the safety baseline](../topics/safety-baseline.md) |
 | AD-13 | One uniform emission path per `{host, axis}`. No tier in output or data. | [host and CI coverage](../topics/host-and-ci-coverage.md) |

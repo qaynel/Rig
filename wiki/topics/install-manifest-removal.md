@@ -35,6 +35,16 @@ rejected because they risk data loss or fabricate protection. [Rejected approach
 
 ## What is still open
 
-The round-3 blocker is exactly this boundary: Gate 2 §6.6 says failed apply
-rolls everything back, while §7.6 and `AT-INSTALL-1` preserve completed writes
-for resume. Gate 2 must choose one coherent transaction model. [Status](../status.md#the-blocker-round-3-failed)
+**Resolved 2026-08-20.** The round-3 blocker was exactly this boundary: Gate 2
+§6.6 said failed apply rolls everything back, while §7.6 and `AT-INSTALL-1`
+preserve completed writes for resume. §6.6, §10, and `AD-10` now state the
+manifest-and-resume model as the apply's only failure behavior, and
+`rig/lib/apply.js` implements the `.rig/install-manifest.jsonl`
+record-before-mutate/resume mechanics for the writes apply performs.
+[Reasoning trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+[Status](../status.md#the-blocker-round-3-failed--one-finding-now-resolved-in-candidate-text)
+
+Still unbuilt: preimage content-addressed storage and the reverse-walk
+removal/uninstall path this page describes above. Both are Slice 12's job.
+Three other round-3 findings and a fresh review still block the Gate 2
+freeze — this resolves only the blocker, not the candidate as a whole.

@@ -200,6 +200,61 @@ test('missing repository formatter is a loud coverage gap', () => {
   });
 });
 
+test('an interrupted apply resumes instead of rolling back (AT-INSTALL-1)', () => {
+  withRepo((target) => {
+    seedLintFormatRepo(target);
+    const { reviewPath } = allowedReview(target);
+    writeSelection(target, { [SERVICE_ID]: 'minimal' });
+    const planned = plan(target, { review: reviewPath });
+    assert.equal(planned.status, 0, planned.stderr);
+
+    // Force a real write failure partway through apply: make the path apply
+    // needs to write late in the sequence an existing directory, the same
+    // shape of failure as a permission denial or full disk.
+    fs.mkdirSync(path.join(target, '.rig', 'service-bindings.json'), { recursive: true });
+
+    const interrupted = apply(target, { review: reviewPath, plan: planned.outPath });
+    assert.notEqual(interrupted.status, 0, 'apply must fail when a write target is unwritable');
+
+    const manifestFile = path.join(target, '.rig', 'install-manifest.jsonl');
+    assert.ok(fs.existsSync(manifestFile), 'a failed apply must leave a manifest behind');
+    const readManifest = () =>
+      fs
+        .readFileSync(manifestFile, 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line));
+    assert.ok(
+      readManifest().some((r) => r.state === 'applied' && r.path === '.rig/catalog-routing.md'),
+      'writes before the failure point must be recorded as applied',
+    );
+    assert.ok(
+      fs.existsSync(path.join(target, '.rig', 'catalog-routing.md')),
+      'writes already applied must stay in place, not be rolled back',
+    );
+    assert.ok(
+      !fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')),
+      'an incomplete install must never produce a receipt or claim to be installed',
+    );
+
+    // Clear the obstruction, the way a user would after a real permission or
+    // disk failure, and re-run: it must resume, not restart or duplicate.
+    fs.rmdirSync(path.join(target, '.rig', 'service-bindings.json'));
+    const resumed = apply(target, { review: reviewPath, plan: planned.outPath });
+    assert.equal(resumed.status, 0, resumed.stderr);
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')));
+
+    const routingApplied = readManifest().filter(
+      (r) => r.path === '.rig/catalog-routing.md' && r.state === 'applied',
+    );
+    assert.equal(
+      routingApplied.length,
+      1,
+      'a path already applied before the interruption must not be rewritten or duplicated on resume',
+    );
+  });
+});
+
 test('source check command dispatches the same real installed binding', () => {
   withRepo((target) => {
     seedLintFormatRepo(target);
