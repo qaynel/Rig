@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# rig-review-log — atomically log a review result
+# Usage: rig-review-log '{"skill":"...","timestamp":"...","status":"..."}'
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+eval "$("$SCRIPT_DIR/rig-slug" 2>/dev/null)"
+RIG_HOME="${RIG_HOME:-$HOME/.rig}"
+mkdir -p "$RIG_HOME/projects/$SLUG"
+
+# Validate: input must be parseable JSON (reject malformed or injection attempts)
+INPUT="$1"
+if ! printf '%s' "$INPUT" | bun -e "JSON.parse(await Bun.stdin.text())" 2>/dev/null; then
+  # Not valid JSON — refuse to append
+  echo "rig-review-log: invalid JSON, skipping" >&2
+  exit 1
+fi
+
+echo "$INPUT" >> "$RIG_HOME/projects/$SLUG/$BRANCH-reviews.jsonl"
+
+# brain-sync: enqueue for cross-machine sync (no-op if sync is off).
+"$SCRIPT_DIR/rig-brain-enqueue" "projects/$SLUG/$BRANCH-reviews.jsonl" 2>/dev/null &
