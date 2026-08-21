@@ -15,6 +15,19 @@ satisfy it. Not every ID has counterparts in the other schemes.
 
 ---
 
+## Workflow-doctrine rulings
+
+Rulings about the development cycle itself, distinct from the four catalogue
+schemes above. They change the router and skills, not the frozen catalogue
+intent.
+
+| Date | Ruling | Source |
+|---|---|---|
+| 2026-08-21 | **Collapse the two gates into one.** One signed freeze locks the oracle (intent, acceptance, tests) before code; the technical spec is checked for presence, not frozen. Enforced by human signature before code plus oracle immutability, not by independent authorship. | [intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) |
+| 2026-08-21 | **Escape hatch = key-holder instant re-sign (Option A).** A wrong locked test is corrected only by the key holder as a quick re-sign; an agent may propose but never make the change. Rejected Option B (full return to grilling). | [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md) |
+
+---
+
 ## `D#` — Gate 1 revisions
 
 These changed frozen business intent. Each is marked at its point of effect in

@@ -1,18 +1,21 @@
 ---
 name: rig-product-design
 status: ready
-description: Turn frozen business intent into a thorough, bounded technical design before implementation.
+description: Turn business intent into a thorough, bounded technical specification the code adapts to. Checked for presence at the gate, never frozen.
 ---
 
-# Product And Technical Design: Gate 2
+# Product And Technical Design
 
-Use only after Gate 1 defines correct behavior. This phase owns **how**. It may
-challenge feasibility or return contradictions to grilling, but it never edits
-the acceptance oracle.
+This phase owns **how**. It produces the technical specification the gate checks
+for presence and the implementation adapts to. It may challenge feasibility or
+return contradictions to grilling, but it never edits the oracle (intent,
+acceptance, tests). The specification is a working design, not a second freeze:
+the approach may change during implementation as long as the frozen tests stay
+green.
 
 ## Process
 
-1. Restate Gate 1 and trace the current system end to end.
+1. Restate the oracle and trace the current system end to end.
 2. Identify the smallest existing seams that can carry the behavior.
 3. Compare build, reuse, standard-library, native-platform, and installed-tool
    options before adding machinery.
@@ -22,13 +25,15 @@ the acceptance oracle.
 5. Name rejected alternatives and the concrete reason each loses.
 6. Break the design into tracer-bullet slices with a verification command for
    each slice.
-7. Freeze the chosen approach as Gate 2 and hand it to implementation.
+7. Hand the specification to the gate as a present, checked artifact and to
+   implementation as the working design. Do not lock it; the code adapts to it,
+   and it adapts to what the code learns, as long as the frozen tests stay green.
 
 ## Standard
 
 Planning is thorough; the resulting code is minimal. Do not hide uncertainty
-inside abstractions or create extension points for imagined futures. Escalate a
-Gate 1 contradiction instead of designing around it silently.
+inside abstractions or create extension points for imagined futures. Escalate an
+oracle contradiction instead of designing around it silently.
 
 ## Decision Questions
 
@@ -42,7 +47,7 @@ Keep one decision per question unless the user asks for a broader menu.
 - Data, safety, and failure boundaries
 - Ordered slices and verification
 - Rejected alternatives
-- Risks or decisions requiring a return to Gate 1
+- Risks or decisions requiring a return to grilling
 
 Source: gstack product and engineering planning doctrine, extracted as markdown;
 stateful gstack runtime features are intentionally excluded.
