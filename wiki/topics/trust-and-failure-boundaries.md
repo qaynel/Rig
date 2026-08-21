@@ -41,9 +41,11 @@ uploads, and unowned global deletion are refusals, not degraded success.
 
 ## What is still open
 
-The partial-failure row currently conflicts with the install-resume design, and
-the recovery and secret-triage rows need round-3 corrections. These are freeze
-issues, not implementation details. [Status](../status.md#the-blocker-round-3-failed)
+The partial-failure, recovery, and secret-triage round-3 corrections are all
+**resolved** in Gate 2 v0.6 (install-resume as apply's only failure model;
+recovery declared-class per D19; the gated `secrets.model_assisted_triage`
+channel). What remains before freeze is a fresh review at the new digest, not a
+further boundary fix. [Status](../status.md)
 
 For lint-format, a catalogue selection is not execution consent. Consent binds
 to the exact planned command, working directory, component, and read-only

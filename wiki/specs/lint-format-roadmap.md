@@ -42,7 +42,7 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
 |---|---|
 | Catalogue entry (`identity.md`, `minimal.md`, `mid.md`, `maximal.md`, `slices/{floor,property-floor,behavior-oracle}.md`) | **Authored**, service-specific — not template filler. See [the vertical-slice design](lint-format-vertical-slice.md). |
 | Check discovery/binding | **Prototype implemented** across `rig/lib/catalog.js`, `plan.js`, `apply.js`, `checks.js`, `ci-adapters.js`, but it recognizes only fixed npm script names. The production contract now requires whole-repository, open-ecosystem semantic discovery; this implementation is not sufficient. |
-| Grade model | **Prototype superseded.** The formatter-only → formatter-plus-linter → CI-plus-fix split is not the production contract. The universal model is cumulative Policy → Context → Evidence, applied within each service's owned domain, with ordinary formatter/linter output treated as a commodity input. Current specification remains focused only on this leaf. |
+| Grade model | **Designed in Gate 2 v0.6 §5.7 (`AD-32`); prototype superseded.** Policy → Context → Evidence are the `minimal/mid/maximal` names of the cumulative dial, the selected grade is a ceiling, and ordinary formatter/linter/type/static output are commodity inputs. The prototype's formatter-only → formatter-plus-linter → CI-plus-fix split and its `convention` catalogue entry must be re-authored to this contract. Current specification remains focused only on this leaf. |
 | Applicability | **Intent frozen, acceptance not yet authored.** Rig may install covered components while explicitly reporting user-approved uncovered components as unprotected. Partial installation suppresses any whole-repository support claim. |
 | Execution consent | **Intent frozen, acceptance not yet authored.** Service selection authorizes nothing to run. Approval of the concrete plan authorizes its listed read-only commands and scopes; mutating fixes require separate approval. |
 | Shell trust | **Intent frozen, acceptance not yet authored.** Repository tasks remain untrusted code under Rig policy, privilege, secret, network, and resource/time controls. `shell: false` protects only the outer argv boundary. |
@@ -61,12 +61,25 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
    [acceptance-authoring handoff](lint-format-grilling-handoff.md) to author
    observable examples and runnable `AT-LF-*` case specs, then land them as one
    amendment. [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
-2. **Reconcile Gate 1 and Gate 2.** If lint-format may ship first, amend and
-   re-freeze Gate 1 before revising Gate 2 to match. No production code work
-   starts while they disagree.
-3. **Freeze Gate 2.** Resolve the 3 remaining round-3 findings (`AD-30`/§8.4 vs
-   D19, §1/`AT-BASE-2` vs §11.1/AD-26, §8.8 vs `AT-SECRET-1`), run a fresh
-   review at the final digest, and mark Gate 2 `FROZEN`. [Status](../status.md#ordered-next-steps)
+2. **Reconcile Gate 1 and Gate 2.** ✅ **Done.** D21 re-froze Gate 1, and Gate 2
+   v0.6 (2026-08-21) re-traced `AT-LF-1`–`AT-LF-19` into §13 at exact 68-case
+   equality and narrowed §12.3/§17.2 to make lint-format the single
+   release-blocking leaf. [Re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+3. **Correct and re-review Gate 2.** ⚠️ **Partly corrected (v0.10, `69c38149…`).**
+   Round 4 failed at `645e5536…`; v0.7 clarified that a clean lower-grade pass
+   continues through the user's selected cumulative grade (§5.7/AD-32) and made
+   repository-CI applicability grade-aware so lint-format participates in CI only
+   at Evidence (§8.9/§11.2/§11.3). Round 5 then found Gate 1 still contradicted
+   that behavior; D22/v0.8 now clarifies `AT-CI-3` to run selected executable
+   services only when they are repo-CI-applicable at their active grade.
+   D23/v0.9 scopes `AT-SHAPE-6` for this release, and v0.10 corrects round-6's
+   Slice 2/freeze/recovery-test issues. The remaining round-5 findings still
+   need product-design resolution before a clean exact-digest review is
+   plausible.
+   [Correction trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md) ·
+   [D22 trace](../reasoning/2026-08-21-evidence-only-lint-format-ci.md) ·
+   [Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md) ·
+   [Status](../status.md#ordered-next-steps)
 4. **Arm Gate 1 integrity.** The intent owner signs Gate 1 once the verifier
    exists; this is not delegable.
 5. **Build the executable specification gate.** `scripts/check-advanced-spec.js`

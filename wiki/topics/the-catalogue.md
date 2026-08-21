@@ -30,7 +30,10 @@ the user explicitly chooses a supported setup or alternative. [Packaged harness 
 `GA-6`, `GA-9`, `GA-9a`–`GA-9n`, and `GA-17` define the model, family contents,
 and hybrid product posture. `AD-3`–`AD-5` define its source contract;
 `AT-SHAPE-2`–`AT-SHAPE-6` define the observable shape every service must
-satisfy. [Decision index](../index/decisions.md)
+satisfy. `GA-22`/`GA-23` and `AD-32` fix the Policy → Context → Evidence grade
+ladder as the `minimal/mid/maximal` names within each service's domain, and
+`AD-33`/`AD-34` add lint-format's component model and plan-bound read-only
+execution as the first vertically-proven leaf. [Decision index](../index/decisions.md)
 [Acceptance index](../index/acceptance-cases.md)
 
 ## What was rejected
@@ -60,6 +63,7 @@ they hide or override the user's actual per-service choice. [Rejected approaches
 - Packaged forward-deployed harness clarification: [reasoning trace](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
 - Per-component, evidence-backed support-claim ruling: [reasoning trace](../reasoning/2026-08-21-lint-format-support-claim.md)
 - Approved acceptance-authoring handoff and D21 amendment: [handoff](../specs/lint-format-grilling-handoff.md), [Gate 1 §7H](../gate1/acceptance.md), [acceptance index](../index/acceptance-cases.md)
+- Gate 2 v0.6 lint-format re-trace and grade-ladder design: [reasoning trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
 
 ## What is still open
 
@@ -68,8 +72,10 @@ lint-format is the first production leaf in normal Rig, with the default-on
 safety baseline and the complete 19-host/six-provider commitment. **This is now
 authoritative** — D21 (2026-08-21) amended frozen Gate 1 to narrow the release
 condition to this one leaf; the other 114 remain committed but non-blocking for
-this release. Gate 2 must still re-trace the resulting `AT-LF-1`–`AT-LF-19` and
-re-freeze before production implementation.
+this release. **Gate 2 has now been re-traced** (v0.6, 2026-08-21): `AT-LF-1`–
+`AT-LF-19` are in §13 at exact 68-case equality and the grade ladder is
+designed. Gate 2 is still a candidate — a fresh review and the Gate 1 signature
+remain before production implementation.
 [Status](../status.md)
 
 Lint-format's product promise is also settled as hybrid-plus: existing tools
@@ -81,6 +87,9 @@ workspaces, nested packages, and polyglot components. The basis for calling an
 alternative better remains open.
 
 Every service will eventually use the same cumulative Policy → Context →
-Evidence grade method within its own MECE domain. Current work remains vertical:
-only lint-format is being specified and proven now. The universal ruling is not
-permission to author or implement the other leaves.
+Evidence grade method within its own MECE domain. Gate 2 §5.7 (`AD-32`) now
+fixes how it works: Policy/Context/Evidence are the `minimal/mid/maximal` names
+of the existing cumulative dial, the selected grade is a ceiling, and commodity
+syntax/format/type/static output are inputs rather than grades. Current work
+remains vertical: only lint-format is specified and proven now. The universal
+ruling is not permission to author or implement the other leaves.

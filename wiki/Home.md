@@ -74,7 +74,7 @@ topic is wrong.
 
 ## Indexes
 
-- [**Decisions**](index/decisions.md) — all 153 IDs across four schemes, one line each.
+- [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
 - [**Acceptance cases**](index/acceptance-cases.md) — the 68 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
@@ -88,7 +88,7 @@ topic is wrong.
 | Document | Standing |
 |---|---|
 | [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) | **Frozen.** One artifact in two files. 68 acceptance cases. Only the intent owner revises these, and only by returning to grilling. |
-| [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.5, not frozen.** The sole implementation authority once frozen. Implementation may not begin against a candidate. |
+| [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.10, not frozen.** v0.10 keeps the D22/D23 Gate 1 retrace, corrects the round-6 candidate-review findings, and still leaves the remaining round-5 design findings plus fresh review/signature work before freeze. The sole implementation authority once frozen. Implementation may not begin against a candidate. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override a gate. |
 
 See [status](status.md) for what is currently blocking the freeze.

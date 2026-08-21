@@ -36,6 +36,17 @@ side effects triggered by an agent were rejected as trust-root bypasses.
 
 ## What is still open
 
-Round 3 found that Gate 2 calls recovery credentials hardware-backed without
-the limitation D19 established, and lacks a fraudulent-registration case. Gate
-2 must resolve both before freeze. [Status](../status.md#the-blocker-round-3-failed)
+**Resolved 2026-08-21.** Round 3 found that Gate 2 called recovery credentials
+hardware-backed without D19's limitation and lacked a fraudulent-registration
+case. Gate 2 v0.6 now gives recovery credentials the declared-and-disclosed
+class treatment — Rig verifies the signature and listing, records and discloses
+the declared `sk-*` class, and the user attests the floor — and names the
+user-verification registration ceremony as what stops an agent holding a valid
+credential from self-appointing a key it could later operate unattended. The
+v0.10 `AT-PRESENCE-2` §13 test row now asserts only the enforceable parts:
+pre-loss registration, fingerprint/namespace distinctness, receipt validity,
+exhaustion, side effects, and declared-class disclosure. It does not claim a
+Node test can prove a hardware touch. `AD-30` amended.
+[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
+[Status](../status.md)

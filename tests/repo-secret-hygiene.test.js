@@ -53,6 +53,10 @@ const PATH_RULES = [
   ['netrc', /(^|\/)\.netrc$/],
   ['aws-credentials-file', /(^|\/)credentials$/],
   ['service-account-json', /service[-_]account[^/]*\.json$/i],
+  [
+    'legacy-gate1-signer-artifact',
+    /^project-dev-docs\/current\/gate1\.(sig|allowed-signers)$/,
+  ],
 ];
 
 // Paths whose ignore rules are load-bearing. If someone deletes these lines
@@ -74,14 +78,14 @@ function publishableFiles(root) {
 function findings(root, files = publishableFiles(root)) {
   const hits = [];
   for (const rel of files) {
-    for (const [rule, re] of PATH_RULES) {
-      if (re.test(rel)) hits.push(`${rel}: ${rule}`);
-    }
     let body;
     try {
       body = fs.readFileSync(path.join(root, rel));
     } catch {
       continue; // deleted between listing and read
+    }
+    for (const [rule, re] of PATH_RULES) {
+      if (re.test(rel)) hits.push(`${rel}: ${rule}`);
     }
     if (body.includes(0)) continue; // binary
     body.toString('utf8').split(/\r?\n/).forEach((line, i) => {
@@ -130,6 +134,7 @@ const PATH_SAMPLES = {
   'netrc': '.netrc',
   'aws-credentials-file': '.aws/credentials',
   'service-account-json': 'gcp/service-account-prod.json',
+  'legacy-gate1-signer-artifact': 'project-dev-docs/current/gate1.sig',
 };
 
 test('every content rule actually fires on a matching value', () => {
@@ -177,6 +182,16 @@ test('a force-added secret file IS reported, because ignoring it no longer helps
     fs.writeFileSync(path.join(target, '.env'), 'API_KEY=real-value\n');
     git(target, ['add', '-f', '.env']);
     assert.deepEqual(findings(target), ['.env: dotenv']);
+  });
+});
+
+test('a deleted tracked file is not reported from the stale index entry', () => {
+  withTempRepo((target) => {
+    fs.mkdirSync(path.join(target, 'project-dev-docs/current'), { recursive: true });
+    fs.writeFileSync(path.join(target, 'project-dev-docs/current/gate1.sig'), 'x\n');
+    git(target, ['add', 'project-dev-docs/current/gate1.sig']);
+    fs.rmSync(path.join(target, 'project-dev-docs/current/gate1.sig'));
+    assert.deepEqual(findings(target), []);
   });
 });
 

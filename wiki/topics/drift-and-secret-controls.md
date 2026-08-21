@@ -35,9 +35,16 @@ guard were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-Round 3 found no defined channel for explicitly enabled model-assisted triage,
-so `AT-SECRET-1` is not currently executable. Gate 2 must describe that channel
-without weakening the default-local rule. [Status](../status.md#the-blocker-round-3-failed)
+**Resolved 2026-08-21.** Round 3 found no defined channel for explicitly enabled
+model-assisted triage. Gate 2 v0.6 adds one gated, default-closed
+`secrets.model_assisted_triage` policy field (§8.2/§8.8), outside the
+control-AND model because it loosens rather than protects: while false no code
+path assembles matched content into agent context; while true the detection
+pipeline attaches a bounded redacted `matched_content` field to the
+agent-visible triage view, dropped on deactivation with a fresh evidence epoch.
+The `AT-SECRET-1` §13 test row exercises exactly this.
+[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Status](../status.md)
 
 For lint-format, redaction is broader than secrets (`GA-32`). Linter and
 formatter output can quote source and surface secrets, personally identifying

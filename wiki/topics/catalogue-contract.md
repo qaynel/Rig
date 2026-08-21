@@ -23,7 +23,10 @@ dependency resolution. `GA-16` fixes lint-format's hybrid-plus product promise,
 fixed roster, and `GA-20` sets the whole repository as its discovery boundary.
 `GA-21` requires semantic command discovery. `AT-SHAPE-3` and `AT-SHAPE-4`
 are the frozen observable tests. `GA-22` replaces the prototype's tool-feature
-ladder with the cumulative Policy → Context → Evidence capability model.
+ladder with the cumulative Policy → Context → Evidence capability model, and
+Gate 2 `AD-32` now realizes it as the `minimal/mid/maximal` names of the same
+cumulative dial (§5.7). `AD-33` fixes lint-format's component model and `AD-34`
+its plan-bound read-only execution (§5.8/§9.4).
 [Decision index](../index/decisions.md) [Acceptance index](../index/acceptance-cases.md)
 
 ## What was rejected
@@ -46,6 +49,7 @@ either user-choice violations or unnecessary machinery. [Gate 2 §2.1](../gate2/
 - Exact Policy → Context → Evidence capability model: [reasoning trace](../reasoning/2026-08-20-linting-harness-capability-model.md)
 - Universal model with lint-format-only current focus: [reasoning trace](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
 - Partial, truthful lint-format coverage: [reasoning trace](../reasoning/2026-08-20-lint-format-partial-coverage.md)
+- Gate 2 grade-ladder and lint-format mechanism design: [reasoning trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
 
 ## What is still open
 
@@ -79,9 +83,17 @@ user to choose.
 The grade split is exactly cumulative Policy → Context → Evidence: Level 1
 governs a proposed repository change against explicit policy; Level 2 adds
 system-wide relationship reasoning; Level 3 adds mechanically or empirically
-verifiable behavioural evidence. Rig uses the lowest level capable of a
-definitive answer. Conventional syntax, formatting, type, and ordinary static
-analysis are commodity inputs rather than this ladder's differentiator.
+verifiable behavioural evidence. The selected grade is the target and the
+ceiling: evaluation climbs to it and no further. "Lowest level capable of a
+definitive answer" short-circuits on **failure**, not on a clean pass — a
+lower-grade failure may stop early (a change that fails governance cannot earn a
+higher assurance), but a clean lower-grade result runs through to the selected
+grade, and the reported assurance is the highest grade actually completed. A
+clean Policy pass under a Context or Evidence selection never becomes the final
+verdict while the selected grade's own work is still unrun (Gate 2 v0.7,
+[reasoning trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)).
+Conventional syntax, formatting, type, and ordinary static analysis are commodity
+inputs rather than this ladder's differentiator.
 
 This method is universal across catalogue services, but domain ownership stays
 per leaf. Policy, context, and evidence for lint-format must concern only the

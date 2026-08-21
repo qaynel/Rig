@@ -9,11 +9,19 @@ Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
 table. The number below is documentation; if it disagrees with the file, the file
 wins and the gate fails.
 
-**Verified 2026-08-19, now void:** Gate 2's table covered exactly the prior 49
-IDs — no orphans, no gaps. D21 (2026-08-21) added `AT-LF-1`–`AT-LF-19`, moving
-the frozen set to 68; that verification no longer holds, and Gate 2's table
-must be re-traced against the current 68 under `rig-product-design` before the
-specification gate can pass again. See [status](../status.md).
+**Re-verified 2026-08-21:** after D21 moved the frozen set to 68, Gate 2 v0.6
+re-traced its §13 table to cover exactly those 68 IDs — no orphans, no gaps
+(confirmed by set-difference against Gate 1 on disk). D22 clarifies `AT-CI-3`
+without adding or removing a case, and Gate 2 v0.8 keeps the §13 table at exact
+68-case equality. **D23 (2026-08-21, later the same day)** narrows only
+`AT-SHAPE-6`'s evaluation scope to `development.code-quality.lint-format` for
+this release; the set stays at 68 and every other case is unaffected. Gate 2
+v0.10 keeps this narrower `AT-SHAPE-6` (§5.6, §12.3, §17.2, AD-24, and its
+§13 row) and clarifies that the other 114 leaves' red status is not a
+lint-format release test failure. The set-equality gate would pass on this axis;
+Gate 2 remains a candidate pending the remaining round-5 design corrections,
+fresh review, and the Gate 1 signature. See
+[status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -40,7 +48,7 @@ Every catalogue service must pass all six.
 | `AT-SHAPE-3` | Grade dials depth, not identity. Maximal is a strict superset of minimal. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-4` | Dependencies auto-pull, razor-scoped to the dependent's exact need. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-5` | Exactly one honest disposition, executable attempted first. | [services and reports](../topics/services-and-reports.md) |
-| `AT-SHAPE-6` | All 115 leaves authored — 26/40/31/18. Mechanical presence cannot substitute for semantic review. | [the authored-service gate](../topics/authored-service-gate.md) |
+| `AT-SHAPE-6` | All 115 leaves authored — 26/40/31/18. Mechanical presence cannot substitute for semantic review. **D23: this release only evaluates it against lint-format alone** (Gate 2 v0.10 carries this); reverts to all 115 next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
 
 ## B. Default baseline and user control (7)
 
@@ -92,7 +100,7 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 | `AT-HOST-5` | Unsupported MCP is retired everywhere, without deleting user-owned files. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-1` | Integrate existing verified CI additively, without touching unrelated jobs. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-2` | Bootstrap absent CI only after explicit provider selection and approval. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
-| `AT-CI-3` | Safe, idempotent, real execution. No secrets, minimum permissions, no artifact upload. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
+| `AT-CI-3` | Safe, idempotent, real execution for enabled controls and active-grade CI-applicable services. No secrets, minimum permissions, no artifact upload. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-4` | Unknown or malformed CI fails visibly and is left byte-identical. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 
 `AT-HOST-3` and `AT-HOST-4` were **deleted** on 2026-08-17 — see below.
@@ -170,9 +178,9 @@ distinction the product never implemented.
 | `AT-CLAIM-3` | Per-host claim strings in output. | Nothing — the concept was withdrawn outright. |
 
 If you grep the acceptance file for `AT-` you will find 72 distinct strings.
-Four of them are these, mentioned only in prose. Gate 2's table must trace the
-68 that are actually defined; until it is re-traced, it still only covers the
-prior 49 — see the void notice above.
+Four of them are these, mentioned only in prose. Gate 2's table traces the 68
+that are actually defined — re-traced 2026-08-21 to exact equality, see the note
+above.
 
 ---
 

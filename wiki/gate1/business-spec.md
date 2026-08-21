@@ -236,6 +236,53 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > re-signed combined digest (§8). The Gate 1 signature is stale until the
 > intent owner re-signs against these bytes.
 
+> **Revision note (2026-08-21, later the same day) — D22, active-grade CI
+> applicability.** Re-grilled with [`../acceptance.md`](../acceptance.md) after
+> the round-5 Gate 2 review found a conflict between the general CI case and
+> lint-format's Evidence-only CI behavior. The intent owner kept the CI boundary
+> where D21 put it: lint-format is CI-enforced only at Evidence. The correction
+> is to clarify the general CI promise, not to raise lower lint-format grades
+> into CI: Rig CI runs selected executable services only when they are
+> repo-CI-applicable at their active grade.
+>
+> The acceptance ID set remains **68**. `AT-CI-3` now carries the active-grade
+> qualifier; `AT-LF-13` remains the lint-format-specific Evidence-level CI
+> behavior. Gate 2 must be rewritten and re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current 68-case set, under a
+> re-signed combined digest (§8).
+
+> **Revision note (2026-08-21, later the same day) — D23, a one-release
+> exception to `AT-SHAPE-6`.** Re-grilled with
+> [`../acceptance.md`](../acceptance.md) after implementation planning
+> surfaced a gap D21 left standing: `AT-SHAPE-6` still requires the
+> specification gate to review all 115 catalogue leaves and fail on TODO or
+> filler content, unscoped by D21's release boundary. Taken literally, that
+> keeps `npm test` — the gate this project treats as the thing that unblocks
+> deployment — red forever on the 114 leaves D21 already said do not block
+> this release. Filling those 114 leaves' placeholders with generic or
+> hand-varied filler to force a pass was considered and rejected: `AT-SHAPE-6`
+> already names that content as a failure, and doing it at scale only
+> reproduces the 432-file placeholder-gaming problem the gate exists to catch,
+> now with more convincing-looking filler.
+>
+> **The ruling is narrow and named, not a general rule.** For this release
+> only, `AT-SHAPE-6` is evaluated against
+> `development.code-quality.lint-format` alone; the other 114 leaves are
+> excluded from this one pass of the gate, unchanged, with no new marker
+> required of them. The intent owner was explicit that scoping the gate to
+> whatever a release actually ships is a real future requirement, but its
+> general mechanism is deliberately deferred to its own grilling pass — this
+> revision decides only this release's exception, not the standing rule.
+> Absent a future amendment, `AT-SHAPE-6` reverts to covering all 115 leaves
+> for the next release.
+>
+> The acceptance ID set remains **68**; no case is added or removed, only
+> `AT-SHAPE-6`'s evaluation scope for this one release. Gate 2 must be
+> rewritten and re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current 68-case set, under a
+> re-signed combined digest (§8), before the specification gate may implement
+> this exception.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -470,8 +517,9 @@ dashboard. **Done 2026-07-24:** deprecated-tier-vocabulary archive under
   coherent as the repo evolves — statelessly (the repo's own docs are the
   memory). Re-enabling a disabled control requires a fresh run; stale success is
   never reused.
-- **CI:** Rig additively integrates its enabled repo-scope checks into a
-  verified existing provider. If no CI exists, the user selects a verified
+- **CI:** Rig additively integrates its enabled repo-scope checks and selected
+  services that are repo-CI-applicable at their active grade into a verified
+  existing provider. If no CI exists, the user selects a verified
   provider and approves creation of a minimal native pipeline. Unknown or
   unverifiable existing CI is preserved and fails visibly rather than
   receiving advisory-success treatment.

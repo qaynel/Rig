@@ -34,6 +34,7 @@ action receive conflicting or fabricated treatment. [Rejected approaches](../ind
 
 ## What is still open
 
-No evaluator or complete host-axis contract is implemented. Gate 2 must first
-resolve its terminology conflict between host claims and control evidence.
-[Status](../status.md#the-blocker-round-3-failed)
+No evaluator or complete host-axis contract is implemented. The round-3
+terminology conflict between host claims and control evidence is **resolved** in
+Gate 2 v0.6: §1/§11.1 disambiguate the three senses of `verified`, including
+`AT-BASE-2`'s "verified enforcement surface". [Status](../status.md)

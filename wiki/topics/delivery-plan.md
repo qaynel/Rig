@@ -60,21 +60,28 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 ## What is still open
 
 No implementation slice may start while Gate 1 and Gate 2 disagree about the
-release boundary or while Gate 2 is a failed candidate. Gate 1 is now amended
-(D21) and re-frozen at 68 cases; the next work is for `rig-product-design` to
-re-trace `AT-LF-1`–`AT-LF-19` into Gate 2 §13, reconcile the gates, resolve the
-remaining three round-3 findings, and obtain a fresh passing review.
+release boundary or while Gate 2 is a failed candidate. Gate 1 is amended (D21)
+and re-frozen at 68 cases, and **Gate 2 is now re-traced** (v0.6, 2026-08-21):
+`rig-product-design` traced `AT-LF-1`–`AT-LF-19` into §13, applied the D21
+release boundary to §12.3/§17.2, added the grade ladder and lint-format vertical
+mechanisms (§5.7/§5.8/§9.4/§11.3), and resolved the three remaining round-3
+findings. The remaining work before implementation is a fresh passing review at
+the new digest and the intent owner's Gate 1 signature.
 [Status](../status.md#ordered-next-steps)
+[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 
 The intent owner chose `development.code-quality.lint-format` as the first
 production leaf instead of waiting for horizontal all-leaf authorship. The same
 release keeps normal Rig's default-on safety baseline and full
 19-host/six-provider commitment; it is not a limited preview. Candidate Gate 2
-already recorded the vertical choice, and frozen Gate 1 now matches it: D21
-(2026-08-21) narrows the release condition to this one leaf, and the other 114
-remain committed but non-blocking for this release. All twenty lint-format
-product questions in the grilling audit are closed and the Gate 1 amendment has
-landed; only Gate 2's re-trace and re-freeze remain.
+recorded the vertical choice, frozen Gate 1 matches it (D21, 2026-08-21), and
+Gate 2 v0.6 now narrows §12.3/§17.2 to make lint-format the single
+release-blocking leaf with the other 114 committed but non-blocking. All twenty
+lint-format product questions in the grilling audit are closed, the Gate 1
+amendment has landed, and Gate 2 is re-traced. Round 4 failed at the current
+digest on two accepted internal consistency defects, so a narrow Gate 2
+correction and another fresh review now precede freeze alongside the Gate 1
+signature.
 [Vertical production ruling](../reasoning/2026-08-20-vertical-lint-format-production.md)
 [Production context](../reasoning/2026-08-20-lint-format-production-context.md)
 [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)

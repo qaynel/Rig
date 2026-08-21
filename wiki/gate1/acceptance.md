@@ -165,6 +165,60 @@
 > design or implementation context must not edit this file; a genuine
 > conflict returns to grilling.
 
+> **Revision note (2026-08-21, later the same day) — D22, active-grade CI
+> applicability.** Re-grilled after the round-5 Gate 2 review found that
+> `AT-CI-3`'s general "selected executable services" wording could be read to
+> force every selected executable service into CI at every grade, while D21's
+> lint-format intent keeps CI enforcement only at the Evidence grade. The
+> owner's ruling keeps that Evidence-only lint-format CI boundary and clarifies
+> the general CI case instead: an integrated or bootstrapped pipeline runs
+> selected executable services that are repo-CI-applicable at their active
+> grade.
+>
+> This changes no case ID and adds no service machinery. `AT-LF-13` remains the
+> lint-format-specific CI rule; `AT-CI-3` now carries the same active-grade
+> qualifier so the two cases are complementary rather than contradictory. The
+> ID set remains **68**, and the Gate-2 traceability table must match that set
+> exactly.
+>
+> **Frozen.** The clarification is recorded and no case is left open. Gate 2
+> must be rewritten and re-frozen against this file and
+> [`business-spec.md`](business-spec.md) at their current 68-case set, under a
+> re-signed combined digest.
+
+> **Revision note (2026-08-21, later the same day) — D23, a one-release
+> exception to `AT-SHAPE-6`.** Re-grilled after implementation planning found
+> that `AT-SHAPE-6`, as frozen, requires the specification gate to review all
+> 115 catalogue leaves and fail on any TODO or generic-filler content, with no
+> reference to D21's release boundary. Transcribed literally into the
+> specification gate that runs first in `npm test` (`AT-GATE-2`), that keeps
+> the suite red on the 114 non-release leaves forever, regardless of D21 —
+> defeating `npm test`'s role as the gate that unblocks deployment.
+>
+> The intent owner's ruling is narrow and explicitly temporary: **for this
+> release only**, `AT-SHAPE-6` is evaluated against
+> `development.code-quality.lint-format` alone. The other 114 leaves are
+> excluded from this one pass of the gate — their current placeholder state
+> does not fail it, and no new honest-deferred marker is required of them for
+> this pass. Filling their placeholder content with generic or hand-varied
+> filler to pass the gate mechanically was considered and rejected: it does not
+> satisfy this case as written (a TODO, generic filler, or repeated fragment
+> still fails it) and only recreates, at greater scale, the placeholder-gaming
+> problem `AT-SHAPE-6` exists to catch.
+>
+> **This is a named, dated, single-release carve-out, not a standing scoping
+> rule.** The intent owner was explicit that evaluating only what a release
+> actually ships is a real future requirement, but the general mechanism for it
+> is deliberately deferred to its own grilling pass — it is not decided here.
+> Absent that future amendment, `AT-SHAPE-6` reverts to reviewing all 115
+> leaves, as originally written, for the next release.
+>
+> The ID set remains **68**; no case is added or removed, only `AT-SHAPE-6`'s
+> evaluation scope for this one release. Gate 2 must be rewritten and re-frozen
+> against this file and [`business-spec.md`](business-spec.md) at their current
+> 68-case set, under a re-signed combined digest, before the specification gate
+> may implement this exception.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -278,6 +332,17 @@ only when the product intent is met.
   "concrete convention," repeated filler, or merely non-empty fragment fails
   the gate. Mechanical presence checks cannot substitute for a fresh-context
   semantic review of every leaf.
+
+  *One-release exception (D23, 2026-08-21).* For this release only, the
+  specification gate evaluates this case against
+  `development.code-quality.lint-format` alone, the single leaf D21 made
+  release-blocking. The other 114 frozen leaves are excluded from this run of
+  the gate: their current placeholder state, unchanged, does not fail it. This
+  is a named, dated, single-release carve-out, not a standing scoping rule —
+  it authorizes nothing about any later release. The next leaf to ship, or any
+  future evaluation of the remaining 114 leaves' content, requires its own
+  grilling pass to define a general mechanism; absent that amendment, this
+  case reverts to reviewing all 115 leaves as originally written above.
 
 ### B. Default baseline and user control
 
@@ -426,10 +491,11 @@ only when the product intent is met.
 - **AT-CI-2 (bootstrap absent CI).** *Given* no CI exists, *when* the user
   selects a verified provider and explicitly approves creation, *then* Rig
   creates a minimal provider-native pipeline; before approval it creates none.
-- **AT-CI-3 (safe, idempotent, real execution) [D15].** *Given* an integrated or
-  bootstrapped pipeline, *then* it runs all enabled baseline controls and
-  selected executable services, emits an actionable verdict without uploading
-  or logging finding detail, requests only
+- **AT-CI-3 (safe, idempotent, real execution) [D15, D22].** *Given* an
+  integrated or bootstrapped pipeline, *then* it runs all enabled baseline
+  controls and selected executable services that are repo-CI-applicable at
+  their active grade, emits an actionable verdict without uploading or logging
+  finding detail, requests only
   necessary permissions, uses no repository secrets, and a second apply makes
   no duplicate or material change.
 - **AT-CI-4 (unknown config and first wire).** *Given* unknown, malformed, or
