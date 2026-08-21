@@ -14,7 +14,8 @@ is shaped the way it is, the indexes for decisions, acceptance cases, rejected
 approaches, and traps. Read the wiki before grepping the code. The answers to
 "what is this, why is it this way, what was already tried and rejected" are
 written down; searching for them again burns tokens and loses the reasoning the
-grep cannot see.
+grep cannot see. Do this before asking the user for context, making
+suggestions, or sketching a solution.
 
 Keep the wiki in sync with the branch. Any change that moves what is true — a
 decision, a spec, a status, a rejected approach — updates the wiki in the same
@@ -27,11 +28,11 @@ Reference it, update it, maintain it; it is part of the deliverable.
 
 Every message to the user follows `rig/tier-1/rules/communication.md` (installed
 as `.rig/rules/communication.md`). Treat the user as your product manager: send
-the least information needed to decide, with the overall picture intact — the
-problem, the real options with their business costs, one recommendation, one
-decision per question. Wiki paths, section numbers, and decision IDs stay out
-of the first-pass reply; they belong in the wiki and the diff, and are
-reproduced on request.
+the least information needed to decide, with the overall picture intact. Ground
+the problem, the real options with their business costs, one recommendation, and
+one decision per question in the wiki's current truth and product spirit. Wiki
+paths, section numbers, and decision IDs stay out of the first-pass reply; they
+belong in the wiki and the diff, and are reproduced on request.
 
 ## Architecture
 

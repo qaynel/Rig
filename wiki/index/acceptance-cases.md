@@ -1,6 +1,6 @@
 # Acceptance case index
 
-The 49 frozen Gate-1 cases. Each is an independently authored observable case
+The 68 frozen Gate-1 cases. Each is an independently authored observable case
 that must fail before its behavior exists and pass only when the product intent
 is met. Gate 2 owns their executable form but not their verdict.
 
@@ -9,8 +9,19 @@ Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
 table. The number below is documentation; if it disagrees with the file, the file
 wins and the gate fails.
 
-**Verified 2026-08-19:** Gate 2's table covers exactly these 49 IDs — no orphans,
-no gaps.
+**Re-verified 2026-08-21:** after D21 moved the frozen set to 68, Gate 2 v0.6
+re-traced its §13 table to cover exactly those 68 IDs — no orphans, no gaps
+(confirmed by set-difference against Gate 1 on disk). D22 clarifies `AT-CI-3`
+without adding or removing a case, and Gate 2 v0.8 keeps the §13 table at exact
+68-case equality. **D23 (2026-08-21, later the same day)** narrows only
+`AT-SHAPE-6`'s evaluation scope to `development.code-quality.lint-format` for
+this release; the set stays at 68 and every other case is unaffected. Gate 2
+v0.10 keeps this narrower `AT-SHAPE-6` (§5.6, §12.3, §17.2, AD-24, and its
+§13 row) and clarifies that the other 114 leaves' red status is not a
+lint-format release test failure. The set-equality gate would pass on this axis;
+Gate 2 remains a candidate pending the remaining round-5 design corrections,
+fresh review, and the Gate 1 signature. See
+[status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -37,7 +48,7 @@ Every catalogue service must pass all six.
 | `AT-SHAPE-3` | Grade dials depth, not identity. Maximal is a strict superset of minimal. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-4` | Dependencies auto-pull, razor-scoped to the dependent's exact need. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-5` | Exactly one honest disposition, executable attempted first. | [services and reports](../topics/services-and-reports.md) |
-| `AT-SHAPE-6` | All 115 leaves authored — 26/40/31/18. Mechanical presence cannot substitute for semantic review. | [the authored-service gate](../topics/authored-service-gate.md) |
+| `AT-SHAPE-6` | All 115 leaves authored — 26/40/31/18. Mechanical presence cannot substitute for semantic review. **D23: this release only evaluates it against lint-format alone** (Gate 2 v0.10 carries this); reverts to all 115 next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
 
 ## B. Default baseline and user control (7)
 
@@ -89,7 +100,7 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 | `AT-HOST-5` | Unsupported MCP is retired everywhere, without deleting user-owned files. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-1` | Integrate existing verified CI additively, without touching unrelated jobs. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-2` | Bootstrap absent CI only after explicit provider selection and approval. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
-| `AT-CI-3` | Safe, idempotent, real execution. No secrets, minimum permissions, no artifact upload. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
+| `AT-CI-3` | Safe, idempotent, real execution for enabled controls and active-grade CI-applicable services. No secrets, minimum permissions, no artifact upload. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-CI-4` | Unknown or malformed CI fails visibly and is left byte-identical. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 
 `AT-HOST-3` and `AT-HOST-4` were **deleted** on 2026-08-17 — see below.
@@ -122,6 +133,35 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 **resolved** as of 2026-08-20 — see [status](../status.md). Three other
 round-3 findings remain open.
 
+## H. Lint-format production leaf (19, added 2026-08-21 by D21)
+
+The acceptance for the first production catalogue leaf,
+`development.code-quality.lint-format`. Full text:
+[`gate1/acceptance.md`](../gate1/acceptance.md) §7H. Synthesis and `GA-`
+traces: [`specs/lint-format-intent.md`](../specs/lint-format-intent.md).
+
+| ID | What it requires |
+|---|---|
+| `AT-LF-1` | Whole-repository, open-ecosystem discovery — no fixed roster, no skipped component. |
+| `AT-LF-2` | Hybrid-plus: existing tools preserved by default, the user decides on any change. |
+| `AT-LF-3` | Semantic command discovery; ambiguous matches return to the user. |
+| `AT-LF-4` | User scope and component choice always win over the recommendation. |
+| `AT-LF-5` | Selection authorizes nothing; only the approved plan runs, under disclosed untrusted-code controls. |
+| `AT-LF-6` | Apply grafts and records every write; partial coverage is explicit and user-approved. |
+| `AT-LF-7` | Policy level (Level 1) governs the change. |
+| `AT-LF-8` | Context level (Level 2) is a strict cumulative superset of Policy. |
+| `AT-LF-9` | Evidence level (Level 3) proves with verifiable evidence, not opinion. |
+| `AT-LF-10` | Diff-scoped by default; ignore rules and working directory honored. |
+| `AT-LF-11` | A read-only check that mutates is a failure — detected, halted, evidenced, never auto-restored. |
+| `AT-LF-12` | Autofix is a separate, separately approved, re-verified mutating action. |
+| `AT-LF-13` | CI at Evidence is additive to verified CI, proposed for absent CI, preserving of unknown CI. |
+| `AT-LF-14` | Command drift stops execution and requires a freshly approved plan. |
+| `AT-LF-15` | Reports are failure-centric, local, redacted, and actionable; secrets need opt-in. |
+| `AT-LF-16` | Every abnormal ending is its own distinct, reported, non-passing state. |
+| `AT-LF-17` | Reinstall is an idempotent resume; no duplicates, no premature protection claim. |
+| `AT-LF-18` | Removal reverses exactly the manifest; the user's own fixes survive. |
+| `AT-LF-19` | Support is claimed per component, only on real evidence; exclusions suppress the whole-repository claim. |
+
 ---
 
 ## Deleted cases
@@ -137,9 +177,10 @@ distinction the product never implemented.
 | `AT-CLAIM-2` | The out-of-repository write disclosure, framed as a claim. | `AT-HOME-1`, as a transparency requirement rather than a claim. |
 | `AT-CLAIM-3` | Per-host claim strings in output. | Nothing — the concept was withdrawn outright. |
 
-If you grep the acceptance file for `AT-` you will find 53 distinct strings. Four
-of them are these, mentioned only in prose. Gate 2 correctly traces the 49 that
-are actually defined.
+If you grep the acceptance file for `AT-` you will find 72 distinct strings.
+Four of them are these, mentioned only in prose. Gate 2's table traces the 68
+that are actually defined — re-traced 2026-08-21 to exact equality, see the note
+above.
 
 ---
 
@@ -152,7 +193,8 @@ are actually defined.
 | 2026-07-26 | 45 | D1–D9, the claim/build split. |
 | 2026-07-28 | 52 | D11–D18, the lifecycle revision. |
 | 2026-08-17 | 48 | The host-tier amendment deleted four. |
-| 2026-08-19 | **49** | D20 added `AT-PRESENCE-2`. |
+| 2026-08-19 | 49 | D20 added `AT-PRESENCE-2`. |
+| 2026-08-21 | **68** | D21 added `AT-LF-1`–`AT-LF-19`, the lint-format vertical release boundary. |
 
 Mechanism-only revisions (D10, D19, GA-13) changed how a case is satisfied
 without changing the count.

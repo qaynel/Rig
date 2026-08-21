@@ -41,4 +41,4 @@ manifest, and resumes on retry. `rig/lib/apply.js` implements that
 record-before-mutate path for the writes apply performs. Remaining lifecycle
 work is the full preimage/removal side of Slice 12, not the rollback/resume
 boundary. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
-[Status](../status.md#the-blocker-round-3-failed--one-finding-now-resolved-in-candidate-text)
+[Status](../status.md)

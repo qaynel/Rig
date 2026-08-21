@@ -4,7 +4,7 @@
 **Branch:** `implement-advanced-a-la-carte-catalogue`
 **Status:** design, awaiting owner review
 
-This document lives outside `project-dev-docs/current/spec/` deliberately. The
+This document lives outside `wiki/gate2/` deliberately. The
 specification gate described below rejects a second authority in that tree, and
 this is a plan for building the gate, not a competing specification of the
 Advanced tier.
@@ -79,7 +79,7 @@ Checks run in order. Each is fatal. There is no skip, exemption, waiver, or
 progress input — by design, because such an input is precisely how a gate
 becomes decorative.
 
-**0 — Intent integrity.** If `project-dev-docs/current/gate1.allowed-signers`
+**0 — Intent integrity.** If `wiki/gate1/gate1.allowed-signers`
 is present the repository is *armed*: rebuild the `rig-gate1-freeze-v1` message
 from the live digests of `business-spec.md` and `acceptance.md`, verify
 `gate1.sig` in namespace `rig-gate1`, and on success print the matched principal
@@ -171,9 +171,9 @@ which structurally cannot express what the requirements ask for. Replace with:
 {
   "schema": "rig-spec-review/v1",
   "reviewed": {
-    "project-dev-docs/current/spec/technical-spec.md": "<sha256>",
-    "project-dev-docs/current/spec/business-spec.md": "<sha256>",
-    "project-dev-docs/current/acceptance.md": "<sha256>"
+    "wiki/gate2/technical-spec.md": "<sha256>",
+    "wiki/gate1/business-spec.md": "<sha256>",
+    "wiki/gate1/acceptance.md": "<sha256>"
   },
   "authoring_model": "claude-opus-5",
   "reviewer_model": "<wrapper-written>",

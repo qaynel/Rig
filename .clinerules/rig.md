@@ -35,10 +35,11 @@ skill inside Rig's broader workflow. Do not treat every task as only a
   to grilling.
 - For design work, update the relevant decision log and companion spec together.
 - Treat `wiki/Home.md` as the first source of truth. Read the wiki — status,
-  topic hubs, indexes — before grepping the code, and keep it in sync with the
-  branch: any change that moves what is true updates the wiki in the same
-  change. A wiki that has drifted from the branch is a defect. Reference it,
-  maintain it, update it.
+  topic hubs, indexes — before grepping the code, asking questions, making
+  suggestions, or sketching a solution, and keep it in sync with the branch:
+  any change that moves what is true updates the wiki in the same change. A
+  wiki that has drifted from the branch is a defect. Reference it, maintain it,
+  update it.
 - File every reasoning trace supplied by the intent owner under
   `wiki/reasoning/` verbatim, then update its topic hubs and decision index in
   the same change; follow `wiki/reasoning/README.md`.

@@ -42,9 +42,17 @@ manifest-and-resume model as the apply's only failure behavior, and
 `rig/lib/apply.js` implements the `.rig/install-manifest.jsonl`
 record-before-mutate/resume mechanics for the writes apply performs.
 [Reasoning trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
-[Status](../status.md#the-blocker-round-3-failed--one-finding-now-resolved-in-candidate-text)
+[Status](../status.md)
 
 Still unbuilt: preimage content-addressed storage and the reverse-walk
-removal/uninstall path this page describes above. Both are Slice 12's job.
-Three other round-3 findings and a fresh review still block the Gate 2
-freeze — this resolves only the blocker, not the candidate as a whole.
+removal/uninstall path this page describes above. Both are Slice 12's job. The
+three other round-3 findings are now resolved in Gate 2 v0.6, so only a fresh
+review at the new digest and the Gate 1 signature block the freeze.
+
+For lint-format, lifecycle is exactly this contract with no new mechanism
+(`GA-34`). Reinstall is an idempotent resume that claims no protection until
+complete; removal reverses only what the manifest attributes to Rig — generated
+CI, configuration, managed blocks — and leaves any legacy or user-owned artifact
+it cannot prove it created. Source fixes the user invoked through autofix
+(`GA-29`) are the user's own edits and always survive uninstall.
+[reasoning trace](../reasoning/2026-08-21-lint-format-lifecycle.md)

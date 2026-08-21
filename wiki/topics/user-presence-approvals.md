@@ -35,6 +35,8 @@ or synthesize them. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-The round-3 review asks Gate 2 to qualify its recovery-key language and test
-fraudulent recovery registration while an everyday credential is valid.
-[Status](../status.md#the-blocker-round-3-failed)
+The round-3 request to qualify Gate 2's recovery-key language and test
+fraudulent recovery registration while an everyday credential is valid is
+**resolved** in v0.6 (declared-and-disclosed class per D19; the `AT-PRESENCE-2`
+§13 row now tests enforceable registration, distinctness, receipt, exhaustion,
+side-effect, and declared-class disclosure rules; `AD-30` amended). [Status](../status.md)

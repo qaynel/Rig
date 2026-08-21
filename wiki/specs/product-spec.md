@@ -5,11 +5,11 @@ status: draft
 # Rig — Production Foundational Design
 
 Consolidated 2026-07-17 as the Gate 2 plan for shipping Rig to production.
-Folds together the initial plan (`../../archive/foundational/rig-foundational-design.md`, 13 decided /
-3 open), the decisions log (`../../archive/grilling/grill-decisions.md`, G1–G11a), the shipped Tier 1
-design (`../../archive/tier-1-design-docs/tier-1-mvp-design.md`), and (historically) the
+Folds together the initial plan (`../sources/superseded/foundational/rig-foundational-design.md`, 13 decided /
+3 open), the decisions log (`../sources/logs/grill-decisions.md`, G1–G11a), the shipped Tier 1
+design (`../sources/superseded/tier-1-design-docs/tier-1-mvp-design.md`), and (historically) the
 pre-catalogue Tier 2 framing now archived at
-`../../archive/deprecated-tier-taxonomy/`.
+`../sources/superseded/deprecated-tier-taxonomy/`.
 
 **Status: Gate 2 FROZEN for slices S1–S6 (Tier 1 production hardening +
 legacy MCP configurator spine). S7 (catalogue delivery) is no longer gated on
@@ -65,7 +65,7 @@ content, a secret-pattern scan over every installed file, and `.env` absence.
 | No manifest, materializer, or sync/check (deliberate Tier 1 bound, G3) | `rig/bootstrap.sh` comment | S2–S3 |
 | No credential wiring, `.env.example` generation, or gitignore management (Tier 1 forbids it) | test asserts `.env*` absent | S4 |
 | Zero enforcing entries — #13's hard gate and the debug freeze hook are prose-only everywhere today | `rig/tier-1/routing.md` "best-effort on both supported hosts" | S5 |
-| Curation proof point (G1a) recommended, never run; grafts shipped on the unproven thesis | `../../archive/grilling/grill-decisions.md` G1a | S6 / R2 |
+| Curation proof point (G1a) recommended, never run; grafts shipped on the unproven thesis | `../sources/logs/grill-decisions.md` G1a | S6 / R2 |
 | Repo identity is still ponytail-era at the edges: remote `agentic-harness-demo`, npm name/version lineage | `git remote -v` | R3 |
 
 ## 3. Chosen approach and touched seams

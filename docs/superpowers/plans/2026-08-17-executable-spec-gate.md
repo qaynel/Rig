@@ -36,8 +36,8 @@ The working tree holds uncommitted fixes for the code-level findings. They must 
 
 **Files:**
 - Modify (already modified, just commit): `rig/lib/apply.js`, `rig/lib/inspect.js`, `rig/lib/catalog.js`, `rig/lib/cli-advanced.js`, `rig/lib/plan.js`, `rig/lib/reports.js`, `rig/lib/host-capabilities.js`, `rig/catalog/baseline/check-copies.js`, and the nine `tests/*.test.js` files
-- Delete: `project-dev-docs/current/gate1.allowed-signers`, `project-dev-docs/current/gate1.sig` (already deleted in the working tree)
-- Delete: `project-dev-docs/current/reviews/gate2-v0.3-round1-6279bf02.review.json`, `project-dev-docs/current/reviews/gate2-v0.3-round2.review.json`
+- Delete: legacy `project-dev-docs/current/gate1.allowed-signers`, `project-dev-docs/current/gate1.sig` (already deleted in the working tree)
+- Delete: `wiki/sources/reviews/gate2-v0.3-round1-6279bf02.review.json`, `wiki/sources/reviews/gate2-v0.3-round2.review.json`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -59,8 +59,8 @@ Expected: the modified files listed above, plus the two deleted `gate1.*` files.
 Both bind `target_digest` values (`6279bf02…`, `d8b7ba8d…`) that no longer match the live spec (`86a8a75b…`), and Gate-1 digests that no longer exist. They are superseded artifacts; git history is where those belong.
 
 ```bash
-git rm project-dev-docs/current/reviews/gate2-v0.3-round1-6279bf02.review.json \
-       project-dev-docs/current/reviews/gate2-v0.3-round2.review.json
+git rm wiki/sources/reviews/gate2-v0.3-round1-6279bf02.review.json \
+       wiki/sources/reviews/gate2-v0.3-round2.review.json
 ```
 
 - [ ] **Step 4: Re-run the suite**
@@ -93,7 +93,7 @@ receipts that bind bytes no longer present in the tree."
 **OWNER GATE.** `acceptance.md` is a frozen intent artifact. `rig/tier-1/routing.md` forbids the implementing context from editing it. This task exists because the intent owner decided to remove the tier; the executor prepares the diff and **must not commit it without the owner approving the exact diff**. If the owner is unavailable, stop here — every later task depends on the 48-case set.
 
 **Files:**
-- Modify: `project-dev-docs/current/acceptance.md`
+- Modify: `wiki/gate1/acceptance.md`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -101,7 +101,7 @@ receipts that bind bytes no longer present in the tree."
 
 - [ ] **Step 1: Record the pre-amendment digest**
 
-Run: `shasum -a 256 project-dev-docs/current/acceptance.md`
+Run: `shasum -a 256 wiki/gate1/acceptance.md`
 Write the value down; Task 8 needs the *new* one and the contrast is the check.
 
 - [ ] **Step 2: Delete the four tier cases**
@@ -161,7 +161,7 @@ This clause is about writing outside the repo, not about host tiers, and must no
 
 Run:
 ```bash
-node -e 'const t=require("fs").readFileSync("project-dev-docs/current/acceptance.md","utf8");
+node -e 'const t=require("fs").readFileSync("wiki/gate1/acceptance.md","utf8");
 const ids=t.split("\n").map(l=>/^- \*\*(AT-[A-Z0-9-]+)\b/.exec(l)).filter(Boolean).map(m=>m[1]);
 console.log("ids",ids.length,"unique",new Set(ids).size);
 console.log("tier cases still present:",["AT-HOST-3","AT-HOST-4","AT-CLAIM-2","AT-CLAIM-3"].filter(d=>ids.includes(d)));'
@@ -170,10 +170,10 @@ Expected: `ids 48 unique 48` and `tier cases still present: []`.
 
 - [ ] **Step 8: Get owner approval, then commit**
 
-Show the owner `git diff project-dev-docs/current/acceptance.md` and wait for an explicit yes.
+Show the owner `git diff wiki/gate1/acceptance.md` and wait for an explicit yes.
 
 ```bash
-git add project-dev-docs/current/acceptance.md
+git add wiki/gate1/acceptance.md
 git commit -m "Remove the verified/emitted host tier from the requirements
 
 The tier's upper grade requires a captured first wire per host axis. The
@@ -289,20 +289,20 @@ const path = require('node:path');
 // with a traceability table, and a tests/ directory.
 function makeFixture({ cases = [], rows = [], specExtra = '', testFiles = {} } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-gate-fixture-'));
-  fs.mkdirSync(path.join(root, 'project-dev-docs/current/spec'), { recursive: true });
-  fs.mkdirSync(path.join(root, 'project-dev-docs/current/reviews'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'wiki/gate2'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'wiki/sources/reviews'), { recursive: true });
   fs.mkdirSync(path.join(root, 'tests'), { recursive: true });
   fs.mkdirSync(path.join(root, 'rig/lib'), { recursive: true });
 
   const acceptance = cases.map((id) => `- **${id} (fixture case).** body text\n`).join('');
-  fs.writeFileSync(path.join(root, 'project-dev-docs/current/acceptance.md'), `# Fixture\n\n${acceptance}`);
-  fs.writeFileSync(path.join(root, 'project-dev-docs/current/spec/business-spec.md'), '# Fixture business spec\n');
+  fs.writeFileSync(path.join(root, 'wiki/gate1/acceptance.md'), `# Fixture\n\n${acceptance}`);
+  fs.writeFileSync(path.join(root, 'wiki/gate1/business-spec.md'), '# Fixture business spec\n');
 
   const table = rows
     .map((r) => `| ${r.id} | ${r.mechanism || 'a mechanism'} | ${r.kind || 'behavioral'} | ${r.evidence || ''} |`)
     .join('\n');
   fs.writeFileSync(
-    path.join(root, 'project-dev-docs/current/spec/technical-spec.md'),
+    path.join(root, 'wiki/gate2/technical-spec.md'),
     `# Fixture spec\n\nrole: gate2-authority\n\n| Case | Design mechanism | Evidence kind | Primary executable evidence |\n|---|---|---|---|\n${table}\n\n${specExtra}\n`
   );
 
@@ -385,9 +385,9 @@ Expected: FAIL with `Cannot find module '../scripts/lib/spec-gate.js'`.
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ACCEPTANCE = 'project-dev-docs/current/acceptance.md';
-const BUSINESS = 'project-dev-docs/current/spec/business-spec.md';
-const SPEC = 'project-dev-docs/current/spec/technical-spec.md';
+const ACCEPTANCE = 'wiki/gate1/acceptance.md';
+const BUSINESS = 'wiki/gate1/business-spec.md';
+const SPEC = 'wiki/gate2/technical-spec.md';
 const EVIDENCE_KINDS = ['behavioral', 'repo-invariant'];
 
 // A case is *defined* by a bullet anchor. Mentions in prose elsewhere in the
@@ -770,7 +770,7 @@ test('AT-GATE-2 reports the intent documents unprotected when no signer identity
 test('AT-GATE-2 fails an armed repository whose signature is missing', () => {
   const root = makeFixture({ cases: ['AT-ONE-1'], rows: [{ id: 'AT-ONE-1' }] });
   require('node:fs').writeFileSync(
-    require('node:path').join(root, 'project-dev-docs/current/gate1.allowed-signers'),
+    require('node:path').join(root, 'wiki/gate1/gate1.allowed-signers'),
     'vaibhav namespaces="rig-gate1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIfakefakefakefakefakefakefakefakefake\n'
   );
   const result = gate.checkSignature(root);
@@ -812,7 +812,7 @@ test('AT-GATE-2 allows a marker quoted as subject matter rather than standing as
 test('AT-GATE-2 fails when a second document claims specification authority', () => {
   const root = makeFixture({ cases: ['AT-ONE-1'], rows: [{ id: 'AT-ONE-1' }], specExtra: '**Status: FROZEN.**' });
   require('node:fs').writeFileSync(
-    require('node:path').join(root, 'project-dev-docs/current/spec/rival.md'),
+    require('node:path').join(root, 'wiki/gate2/rival.md'),
     'role: gate2-authority\n'
   );
   assert.match(gate.checkDocument(root).join('\n'), /second document claims specification authority: rival\.md/);
@@ -828,7 +828,7 @@ test('AT-GATE-2 fails when the recorded pins do not equal the live digests', () 
 
 test('AT-GATE-3 rejects a receipt bound to a digest that is not the live one', () => {
   const root = makeFixture({ cases: ['AT-ONE-1'], rows: [{ id: 'AT-ONE-1' }] });
-  writeReceipt(root, { reviewed: { 'project-dev-docs/current/acceptance.md': '0'.repeat(64) } });
+  writeReceipt(root, { reviewed: { 'wiki/gate1/acceptance.md': '0'.repeat(64) } });
   assert.match(gate.checkReceipt(root).join('\n'), /reviewed digest for .*acceptance\.md does not match/);
 });
 
@@ -857,9 +857,9 @@ function writeReceipt(root, overrides = {}) {
   const receipt = {
     schema: 'rig-spec-review/v1',
     reviewed: {
-      'project-dev-docs/current/spec/technical-spec.md': live('project-dev-docs/current/spec/technical-spec.md'),
-      'project-dev-docs/current/spec/business-spec.md': live('project-dev-docs/current/spec/business-spec.md'),
-      'project-dev-docs/current/acceptance.md': live('project-dev-docs/current/acceptance.md'),
+      'wiki/gate2/technical-spec.md': live('wiki/gate2/technical-spec.md'),
+      'wiki/gate1/business-spec.md': live('wiki/gate1/business-spec.md'),
+      'wiki/gate1/acceptance.md': live('wiki/gate1/acceptance.md'),
       ...(overrides.reviewed || {}),
     },
     authoring_model: overrides.authoring_model || 'model-author',
@@ -870,7 +870,7 @@ function writeReceipt(root, overrides = {}) {
     unresolved: overrides.unresolved || [],
   };
   fs.writeFileSync(
-    path.join(root, 'project-dev-docs/current/reviews/current.review.json'),
+    path.join(root, 'wiki/sources/reviews/current.review.json'),
     `${JSON.stringify(receipt, null, 2)}\n`
   );
   return receipt;
@@ -889,9 +889,9 @@ Append to `scripts/lib/spec-gate.js`:
 ```js
 const { createHash } = require('node:crypto');
 
-const SIGNERS = 'project-dev-docs/current/gate1.allowed-signers';
-const SIGNATURE = 'project-dev-docs/current/gate1.sig';
-const REVIEWS = 'project-dev-docs/current/reviews';
+const SIGNERS = 'wiki/gate1/gate1.allowed-signers';
+const SIGNATURE = 'wiki/gate1/gate1.sig';
+const REVIEWS = 'wiki/sources/reviews';
 const NAMESPACE = 'rig-gate1';
 const MARKERS = ['TODO', 'TBD', 'FIXME', 'XXX', '???'];
 
@@ -1163,7 +1163,7 @@ Update the closing `console.log` to report `reported.cases.filter((c) => c.verdi
 
 Run:
 ```bash
-node scripts/review-receipt.js --target project-dev-docs/current/spec/technical-spec.md \
+node scripts/review-receipt.js --target wiki/gate2/technical-spec.md \
   --model claude-opus-5 --out /tmp/should-not-exist.json
 ```
 Expected: exits 1 with `refusing same-model review`, and `/tmp/should-not-exist.json` is not created. This runs no reviewer, so it costs nothing.
@@ -1188,7 +1188,7 @@ The model, digests, timestamp and run id stay wrapper-written."
 The gate now exists and can judge this work, so the table is rewritten with the gate available to check it.
 
 **Files:**
-- Modify: `project-dev-docs/current/spec/technical-spec.md`
+- Modify: `wiki/gate2/technical-spec.md`
 
 **Interfaces:**
 - Consumes: `checkTraceability`, `checkTargets` from Tasks 4–5.
@@ -1196,7 +1196,7 @@ The gate now exists and can judge this work, so the table is rewritten with the 
 
 - [ ] **Step 1: Add the authority declaration**
 
-Add `role: gate2-authority` as its own line in the document header. `checkDocument` requires exactly one document under `project-dev-docs/current/spec/` to carry it.
+Add `role: gate2-authority` as its own line in the document header. `checkDocument` requires exactly one document under `wiki/gate2/` to carry it.
 
 - [ ] **Step 2: Quote the three prose marker mentions**
 
@@ -1212,7 +1212,7 @@ phrase, and `TBD` is already fully quoted.
 Change `TODO` to `` `TODO` `` at each. Then confirm:
 
 ```bash
-node -e 'const t=require("fs").readFileSync("project-dev-docs/current/spec/technical-spec.md","utf8");
+node -e 'const t=require("fs").readFileSync("wiki/gate2/technical-spec.md","utf8");
 const prose=t.replace(/```[\s\S]*?```/g,"").replace(/`[^`\n]*`/g,"");
 console.log("bare markers left:",["TODO","TBD","FIXME","XXX"].map(m=>[m,(prose.match(new RegExp("\\b"+m+"\\b","g"))||[]).length]));'
 ```
@@ -1243,7 +1243,7 @@ The acceptance file changed in Task 2, so the recorded pins are stale.
 
 Run:
 ```bash
-shasum -a 256 project-dev-docs/current/spec/business-spec.md project-dev-docs/current/acceptance.md
+shasum -a 256 wiki/gate1/business-spec.md wiki/gate1/acceptance.md
 ```
 Copy both values into the header pin table.
 
@@ -1261,7 +1261,7 @@ Expected: `traceability: ok` and `pins: ok`. `targets` will list every row namin
 - [ ] **Step 8: Commit**
 
 ```bash
-git add project-dev-docs/current/spec/technical-spec.md
+git add wiki/gate2/technical-spec.md
 git commit -m "Rewrite the traceability table against the 48-case set
 
 Drop the four rows for the deleted host-tier cases, rewrite AT-CLAIM-1
@@ -1398,9 +1398,9 @@ a defect and routed around."
 Runs only once Tasks 1–9 are green **except** for the substantiveness failures, which the burn-down plans clear.
 
 **Files:**
-- Modify: `project-dev-docs/current/spec/technical-spec.md` (status line)
-- Create: `project-dev-docs/current/reviews/current.review.json`
-- Create (owner only): `project-dev-docs/current/gate1.allowed-signers`, `project-dev-docs/current/gate1.sig`
+- Modify: `wiki/gate2/technical-spec.md` (status line)
+- Create: `wiki/sources/reviews/current.review.json`
+- Create (owner only): `wiki/gate1/gate1.allowed-signers`, `wiki/gate1/gate1.sig`
 
 **Interfaces:**
 - Consumes: the Task 7 wrapper; `checkReceipt` from Task 6.
@@ -1412,10 +1412,10 @@ The spec declares `claude-opus-5` as its authoring model, so the reviewer must b
 
 ```bash
 node scripts/review-receipt.js \
-  --target project-dev-docs/current/spec/technical-spec.md \
-  --gate1 project-dev-docs/current/spec/business-spec.md,project-dev-docs/current/acceptance.md \
+  --target wiki/gate2/technical-spec.md \
+  --gate1 wiki/gate1/business-spec.md,wiki/gate1/acceptance.md \
   --model claude-sonnet-5 \
-  --out project-dev-docs/current/reviews/current.review.json
+  --out wiki/sources/reviews/current.review.json
 ```
 
 - [ ] **Step 2: Act on the findings**
@@ -1449,19 +1449,19 @@ This is optional and can be deferred; the gate reports the intent documents unpr
 
 ```sh
 printf 'rig-gate1-freeze-v1\nbusiness-spec.md %s\nacceptance.md %s\n' \
-  "$(shasum -a 256 project-dev-docs/current/spec/business-spec.md | cut -d' ' -f1)" \
-  "$(shasum -a 256 project-dev-docs/current/acceptance.md         | cut -d' ' -f1)" \
+  "$(shasum -a 256 wiki/gate1/business-spec.md | cut -d' ' -f1)" \
+  "$(shasum -a 256 wiki/gate1/acceptance.md         | cut -d' ' -f1)" \
   > /tmp/gate1.msg
 
 ssh-keygen -Y sign -f <private-key> -n rig-gate1 /tmp/gate1.msg
-mv /tmp/gate1.msg.sig project-dev-docs/current/gate1.sig
+mv /tmp/gate1.msg.sig wiki/gate1/gate1.sig
 
 PUBKEY=<public-key>.pub
 PRINCIPAL=vaibhav
 {
   printf '# key class attested by the intent owner: <class>\n'
   printf '%s namespaces="rig-gate1" %s\n' "$PRINCIPAL" "$(awk '{print $1" "$2}' "$PUBKEY")"
-} > project-dev-docs/current/gate1.allowed-signers
+} > wiki/gate1/gate1.allowed-signers
 ```
 
 Then confirm the gate reports the principal and fingerprint:
@@ -1472,7 +1472,7 @@ Expected: `specification gate: Gate 1 signature verified for principal "vaibhav"
 - [ ] **Step 6: Commit**
 
 ```bash
-git add project-dev-docs/current/spec/technical-spec.md project-dev-docs/current/reviews/current.review.json
+git add wiki/gate2/technical-spec.md wiki/sources/reviews/current.review.json
 git commit -m "Freeze the technical specification against the 48-case set
 
 Reviewed in a fresh session under a model other than the authoring one,

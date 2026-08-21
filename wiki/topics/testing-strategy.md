@@ -5,7 +5,9 @@
 Testing begins with Gate 1's independent acceptance cases, transcribes them into
 an executable specification gate, then implements behavior in tracer-bullet
 slices. Development runs are diff-scoped, CI is whole-repository, and dependent
-testing rungs fail fast while reporting later rungs as not run. [Gate 2 §9.2 and §13–14](../gate2/technical-spec.md#13-acceptance-traceability)
+testing rungs fail fast while reporting later rungs as not run. CI runs selected
+executable services only when they are repo-CI-applicable at their active grade;
+for lint-format, that means Evidence only. [Gate 2 §9.2 and §13–14](../gate2/technical-spec.md#13-acceptance-traceability)
 
 ## Why it is this way
 

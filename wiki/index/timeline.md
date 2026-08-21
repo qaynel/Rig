@@ -126,8 +126,49 @@ The blocker is resolved: §6.6, §10, and `AD-10` are edited to state the
 manifest-and-resume model as apply's only failure behavior, and
 `rig/lib/apply.js` gets the `.rig/install-manifest.jsonl` record-before-mutate
 and resume mechanics. Gate 2's digest changes; the round-3 receipt is void.
-Three round-3 findings remain open. That is where the project stands; see
-[status](../status.md).
+Three round-3 findings remain open at this point.
+
+## 2026-08-21 — D21 re-freeze, and the Gate 2 re-trace
+
+The intent owner amends frozen Gate 1 (**D21**): `development.code-quality.lint-format`
+becomes the single release-blocking leaf, the other 114 stay commitments that
+block only their own future support, and nineteen `AT-LF-*` cases land. **The
+set moves to 68.**
+
+`rig-product-design` then re-traces Gate 2 to it (**v0.6**): `AT-LF-1`–`AT-LF-19`
+into §13 at exact 68-case equality, the Policy → Context → Evidence grade ladder
+mapped onto `minimal/mid/maximal` (`AD-32`) with the lint-format vertical
+mechanisms (`AD-33`, `AD-34`), the §12.3/§17.2 release boundary narrowed to the
+one leaf, and **all three remaining round-3 findings resolved** (recovery class
+per D19, the "verified enforcement surface" disambiguation, the
+model-assisted-triage channel).
+
+Round 4 then reviews the exact `645e5536…` bytes and **fails**: one blocker finds
+that the short-circuit wording can make Context and Evidence no-ops after a
+clean Policy pass, and one major finding exposes conflicting rules for
+lower-grade lint-format in an existing Rig CI job. Both return narrowly to
+product design. The minor finding names residual implementation-test risk but
+no current text defect. Gate 2 stays a candidate; see [status](../status.md).
+[Re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Round-4 receipt](../sources/reviews/gate2-v0.6-round4.review.json)
+
+`rig-product-design` then corrects both accepted findings (**v0.7**,
+`cdd07515…`): the §5.7/`AD-32` short-circuit is rewritten so only a lower-grade
+*failure* stops early while a clean lower-grade pass runs through to the selected
+grade, and repository-CI applicability is made grade-aware in §8.9/§11.2/§11.3 so
+lint-format participates in CI only at Evidence. Neither Gate 1 file changes and
+the trace stays exact 68. Round 5 reviews v0.7 and fails; D22/v0.8
+(`0f62d984…`) resolves the `AT-CI-3` contradiction by adding the active-grade
+CI-applicability qualifier to Gate 1 and the Gate 2 trace row. D23/v0.9
+(`df4b8ec7…`) scopes `AT-SHAPE-6`'s release evaluation to lint-format alone.
+Round 6 reviews v0.9 and fails; v0.10 (`69c38149…`) corrects the Slice 2
+release-test scoping, freeze timing, and recovery-test claim issues. The
+round-5 and round-6 receipts are both void for v0.10; the remaining round-5
+findings still need product-design resolution before freeze.
+[Correction trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)
+[D22 trace](../reasoning/2026-08-21-evidence-only-lint-format-ci.md)
+[D23 trace](../reasoning/2026-08-21-gate2-v0.9-at-shape-6-retrace.md)
+[Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
 
 ---
 

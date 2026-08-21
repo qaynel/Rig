@@ -200,6 +200,89 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > this file and [`../acceptance.md`](../acceptance.md) at their current
 > 49-case set, under a re-signed combined digest (§8).
 
+> **Revision note (2026-08-21) — D21, the lint-format vertical release
+> boundary.** Re-grilled with [`../acceptance.md`](../acceptance.md) after a
+> readiness audit found this file made release conditional on all 115
+> catalogue leaves, while the intent owner had separately ruled
+> (`GA-15`–`GA-35`) that `development.code-quality.lint-format` ships first,
+> alone, as normal Rig's first production-supported leaf. Gate 2 already
+> recorded that path (`AD-24`, `AD-31`), but frozen Gate 1 still made every
+> leaf release-blocking, so the new path had no Gate-1 authority behind it.
+> Twenty product-intent questions were closed in the audit and are
+> consolidated in [`../specs/lint-format-intent.md`](../specs/lint-format-intent.md):
+> release boundary and contents, host coverage, the hybrid-plus product
+> promise, open-ended ecosystem scope, whole-repository semantic discovery,
+> the cumulative Policy → Context → Evidence grade, partial coverage,
+> plan-bound untrusted-task execution, the read-only guarantee, check scope,
+> autofix, CI behavior, command drift, output privacy, failure semantics, the
+> install/removal lifecycle, and the per-component support claim.
+>
+> **D21 narrows §5's release condition rather than replacing it.** All 115
+> frozen leaves remain production commitments and remain specified; only
+> `development.code-quality.lint-format` is required for *this* release, and
+> the other 114 leaves block their own future support and the
+> complete-catalogue claim, not this leaf's release. Nineteen independently
+> authored cases are added — `AT-LF-1` through `AT-LF-19`, drafted in
+> [`../specs/lint-format-acceptance-draft.md`](../specs/lint-format-acceptance-draft.md)
+> and approved by the intent owner on 2026-08-21 — covering the complete
+> vertical flow (inspect, recommend, user scope/tool choice, plan, approve,
+> apply, the three grade levels, report, drift, reinstall, remove) and the
+> edge case each closed decision names. The ID set grows from **49** to
+> **68**, and the Gate-2 traceability table must match that set exactly.
+>
+> **This revision is frozen.** All twenty decisions are recorded and no case
+> is left open. Gate 2 must be rewritten and re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current 68-case set, under a
+> re-signed combined digest (§8). The Gate 1 signature is stale until the
+> intent owner re-signs against these bytes.
+
+> **Revision note (2026-08-21, later the same day) — D22, active-grade CI
+> applicability.** Re-grilled with [`../acceptance.md`](../acceptance.md) after
+> the round-5 Gate 2 review found a conflict between the general CI case and
+> lint-format's Evidence-only CI behavior. The intent owner kept the CI boundary
+> where D21 put it: lint-format is CI-enforced only at Evidence. The correction
+> is to clarify the general CI promise, not to raise lower lint-format grades
+> into CI: Rig CI runs selected executable services only when they are
+> repo-CI-applicable at their active grade.
+>
+> The acceptance ID set remains **68**. `AT-CI-3` now carries the active-grade
+> qualifier; `AT-LF-13` remains the lint-format-specific Evidence-level CI
+> behavior. Gate 2 must be rewritten and re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current 68-case set, under a
+> re-signed combined digest (§8).
+
+> **Revision note (2026-08-21, later the same day) — D23, a one-release
+> exception to `AT-SHAPE-6`.** Re-grilled with
+> [`../acceptance.md`](../acceptance.md) after implementation planning
+> surfaced a gap D21 left standing: `AT-SHAPE-6` still requires the
+> specification gate to review all 115 catalogue leaves and fail on TODO or
+> filler content, unscoped by D21's release boundary. Taken literally, that
+> keeps `npm test` — the gate this project treats as the thing that unblocks
+> deployment — red forever on the 114 leaves D21 already said do not block
+> this release. Filling those 114 leaves' placeholders with generic or
+> hand-varied filler to force a pass was considered and rejected: `AT-SHAPE-6`
+> already names that content as a failure, and doing it at scale only
+> reproduces the 432-file placeholder-gaming problem the gate exists to catch,
+> now with more convincing-looking filler.
+>
+> **The ruling is narrow and named, not a general rule.** For this release
+> only, `AT-SHAPE-6` is evaluated against
+> `development.code-quality.lint-format` alone; the other 114 leaves are
+> excluded from this one pass of the gate, unchanged, with no new marker
+> required of them. The intent owner was explicit that scoping the gate to
+> whatever a release actually ships is a real future requirement, but its
+> general mechanism is deliberately deferred to its own grilling pass — this
+> revision decides only this release's exception, not the standing rule.
+> Absent a future amendment, `AT-SHAPE-6` reverts to covering all 115 leaves
+> for the next release.
+>
+> The acceptance ID set remains **68**; no case is added or removed, only
+> `AT-SHAPE-6`'s evaluation scope for this one release. Gate 2 must be
+> rewritten and re-frozen against this file and
+> [`../acceptance.md`](../acceptance.md) at their current 68-case set, under a
+> re-signed combined digest (§8), before the specification gate may implement
+> this exception.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -377,6 +460,17 @@ pre-modification copies, and the uninstall path that consumes them. This is the
 counterpart to D7: a product a stranger can install without this checkout must
 also be one they can remove without it.
 
+**Also in scope (D21) — the lint-format vertical release.**
+`development.code-quality.lint-format` is the first leaf required for this
+release: whole-repository open-ecosystem discovery, semantic command binding,
+the cumulative Policy → Context → Evidence grade, plan-bound execution of
+untrusted repository tasks, the read-only guarantee, diff-scoped checks,
+separately approved autofix, additive/proposed/preserving CI behavior, command
+drift detection, redacted local reporting, the full abnormal-ending taxonomy,
+and manifest-exact lifecycle. See
+[`../specs/lint-format-intent.md`](../specs/lint-format-intent.md) for the
+consolidated synthesis and `AT-LF-1`–`AT-LF-19` in §7 for the acceptance.
+
 **Out of scope (D18) — version migration.** Rig is distributed as a source
 archive and an install stub, not through a package manager, so there is no
 upgrade channel to specify and no migration between installed versions. Taking a
@@ -423,8 +517,9 @@ dashboard. **Done 2026-07-24:** deprecated-tier-vocabulary archive under
   coherent as the repo evolves — statelessly (the repo's own docs are the
   memory). Re-enabling a disabled control requires a fresh run; stale success is
   never reused.
-- **CI:** Rig additively integrates its enabled repo-scope checks into a
-  verified existing provider. If no CI exists, the user selects a verified
+- **CI:** Rig additively integrates its enabled repo-scope checks and selected
+  services that are repo-CI-applicable at their active grade into a verified
+  existing provider. If no CI exists, the user selects a verified
   provider and approves creation of a minimal native pipeline. Unknown or
   unverifiable existing CI is preserved and fails visibly rather than
   receiving advisory-success treatment.
@@ -437,11 +532,16 @@ The determinism ladder (unit → property → mutation → contract → chaos �
 inter-service **dependencies** (auto-pull), orthogonal to grade. **The catalogue is mutually exclusive
 (MECE)** — every capability is owned by exactly one service.
 
-All **115 frozen leaves are production commitments and release-blocking**.
-Every leaf has service-specific identity, owned scope and adjacent exclusions,
-applicability, dependencies, cumulative grade behavior, checks, and acceptance
-evidence. A TODO fragment, generic filler, repeated boilerplate, or merely
-non-empty file does not constitute an authored service pack.
+All **115 frozen leaves are production commitments**, but only
+`development.code-quality.lint-format` is **release-blocking for this release**
+(D21): it ships first and alone as normal Rig's first production-supported
+leaf. The other 114 leaves remain committed and specified, and block their own
+future support and the complete-catalogue claim, but do not block this
+release. Every leaf, in its turn, has service-specific identity, owned scope
+and adjacent exclusions, applicability, dependencies, cumulative grade
+behavior, checks, and acceptance evidence. A TODO fragment, generic filler,
+repeated boilerplate, or merely non-empty file does not constitute an authored
+service pack.
 
 **Four families → groups** (service-level detail in `../../archive/grilling/advanced-grilling.md` §GA-9k/9l/9m/9n and the
 `references/` taxonomies):

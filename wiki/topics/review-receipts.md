@@ -32,6 +32,23 @@ different-model label as the independence test were rejected. [Rejected approach
 
 ## What is still open
 
-Round 3 is current and failed. After Gate 2 changes, a new fresh review must
-produce a receipt for the new digest; editing the existing receipt would destroy
-the evidence chain. [Status](../status.md#the-blocker-round-3-failed)
+Round 4 reviewed Gate 2 v0.6 at `645e5536…` and failed with one blocker, one
+major finding, and one minor residual risk. Both accepted defects were corrected
+in **v0.7 (`cdd07515…`)** — the grade-ladder short-circuit and grade-aware
+repository-CI applicability — which **voided the round-4 receipt**. Round 5 then
+reviewed v0.7 and failed with two blockers, four major findings, and two minor
+findings. D22/v0.8 (`0f62d984…`) addresses the `AT-CI-3` lint-format CI
+contradiction only; D23/v0.9 (`df4b8ec7…`) addresses the `AT-SHAPE-6`
+release-scope gap; and v0.10 (`69c38149…`) addresses the round-6 Slice 2,
+freeze-timing, and recovery-test claim findings. The remaining round-5 findings
+still need product-design resolution before the next report-only review. The
+sealed reviewer receives only
+Gate 1, Gate 2, and its fixed adversarial prompt — never the correction handoff
+or any description of what was changed, so the pass is earned against the bytes
+alone. [Round-4 receipt](../sources/reviews/gate2-v0.6-round4.review.json)
+[Round-5 receipt](../sources/reviews/gate2-v0.7-round5.review.json)
+[Round-6 receipt](../sources/reviews/gate2-v0.9-round6.review.json)
+[Correction trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)
+[D22 trace](../reasoning/2026-08-21-evidence-only-lint-format-ci.md)
+[Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
+[Status](../status.md)

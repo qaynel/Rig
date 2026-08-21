@@ -36,6 +36,7 @@ paths without improving authority. [Gate 2 §2.1](../gate2/technical-spec.md#21-
 
 ## What is still open
 
-The schema and activation implementation do not exist. Round 3 also requires
+The schema and activation implementation do not exist. The round-3 request for
 clearer language separating control evidence status from the removed host-tier
-vocabulary. [Status](../status.md#the-blocker-round-3-failed)
+vocabulary is **resolved** in Gate 2 v0.6 (§1/§11.1 record the three senses of
+`verified`; `AD-26` amended). [Status](../status.md)
