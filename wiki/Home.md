@@ -85,11 +85,15 @@ topic is wrong.
 
 ## The authorities
 
+As of 2026-08-21 the two gates were collapsed into [one gate](topics/the-two-gates.md):
+one signed freeze over the oracle, with the technical spec checked for presence
+rather than frozen.
+
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) | **Frozen.** One artifact in two files. 68 acceptance cases. Only the intent owner revises these, and only by returning to grilling. |
-| [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.10, not frozen.** v0.10 keeps the D22/D23 Gate 1 retrace, corrects the round-6 candidate-review findings, and still leaves the remaining round-5 design findings plus fresh review/signature work before freeze. The sole implementation authority once frozen. Implementation may not begin against a candidate. |
-| [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override a gate. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — frozen.** 68 acceptance cases plus the tests that check them. Only the intent owner revises it, by re-signing; the signature must be extended to cover the testing infrastructure. |
+| [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
+| [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 
 See [status](status.md) for what is currently blocking the freeze.
 

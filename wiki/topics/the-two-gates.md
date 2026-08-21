@@ -1,40 +1,69 @@
-# The two gates
+# The gate
+
+*(Formerly "the two gates." The two-gate model was collapsed into one freeze on
+2026-08-21 to streamline the development cycle. Filename kept so inbound links
+survive.)*
 
 ## What it is
 
-Gate 1 owns **what** Rig must do: frozen business intent and independently
-authored acceptance cases. Gate 2 owns **how**: one technical authority traced
-to the exact Gate 1 bytes. Implementation starts only after both are frozen.
-[Gate 1 handoff](../gate1/business-spec.md) [Gate 2 §1](../gate2/technical-spec.md#1-gate-1-restatement)
+There is **one freeze** — the gate. It locks the **oracle**: business intent,
+acceptance criteria, and the testing infrastructure that deterministically
+checks them, signed with one key before any code exists. The **technical
+specification** owns *how*, but it is only **checked for presence** at the gate,
+never locked; the code adapts to it, and it adapts to what the code learns, as
+long as the frozen tests stay green.
+[oracle](../gate1/business-spec.md) · [acceptance](../gate1/acceptance.md) · [technical spec](../gate2/technical-spec.md) · [router](../../rig/tier-1/routing.md)
 
 ## Why it is this way
 
-The separation prevents an implementer from weakening a difficult requirement
-or writing tests that merely bless its own code. The process is separation of
-contexts, not staffing: one maintainer may use distinct grilling, design,
-implementation, and review sessions. [Acceptance cases AT-GATE-1–4](../gate1/acceptance.md#0-ordered-completion-gates)
+The gate protects exactly one property: **an agent cannot move its own
+goalpost** — it cannot weaken a difficult requirement or write tests that merely
+bless its own code. Rig guards the human from the agent, not the human from the
+human; the developer owns the code and is their own product manager with a team
+of interns. That ownership is why one gate is enough.
+
+The property is enforced by **human signature before code plus oracle
+immutability after** — not by independent authorship. An agent may draft the
+oracle, because the informed human signature is the safeguard; grilling declares
+anything it inferred so that sign-off is never blind. The second freeze on the
+technical spec was retired because it guarded nothing this property needs and
+cost the velocity the cycle exists to protect.
+[one-gate intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md)
 
 ## What binds it
 
-`GA-10a` makes the technical spec the sole Gate 2 authority; `D8`/`GA-13`
-require independent review; `D10`, `D17`, and `D19` protect Gate 1 integrity.
-`AD-18`, `AD-28`, and `AD-29` make those requirements executable. [Decision index](../index/decisions.md)
+`D10`, `D17`, and `D19` protect the signature-over-digest integrity mechanism.
+The escape hatch — a wrong locked test is corrected only by the key holder as a
+quick re-sign, never a full return to grilling; an agent may propose but never
+make the change — is [Option A](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md).
+[Decision index](../index/decisions.md)
 
 ## What was rejected
 
-Implementation-authored acceptance, multiple competing plan authorities,
-branch protection as the Gate 1 trust root, and self-declared reviewer-model
-identity were rejected because none establishes the required independence.
+- **Two separate freezes** (the prior Gate 1 → Gate 2 model): retired 2026-08-21;
+  the second freeze guarded nothing the goalpost property needs and stalled work
+  behind repeated technical-spec review rounds.
+- **Independent authorship as the safeguard**: replaced by signature-before-code
+  plus immutability, which defeats the same threat without forbidding an agent
+  from drafting the oracle.
+- **Option B** (a wrong locked test forces a full return to grilling): rebuilds
+  the gate friction the collapse removes.
+- Branch protection as the trust root and self-declared reviewer identity remain
+  rejected — neither establishes integrity outside a repo an agent can modify.
 [Rejected approaches](../index/rejected.md)
 
 ## Authorities and sources
 
-- Gate 1: [business intent](../gate1/business-spec.md) and [acceptance](../gate1/acceptance.md)
-- Gate 2 candidate: [technical specification](../gate2/technical-spec.md)
-- Workflow doctrine: [router](../../rig/tier-1/routing.md)
+- The oracle: [business intent](../gate1/business-spec.md) and [acceptance](../gate1/acceptance.md)
+- Technical spec (checked, not frozen): [technical specification](../gate2/technical-spec.md)
+- Workflow doctrine: [router](../../rig/tier-1/routing.md), [grilling](../../rig/tier-1/skills/grilling/SKILL.md), [product-design](../../rig/tier-1/skills/product-design/SKILL.md)
+- The collapse: [intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md), [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md)
 
 ## What is still open
 
-Gate 1 is frozen. Gate 2 v0.5 has a live failing review receipt, so its
-mechanisms are candidate decisions and implementation remains blocked.
+The doctrine (router and skills) now describes one gate. The oracle remains
+frozen; the technical spec is no longer a blocking second freeze, which unblocks
+the in-flight lint-format work. Two concrete migrations remain: the
+specification-gate check must stop requiring a separate frozen Gate 2 authority,
+and the signature must cover the tests, not only intent and acceptance.
 [Status](../status.md)

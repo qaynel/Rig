@@ -1,4 +1,4 @@
-# Status — checked 2026-08-21 (Gate 2 v0.10 round-6 corrections)
+# Status — checked 2026-08-21 (two gates collapsed to one)
 
 Where the project actually is. Every line below was checked against the files on
 this date, not copied from another document.
@@ -6,6 +6,28 @@ this date, not copied from another document.
 Time-sensitive by design. When it goes stale, rewrite it — do not add a revision
 note. Permanent things belong in [`topics/`](topics/); dated things belong in
 [`reasoning/`](reasoning/).
+
+---
+
+## The gate is now one freeze (2026-08-21)
+
+The two-gate model was collapsed into **one gate** to streamline the development
+cycle. The gate freezes the **oracle** — intent, acceptance, and testing
+infrastructure — under one signature before code; the technical spec is checked
+for presence, not frozen, and the code adapts to it. This is now live in the
+router and the grilling / product-design skills.
+[intent](reasoning/2026-08-21-one-gate-streamlining-intent.md) ·
+[escape hatch](reasoning/2026-08-21-one-gate-escape-hatch-resolved.md) ·
+[the gate](topics/the-two-gates.md)
+
+**Consequence: implementation is no longer blocked by a second freeze.** The
+technical-spec review-round history further down (v0.5→v0.10, round-6 findings)
+is retained as record of how the design got here, but it **no longer gates
+implementation** — those rounds existed only to clear the retired second freeze.
+The remaining real design content in them (rollback, recovery-credential
+handling, evidence-gate consistency) survives as ordinary working-spec design the
+code adapts around, not as freeze blockers. What still blocks code is only the
+oracle signature.
 
 ---
 
@@ -93,9 +115,9 @@ and
 
 | | State |
 |---|---|
-| **Gate 1** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) | **Frozen**, 68 cases. Last amended 2026-08-21 by D23, which narrows only `AT-SHAPE-6`'s evaluation scope for this release. |
-| **Gate 2** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.10. Not frozen.** v0.10 keeps v0.9's D23 retrace and corrects the round-6 review findings around Slice 2 release scoping, freeze timing, and recovery-test claims. Round 5's six remaining findings are still open. Implementation may not begin. |
-| **Gate 1 signature** | **Unarmed, and now stale against the new digest below.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere in the repository. Whenever the signer identity is armed, it must be signed at the current digest, not the pre-D23 one. |
+| **The oracle** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Frozen**, 68 cases. Last amended 2026-08-21 by D23, which narrows only `AT-SHAPE-6`'s evaluation scope for this release. Under one gate the signature must be extended to cover the testing infrastructure, not only intent and acceptance. |
+| **Technical spec** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** No longer a second freeze; the code adapts to it and it adapts to what the code learns as long as the frozen tests stay green. Its remaining review findings are ordinary design work, not implementation blockers. |
+| **Oracle signature** | **Unarmed, and stale against the current digest below.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere in the repository. When the signer identity is armed, it must be signed at the current digest. This is now the only thing blocking implementation. |
 
 ### Current digests
 
@@ -237,36 +259,29 @@ into Gate 2 (v0.9, `df4b8ec7…`)** — §5.6, §12.3, §17.2, AD-24, and the
 criteria, not just prose. **Also done:** v0.10 (`69c38149…`) addresses the
 round-6 candidate-review findings without changing Gate 1.
 
-1. **Resolve the remaining round-5 findings.** Six findings from the round-5
-   review are still open and untouched by the D22 or D23 corrections: evidence-
-   gate consistency, traceability rows not pointing at real tests, rollback
-   behavior, recovery-credential verification, status reporting, and stale
-   version references. These need product-design resolution before a clean
-   review is plausible.
-2. **The intent owner signs Gate 1 at the current digest.** Stage B step 6 — a
-   physical signature act only the intent owner can perform, over the Gate 1
-   digests recorded above. See [Gate 1 signing](topics/gate1-signing.md).
-3. **Run a fresh exact-digest review after the remaining corrections.** The
-   next receipt must bind the then-current Gate 1 and Gate 2 digests and pass
-   cleanly. Feed the sealed reviewer only Gate 1, Gate 2, and its fixed
-   adversarial prompt.
-4. **Mark Gate 2 `FROZEN`** and pin the passing reviewed digest once the review
-   and Gate 1 signature both exist.
-5. **Slice 1** — build `scripts/check-advanced-spec.js` and wire it ahead of the
-   code tests, implementing D23's exception exactly as scoped (lint-format
-   only, this release). See [the specification gate](topics/specification-gate.md).
-6. **Execute the approved lint-format production path** — build the authored-service gate
+1. **The intent owner signs the oracle at the current digest.** A physical
+   signature act only the intent owner can perform, over the intent, acceptance,
+   and testing-infrastructure digests. This is now the only gate on
+   implementation. See [gate signing](topics/gate1-signing.md).
+2. **Extend the signature to cover the testing infrastructure.** Under one gate
+   the signed digest must include the tests, not only intent and acceptance —
+   the sign/verify mechanism needs this before the ceremony is armed.
+3. **Slice 1** — build `scripts/check-advanced-spec.js` and wire it ahead of the
+   code tests, implementing D23's exception exactly as scoped (lint-format only,
+   this release). No longer blocked by a second freeze. See
+   [the specification gate](topics/specification-gate.md).
+4. **Execute the approved lint-format production path** — build the authored-service gate
    enough to evaluate this exact leaf, complete the §7.6 manifest/resume/removal
    contract for its write path, add distribution/released-tag install proof, and
    produce a fresh exact-digest leaf review before claiming support.
    See [the lint-format roadmap](specs/lint-format-roadmap.md).
-7. **Before the next leaf ships,** return to grilling to define the general
+5. **Before the next leaf ships,** return to grilling to define the general
    "evaluate only what a release ships" mechanism D23 deliberately deferred —
    D23 itself expires at the next release.
 
-Step 1 requires product-design resolution of the round-5 findings; step 2
-requires the intent owner. Implementation remains blocked until the governing
-gate freezes.
+The technical spec's remaining round-5/round-6 findings are ordinary working-spec
+design the code adapts around; they no longer block implementation. What blocks
+code is only the oracle signature (steps 1–2), which requires the intent owner.
 
 ---
 

@@ -3,9 +3,12 @@
 ## What it is
 
 The specification gate is the first, short-circuiting check in `npm test`. It
-must verify Gate 1 integrity, exact Gate 1/Gate 2 traceability, one sole Gate 2
-authority, current review evidence, and the existence and real result output of
-every named executable target before code tests run. [Gate 2 AD-18/AD-28](../gate2/technical-spec.md#2-final-mechanism-decisions)
+must verify the oracle's signature integrity, that every acceptance criterion
+traces to a real test in the frozen testing infrastructure, and the existence
+and real result output of every named executable target before code tests run.
+Under the one-gate model (2026-08-21) it no longer checks for a separate frozen
+Gate 2 authority or Gate 1↔Gate 2 traceability; the technical spec is checked
+for presence, not frozen, so it cannot gate `npm test`. [AD-18/AD-28](../gate2/technical-spec.md#2-final-mechanism-decisions)
 
 ## Why it is this way
 
@@ -35,8 +38,9 @@ false green result. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approa
 
 ## What is still open
 
-`scripts/check-advanced-spec.js` and `npm run test:code` do not exist. Slice 1
-cannot begin until Gate 2 passes review and freezes. [Status](../status.md#what-exists-in-the-code-today)
+`scripts/check-advanced-spec.js` and `npm run test:code` do not exist. Under one
+gate, Slice 1 is no longer blocked by a second technical-spec freeze; it needs
+only the oracle signed. [Status](../status.md#what-exists-in-the-code-today)
 
 When Slice 1 is built, it must implement `AT-SHAPE-6` under D23's one-release
 exception: full-content evaluation applies to

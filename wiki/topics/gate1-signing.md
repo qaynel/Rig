@@ -1,11 +1,15 @@
-# Gate 1 signing
+# Gate signing
 
 ## What it is
 
-Once armed, Gate 1 integrity is an SSHSIG signature over the exact combined
-digests of the frozen business spec and acceptance file, verified against a
-listed signer identity. The intent owner attests that the key requires a live
-human act; the artifact cannot prove its own key class. [Gate 1 D10/D17/D19](../gate1/business-spec.md)
+Once armed, gate integrity is an SSHSIG signature over the exact combined digests
+of the **oracle** — the business spec, the acceptance file, and the testing
+infrastructure that checks it — verified against a listed signer identity. Under
+the one-gate model (2026-08-21) the signature covers the tests too, not only
+intent and acceptance, because the tests are part of the frozen shell the code
+adapts to. The intent owner attests that the key requires a live human act; the
+artifact cannot prove its own key class. A locked oracle changes only by the key
+holder re-signing — a quick act, never a full return to grilling. [D10/D17/D19](../gate1/business-spec.md) · [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md)
 
 ## Why it is this way
 
@@ -38,5 +42,7 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 ## What is still open
 
 The gate is currently unarmed: no allowed-signers or signature file exists.
-Only the intent owner can perform the ceremony, after Gate 2's blockers are
-resolved and before implementation begins. [Status](../status.md#gate-standing)
+Only the intent owner can perform the ceremony, before implementation begins.
+Under one gate there is no separate second freeze to clear first; the signature
+must be extended to cover the testing-infrastructure digest, not only intent and
+acceptance. [Status](../status.md#gate-standing)
