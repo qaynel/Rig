@@ -48,3 +48,11 @@ Still unbuilt: preimage content-addressed storage and the reverse-walk
 removal/uninstall path this page describes above. Both are Slice 12's job.
 Three other round-3 findings and a fresh review still block the Gate 2
 freeze — this resolves only the blocker, not the candidate as a whole.
+
+For lint-format, lifecycle is exactly this contract with no new mechanism
+(`GA-34`). Reinstall is an idempotent resume that claims no protection until
+complete; removal reverses only what the manifest attributes to Rig — generated
+CI, configuration, managed blocks — and leaves any legacy or user-owned artifact
+it cannot prove it created. Source fixes the user invoked through autofix
+(`GA-29`) are the user's own edits and always survive uninstall.
+[reasoning trace](../reasoning/2026-08-21-lint-format-lifecycle.md)

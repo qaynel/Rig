@@ -140,6 +140,31 @@
 >
 > **Frozen.** The decision is recorded and no case is left open.
 
+> **Revision note (2026-08-21) — D21, the lint-format vertical release
+> boundary.** Re-grilled with [`business-spec.md`](business-spec.md) after a
+> readiness audit found this file's release condition ran against all 115
+> catalogue leaves, while the intent owner had separately ruled (`GA-15`–
+> `GA-35`) that `development.code-quality.lint-format` ships first, alone, as
+> normal Rig's first production-supported leaf. D21 narrows the release
+> condition to that one leaf; the other 114 remain committed, specified, and
+> block their own future support and the complete-catalogue claim, but not
+> this release.
+>
+> Nineteen new cases, independently authored against the closed decisions and
+> approved by the intent owner on 2026-08-21: `AT-LF-1` through `AT-LF-19`,
+> covering whole-repository open-ecosystem discovery, the hybrid-plus tool
+> promise, semantic command discovery, user scope/component override, plan-
+> bound untrusted-task execution, partial-coverage apply, the three cumulative
+> grade levels, diff scope, the read-only guarantee, separately approved
+> autofix, CI behavior, command drift, redacted local reporting, the abnormal-
+> ending taxonomy, idempotent reinstall, manifest-exact removal, and the
+> per-component support claim. The ID set grows from **49** to **68**, and
+> the Gate-2 traceability table must match that set exactly.
+>
+> **Frozen.** All twenty decisions are recorded and no case is left open. A
+> design or implementation context must not edit this file; a genuine
+> conflict returns to grilling.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are independently authored observable cases. Gate 2 owns their executable
@@ -574,6 +599,139 @@ only when the product intent is met.
   is the one place the product's preference for configurability over paternalism
   is deliberately inverted, because it is the one failure that cannot be undone
   by re-running anything.
+
+### H. Lint-format production leaf (2026-08-21, D21)
+
+These 19 cases are independently authored against the closed lint-format
+decisions in [`../specs/lint-format-intent.md`](../specs/lint-format-intent.md).
+Each must fail against the current prototype — which authored lint-format only
+as a probe and implements none of drift, scope, CI, redaction, the abnormal-
+ending taxonomy, or partial coverage — and pass only when this intent is met.
+
+- **AT-LF-1 (whole-repository, open-ecosystem discovery) [GA-19, GA-20].**
+  *Given* a repository containing a JS component and a nested component in an
+  ecosystem Rig cannot yet build even the Policy level for, *when* Rig
+  inspects, *then* it discovers both components, derives each one's
+  lint/format ecosystem from the repository itself rather than a fixed
+  roster, and presents every discovered component in the reviewable plan. A
+  plan that enumerates only the root component, or that matches against a
+  hard-coded language list, fails this case.
+- **AT-LF-2 (hybrid-plus: preserve existing tools, user decides) [GA-16,
+  GA-17].** *Given* a component with eslint and prettier already configured,
+  *when* Rig recommends lint-format, *then* the existing toolchain is
+  preserved by default; Rig may offer supported setup or a better
+  alternative, but nothing changes until the user opts in. A silent
+  replacement or forced migration fails this case.
+- **AT-LF-3 (semantic command discovery; ambiguity returns to the user)
+  [GA-21].** *Given* a component whose lint/format commands live under
+  non-standard names in its manifests, tool configuration, or declared tasks,
+  *when* Rig binds commands, *then* it discovers them semantically and
+  preserves the declared workflow; an ambiguous match is surfaced for the
+  user to choose. Reliance on fixed script names or a silent guess fails this
+  case.
+- **AT-LF-4 (user scope and component choice win over the recommendation)
+  [GA-20, GA-28, AT-P5].** *Given* a recommended plan, *when* the user
+  deselects a component and/or requests a scope other than the diff default,
+  *then* the applied plan matches the user's choice. A plan that reasserts
+  the recommendation over the user's edit fails this case.
+- **AT-LF-5 (selection authorizes nothing; only the approved plan runs)
+  [GA-25, GA-26].** *Given* lint-format selected but not yet plan-approved,
+  *then* no repository code executes. *When* the user approves the concrete
+  plan, *then* exactly its listed read-only commands, working directories,
+  and components run, and the plan discloses that repository tasks are
+  untrusted code run under Rig's controls without presenting `shell: false`
+  as a safety guarantee. Any pre-approval execution, any unlisted command, or
+  a `shell: false` safety claim fails this case.
+- **AT-LF-6 (apply grafts and records; partial coverage is explicit) [GA-24,
+  GA-34, AT-SHAPE-1, AT-INSTALL-1].** *Given* an approved plan across a
+  covered and an uncoverable component, *when* Rig applies, *then* every
+  write is recorded in the install manifest at the time it is made, the
+  uncoverable component is excluded only with the user's approval and
+  reported as a visible unprotected gap, and the covered component installs.
+  An unrecorded write, or an exclusion applied without approval, fails this
+  case.
+- **AT-LF-7 (Policy level governs the change) [GA-22].** *Given* a covered
+  component at grade Policy, *when* the check runs, *then* it governs the
+  change at the lowest level capable of a definitive answer and reports a
+  real Policy-level result. A placeholder result, or a check that silently
+  runs a higher level, fails this case.
+- **AT-LF-8 (Context level is a cumulative superset) [GA-22].** *Given* the
+  same component at grade Context, *then* the checks are a strict superset of
+  Policy's — Policy's governance plus understanding the change. A Context
+  grade that drops or merely replaces a Policy check fails this case.
+- **AT-LF-9 (Evidence level proves with verifiable evidence) [GA-22].**
+  *Given* the same component at grade Evidence, *then* the checks are a
+  strict superset of Context's and the verdict rests on verifiable evidence,
+  not an agent opinion. An Evidence pass backed only by an unverifiable agent
+  assertion fails this case.
+- **AT-LF-10 (diff-scoped by default; ignore rules and working directory
+  honored) [GA-28].** *Given* a covered component under the default scope,
+  *when* the check runs, *then* it inspects only the changed files, respects
+  the component's ignore rules, and runs inside the component's working
+  directory. Inspecting the whole repository by default, ignoring the ignore
+  rules, or running from the wrong directory fails this case.
+- **AT-LF-11 (a read-only check that mutates is a failure) [GA-27].** *Given*
+  an approved read-only check whose tool mutates the working tree, *when*
+  Rig detects the mutation, *then* it stops before any further planned
+  command runs, fails the check, and reports the exact changed paths with
+  before/after evidence, without auto-restoring the tree and without
+  continuing. An auto-restore, a continuation, or a pass fails this case.
+- **AT-LF-12 (autofix is a separate, separately approved mutating action)
+  [GA-29].** *Given* a completed read-only check, *then* no source is
+  rewritten. *When* the user explicitly invokes a specific fix command under
+  its own approval, *then* Rig applies format and/or safe lint fixes,
+  re-verifies by re-running the check, and leaves the result as uncommitted
+  working-tree edits the user owns. Autofix folded into the check,
+  auto-committed, or run without its own approval fails this case.
+- **AT-LF-13 (CI at the Evidence level is additive, proposed, and
+  preserving) [GA-30].** *Given* the Evidence level, *then* verified existing
+  CI receives an additive whole-scope gate that does not touch unrelated
+  jobs; absent or unsupported CI gets nothing written until the user chooses
+  a provider and approves a separate plan; a pipeline Rig does not
+  understand is preserved and reported, never silently edited or replaced. A
+  silent edit of an unknown pipeline, an auto-created CI on selection alone,
+  or a clobbered unrelated job fails this case.
+- **AT-LF-14 (command drift stops execution) [GA-31].** *Given* a
+  plan-approved task that has since changed, *when* execution reaches it,
+  *then* Rig stops before running, does not execute the changed command,
+  discloses the exact drift, and requires a freshly rediscovered plan the
+  user approves before resuming. Silently running the changed task, or
+  running the stale approved text, fails this case.
+- **AT-LF-15 (report is failure-centric, local, redacted, actionable)
+  [GA-32].** *Given* a check that produces findings, including one
+  containing secret- or PII-shaped content, *when* it reports, *then* the
+  report stays on the producing host, keeps failure/vacuous/gap state and
+  omits routine passes, redacts secrets/PII/host-rooted data on the
+  producing host before anything leaves it, and explains each finding as an
+  actionable item; CI emits only verdict, counts, and rule identities, and
+  matched secret content reaches the agent only on explicit opt-in. Any
+  leaked detail, uploaded artifact, or default secret exposure fails this
+  case.
+- **AT-LF-16 (every abnormal ending is its own non-passing state) [GA-33].**
+  *Given* checks that end abnormally — timeout, user cancellation,
+  missing-dependency, signalled/killed, partial-output, command-not-found —
+  *then* each resolves to its own distinct, reported, non-passing state
+  naming exactly why. Collapsing any into "pass," into a generic "failed," or
+  treating an inconclusive end as non-blocking fails this case.
+- **AT-LF-17 (reinstall is an idempotent resume) [GA-34].** *Given* an
+  interrupted or repeated install, *when* the user re-runs it, *then* it
+  resumes from the manifest, claims no protection until complete, and
+  produces no duplicated or accumulating entries. A from-scratch rewrite, a
+  duplicate entry, or a mid-install "protected" claim fails this case.
+- **AT-LF-18 (removal reverses exactly the manifest; user fixes survive)
+  [GA-34].** *Given* lint-format installed — generated CI, configuration,
+  managed blocks — and a source fix the user applied via autofix, *when* the
+  user uninstalls, *then* Rig reverses exactly what its manifest recorded it
+  created and nothing else, and the user's autofix edits survive. Reverting
+  user fixes or deleting an unrecorded artifact fails this case.
+- **AT-LF-19 (support is claimed per component, only on real evidence)
+  [GA-35, GA-24].** *Given* a repository with a covered and an excluded
+  component after apply, *then* the covered component is claimed supported
+  only because Rig built at least Policy, bound its commands, and produced a
+  real result under plan-bound consent; the excluded component is not
+  claimed; and the whole-repository claim is suppressed because a discovered
+  component was excluded. Claiming whole-repository support from install
+  success, or from per-run results without a built level, fails this case.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product

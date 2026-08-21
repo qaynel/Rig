@@ -38,3 +38,11 @@ guard were rejected. [Rejected approaches](../index/rejected.md)
 Round 3 found no defined channel for explicitly enabled model-assisted triage,
 so `AT-SECRET-1` is not currently executable. Gate 2 must describe that channel
 without weakening the default-local rule. [Status](../status.md#the-blocker-round-3-failed)
+
+For lint-format, redaction is broader than secrets (`GA-32`). Linter and
+formatter output can quote source and surface secrets, personally identifying
+information, or other host-rooted sensitive data; Rig strips all of it on the
+producing host before any output leaves that machine, making the producing host
+the redaction boundary. Matched secret content still reaches the agent only on
+explicit opt-in.
+[reasoning trace](../reasoning/2026-08-21-lint-format-output-privacy.md)

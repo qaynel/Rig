@@ -41,3 +41,12 @@ CI verification were rejected. [Rejected approaches](../index/rejected.md)
 No host axis currently has the complete candidate contract, and all six CI
 providers need adapter/fixture evidence. Gate 2 also needs to disambiguate the
 word `verified` in policy evidence from the removed host tier. [Status](../status.md#the-blocker-round-3-failed)
+
+For lint-format specifically, the Evidence level is what runs enforcement in CI,
+whole-scope at the gate (`GA-30`). It applies the additive contract above:
+integrate into verified existing CI rather than owning the pipeline; where CI is
+absent or of an unsupported provider, propose a pipeline as an explicit separate
+plan the user approves after choosing the provider — never auto-create on
+selection alone; and preserve, never silently rewrite, a pipeline Rig does not
+understand.
+[reasoning trace](../reasoning/2026-08-21-lint-format-ci-behavior.md)

@@ -1,4 +1,4 @@
-# Status — checked 2026-08-20
+# Status — checked 2026-08-21
 
 Where the project actually is. Every line below was checked against the files on
 this date, not copied from another document.
@@ -11,14 +11,28 @@ note. Permanent things belong in [`topics/`](topics/); dated things belong in
 
 ## The one-line version
 
-Gate 1 is finished and frozen at **49 acceptance cases**. Gate 2's round-3
-review failed on four findings; the deliberate lint-format vertical-slice probe
-(intent owner-agreed, see [`reasoning/2026-08-19-lint-format-vertical-slice.md`](reasoning/2026-08-19-lint-format-vertical-slice.md))
-confirmed the blocker finding live in the running code, and it is now resolved
-in both Gate 2's candidate text and `rig/lib/apply.js` — see
+Gate 1 is re-frozen at **68 acceptance cases** (2026-08-21, D21): the intent
+owner approved the Stage A draft
+([acceptance-authoring handoff](specs/lint-format-grilling-handoff.md)), and
+Stage B has landed — `AT-LF-1`–`AT-LF-19` are now written into
+[`gate1/acceptance.md`](gate1/acceptance.md) §7H and
+[`index/acceptance-cases.md`](index/acceptance-cases.md), and
+[`gate1/business-spec.md`](gate1/business-spec.md) now records the lint-format
+vertical release boundary: `development.code-quality.lint-format` is the only
+leaf release-blocking for this release, the other 114 remain commitments that
+block their own future support and the complete-catalogue claim, not this
+release. This resolves the conflict this section previously described. **The
+Gate 1 signature is now stale against the new digest** (below) and needs the
+intent owner's re-signature (Stage B step 6) before Stage C hands the frozen,
+signed intent to `rig-product-design` to re-trace `AT-LF-*` into Gate 2 §13.
+
+Gate 2's round-3 review still failed on four findings; the blocker
+(rollback vs. resume) is resolved — see
 [`reasoning/2026-08-20-resolve-at-install-1.md`](reasoning/2026-08-20-resolve-at-install-1.md).
-Three major/minor findings from round 3 remain open, and a fresh round-4
-review has not been run. No further code may be written until Gate 2 freezes.
+Three major/minor findings remain open, and a fresh round-4 review has not
+been run; it must in any case wait for Gate 2's re-trace against the new
+68-case set. See the
+[lint-format production grilling audit](reasoning/2026-08-20-lint-format-production-grilling-audit.md).
 
 ---
 
@@ -26,29 +40,60 @@ review has not been run. No further code may be written until Gate 2 freezes.
 
 | | State |
 |---|---|
-| **Gate 1** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) | **Frozen**, 49 cases. Last amended 2026-08-19 by D20. |
-| **Gate 2** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.5. Not frozen.** Written against the current 49-case set. Implementation may not begin. |
-| **Gate 1 signature** | **Unarmed.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere in the repository. |
+| **Gate 1** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) | **Frozen**, 68 cases. Last amended 2026-08-21 by D21. |
+| **Gate 2** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Candidate v0.5. Not frozen.** Still written against the prior 49-case set; `AT-LF-*` is not yet traced into §13. Implementation may not begin. |
+| **Gate 1 signature** | **Unarmed, and now stale against the new digest below.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere in the repository. Whenever the signer identity is armed, it must be signed at the current digest, not the pre-D21 one. |
 
 ### Current digests
 
 | File | SHA-256 |
 |---|---|
-| `gate1/business-spec.md` | `5f26ce2b9438ac5c11efafe07b0612647fd64d8b5c4d3ab4fa2342a1bf7d5da0` |
-| `gate1/acceptance.md` | `9ec0ac94238063b808e1b01bdc2c5b142d2b7c9410cb5d0ef2663d9baa4a86f7` |
-| `gate2/technical-spec.md` | `4926f253673e7daee73a4e8a76576a47620d618fa68832a943ec02683cbcdcc3` |
+| `gate1/business-spec.md` | `5175be10ee35f0e9207883b15d0c5f12e82340d8ce93c7852b68e4579d91d545` |
+| `gate1/acceptance.md` | `ffd493030c85b802e9445a918be0f6683dc02dd345c474d521a3cfed308af45b` |
+| `gate2/technical-spec.md` | `5f4edd7adaf74f901d5f10216c9858b3c3544807baee4a46097e0bd74b182760` |
+
+Both Gate 1 digests **changed on 2026-08-21** when D21 added `AT-LF-1`–
+`AT-LF-19` and the lint-format release-boundary revision (see above). They no
+longer match the pins in Gate 2's header, which is expected and is Gate 2's
+job to re-trace, not this amendment's.
 
 The Gate 2 digest changed from `c0333c36…` on 2026-08-20 when §6.6, §10, and
-AD-10 were edited to resolve the round-3 blocker finding (see below). Both
-Gate 1 digests still **match** the pins in the Gate 2 header — this edit did
-not touch Gate 1. Re-check at any time:
+AD-10 were edited to resolve the round-3 blocker finding (see below), and then
+changed again when `AD-24`/`AD-31` staged catalogue production vertically around
+lint-format first. Re-check at any time:
 
 ```sh
 shasum -a 256 wiki/gate1/business-spec.md wiki/gate1/acceptance.md wiki/gate2/technical-spec.md
 ```
 
-Traceability is also correct: Gate 2's table covers exactly the 49 live case IDs,
-no more and no fewer. See [acceptance cases](index/acceptance-cases.md).
+Traceability is now **stale**: Gate 2's table covers only the prior 49 IDs and
+does not yet trace `AT-LF-1`–`AT-LF-19`. Re-tracing to 68 is `rig-product-design`'s
+job under the re-frozen Gate 1. See [acceptance cases](index/acceptance-cases.md).
+
+---
+
+## Resolved: the vertical-release conflict with frozen Gate 1
+
+**This is resolved as of 2026-08-21 by D21.** The intent-owner ruling asked for
+lint-format to become the first production leaf while the other 114 leaves
+remain future commitments; Gate 2 recorded that path first (`AD-24`/`AD-31`),
+and frozen Gate 1 previously still said all 115 leaves were release-blocking,
+so the production path had no Gate-1 authority. D21 narrows Gate 1's release
+condition to match: `development.code-quality.lint-format` alone is
+release-blocking for this release, and the other 114 leaves block only their
+own future support and the complete-catalogue claim. See
+[`gate1/business-spec.md`](gate1/business-spec.md)'s D21 revision note and §3/§5.
+
+All twenty lint-format product-intent questions (`GA-16`–`GA-35` plus the
+reconciled 1–3) were already closed by the grilling audit; D21 is the Gate 1
+amendment that gives them authority, and the acceptance
+([acceptance-authoring handoff](specs/lint-format-grilling-handoff.md)) is
+authored and approved — Stage A and Stage B (cases 4–5) are done. What remains
+is Stage B step 6 (the intent owner's signature — a physical act this document
+cannot perform) and Stage C (handoff to `rig-product-design`).
+
+Full handoff: [lint-format production grilling audit](reasoning/2026-08-20-lint-format-production-grilling-audit.md).
+[Release-contract reconciliation](reasoning/2026-08-20-lint-format-grilling-release-contract.md).
 
 ---
 
@@ -87,10 +132,18 @@ the intent owner chose to grill the requirement rather than strip the capability
 
 ## Ordered next steps
 
-1. **Resolve the remaining three round-3 findings** in Gate 2. The blocker
+1. **The intent owner re-signs Gate 1 at the new digest.** Stage A and Stage B
+   of the [acceptance-authoring handoff](specs/lint-format-grilling-handoff.md)
+   are done: D21 landed, expanding the frozen set to 68 cases. What remains is
+   Stage B step 6 — a physical signature act only the intent owner can perform,
+   over the digests recorded above. See [Gate 1 signing](topics/gate1-signing.md).
+2. **Hand the frozen intent to `rig-product-design` (Stage C).** Re-trace
+   `AT-LF-1`–`AT-LF-19` into Gate 2 §13, amend Gate 2 for the D21 release
+   boundary, and re-freeze against the current 68-case digest.
+3. **Resolve the remaining three round-3 findings** in Gate 2. The blocker
    (rollback vs. resume) is done — see above. AD-30/§8.4 vs D19,
    §1/`AT-BASE-2` vs §11.1/AD-26, and §8.8 vs `AT-SECRET-1` are still open.
-2. **Re-review** at the new digest:
+4. **Re-review** at the final digest after Gate 1 and Gate 2 agree:
    ```sh
    node scripts/review-receipt.js \
      --target wiki/gate2/technical-spec.md \
@@ -99,14 +152,17 @@ the intent owner chose to grill the requirement rather than strip the capability
    ```
    Takes several minutes; run it in the background. The wrapper starts a fresh
    non-interactive reviewer and binds the receipt to the reviewed bytes itself.
-3. **The intent owner signs Gate 1.** Cannot be delegated — that is the entire
-   point of D10. See [Gate 1 signing](topics/gate1-signing.md) for the ceremony.
-4. **Mark Gate 2 `FROZEN`** and pin the reviewed digest.
-5. **Slice 1** — build `scripts/check-advanced-spec.js` and wire it ahead of the
+5. **Mark Gate 2 `FROZEN`** and pin the reviewed digest.
+6. **Slice 1** — build `scripts/check-advanced-spec.js` and wire it ahead of the
    code tests. See [the specification gate](topics/specification-gate.md).
-6. **Slices 2–15** per Gate 2 §14. See [the delivery plan](topics/delivery-plan.md).
+7. **Execute the approved lint-format production path** — build the authored-service gate
+   enough to evaluate this exact leaf, complete the §7.6 manifest/resume/removal
+   contract for its write path, add distribution/released-tag install proof, and
+   produce a fresh exact-digest leaf review before claiming support.
+   See [the lint-format roadmap](specs/lint-format-roadmap.md).
 
-Steps 1, 2, 4, 5 are agent work. **Step 3 is the intent owner's alone.**
+Steps 1 and 2 require the intent owner and `rig-product-design` respectively.
+The other steps are agent work only after the governing gate permits them.
 
 ---
 
@@ -120,7 +176,7 @@ Steps 1, 2, 4, 5 are agent work. **Step 3 is the intent owner's alone.**
 | `.github/workflows/publish.yml` | **Deleted 2026-08-20** by the cleanup pass. The package remains private, so inherited npm publishing stays rejected. |
 | `package.json` version | **`4.8.4`**, private. Gate 2 §12.4 requires `5.0.0`. |
 | `scripts/review-receipt.js` | **Exists and works.** |
-| 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, the vertical-slice probe — current state and ordered path to production tracked in [its own roadmap](specs/lint-format-roadmap.md)). 428 files still contain `TODO(Slice 10)`. |
+| 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, proposed as the first production leaf by `GA-15`/`AD-31`, but not yet permitted by frozen Gate 1). The other 114 leaves still contain 428 `TODO(Slice 10)` files. See the [roadmap](specs/lint-format-roadmap.md) and [grilling audit](reasoning/2026-08-20-lint-format-production-grilling-audit.md). |
 | `tests/advanced-*.test.js` | **20 files, all green.** `advanced-lint-format.test.js` and `advanced-apply.test.js` assert real behavior (rejects placeholder content, exercises the real formatter/linter, exercises apply's manifest/resume). The rest are still calibrated to pass against placeholder content — see [traps](index/traps.md). |
 
 The committed suite passing tells you nothing about specification health, and

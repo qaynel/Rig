@@ -10,25 +10,29 @@ status: draft
 > [`gate2/technical-spec.md`](../gate2/technical-spec.md). If this file
 > disagrees with either, they are right and this file is wrong.
 
-Checked against the files on **2026-08-20**.
+Checked against the files on **2026-08-21**.
 
 ---
 
 ## The short version
 
 `development.code-quality.lint-format` is the **one** catalogue leaf (of 115)
-with real, service-specific content. It exists as a **pre-freeze design
-probe** — the intent owner's agreed test of "author one real leaf first, let
-it force spec contradictions out" — not as production authorship. It did its
-job: probing this leaf's install path found the `AT-INSTALL-1`
-rollback-vs-resume contradiction live in running code, and that is now fixed
-in both Gate 2's text and `rig/lib/apply.js`.
+with real, service-specific content. It started as a **pre-freeze design
+probe** — the intent owner's agreed test of "author one real leaf first, let it
+force spec contradictions out" — and it did that job: probing this leaf's
+install path found the `AT-INSTALL-1` rollback-vs-resume contradiction live in
+running code, and that is now fixed in both Gate 2's text and `rig/lib/apply.js`.
 
-**Nothing about this leaf is shippable on its own.** Gate 2 builds the whole
-catalogue through one ordered 15-slice plan; a single leaf cannot exit ahead
-of it. This file tracks what is already true for lint-format specifically and
-what the same ordered plan still requires before it counts as a production
-leaf.
+The intent owner selected **lint-format first**, as a production release of
+normal Rig with the default-on safety baseline and full 19-host/six-provider
+coverage. Gate 2 records that path. It is not authoritative yet: frozen Gate 1
+still says all 115 leaves are release-blocking, and Gate 2 cannot narrow Gate 1.
+**All twenty lint-format product decisions are now closed**; the remaining work
+is authoring the acceptance and re-freezing Gate 1 before this roadmap can
+become an implementation plan. [Production context](../reasoning/2026-08-20-lint-format-production-context.md)
+[Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
+[Release-contract reconciliation](../reasoning/2026-08-20-lint-format-grilling-release-contract.md)
+[Active grilling handoff](lint-format-grilling-handoff.md)
 
 ---
 
@@ -37,53 +41,48 @@ leaf.
 | Thing | State |
 |---|---|
 | Catalogue entry (`identity.md`, `minimal.md`, `mid.md`, `maximal.md`, `slices/{floor,property-floor,behavior-oracle}.md`) | **Authored**, service-specific — not template filler. See [the vertical-slice design](lint-format-vertical-slice.md). |
-| Check discovery/binding (`format:check` minimal, `+lint` mid, `+format`/`lint:fix`/CI maximal) | **Implemented** across `rig/lib/catalog.js`, `plan.js`, `apply.js`, `checks.js`, `ci-adapters.js`. |
+| Check discovery/binding | **Prototype implemented** across `rig/lib/catalog.js`, `plan.js`, `apply.js`, `checks.js`, `ci-adapters.js`, but it recognizes only fixed npm script names. The production contract now requires whole-repository, open-ecosystem semantic discovery; this implementation is not sufficient. |
+| Grade model | **Prototype superseded.** The formatter-only → formatter-plus-linter → CI-plus-fix split is not the production contract. The universal model is cumulative Policy → Context → Evidence, applied within each service's owned domain, with ordinary formatter/linter output treated as a commodity input. Current specification remains focused only on this leaf. |
+| Applicability | **Intent frozen, acceptance not yet authored.** Rig may install covered components while explicitly reporting user-approved uncovered components as unprotected. Partial installation suppresses any whole-repository support claim. |
+| Execution consent | **Intent frozen, acceptance not yet authored.** Service selection authorizes nothing to run. Approval of the concrete plan authorizes its listed read-only commands and scopes; mutating fixes require separate approval. |
+| Shell trust | **Intent frozen, acceptance not yet authored.** Repository tasks remain untrusted code under Rig policy, privilege, secret, network, and resource/time controls. `shell: false` protects only the outer argv boundary. |
 | `.rig/service-bindings.json` + `.rig/bin/check.js` writing | **Implemented.** Argv arrays only, `shell: false`; the recorded `fix` command is never dispatched by a check. |
-| Manifest/resume mechanics this leaf's apply path exercises | **Minimal version implemented** in `rig/lib/apply.js` (`.rig/install-manifest.jsonl`, write-record-then-mutate, `applied` supersede with digest). **Not** Slice 6's full §7.6 contract — no `complete: false` header field (the incomplete signal is currently receipt-absence, reused from the pre-existing pattern), no preimage CAS, no sanitation-control rollback. Those remain Slice 6's job. |
+| Manifest/resume mechanics this leaf's apply path exercises | **Minimal version implemented** in `rig/lib/apply.js` (`.rig/install-manifest.jsonl`, write-record-then-mutate, `applied` supersede with digest). **Not** the full §7.6 contract — no `complete: false` header field (the incomplete signal is currently receipt-absence, reused from the pre-existing pattern), no preimage content-addressed storage, and no reverse-walk removal. Those remain the Slice 6/Slice 12 lifecycle work. |
 | Tests | `tests/advanced-lint-format.test.js` and `tests/advanced-apply.test.js` assert real behavior (reject placeholder content, exercise real formatter/linter/CI commands, exercise the manifest/resume path) — not placeholder presence. |
-| Authored-service gate (`AT-SHAPE-6`: mechanical + fresh-context semantic/MECE review) | **Not passed.** The gate itself does not exist yet (Slice 2), and only this one leaf has content to check anyway. |
-| Formal Slice 14 authorship (all 115 leaves, one at a time, single context) | **Not started.** This probe predates Slice 14 and does not substitute for it — see [the authored-service gate](../topics/authored-service-gate.md). |
+| Authored-service gate (`AT-SHAPE-6`: mechanical + fresh-context semantic/MECE review) | **Not passed.** The gate itself does not exist yet (Slice 2), and no fresh exact-digest lint-format leaf review receipt exists. |
+| Other 114 leaves | **Still placeholders.** 428 `TODO(Slice 10)` files remain. Gate 2 proposes that they block only their own support and the complete-catalogue claim; frozen Gate 1 still makes them release-blocking. |
 
 ---
 
-## What has to happen, in order, before lint-format is a production leaf
+## What has to happen before lint-format is a production leaf
 
-Gate 2 has no per-leaf fast path: every leaf, including this one, rides the
-same ordered plan. Steps 1–4 are whole-project prerequisites already tracked
-in [status](../status.md#ordered-next-steps); steps 5–9 are where this leaf's
-own content gets used or re-verified.
-
-1. **Resolve the 3 remaining round-3 Gate 2 findings** (`AD-30`/§8.4 vs D19,
-   §1/`AT-BASE-2` vs §11.1/AD-26, §8.8 vs `AT-SECRET-1`). None of them concern
-   lint-format's own design. [Status](../status.md#the-blocker-round-3-failed--one-finding-now-resolved-in-candidate-text)
-2. **Fresh round-4 review** at the new digest.
-3. **The intent owner signs Gate 1** — not delegable.
-4. **Gate 2 marked `FROZEN`.**
-5. **Slice 1** — the specification gate and `npm run test:code` start
-   existing. Lint-format's tests keep passing under it; nothing about the
-   leaf changes here.
-6. **Slice 2** — the authored-service gate becomes real. This is the first
-   point where lint-format's current content runs through an actual gate
-   (mechanical inventory + anti-filler checks) instead of only its own
-   focused test file.
-7. **Slice 6** — the formal `§7.6` manifest writer lands (`complete: false`
-   header, preimage CAS, sanitation-control wiring/unwiring). It **supersedes**
-   the minimal pre-freeze implementation this leaf's apply path currently
-   exercises; lint-format's install/resume behavior gets re-verified against
-   the complete contract, not just the reduced one the probe built.
-8. **Slice 14** — lint-format is (re-)authored in its turn as one of 115
-   leaves, in the same single-context, one-at-a-time order as every other
-   leaf, and passes the fresh exact-digest semantic/MECE review as part of
-   the whole set. **The pre-freeze content is a head start, not a pass** —
-   see the same caveat in [the authored-service gate](../topics/authored-service-gate.md#what-is-still-open).
-9. **Slice 15** — the complete matrix and fresh specification review run
-   over the whole catalogue, lint-format included, before anything is
-   `FROZEN` as done.
-
-On top of all nine: the product-level release blockers (`install.sh`,
-version `5.0.0`, deleting `.github/workflows/publish.yml`) gate whether the
-*product* ships at all. Lint-format cannot be "in production" before that,
-regardless of its own state. See [the delivery plan](../topics/delivery-plan.md).
+1. **Author the lint-format acceptance and re-freeze Gate 1.** All twenty
+   product decisions are closed; follow the two-stage
+   [acceptance-authoring handoff](lint-format-grilling-handoff.md) to author
+   observable examples and runnable `AT-LF-*` case specs, then land them as one
+   amendment. [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
+2. **Reconcile Gate 1 and Gate 2.** If lint-format may ship first, amend and
+   re-freeze Gate 1 before revising Gate 2 to match. No production code work
+   starts while they disagree.
+3. **Freeze Gate 2.** Resolve the 3 remaining round-3 findings (`AD-30`/§8.4 vs
+   D19, §1/`AT-BASE-2` vs §11.1/AD-26, §8.8 vs `AT-SECRET-1`), run a fresh
+   review at the final digest, and mark Gate 2 `FROZEN`. [Status](../status.md#ordered-next-steps)
+4. **Arm Gate 1 integrity.** The intent owner signs Gate 1 once the verifier
+   exists; this is not delegable.
+5. **Build the executable specification gate.** `scripts/check-advanced-spec.js`
+   and `npm run test:code` must exist so production checks do not rely on the
+   currently misleading green suite.
+6. **Build the authored-service gate for this leaf.** Lint-format's focused test
+   evidence must be judged by the real mechanical anti-filler checks plus a
+   fresh exact-digest semantic/MECE leaf review.
+7. **Complete §7.6 for lint-format's write path.** The current manifest/resume
+   mechanics are a reduced probe; production still needs the `complete: false`
+   header, preimage content-addressed storage, and reverse-walk removal path.
+8. **Prove distribution.** Add the root `install.sh`, move the package to
+   `5.0.0`, and prove a released-tag install into a fresh repository.
+9. **Run the production evidence set.** Focused lint-format checks, the
+   authored-service gate, distribution proof, and the full production gate must
+   pass at the bytes being claimed.
 
 ---
 
@@ -108,14 +107,14 @@ regardless of its own state. See [the delivery plan](../topics/delivery-plan.md)
   gate doesn't exist yet (Slice 2). `tests/advanced-lint-format.test.js`
   proves this leaf isn't placeholder content; it does not prove it would
   survive the real gate. [The suite is green and means nothing](../index/traps.md#the-suite-is-green-and-means-nothing)
-- **`rig/lib/apply.js`'s current manifest is not Slice 6-complete.** No
+- **`rig/lib/apply.js`'s current manifest is not §7.6-complete.** No
   `complete: false` header field exists today — the incomplete signal is
   still "no final receipt was written," reused from the pattern that existed
   before this probe. Do not assume a partial install here already satisfies
   the full `§7.6` contract.
-- **This leaf cannot freeze Gate 2 by itself.** Three round-3 findings are
-  still open and none of them are about lint-format — do not read this
-  leaf's progress as progress toward the freeze.
+- **Gate 2 cannot narrow Gate 1.** `AD-31` proposes removing the other 114
+  leaves as blockers for this support claim, but frozen Gate 1 still says all
+  115 are release-blocking. Resolve that in grilling before implementation.
 
 ---
 
