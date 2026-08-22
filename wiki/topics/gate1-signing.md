@@ -30,7 +30,8 @@ missing, malformed, stale, or non-verifying signatures fail once armed.
 machine-local environment variable, `RIG_GATE1_SIGNING_KEY`, from the process or
 from `.context/gate1.env`; writes the canonical oracle message; invokes
 `ssh-keygen -Y sign` in namespace `rig-gate1`; and only after a successful
-signature writes `gate1.allowed-signers` and `gate1.sig`. The ignored local env
+signature writes `gate1.allowed-signers` and `gate1.sig`. The tracked
+`scripts/gate1.env.example` shows the expected setting; the ignored local env
 file stores the key path, not private key material.
 
 ## What was rejected

@@ -33,6 +33,12 @@ test('local Gate 1 env config is parsed without shell evaluation', () => {
   assert.equal(approve.loadLocalEnv(root, {}), '$HOME/.ssh/gate1.pub');
 });
 
+test('tracked example env names the one local key variable', () => {
+  const example = fs.readFileSync(path.join(__dirname, '..', 'scripts/gate1.env.example'), 'utf8');
+  assert.match(example, /^RIG_GATE1_SIGNING_KEY=/);
+  assert.doesNotMatch(example, /PRIVATE|SECRET|TOKEN/);
+});
+
 test('Gate 1 approval signs the canonical oracle message', () => {
   const root = tempRoot();
   const key = makeKey(root);

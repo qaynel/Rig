@@ -70,7 +70,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   const env = { ...process.env, ...(options.env || {}) };
   defaultSecretiveAgent(env);
   const configured = loadLocalEnv(root, env);
-  assert.ok(configured, `set ${ENV_NAME} or create .context/gate1.env`);
+  assert.ok(configured, `set ${ENV_NAME} or copy scripts/gate1.env.example to .context/gate1.env`);
 
   const signingKey = path.resolve(root, expandPath(configured));
   assert.ok(fs.existsSync(signingKey), `${ENV_NAME} does not exist: ${signingKey}`);
