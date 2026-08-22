@@ -2,10 +2,10 @@
 
 ## What it is
 
-The specification gate is the first, short-circuiting check in `npm test`. It
+The oracle verifier is the first, short-circuiting check in `npm test`. It
 must verify the oracle's signature integrity, that every acceptance criterion
-traces to a real test in the frozen testing infrastructure, and the existence
-and real result output of every named executable target before code tests run.
+traces to a real test in the signed testing infrastructure, and every manifested
+file still has its signed digest before code tests run.
 Under the one-gate model (2026-08-21) it no longer checks for a separate frozen
 Gate 2 authority or Gate 1↔Gate 2 traceability; the technical spec is checked
 for presence, not frozen, so it cannot gate `npm test`. [AD-18/AD-28](../gate2/technical-spec.md#2-final-mechanism-decisions)
@@ -38,17 +38,9 @@ false green result. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approa
 
 ## What is still open
 
-`scripts/check-advanced-spec.js` and `npm run test:code` do not exist. Under one
-gate, Slice 1 is no longer blocked by a second technical-spec freeze; it needs
-only the oracle signed. [Status](../status.md#what-exists-in-the-code-today)
-
-When Slice 1 is built, it must implement `AT-SHAPE-6` under D23's one-release
-exception: full-content evaluation applies to
-`development.code-quality.lint-format` alone for this release, not all 115
-leaves. This is a dated, named carve-out, not the gate's standing behavior —
-see [the authored-service gate](authored-service-gate.md#what-is-still-open)
-and [the reasoning trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md).
-Gate 2 v0.10 carries the same release scoping into the code-test layer: Slice 2
-may assert the other 114 leaves are red/unauthored as status, but that expected
-state is not a failing `npm test` exit for the lint-format-only release. See
-[the round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md).
+`scripts/check-advanced-spec.js`, the stable manifest, and `npm run test:code`
+do not exist. Slice 1 builds them and all 68 substantive targets, then the owner
+signs before implementation. D24 retires D23: `AT-SHAPE-6` evaluates all 115
+leaves, and its product target is expected to be red until implementation
+authors them. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
+[Status](../status.md#what-exists-in-the-code-today)

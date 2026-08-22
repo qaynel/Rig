@@ -37,5 +37,24 @@ rejected. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approaches)
 ## What is still open
 
 `install.sh` does not exist and the package remains `4.8.4`. The inherited npm
-publish workflow has been deleted. Distribution is Slice 13 after the preceding product
-mechanisms exist. [Status](../status.md#what-exists-in-the-code-today)
+publish workflow has been deleted. [Status](../status.md#what-exists-in-the-code-today)
+
+**D24 (2026-08-21) promotes distribution from Slice 13 to MVP step 3**, directly
+after the specification gate and before the bulk catalogue authoring. The
+reasoning is time-to-beta: distribution is the first step that produces
+something a stranger can hold, so it lands early rather than at the end. The
+mechanism is unchanged — a named released tag, downloaded before execution,
+never `curl | sh`. Step 3 also wires all 55 swallowed skills into materialize
+and host discovery, without which they are not installable at all.
+[roadmap](../specs/mvp-roadmap.md) ·
+[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
+
+The prior legal blocker is **resolved by the intent owner**. The swallowed
+source was traced to
+`garrytan/gstack` version `1.60.1.0` at commit `7c9df1c…`; its MIT copyright and
+permission notice is restored beside the vendored files, with the local rename,
+omissions, and sanitation recorded as modifications. The owner approved the
+modified partial distribution under MIT on 2026-08-21, conditional on shipping
+the notice and provenance with every installed copy and making no upstream-
+endorsement claim. [Approval](../reasoning/2026-08-21-d24-owner-approval.md)
+[v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)

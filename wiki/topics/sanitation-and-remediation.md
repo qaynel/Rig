@@ -35,6 +35,10 @@ as execution, consent, or false-success failures. [Gate 2 §2.1](../gate2/techni
 
 ## What is still open
 
-The design is not implemented. Slice 6 must reconcile remediation rollback with
-the same transaction semantics that currently block install/apply freeze.
+The design is not implemented. v0.11 resolves the earlier transaction
+contradiction: remediation uses the append-only mutation journal with its own
+terminal states, retains successful owner-approved content edits outside
+uninstall, and records restored digests after rollback so install resume cannot
+mistake reverted work for a live artifact. Slice 6 must implement that contract.
 [Gate 2 Slice 6](../gate2/technical-spec.md#slice-6---real-sanitation-remediation-and-policy-aware-transaction)
+[v0.11 correction](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md)

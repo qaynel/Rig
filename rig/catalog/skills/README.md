@@ -2,8 +2,14 @@
 
 A rough, first-pass vendoring of the upstream gstack skill suite into Rig. Every
 skill, helper, and reference was renamed to Rig's namespace (`gstack` → `rig`,
-`gbrain` → `brain`); **no filename or reference carries the old name**, so each
-capability is callable by its Rig name (`rig-qa`, `rig-ship`, `rig-browse`, …).
+`gbrain` → `brain`); no runtime-facing filename or command reference carries
+the old name, so each capability is callable by its Rig name (`rig-qa`,
+`rig-ship`, `rig-browse`, …). Attribution and provenance deliberately retain
+the upstream name.
+
+The source is a modified partial distribution of `garrytan/gstack` version
+`1.60.1.0`. See [`UPSTREAM.md`](UPSTREAM.md) for the pinned commit and changes,
+and [`LICENSE.upstream`](LICENSE.upstream) for the preserved MIT notice.
 
 ## Status: rough, not yet wired
 
@@ -31,8 +37,8 @@ plumbing pass.
 ## Sanitation applied to stay CI-green
 
 The repo's secret floor is stricter than upstream's placeholder-aware detector.
-Three illustrative shapes were neutralized so `npm test` passes: the AWS docs
-example key, a `-----BEGIN PRIVATE KEY-----` literal in a code comment, and the
-`ask-only-for-one-way` preference enum (whose `sk-…` substring tripped the
-floor), renamed uniformly to `ask-only-oneway`. Upstream's release `CHANGELOG.md`
-was dropped as non-functional noise.
+Three illustrative shapes were neutralized so `npm test` passes: an AWS docs
+example key, a PEM private-key header in a code comment, and a preference enum
+whose spelling contained a token-shaped prefix, renamed uniformly to
+`ask-only-oneway`. Upstream's release `CHANGELOG.md` was dropped as
+non-functional noise.

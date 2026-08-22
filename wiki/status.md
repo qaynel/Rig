@@ -1,4 +1,4 @@
-# Status — checked 2026-08-21 (two gates collapsed to one)
+# Status — checked 2026-08-22 (one-gate D24 oracle preparation)
 
 Where the project actually is. Every line below was checked against the files on
 this date, not copied from another document.
@@ -21,131 +21,126 @@ router and the grilling / product-design skills.
 [the gate](topics/the-two-gates.md)
 
 **Consequence: implementation is no longer blocked by a second freeze.** The
-technical-spec review-round history further down (v0.5→v0.10, round-6 findings)
+technical-spec review-round history further down (v0.5→v0.11, round-6 findings)
 is retained as record of how the design got here, but it **no longer gates
 implementation** — those rounds existed only to clear the retired second freeze.
 The remaining real design content in them (rollback, recovery-credential
 handling, evidence-gate consistency) survives as ordinary working-spec design the
-code adapts around, not as freeze blockers. What still blocks code is only the
-oracle signature.
+code adapts around, not as freeze blockers.
+
+**Authority defect resolved 2026-08-21:** the intent owner approved the
+recommended D24/one-gate amendment and both Gate 1 files now carry it. The
+completed test infrastructure and manifest still need the owner's live-human
+signature before implementation; approval in chat is authority for the
+amendment, not a substitute for the cryptographic ceremony.
+
+---
+
+## D24 — the MVP is built at agent discretion (2026-08-21, later the same day)
+
+The intent owner ruled that the minimum viable product is authored **in one
+pass at the agent's discretion**, not leaf by leaf. All 115 leaves get real
+content at the **Policy** rung of the grade ladder, each fragment declaring its
+grade and declaring that it is baseline practice not tailored to the installing
+repository. This suspends locked decision 8 (one at a time, single context,
+never templated) **for this release only**. The safety baseline is unchanged:
+a missing binding is still a named, nonzero coverage gap, never a fabricated
+pass.
+
+Recorded honestly: under D24 the agent both authors the content and sets the bar
+it is judged against, so **this release does not demonstrate the "an agent
+cannot move its own goalpost" property.** The owner accepted that trade to reach
+beta users on a time crunch, and it is reversible by promoting leaves to Context
+or Evidence afterwards. D24 is now in Gate 1 and retires D23's one-release
+`AT-SHAPE-6` exception.
+[ruling](reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[owner approval](reasoning/2026-08-21-d24-owner-approval.md)
+
+### Record defects tracked as of this date
+
+1. **Commit `ff7cea5` vendored 56 upstream skills plus `bin`/`lib` plumbing into
+   `rig/catalog/skills` and `rig/catalog/plumbing` and updated zero wiki files.**
+   Nothing in `rig/lib`, `rig/manifest.json`, `rig/bootstrap.sh`, `scripts`,
+   `tests`, or `package.json` references them, so they are both unwired and
+   invisible to this wiki. The catalogue, delivery-plan, and distribution hubs
+   all need them.
+2. **Resolved 2026-08-21: upstream provenance, MIT notice, and owner ruling.**
+   Vendored version `1.60.1.0` maps to upstream release commit `7c9df1c…`; the
+   required 2026 Garry Tan copyright and permission notice ships beside the
+   modified partial distribution. The owner permits release under MIT provided
+   the notice and provenance ship in every installed copy and Rig claims no
+   upstream endorsement.
+3. **Resolved 2026-08-21: the `ff7cea5` secret-scan regression.** The swallowed
+   suite README and this status page now describe the neutralized credential
+   shapes without reproducing them. `npm test` passes the secret floor, all 264
+   root tests, and all 15 pi-extension tests. This restores the pre-existing
+   gate; it does not create the still-missing specification gate.
 
 ---
 
 ## The one-line version
 
-Gate 1 is re-frozen at **68 acceptance cases** (2026-08-21, D21): the intent
-owner approved the Stage A draft
-([acceptance-authoring handoff](specs/lint-format-grilling-handoff.md)), and
-Stage B has landed — `AT-LF-1`–`AT-LF-19` are now written into
-[`gate1/acceptance.md`](gate1/acceptance.md) §7H and
-[`index/acceptance-cases.md`](index/acceptance-cases.md), and
-[`gate1/business-spec.md`](gate1/business-spec.md) now records the lint-format
-vertical release boundary: `development.code-quality.lint-format` is the only
-leaf release-blocking for this release, the other 114 remain commitments that
-block their own future support and the complete-catalogue claim, not this
-release. D22 (2026-08-21, later the same day) clarifies `AT-CI-3` without
-changing the case count: CI runs selected executable services only when they are
-repo-CI-applicable at their active grade, so lint-format remains CI-enforced only
-at Evidence.
+D24 and the one-gate contract are now owner-approved and landed in both Gate 1
+files. The ID set remains **68**, but the release boundary is now the complete
+MVP: all 115 leaves at declared Policy grade, all 55 vendored skills wired by
+Rig name, detected-host-only onboarding, and named-tag version `5.0.0`
+distribution. D24 supersedes D21's lint-format-only boundary and retires D23's
+`AT-SHAPE-6` carve-out. Lint-format remains the only leaf allowed to retain
+higher-grade claims from existing evidence.
 
-**D23 (2026-08-21, later the same day) closes a gap D21 left standing.**
-`AT-SHAPE-6` still literally required the specification gate to review *all*
-115 catalogue leaves and fail on TODO/filler content, with no reference to
-D21's release boundary — so a literal transcription into `npm test`'s
-first-run gate would have stayed red forever on the 114 leaves D21 already
-said don't block this release. D23 is a **named, one-release-only exception**:
-`AT-SHAPE-6` is evaluated against `development.code-quality.lint-format` alone
-for this release; the other 114 leaves are excluded from this one pass,
-unchanged, with no new marker required of them. It is explicitly not a
-standing scoping rule — the intent owner deferred the general "evaluate only
-what ships" mechanism to its own future grilling pass, and `AT-SHAPE-6`
-reverts to all 115 leaves next release absent a further amendment. See the D23
-revision notes in [`gate1/business-spec.md`](gate1/business-spec.md) and
-[`gate1/acceptance.md`](gate1/acceptance.md).
+The owner also approved the modified partial vendored suite under MIT, with the
+upstream notice and provenance required in every installed copy and no upstream
+endorsement claim. The approval is filed
+[verbatim](reasoning/2026-08-21-d24-owner-approval.md).
 
-**The Gate 1 signature is now stale against the new digest** (below) and needs
-the intent owner's re-signature. D23 changes the ID set's *evaluation scope*
-only — the count stays at **68**.
-
-**Gate 2 has now been retraced against D23 and corrected through v0.10
-(2026-08-21).** `§5.6`, the
-`§12.3`/`§17.2` placeholder-check ordering, `AD-24`, and the `AT-SHAPE-6` row
-in `§13` all now state the same one-release scoping D23 froze in Gate 1:
-`AT-SHAPE-6`'s full-content evaluation applies to
-`development.code-quality.lint-format` alone this release, expressed as a
-real, checkable acceptance-criteria row rather than prose — the other 114
-leaves' current placeholder state does not fail it this pass, and the scoping
-expires next release absent a further Gate 1 amendment. `D22`'s `AT-CI-3`
-narrowing was checked against Gate 1 and found already consistent in both
-files — no change needed there. See
-[the reasoning trace](reasoning/2026-08-21-gate2-v0.9-at-shape-6-retrace.md).
-Round 6 reviewed v0.9 and failed with three findings; v0.10 addresses them by
-making Slice 2's unauthored-leaf red state a status/future-support blocker
-rather than a lint-format release `npm test` failure, aligning freeze authority
-with §17.1 instead of Slice 15, and narrowing `AT-PRESENCE-2` to recovery
-properties automation can actually prove. A fresh v0.10 review has not been
-run.
-
-**Gate 2 has now been re-traced (v0.6, 2026-08-21).** `rig-product-design`
-traced `AT-LF-1`–`AT-LF-19` into §13 (exact set equality at 68), added the
-Policy → Context → Evidence grade ladder and the lint-format vertical mechanisms
-(§5.7, §5.8, §9.4, §11.3), narrowed the §12.3/§17.2 release boundary to the
-single lint-format leaf (D21), and **resolved all three remaining round-3
-findings** in candidate text (recovery credential class per D19, the
-"verified enforcement surface" disambiguation, and the model-assisted-triage
-channel). See
-[`reasoning/2026-08-21-gate2-lint-format-retrace.md`](reasoning/2026-08-21-gate2-lint-format-retrace.md).
-Gate 2 is **still a candidate**. Round 4 reviewed the v0.6 digest (`645e5536…`)
-and failed with one blocker, one major finding, and one minor residual risk.
-v0.7 (`cdd07515…`) corrected both accepted round-4 findings: the §5.7/AD-32
-grade short-circuit and grade-aware repository-CI applicability. Round 5 then
-reviewed v0.7 and failed with two blockers, four major findings, and two minor
-findings. **v0.8 (`0f62d984…`) incorporates D22 to address the `AT-CI-3`
-lint-format CI contradiction only**: Gate 1 and Gate 2 now both say selected
-executable services run in CI only when repo-CI-applicable at their active grade.
-The other round-5 findings remain open until separately resolved. The intent
-owner's Gate 1 signature remains independently required before freeze. See
-[`reasoning/2026-08-21-gate2-v0.7-round4-corrections.md`](reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)
-and
-[`reasoning/2026-08-21-evidence-only-lint-format-ci.md`](reasoning/2026-08-21-evidence-only-lint-format-ci.md).
+The working technical spec is now v0.12 and retraced to D24. It is checked for
+presence rather than frozen.
+The executable oracle candidate now has deterministic static targets for all 68
+cases, a stable five-file testing-infrastructure manifest, exact ID equality
+across Gate 1, Gate 2, and the manifested tests, and a first-running verifier.
+Its pre-implementation baseline is 5 passing and 63 failing cases: the failures
+name missing product behavior rather than missing oracle structure. The only
+remaining pre-implementation blocker is the owner's live-human signature over
+both Gate 1 documents plus the manifest digest.
 
 ---
-
 ## Gate standing
 
 | | State |
 |---|---|
-| **The oracle** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Frozen**, 68 cases. Last amended 2026-08-21 by D23, which narrows only `AT-SHAPE-6`'s evaluation scope for this release. Under one gate the signature must be extended to cover the testing infrastructure, not only intent and acceptance. |
-| **Technical spec** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** No longer a second freeze; the code adapts to it and it adapts to what the code learns as long as the frozen tests stay green. Its remaining review findings are ordinary design work, not implementation blockers. |
-| **Oracle signature** | **Unarmed, and stale against the current digest below.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere in the repository. When the signer identity is armed, it must be signed at the current digest. This is now the only thing blocking implementation. |
+| **The oracle** — [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **D24-approved executable candidate**, 68 cases. The sorted five-file manifest is complete and verifies; D24 makes all 115 Policy leaves release-blocking. Awaiting owner review and the physical signature. |
+| **Technical spec** — [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Working v0.12, retraced to D24.** Checked for presence, not frozen. All 68 trace rows name their exact manifested static test title. |
+| **Oracle signature** | **Unarmed.** Neither `gate1.sig` nor `gate1.allowed-signers` exists. The owner must review and sign both Gate 1 files plus the completed testing-infrastructure manifest before implementation. |
+| **Executable oracle** | **Complete candidate.** `node scripts/check-advanced-spec.js` reports `Gate 1 unprotected` and verifies 5 manifested files/68 exact cases. The production baseline is intentionally red: 5 pass, 63 fail on named missing behavior. |
 
 ### Current digests
 
 | File | SHA-256 |
 |---|---|
-| `gate1/business-spec.md` | `07afa02f157f34fde0c95c11417d03874e4b7626137eaee2b223c602b8ed52ff` |
-| `gate1/acceptance.md` | `1d9b7a4eca76e3b375be85fea5d532c6194df8ef280770db12e47070126c4489` |
-| `gate2/technical-spec.md` | `69c381499e33988add3073ecbac90769cc4ab8730ba585491fe4a98607300be6` |
+| `gate1/business-spec.md` | `0c93eaf5a9e28128a767806b8d0fcb1075b3b7ee4744f0d20a214aebc3952990` |
+| `gate1/acceptance.md` | `1e9fcd0e9aec2126995f836bead1aac3e48efdcdf48ef102ec1c9bfb9f62f360` |
+| `gate1/testing-infrastructure.manifest` | `99e303617fa83c44dd5275a7b681dbf4a367a4576aaa633fc9e335106321e4ac` |
+| `gate2/technical-spec.md` | `a2da45da5c18d312806d9a848825f2c22104e22109b09176518acbde13fd0b62` |
 
-Both Gate 1 digests changed on 2026-08-21 by D23's `AT-SHAPE-6` exception, and
-**Gate 2's header now pins these exact Gate 1 digests** (v0.10), so the header
-pins and the candidate bytes agree again.
+Both Gate 1 digests changed on 2026-08-21 under the owner-approved D24/one-gate
+amendment. Gate 2 v0.11 still pins the superseded D23 digests and is therefore
+superseded; v0.12 pins the current D24 bytes.
 
-The Gate 2 digest is `69c38149…` as of the 2026-08-21 v0.10 round-6
-correction (it was `df4b8ec7…` at v0.9, `0f62d984…` at v0.8, `cdd07515…` at
+The Gate 2 digest is `a2da45da…` as of the 2026-08-22 v0.12 executable-target retrace
+correction (it was `69c38149…` at v0.10, `df4b8ec7…` at v0.9, `0f62d984…` at v0.8, `cdd07515…` at
 v0.7, `645e5536…` at v0.6, and `5f4edd7a…` at v0.5). Re-check at any time:
 
 ```sh
-shasum -a 256 wiki/gate1/business-spec.md wiki/gate1/acceptance.md wiki/gate2/technical-spec.md
+shasum -a 256 wiki/gate1/business-spec.md wiki/gate1/acceptance.md wiki/gate1/testing-infrastructure.manifest wiki/gate2/technical-spec.md
 ```
 
-Traceability is now **current**: Gate 2 §13 traces exactly the 68-case set,
-and the `AT-SHAPE-6` row, AD-24, and §12.3/§17.2 all match D23's one-release
-scoping (verified 2026-08-21). See [acceptance cases](index/acceptance-cases.md).
+Traceability has exact **ID-set equality** at 68 and every row names a static
+test title in the signed manifest. The verifier checks that equality before any
+product test. See [acceptance cases](index/acceptance-cases.md).
 
 ---
 
-## Resolved: the vertical-release conflict with frozen Gate 1
+## Historical: the vertical-release conflict
 
 **This is resolved as of 2026-08-21 by D21.** The intent-owner ruling asked for
 lint-format to become the first production leaf while the other 114 leaves
@@ -170,7 +165,7 @@ Full handoff: [lint-format production grilling audit](reasoning/2026-08-20-lint-
 
 ---
 
-## Review state: v0.10 is not reviewed
+## Review state: v0.11 is not reviewed
 
 [`sources/reviews/gate2-v0.6-round4.review.json`](sources/reviews/gate2-v0.6-round4.review.json)
 bound Gate 2 `645e5536…` and the current Gate 1 bytes. Its verdict was **fail**:
@@ -193,11 +188,11 @@ Gate 1 the same active-grade CI-applicability qualifier already intended by
 lint-format's Evidence-only CI design; D23/v0.9 then closed a second gap the
 round-5 review didn't itself catch — `AT-SHAPE-6`'s all-115 wording was never
 scoped to D21's release boundary. Because the Gate 1 and Gate 2 bytes have
-changed three times since, the round-5 receipt is void for v0.10; its six remaining
-findings (evidence-gate consistency, traceability rows not pointing at real
-tests, rollback behavior, recovery-credential verification, status reporting,
-and stale version references) are still unresolved design work, untouched by
-either correction.
+changed repeatedly since, the round-5 receipt is void for v0.11. v0.11 resolves
+five of its six carried findings: Evidence/CI consistency, remediation rollback,
+recovery-registration refusal, the report-status enum, and stale version
+references. Its traceability-target finding remains open: 48 rows still do not
+name real executable targets.
 
 [`sources/reviews/gate2-v0.9-round6.review.json`](sources/reviews/gate2-v0.9-round6.review.json)
 then reviewed `df4b8ec7…` and failed with one blocker, one major finding, and
@@ -205,8 +200,8 @@ one minor finding. v0.10 (`69c38149…`) corrects all three in candidate text:
 Slice 2's unauthored-leaf red state no longer deadlocks the lint-format release
 test suite, freeze happens once through §17.1 rather than again after Slice 15,
 and `AT-PRESENCE-2` now tests only enforceable recovery preconditions and
-declared-class disclosure. This voids the round-6 receipt for the new bytes; a
-fresh review is still required.
+declared-class disclosure. v0.11 supersedes those bytes with the further
+round-5 corrections above; a fresh review is still required.
 
 ### Round 3 history — all four findings resolved in candidate v0.6
 
@@ -257,31 +252,44 @@ and the round-5 `AT-CI-3` contradiction clarified through D22/v0.8
 into Gate 2 (v0.9, `df4b8ec7…`)** — §5.6, §12.3, §17.2, AD-24, and the
 `AT-SHAPE-6` §13 row express the one-release scoping as checkable acceptance
 criteria, not just prose. **Also done:** v0.10 (`69c38149…`) addresses the
-round-6 candidate-review findings without changing Gate 1.
+round-6 candidate-review findings without changing Gate 1, and v0.11
+(`94ba0f80…`) clears five carried round-5 defects.
 
-1. **The intent owner signs the oracle at the current digest.** A physical
-   signature act only the intent owner can perform, over the intent, acceptance,
-   and testing-infrastructure digests. This is now the only gate on
-   implementation. See [gate signing](topics/gate1-signing.md).
-2. **Extend the signature to cover the testing infrastructure.** Under one gate
-   the signed digest must include the tests, not only intent and acceptance —
-   the sign/verify mechanism needs this before the ceremony is armed.
-3. **Slice 1** — build `scripts/check-advanced-spec.js` and wire it ahead of the
-   code tests, implementing D23's exception exactly as scoped (lint-format only,
-   this release). No longer blocked by a second freeze. See
-   [the specification gate](topics/specification-gate.md).
-4. **Execute the approved lint-format production path** — build the authored-service gate
-   enough to evaluate this exact leaf, complete the §7.6 manifest/resume/removal
-   contract for its write path, add distribution/released-tag install proof, and
-   produce a fresh exact-digest leaf review before claiming support.
-   See [the lint-format roadmap](specs/lint-format-roadmap.md).
-5. **Before the next leaf ships,** return to grilling to define the general
-   "evaluate only what a release ships" mechanism D23 deliberately deferred —
-   D23 itself expires at the next release.
+**Superseded by D24.** The single-leaf path below is no longer the release plan.
+The current ordered path is [the MVP roadmap](specs/mvp-roadmap.md); its eight
+steps, verify commands, and traps are the authority for what happens next.
+
+In short:
+
+1. **Repair the record.** Done 2026-08-21 — D24, the two record defects, the
+   roadmap, and the hubs they touch.
+2. **Freeze the completed oracle gate.** The verifier, `npm run test:code`
+   split, 68 static targets, and stable manifest are complete. The owner must
+   now perform the live-human signature before production implementation. The
+   all-115 content target remains red until step 5. See [the specification gate](topics/specification-gate.md).
+3. **Wire all 55 swallowed skills and ship a real install path** (`install.sh`,
+   `5.0.0`). First step producing something a stranger can hold.
+4. **Context-aware onboarding** — mechanical host detection only, write into
+   existing trees only, family selection explicit and trimmable.
+5. **Author all 115 leaves at Policy grade**, in family batches, each fragment
+   declaring its grade and that it is untailored baseline practice.
+6. **Prove the all-115 target green** without changing the signed oracle.
+7. **Release** — verify the existing signature, MIT notice/provenance, fresh
+   review, full evidence, and `v5.0.0`.
+8. **After beta,** promote leaves Policy → Context → Evidence on evidence of
+   use, under the ordinary gate with owner review restored.
+
+The D24/one-gate amendment and MIT ruling are complete. One owner act remains:
+the live-human signature over both Gate 1 files and the completed test manifest.
+The sign/verify mechanism must cover that manifest before the ceremony is armed.
+See [gate signing](topics/gate1-signing.md).
+
+The general "evaluate only what a release ships" mechanism D23 deferred remains
+deferred; D24 retires the exception for this release by making all 115 leaves
+release-blocking.
 
 The technical spec's remaining round-5/round-6 findings are ordinary working-spec
-design the code adapts around; they no longer block implementation. What blocks
-code is only the oracle signature (steps 1–2), which requires the intent owner.
+design the code adapts around; they no longer block implementation.
 
 ---
 
@@ -297,6 +305,7 @@ code is only the oracle signature (steps 1–2), which requires the intent owner
 | `scripts/review-receipt.js` | **Exists and works.** |
 | 115 catalogue leaves | **1 authored** (`development.code-quality.lint-format`, proposed as the first production leaf by `GA-15`/`AD-31`, but not yet permitted by frozen Gate 1). The other 114 leaves still contain 428 `TODO(Slice 10)` files. See the [roadmap](specs/lint-format-roadmap.md) and [grilling audit](reasoning/2026-08-20-lint-format-production-grilling-audit.md). |
 | `tests/advanced-*.test.js` | **20 files, all green.** `advanced-lint-format.test.js` and `advanced-apply.test.js` assert real behavior (rejects placeholder content, exercises the real formatter/linter, exercises apply's manifest/resume). The rest are still calibrated to pass against placeholder content — see [traps](index/traps.md). |
+| 55 swallowed skills + plumbing | **Vendored, 0 wired.** `rig/catalog/skills` contains 55 `SKILL.md` packages, matching the upstream release; the earlier 56 count was an inventory error. No reference from `rig/lib`, `rig/manifest.json`, `rig/bootstrap.sh`, `scripts`, `tests`, or `package.json`, so they are not installable. Exact upstream MIT provenance and notice are restored and the owner approved distribution with notice/provenance and no endorsement claim. Roadmap step 3 wires them. |
 
 The committed suite passing tells you nothing about specification health, and
 will not until Slice 1 lands. See [traps](index/traps.md).
@@ -318,7 +327,7 @@ rejected-approaches list.
 | 5 | Review independence is a fresh session and a digest-bound receipt written by the wrapper, not the agent. | [review receipts](topics/review-receipts.md) |
 | 6 | Gate 1 integrity is non-git — a signature over the digest. No branch protection, no upstream comparison. | [Gate 1 signing](topics/gate1-signing.md) |
 | 7 | Distribution: the install stub fetches a released tag by name. No fingerprint pin. Never `curl \| sh`. | [distribution and release](topics/distribution-and-release.md) |
-| 8 | Catalogue authoring: all 115 leaves one at a time, single context. Not parallel, not templated. | [the authored-service gate](topics/authored-service-gate.md) |
+| 8 | Catalogue authoring: all 115 leaves one at a time, single context. Not parallel, not templated. **Suspended for this release by D24** — all 115 authored in one pass at Policy grade, with the grade declared on every fragment. Returns at roadmap step 8. | [the authored-service gate](topics/authored-service-gate.md) |
 
 ---
 

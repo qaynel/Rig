@@ -6,7 +6,7 @@ Every ruling this project has made, across four ID schemes, in one place.
 |---|---|---|---|
 | `G#` | 16 | Foundational grilling — what Rig is and how it is built. | [`sources/logs/grill-decisions.md`](../sources/logs/grill-decisions.md) |
 | `GA-#` | 85 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
-| `D#` | 23 | Gate 1 revisions — rulings that changed frozen intent. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
+| `D#` | 24 | Gate 1 revisions — rulings that changed owner-approved intent. All 24 have landed; D24 awaits the combined oracle signature. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
 | `AD-#` | 34 | Gate 2 mechanisms — frozen implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
 The relationship: a `GA-` ruling is the conversation, the matching `D#` is what
@@ -58,6 +58,7 @@ both Gate 1 files.
 | D21 | 2026-08-21 | Lint-format ships first, alone, as the release-blocking leaf; the other 114 remain commitments but do not block this release. Adds `AT-LF-1`–`AT-LF-19`, 49→68. | [the delivery plan](../topics/delivery-plan.md) |
 | D22 | 2026-08-21 | CI runs selected executable services only when they are repo-CI-applicable at their active grade; lint-format remains CI-enforced only at Evidence. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | D23 | 2026-08-21 | One-release exception: `AT-SHAPE-6` evaluates only `development.code-quality.lint-format` for this release; the other 114 leaves are excluded from this pass, unchanged. Named and dated, not a standing rule — reverts next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
+| D24 | 2026-08-21 | **Owner-approved and landed in both Gate 1 files; oracle signature pending.** The MVP is built in one pass at agent discretion: all 115 leaves at Policy grade, all 55 physically vendored skills wired, detected-host-only onboarding, and named-tag `5.0.0` distribution. Each fragment declares its grade and untailored baseline status. Suspends locked decision 8 for this release, preserves the safety floor, supersedes D21's single-leaf boundary, and retires D23. The modified partial vendored suite may ship under MIT with notice/provenance and no endorsement claim. | [the MVP roadmap](../specs/mvp-roadmap.md) |
 
 **The D5 → D10 → D17 → D19 sequence** is the most-revised thread in the project:
 four revisions to arrive at one honest, implementable statement of how Gate 1
@@ -79,31 +80,31 @@ Implementation constraints, not suggestions.
 | AD-5 | Dependencies resolve as named slices; never replace or raise a user grade. | [catalogue contract](../topics/catalogue-contract.md) |
 | AD-6 | Default flow `inspect → host review → recommend → plan → apply → check`. | [onboarding flow](../topics/onboarding-flow.md) |
 | AD-7 | Treat target harness files as hostile bytes: bounded reads, no execution, redacted evidence. | [sanitation and remediation](../topics/sanitation-and-remediation.md) |
-| AD-8 | Remediation separate and read-only until exact approval. | [sanitation and remediation](../topics/sanitation-and-remediation.md) |
+| AD-8 | Remediation separate and read-only until exact approval. Its rollback uses explicit remediation journal states so restored writes cannot poison install resume or uninstall. *(Clarified in Gate 2 v0.11.)* | [sanitation and remediation](../topics/sanitation-and-remediation.md) |
 | AD-9 | Graft through typed operations; never arbitrary shell plans. | [graft mechanics](../topics/graft-mechanics.md) |
 | AD-10 | Apply under exclusive lock with CAS preimages, the §7.6 manifest recording every write, and receipt last; no rollback branch — a failed apply resumes. *(Amended 2026-08-20: dropped rollback, resolving the round-3 `AT-INSTALL-1` blocker.)* | [install manifest and removal](../topics/install-manifest-removal.md) |
 | AD-11 | Materialize service prose once under `.rig/services/`; host surfaces get pointers. | [graft mechanics](../topics/graft-mechanics.md) |
 | AD-12 | Ship dormant implementations; wire only what the active policy enables. Installed code is not evidence a control ran. | [the safety baseline](../topics/safety-baseline.md) |
-| AD-13 | One uniform emission path per `{host, axis}`. No tier in output or data. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
+| AD-13 | One uniform adapter path; auto onboarding emits only unambiguously detected hosts, with explicit opt-in as the absent-host override. No tier in output or data. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | AD-14 | Emit the complete menu; recommendations advisory, user selections win. | [onboarding flow](../topics/onboarding-flow.md) |
 | AD-15 | Attempt every service as executable first. `convention` needs a service-specific reason. | [services and reports](../topics/services-and-reports.md) |
 | AD-16 | Write failed, vacuous, gap, disabled, pending, and stale state. Omit routine passes. | [services and reports](../topics/services-and-reports.md) |
 | AD-17 | Reuse Basic's MCP renderers only for evidence-backed paths; retire unsupported MCP. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
-| AD-18 | Drive implementation from a complete executable transcription of Gate 1. | [the specification gate](../topics/specification-gate.md) |
+| AD-18 | Drive implementation from the complete signed executable transcription of Gate 1; the oracle verifier runs first. | [the specification gate](../topics/specification-gate.md) |
 | AD-19 | Validate policy bytes strictly, hash exact bytes, keep last activated as immutable snapshot. Delegation never persisted. | [the policy model](../topics/policy-model.md) |
 | AD-20 | Host-native presence preferred, external SSHSIG fallback, refusal third. No third path. | [user-presence approvals](../topics/user-presence-approvals.md) |
 | AD-21 | One-use approvals clone-local, bound to the full action, consumed atomically. No Rig clock. | [one-use approvals](../topics/one-use-approvals.md) |
 | AD-22 | One normalized action policy across shell, web, and MCP adapters. | [the action evaluator](../topics/action-evaluator.md) |
 | AD-23 | Integrate verified CI additively; absent CI needs explicit provider choice and plan approval. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
-| AD-24 | Every axis in the roster is an initial-release commitment. Build set = release set; catalogue leaves are staged separately, and non-release leaf red status is not a lint-format release test failure. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
+| AD-24 | Every selected roster axis and all 115 Policy leaves are MVP release commitments; absent/unselected hosts and evidence-backed unsupported axes emit nothing with explicit provenance. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | AD-25 | User-global writes append or namespace-merge only, attributed from the first install. | [user-global writes](../topics/user-global-writes.md) |
 | AD-26 | Disclose the out-of-repository blast radius at install time. No per-host claim string. *(Amended 2026-08-21: "verified enforcement surface" is a distinct third sense of `verified`, disambiguated in §1/§11.1.)* | [user-global writes](../topics/user-global-writes.md), [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | AD-27 | Install stub fetches a released tag by name. No fingerprint. Never pipe network to shell. | [distribution and release](../topics/distribution-and-release.md) |
-| AD-28 | Verify Gate 1 by signature, first in the spec gate, spec gate first in `npm test`. No exemption input. | [the specification gate](../topics/specification-gate.md) |
+| AD-28 | Verify the v2 signature over both Gate 1 files plus the testing-infrastructure manifest, then every manifested file, first in `npm test`. | [the specification gate](../topics/specification-gate.md) |
 | AD-29 | Review receipts produced by a wrapper that writes the digest and timestamp itself. | [review receipts](../topics/review-receipts.md) |
-| AD-30 | Recovery only through pre-registered distinct `sk-*` identities under `rig-policy-recovery`. *(Amended 2026-08-21: the `sk-*` class is declared and disclosed, not certified from the signature (D19); tests cover enforceable registration/receipt/disclosure rules, not a hardware-touch claim.)* | [policy-signer recovery](../topics/policy-signer-recovery.md) |
-| AD-31 | Catalogue support ships vertically: lint-format first, then the remaining leaves; the remaining leaves stay red as future-support debt, not this release's failing exit condition. | [the delivery plan](../topics/delivery-plan.md) |
-| AD-32 | Policy → Context → Evidence are the `minimal/mid/maximal` grade names for lint-format; the selected grade is the target and the ceiling. A lower-grade *failure* may short-circuit, but a clean lower-grade pass runs through to the selected grade; the reported assurance is the highest grade actually completed and no unexecuted level's assurance is reported (short-circuit clarified in Gate 2 v0.7). | [catalogue contract](../topics/catalogue-contract.md), [the catalogue](../topics/the-catalogue.md) |
+| AD-30 | Recovery only through pre-registered distinct `sk-*` identities under `rig-policy-recovery`. *(Amended 2026-08-21: the `sk-*` class is declared and disclosed, not certified from the signature (D19); tests cover enforceable registration/receipt/disclosure rules, not a hardware-touch claim; v0.11 refuses registration where user verification cannot be requested.)* | [policy-signer recovery](../topics/policy-signer-recovery.md) |
+| AD-31 | D24 ships all 115 leaves broadly at declared Policy grade; one-leaf sequencing returns for post-beta promotion. Lint-format alone retains higher-grade evidence. | [the delivery plan](../topics/delivery-plan.md) |
+| AD-32 | Policy → Context → Evidence are the `minimal/mid/maximal` grade names for lint-format; the selected grade is the target and the ceiling. A lower-grade *failure* may short-circuit, but a clean lower-grade pass runs through to the selected grade; Evidence rests on local rerunnable evidence while its separately approved CI graft is an enforcement surface, not a prerequisite that makes the grade unreachable. *(Short-circuit clarified in v0.7; CI separation in v0.11.)* | [catalogue contract](../topics/catalogue-contract.md), [the catalogue](../topics/the-catalogue.md) |
 | AD-33 | Lint-format's unit of work is a repository component: whole-repository open-ecosystem discovery, semantic binding, hybrid-plus, user-approved partial coverage, per-component evidence-backed support. | [the catalogue](../topics/the-catalogue.md) |
 | AD-34 | Lint-format execution is plan-bound and read-only: nothing on selection, mutation detected and halted without auto-restore, autofix separately approved, drift halts, every abnormal ending its own non-passing state. | [the catalogue](../topics/the-catalogue.md), [services and reports](../topics/services-and-reports.md) |
 

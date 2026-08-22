@@ -90,6 +90,40 @@ Every service will eventually use the same cumulative Policy → Context →
 Evidence grade method within its own MECE domain. Gate 2 §5.7 (`AD-32`) now
 fixes how it works: Policy/Context/Evidence are the `minimal/mid/maximal` names
 of the existing cumulative dial, the selected grade is a ceiling, and commodity
-syntax/format/type/static output are inputs rather than grades. Current work
-remains vertical: only lint-format is specified and proven now. The universal
-ruling is not permission to author or implement the other leaves.
+syntax/format/type/static output are inputs rather than grades.
+
+**D24 (2026-08-21) changes the release shape from vertical to broad-and-shallow.**
+The MVP now ships **all 115 leaves at the Policy rung**, authored in one pass at
+agent discretion, each fragment declaring its grade and declaring that it is
+untailored baseline practice. This supersedes D21's single-leaf release boundary
+for this release. lint-format remains the only leaf with evidence behind it and
+the only leaf permitted a claim above Policy. The universal grade ruling is now
+permission to author the other leaves **at Policy only**; it is still not
+permission to claim Context or Evidence for them.
+[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[roadmap](../specs/mvp-roadmap.md)
+
+### The catalogue now has two shelves
+
+Commit `ff7cea5` (2026-08-21) vendored **55 upstream skills** plus `bin`/`lib`
+plumbing into `rig/catalog/skills` and `rig/catalog/plumbing`, renamed into
+Rig's namespace so each capability is callable by its Rig name. That commit
+updated **zero wiki files**, so this hub is the first place the wiki records
+them.
+
+The two shelves are not the same kind of thing and the product must not present
+them as one:
+
+| Shelf | What it is | Governance |
+|---|---|---|
+| **115 service leaves** | Rig's own MECE capability model, `family → group → service → grade`. | Frozen oracle, authored-service gate, declared grade per fragment. |
+| **55 swallowed skills** | Vendored upstream method, full judgment intact, renamed. The earlier 56 count was an inventory error. | None yet. Not gated, not graded, and **wired to nothing** — no reference from `rig/lib`, `rig/manifest.json`, `rig/bootstrap.sh`, `scripts`, `tests`, or `package.json`. |
+
+Two consequences carried on the roadmap: the skills must be wired into
+materialize and host discovery before they are installable at all, and each
+installed copy must carry the approved upstream terms. Provenance is
+now pinned to `garrytan/gstack` version `1.60.1.0` at commit `7c9df1c…`, and its
+MIT copyright and permission notice is restored beside the vendored files.
+That removes the unknown-licence defect; the owner approved distribution with
+notice/provenance and no endorsement claim. The 55-count correction and wiring
+design are recorded in the [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md).

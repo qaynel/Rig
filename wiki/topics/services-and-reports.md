@@ -8,6 +8,13 @@ The runner iterates selected-service receipts so a missing binding cannot vanish
 Reports persist failures, vacuous results, and coverage gaps; routine passes are
 omitted. [Gate 2 §9](../gate2/technical-spec.md#9-runnable-services-and-reports)
 
+The report schema also preserves six abnormal non-passing outcomes as distinct
+states: timeout, cancellation, missing dependency, signal termination, partial
+output, and command not found. Evidence assurance comes from rerunnable local
+evidence; its separately approved CI graft is a repository enforcement surface,
+not a prerequisite that makes the local grade unreachable.
+[v0.11 correction](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md)
+
 ## Why it is this way
 
 The earlier implementation treated non-empty placeholders and no-op bindings as

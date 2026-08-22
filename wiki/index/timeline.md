@@ -170,6 +170,55 @@ findings still need product-design resolution before freeze.
 [D23 trace](../reasoning/2026-08-21-gate2-v0.9-at-shape-6-retrace.md)
 [Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
 
+## 2026-08-21 — the gate collapses to one, the suite is swallowed, and D24 turns the release broad
+
+Three things land the same day, in this order.
+
+**The two gates become one.** The oracle — intent, acceptance, and testing
+infrastructure — is frozen under a single signature before code. The technical
+spec is checked for presence, never locked; the code adapts to it. Implementation
+is no longer blocked by a second freeze, only by the signature.
+[intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) ·
+[escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md)
+
+**Commit `ff7cea5` swallows the upstream skill suite.** 55 skills plus `bin`/`lib`
+plumbing are vendored into `rig/catalog/skills` and `rig/catalog/plumbing`,
+renamed so no filename or reference carries the upstream name. The commit touches
+**zero wiki files**, and nothing in the installer, manifest, bootstrap, scripts,
+tests, or `package.json` references the result. The catalogue now has two shelves
+and only one of them is governed. The suite also carries no upstream `LICENSE` or
+`NOTICE`, inside an MIT repository — an unresolved release blocker of legal
+rather than technical character.
+
+Later the same day, the vendored `1.60.1.0` version was traced to upstream
+commit `7c9df1c…` and its MIT copyright and permission notice was restored with
+a record of the local modifications. That removes the unknown-licence defect;
+the intent owner subsequently approved releasing the modified partial
+distribution with the notice and provenance in every installed copy and no
+upstream-endorsement claim.
+
+**D24 turns the release from vertical to broad-and-shallow.** In office hours the
+intent owner rules that the MVP is built in one pass at agent discretion: all 115
+leaves authored at the **Policy** rung, every fragment declaring its grade and
+declaring that it is untailored baseline practice. This suspends locked decision
+8 (one at a time, single context, never templated) for this release only, and
+supersedes D21's single-leaf release boundary. The safety baseline is untouched:
+a missing binding is still a named, nonzero coverage gap.
+
+The owner was offered a cheaper middle path — author five leaves, confirm the
+bar, then bulk-author the remaining 110 — and declined it in favour of full
+agent discretion, on a stated time crunch and a preference for real beta
+feedback over a demonstrated property on release one.
+
+Recorded rather than left implicit: under D24 the agent authors the content
+**and** sets the bar it is judged against, so **this release does not demonstrate
+the property Rig exists to prove.** It is reversible one leaf at a time by
+promotion under the ordinary gate, which is roadmap step 8. If D24 completes,
+D23's one-release exception is retired by the approved Gate 1 amendment.
+[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[owner approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
+[roadmap](../specs/mvp-roadmap.md)
+
 ---
 
 ## Reading a document by its date
@@ -182,3 +231,4 @@ findings still need product-design resolution before freeze.
 | 2026-08-13 | The signature itself proves hardware presence. |
 | 2026-08-17 | Hosts are split into verified and unverified. |
 | 2026-08-19 | The case count is 48 or 52, and review requires a different model. |
+| 2026-08-21 | There are two gates, lint-format ships alone as the one release-blocking leaf, and the catalogue holds only the 115 service leaves. |

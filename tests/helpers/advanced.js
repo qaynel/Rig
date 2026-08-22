@@ -87,15 +87,15 @@ function runMaterialize(args, options = {}) {
   };
 }
 
-function inspect(target, { host = 'codex', out } = {}) {
+function inspect(target, { hosts, host = 'codex', out } = {}) {
   const outPath = out || path.join(target, '.rig-test', 'inspection.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   const result = runMaterialize([
     'inspect',
     '--target',
     target,
-    '--host',
-    host,
+    hosts ? '--hosts' : '--host',
+    hosts || host,
     '--out',
     outPath,
   ]);

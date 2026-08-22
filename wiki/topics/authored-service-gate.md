@@ -80,3 +80,38 @@ formatter-plus-linter → CI-plus-fix. This method is universal, but every leaf
 must apply it only inside its owned domain. Current authorship remains focused
 on lint-format as the first proof; no other leaf gains authored status from the
 universal ruling.
+
+**D24 (2026-08-21) suspends sequential authorship for this release only.** The
+intent owner ruled that all 115 leaves are authored in one pass at agent
+discretion, at the **Policy** rung, rather than one at a time with the owner in
+the room. This overrides locked decision 8 (one at a time, single context, never
+templated, never parallel) for the MVP release.
+
+D24 does not claim the GA-10 reasoning was wrong. It claims that reasoning
+targets a different artifact. What GA-10 rejected is generic content *presented
+as coverage*: a fragment that reads as authored, satisfies the mechanical
+checks, and thereby implies the service is handled when it is not. What D24
+authorises is generic content *presented as generic*: a fragment that states
+baseline practice for its domain and declares on its face that it is Policy-rung
+and untailored. The declared grade is the entire difference. **A fragment
+authored under D24 that reads as coverage is the old defect wearing new words.**
+
+What D24 leaves untouched: the safety baseline. A missing or malformed binding
+is still a named, nonzero coverage gap, never a silent skip and never a
+fabricated pass. No leaf authored under D24 may claim Context or Evidence grade;
+lint-format remains the only leaf permitted a higher claim, on its own evidence.
+
+What D24 consciously sets aside, recorded rather than left implicit: under it the
+agent authors the content **and** sets the bar that content is judged against,
+because per-leaf owner review is waived. This release therefore does not
+demonstrate the property Rig exists to prove. It is reversible one leaf at a
+time by promotion under the ordinary gate.
+[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[owner approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
+[roadmap](../specs/mvp-roadmap.md)
+
+D24 is now in both Gate 1 files and **retires D23's one-release exception**.
+`AT-SHAPE-6` covers all 115 leaves in the signed-oracle candidate; its
+executable target must be red before authoring and green only when all leaves
+carry real, declared Policy content.
+[v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)

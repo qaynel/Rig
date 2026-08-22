@@ -93,3 +93,20 @@ passes a safe argv array with `shell: false`, the selected task may invoke a
 shell internally. The plan discloses that boundary and execution remains under
 Rig policy, least privilege, secret isolation, network restrictions, and
 resource/time limits.
+
+**D24 (2026-08-21) makes onboarding MVP step 4 and fixes what it is allowed to
+infer.** Detection is *mechanical only*: read which of the 19 researched hosts a
+repository already uses from their known instruction / skills / hook / MCP
+paths, and write only into trees that exist. Family selection stays **explicit
+and trimmable, defaulting to the full set** — Rig does not guess from repo shape
+which capabilities a project needs.
+
+The split is deliberate. Detecting that `.claude/` exists is a fact and cannot
+be wrong. Inferring that a Python ETL repo "wants" the testing family is a
+judgment, and when it guesses wrong it does the exact thing the à-la-carte model
+exists to prevent: imposing tools the repository did not ask for. Family
+auto-selection is deferred until there is real signal about which mapping is
+correct, which is one of the things beta feedback is for.
+[roadmap](../specs/mvp-roadmap.md) ·
+[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)
