@@ -1,8 +1,14 @@
 ---
-status: draft
+status: historical
 ---
 
 # Lint-format — from current state to production
+
+> **HISTORICAL SNAPSHOT, checked 2026-08-21.** This file's step-by-step
+> tracking is superseded by [the delivery plan](../topics/delivery-plan.md)'s
+> "Where the eight steps actually stand" table and by
+> [status](../status.md), both kept current. Read this file for the original
+> reasoning behind the steps, not for their present state.
 
 > **This file is a map for one catalogue leaf, not a rulebook.** The two
 > documents that actually decide anything are

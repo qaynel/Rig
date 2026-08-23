@@ -1,5 +1,9 @@
 # Status - checked 2026-08-23
 
+If a page elsewhere in the wiki seems to disagree with this one, trust this one
+— and check [the timeline's "reading a document by its date" table](index/timeline.md#reading-a-document-by-its-date)
+to see what that page's era still believed.
+
 The signed oracle remains unchanged and green at 68 acceptance cases. The
 working technical design is v0.16 and is present rather than frozen. D24 keeps
 the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,

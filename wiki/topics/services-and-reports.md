@@ -47,9 +47,13 @@ false green or disclosure paths. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-The service runner and meaningful bindings do not exist. Slice 8 builds the
-runner; Slice 14 authors all leaves; the final release gate reviews both.
-[Gate 2 §14](../gate2/technical-spec.md#14-ordered-tracer-bullet-slices)
+**Resolved.** The service runner is built and all 115 leaves are authored at
+the Policy grade with zero placeholders; the unchanged signed acceptance target
+passes across all of them. [Gate 2 §14](../gate2/technical-spec.md#14-ordered-tracer-bullet-slices)
+[Status](../status.md)
+
+The rest of this section records the specific behavior contract lint-format —
+the one leaf built out past Policy grade — must keep meeting.
 
 For lint-format, a partial install reports each excluded component as an
 unprotected coverage gap and cannot claim whole-repository support. Covered

@@ -7,7 +7,9 @@ shaped the way it is, and what is true right now.
 [the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
-[glossary](glossary.md) if a term or ID is unfamiliar.
+[glossary](glossary.md) if a term or ID is unfamiliar ·
+[timeline](index/timeline.md) if you are reading an older page and want to know
+what it might have wrong.
 
 **If you are an agent working on this project:** this wiki is your first source
 of truth. Read it before grepping the code, keep it in sync with the branch, and

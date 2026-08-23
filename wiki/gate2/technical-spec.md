@@ -92,78 +92,14 @@ task list, coverage plan, or later ruling cannot supersede the signed oracle.
 - Prior production-plan context (subordinate for the re-grilled catalogue):
   [`../specs/product-spec.md`](../specs/product-spec.md)
 
-**Version history.** v0.1 was frozen 2026-07-24 and withdrawn by the 2026-07-25
-re-grill. v0.2 absorbed 2026-07-26 rulings but was superseded the same day.
-v0.3 was rewritten against D1-D19 at 52 cases. v0.4 was rewritten against the
-2026-08-17 host-tier amendment at 48 cases and removed every trace of the
-verified/unverified tier from Rig's output and data. v0.5 adds D20's bounded
-policy-signer recovery path and rewrites the Gate-2 traceability set to 49
-cases. v0.6 traces D21's nineteen `AT-LF-*` lint-format cases (49→68),
-narrows §12.3/§17.2's release boundary to the single
-`development.code-quality.lint-format` leaf, adds the Policy → Context →
-Evidence grade ladder (§5.7) with the lint-format vertical mechanisms (§5.8,
-§9.4, §11.3), and resolves the three round-3 findings. v0.7 corrects the two
-accepted round-4 consistency findings: it rewrites the §5.7/AD-32 short-circuit
-so only a lower-grade *failure* stops early while a clean lower-grade pass runs
-through to the selected grade, and makes repository-CI applicability grade-aware
-in §8.9/§11.2/§11.3 so lint-format participates in CI only at the Evidence grade.
-v0.8 incorporates D22's matching Gate 1 clarification in `AT-CI-3`, preserving
-the 68-case set while updating the Gate 1 digests and this candidate's pins.
-v0.9 incorporates D23, Gate 1's one-release exception to `AT-SHAPE-6`: the
-specification gate's full-content evaluation of that case applies to
-`development.code-quality.lint-format` alone for this release, not all 115
-leaves, while leaving the 68-case set and every other case unchanged. §5.6,
-§12.3, §17.2, and the `AT-SHAPE-6` row in §13 are narrowed to match, and the
-Gate 1 digests and this candidate's pins are updated again. v0.10 resolves the
-round-6 candidate-review findings without changing Gate 1: Slice 2's "red"
-state for the other 114 leaves is defined as unauthored status and a
-future-support/complete-catalogue blocker rather than a release-scoped test
-failure; the freeze checklist pointer and Slice 15 review wording are aligned
-with §17.1; and `AT-PRESENCE-2`'s executable evidence is narrowed to
-pre-registration, distinctness, receipt validity, exhaustion, and declared-class
-disclosure. v0.11 resolves four remaining round-5 mechanism findings: it
-separates the per-run Evidence verdict from the separately approved CI graft,
-adds remediation-specific terminal journal states, fails recovery registration
-closed when user verification cannot be requested, and includes §9.4's six
-abnormal outcomes in §9.3's report enum. The round-5 traceability-target finding
-remains open until the complete executable oracle names and supplies every
-target. v0.12 retraces D24 and the one-gate amendment: all 115 Policy leaves,
-the 55 vendored skills, detected-host-only onboarding, named-tag `5.0.0`
-distribution with MIT notice/provenance, and the v2 signed oracle message that
-includes the testing-infrastructure manifest. It removes every Gate-2 freeze
-condition; fresh review remains release evidence.
-
-v0.13 closed the 2026-08-23 production review findings without changing the
-signed oracle: all repository mutation paths share symlink-aware containment;
-the JSONL install journal carries preimage/desired digests, incomplete/complete
-state, crash reconciliation, and reverse removal; the legacy JSON manifest is
-only a journaled compatibility projection. The payload installs 55 neutral
-skills plus the catalogue and safety runtime in a bare repository. Policy packs
-name owned scope, applicability, disposition, and non-generic checks; missing
-repository bindings fail as coverage gaps. All six CI adapters have additive
-first-wire tests. Review production and validation share one strict schema with
-exact passing verdict coverage. The root installer is POSIX `sh`, and the
-distribution test executes a locally transported tagged archive end to end.
-v0.14 preserves Tier 1's static-only boundary by gating those runtime files to
-the root tagged-release entry point; local bootstrap remains fixed and static.
-v0.15 resolves the remaining owner choice: a policy proposal that turns on
-model-assisted secret triage carries the irreversible third-party disclosure,
-and activation requires a verified approval bound to that disclosure digest.
-The final report-only review receipt also binds a deterministic digest of the
-complete PR implementation worktree, excluding review receipts themselves, so
-specification evidence cannot be presented as implementation review evidence.
-v0.16 closes the first implementation-bound review findings that do not change
-the signed intent: one-use approvals persist consumption; activation and
-recovery verify repository-, sequence-, receipt-, and nonce-bound SSHSIG
-challenges; recovery commits its receipt before invalidating prior trust state;
-the shipping CLI exposes uninstall and recovery; teardown restores chained
-hooks, removes attributed global entries, lists purge targets before deletion,
-and preserves the user-owned policy. Host support no longer uses the withdrawn
-verified/unverified tier as registry data: every host instead carries six
-axis-specific vendor contracts. Every Policy leaf now carries a distinct
-acceptance target and pass/fail evidence contract. History scanning is limited
-to vetted full-history argv and semantic drift consumes indexed input digests
-and structured review status.
+**Version history.** v0.1 through v0.16 moved to
+[the timeline](../index/timeline.md#the-technical-designs-own-version-history-v01v016)
+— it is a changelog, not part of the current design. The short version: each
+point release retraced this document to a new owner ruling or closed a
+specific review finding without changing the signed oracle; nothing in that
+history is a live open item. History scanning is limited to vetted
+full-history argv and semantic drift consumes indexed input digests and
+structured review status.
 
 **Default branch.** It is `prod`. `origin/main` does not exist, and any
 workflow naming `main` or `master` is wrong. D10 removed the branch dependency

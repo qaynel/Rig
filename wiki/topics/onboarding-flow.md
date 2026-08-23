@@ -56,12 +56,14 @@ distinct consent and trust boundaries. [Rejected approaches](../index/rejected.m
 
 ## What is still open
 
-The round-3 rollback/resume contradiction between §6.6 and §7.6 is resolved:
-apply now has one partial-failure behavior, preserving completed writes for
-manifest-backed resume instead of rolling them back. Gate 2 still cannot freeze
-until the remaining three round-3 findings are resolved and a fresh review
-passes. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
-[Status](../status.md#ordered-next-steps)
+**Resolved.** The round-3 rollback/resume contradiction between §6.6 and §7.6
+is resolved: apply now has one partial-failure behavior, preserving completed
+writes for manifest-backed resume instead of rolling them back. The one-gate
+model (2026-08-21) has since replaced the two-freeze model this section
+originally described — the technical design is checked for presence, not
+separately frozen — and the flow below is implemented and green.
+[Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+[the two gates](the-two-gates.md) · [Status](../status.md)
 
 For lint-format, inspection may not stop at a fixed ecosystem allow-list. It
 must identify what is relevant in the repository and use that reality to build

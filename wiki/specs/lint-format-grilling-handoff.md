@@ -1,11 +1,17 @@
 ---
-status: active
+status: historical
 checked: 2026-08-21
 owner: rig-grilling
 phase: stage-c-handoff
 ---
 
 # Lint-format production grilling handoff
+
+> **HISTORICAL SNAPSHOT.** Grilling for this leaf is complete and its
+> intent is landed and signed in the frozen oracle. Current build state lives
+> in [the delivery plan](../topics/delivery-plan.md) and
+> [status](../status.md). Kept as source context, not a live continuation
+> point.
 
 This is the live continuation point for the first production leaf's Gate 1. It
 is a handoff, not gate authority. **All twenty audit questions are closed**
