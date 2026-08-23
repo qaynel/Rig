@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { writeReport } = require('./reports');
 const { loadCatalog, servicesOf } = require('./catalog');
+const { containedPath } = require('./path-safety');
 
 function runArgv(command, argv, cwd, timeoutMs = 10 * 60 * 1000) {
   return spawnSync(command, argv, {
@@ -82,17 +83,16 @@ function checkCopies(target) {
   const mapPath = path.join(target, '.rig', 'sync-map.json');
   if (fs.existsSync(mapPath)) {
     const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
-    const rootAbs = path.resolve(target);
-    const rootPrefix = rootAbs + path.sep;
     for (const group of map.groups || []) {
       const digests = new Set();
       for (const rel of group) {
         // sync-map.json is a repo-supplied config; refuse group entries that
-        // resolve outside the install target so a manipulated map cannot
-        // trick this drift-check into reading arbitrary bytes.
-        if (typeof rel !== 'string') continue;
-        const abs = path.resolve(target, rel);
-        if (abs !== rootAbs && !abs.startsWith(rootPrefix)) continue;
+        // resolve outside the install target — including through a symlink
+        // whose lexical path looks contained but whose target isn't — so a
+        // manipulated map cannot trick this drift-check into reading
+        // arbitrary bytes from elsewhere on disk.
+        if (typeof rel !== 'string' || !rel) continue;
+        const abs = containedPath(target, rel);
         if (!fs.existsSync(abs)) continue;
         digests.add(fs.readFileSync(abs).toString('utf8'));
       }
@@ -185,7 +185,12 @@ function resolveRunScope({ environment, changed }) {
 }
 
 function runChecks(target, { scope = 'repo', service = null } = {}) {
-  const copy = checkCopies(target);
+  let copy;
+  try {
+    copy = checkCopies(target);
+  } catch (error) {
+    copy = { status: 1, stdout: '', stderr: error.message };
+  }
   if (copy.status !== 0) {
     writeReport(target, {
       service_id: 'baseline.exact-copy',

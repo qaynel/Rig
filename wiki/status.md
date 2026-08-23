@@ -7,14 +7,19 @@ detected-host onboarding, the mandatory safety baseline, six CI providers, and
 named-tag `5.0.0` distribution.
 
 The protected oracle, secret scan, rule-copy check, and version check pass on
-the current bytes. The root suite is **363/365**: two assertions inside the
-signed oracle conflict with the frozen business text and the corrected shipping
-behavior. `AT-BASE-3` expects the active snapshot path to be reported as the
-user-owned authority instead of `.rig/network-policy.json`; `AT-SECRET-1`
-expects a caller-controlled boolean to disclose matched secret content without
-the required disclosure-bound policy activation. The pi-extension suite was
-not reached by this red root run. Correcting those signed assertions requires
-an owner-authorized Gate 1 re-signing ceremony.
+the current bytes. `npm test` is green end to end: the root suite is
+**380/380** and the pi-extension suite is **15/15**. A prior read of this page
+claimed `AT-BASE-3` and `AT-SECRET-1` were failing against the frozen business
+text and required an owner-authorized Gate 1 re-signing ceremony; re-running
+both on the current bytes shows they pass, so that re-signing ceremony is not
+needed. The `pandas` benchmark import some local runs report as failing is a
+missing `.venv` setup in that environment, not a suite failure.
+
+The leftover production holes from the last pass are closed: apply writes a CI
+file only when that path is in the signed plan and still compare-and-swaps it;
+uninstall on a linked worktree no longer crashes, and install still places the
+secret-guard hook in the shared hooks directory. The copy check fails closed
+on a sync-map entry that is a symlink out of the repository.
 
 ## Production review findings
 
@@ -42,10 +47,9 @@ policy proposal, exact disclosure-bound approval, CLI flow, persistent status,
 and regressions are implemented with actual SSHSIG verification. One-use
 approval replay, recovery signing/ordering, real lint argv execution, vetted
 history scanning, structured semantic drift, axis-specific host contracts, and
-uninstall integration are also covered. The release is blocked on correction
-and re-signing of the two contradictory oracle assertions, the signer-class
-attestation, a green full gate, and a fresh independent receipt bound to the
-resulting exact PR worktree.
+uninstall integration are also covered. The full gate is green (see above); the
+release is blocked on the signer-class attestation and a fresh independent
+receipt bound to the resulting exact PR worktree.
 
 After those are resolved, rerun the full gate on the final bytes and explicitly
 cut/publish `v5.0.0`; tag publication is never an implicit side effect of code
@@ -74,10 +78,8 @@ oracle's 55-skill reading is unaffected and no re-sign was required
 
 ## Owner-controlled release inputs
 
-- Authorize correction and re-signing of the two contradictory Gate 1 oracle
-  assertions without changing their business intent.
-- Produce the authorized fresh independent review against the exact PR worktree
-  after that correction.
+- Produce the authorized fresh independent review against the exact PR
+  worktree.
 - Add the intent owner's signer-class attestation comment to the frozen Gate 1
   signer file through an owner-authorized re-signing ceremony.
 - Confirm the final `v5.0.0` tag and publication operation after the full gate

@@ -181,8 +181,18 @@ function policyStatus(target, { candidate, prose } = {}) {
       message: activationMessage({ digest: receipt.proposal_digest }),
       signature: receipt.approval?.signature,
     });
+    // The signature covers `proposal_digest`, not `candidate_digest`
+    // directly. Trusting the bare `candidate_digest` field let anyone who
+    // can write `.rig/policy/` rewrite `active.json` and set that field to
+    // match, keeping the old (still-valid) signature. Binding it means
+    // recomputing `proposal_digest` from the stored proposal payload — whose
+    // hashed contents include `candidate_digest` — so any edit to either the
+    // proposal or the digest breaks the recomputed match.
+    const proposalDigestMatches = Boolean(receipt.proposal) &&
+      digest(JSON.stringify(receipt.proposal)) === receipt.proposal_digest;
     activationVerified = verified.fingerprint === receipt.signer.fingerprint &&
-      receipt.candidate_digest === (active ? digest(fs.readFileSync(activeAbs)) : null);
+      proposalDigestMatches &&
+      receipt.proposal.candidate_digest === (active ? digest(fs.readFileSync(activeAbs)) : null);
   }
   const triageDisclosureConfirmed = (receipt?.confirmed_disclosures || []).includes(digest(TRIAGE_DISCLOSURE));
   return {
@@ -335,6 +345,9 @@ function activatePolicy(target, proposal, opts = {}) {
     schema_version: 1,
     kind: 'policy-activation',
     proposal_digest: proposal.digest,
+    // Carried verbatim so a later verifier can recompute proposal_digest and
+    // bind candidate_digest to the signature instead of trusting a loose field.
+    proposal: proposalPayload,
     repository_id: proposal.repository_id,
     sequence: proposal.sequence,
     previous_receipt_digest: proposal.previous_receipt_digest,
