@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "controls": {
+    "sanitation": true,
+    "drift": true,
+    "secrets": true,
+    "git_ci": true
+  },
+  "enforcement": {
+    "shell": true,
+    "web": true,
+    "mcp": true
+  },
+  "allow": [],
+  "secrets": {
+    "model_assisted_triage": false
+  }
+}

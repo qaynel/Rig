@@ -1,25 +1,26 @@
-# Tier 2 Advanced — Gate 1 (RE-GRILLED AND FROZEN 2026-07-28)
+# Tier 2 Advanced — Gate 1 (RE-GRILLED 2026-08-21; AWAITING ORACLE SIGNATURE)
 
-**Frozen business intent + acceptance tests** for the Advanced à-la-carte delivery model. This is the
-clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
+**Owner-approved business intent** for the Advanced à-la-carte delivery model.
+This file, [`acceptance.md`](acceptance.md), and the deterministic testing
+infrastructure form the oracle that is signed once before implementation.
 
 > **Gate contract.** A design or implementation context must **not** author or edit
-> this file. A wrong Gate-1 decision changes only by returning to grilling,
-> recording why the intent changed, and revising this file and
-> [`../acceptance.md`](../acceptance.md) together. Roles describe isolated work
-> contexts, not named people: one maintainer may run every stage, but an
-> implementing context cannot approve itself or edit Gate 1.
+> this file after the oracle is signed. Before signature, a wrong Gate-1
+> decision returns to grilling and this file and [`acceptance.md`](acceptance.md)
+> are revised together. After signature, only the key holder may amend and
+> re-sign the oracle; an implementation agent may propose a correction but may
+> not apply one. Roles describe isolated work contexts, not named people.
 
 - **Full decision history / rationale:** `../../archive/grilling/advanced-grilling.md` (the `GA-#` decisions log — the record
   of *how* every line here was reached, incl. superseded/withdrawn forks).
 - **Detailed service taxonomies:** `../reference/mutation-testing-taxonomy.raw.md`,
   `../reference/product-security-taxonomy.raw.md`, `../reference/agent-harness-security-playbook.raw.md`,
   `../reference/testing-pipeline-vision.raw.md`.
-- **Product authority:** this file plus [`../acceptance.md`](../acceptance.md).
-- **Sole Gate-2 implementation authority:** `technical-spec.md`, but only while
-  it is explicitly versioned and frozen against the current Gate 1. The SOW,
-  task list, coverage plans, and decision history are subordinate and cannot
-  supersede it.
+- **Product authority:** this file plus [`acceptance.md`](acceptance.md) and the
+  signed testing-infrastructure manifest.
+- **Implementation approach:** [`../gate2/technical-spec.md`](../gate2/technical-spec.md)
+  must exist and remain the sole current technical approach. It is checked for
+  presence, not signed or frozen; it and the code adapt to the signed oracle.
 - **Brain fork:** B1 (config / host-brain) — **no Rig runtime, no model key** in the installed repo;
   Rig authors config the host agent executes (foundational #11). Cap A (local-model / LangGraph
   runtime), a persistent memory store, and semantic-brain runtime judgment + isolation infra are
@@ -283,6 +284,42 @@ clean Gate-1 artifact that `rig-product-design` (Gate 2) designs against.
 > re-signed combined digest (§8), before the specification gate may implement
 > this exception.
 
+> **Revision note (2026-08-21, final ruling that day) — D24, broad Policy MVP
+> and one gate.** Re-grilled with [`acceptance.md`](acceptance.md) after the
+> intent owner approved the complete MVP handoff. This revision supersedes
+> D21's lint-format-only release boundary and retires D23's temporary
+> `AT-SHAPE-6` exception. The MVP release now includes all 115 catalogue leaves
+> at the Policy rung, all 55 vendored skills wired and callable by Rig name,
+> context-aware onboarding that writes only into detected host trees, and a
+> named-tag distribution path at version `5.0.0`.
+>
+> Every D24-authored fragment states that it is generic Policy-grade baseline
+> practice, not repository-tailored Context or Evidence coverage. The honesty
+> floor is unchanged: missing or malformed bindings are named nonzero coverage
+> gaps, never silent skips or fabricated passes. Lint-format alone may retain
+> its already-evidenced Context and Evidence behavior. Sequential per-leaf
+> authorship is suspended for this release; the owner accepts that this MVP
+> therefore does not itself demonstrate that an agent cannot set its own test
+> bar. Later promotion restores ordinary per-leaf review.
+>
+> The two-gate workflow is replaced by one freeze. The signed oracle consists
+> of this file, [`acceptance.md`](acceptance.md), and the deterministic testing
+> infrastructure manifest. [`../gate2/technical-spec.md`](../gate2/technical-spec.md)
+> must be present but is neither frozen nor signed. Production implementation
+> starts only after the intent owner reviews and signs the complete oracle with
+> a key requiring a live human act. The acceptance ID set remains **68**.
+>
+> Inventory correction: commit `ff7cea5` and its matching upstream release each
+> contain 55 `SKILL.md` packages, not the 56 stated in the original D24 trace.
+> The controlling intent is all vendored skills; no nonexistent 56th package is
+> fabricated.
+>
+> The owner also approved release of the modified partial vendored suite under
+> its upstream MIT licence, provided the upstream notice and provenance record
+> ship with every installed copy and Rig makes no claim of upstream
+> endorsement. Approval source:
+> [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -460,16 +497,23 @@ pre-modification copies, and the uninstall path that consumes them. This is the
 counterpart to D7: a product a stranger can install without this checkout must
 also be one they can remove without it.
 
-**Also in scope (D21) — the lint-format vertical release.**
-`development.code-quality.lint-format` is the first leaf required for this
-release: whole-repository open-ecosystem discovery, semantic command binding,
-the cumulative Policy → Context → Evidence grade, plan-bound execution of
-untrusted repository tasks, the read-only guarantee, diff-scoped checks,
-separately approved autofix, additive/proposed/preserving CI behavior, command
-drift detection, redacted local reporting, the full abnormal-ending taxonomy,
-and manifest-exact lifecycle. See
-[`../specs/lint-format-intent.md`](../specs/lint-format-intent.md) for the
-consolidated synthesis and `AT-LF-1`–`AT-LF-19` in §7 for the acceptance.
+**Also in scope (D24) — the broad Policy MVP.** All 115 catalogue leaves ship
+at the Policy rung; each states that its content is generic baseline practice,
+not repository-tailored Context or Evidence coverage. All 55 vendored skills
+are wired into materialization and host discovery and remain callable by their
+Rig names. Onboarding detects existing host trees mechanically and writes only
+to those trees. The root installer resolves and downloads a named released tag
+before execution, and the release version is `5.0.0`. The upstream MIT notice
+and provenance record for the modified partial vendored suite ship in every
+installed copy, without an upstream-endorsement claim.
+
+**Lint-format remains the evidenced vertical.** Its whole-repository discovery,
+semantic command binding, cumulative Policy → Context → Evidence behavior,
+plan-bound execution, read-only guarantee, diff scope, separately approved
+autofix, CI behavior, drift detection, local reporting, abnormal endings, and
+lifecycle remain in scope. See
+[`../specs/lint-format-intent.md`](../specs/lint-format-intent.md) and
+`AT-LF-1`–`AT-LF-19` in [`acceptance.md`](acceptance.md).
 
 **Out of scope (D18) — version migration.** Rig is distributed as a source
 archive and an install stub, not through a package manager, so there is no
@@ -532,16 +576,15 @@ The determinism ladder (unit → property → mutation → contract → chaos �
 inter-service **dependencies** (auto-pull), orthogonal to grade. **The catalogue is mutually exclusive
 (MECE)** — every capability is owned by exactly one service.
 
-All **115 frozen leaves are production commitments**, but only
-`development.code-quality.lint-format` is **release-blocking for this release**
-(D21): it ships first and alone as normal Rig's first production-supported
-leaf. The other 114 leaves remain committed and specified, and block their own
-future support and the complete-catalogue claim, but do not block this
-release. Every leaf, in its turn, has service-specific identity, owned scope
-and adjacent exclusions, applicability, dependencies, cumulative grade
-behavior, checks, and acceptance evidence. A TODO fragment, generic filler,
-repeated boilerplate, or merely non-empty file does not constitute an authored
-service pack.
+All **115 frozen leaves are release-blocking for this MVP** (D24). Each ships
+at Policy grade with service-specific identity, owned scope and adjacent
+exclusions, applicability, dependencies, cumulative grade behavior, execution
+disposition, checks, and acceptance evidence. Each D24-authored fragment names
+its Policy grade and says explicitly that it is generic baseline practice, not
+repository-tailored Context or Evidence coverage. A TODO fragment, generic
+filler presented as coverage, repeated boilerplate, or merely non-empty file
+does not constitute an authored service pack. Lint-format is the only leaf that
+may claim Context or Evidence from its existing evidence.
 
 **Four families → groups** (service-level detail in `../../archive/grilling/advanced-grilling.md` §GA-9k/9l/9m/9n and the
 `references/` taxonomies):
@@ -589,34 +632,34 @@ profiling; Infrastructure keeps capacity load); runtime secret *injection* → *
    specific and reviewable, and every selected service produces one observable
    outcome without no-op or silent passes.
 
-## 8. Handoff to Gate 2
+## 8. The gate and technical handoff
 
-The current Gate 2 is reopened by this re-grill. `rig-product-design` must amend,
-version, and re-freeze `technical-spec.md` against this file and
-[`../acceptance.md`](../acceptance.md). That file is the **only**
-implementation authority. A SOW, task list, coverage plan, or later-dated
-ruling may describe or propose work but cannot override it.
+[`../gate2/technical-spec.md`](../gate2/technical-spec.md) is the sole current
+technical approach and must be present at the gate. It is not part of the
+signed oracle and is not frozen. It may change during implementation, but no
+technical document or code may weaken or supersede this file,
+[`acceptance.md`](acceptance.md), or their deterministic executable tests.
 
 Evaluation is ordered:
 
-1. The **specification gate** proves a single authority, complete Gate-1-to-
-   Gate-2 traceability, no unresolved contradictions or placeholders, and a
-   fresh-context semantic review for completeness and testability.
-2. Only after that passes may the **code gate** evaluate implementation and
-   first-wire correctness. Green code tests cannot compensate for a failed or
-   unapproved specification gate.
+1. The **oracle gate** verifies the owner signature over business intent,
+   acceptance, and the stable testing-infrastructure manifest, then verifies
+   every manifested file before running any product test. It also verifies that
+   the technical specification exists as the sole named current approach.
+2. Only after that passes may the **code gate** evaluate implementation.
+   Green code tests cannot compensate for a missing, changed, or unsigned
+   oracle. A fresh report-only technical and catalogue review is release
+   evidence, not a second freeze.
 
 **Gate integrity is mechanical, not clerical (D5, revised D10, D17, D19).** This
-file and
-[`../acceptance.md`](../acceptance.md) are protected by signature rather than by
-repository process. At freeze, the intent owner signs the combined SHA-256
-digest of both files with a key that no agent on their machine can operate
-without a live human act. The
-specification gate recomputes that digest and verifies that signature before
-anything else runs. An agent holding full repository and shell access can edit
-these files, and can edit the recorded digest and signature sitting beside them,
-but it cannot produce a signature that verifies — so an edited Gate 1 fails the
-gate instead of quietly moving the bar it is measured against.
+file, [`acceptance.md`](acceptance.md), and the deterministic testing
+infrastructure are protected by signature rather than repository process. At
+freeze, the intent owner signs a canonical message containing the SHA-256
+digests of both documents and the testing-infrastructure manifest with a key no
+agent on their machine can operate without a live human act. The oracle gate
+recomputes and verifies the message, then every path/digest pair in the sorted
+manifest, before anything else runs. An agent can edit repository bytes but
+cannot make changed oracle bytes verify, so it cannot quietly move its own bar.
 
 **The gate is armed by the signer identity, not by the signature (D17).** A
 repository holding the signer identity file is armed: a signature that is
@@ -649,16 +692,17 @@ is that it cannot sign as the intent owner at all, not that a checker would
 catch the wrong sort of key. Specifying a check that cannot be implemented would
 buy nothing and cost the reader their trust in the rest of this section.
 
-The specification gate runs **before** the code tests and short-circuits them.
+The oracle gate runs **before** the code tests and short-circuits them.
 Ordering is the requirement, not mere presence — a suite that can go green while
 the specification gate is unrun or failing is the exact defect this revision
 exists to close.
 
-**Review is independent by construction (D8).** Gate 2, and every one of the
-115 service leaves, is authored in one context and reviewed in a **fresh
-session**. Review is report-only and its receipt is pinned to the exact content
-digest reviewed. There is no human sampling step; the intent owner accepts that
-the authoring and reviewing contexts can share a blind spot, recorded in §9.
+**Review is independent by construction (D8).** The technical specification
+and the complete 115-leaf catalogue receive a **fresh-session**, report-only
+review whose receipt is pinned to the exact content digest reviewed before
+release. The review does not authorize implementation and is not a second
+freeze. There is no human sampling step; the intent owner accepts that the
+authoring and reviewing contexts can share a blind spot, recorded in §9.
 
 These are workflow separations, not staffing requirements. A single maintainer
 may run the product, design, implementation, review, and acceptance stages

@@ -4,6 +4,7 @@ Everything this project knows about itself: what it is, why every part of it is
 shaped the way it is, and what is true right now.
 
 **Start here:** [status](status.md) if you are picking the work up cold ·
+[the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
 [glossary](glossary.md) if a term or ID is unfamiliar.
@@ -91,7 +92,7 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — frozen.** 68 acceptance cases plus the tests that check them. Only the intent owner revises it, by re-signing; the signature must be extended to cover the testing infrastructure. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves. The completed test manifest is covered by the owner signature with both documents. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 

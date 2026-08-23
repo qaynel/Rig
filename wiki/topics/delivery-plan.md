@@ -59,29 +59,21 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-No implementation slice may start while Gate 1 and Gate 2 disagree about the
-release boundary or while Gate 2 is a failed candidate. Gate 1 is amended (D21)
-and re-frozen at 68 cases, and **Gate 2 is now re-traced** (v0.6, 2026-08-21):
-`rig-product-design` traced `AT-LF-1`–`AT-LF-19` into §13, applied the D21
-release boundary to §12.3/§17.2, added the grade ladder and lint-format vertical
-mechanisms (§5.7/§5.8/§9.4/§11.3), and resolved the three remaining round-3
-findings. The remaining work before implementation is a fresh passing review at
-the new digest and the intent owner's Gate 1 signature.
+D24 and the one-gate contract are now owner-approved and landed in both Gate 1
+files. Before implementation, the complete 68-case deterministic testing
+infrastructure must be built and manifested, and the owner must sign that
+manifest together with intent and acceptance. Gate 2 is a present working
+technical approach, not a second freeze; it must be retraced to D24 before the
+oracle is presented for signature.
 [Status](../status.md#ordered-next-steps)
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 
-The intent owner chose `development.code-quality.lint-format` as the first
-production leaf instead of waiting for horizontal all-leaf authorship. The same
-release keeps normal Rig's default-on safety baseline and full
-19-host/six-provider commitment; it is not a limited preview. Candidate Gate 2
-recorded the vertical choice, frozen Gate 1 matches it (D21, 2026-08-21), and
-Gate 2 v0.6 now narrows §12.3/§17.2 to make lint-format the single
-release-blocking leaf with the other 114 committed but non-blocking. All twenty
-lint-format product questions in the grilling audit are closed, the Gate 1
-amendment has landed, and Gate 2 is re-traced. Round 4 failed at the current
-digest on two accepted internal consistency defects, so a narrow Gate 2
-correction and another fresh review now precede freeze alongside the Gate 1
-signature.
+The former lint-format-only path is historical. D24 supersedes D21's release
+boundary and retires D23: all 115 Policy leaves are now release-blocking, while
+lint-format remains the only currently evidenced higher-grade vertical. The
+beta does not claim complete safety-oriented capabilities or safety benchmarking;
+standard engineering safeguards remain active. The full 19-host/six-provider
+commitment remains.
 [Vertical production ruling](../reasoning/2026-08-20-vertical-lint-format-production.md)
 [Production context](../reasoning/2026-08-20-lint-format-production-context.md)
 [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
@@ -99,3 +91,54 @@ hole is now resolved in both Gate 2 candidate text and `rig/lib/apply.js`.
 This one leaf's own current state and the ordered path from here to it
 counting as a production leaf — not just a probe — is tracked separately and
 kept current: [lint-format roadmap](../specs/lint-format-roadmap.md).
+
+## The MVP reorder (D24, 2026-08-21)
+
+**D24 reorders the front of the fifteen-slice plan for time-to-beta.** The
+plan's later slices survive unchanged; what changes is the early sequence and
+the release shape. The catalogue no longer ships one deep leaf but all 115 at
+the Policy rung, authored in one pass at agent discretion.
+
+The MVP order, each step with one verifiable outcome:
+
+1. Repair the record (done 2026-08-21).
+2. Build all 68 deterministic targets, the first-running oracle verifier, and
+   `npm run test:code`; manifest the test bytes and obtain the owner signature.
+   Product-behavior failures are expected before implementation.
+3. Wire all 55 swallowed skills and ship a real install path (`install.sh`,
+   `5.0.0`). First step that produces something a stranger can hold.
+4. Context-aware onboarding: mechanical host detection, write only into trees
+   that exist, explicit trimmable family selection. **Done 2026-08-23.**
+5. Author all 115 leaves at Policy grade, in family batches.
+6. Prove the unchanged signed `AT-SHAPE-6` target green across all 115.
+7. Release: fresh review, production evidence, `v5.0.0`.
+8. After beta, promote leaves Policy → Context → Evidence on evidence of use,
+   under the ordinary gate with owner review restored.
+
+Sequential authorship (locked decision 8) is suspended for step 5 and returns at
+step 8. The owner has approved D24 and the MIT distribution ruling; the
+non-delegable signature remains after the tests are complete.
+Full detail, verify commands, and traps: [the MVP roadmap](../specs/mvp-roadmap.md).
+[Ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
+[Owner approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
+[v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)
+
+## Where the eight steps actually stand (2026-08-23)
+
+| Step | Standing |
+|---|---|
+| 1. Repair the record | Done. |
+| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 68 cases. |
+| 3. Wire the 55 skills, ship `install.sh` and `5.0.0` | **Done.** The payload installs all 55 skills and plumbing; the macOS-safe installer resolves named releases. Tag cutting stays in release step 7. |
+| 4. Context-aware onboarding | **Done.** The shipped bootstrap calls the registry, auto-selects only existing unambiguous host markers, keeps explicit overrides exact, and journals every payload write. `generic` is deliberately explicit-only. |
+| 5. Author all 115 leaves at Policy grade | **Done.** 805 files, zero placeholders, grade and untailored-baseline declared on every fragment. |
+| 6. Prove the all-115 target green without changing the oracle | **Done.** The now-honest authorship function inspected all declared fragments and returned zero failures; the signed gate and full suite passed unchanged. |
+| 7. Release: fresh review, evidence, `v5.0.0` | **Review done, verdict blocked.** Four blockers; the tag was not cut. |
+| 8. Post-beta promotion | Unchanged, still after beta. |
+
+The earlier catalogue green was not proof because its authorship function could
+not fail. That defect is closed: the function now reads every declared fragment,
+and the unchanged signed targets pass over all 115 leaves. Step 7's review is
+filed as a trace rather than a receipt: under locked decision 5 a digest-bound
+receipt is written by the wrapper, not by the agent that performed the review.
+[fresh review](../reasoning/2026-08-22-mvp-release-review.md)

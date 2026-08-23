@@ -5,6 +5,56 @@ hard way. Read this before believing anything looks fine.
 
 ---
 
+## The oracle is green at a seam the product does not use
+
+Discovered 2026-08-22, in the release review. `tests/advanced-oracle.test.js`
+loads behavior with `require(path.join(__dirname,'..','rig','lib',file))[name]`.
+That is a direct module load, so a case goes green as soon as the named export
+exists and behaves — whether or not any shipped code path ever calls it.
+
+It did. All ten modules the oracle added — `skills`, `release-evidence`,
+`policy`, `enforcement`, `lifecycle`, `global-writes`, `git-dispatch`,
+`secret-history`, `graft`, `lint-format` — have zero production callers.
+`materialize.js`, `cli-advanced.js`, `payload.js`, `bootstrap.sh`, and
+`manifest.json` reference none of them. 68/68 was true and told you nothing
+about the product.
+
+Check it the cheap way before believing a green oracle:
+
+```sh
+grep -rn "require(" rig/lib/*.js rig/materialize.js scripts/*.js \
+  | grep -E "policy|enforcement|lifecycle|global-writes|git-dispatch" \
+  | grep -v "^rig/lib/"
+```
+
+This is the successor to the trap below, not a replacement for it. The old
+version was "the suite asserts inventory, not behavior." This one is "the suite
+asserts behavior, at a seam nothing reaches."
+
+## A validator that returns `failures: []` as a literal
+
+Same review, same day. `catalog.authorshipReport()` and
+`host-capabilities.validateRegistryContracts()` both ended in a hardcoded empty
+failures array. Neither read the artifact it claimed to check —
+`authorshipReport` never opened a fragment file, and `contractFor` synthesized
+every contract field as a constant. The acceptance cases resting on them
+(`AT-P6`, and `AT-SHAPE-6`'s failures assertion) could not fail for any input.
+
+Corrected 2026-08-23 without a re-sign: `authorshipReport` opens each fragment
+and records missing/empty/malformed/undeclared-grade files; `contractFor` reads
+declared contract fields, so a host that omits them fails. `failures: []` is
+now a computed result. The signed assertion is unchanged; its meaning is "no
+defects found."
+
+The disposition closed loop is still there: `checks.validateDisposition`
+accepts any reason containing `service-specific`, and `authorshipReport` still
+builds the string `service-specific <kind> for <id>`. File inspection is what
+makes the authorship gate fail for the right reason.
+
+Grep for `failures: []`, `return true`, and `status: 'verified'` as literal
+returns in anything named `validate*`, `verify*`, or `*Report`. A verification
+function that never touches a filesystem or an input is asserting, not checking.
+
 ## The suite is green and means nothing
 
 This was true of all 19 `tests/advanced-*.test.js` files as of 2026-08-19: 238

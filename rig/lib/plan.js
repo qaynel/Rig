@@ -9,6 +9,9 @@ const { resolve } = require('./resolve');
 const { validateReview, isReviewAccepted } = require('./catalog');
 const { getCapabilities } = require('./host-capabilities');
 const { planCiIntegration } = require('./ci-adapters');
+const { buildBinding: buildLintFormatBinding } = require('./lint-format');
+
+const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -133,6 +136,10 @@ function createPlan(target, manifest, review, catalog = loadCatalog()) {
     }),
     service_id: Object.keys(manifest.services || {})[0] || null,
   };
+  const lintFormat = resolved.effective[LINT_FORMAT_SERVICE];
+  if (lintFormat?.selected_grade) {
+    plan.lint_format = buildLintFormatBinding(target, lintFormat.selected_grade, ci);
+  }
   plan.digest = crypto.createHash('sha256').update(JSON.stringify(plan)).digest('hex');
   plan.plan_digest = plan.digest;
   plan.summary = `Install baseline + ${Object.keys(manifest.services || {}).length} selected services (${resolved.order.length} effective).`;

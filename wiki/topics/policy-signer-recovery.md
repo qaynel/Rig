@@ -46,7 +46,11 @@ credential from self-appointing a key it could later operate unattended. The
 v0.10 `AT-PRESENCE-2` §13 test row now asserts only the enforceable parts:
 pre-loss registration, fingerprint/namespace distinctness, receipt validity,
 exhaustion, side effects, and declared-class disclosure. It does not claim a
-Node test can prove a hardware touch. `AD-30` amended.
+Node test can prove a hardware touch. v0.11 also closes the platform fallback:
+if OpenSSH cannot request user verification, registration refuses with
+`user_verification_unavailable` rather than creating a weaker recovery path.
+`AD-30` amended.
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 [Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
+[v0.11 correction](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md)
 [Status](../status.md)

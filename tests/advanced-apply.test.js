@@ -118,7 +118,7 @@ test('apply keeps host adapter and git hook writes in place on failure and resum
 
     const chainedBackup = path.join(target, '.git', 'hooks', 'pre-commit.rig-chained');
     assert.ok(
-      fs.existsSync(path.join(target, '.rig', 'hooks', 'semantic-review.hint.md')),
+      fs.existsSync(path.join(target, '.rig', 'host-contracts', 'codex', 'instruction.json')),
       'writes already applied before the failure point must stay, not roll back',
     );
     assert.match(

@@ -2,57 +2,51 @@
 
 ## What it is
 
-The install manifest records every Rig write, its ownership class, preimage or
-hash evidence, and whether the install is complete. An interrupted install
-resumes from that record; removal deletes Rig-owned files and managed regions
-while preserving all later user edits it cannot prove it owns. [Gate 2 §7.6](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
+Rig records repository mutations in `.rig/install-manifest.jsonl`, an
+append-only pending/applied journal. The same journal drives resume and reverse
+removal for bootstrap, catalogue apply, and CI writes. A legacy JSON file may be
+emitted as a compatibility projection, but it is not a second authority.
 
-## Why it is this way
+## Current contract
 
-Removal is part of the product, not cleanup left to the user. A manifest makes
-ownership explicit from the first write. Best-effort removal is safer than
-snapshot restoration because returning a file to its old bytes would discard
-legitimate work added after installation. [Gate 1 D11/D14](../gate1/business-spec.md)
+Every pending record lands before its mutation and carries the relative path,
+ownership, transaction kind, preimage digest, and desired digest. The applied
+record with the same sequence carries the observed result digest. Install-state
+records start incomplete and end complete. After a crash, desired bytes mean the
+write landed and can be reconciled; preimage bytes mean it can be retried; any
+third state blocks by path.
 
-## What binds it
+All repository paths pass through one symlink-aware containment guard. Lexical
+traversal, absolute paths, and any existing symlink ancestor that resolves
+outside the target are refused before reading, writing, or deleting. Static
+regressions cover resume, uninstall, coverage application, remediation,
+payload, and CI mutations.
 
-`D11` defines complete removal, `D14` defines resume and truthful partial state,
-and `AD-10` requires receipt-last transaction ordering. `AT-INSTALL-*` and
-`AT-REMOVE-*` are the frozen lifecycle cases. [Decision index](../index/decisions.md)
-[Acceptance index](../index/acceptance-cases.md)
+Removal walks the last record for each sequence in reverse. It deletes only
+unchanged Rig-owned output, removes recorded managed lines/blocks, preserves
+later user edits as named best-effort cases, ignores remediation transactions,
+restores a chained pre-commit hook, removes only install-ID-attributed global
+entries, and consumes both current JSONL and historical JSON manifests. The
+shipping `uninstall` command writes removal evidence. Reports and user-owned
+policy files survive ordinary removal; `--purge` lists reports/run history
+before deleting those usage artifacts and still preserves the user policy.
 
-## What was rejected
+## Why
 
-Snapshot restore, destructive rollback as a second teardown system, deletion of
-user-owned files, and claiming partially applied controls are active were
-rejected because they risk data loss or fabricate protection. [Rejected approaches](../index/rejected.md)
+Removal is product behavior, not cleanup. Record-before-mutate makes every
+landed write discoverable after interruption; shared containment prevents a
+repository-controlled symlink or journal path from extending Rig's authority
+beyond the selected target.
 
 ## Authorities and sources
 
-- Frozen lifecycle intent: [Gate 1 §2](../gate1/business-spec.md)
-- Manifest, resume, and removal: [Gate 2 §7.6](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
-- Original lifecycle rulings: [advanced grilling GA-12](../sources/logs/advanced-grilling.md#ga-12--the-lifecycle-re-grill-2026-07-28)
+- Frozen lifecycle intent: [business specification](../gate1/business-spec.md)
+- Working mechanism: [technical specification](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
+- Original lifecycle ruling: [advanced grilling](../sources/logs/advanced-grilling.md)
+- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
 
-## What is still open
+## Remaining work
 
-**Resolved 2026-08-20.** The round-3 blocker was exactly this boundary: Gate 2
-§6.6 said failed apply rolls everything back, while §7.6 and `AT-INSTALL-1`
-preserve completed writes for resume. §6.6, §10, and `AD-10` now state the
-manifest-and-resume model as the apply's only failure behavior, and
-`rig/lib/apply.js` implements the `.rig/install-manifest.jsonl`
-record-before-mutate/resume mechanics for the writes apply performs.
-[Reasoning trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
-[Status](../status.md)
-
-Still unbuilt: preimage content-addressed storage and the reverse-walk
-removal/uninstall path this page describes above. Both are Slice 12's job. The
-three other round-3 findings are now resolved in Gate 2 v0.6, so only a fresh
-review at the new digest and the Gate 1 signature block the freeze.
-
-For lint-format, lifecycle is exactly this contract with no new mechanism
-(`GA-34`). Reinstall is an idempotent resume that claims no protection until
-complete; removal reverses only what the manifest attributes to Rig — generated
-CI, configuration, managed blocks — and leaves any legacy or user-owned artifact
-it cannot prove it created. Source fixes the user invoked through autofix
-(`GA-29`) are the user's own edits and always survive uninstall.
-[reasoning trace](../reasoning/2026-08-21-lint-format-lifecycle.md)
+The shipping CLI, purge presentation, chained-hook restoration, JSONL removal,
+and attributed global cleanup all have integration coverage. Fresh independent
+review remains the release check on the combined lifecycle.

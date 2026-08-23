@@ -1,3 +1,5 @@
-# development.data-schema.db-migrations slice floor
+# development.data-schema.db-migrations - slice floor + mutation-floor
 
-Razor-scoped dependency slice.
+Policy-grade generic baseline practice, not repository-tailored Context or Evidence coverage.
+
+The `floor` and `mutation-floor` slice establishes the lowest non-vacuous db migrations verdict for `source-code`. It activates `db-migrations-source-code-boundary` and reports a named coverage gap when its repository binding or required dependency is unavailable.

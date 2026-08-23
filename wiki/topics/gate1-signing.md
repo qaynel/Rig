@@ -26,6 +26,14 @@ first in the specification gate. `AT-GATE-2` and the Gate 1 integrity cases make
 missing, malformed, stale, or non-verifying signatures fail once armed.
 [Decision index](../index/decisions.md) [Acceptance index](../index/acceptance-cases.md)
 
+`scripts/approve-gate1.js` is the local ceremony helper. It reads one
+machine-local environment variable, `RIG_GATE1_SIGNING_KEY`, from the process or
+from `.context/gate1.env`; writes the canonical oracle message; invokes
+`ssh-keygen -Y sign` in namespace `rig-gate1`; and only after a successful
+signature writes `gate1.allowed-signers` and `gate1.sig`. The tracked
+`scripts/gate1.env.example` shows the expected setting; the ignored local env
+file stores the key path, not private key material.
+
 ## What was rejected
 
 Branch protection, upstream comparison, a repository-stored private key, TTY
@@ -39,10 +47,17 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 - Verification mechanism: [Gate 2 AD-28 and §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 - Owner ceremony sequencing: [status](../status.md#ordered-next-steps)
 
-## What is still open
+## Standing
 
-The gate is currently unarmed: no allowed-signers or signature file exists.
-Only the intent owner can perform the ceremony, before implementation begins.
-Under one gate there is no separate second freeze to clear first; the signature
-must be extended to cover the testing-infrastructure digest, not only intent and
-acceptance. [Status](../status.md#gate-standing)
+The gate is armed. `wiki/gate1/gate1.sig` and
+`wiki/gate1/gate1.allowed-signers` both exist. Running
+`node scripts/check-advanced-spec.js` prints
+`Gate 1 protected: principal=gate1-owner
+fingerprint=SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY` over the
+unchanged five-file oracle. The signature covers business intent, acceptance,
+and the manifest — a change to any of the manifested files invalidates it.
+Owner key comment is `rig-gate-key@secretive.Manoj's-MacBook-Pro.local`;
+class is owner-attested Secretive / Secure Enclave (D19: the artifact cannot
+prove this; the owner did).
+[Approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
+[Status](../status.md#gate-standing)

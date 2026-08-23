@@ -1,7 +1,5 @@
-# testing.unit.test-case-generation — maximal
+# testing.unit.test-case-generation - maximal
 
-Owned scope: unit.test-case-generation
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
 
-Checks: test-case-generation-thorough
-
-Concrete convention for maximal grade.
+After the minimal and mid checks pass, `test-case-generation-evidence-receipt` covers `unit.test-case-generation`. Given the unit.test-case-generation binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:testing.unit.test-case-generation:evidence-replay` names the binding, inputs, outcome, and current digest.

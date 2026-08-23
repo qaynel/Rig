@@ -1,7 +1,5 @@
-# product-security.secrets.precommit-leak-scanner — maximal
+# product-security.secrets.precommit-leak-scanner - maximal
 
-Owned scope: secrets.precommit-leak-scanner
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
 
-Checks: precommit-leak-scanner-thorough
-
-Concrete convention for maximal grade.
+After the minimal and mid checks pass, `precommit-leak-scanner-evidence-receipt` covers `secrets.precommit-leak-scanner`. Given the secrets.precommit-leak-scanner binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:product-security.secrets.precommit-leak-scanner:evidence-replay` names the binding, inputs, outcome, and current digest.

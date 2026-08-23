@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
+const { discoverHosts } = require('./host-capabilities');
 
 const MAX_BYTES = 256 * 1024;
 const HARNESS_NAMES = new Set([
@@ -86,10 +87,11 @@ function collectHarnessFiles(target) {
   return out;
 }
 
-function inspectTarget(target, { host } = {}) {
+function inspectTarget(target, { host, hosts } = {}) {
   const root = realpathOrNull(target);
   if (!root || !fs.existsSync(root)) throw new Error('inspect: target must exist');
-  if (!host) throw new Error('inspect: --host is required');
+  const explicit = host ? [host] : Array.isArray(hosts) ? hosts : [];
+  const detectedHosts = discoverHosts(root, { explicit });
 
   const findings = [];
   const inputs = [];
@@ -143,12 +145,20 @@ function inspectTarget(target, { host } = {}) {
 
   return {
     schema_version: 1,
-    host,
+    ...(host ? { host } : {}),
+    hosts: detectedHosts,
     harness_digest: hash.digest('hex'),
     inputs,
     findings,
     redaction: 'secret-shaped evidence redacted',
   };
+}
+
+function adoptionVerdict({ findings = [], unverifiable = [] } = {}) {
+  const blockers = findings.filter((f) => f && f.severity === 'blocker');
+  if (blockers.length) return { verdict: 'BLOCK', findings: blockers, unverifiable };
+  if (unverifiable.length) return { verdict: 'QUARANTINE', findings, unverifiable };
+  return { verdict: 'ALLOW', findings, unverifiable };
 }
 
 module.exports = {
@@ -159,4 +169,5 @@ module.exports = {
   validateVerdict: validateReview,
   VERDICTS,
   KNOWN_RESTRICTIONS,
+  adoptionVerdict,
 };

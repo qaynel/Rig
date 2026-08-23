@@ -6,9 +6,12 @@ Rig is a packaged, forward-deployed, host-agnostic agentic harness for an
 existing repository. It reads the current repo and project context, chooses how
 best to install the harness with the tools Rig ships, and helps the user set it
 up while respecting existing infrastructure instead of replacing it. Tier 1 is
-a markdown-only bootstrap; the active delivery design adds a default-on
-agent-safety baseline and a user-selected engineering catalogue without adding a
-Rig model runtime or model key. [Gate 1 §1–2](../gate1/business-spec.md)
+a markdown-only bootstrap; the beta delivery focuses on the user-selected
+engineering catalogue without adding a Rig model runtime or model key.
+**Beta note:** The mandatory agent-technology safety baseline is included. The
+Product-Security catalogue remains independently selectable, and no Rig model
+runtime or model key is introduced.
+[Gate 1 §1–2](../gate1/business-spec.md)
 [Packaged harness clarification](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
 
 ## Why it is this way
@@ -56,19 +59,17 @@ taxonomy remains only as historical evidence and compatibility context.
 - First-attempt retrospective (what not to do): [reasoning trace](../reasoning/2026-08-20-first-attempt-retrospective.md)
 - Product spirit and hybrid posture: [reasoning trace](../reasoning/2026-08-20-product-spirit-hybrid.md)
 - Packaged forward-deployed harness clarification: [reasoning trace](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
+- Beta safety posture: [reasoning trace](../reasoning/2026-08-23-beta-safety-posture.md)
 - Universal capability model, lint-format first: [reasoning trace](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
 
 ## What is still open
 
-The product identity is settled; delivery is not. Gate 2 is still a failed
-candidate and the catalogue implementation must not start until it freezes.
-The intent owner frames Tier 2 not as a competitor to Tier 1 but as its
-repo-targeted refinement: the same workflow, onboarding only the context and
-skills relevant to the specific project. [Product-direction review](../reasoning/2026-08-19-product-direction-review.md)
-[Current status](../status.md)
+The product identity, broad Policy delivery, and plan-time model-assisted
+secret-triage disclosure are implemented. Production release still needs fresh
+independent review evidence over the final PR bytes and explicit tag
+publication. [Current status](../status.md)
 
 Rig's universal service-depth method is Policy → Context → Evidence: govern,
 understand, then prove the change, while using the lowest level that can reach a
-definitive answer. This is recorded globally but is being specified and proven
-only through lint-format now; it does not authorize horizontal authorship of
-the remaining catalogue.
+definitive answer. All 115 leaves carry Policy contracts; lint-format retains
+the deeper repository-specific Context and rerunnable Evidence proof.

@@ -144,6 +144,111 @@ function isReviewAccepted(review) {
   return validated.verdict === 'ALLOW' || validated.verdict === 'ALLOW_WITH_RESTRICTIONS';
 }
 
+const POLICY_GRADE = /Policy(?:-| )grade/i;
+const PLACEHOLDER = /TODO|TBD|Concrete convention|describes the .* service\. This authoring|enforces the Policy-grade checks declared in the catalogue|carries the shared invariant the parent service depends on/i;
+const GENERIC_CHECK = /-(?:core|extended|thorough)$/;
+const LINT_FORMAT_ID = 'development.code-quality.lint-format';
+
+function inspectFragment(service, part, rel) {
+  const serviceId = service.id;
+  if (typeof rel !== 'string' || !rel) {
+    return { id: serviceId, part, rel, reason: 'missing fragment path' };
+  }
+  if (!rel.endsWith('.md')) {
+    return { id: serviceId, part, rel, reason: 'not markdown' };
+  }
+  const file = path.join(ROOT, 'rig', rel);
+  if (!fs.existsSync(file)) {
+    return { id: serviceId, part, rel, reason: 'missing fragment file' };
+  }
+  let text;
+  try {
+    text = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    return { id: serviceId, part, rel, reason: `unreadable: ${err.message}` };
+  }
+  if (!String(text).trim()) {
+    return { id: serviceId, part, rel, reason: 'empty fragment' };
+  }
+  if (!text.trimStart().startsWith('#')) {
+    return { id: serviceId, part, rel, reason: 'malformed markdown: missing heading' };
+  }
+  if (PLACEHOLDER.test(text)) {
+    return { id: serviceId, part, rel, reason: 'malformed fragment: placeholder text' };
+  }
+  if (serviceId !== LINT_FORMAT_ID && !POLICY_GRADE.test(text)) {
+    return { id: serviceId, part, rel, reason: 'missing declared grade' };
+  }
+  if (part === 'minimal' || part === 'mid' || part === 'maximal') {
+    if (!new RegExp(`\\b${part}\\b`, 'i').test(text)) {
+      return { id: serviceId, part, rel, reason: `missing declared grade ${part}` };
+    }
+    for (const checkId of service.checks?.[part] || []) {
+      if (GENERIC_CHECK.test(checkId)) {
+        return { id: serviceId, part, rel, reason: `generic check id ${checkId}` };
+      }
+      if (!text.includes(checkId)) {
+        return { id: serviceId, part, rel, reason: `fragment omits check ${checkId}` };
+      }
+    }
+  }
+  if (part === 'identity') {
+    for (const value of [...(service.owns || []), ...(service.applicability?.any || [])]) {
+      if (!text.includes(value)) return { id: serviceId, part, rel, reason: `identity omits ${value}` };
+    }
+    if (!/Disposition:/i.test(text)) {
+      return { id: serviceId, part, rel, reason: 'identity omits disposition' };
+    }
+  }
+  return null;
+}
+
+function authorshipReport() {
+  const catalog = loadCatalog();
+  const services = servicesOf(catalog);
+  const counts = {};
+  const rows = [];
+  const failures = [];
+  const bodies = new Map();
+  for (const service of services) {
+    counts[service.family] = (counts[service.family] || 0) + 1;
+    const disposition = service.disposition || null;
+    if (!disposition || !['executable', 'convention', 'surfaceless'].includes(disposition.kind) || !disposition.reason) {
+      failures.push({ id: service.id, reason: 'missing honest disposition contract' });
+    }
+    const evidenceTargets = [];
+    const seen = new Set();
+    const addTarget = (part, rel) => {
+      if (!rel) return;
+      evidenceTargets.push(rel);
+      if (seen.has(rel)) return;
+      seen.add(rel);
+      const failure = inspectFragment(service, part, rel);
+      if (failure) failures.push(failure);
+      else {
+        const normalized = fs.readFileSync(path.join(ROOT, 'rig', rel), 'utf8').replace(/\s+/g, ' ').trim();
+        const prior = bodies.get(`${part}:${normalized}`);
+        if (prior && prior !== service.id) failures.push({ id: service.id, part, rel, reason: `repeats fragment from ${prior}` });
+        else bodies.set(`${part}:${normalized}`, service.id);
+      }
+    };
+    for (const [part, rel] of Object.entries(service.fragments || {})) addTarget(part, rel);
+    for (const [name, slice] of Object.entries(service.slices || {})) {
+      if (slice && slice.fragment) addTarget(`slice:${name}`, slice.fragment);
+    }
+    if (evidenceTargets.length === 0) {
+      failures.push({ id: service.id, reason: 'no evidence targets' });
+    }
+    rows.push({
+      id: service.id,
+      family: service.family,
+      disposition,
+      evidence_targets: evidenceTargets,
+    });
+  }
+  return { counts, services: rows, failures };
+}
+
 module.exports = {
   ROOT,
   CATALOG_PATH,
@@ -158,4 +263,5 @@ module.exports = {
   validateRigJson,
   validateReview,
   isReviewAccepted,
+  authorshipReport,
 };

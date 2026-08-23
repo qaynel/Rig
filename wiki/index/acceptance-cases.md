@@ -1,27 +1,20 @@
 # Acceptance case index
 
-The 68 frozen Gate-1 cases. Each is an independently authored observable case
-that must fail before its behavior exists and pass only when the product intent
-is met. Gate 2 owns their executable form but not their verdict.
+The 68 owner-approved Gate-1 cases. Their deterministic executable targets join
+them in the signed oracle: each must fail before its behavior exists and pass
+only when the product intent is met.
 
 **Set equality is the requirement.** The specification gate reads the ID set from
 Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
 table. The number below is documentation; if it disagrees with the file, the file
 wins and the gate fails.
 
-**Re-verified 2026-08-21:** after D21 moved the frozen set to 68, Gate 2 v0.6
-re-traced its §13 table to cover exactly those 68 IDs — no orphans, no gaps
-(confirmed by set-difference against Gate 1 on disk). D22 clarifies `AT-CI-3`
-without adding or removing a case, and Gate 2 v0.8 keeps the §13 table at exact
-68-case equality. **D23 (2026-08-21, later the same day)** narrows only
-`AT-SHAPE-6`'s evaluation scope to `development.code-quality.lint-format` for
-this release; the set stays at 68 and every other case is unaffected. Gate 2
-v0.10 keeps this narrower `AT-SHAPE-6` (§5.6, §12.3, §17.2, AD-24, and its
-§13 row) and clarifies that the other 114 leaves' red status is not a
-lint-format release test failure. The set-equality gate would pass on this axis;
-Gate 2 remains a candidate pending the remaining round-5 design corrections,
-fresh review, and the Gate 1 signature. See
-[status](../status.md).
+**Re-verified 2026-08-21:** D24 revises existing verdicts without changing the
+68-ID set. It restores `AT-SHAPE-6` to all 115 leaves, makes the broad Policy
+catalogue release-blocking, moves the executable targets into the signed
+oracle, requires detected-host-only onboarding, and extends distribution to the
+all 55 named skills plus MIT notice/provenance. Gate 2 and the executable target map
+must now be retraced against these meanings. See [status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -32,9 +25,9 @@ Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
 
 | ID | What it requires | Topic |
 |---|---|---|
-| `AT-GATE-1` | One implementation authority. Every normative statement traces to Gate 2 or is rejected. | [the two gates](../topics/the-two-gates.md) |
-| `AT-GATE-2` | Specification before code — **ordering is the requirement**. Plus the Gate 1 signature check, and arming semantics. | [the specification gate](../topics/specification-gate.md), [Gate 1 signing](../topics/gate1-signing.md) |
-| `AT-GATE-3` | Independent semantic review: fresh session, report-only, digest-pinned receipt. | [review receipts](../topics/review-receipts.md) |
+| `AT-GATE-1` | One current technical approach. The technical spec is present but not signed or frozen. | [the two gates](../topics/the-two-gates.md) |
+| `AT-GATE-2` | Signed oracle before code — **ordering is the requirement**. Manifested test bytes join both Gate 1 files under the signature. | [the specification gate](../topics/specification-gate.md), [Gate 1 signing](../topics/gate1-signing.md) |
+| `AT-GATE-3` | Independent release review: fresh session, report-only, digest-pinned receipt; not a second freeze. | [review receipts](../topics/review-receipts.md) |
 | `AT-GATE-4` | Workflow, not staffing. One maintainer with separate contexts satisfies separation. | [the two gates](../topics/the-two-gates.md) |
 
 ## A. Archetype — the shared service shape (6)
@@ -48,7 +41,7 @@ Every catalogue service must pass all six.
 | `AT-SHAPE-3` | Grade dials depth, not identity. Maximal is a strict superset of minimal. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-4` | Dependencies auto-pull, razor-scoped to the dependent's exact need. | [catalogue contract](../topics/catalogue-contract.md) |
 | `AT-SHAPE-5` | Exactly one honest disposition, executable attempted first. | [services and reports](../topics/services-and-reports.md) |
-| `AT-SHAPE-6` | All 115 leaves authored — 26/40/31/18. Mechanical presence cannot substitute for semantic review. **D23: this release only evaluates it against lint-format alone** (Gate 2 v0.10 carries this); reverts to all 115 next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
+| `AT-SHAPE-6` | All 115 leaves authored at declared Policy grade — 26/40/31/18. D24 retires D23; mechanical presence cannot substitute for semantic review. | [the authored-service gate](../topics/authored-service-gate.md) |
 
 ## B. Default baseline and user control (7)
 
@@ -73,7 +66,7 @@ These are the five Gate-1 correctness properties plus completeness. Each is an
 | `AT-P2` | Safe by default, controlled and reported honestly | Aggregate over `AT-BASE-1`–`6` |
 | `AT-P3` | Mutually exclusive services (MECE) | Scope-map tests plus semantic MECE receipt |
 | `AT-P4` | Honest host/CI coverage | `AT-CLAIM-1`'s target directly |
-| `AT-P5` | Highly configurable | Override-beats-recommendation fixtures |
+| `AT-P5` | Highly configurable | Explicit full-family default plus trim/override fixtures |
 | `AT-P6` | Complete and honest service behavior | All 115 leaves' evidence targets |
 
 Aliases are permitted only where a Gate-1 property points at another case.
@@ -109,12 +102,12 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 
 | ID | What it requires | Topic |
 |---|---|---|
-| `AT-CLAIM-1` | Build the whole roster through one uniform path. No host is a second-class citizen. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
+| `AT-CLAIM-1` | Build the whole roster uniformly; activate exactly the detected or explicitly requested host trees. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-PRESENCE-1` | No presence, no activation. Three terminal states, refusal being one. | [user-presence approvals](../topics/user-presence-approvals.md) |
 | `AT-PRESENCE-2` | Lost policy signer: recovery is real, bounded, and terminates. | [policy-signer recovery](../topics/policy-signer-recovery.md) |
 | `AT-HOME-1` | Global writes append, never overwrite, and the install line names the file. | [user-global writes](../topics/user-global-writes.md) |
 | `AT-HOME-2` | Multi-repository attribution, required from the **first** install. | [user-global writes](../topics/user-global-writes.md) |
-| `AT-DIST-1` | A stranger with git, curl, and sh can install it. | [distribution and release](../topics/distribution-and-release.md) |
+| `AT-DIST-1` | A stranger installs named-tag `5.0.0`, all 55 named skills, and required MIT notice/provenance without `curl | sh`. | [distribution and release](../topics/distribution-and-release.md) |
 
 `AT-CLAIM-2` and `AT-CLAIM-3` were **deleted** on 2026-08-17 — see below.
 

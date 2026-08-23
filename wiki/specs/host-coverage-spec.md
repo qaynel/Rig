@@ -1,8 +1,13 @@
 ---
-status: draft
+status: historical
 ---
 
 # Host & CI Coverage — Subordinate Evidence and Work Plan
+
+> **HISTORICAL SNAPSHOT.** This pre-implementation audit is retained as source
+> context. Current implementation state lives in
+> [`../topics/host-and-ci-coverage.md`](../topics/host-and-ci-coverage.md), and
+> the only governing mechanism is `technical-spec.md` §11.
 
 > **SUBORDINATE DRAFT — Gate 2 reopened 2026-07-25; status audited
 > 2026-07-26.** This file preserves vendor research and inventories coverage

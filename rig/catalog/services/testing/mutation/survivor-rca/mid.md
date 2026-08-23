@@ -1,3 +1,5 @@
-# testing.mutation.survivor-rca — mid
+# testing.mutation.survivor-rca - mid
 
-TODO(Slice 10): expand concrete checks for survivor rca.
+Grade: mid (Context target). Until the named local evidence is wired, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal boundary passes, `survivor-rca-mutation-context` evaluates `mutation.survivor-rca`. Given mutation.survivor-rca has a repository-specific convention and evidence source, it passes only when the result names the consulted path or command and excludes an adjacent mutation concern; it fails when the result infers local convention without an inspectable source. The target is `fixture:testing.mutation.survivor-rca:repository-context`, and adjacent mutation ownership stays outside the verdict.

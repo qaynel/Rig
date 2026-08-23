@@ -39,4 +39,71 @@ function writeReport(target, report) {
   return file;
 }
 
-module.exports = { writeReport, ALLOWED };
+function projectCiResult(local) {
+  const findings = (local && local.findings) || [];
+  const counts = {};
+  const rules = [];
+  for (const finding of findings) {
+    const rule = finding.rule || 'unknown';
+    counts[rule] = (counts[rule] || 0) + 1;
+    if (!rules.includes(rule)) rules.push(rule);
+  }
+  const verdict = (local && local.status === 'failed') || findings.length ? 'fail' : 'pass';
+  return { verdict, counts, rules };
+}
+
+// Disclosure text shown when a user turns model-assisted triage on. It names
+// what will now enter the agent's context and why the user is choosing that,
+// so the choice is informed. Do not shorten without owner review — this is the
+// consent copy the redaction design requires.
+const TRIAGE_DISCLOSURE = [
+  'You are about to enable model-assisted triage.',
+  'While this is on, matched secret and PII content will enter the agent context alongside the finding metadata.',
+  'The host model is a third party: a credential placed in its context cannot be unsent, only rotated.',
+  'This lets the agent explain, correlate, or draft fixes for the finding, and it also means the exact matched bytes appear in the agent\'s prompt and any transcript or log of that turn.',
+  'Only turn this on for a specific triage session, on a specific finding, and turn it back off when you are done.',
+].join(' ');
+
+// Enable triage explicitly. `reason` is the user\'s stated purpose (a short
+// free-text string). Callers must persist the returned record and pass it back
+// to `projectForAgent` as `options.triage_authorization`; without a fresh
+// record, projectForAgent falls back to the redacted view.
+function enableTriageDisclosure(reason) {
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    throw new Error('enableTriageDisclosure: reason required');
+  }
+  return {
+    granted: true,
+    reason: reason.trim(),
+    disclosure_text: TRIAGE_DISCLOSURE,
+    granted_at: new Date().toISOString(),
+  };
+}
+
+function projectForAgent(report, options = {}) {
+  const findings = (report && report.findings) || [];
+  let authorized = false;
+  if (options.target) {
+    const status = require('./policy').policyStatus(options.target);
+    authorized = status.model_assisted_triage.authorized === true;
+  }
+  if (authorized) {
+    return { findings: findings.map((f) => ({ ...f })) };
+  }
+  return {
+    findings: findings.map((f) => ({
+      rule: f.rule || null,
+      path: f.path || null,
+      redacted: true,
+    })),
+  };
+}
+
+module.exports = {
+  writeReport,
+  ALLOWED,
+  projectCiResult,
+  projectForAgent,
+  enableTriageDisclosure,
+  TRIAGE_DISCLOSURE,
+};

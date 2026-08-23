@@ -4,25 +4,23 @@
 
 ### Tier 1 Bootstrap
 
-`sh rig/bootstrap.sh --target /path/to/repo` installs Rig's fixed markdown
-payload. It copies the shared router and seven skills, adds native skill copies
-for Claude (`.claude/skills`) and Codex/Antigravity (`.agents/skills`), thin
-slash-command adapters for Antigravity (`.agents/workflows/`), and pointers for
-`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Cursor, Windsurf, Cline, Copilot, Kiro,
-and `.agents/rules` readers. Other hosts can be configured to read
-`.rig/routing.md` directly.
+`sh rig/bootstrap.sh --target /path/to/repo` installs Rig's fixed payload into
+host trees mechanically detected from the 19-host registry. A repository with
+only `.claude/` receives Claude's native skills and pointer; absent Codex,
+Copilot, and other host trees are not created. Other hosts can be configured to
+read `.rig/routing.md` directly.
 
-Optional host selection (same gating as the Tier 2 materializer):
+Explicit host selection replaces detection and remains comma-trimmable:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repo --hosts antigravity,codex
 # or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repo
 ```
 
-When `--hosts` / `RIG_HOSTS` is set, bootstrap delegates to `rig/lib/payload.js`
-instead of the fixed full-install list and requires `node` on `PATH`. Without
-host selection, Tier 1 stays a dumb full copy (no installed runtime, keys, or
-`.env` behavior).
+Both modes delegate to `rig/lib/payload.js` and require `node` on `PATH`.
+Bootstrap reports the selection provenance and journals every payload write in
+`.rig/install-manifest.jsonl`. It still installs no catalogue resolver, keys,
+or `.env` behavior.
 
 Every Rig adapter reads `.rig/routing.md`. See the host entrypoint table in
 `README.md` for the installed paths.

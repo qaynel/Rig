@@ -2,40 +2,42 @@
 
 ## What it is
 
-A stranger with `git`, `curl`, and `sh` but no checkout must be able to install
-Rig from a named released tag. The root `install.sh` resolves `latest` to a
-concrete tag, downloads before execution, and records that tag. Release requires
-all specification, service, host/CI, acceptance, compatibility, and full-suite
-gates to pass. [Gate 2 §12.3–12.4](../gate2/technical-spec.md#123-release-gate)
+A stranger with `curl`, `tar`, POSIX `sh`, and Node can install a named Rig
+release without a checkout. The root installer resolves `latest` or accepts a
+specific tag, downloads the archive to disk, extracts exactly one root, and
+executes the bundled bootstrap locally with its active-delivery gate. It never
+pipes network bytes to a shell.
 
-## Why it is this way
+## Shipping payload
 
-The delivery path is part of the product: source that a stranger cannot safely
-install is not shipped. Named tags make each install reproducible without
-inventing a fingerprint stored beside the code it claims to protect. Downloading
-before execution respects Rig's own default denial of remote-content execution.
-[Gate 1 D7/D18](../gate1/business-spec.md)
+Every tagged-release target receives the neutral router, all 55 vendored
+skills, upstream MIT notice and provenance, plumbing, the complete 115-leaf
+catalogue, baseline assets, and the safety/runtime modules. Detected hosts
+additionally receive only their supported native trees; a bare repository
+receives no fabricated host tree but still receives the neutral product. The
+local Tier-1 bootstrap omits runtime files and remains a static-only surface.
 
-## What binds it
+The installer records the resolved tag through the append-only install journal.
+It is written for `/bin/sh`: no Bash shebang, `pipefail`, substring expansion,
+or `[[ ... ]]`. Release-tag input is restricted before URL and path use.
 
-`D7`, `D18`, and `AD-27` define installation, version scope, and stub behavior.
-The nine ordered release checks in Gate 2 §12.3 are cumulative; none substitutes
-for another. [Decision index](../index/decisions.md)
+## Evidence
 
-## What was rejected
-
-`curl | sh`, branch-based installs, a same-repository build fingerprint, inherited
-npm publishing, fixed install tiers, and automatic destructive migration were
-rejected. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approaches)
+The distribution regression builds a tagged archive fixture from the release
+payload, serves it through a local fake `curl`, runs the real root installer
+under `dash`, and checks the recorded tag, 55 installed skills, catalogue, and
+safety runtime. This replaces the former source-only assertion that never ran
+the installer.
 
 ## Authorities and sources
 
-- Frozen delivery requirement: [Gate 1](../gate1/business-spec.md)
-- Compatibility and release: [Gate 2 §12](../gate2/technical-spec.md#12-compatibility-and-rollout)
-- Cleanup survey rulings: [reasoning trace](../reasoning/2026-08-20-cleanup-survey-decisions.md)
+- Frozen distribution intent: [business specification](../gate1/business-spec.md)
+- Working release design: [technical specification](../gate2/technical-spec.md#124-distribution)
+- MIT approval: [owner approval](../reasoning/2026-08-21-d24-owner-approval.md)
+- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
 
-## What is still open
+## Remaining work
 
-`install.sh` does not exist and the package remains `4.8.4`. The inherited npm
-publish workflow has been deleted. Distribution is Slice 13 after the preceding product
-mechanisms exist. [Status](../status.md#what-exists-in-the-code-today)
+Cutting and publishing `v5.0.0` remains an explicit release operation after the
+fresh independent implementation review receipt passes against the final PR
+bytes.

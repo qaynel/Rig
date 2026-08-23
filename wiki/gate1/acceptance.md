@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED AND FROZEN 2026-07-28)
+# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED 2026-08-21; AWAITING ORACLE SIGNATURE)
 
 > **Revision note (2026-07-25).** This file was re-grilled with
 > [`spec/business-spec.md`](spec/business-spec.md). Together they are the complete
@@ -219,31 +219,59 @@
 > 68-case set, under a re-signed combined digest, before the specification gate
 > may implement this exception.
 
+> **Revision note (2026-08-21, final ruling that day) — D24, broad Policy MVP
+> and one gate.** Re-grilled with [`business-spec.md`](business-spec.md) after
+> the intent owner approved the complete MVP handoff. D24 supersedes D21's
+> lint-format-only release boundary and retires D23's temporary exception. All
+> 115 leaves are release-blocking at Policy grade; all 55 vendored skills must
+> be wired and callable by Rig name; context-aware onboarding must write only
+> into detected host trees; and a stranger must be able to install version
+> `5.0.0` from a named released tag. The upstream MIT notice and provenance
+> record must ship with the modified partial vendored suite, without an
+> upstream-endorsement claim.
+>
+> The two freezes become one. The owner signature covers
+> [`business-spec.md`](business-spec.md), this file, and a stable manifest of
+> the deterministic testing infrastructure. The technical specification must
+> exist but is neither signed nor frozen. Production implementation begins only
+> after the owner reviews and signs that complete oracle. Existing cases are
+> revised below to express the broad release; the ID set remains **68**. The
+> original D24 trace said 56 skills, but both the vendored commit and matching
+> upstream release contain 55 `SKILL.md` packages; "all vendored skills" is the
+> controlling criterion.
+> Approval source:
+> [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
-These are independently authored observable cases. Gate 2 owns their executable
-form, but not their verdict. Each must fail before its behavior exists and pass
-only when the product intent is met.
+These are owner-approved observable cases. Their deterministic executable form
+is part of the same signed oracle and may be drafted before implementation, but
+not changed by the implementation agent afterwards. Each must fail before its
+behavior exists and pass only when the product intent is met.
 
 ### 0. Ordered completion gates
 
-- **AT-GATE-1 (one implementation authority).** *Given* Gate 1 and the proposed
-  implementation documents, *when* the specification gate runs, *then*
-  `technical-spec.md` is the sole versioned Gate-2 authority; every normative
-  SOW, task-list, coverage-plan, or later-ruling statement either traces to it
-  or is rejected as non-authoritative.
-- **AT-GATE-2 (specification before code; ordering is the requirement)
+- **AT-GATE-1 (one current technical approach).** *Given* the complete oracle
+  and proposed implementation documents, *when* the oracle gate runs, *then*
+  `technical-spec.md` exists and is named as the sole current technical
+  approach; every normative SOW, task list, coverage plan, or later-ruling
+  statement either traces to it or is rejected as non-authoritative. The gate
+  does not sign or freeze `technical-spec.md`; it and the code may adapt only
+  inside the signed oracle.
+- **AT-GATE-2 (signed oracle before code; ordering is the requirement)
   [D5, D10, D17].** *Given* a contradictory, incomplete, placeholder-bearing, or
-  unapproved Gate 2, *when* code tests are green, *then* completion still fails
-  and no code-correctness result may promote the build. The specification gate
-  runs **before** the code tests in the same command that gates a push, and a
-  failing gate short-circuits them so they do not execute at all. A gate that
-  exists but runs after, or alongside, the code tests fails this case.
+  unsigned oracle, a missing technical specification, or a changed manifested
+  test file, *when* code tests are green, *then* completion still fails and no
+  code-correctness result may promote the build. The oracle verifier runs
+  **before** code tests in the same command that gates a push, and a failing
+  verifier short-circuits them. Running after or alongside code tests fails.
 
-  *And given* an edit to either Gate 1 file, *when* the gate runs, *then* it
-  recomputes the digest of both files, finds that the recorded signature no
-  longer verifies, and fails — so a context cannot reach the approved mark by
-  moving it. The signing key must be one that no agent holding the intent
+  *And given* an edit to either Gate 1 file, the testing-infrastructure
+  manifest, or any file listed by that manifest, *when* the gate runs, *then*
+  it recomputes the canonical oracle message and every manifested digest,
+  finds that the recorded signature or file digest no longer verifies, and
+  fails — so a context cannot reach the approved mark by moving it. The signing
+  key must be one that no agent holding the intent
   owner's machine can produce a signature under without a live human act: a
   signer an agent could operate unattended does not satisfy this case, and
   neither does any check that a context editing Gate 1 could satisfy by itself.
@@ -267,19 +295,19 @@ only when the product intent is met.
   `AT-DIST-1`, and the project's own work before a key exists, must both be able
   to run the suite. Arming is therefore a one-way step in practice: disarming
   requires deleting the signer identity itself, not merely a signature.
-- **AT-GATE-3 (independent semantic review) [D8].** *Given* mechanical
-  authority and traceability checks pass, *when* a review evaluates Gate 2,
-  *then* every Gate-1 rule has one testable implementation contract and no two
-  clauses prescribe incompatible outcomes before the code gate may start. The
-  review must be performed in a **fresh session**, must be report-only, and its
-  receipt must be pinned to the exact content digest reviewed. A same-session or
-  unpinned review does not satisfy this case. The same rule governs the 115-leaf
-  catalogue review.
+- **AT-GATE-3 (independent semantic review) [D8].** *Given* the signed oracle
+  and a release candidate, *when* a review evaluates the technical specification
+  and catalogue, *then* every Gate-1 rule has one testable implementation
+  contract and no two clauses prescribe incompatible outcomes before release.
+  The review must be performed in a **fresh session**, must be report-only, and
+  its receipt must be pinned to the exact content digest reviewed. A
+  same-session or unpinned review does not satisfy this case. Review is release
+  evidence, not a second freeze or authorization to start implementation.
 - **AT-GATE-4 (workflow, not staffing).** *Given* a repository maintained by one
   person, *when* that person runs separate implementation and fresh-context
   review agents, *then* the workflow satisfies separation without requiring
-  named personnel; the implementing context still cannot edit Gate 1 or approve
-  itself.
+  named personnel; the implementing context still cannot edit the signed
+  oracle or approve itself.
 
 ### A. Archetype — the shared service shape (every catalogue service must pass)
 
@@ -330,19 +358,11 @@ only when the product intent is met.
   applicability, dependencies (or explicit none), cumulative grade behavior,
   execution disposition, checks, and acceptance evidence. A TODO, generic
   "concrete convention," repeated filler, or merely non-empty fragment fails
-  the gate. Mechanical presence checks cannot substitute for a fresh-context
-  semantic review of every leaf.
-
-  *One-release exception (D23, 2026-08-21).* For this release only, the
-  specification gate evaluates this case against
-  `development.code-quality.lint-format` alone, the single leaf D21 made
-  release-blocking. The other 114 frozen leaves are excluded from this run of
-  the gate: their current placeholder state, unchanged, does not fail it. This
-  is a named, dated, single-release carve-out, not a standing scoping rule —
-  it authorizes nothing about any later release. The next leaf to ship, or any
-  future evaluation of the remaining 114 leaves' content, requires its own
-  grilling pass to define a general mechanism; absent that amendment, this
-  case reverts to reviewing all 115 leaves as originally written above.
+  the gate. Every D24-authored fragment states that it is Policy-grade generic
+  baseline practice, not repository-tailored Context or Evidence coverage;
+  lint-format alone may retain higher claims backed by its existing evidence.
+  Mechanical presence checks cannot substitute for a fresh-context semantic
+  review of every leaf.
 
 ### B. Default baseline and user control
 
@@ -421,9 +441,11 @@ only when the product intent is met.
   emits for the whole roster through one uniform path (AT-CLAIM-1) and no axis
   emits anything speculative. Genuine vendor absence degrades explicitly.
 - **AT-P5 highly configurable.** *Given* recommendations and safety defaults,
-  *when* the user changes service selections/grades or activates an exact policy
-  revision, *then* the resulting install and permissions match the user's
-  choice rather than the recommendation or default.
+  *when* the user accepts the full-family default, trims one or more families,
+  changes service selections/grades, or activates an exact policy revision,
+  *then* the resulting install and permissions match the user's choice rather
+  than the recommendation or default. Family selection is explicit and
+  reviewable even when the user accepts all families.
 - **AT-P6 complete and honest services** — see AT-SHAPE-5/6: every frozen leaf
   is specifically authored, is attempted as executable first, and produces a
   real observable outcome; a convention-only fallback carries a named
@@ -505,14 +527,17 @@ only when the product intent is met.
 
 ### F. Claim model, user presence, global writes, and delivery (2026-07-26)
 
-- **AT-CLAIM-1 (build the whole roster) [D1].** *Given* onboarding on any host
-  in the 19-host roster or any of the six CI providers, *when* the user
-  installs, *then* Rig emits that host's or provider's configuration and no
-  user receives less than the pre-revision product gave them. No code path
-  skips a host, silently or otherwise, and every host is emitted through the
-  same code path — none is a second-class citizen carrying a degraded surface.
-  Emitting nothing is permitted only for an evidence-backed genuinely
-  unsupported axis, which degrades explicitly.
+- **AT-CLAIM-1 (build the whole roster, activate detected hosts) [D1, D24].**
+  *Given* a repository containing any subset of the recognized marker trees for
+  the 19-host roster, *when* onboarding inspects it, *then* Rig detects exactly
+  that subset and emits each detected host's configuration through one uniform
+  path. It does not create configuration trees for absent hosts. A bare
+  repository receives no host tree unless the user explicitly requests one.
+  Across fixtures, every host and each of the six CI providers remains
+  reachable through that same path — none is silently skipped or made a
+  second-class surface. Emitting nothing for an axis is permitted only when the
+  host tree is absent, the user omitted it, or evidence shows the axis is
+  genuinely unsupported; each reason is reported explicitly.
 - **AT-PRESENCE-1 (no presence, no activation) [D6].** *Given* a policy
   activation attempt, *when* a verified host-native user-presence prompt is
   available, *then* it is used; *when* it is not, a user-configured external
@@ -584,13 +609,17 @@ only when the product intent is met.
   and retrofitting attribution onto entries already in a user's global file is
   a migration this product does not want to owe. A design that attributes
   lazily, on the second install, fails this case.
-- **AT-DIST-1 (a stranger can install it) [D7].** *Given* a stranger with git,
-  curl, and sh and no Rig checkout, *when* they run the committed install stub,
-  *then* it fetches the pinned source reference and installs into their
-  repository. *And given* the first production release is tagged, *then* the
+- **AT-DIST-1 (a stranger can install the complete release) [D7, D24].**
+  *Given* a stranger with git, curl, and sh and no Rig checkout, *when* they run
+  the committed root install stub for a named released tag, *then* the stub
+  resolves the tag, downloads it before execution rather than piping remote
+  content to a shell, and installs version `5.0.0` into their repository. The
+  resulting install exposes all 55 vendored skills by their Rig names and
+  carries `LICENSE.upstream` plus `UPSTREAM.md`; it makes no upstream-
+  endorsement claim. *And given* the production release is tagged, *then* the
   inherited npm publish workflow no longer exists, so tagging cannot fail on a
   private package. A build that passes every other case but cannot be installed
-  by someone who does not have this checkout is not a shipped product.
+  by someone without this checkout is not shipped.
 
 ### G. Install lifecycle, removal, and finding disclosure (2026-07-28)
 

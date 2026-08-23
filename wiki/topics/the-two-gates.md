@@ -61,9 +61,11 @@ make the change — is [Option A](../reasoning/2026-08-21-one-gate-escape-hatch-
 
 ## What is still open
 
-The doctrine (router and skills) now describes one gate. The oracle remains
-frozen; the technical spec is no longer a blocking second freeze, which unblocks
-the in-flight lint-format work. Two concrete migrations remain: the
-specification-gate check must stop requiring a separate frozen Gate 2 authority,
-and the signature must cover the tests, not only intent and acceptance.
+The doctrine and both Gate 1 files now describe one gate. The intent owner
+approved D24 and the one-gate amendment on 2026-08-21; the approval is filed
+[verbatim](../reasoning/2026-08-21-d24-owner-approval.md). Two concrete steps
+remain before implementation: the complete deterministic test infrastructure
+must be built and manifested, then the owner must perform the live-human
+signature over both Gate 1 files and that manifest. The technical spec is no
+longer a blocking second freeze.
 [Status](../status.md)

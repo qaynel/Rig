@@ -77,4 +77,16 @@ function recommend(target, review, catalog = loadCatalog()) {
   };
 }
 
-module.exports = { profileRepo, recommend };
+const FAMILIES = ['development', 'testing', 'infrastructure', 'product-security'];
+
+function familyMenu(catalog, selected) {
+  void catalog;
+  const active = selected ? new Set(selected) : new Set(FAMILIES);
+  return FAMILIES.map((id) => ({
+    id,
+    selected: active.has(id),
+    explicit: true,
+  }));
+}
+
+module.exports = { profileRepo, recommend, familyMenu };

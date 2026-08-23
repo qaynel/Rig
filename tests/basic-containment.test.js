@@ -60,17 +60,30 @@ test('TP-X.2 installed repo contains static files only, with no Rig runtime', ()
     materialize(target, { hosts: ['claude', 'cursor', 'codex'], mcp_servers: [exampleServer] });
 
     const files = relFiles(target).filter((rel) => rel !== '.rig-manifest.test.json' && !existingFiles.has(rel));
+    // The Tier 1 payload never ships an installer or runtime. The swallowed
+    // skill catalogue and plumbing tree (roadmap step 3) intentionally carry
+    // per-skill support assets — `bin/`, `scripts/`, `daemon/`, and a few
+    // per-tool `package.json` files under `.rig/plumbing/lib/*/`. Scope this
+    // no-runtime check to the Tier-1 surface by excluding those roots.
+    const isVendored = (rel) => rel.includes('/plumbing/')
+      || /(?:^|\/)\.rig\/skills\/[^/]+\//.test(rel)
+      || /(?:^|\/)\.claude\/skills\/rig-[^/]+\//.test(rel)
+      || /(?:^|\/)\.agents\/skills\/rig-[^/]+\//.test(rel);
     assert.deepEqual(
-      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel)),
+      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel) && !isVendored(rel)),
       [],
-      'no installer/runtime package is copied into the target',
+      'no installer/runtime package is copied into the Tier-1 surface',
     );
 
+    // The Tier-1 surface exposes only the git hook shim and the guard script
+    // as executables. The vendored plumbing tree and per-skill support dirs
+    // (roadmap step 3) ship executable helpers by design; the same
+    // isVendored boundary above scopes this executable-count check to Tier 1.
     const allowedExecutable = new Set(['.git/hooks/pre-commit', '.rig/hooks/secret-guard.sh']);
     const unexpectedExecutables = files.filter((rel) => {
       const mode = fs.statSync(path.join(target, rel)).mode;
-      return (mode & 0o111) !== 0 && !allowedExecutable.has(rel);
+      return (mode & 0o111) !== 0 && !allowedExecutable.has(rel) && !isVendored(rel);
     });
-    assert.deepEqual(unexpectedExecutables, [], 'only the git hook shim and guard script are executable');
+    assert.deepEqual(unexpectedExecutables, [], 'only the git hook shim and guard script are executable in the Tier-1 surface');
   });
 });

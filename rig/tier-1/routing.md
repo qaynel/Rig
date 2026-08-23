@@ -75,3 +75,12 @@ than two viable paths.
 
 Do not substitute a nearby skill for the named owner. Debugging discovers why;
 TDD drives a known behavior change; review judges an existing diff.
+
+## Fallback to the router
+
+If a request does not match any Tier 1 skill above and the user has not named a
+specific vendored skill, invoke the vendored `rig` router (the `/rig`
+switchboard shipped from the swallowed suite) before answering ad-hoc. The
+router either dispatches to the right vendored skill or hands the turn back for
+a direct answer; either way the routing is recorded. Never answer a
+skill-shaped request without at least consulting the router.

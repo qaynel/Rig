@@ -35,16 +35,29 @@ guard were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-**Resolved 2026-08-21.** Round 3 found no defined channel for explicitly enabled
-model-assisted triage. Gate 2 v0.6 adds one gated, default-closed
+**Resolved 2026-08-23.** Round 3 found no defined channel for explicitly enabled
+model-assisted triage. The design first added one gated, default-closed
 `secrets.model_assisted_triage` policy field (§8.2/§8.8), outside the
 control-AND model because it loosens rather than protects: while false no code
 path assembles matched content into agent context; while true the detection
 pipeline attaches a bounded redacted `matched_content` field to the
 agent-visible triage view, dropped on deactivation with a fresh evidence epoch.
-The `AT-SECRET-1` §13 test row exercises exactly this.
+The owner has now selected plan-time disclosure: the enabling proposal shows
+the irreversible third-party warning, and activation must confirm its exact
+digest through the verified policy approval. Status repeats the warning while
+enabled.
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Owner interaction decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
 [Status](../status.md)
+
+The shipping history scanner selects only Gitleaks or TruffleHog from `PATH`,
+invokes documented full-history argv with `shell: false`, binds the result to
+the Git object-state digest, and exposes only scanner identity, status, argv,
+exit code, and redacted output/finding digests. Arbitrary caller-supplied
+executables are not a production scanner path. Semantic drift validates bounded
+context-index paths, declared document digests, deprecated relationships, and
+structured reviewer status; missing, malformed, stale, or note-only evidence is
+a coverage gap.
 
 For lint-format, redaction is broader than secrets (`GA-32`). Linter and
 formatter output can quote source and surface secrets, personally identifying

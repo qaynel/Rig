@@ -1,15 +1,17 @@
 {
   "name": "rig-agent-toolbox",
-  "version": "4.8.4",
+  "version": "5.0.0",
   "private": true,
   "description": "A curated, host-agnostic markdown toolbox for coding agents.",
   "keywords": ["rig", "agent", "skills", "claude", "cursor"],
   "license": "MIT",
   "scripts": {
-    "setup:dev": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt",
     "pretest": "PATH=.venv/bin:$PATH python3 -c \"import pandas\" 2>/dev/null || npm run setup:dev",
-    "test": "npm run test:secrets && node scripts/check-rule-copies.js && node scripts/check-versions.js && PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension",
-    "test:secrets": "node --test tests/repo-secret-hygiene.test.js tests/repo-secret-fixtures.test.js",
-    "test:rig": "node --test tests/rig-bootstrap.test.js"
+    "pretest:code": "npm run pretest",
+    "setup:dev": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt",
+    "test": "node scripts/check-advanced-spec.js && npm run test:code",
+    "test:code": "npm run test:secrets && node scripts/check-rule-copies.js && node scripts/check-versions.js && PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension",
+    "test:rig": "node --test tests/rig-bootstrap.test.js",
+    "test:secrets": "node --test tests/repo-secret-hygiene.test.js tests/repo-secret-fixtures.test.js"
   }
 }
