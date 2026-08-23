@@ -109,6 +109,7 @@ Implementation constraints, not suggestions.
 | AD-34 | Lint-format execution is plan-bound and read-only: nothing on selection, mutation detected and halted without auto-restore, autofix separately approved, drift halts, every abnormal ending its own non-passing state. | [the catalogue](../topics/the-catalogue.md), [services and reports](../topics/services-and-reports.md) |
 | AD-35 | Enabling model-assisted secret triage requires plan-time third-party disclosure and exact disclosure-bound approval. | [drift and secret controls](../topics/drift-and-secret-controls.md) |
 | AD-36 | Fresh release review evidence binds the exact PR implementation worktree and base, not only its specification. | [review receipts](../topics/review-receipts.md) |
+| AD-37 | A default `rig/bootstrap.sh` install is markdown-only end to end: per-skill code and the `.rig/plumbing` tree are gated behind the existing `active_delivery` (`--with-runtime`) flag, same as the runtime engine; `.tmpl` build inputs and `TODOS-format.md` are dropped in both modes. All 55 `SKILL.md` files still land unconditionally — only their code backing is gated. | [distribution and release](../topics/distribution-and-release.md), [the catalogue](../topics/the-catalogue.md) |
 
 ---
 

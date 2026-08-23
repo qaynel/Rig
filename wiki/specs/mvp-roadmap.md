@@ -108,6 +108,12 @@ layout the router already knew. `LICENSE.upstream` and `UPSTREAM.md` ship into
 every install root the notice must reach. `_core` installs under its declared
 name `rig`, satisfying the frozen oracle's 55-count without a re-sign.
 
+**Lean default, added 2026-08-23 ([AD-37](../index/decisions.md)):** a default
+`sh rig/bootstrap.sh` (no `--with-runtime`) installs every `SKILL.md` but no
+per-skill code or the `.rig/plumbing` tree — same `active_delivery` gate as the
+runtime engine. `.tmpl` build inputs and `TODOS-format.md` never land, in
+either mode. See the [lean-install protocol](../reasoning/2026-08-23-lean-install-protocol.md).
+
 `install.sh` is present, works on macOS, resolves either `--version` or `latest`
 against the GitHub API, downloads to a temp path before executing, and refuses
 tags containing shell metacharacters or path traversal. `package.json` is

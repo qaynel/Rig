@@ -25,7 +25,10 @@ The tagged-release payload installs `catalog.json`, every service fragment,
 baseline assets, the safety/runtime modules, all 55 neutral skills, and their
 plumbing even when no host marker is detected. Detected hosts receive only
 their additional native skill/instruction tree. The local Tier-1 bootstrap
-keeps its static-only boundary and does not install the runtime-gated files.
+keeps its static-only boundary: by default it installs all 55 skills as
+markdown only (`SKILL.md` plus docs), leaving per-skill code and the plumbing
+tree out unless `--with-runtime` is passed — the same `active_delivery` gate
+that already covered the runtime engine ([AD-37](../index/decisions.md)).
 
 ## Why
 
@@ -41,6 +44,7 @@ service has actually been proven.
 - D24 broad Policy release: [intent-owner trace](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
 - Vendored-skill approval: [owner approval](../reasoning/2026-08-21-d24-owner-approval.md)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
+- Lean default install: [lean-install protocol](../reasoning/2026-08-23-lean-install-protocol.md)
 
 ## Remaining work
 

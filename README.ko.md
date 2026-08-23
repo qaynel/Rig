@@ -25,8 +25,21 @@ Rig은 코딩 에이전트를 위한 엄선된 호스트 독립형 도구 상자
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Tier 1은 현재 로컬 Rig 체크아웃에서 설치한다. foundational design에
-설명된 고정 릴리스/git-ref 부트스트랩 경로는 아직 제공되지 않는다.
+기본적으로 로컬 부트스트랩은 마크다운만 설치한다: 각 스킬의 `SKILL.md`는
+설치되지만, 코드와 `.rig/plumbing` 트리는 제외된다. 이것도 설치하려면
+`--with-runtime`을 추가한다:
+
+```sh
+sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+```
+
+루트 스크립트 `install.sh`는 이름이 지정된 릴리스를 해석하고, 실행 전에
+다운로드하며, 항상 `--with-runtime`으로 부트스트랩을 호출한다. 그래서 활성
+카탈로그와 안전 runtime이 함께 설치된다:
+
+```sh
+sh install.sh --version v5.0.0 --target /path/to/repository
+```
 
 부트스트랩은 대화형으로 실행될 때 tier를 묻는다. 자동화에서는 같은 선택을
 명시적으로 지정할 수 있다:
@@ -35,14 +48,18 @@ Tier 1은 현재 로컬 Rig 체크아웃에서 설치한다. foundational design
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-선택한 호스트만 설치하려면 (Tier 2 materializer와 같은 게이팅):
+`--hosts` 없이 실행하면 Rig은 19개 호스트 레지스트리를 기준으로 기존 호스트
+설정을 기계적으로 감지하고, 없는 호스트 트리는 설치하지 않는다. 쉼표로
+구분한 목록으로 그 선택을 명시적으로 좁히거나 덮어쓸 수 있다:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
 # 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-호스트 선택에는 `PATH`에 `node`가 필요하다. 기본 전체 설치는 POSIX `sh`만 사용한다.
+부트스트랩에는 `PATH`에 `node`가 필요하다. 출력은 감지되거나 명시적으로
+지정된 각 호스트를 나열하고, 모든 payload 기록을
+`.rig/install-manifest.jsonl`에 남긴다.
 
 Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 

@@ -22,6 +22,12 @@ Bootstrap reports the selection provenance and journals every payload write in
 `.rig/install-manifest.jsonl`. It still installs no catalogue resolver, keys,
 or `.env` behavior.
 
+By default the bootstrap is markdown-only end to end: every `SKILL.md` lands,
+but per-skill code (`src/`, `bin/`, `scripts/`, `daemon/`, `.swift`, …) and the
+`.rig/plumbing` tree are gated behind `--with-runtime`. `install.sh` always
+passes `--with-runtime`; a local `sh rig/bootstrap.sh` needs it explicitly to
+get the same runtime-backed install.
+
 Every Rig adapter reads `.rig/routing.md`. See the host entrypoint table in
 `README.md` for the installed paths.
 

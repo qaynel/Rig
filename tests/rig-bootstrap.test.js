@@ -179,34 +179,18 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       walk(path.join(target, top));
     }
 
-    // Tier 1's own payload (routing + rules + tier-1 skills) is markdown-only
-    // by design. The swallowed skill catalogue and its plumbing tree, wired
-    // alongside Tier 1 as of roadmap step 3, ship native assets by intent —
-    // executable helpers under `.rig/plumbing/` and per-skill support files
-    // under `.rig/skills/<name>/{bin,scripts,src,daemon,...}`. Restrict the
-    // markdown-only guarantee to the Tier-1 surface.
+    // A default install (no --with-runtime) is markdown-only end to end: the
+    // vendored skill catalogue lands as instructions, and the plumbing/runtime
+    // trees don't land at all. Only install bookkeeping and the vendored MIT
+    // notice file are exempt.
+    const noticeBasenames = new Set(['LICENSE.upstream', 'UPSTREAM.md', 'README.md']);
     const tier1RigFiles = installed
       .filter((file) => file.includes(`${path.sep}.rig${path.sep}`))
       .filter((file) => !file.endsWith(`${path.sep}.rig${path.sep}install-manifest.jsonl`))
       .filter((file) => !file.includes(`${path.sep}.rig${path.sep}preimages${path.sep}`))
-      .filter((file) => !file.includes(`${path.sep}.rig${path.sep}plumbing${path.sep}`))
-      .filter((file) => !file.includes(`${path.sep}.rig${path.sep}runtime${path.sep}`))
-      .filter((file) => {
-        const marker = `${path.sep}.rig${path.sep}skills${path.sep}`;
-        const idx = file.indexOf(marker);
-        if (idx === -1) return true;
-        const rest = file.slice(idx + marker.length).split(path.sep);
-        const skill = rest[0];
-        // Notice files and top-level skill markdown stay in the Tier-1
-        // guarantee. Anything deeper inside a vendored skill dir is native
-        // support content and is allowed to be non-markdown.
-        // The vendored MIT notice and provenance ship at the top of the
-        // skills tree by the owner's release condition, and only one of them
-        // is markdown; exclude both from the markdown-only sweep.
-        if (skill === 'LICENSE.upstream' || skill === 'UPSTREAM.md' || skill === 'README.md') return false;
-        return rest.length <= 2 && (rest[1] || '').endsWith('.md');
-      });
+      .filter((file) => !noticeBasenames.has(path.basename(file)));
     assert.ok(tier1RigFiles.every((file) => file.endsWith('.md')));
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing')), false, 'plumbing must not land on a default install');
     // Backticked `.rig/...` path references in Tier-1 files must resolve
     // against the installed tree; vendored skills reference run-time paths
     // that get created by their own scripts, so their bodies stay out of
@@ -229,6 +213,25 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
     assert.doesNotMatch(tier1Body, /(?:API_KEY|BEGIN (?:RSA |OPENSSH )?PRIVATE KEY|(?<![a-z0-9])sk-[a-z0-9-]{10,})/i);
     assert.equal(fs.existsSync(path.join(target, '.env')), false);
     assert.equal(fs.existsSync(path.join(target, '.env.example')), false);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('Tier 1 --with-runtime restores plumbing and per-skill code', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-runtime-'));
+
+  try {
+    execFileSync('sh', [
+      path.join(root, 'rig', 'bootstrap.sh'),
+      '--tier', '1',
+      '--target', target,
+      '--hosts', 'claude',
+      '--with-runtime',
+    ]);
+
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')));
+    assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'rig-browse', 'src')));
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }

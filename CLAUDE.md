@@ -44,6 +44,8 @@ belong in the wiki and the diff, and are reproduced on request.
   and Codex discovery; their payloads must stay identical.
 - `rig/bootstrap.sh` installs from `rig/manifest.json` through
   `rig/lib/payload.js`; optional `--hosts` / `RIG_HOSTS` selects a host subset.
+  Vendored-skill code and the `.rig/plumbing` tree install only under
+  `--with-runtime`; a default install lands every `SKILL.md` but no code.
 - `plugin.yaml` and root `__init__.py` are the first-class Hermes plugin. The
   Hermes tests and the `.venv`/pandas-backed benchmark import in `npm test` are
   part of the supported surface.

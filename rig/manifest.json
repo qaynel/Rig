@@ -53,7 +53,7 @@
     { "op": "copy", "from": "rig/catalog/skills/LICENSE.upstream", "to": ".agents/skills/LICENSE.upstream", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": "rig/catalog/skills/UPSTREAM.md", "to": ".agents/skills/UPSTREAM.md", "host": ["codex", "antigravity"] },
 
-    { "op": "copy_tree", "from": "rig/catalog/plumbing", "to": ".rig/plumbing", "host": "neutral" },
+    { "op": "copy_tree", "from": "rig/catalog/plumbing", "to": ".rig/plumbing", "host": "neutral", "gate": "active_delivery" },
 
     { "op": "seed_user_file", "from": "rig/catalog/baseline/network-policy.json", "to": ".rig/network-policy.json", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/catalog/baseline/network-rules.md", "to": ".rig/network-rules.md", "host": "neutral", "gate": "active_delivery" },

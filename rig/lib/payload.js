@@ -41,13 +41,20 @@ function seedUserFile(target, from, to, writeFile = directWrite) {
   });
 }
 
-function copyTree(target, srcAbs, dstRel, writeFile, transform) {
+// Build inputs and working notes never ship: the rendered SKILL.md is the
+// product; .tmpl is its source; TODOS-format.md is a dev file.
+function isLitter(srcAbs) {
+  return srcAbs.endsWith('.tmpl') || path.basename(srcAbs) === 'TODOS-format.md';
+}
+
+function copyTree(target, srcAbs, dstRel, writeFile, transform, filter) {
   const stat = fs.statSync(srcAbs);
   if (stat.isDirectory()) {
     for (const entry of fs.readdirSync(srcAbs)) {
-      copyTree(target, path.join(srcAbs, entry), path.join(dstRel, entry), writeFile, transform);
+      copyTree(target, path.join(srcAbs, entry), path.join(dstRel, entry), writeFile, transform, filter);
     }
   } else {
+    if (filter && !filter(srcAbs)) return;
     const source = fs.readFileSync(srcAbs);
     const contents = transform ? transform(srcAbs, source) : source;
     writeFile(target, dstRel, contents, stat.mode & 0o777);
@@ -80,10 +87,15 @@ function rewriteSkillName(body, prefix, declared) {
   );
 }
 
-function installVendoredSkillsOp(target, entry, writeFile = directWrite) {
+function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeDelivery = false) {
   const skills = listVendoredSkills();
   const destPattern = entry.destination;
   const prefix = entry.rewrite_name_prefix || '';
+  const filter = (srcAbs) => {
+    if (isLitter(srcAbs)) return false;
+    if (activeDelivery) return true;
+    return srcAbs.endsWith('.md'); // default install = markdown only
+  };
   for (const skill of skills) {
     const src = path.join(ROOT, 'rig', 'catalog', 'skills', skill.dir);
     const finalName = `${prefix}${skill.name}`;
@@ -95,7 +107,7 @@ function installVendoredSkillsOp(target, entry, writeFile = directWrite) {
       // listVendoredSkills, and a mismatch is invisible-broken on native hosts.
       if (sourcePath !== skillMd) return contents;
       return rewriteSkillName(contents.toString('utf8'), prefix, skill.name);
-    });
+    }, filter);
   }
 }
 
@@ -220,7 +232,7 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false } = {}) 
     if (entry.op === 'copy') copyOp(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'seed_user_file') seedUserFile(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'copy_tree') copyTreeOp(target, entry.from, entry.to, writeFile);
-    else if (entry.op === 'install_vendored_skills') installVendoredSkillsOp(target, entry, writeFile);
+    else if (entry.op === 'install_vendored_skills') installVendoredSkillsOp(target, entry, writeFile, activeDelivery);
     else if (entry.op === 'ensure_line') ensureLine(target, entry.to, entry.line, writeFile);
   }
   if (releaseTag) {

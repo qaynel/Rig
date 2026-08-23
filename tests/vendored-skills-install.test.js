@@ -59,9 +59,9 @@ test('instruction-only hosts get the neutral .rig/skills/<name>/ layout with fro
   });
 });
 
-test('plumbing tree lands under .rig/plumbing regardless of host', () => {
+test('plumbing tree lands under .rig/plumbing only with --with-runtime', () => {
   withTempTarget((target) => {
-    runPayload(target, ['claude']);
+    runPayload(target, ['claude'], { activeDelivery: true });
     assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')));
     assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'lib')));
     const binEntries = fs.readdirSync(path.join(target, '.rig', 'plumbing', 'bin'));
@@ -69,7 +69,44 @@ test('plumbing tree lands under .rig/plumbing regardless of host', () => {
   });
 });
 
+test('plumbing tree is absent on a default install', () => {
+  withTempTarget((target) => {
+    runPayload(target, ['claude']);
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')), false);
+  });
+});
+
 test('vendored skill count and unique names match listVendoredSkills', () => {
   assert.equal(vendored.length, 55);
   assert.equal(new Set(vendored.map((s) => s.name)).size, 55);
+});
+
+test('default install lands vendored skills as markdown only; --with-runtime restores code', () => {
+  withTempTarget((target) => {
+    runPayload(target, ['claude']);
+    const browseSrc = path.join(target, '.claude', 'skills', 'rig-browse', 'src');
+    assert.equal(fs.existsSync(browseSrc), false, 'default install must not land skill source code');
+  });
+  withTempTarget((target) => {
+    runPayload(target, ['claude'], { activeDelivery: true });
+    const browseSrc = path.join(target, '.claude', 'skills', 'rig-browse', 'src');
+    assert.ok(fs.existsSync(browseSrc), '--with-runtime must restore skill source code');
+  });
+});
+
+test('.tmpl files and TODOS-format.md never land, in either mode', () => {
+  for (const activeDelivery of [false, true]) {
+    withTempTarget((target) => {
+      runPayload(target, ['claude'], { activeDelivery });
+      const skillsRoot = path.join(target, '.claude', 'skills');
+      const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+        const file = path.join(dir, entry.name);
+        return entry.isDirectory() ? walk(file) : [file];
+      });
+      for (const file of walk(skillsRoot)) {
+        assert.ok(!file.endsWith('.tmpl'), `${file} should not land`);
+        assert.notEqual(path.basename(file), 'TODOS-format.md', `${file} should not land`);
+      }
+    });
+  }
 });

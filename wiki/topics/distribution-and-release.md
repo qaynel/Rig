@@ -12,10 +12,16 @@ pipes network bytes to a shell.
 
 Every tagged-release target receives the neutral router, all 55 vendored
 skills, upstream MIT notice and provenance, plumbing, the complete 115-leaf
-catalogue, baseline assets, and the safety/runtime modules. Detected hosts
-additionally receive only their supported native trees; a bare repository
-receives no fabricated host tree but still receives the neutral product. The
-local Tier-1 bootstrap omits runtime files and remains a static-only surface.
+catalogue, baseline assets, and the safety/runtime modules — `install.sh`
+always installs with `--with-runtime`. Detected hosts additionally receive only
+their supported native trees; a bare repository receives no fabricated host
+tree but still receives the neutral product. A local `sh rig/bootstrap.sh`
+without `--with-runtime` is markdown-only end to end: every one of the 55
+`SKILL.md` files still lands under its Rig name, but per-skill code
+(`src/`, `bin/`, `scripts/`, `daemon/`, `.swift`, …) and the `.rig/plumbing`
+tree are gated behind the same `active_delivery` flag as the runtime engine.
+`.tmpl` build inputs and `TODOS-format.md` never land, in either mode
+([AD-37](../index/decisions.md)).
 
 The installer records the resolved tag through the append-only install journal.
 It is written for `/bin/sh`: no Bash shebang, `pipefail`, substring expansion,
@@ -35,6 +41,7 @@ the installer.
 - Working release design: [technical specification](../gate2/technical-spec.md#124-distribution)
 - MIT approval: [owner approval](../reasoning/2026-08-21-d24-owner-approval.md)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
+- Lean default install: [lean-install protocol](../reasoning/2026-08-23-lean-install-protocol.md)
 
 ## Remaining work
 

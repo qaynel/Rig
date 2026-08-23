@@ -51,6 +51,13 @@ After those are resolved, rerun the full gate on the final bytes and explicitly
 cut/publish `v5.0.0`; tag publication is never an implicit side effect of code
 changes.
 
+A default local `sh rig/bootstrap.sh` (no `--with-runtime`) is now
+markdown-only end to end: per-skill code and `.rig/plumbing` are gated behind
+`active_delivery` alongside the runtime engine, and `.tmpl`/`TODOS-format.md`
+never land. All 55 `SKILL.md` files still land unconditionally, so the frozen
+oracle's 55-skill reading is unaffected and no re-sign was required
+([AD-37](index/decisions.md), [lean-install protocol](reasoning/2026-08-23-lean-install-protocol.md)).
+
 ## Current mechanics
 
 - `npm test` verifies the protected oracle first, then secrets, rule copies,

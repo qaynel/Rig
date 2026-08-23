@@ -27,9 +27,21 @@ Desde este checkout:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Tier 1 actualmente se instala desde un checkout local de Rig. La ruta de
-bootstrap con release/git-ref fijado que describe el diseño fundacional todavía
-no está publicada.
+Por defecto el bootstrap local es solo Markdown: el `SKILL.md` de cada skill se
+instala, pero su código y el árbol `.rig/plumbing` quedan fuera. Agrega
+`--with-runtime` para instalarlos también:
+
+```sh
+sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+```
+
+El script raíz `install.sh` resuelve una release con nombre, la descarga antes
+de ejecutarla, y siempre invoca el bootstrap con `--with-runtime`, de modo que
+el catálogo activo y el runtime de seguridad quedan incluidos:
+
+```sh
+sh install.sh --version v5.0.0 --target /path/to/repository
+```
 
 El bootstrap pregunta por el tier cuando se ejecuta de forma interactiva. La
 automatización puede tomar la misma decisión explícitamente:
@@ -38,15 +50,18 @@ automatización puede tomar la misma decisión explícitamente:
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-Para limitar la instalación a hosts concretos (el mismo gating que el materializer de Tier 2):
+Sin `--hosts`, Rig detecta mecánicamente la configuración de host existente en
+el registro de 19 hosts y no instala ningún árbol de host ausente. Limita o
+sobrescribe esa selección explícitamente con una lista separada por comas:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
 # o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-La selección de hosts requiere `node` en el `PATH`. La instalación completa por
-defecto sigue siendo solo POSIX `sh`.
+El bootstrap requiere `node` en el `PATH`. Su salida nombra cada host
+detectado o explícito y registra cada escritura de payload en
+`.rig/install-manifest.jsonl`.
 
 Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
 host:

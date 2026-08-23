@@ -28,9 +28,17 @@ From this checkout:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-The local bootstrap installs the static Tier-1 surface from a checkout. The root
-`install.sh` resolves a named release, downloads it before execution, and invokes
-the bootstrap with the active catalogue and safety runtime included:
+By default the local bootstrap is markdown-only: every skill's `SKILL.md`
+lands, but its code and the `.rig/plumbing` tree are left out. Add
+`--with-runtime` to install those too:
+
+```sh
+sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+```
+
+The root `install.sh` resolves a named release, downloads it before execution,
+and always invokes the bootstrap with `--with-runtime`, so the active catalogue
+and safety runtime are included:
 
 ```sh
 sh install.sh --version v5.0.0 --target /path/to/repository
