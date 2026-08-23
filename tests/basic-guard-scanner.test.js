@@ -5,29 +5,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync, spawnSync } = require('node:child_process');
-const { materialize, exampleServer, withRepo } = require('./helpers/basic-install');
+const { materialize, exampleServer, withRepo, git, gitResult, initRepo } = require('./helpers/basic-install');
 
 const secret = (...parts) => parts.join('');
-
-function git(target, args, env = {}) {
-  return spawnSync('git', args, {
-    cwd: target,
-    env: { ...process.env, ...env },
-    encoding: 'utf8',
-  });
-}
-
-function gitOk(target, args) {
-  execFileSync('git', args, { cwd: target, stdio: 'pipe' });
-}
-
-function initRepo(target) {
-  gitOk(target, ['init', '-q']);
-  gitOk(target, ['config', 'user.email', 'test@example.com']);
-  gitOk(target, ['config', 'user.name', 'Rig Test']);
-  gitOk(target, ['config', 'commit.gpgsign', 'false']);
-}
 
 function installedRepo(fn) {
   withRepo((target) => {
@@ -49,11 +29,11 @@ function writeScanner(bin, name, body) {
 
 function stage(target, rel, body) {
   fs.writeFileSync(path.join(target, rel), body);
-  gitOk(target, ['add', rel]);
+  git(target, ['add', rel]);
 }
 
 function commit(target, bin) {
-  return git(target, ['commit', '-m', 'test commit'], { PATH: `${bin}${path.delimiter}${process.env.PATH}` });
+  return gitResult(target, ['commit', '-m', 'test commit'], { PATH: `${bin}${path.delimiter}${process.env.PATH}` });
 }
 
 test('TP-C6.4 scanner tier prefers gitleaks over trufflehog', () => {

@@ -1,5 +1,6 @@
 ---
 name: rig-tdd
+status: ready
 description: Drive one behavior at a time through a strict red-green-refactor loop using agreed seams and non-tautological tests.
 ---
 

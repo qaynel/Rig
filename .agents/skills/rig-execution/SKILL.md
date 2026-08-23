@@ -1,5 +1,6 @@
 ---
 name: rig-execution
+status: ready
 description: Execute an approved plan with independent task ownership and evidence-based completion.
 ---
 

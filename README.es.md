@@ -7,14 +7,19 @@
 
 ---
 Rig es una caja de herramientas curada e independiente del host para agentes de
-programación. Tier 1 instala un flujo de trabajo solo de Markdown en cualquier
-repositorio: un router compartido, una regla de implementación Ponytail siempre
-activa y skills enfocadas para intención, diseño, ejecución, TDD, depuración y
-revisión de código.
+programación. Ofrece dos superficies de entrega:
 
-No inicia procesos, no necesita claves de API y no instala dependencias.
+1. **Bootstrap solo Markdown (Tier 1)** — un router compartido, una regla de
+   implementación Ponytail siempre activa y skills enfocadas para intención,
+   diseño, ejecución, TDD, depuración y revisión de código. Sin procesos, claves
+   de API ni dependencias.
+2. **Línea base + catálogo à-la-carte** — primero hace seguro el harness del
+   agente; luego el usuario elige capacidades como
+   `familia → grupo → servicio → grado` (Development · Testing · Infrastructure ·
+   Product-Security). Los paquetes fijos Basic / mid / Advanced están retirados;
+   el catálogo es el producto.
 
-## Instalar Tier 1
+## Instalar el bootstrap Markdown
 
 Desde este checkout:
 
@@ -22,9 +27,21 @@ Desde este checkout:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Tier 1 actualmente se instala desde un checkout local de Rig. La ruta de
-bootstrap con release/git-ref fijado que describe el diseño fundacional todavía
-no está publicada.
+Por defecto el bootstrap local es solo Markdown: el `SKILL.md` de cada skill se
+instala, pero su código y el árbol `.rig/plumbing` quedan fuera. Agrega
+`--with-runtime` para instalarlos también:
+
+```sh
+sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+```
+
+El script raíz `install.sh` resuelve una release con nombre, la descarga antes
+de ejecutarla, y siempre invoca el bootstrap con `--with-runtime`, de modo que
+el catálogo activo y el runtime de seguridad quedan incluidos:
+
+```sh
+sh install.sh --version v5.0.0 --target /path/to/repository
+```
 
 El bootstrap pregunta por el tier cuando se ejecuta de forma interactiva. La
 automatización puede tomar la misma decisión explícitamente:
@@ -33,15 +50,18 @@ automatización puede tomar la misma decisión explícitamente:
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-Para limitar la instalación a hosts concretos (el mismo gating que el materializer de Tier 2):
+Sin `--hosts`, Rig detecta mecánicamente la configuración de host existente en
+el registro de 19 hosts y no instala ningún árbol de host ausente. Limita o
+sobrescribe esa selección explícitamente con una lista separada por comas:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
 # o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-La selección de hosts requiere `node` en el `PATH`. La instalación completa por
-defecto sigue siendo solo POSIX `sh`.
+El bootstrap requiere `node` en el `PATH`. Su salida nombra cada host
+detectado o explícito y registra cada escritura de payload en
+`.rig/install-manifest.jsonl`.
 
 Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
 host:
@@ -87,82 +107,23 @@ Instala Rig como plugin nativo de Hermes (`plugin.yaml`): inyecta el modo
 activo vía `pre_llm_call`, registra el cambio de modo `/rig` y expone las
 skills como `rig:<skill>`.
 
-## Instalar Tier 2 (MCP)
+## Línea base + catálogo à-la-carte
 
-Tier 2 "Basic" agrega una capacidad sobre Tier 1: un **configurador de MCP
-multi-host con credenciales**. Declara un servidor MCP y sus slots de credencial
-una vez, y Rig emite la config correcta para cada host que seleccionaste, escribe
-`.env.example`, agrega `.env` al gitignore e instala un guard de secretos para
-que ninguna clave llegue a git. Sigue sin iniciar procesos y sin almacenar
-valores de secretos.
+Tras sanear el harness, Rig ofrece un menú recomendado por el escaneo. El
+usuario elige servicios hoja y grados en `rig.json`; las dependencias faltantes
+solo arrastran las slices exactas requeridas. La instalación se injerta en la
+infraestructura de agentes existente y siempre conserva los suelos de
+sanitation, drift, secretos, git y CI.
 
-```sh
-node rig/materialize.js --target /path/to/repository --manifest rig.config.json
+```text
+inspect → host review → recommend → select (rig.json) → plan → apply → check
 ```
 
-La desinstalación elimina solo los archivos y entradas MCP que Rig posee:
+Detalles del operador: [`docs/advanced/operator.md`](docs/advanced/operator.md).
+Diseño y razonamiento: [`wiki/`](wiki/).
 
-```sh
-node rig/materialize.js --target /path/to/repository --uninstall
-```
-
-### Manifiesto
-
-`rig.config.json` selecciona hosts y declara servidores MCP. Las credenciales
-son **solo nombres de variables de entorno**, nunca valores; el validador
-rechaza cualquier cosa con forma de clave.
-
-```json
-{
-  "hosts": ["claude", "cursor", "codex"],
-  "mcp_servers": [
-    {
-      "name": "app-db",
-      "variants": [
-        {
-          "id": "stdio",
-          "transport": "stdio",
-          "credential_safety": "manual_note_required",
-          "command": "npx",
-          "args": ["-y", "@example/db-mcp"],
-          "credentials": ["APP_DB_TOKEN"]
-        }
-      ]
-    }
-  ]
-}
-```
-
-Para un servidor remoto usa `"transport": "http"` con `"url"` en vez de
-`command`/`args`.
-
-### Comportamiento MCP por host
-
-Rig emite un archivo de config MCP nativo para cada host que soporta uno, y una
-nota manual para el resto. Cursor y GitHub Copilot cargan el secreto desde
-`.env` / inputs por sí solos; los demás hosts que emiten también imprimen una
-nota para cablear la variable de entorno.
-
-| Host | Archivo MCP emitido |
-|---|---|
-| Claude Code | `.mcp.json` |
-| Cursor | `.cursor/mcp.json` |
-| Codex / VS Code Codex | `.codex/config.toml` |
-| GitHub Copilot | `.vscode/mcp.json` |
-| OpenCode | `opencode.json` |
-| pi | `.omp/mcp.json` |
-| Gemini CLI | `.gemini/settings.json` |
-| Kiro | `.kiro/settings/mcp.json` |
-| Devin | `.devin/config.json` |
-| OpenClaw | `.openclaw/openclaw.json` |
-| CodeWhale | `.codewhale/mcp.json` |
-| Swival | `.swival/mcp.json` |
-| Windsurf, Cline, Hermes, Copilot CLI, Antigravity | solo nota — sin archivo MCP nativo |
-| `generic` | no soportado para MCP |
-
-La sintaxis de token y la mecánica de credenciales por host están documentadas
-en `docs/agent-portability.md` y
-`project-dev-docs/tier-2-design-docs/basic/basic-design.md`.
+La CLI legacy del configurador MCP sigue disponible como compatibilidad; ya no
+es un tier de instalación separado.
 
 ## Columna vertebral de curaduría
 
@@ -179,20 +140,17 @@ en `docs/agent-portability.md` y
 Las skills curadas etiquetan sus checks por fase del flujo de trabajo. Fusionan
 las partes distintivas de cada flujo en vez de concatenar documentos fuente.
 
-## Límite de Tier 1
+## Límite del bootstrap Markdown
 
-Tier 1 es intencionalmente un bootstrap tonto con una lista fija de archivos por
-defecto. No tiene motor de sincronización, runtime, claves ni manejo de `.env`.
-`--hosts` / `RIG_HOSTS` opcionales reutilizan el filtro de payload de Tier 2
-(`rig/lib/payload.js`) para que una instalación estrecha coincida con el
-materializer; sin ese flag, la lista fija completa sigue siendo el oráculo. El
-layout compartido es predecible para que Tier 2 (arriba) lo describa sin
-cambiar la forma instalada.
+El bootstrap Tier 1 es intencionalmente una instalación tonta con una lista fija
+de archivos. No tiene resolvedor de catálogo, runtime, claves ni manejo de
+`.env`. El layout compartido es predecible para que el materializer del
+catálogo lo describa sin cambiar la forma instalada.
 
-El flujo de trabajo es asesor porque Tier 1 solo entrega Markdown. Claude y
-otros hosts con hooks pueden proveer enforcement real en los límites de
-herramientas en un tier posterior; Cursor no puede. Rig declara esa limitación
-en vez de afirmar que la prosa es una guardrail dura.
+El flujo de trabajo es asesor porque el bootstrap solo entrega Markdown. Claude
+y otros hosts con hooks pueden proveer enforcement real donde el host lo
+soporta; Cursor no. Rig afirma esa limitación en vez de pretender que la prosa
+es un hard guardrail.
 
 ## Verificar
 
@@ -200,14 +158,9 @@ en vez de afirmar que la prosa es una guardrail dura.
 npm run test:rig
 ```
 
-La prueba bootstrapea un repositorio temporal limpio y verifica el payload
-compartido completo, cada adaptador de instrucciones, la preservación de los
+El test arranca un repositorio temporal fresco y comprueba el payload
+compartido completo, cada adaptador de instrucciones, la preservación de
 archivos de host existentes, el límite solo-Markdown y la ausencia de
 placeholders de secretos.
 
-Para el materializer de Tier 2 y la puerta completa de CI (copias de reglas,
-pines de versión y la suite Node completa), ejecuta:
-
-```sh
-npm test
-```
+La aceptación del catálogo vive en `tests/advanced-*.test.js` e `npm test`.

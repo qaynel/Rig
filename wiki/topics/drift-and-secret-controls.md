@@ -1,0 +1,68 @@
+# Drift and secret controls
+
+## What it is
+
+Drift prevention combines byte-exact synchronization checks with an agent
+semantic rule. Secret detection is deterministic and local by default; matched
+secret content is redacted and does not reach the model unless the user
+explicitly enables model-assisted triage. [Gate 1 D16](../gate1/business-spec.md)
+
+## Why it is this way
+
+The repository itself is the memory for installed doctrine, so drift needs no
+separate database. Deterministic secret detection provides a reviewable floor,
+and keeping matches local avoids making redaction correctness the only barrier
+between live credentials and a third party. [Advanced grilling GA-9d–GA-9e](../sources/logs/advanced-grilling.md)
+
+## What binds it
+
+`GA-9d`, `GA-9e`, `D15`, `D16`, and `AD-12` define the controls and disclosure.
+`AT-SECRET-*`, `AT-DRIFT-*`, and `AT-REPORT-1` test local-only, redacted,
+truthful results. [Decision index](../index/decisions.md)
+[Acceptance index](../index/acceptance-cases.md)
+
+## What was rejected
+
+A mutable memory database, note-only scans, a naive history grep presented as a
+security service, model-assisted triage by default, and redaction as the sole
+guard were rejected. [Rejected approaches](../index/rejected.md)
+
+## Authorities and sources
+
+- Frozen secret and finding rules: [Gate 1 §2](../gate1/business-spec.md)
+- Control mechanisms: [Gate 2 §8.8](../gate2/technical-spec.md#88-drift-and-secret-controls)
+- Captured taxonomy: [product-security reference](../sources/reference/product-security-taxonomy.raw.md)
+
+## What is still open
+
+**Resolved 2026-08-23.** Round 3 found no defined channel for explicitly enabled
+model-assisted triage. The design first added one gated, default-closed
+`secrets.model_assisted_triage` policy field (§8.2/§8.8), outside the
+control-AND model because it loosens rather than protects: while false no code
+path assembles matched content into agent context; while true the detection
+pipeline attaches a bounded redacted `matched_content` field to the
+agent-visible triage view, dropped on deactivation with a fresh evidence epoch.
+The owner has now selected plan-time disclosure: the enabling proposal shows
+the irreversible third-party warning, and activation must confirm its exact
+digest through the verified policy approval. Status repeats the warning while
+enabled.
+[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Owner interaction decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
+[Status](../status.md)
+
+The shipping history scanner selects only Gitleaks or TruffleHog from `PATH`,
+invokes documented full-history argv with `shell: false`, binds the result to
+the Git object-state digest, and exposes only scanner identity, status, argv,
+exit code, and redacted output/finding digests. Arbitrary caller-supplied
+executables are not a production scanner path. Semantic drift validates bounded
+context-index paths, declared document digests, deprecated relationships, and
+structured reviewer status; missing, malformed, stale, or note-only evidence is
+a coverage gap.
+
+For lint-format, redaction is broader than secrets (`GA-32`). Linter and
+formatter output can quote source and surface secrets, personally identifying
+information, or other host-rooted sensitive data; Rig strips all of it on the
+producing host before any output leaves that machine, making the producing host
+the redaction boundary. Matched secret content still reaches the agent only on
+explicit opt-in.
+[reasoning trace](../reasoning/2026-08-21-lint-format-output-privacy.md)

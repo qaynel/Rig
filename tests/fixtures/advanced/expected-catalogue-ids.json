@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "note": "Frozen expected leaf IDs transcribed from Gate 1 §5 + grilling GA-9k/9l/9m/9n. Pins inventory so a source entry cannot disappear silently (impl-design §4.1).",
+  "families": {
+    "development": {
+      "groups": {
+        "code-creation": [
+          "development.code-creation.feature-implementation",
+          "development.code-creation.refactoring",
+          "development.code-creation.codegen-scaffolding",
+          "development.code-creation.api-client-generation"
+        ],
+        "code-quality": [
+          "development.code-quality.lint-format",
+          "development.code-quality.typecheck",
+          "development.code-quality.correctness-static",
+          "development.code-quality.code-review"
+        ],
+        "debugging": [
+          "development.debugging.structured-debugging",
+          "development.debugging.log-trace-analysis",
+          "development.debugging.root-cause-analysis"
+        ],
+        "dependency-management": [
+          "development.dependency-management.upgrades-migration",
+          "development.dependency-management.deprecation-triage"
+        ],
+        "documentation": [
+          "development.documentation.api-reference",
+          "development.documentation.adrs",
+          "development.documentation.docstrings",
+          "development.documentation.onboarding-docs"
+        ],
+        "architecture": [
+          "development.architecture.system-design",
+          "development.architecture.tech-debt",
+          "development.architecture.design-review"
+        ],
+        "data-schema": [
+          "development.data-schema.db-migrations",
+          "development.data-schema.schema-evolution"
+        ],
+        "performance": [
+          "development.performance.profiling"
+        ],
+        "repo-hygiene": [
+          "development.repo-hygiene.issue-pr-triage",
+          "development.repo-hygiene.stale-cleanup",
+          "development.repo-hygiene.status-updates"
+        ]
+      }
+    },
+    "testing": {
+      "groups": {
+        "unit": [
+          "testing.unit.test-case-generation",
+          "testing.unit.edge-boundary",
+          "testing.unit.mocking-strategy"
+        ],
+        "integration": [
+          "testing.integration.cross-module",
+          "testing.integration.external-service",
+          "testing.integration.internal-contract"
+        ],
+        "e2e": [
+          "testing.e2e.user-journeys",
+          "testing.e2e.browser-automation",
+          "testing.e2e.cross-environment"
+        ],
+        "strategy": [
+          "testing.strategy.coverage-gap",
+          "testing.strategy.pyramid-balance",
+          "testing.strategy.risk-prioritization"
+        ],
+        "regression": [
+          "testing.regression.suite-curation",
+          "testing.regression.change-impact",
+          "testing.regression.snapshot-golden"
+        ],
+        "property-fuzz": [
+          "testing.property-fuzz.invariant-identification",
+          "testing.property-fuzz.fuzz-input-generation",
+          "testing.property-fuzz.shrinking"
+        ],
+        "test-data": [
+          "testing.test-data.fixtures-factories",
+          "testing.test-data.synthetic-data",
+          "testing.test-data.anonymization"
+        ],
+        "flaky-reliability": [
+          "testing.flaky-reliability.detection-quarantine",
+          "testing.flaky-reliability.intermittent-rca",
+          "testing.flaky-reliability.retry-hardening"
+        ],
+        "performance-load": [
+          "testing.performance-load.load-stress-scripts",
+          "testing.performance-load.benchmarks",
+          "testing.performance-load.perf-regression-ci"
+        ],
+        "maintenance": [
+          "testing.maintenance.dead-test-pruning",
+          "testing.maintenance.readability-dry",
+          "testing.maintenance.test-code-sync"
+        ],
+        "mutation": [
+          "testing.mutation.mutant-generator",
+          "testing.mutation.selector-sampler",
+          "testing.mutation.equivalent-mutant-detector",
+          "testing.mutation.execution-orchestrator",
+          "testing.mutation.survivor-rca",
+          "testing.mutation.remediation-advisor",
+          "testing.mutation.score-metrics",
+          "testing.mutation.ci-gate-policy",
+          "testing.mutation.run-reporting",
+          "testing.mutation.language-adapter"
+        ]
+      }
+    },
+    "infrastructure": {
+      "groups": {
+        "provisioning": [
+          "infrastructure.provisioning.iac-authoring",
+          "infrastructure.provisioning.environment-parity",
+          "infrastructure.provisioning.capacity-planning"
+        ],
+        "cicd": [
+          "infrastructure.cicd.pipeline-definition",
+          "infrastructure.cicd.deployment-strategy",
+          "infrastructure.cicd.release-gating"
+        ],
+        "container": [
+          "infrastructure.container.image-optimization",
+          "infrastructure.container.k8s-helm",
+          "infrastructure.container.service-mesh"
+        ],
+        "networking": [
+          "infrastructure.networking.load-balancer-ingress",
+          "infrastructure.networking.dns-discovery",
+          "infrastructure.networking.vpc-firewall"
+        ],
+        "observability": [
+          "infrastructure.observability.metrics-dashboards",
+          "infrastructure.observability.distributed-tracing",
+          "infrastructure.observability.alerting"
+        ],
+        "storage": [
+          "infrastructure.storage.db-provisioning",
+          "infrastructure.storage.backup-restore",
+          "infrastructure.storage.tiering-lifecycle"
+        ],
+        "scaling-reliability": [
+          "infrastructure.scaling-reliability.autoscaling",
+          "infrastructure.scaling-reliability.capacity-load",
+          "infrastructure.scaling-reliability.chaos-engineering"
+        ],
+        "cost": [
+          "infrastructure.cost.utilization-analysis",
+          "infrastructure.cost.anomaly-detection",
+          "infrastructure.cost.rightsizing"
+        ],
+        "environment-config": [
+          "infrastructure.environment-config.secret-injection",
+          "infrastructure.environment-config.feature-flags",
+          "infrastructure.environment-config.config-drift",
+          "infrastructure.environment-config.mcp-compatibility"
+        ],
+        "disaster-recovery": [
+          "infrastructure.disaster-recovery.dr-runbooks",
+          "infrastructure.disaster-recovery.failover",
+          "infrastructure.disaster-recovery.rto-rpo"
+        ]
+      }
+    },
+    "product-security": {
+      "groups": {
+        "secrets": [
+          "product-security.secrets.encrypted-store",
+          "product-security.secrets.toy-relaxation",
+          "product-security.secrets.precommit-leak-scanner",
+          "product-security.secrets.rotation-reminder"
+        ],
+        "vulnerability-scanning": [
+          "product-security.vulnerability-scanning.sast",
+          "product-security.vulnerability-scanning.sca",
+          "product-security.vulnerability-scanning.secrets-in-deps",
+          "product-security.vulnerability-scanning.iac-scan",
+          "product-security.vulnerability-scanning.scan-depth"
+        ],
+        "license-compliance": [
+          "product-security.license-compliance.sbom-inventory",
+          "product-security.license-compliance.policy-conflict",
+          "product-security.license-compliance.license-diff",
+          "product-security.license-compliance.attribution"
+        ],
+        "red-team": [
+          "product-security.red-team.dast",
+          "product-security.red-team.adversarial-simulation",
+          "product-security.red-team.auth-session-probe",
+          "product-security.red-team.abuse-resistance",
+          "product-security.red-team.blast-radius"
+        ]
+      }
+    }
+  },
+  "mece_spot_checks": {
+    "perf_load_test_authoring_family": "testing",
+    "runtime_secret_injection_family": "infrastructure",
+    "correctness_static_must_not_own_sast": true,
+    "development_performance_owns_profiling_only": true
+  }
+}

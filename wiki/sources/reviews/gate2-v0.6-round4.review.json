@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "wrapper_version": 1,
+  "kind": "report-only-review",
+  "target": "wiki/gate2/technical-spec.md",
+  "target_digest": "645e55363fa755fa2d8c807e5aeda07b8d194a08af1f1e7decce4337a4e05946",
+  "gate1": [
+    {
+      "path": "wiki/gate1/business-spec.md",
+      "digest": "5175be10ee35f0e9207883b15d0c5f12e82340d8ce93c7852b68e4579d91d545"
+    },
+    {
+      "path": "wiki/gate1/acceptance.md",
+      "digest": "ffd493030c85b802e9445a918be0f6683dc02dd345c474d521a3cfed308af45b"
+    }
+  ],
+  "reviewed_at": "2026-08-21T05:59:43.428Z",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "contradiction",
+      "anchor": "§5.7 (AD-32, lines 778-785) vs AT-LF-8 / AT-LF-9",
+      "detail": "§5.7 states the short-circuit rule as: \"The check evaluates cheapest-deterministic-first and returns at the lowest level that yields a definitive verdict — a definitive Policy fail from the commodity signals is the answer and nothing higher runs.\" Policy-level checks are deterministic by construction (§5.7 Level 1: 'the component's own deterministic signals'), so a deterministic tool always produces a definitive pass *or* fail. Read literally, 'returns at the lowest level that yields a definitive verdict' means Policy is *always* definitive and evaluation *always* stops there, regardless of the user's selected grade — the two failure modes the passage explicitly names ('Reporting a Policy result as Evidence, or silently running above the selected grade') only guard against over-claiming and over-running, never against under-running. But AT-LF-8 requires Context to be 'a strict cumulative superset of Policy — Policy's governance plus understanding the change' and fails a design where Context 'drops or merely replaces a Policy check'; AT-LF-9 requires the same relationship for Evidence over Context. If a clean Policy pass is treated as 'definitive' (the natural reading of the general rule, illustrated only by a fail example), a component selected at Context or Evidence grade would never execute its understanding pass or evidence-gathering step whenever Policy passes cleanly — exactly the case AT-LF-8/AT-LF-9 exist to prove doesn't happen, and the case where a higher grade is supposed to add value. The spec never states whether a Policy *pass* is 'definitive' for this purpose; it only illustrates the rule with a fail. This is the central mechanism of the entire D21 lint-format release and it is genuinely ambiguous both ways from the text as written — an implementation following the general rule literally would make Context and Evidence no-ops on any passing component and fail AT-LF-8/AT-LF-9 by design, not by bug."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "§11.3 (lines 2105-2122) vs §8.9 (line 1725) / §9.1",
+      "detail": "§8.9 states the generic CI contract without qualification: \"`.rig/bin/check.js --scope repo` runs all enabled repo-applicable controls and selected executable services in dependency order\" — i.e., once a Rig CI job exists for *any* reason (a baseline control, another selected service), every selected executable service including lint-format runs at whole-repo scope, at whatever grade it was selected. §11.3 instead frames CI enforcement as conditional specifically on lint-format's own grade: \"The Evidence grade (§5.7) is the level that enforces lint-format in CI, whole-scope at the gate ... Selecting the Evidence grade **proposes** this gate; it never auto-creates or owns CI on selection alone,\" implying lint-format at Policy or Context grade gets no CI enforcement. These two rules are never reconciled: if a repository already has a Rig CI job (added for, say, the secrets or drift control), does a lint-format leaf selected at Policy grade run in that job per §8.9's generic 'all selected executable services' rule, or is it excluded because §11.3 ties lint-format's CI participation specifically to Evidence grade? Gate 1's `AT-LF-13` is silent on grades below Evidence, so this isn't a Gate-1 violation, but it is a genuine, unresolved tension between two Gate-2 clauses that an implementer could resolve either way, changing what actually gets enforced in CI for a Policy/Context-grade selection."
+    },
+    {
+      "severity": "minor",
+      "category": "testability",
+      "anchor": "§1 (verified enforcement surface / three-way 'verified' overload)",
+      "detail": "§1 and AD-26 introduce a third sense of \"verified\" — \"verified enforcement surface,\" a host-capability property distinct from both the withdrawn host/axis tier (banned from user-facing output) and the control/tool evidence status of §8.9 (a leaf holding fresh current-epoch evidence). The document is careful to disambiguate this in prose and the AT-CLAIM-1 trace row explicitly carves out the control/policy sense as exempt from its claim-string grep. This is nonetheless a real implementation hazard: three legitimate uses of one word, one of which is banned from user-facing surfaces, sitting in one codebase increases the odds that an `emitted`/`unsupported` axis check or a status string accidentally reuses 'verified' in a banned context, and a byte-landing or claim-string test written against the wrong sense of the word would pass without actually proving the tier stays out of user output. Not a defect in the current text — the design already reasons about this explicitly — but worth naming as a residual risk to close in the actual grep/test implementation rather than something the spec's prose alone protects against."
+    }
+  ],
+  "unresolved": []
+}

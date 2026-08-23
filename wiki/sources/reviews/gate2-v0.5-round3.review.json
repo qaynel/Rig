@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "wrapper_version": 1,
+  "kind": "report-only-review",
+  "target": "project-dev-docs/current/spec/technical-spec.md",
+  "target_digest": "c0333c368613574e5010e69641ed284da35556a37ea575c0b40b0abe2edce2a6",
+  "gate1": [
+    {
+      "path": "project-dev-docs/current/spec/business-spec.md",
+      "digest": "5f26ce2b9438ac5c11efafe07b0612647fd64d8b5c4d3ab4fa2342a1bf7d5da0"
+    },
+    {
+      "path": "project-dev-docs/current/acceptance.md",
+      "digest": "9ec0ac94238063b808e1b01bdc2c5b142d2b7c9410cb5d0ef2663d9baa4a86f7"
+    }
+  ],
+  "reviewed_at": "2026-08-19T16:31:38.818Z",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "contradiction",
+      "anchor": "§6.6 Apply / §10 'Partial failure' row vs §7.6 (D14) / AT-INSTALL-1",
+      "detail": "§6.6 states: 'If any operation fails: new files from this transaction are removed; appended/merged files are restored from preimages; the prior hook is restored; no new receipt is written.' §10's boundary table echoes this: 'Partial failure | Roll back current transaction; keep prior receipt/install intact.' Both prescribe a full rollback of everything the current apply attempt wrote. But §7.6 (D14) and the AT-INSTALL-1 row require the opposite for the identical trigger: 'A transition-install that fails partway — crash, interrupt, permission denial, or full disk — then the writes already applied stay in place... resumes from the manifest rather than starting over or duplicating.' Gate 1's own AT-INSTALL-1 text names 'permission denial' explicitly as a case where applied writes must stay — a synchronously catchable error that falls squarely inside §6.6's 'if any operation fails' handler, not a crash that prevents cleanup code from running. Gate 2 never draws a line distinguishing when §6.6's rollback governs versus when §7.6's keep-and-resume governs, so the same failure (permission denial mid-apply) has two incompatible prescribed outcomes. Slice 12's own load-bearing test ('assert the writes already applied stay... then re-run and assert no duplicated work') cannot pass against §6.6's rollback description as written."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "AD-30 / §8.4 (D20 recovery) vs D19's residual-risk disclosure (§8.4, §15)",
+      "detail": "AD-30 and §8.4 describe D20 recovery credentials as 'distinct hardware-backed SSHSIG security key identities' generated via the ssh-keygen sk-* flow, presented without qualification as satisfying 'the same live-human-act floor Gate 1 requires for its own protection.' But Gate 1's own D19 correction, which D20 explicitly imports, established that no SSHSIG key type — sk-* included — carries verifiable proof of hardware presence: 'A key type is therefore a naming convention... a determined agent can emit for itself.' Gate 2 correctly discloses this exact limitation for the Gate1-integrity signer (§8.4, §15: 'the intent owner attests it... Rig cannot verify that property either') and for the ordinary policy-activation signer ('declared, not proven'), but never discloses the identical limitation for D20 recovery credentials, and instead states AD-30's 'hardware-backed' framing flatly. AT-PRESENCE-2's evidence also has no test analogous to AT-GATE-2's 'substitute the whole trust root' case: nothing tests an agent that already holds a currently-valid signing credential registering a fraudulent sk-*-labeled recovery key for itself (permitted by §8.4's own rule that registration only requires 'an already-valid credential', which an agent controlling the machine while a session is live could satisfy)."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "§1 / AT-BASE-2 'verified host surface' vs §11.1 / AD-26 host-axis vocabulary ban",
+      "detail": "§1 states the network policy is 'evaluated for shell, built-in web, and network-capable MCP actions wherever a verified host surface exists,' carrying forward Gate 1's own AT-BASE-2 phrase 'verified enforcement surface.' §11.1/AD-26, however, categorically ban 'verified' as a host/axis label: 'There is no verified label, no advertised label, and no advisory tier on any host or axis: those two emissions are the whole vocabulary [emitted/unsupported].' AT-CLAIM-1's own evidence requires asserting 'no host/axis claim string (verified, advertised, or please report) appears in install output, run reports, or per-host registry projections,' with an explicit carve-out only for control/policy evidence-status output (§8.9's disabled/not_run/pending/coverage_gap/failed/verified). That carve-out does not cover §1's host-axis usage. Gate 2 never disambiguates that §1's 'verified' is a different, permitted sense from the banned per-host claim label, leaving a real risk that the shell/web/mcp gating logic an implementer naturally names around 'verified surface' collides with the very ban AT-CLAIM-1's grep-style test enforces."
+    },
+    {
+      "severity": "minor",
+      "category": "testability",
+      "anchor": "§8.8 restricted-record data flow vs AT-B3 / AT-SECRET-1",
+      "detail": "§8.8 says detection produces 'a restricted record holding matched content, which is written only to the local report under the redaction of AT-B3 and AT-REPORT-1' — i.e., wherever it is persisted, it is redacted — yet the same section and AT-SECRET-1 promise that enabling model-assisted triage lets 'finding content enter the agent's context.' AT-B3's own evidence line reinforces that no on-disk artifact ever holds unredacted matched content ('assert it appears nowhere in the written report'). The design names no channel — ephemeral, in-memory, or otherwise — through which genuine matched content reaches the agent once triage is enabled, so the one acceptance case (AT-SECRET-1) that depends on content actually being admitted has no described mechanism to test against."
+    }
+  ],
+  "unresolved": [
+    "AT-INSTALL-1"
+  ]
+}

@@ -1,5 +1,6 @@
 ---
 name: rig-code-review
+status: ready
 description: Produce an independent, report-only review across spec, correctness, architecture, and test coverage.
 ---
 

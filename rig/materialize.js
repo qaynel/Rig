@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// Tier 2 Basic install seam (frozen): orchestration only. Every install pass is
-// owned by a module under rig/lib/; the canonical payload data lives in
-// rig/manifest.json. This file parses args and wires the passes — nothing more.
+// Tier 2 install seam: Basic legacy path + Advanced subcommand delegation.
+// Domain logic stays under rig/lib/. Legacy no-subcommand path unchanged.
 const fs = require('node:fs');
 const { loadUserConfig, validate } = require('./lib/config');
 const { runPayload } = require('./lib/payload');
@@ -11,6 +10,7 @@ const { installGuard } = require('./lib/guard');
 const { writeReceipt } = require('./lib/receipt');
 const { uninstall } = require('./lib/uninstall');
 const { assignVariants } = require('./lib/variants');
+const { ADVANCED, runAdvanced } = require('./lib/cli-advanced');
 
 function parseArgs(argv) {
   const args = { target: null, manifest: null, uninstall: false };
@@ -24,23 +24,23 @@ function parseArgs(argv) {
 }
 
 function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  if (argv.length && ADVANCED.has(argv[0])) {
+    runAdvanced(argv[0], argv.slice(1));
+    return;
+  }
+  const args = parseArgs(argv);
   if (!args.target || !fs.existsSync(args.target)) {
     throw new Error('rig: --target <dir> is required and must exist');
   }
-
   if (args.uninstall) {
     uninstall(args.target);
     return;
   }
-
   if (!args.manifest) throw new Error('rig: --manifest <config.json> is required');
-
   const config = loadUserConfig(args.manifest);
   validate(config);
-
   runPayload(args.target, config.hosts);
-
   if (config.mcp_servers.length > 0) {
     const receipt = renderMcp(args.target, config);
     writeCredentialOutputs(args.target, config, receipt);
