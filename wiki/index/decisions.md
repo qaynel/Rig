@@ -7,7 +7,7 @@ Every ruling this project has made, across four ID schemes, in one place.
 | `G#` | 16 | Foundational grilling — what Rig is and how it is built. | [`sources/logs/grill-decisions.md`](../sources/logs/grill-decisions.md) |
 | `GA-#` | 85 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
 | `D#` | 24 | Gate 1 revisions — rulings that changed owner-approved intent. All 24 have landed; D24 awaits the combined oracle signature. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
-| `AD-#` | 34 | Gate 2 mechanisms — frozen implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
+| `AD-#` | 36 | Gate 2 mechanisms — working implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
 The relationship: a `GA-` ruling is the conversation, the matching `D#` is what
 that ruling did to frozen intent, and an `AD-#` is the mechanism Gate 2 built to
@@ -107,6 +107,8 @@ Implementation constraints, not suggestions.
 | AD-32 | Policy → Context → Evidence are the `minimal/mid/maximal` grade names for lint-format; the selected grade is the target and the ceiling. A lower-grade *failure* may short-circuit, but a clean lower-grade pass runs through to the selected grade; Evidence rests on local rerunnable evidence while its separately approved CI graft is an enforcement surface, not a prerequisite that makes the grade unreachable. *(Short-circuit clarified in v0.7; CI separation in v0.11.)* | [catalogue contract](../topics/catalogue-contract.md), [the catalogue](../topics/the-catalogue.md) |
 | AD-33 | Lint-format's unit of work is a repository component: whole-repository open-ecosystem discovery, semantic binding, hybrid-plus, user-approved partial coverage, per-component evidence-backed support. | [the catalogue](../topics/the-catalogue.md) |
 | AD-34 | Lint-format execution is plan-bound and read-only: nothing on selection, mutation detected and halted without auto-restore, autofix separately approved, drift halts, every abnormal ending its own non-passing state. | [the catalogue](../topics/the-catalogue.md), [services and reports](../topics/services-and-reports.md) |
+| AD-35 | Enabling model-assisted secret triage requires plan-time third-party disclosure and exact disclosure-bound approval. | [drift and secret controls](../topics/drift-and-secret-controls.md) |
+| AD-36 | Fresh release review evidence binds the exact PR implementation worktree and base, not only its specification. | [review receipts](../topics/review-receipts.md) |
 
 ---
 

@@ -67,12 +67,11 @@ function runInstalledCheck(target) {
   );
 }
 
-test('lint-format is a fully authored convention leaf', () => {
+test('lint-format is a fully authored executable component leaf', () => {
   const service = lintFormatEntry();
   assert.ok(service, `missing ${SERVICE_ID}`);
   assert.equal(service.delivery, undefined, 'legacy delivery field must be removed');
-  assert.equal(service.disposition?.kind, 'convention');
-  assert.match(service.disposition?.reason || '', /repository|project/i);
+  assert.equal(service.disposition?.kind, 'executable');
   assert.deepEqual(service.owns, ['code-quality.lint-format']);
   for (const adjacent of [
     'code-quality.typecheck',
@@ -123,6 +122,8 @@ test('minimal installs a real read-only formatter verifier', () => {
   withRepo((target) => {
     seedLintFormatRepo(target);
     const binding = installLintFormat(target, 'minimal');
+    assert.equal(binding.engine, 'component-lint-format-v1');
+    assert.deepEqual(binding.components.map((component) => component.root), ['.']);
     assert.deepEqual(Object.keys(binding.checks), ['lint-format-formatter-clean']);
     assert.equal(runInstalledCheck(target).status, 0);
 
@@ -165,7 +166,7 @@ test('maximal adds a CI gate and records autofix for explicit use only', () => {
       'lint-format-ci-gate-and-explicit-fix',
     ]);
     const maximal = binding.checks['lint-format-ci-gate-and-explicit-fix'];
-    assert.ok(fs.existsSync(path.join(target, '.github', 'workflows', 'rig-check.yml')));
+    assert.ok(fs.existsSync(path.join(target, '.github', 'workflows', 'rig.yml')));
     assert.deepEqual(maximal.fix, ['npm', 'run', '--silent', 'format']);
 
     const sourcePath = path.join(target, 'index.js');

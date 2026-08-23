@@ -71,7 +71,9 @@ oracle is presented for signature.
 The former lint-format-only path is historical. D24 supersedes D21's release
 boundary and retires D23: all 115 Policy leaves are now release-blocking, while
 lint-format remains the only currently evidenced higher-grade vertical. The
-default-on safety baseline and full 19-host/six-provider commitment remain.
+beta does not claim complete safety-oriented capabilities or safety benchmarking;
+standard engineering safeguards remain active. The full 19-host/six-provider
+commitment remains.
 [Vertical production ruling](../reasoning/2026-08-20-vertical-lint-format-production.md)
 [Production context](../reasoning/2026-08-20-lint-format-production-context.md)
 [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
@@ -106,7 +108,7 @@ The MVP order, each step with one verifiable outcome:
 3. Wire all 55 swallowed skills and ship a real install path (`install.sh`,
    `5.0.0`). First step that produces something a stranger can hold.
 4. Context-aware onboarding: mechanical host detection, write only into trees
-   that exist, explicit trimmable family selection.
+   that exist, explicit trimmable family selection. **Done 2026-08-23.**
 5. Author all 115 leaves at Policy grade, in family batches.
 6. Prove the unchanged signed `AT-SHAPE-6` target green across all 115.
 7. Release: fresh review, production evidence, `v5.0.0`.
@@ -120,3 +122,23 @@ Full detail, verify commands, and traps: [the MVP roadmap](../specs/mvp-roadmap.
 [Ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
 [Owner approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
 [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)
+
+## Where the eight steps actually stand (2026-08-23)
+
+| Step | Standing |
+|---|---|
+| 1. Repair the record | Done. |
+| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 68 cases. |
+| 3. Wire the 55 skills, ship `install.sh` and `5.0.0` | **Done.** The payload installs all 55 skills and plumbing; the macOS-safe installer resolves named releases. Tag cutting stays in release step 7. |
+| 4. Context-aware onboarding | **Done.** The shipped bootstrap calls the registry, auto-selects only existing unambiguous host markers, keeps explicit overrides exact, and journals every payload write. `generic` is deliberately explicit-only. |
+| 5. Author all 115 leaves at Policy grade | **Done.** 805 files, zero placeholders, grade and untailored-baseline declared on every fragment. |
+| 6. Prove the all-115 target green without changing the oracle | **Done.** The now-honest authorship function inspected all declared fragments and returned zero failures; the signed gate and full suite passed unchanged. |
+| 7. Release: fresh review, evidence, `v5.0.0` | **Review done, verdict blocked.** Four blockers; the tag was not cut. |
+| 8. Post-beta promotion | Unchanged, still after beta. |
+
+The earlier catalogue green was not proof because its authorship function could
+not fail. That defect is closed: the function now reads every declared fragment,
+and the unchanged signed targets pass over all 115 leaves. Step 7's review is
+filed as a trace rather than a receipt: under locked decision 5 a digest-bound
+receipt is written by the wrapper, not by the agent that performed the review.
+[fresh review](../reasoning/2026-08-22-mvp-release-review.md)

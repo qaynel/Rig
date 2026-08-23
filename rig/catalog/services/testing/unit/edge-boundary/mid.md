@@ -1,3 +1,5 @@
-# testing.unit.edge-boundary — mid
+# testing.unit.edge-boundary - mid
 
-TODO(Slice 10): expand concrete checks for edge boundary.
+Grade: mid (Context target). Until the named local evidence is wired, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal boundary passes, `edge-boundary-unit-context` evaluates `unit.edge-boundary`. Given unit.edge-boundary has a repository-specific convention and evidence source, it passes only when the result names the consulted path or command and excludes an adjacent unit concern; it fails when the result infers local convention without an inspectable source. The target is `fixture:testing.unit.edge-boundary:repository-context`, and adjacent unit ownership stays outside the verdict.

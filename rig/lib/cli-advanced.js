@@ -8,8 +8,10 @@ const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview } = require('./catalog');
+const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
+const { uninstall } = require('./lifecycle');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check']);
+const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -32,12 +34,74 @@ function runAdvanced(subcommand, argv) {
     throw new Error('rig: --target <dir> is required and must exist');
   }
 
+  if (subcommand === 'uninstall') {
+    const result = uninstall(target, {
+      purge: argv.includes('--purge'),
+      beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
+    });
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return;
+  }
+
+  if (subcommand === 'policy') {
+    const action = argv[0];
+    if (action === 'status') {
+      process.stdout.write(`${JSON.stringify(policyStatus(target), null, 2)}\n`);
+      return;
+    }
+    if (action === 'propose') {
+      const policyPath = parseFlag(argv, '--policy');
+      const out = parseFlag(argv, '--out');
+      if (!policyPath || !fs.existsSync(policyPath) || !out) {
+        throw new Error('rig: policy propose requires --policy and --out');
+      }
+      writeOut(out, proposePolicy(target, fs.readFileSync(policyPath), {
+        explicit_request: true,
+        session: process.env.RIG_AUTHOR_CONTEXT || null,
+      }));
+      return;
+    }
+    if (action === 'activate') {
+      const proposalPath = parseFlag(argv, '--proposal');
+      const approvalPath = parseFlag(argv, '--approval');
+      if (!proposalPath || !approvalPath || !fs.existsSync(proposalPath) || !fs.existsSync(approvalPath)) {
+        throw new Error('rig: policy activate requires --proposal and --approval');
+      }
+      const result = activatePolicy(target, readJson(proposalPath), { approval: readJson(approvalPath) });
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      return;
+    }
+    if (action === 'recovery-challenge') {
+      const replacementPath = parseFlag(argv, '--replacement');
+      const identity = parseFlag(argv, '--identity');
+      const out = parseFlag(argv, '--out');
+      if (!replacementPath || !identity || !out || !fs.existsSync(replacementPath)) {
+        throw new Error('rig: policy recovery-challenge requires --replacement --identity --out');
+      }
+      writeOut(out, proposeRecovery(target, readJson(replacementPath), identity));
+      return;
+    }
+    if (action === 'recover') {
+      const challengePath = parseFlag(argv, '--challenge');
+      const approvalPath = parseFlag(argv, '--approval');
+      if (!challengePath || !approvalPath || !fs.existsSync(challengePath) || !fs.existsSync(approvalPath)) {
+        throw new Error('rig: policy recover requires --challenge and --approval');
+      }
+      process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
+      return;
+    }
+    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, or recover');
+  }
+
   if (subcommand === 'inspect') {
     const host = parseFlag(argv, '--host');
+    const hosts = parseFlag(argv, '--hosts');
     const out = parseFlag(argv, '--out');
-    if (!host) throw new Error('rig: --host is required for inspect');
     if (!out) throw new Error('rig: --out is required for inspect');
-    writeOut(out, inspectTarget(target, { host }));
+    writeOut(out, inspectTarget(target, {
+      host,
+      hosts: hosts ? hosts.split(',').filter(Boolean) : undefined,
+    }));
     return;
   }
 

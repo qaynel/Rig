@@ -7,11 +7,12 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
-const { check, oracleMessage } = require('./check-advanced-spec');
+const { check, oracleMessage, parseManifest, sha256 } = require('./check-advanced-spec');
 
 const ENV_NAME = 'RIG_GATE1_SIGNING_KEY';
 const PRINCIPAL = 'gate1-owner';
 const NAMESPACE = 'rig-gate1';
+const MANIFEST = path.join('wiki', 'gate1', 'testing-infrastructure.manifest');
 
 function expandPath(value) {
   return value
@@ -63,7 +64,21 @@ function publicKeyForSigningKey(signingKey) {
 
 function defaultSecretiveAgent(env = process.env) {
   const socket = path.join(os.homedir(), 'Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh');
-  if (!env.SSH_AUTH_SOCK && fs.existsSync(socket)) env.SSH_AUTH_SOCK = socket;
+  // macOS always exports a launchd SSH_AUTH_SOCK that has no Secretive keys.
+  // Prefer Secretive when its agent socket exists so `*.pub` signing works.
+  if (fs.existsSync(socket)) env.SSH_AUTH_SOCK = socket;
+}
+
+function refreshManifest(root) {
+  const manifestPath = path.join(root, MANIFEST);
+  const entries = parseManifest(fs.readFileSync(manifestPath, 'utf8'));
+  const lines = entries.map(({ file }) => {
+    const absolute = path.join(root, file);
+    assert.ok(fs.existsSync(absolute), `missing oracle file: ${file}`);
+    return `${sha256(fs.readFileSync(absolute))}  ${file}`;
+  });
+  fs.writeFileSync(manifestPath, lines.length ? `${lines.join('\n')}\n` : '');
+  return entries.length;
 }
 
 function approveGate1(root = process.cwd(), options = {}) {
@@ -78,6 +93,8 @@ function approveGate1(root = process.cwd(), options = {}) {
   const publicKey = publicKeyForSigningKey(signingKey);
   const context = path.join(root, '.context');
   fs.mkdirSync(context, { recursive: true });
+
+  if (options.refresh !== false) refreshManifest(root);
 
   const messageFile = path.join(context, 'rig-oracle-freeze-v2.txt');
   fs.writeFileSync(messageFile, oracleMessage(root));
@@ -94,9 +111,38 @@ function approveGate1(root = process.cwd(), options = {}) {
   if (options.check !== false) check(root);
 }
 
+function usage() {
+  return [
+    'usage: node scripts/approve-gate1.js [lock|status|unlock]',
+    '',
+    '  lock     refresh manifested test digests and sign (default)',
+    '  status   verify the current signature without changing files',
+    '  unlock   not supported: an armed Gate 1 cannot be disarmed',
+  ].join('\n');
+}
+
+function main(argv = process.argv.slice(2)) {
+  const command = argv[0] || 'lock';
+  if (command === '-h' || command === '--help') {
+    process.stdout.write(`${usage()}\n`);
+    return;
+  }
+  if (command === 'status') {
+    check();
+    return;
+  }
+  if (command === 'unlock') {
+    throw new Error('Gate 1 has no unlock. Edit the oracle files, then: node scripts/approve-gate1.js');
+  }
+  if (command !== 'lock' && command !== 'approve') {
+    throw new Error(usage());
+  }
+  approveGate1();
+}
+
 if (require.main === module) {
   try {
-    approveGate1();
+    main();
   } catch (error) {
     process.stderr.write(`rig gate1 approval: ${error.message}\n`);
     process.exitCode = 1;
@@ -108,5 +154,7 @@ module.exports = {
   approveGate1,
   expandPath,
   loadLocalEnv,
+  main,
   publicKeyForSigningKey,
+  refreshManifest,
 };

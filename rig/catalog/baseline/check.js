@@ -64,6 +64,21 @@ function runBinding(serviceId, binding, scope, repoRoot) {
     if (check.fix && (!Array.isArray(check.fix) || check.fix.length === 0)) {
       return { status: 1, message: `${checkId}: explicit fix binding is malformed\n` };
     }
+    if (check.commands) {
+      for (const commandBinding of check.commands) {
+        if (!Array.isArray(commandBinding.argv) || commandBinding.argv.length === 0) {
+          return { status: 1, message: `${checkId}: component command is malformed\n` };
+        }
+        const cwd = path.resolve(repoRoot, commandBinding.cwd || '.');
+        if (cwd !== repoRoot && !cwd.startsWith(repoRoot + path.sep)) {
+          return { status: 1, message: `${checkId}: component cwd escapes repository\n` };
+        }
+        const [command, ...rest] = commandBinding.argv;
+        const result = runArgv(command, rest, cwd);
+        if (result.error || result.status !== 0) return result;
+      }
+      continue;
+    }
     const argv = check[scope] || check.repo;
     if (!argv) continue;
     if (!Array.isArray(argv) || argv.length === 0) {

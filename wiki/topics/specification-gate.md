@@ -38,9 +38,9 @@ false green result. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approa
 
 ## What is still open
 
-`scripts/check-advanced-spec.js`, the stable manifest, and `npm run test:code`
-do not exist. Slice 1 builds them and all 68 substantive targets, then the owner
-signs before implementation. D24 retires D23: `AT-SHAPE-6` evaluates all 115
-leaves, and its product target is expected to be red until implementation
-authors them. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
+The verifier, stable five-file manifest, `npm run test:code` split, 68 static
+targets, and owner signature are live. D24 retires D23: the complete-catalogue
+targets evaluate all 115 leaves. On 2026-08-23 the unmodified signed gate passed
+after the authorship function inspected every declared fragment and reported no
+defects. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
 [Status](../status.md#what-exists-in-the-code-today)

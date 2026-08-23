@@ -52,3 +52,30 @@ test('Gate 1 approval signs the canonical oracle message', () => {
   assert.equal(verified.principal, 'gate1-owner');
   assert.match(verified.fingerprint, /^SHA256:/);
 });
+
+test('lock refreshes manifested file digests before signing', () => {
+  const root = tempRoot();
+  const key = makeKey(root);
+  const listed = path.join(root, 'listed.txt');
+  fs.writeFileSync(listed, 'v1\n');
+  fs.writeFileSync(
+    path.join(root, 'wiki/gate1/testing-infrastructure.manifest'),
+    `${'0'.repeat(64)}  listed.txt\n`,
+  );
+
+  approve.approveGate1(root, {
+    check: false,
+    env: { RIG_GATE1_SIGNING_KEY: key },
+  });
+
+  const manifest = fs.readFileSync(path.join(root, 'wiki/gate1/testing-infrastructure.manifest'), 'utf8');
+  assert.equal(manifest, `${gate.sha256(fs.readFileSync(listed))}  listed.txt\n`);
+  assert.equal(gate.verifySignature(root, gate.oracleMessage(root)).principal, 'gate1-owner');
+});
+
+test('unlock is refused because an armed gate cannot be disarmed', () => {
+  assert.throws(
+    () => approve.main(['unlock']),
+    /no unlock/,
+  );
+});

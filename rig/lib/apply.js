@@ -9,15 +9,19 @@ const { spawnSync } = require('node:child_process');
 const { loadCatalog, servicesOf, catalogDigest, validateRigJson, isReviewAccepted, validateReview } = require('./catalog');
 const { resolve } = require('./resolve');
 const { materializeHostAdapters } = require('./host-capabilities');
-const { planCiIntegration } = require('./ci-adapters');
+const { planCiIntegration, detectProvider } = require('./ci-adapters');
 const { GUARD_SCRIPT, SHIM } = require('./guard');
 const { writeReport } = require('./reports');
+const { containedPath } = require('./path-safety');
+const { scanBeforeActivation } = require('./secret-history');
+const { validateBindingSources } = require('./lint-format');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
 const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
 const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
+const TEST_CASE_GENERATION_SERVICE = 'testing.unit.test-case-generation';
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -145,74 +149,6 @@ function validatePlanApproval(approval, planDigestValue) {
   }
 }
 
-function findExecutable(name) {
-  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
-    if (!dir) continue;
-    const candidate = path.join(dir, name);
-    try {
-      fs.accessSync(candidate, fs.constants.X_OK);
-      return candidate;
-    } catch {
-      /* keep looking */
-    }
-  }
-  return null;
-}
-
-function gitStateDigest(target) {
-  const hash = crypto.createHash('sha256');
-  for (const args of [
-    ['show-ref', '--head'],
-    ['rev-list', '--objects', '--all'],
-  ]) {
-    const result = spawnSync('git', args, {
-      cwd: target,
-      encoding: 'utf8',
-      shell: false,
-      timeout: 60 * 1000,
-    });
-    hash.update(result.status === 0 ? result.stdout : `git:${args.join(' ')}:${result.status}`);
-  }
-  return hash.digest('hex');
-}
-
-function runFirstEnableHistoryScan(target) {
-  const scanner =
-    (findExecutable('gitleaks') && {
-      name: 'gitleaks',
-      command: findExecutable('gitleaks'),
-      args: ['detect', '--source', '.', '--no-banner', '--redact'],
-    }) ||
-    (findExecutable('trufflehog') && {
-      name: 'trufflehog',
-      command: findExecutable('trufflehog'),
-      args: ['git', 'file://.', '--only-verified', '--fail'],
-    });
-  if (!scanner) {
-    return { ok: false, status: 'missing_scanner', reason: 'no vetted history scanner found on PATH' };
-  }
-  const before = gitStateDigest(target);
-  const result = spawnSync(scanner.command, scanner.args, {
-    cwd: target,
-    encoding: 'utf8',
-    shell: false,
-    timeout: 10 * 60 * 1000,
-  });
-  const after = gitStateDigest(target);
-  if (before !== after) {
-    return { ok: false, status: 'stale_history', scanner: scanner.name, reason: 'git history changed during scan' };
-  }
-  if (result.error || result.status !== 0) {
-    return {
-      ok: false,
-      status: 'failed',
-      scanner: scanner.name,
-      reason: result.stderr || result.stdout || String(result.error || 'history scanner exited non-zero'),
-    };
-  }
-  return { ok: true, status: 'verified', scanner: scanner.name, git_state_digest: after };
-}
-
 function acquireLock(target) {
   const lockPath = path.join(target, '.rig', 'catalog-install.lock');
   fs.mkdirSync(path.dirname(lockPath), { recursive: true });
@@ -240,59 +176,29 @@ function ensureLine(file, line) {
   fs.writeFileSync(file, `${body}${sep}${line}\n`);
 }
 
-function lintFormatBinding(target, grade, ci) {
-  let scripts = {};
-  let packageError = null;
-  try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'));
-    if (!pkg.scripts || typeof pkg.scripts !== 'object' || Array.isArray(pkg.scripts)) {
-      packageError = 'package.json has no scripts object';
-    } else {
-      scripts = pkg.scripts;
+function testCaseGenerationBinding(target, service, grade) {
+  const testFiles = [];
+  const visit = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === '.git' || entry.name === '.rig' || entry.name === 'node_modules') continue;
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(abs);
+      else if (/\.(?:test|spec)\.[cm]?js$/.test(entry.name)) testFiles.push(path.relative(target, abs));
     }
-  } catch (error) {
-    packageError = `package.json is missing or malformed: ${error.message}`;
-  }
+  };
+  visit(target);
 
-  const binding = {
-    disposition: 'convention',
+  const checks = service.checks?.[grade] || [];
+  return {
+    disposition: 'executable',
     grade,
-    checks: {},
+    checks: Object.fromEntries(checks.map((checkId) => [checkId, testFiles.length
+      ? {
+          diff: [process.execPath, '--test', ...testFiles],
+          repo: [process.execPath, '--test'],
+        }
+      : { coverage_gap: 'no Node.js test files were discovered' }])),
   };
-  const npmCheck = (id, script) => {
-    if (scripts[script]) {
-      binding.checks[id] = {
-        diff: ['npm', 'run', '--silent', script],
-        repo: ['npm', 'run', '--silent', script],
-      };
-    } else {
-      binding.checks[id] = {
-        coverage_gap: packageError
-          ? `${packageError}; required script "${script}" is not discoverable`
-          : `package.json script "${script}" is missing`,
-      };
-    }
-  };
-
-  npmCheck('lint-format-formatter-clean', 'format:check');
-  if (grade === 'mid' || grade === 'maximal') {
-    npmCheck('lint-format-linter-clean', 'lint');
-  }
-  if (grade === 'maximal') {
-    const fixScript = scripts.format ? 'format' : scripts['lint:fix'] ? 'lint:fix' : null;
-    binding.checks['lint-format-ci-gate-and-explicit-fix'] =
-      ci.artifact && fixScript
-        ? {
-            required_paths: [ci.artifact.relativePath],
-            fix: ['npm', 'run', '--silent', fixScript],
-          }
-        : {
-            coverage_gap: !ci.artifact
-              ? 'no supported CI adapter was emitted for maximal lint-format'
-              : 'package.json script "format" or "lint:fix" is missing',
-          };
-  }
-  return binding;
 }
 
 function applyPlan(target, manifest, review, plan, options = {}) {
@@ -302,6 +208,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
   if (!isReviewAccepted(validated)) throw new Error(`apply refuses review verdict ${validated.verdict}`);
   validatePlanSnapshot(plan, manifest, validated, catalog);
   validatePlanApproval(options.approval, plan.plan_digest);
+  if (plan.lint_format) validateBindingSources(target, plan.lint_format);
 
   // Idempotent short-circuit: identical selection already applied.
   const receiptPath = path.join(target, '.rig', 'catalog-receipt.json');
@@ -352,15 +259,16 @@ function applyPlan(target, manifest, review, plan, options = {}) {
   const lockPath = acquireLock(target);
   const installId = getInstallId(target);
   const existingRecords = readManifest(target);
-  const appliedByPath = new Map();
+  const latestByPath = new Map();
   let seq = 0;
   for (const record of existingRecords) {
-    seq = Math.max(seq, record.seq);
-    if (record.state === 'applied') appliedByPath.set(record.path, record);
+    seq = Math.max(seq, record.seq || 0);
+    if (Number.isInteger(record.seq) && record.path) latestByPath.set(record.path, record);
   }
   let historyScanNote = '';
 
   try {
+    appendManifestRecord(target, { kind: 'install_state', complete: false });
     const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
 
     // Record-before-mutate (§7.6): a `pending` record lands, then the write,
@@ -368,38 +276,56 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // A failure between the two leaves a truthful `pending` entry, never an
     // unrecorded write. Resuming skips any path whose applied digest already
     // matches what's on disk, so applied work is never redone or duplicated.
-    const writeOwned = (rel, contents, mode, ownershipOverride) => {
-      const abs = path.join(target, rel);
-      const already = appliedByPath.get(rel);
-      if (already) {
+    const writeOwned = (rel, contents, mode, ownershipOverride, details = {}) => {
+      const abs = containedPath(target, rel);
+      const desired = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
+      const desiredDigest = crypto.createHash('sha256').update(desired).digest('hex');
+      const already = latestByPath.get(rel);
+      if (already?.state === 'applied') {
         const current = fs.existsSync(abs) ? sha256File(abs) : null;
-        if (current === already.digest) return;
+        if (current === already.digest && current === desiredDigest) return;
+      }
+      if (already?.state === 'pending') {
+        if (already.desired_digest !== desiredDigest) throw new Error(`apply: changed pending write ${rel}`);
+        const current = fs.existsSync(abs) ? sha256File(abs) : null;
+        if (current === desiredDigest) {
+          const applied = { ...already, state: 'applied', digest: desiredDigest };
+          appendManifestRecord(target, applied);
+          latestByPath.set(rel, applied);
+          return;
+        }
+        if (current !== (already.preimage_digest || null)) {
+          throw new Error(`apply: conflicting pending write ${rel}`);
+        }
       }
       const ownership = ownershipOverride || (fs.existsSync(abs) ? 'replace_owned' : 'create_owned');
-      seq += 1;
-      appendManifestRecord(target, {
-        seq,
+      const pending = already?.state === 'pending' ? already : {
+        seq: ++seq,
         path: rel,
         ownership,
         operation: ownership,
         install_id: installId,
+        transaction_kind: 'install',
         state: 'pending',
-      });
+        preimage_digest: fs.existsSync(abs) ? sha256File(abs) : null,
+        desired_digest: desiredDigest,
+        ...(ownership === 'append_managed' ? { managed_block: 'rig-graft' } : {}),
+        ...details,
+      };
+      if (already?.state !== 'pending') appendManifestRecord(target, pending);
       fs.mkdirSync(path.dirname(abs), { recursive: true });
-      fs.writeFileSync(abs, contents, mode ? { mode } : undefined);
-      appendManifestRecord(target, {
-        seq,
-        path: rel,
-        ownership,
-        operation: ownership,
-        install_id: installId,
+      fs.writeFileSync(abs, desired, mode ? { mode } : undefined);
+      const applied = {
+        ...pending,
         state: 'applied',
-        digest: sha256File(abs),
-      });
+        digest: desiredDigest,
+      };
+      appendManifestRecord(target, applied);
+      latestByPath.set(rel, applied);
     };
 
     const ensureLineOwned = (rel, line) => {
-      const abs = path.join(target, rel);
+      const abs = containedPath(target, rel);
       const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
       if (body.split('\n').includes(line)) return;
       const sep = body && !body.endsWith('\n') ? '\n' : '';
@@ -422,11 +348,39 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/bin/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/hooks/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));
+    writeOwned('.rig/network-rules.md', readSource('catalog/baseline/network-rules.md'));
+    writeOwned('.rig/network-policy.md', readSource('catalog/baseline/network-policy.md'));
+    if (!fs.existsSync(containedPath(target, '.rig/network-policy.json'))) {
+      writeOwned(
+        '.rig/network-policy.json',
+        readSource('catalog/baseline/network-policy.json'),
+        undefined,
+        'user_owned',
+        { transaction_kind: 'user_seed' },
+      );
+    }
 
     // Pointer graft
     ensureLineOwned('AGENTS.md', POINTER_LINE);
 
-    const ci = planCiIntegration(target);
+    // AT-CI-2: creation of a CI artifact needs both a real trigger (a plan
+    // entry that actually asks for the maximal CI gate) and a verified
+    // approval carrying that plan. Detection alone was self-fabrication —
+    // Rig would write `.github/workflows/rig.yml` for any repo with a
+    // detected provider even at Policy grade with no maximal service in the
+    // plan. Now the graft only lands when the approved plan includes at
+    // least one maximal-grade service and the plan-approval is verified.
+    const detectedCi = detectProvider(target);
+    const planNeedsCi = (plan.effective_services || []).some((entry) => entry.selected_grade === 'maximal');
+    const approvalVerified = Boolean(
+      options.approval && (
+        options.approval.ci_approved
+          || (options.approval.approval && options.approval.approval.verified)
+      ),
+    );
+    const ci = detectedCi
+      ? planCiIntegration(target, { provider: detectedCi, approved: planNeedsCi && approvalVerified })
+      : planCiIntegration(target);
 
     // Services
     const bindings = {};
@@ -443,10 +397,28 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         // rig: author convention adapters one leaf at a time; generalize after
         // a second real binding proves a shared shape.
         bindings[id] = id === LINT_FORMAT_SERVICE
-          ? lintFormatBinding(target, grade, ci)
+          ? {
+              ...plan.lint_format,
+              checks: {
+                ...plan.lint_format.checks,
+                ...(grade === 'maximal' && ci.artifact ? {
+                  'lint-format-ci-gate-and-explicit-fix': {
+                    required_paths: [ci.artifact.relativePath],
+                    fix: plan.lint_format.components.find((component) => component.root === '.')?.format?.argv,
+                  },
+                } : {}),
+              },
+            }
+          : id === TEST_CASE_GENERATION_SERVICE
+            ? testCaseGenerationBinding(target, service, grade)
           : {
-              diff: [process.execPath, '-e', 'process.exit(0)'],
-              repo: [process.execPath, '-e', 'process.exit(0)'],
+              disposition: service.disposition?.kind || 'convention',
+              grade,
+              checks: Object.fromEntries(
+                (service.checks?.[grade] || []).map((checkId) => [checkId, {
+                  coverage_gap: `${id} requires a repository-selected binding for ${checkId}`,
+                }]),
+              ),
             };
       }
     }
@@ -457,13 +429,13 @@ function applyPlan(target, manifest, review, plan, options = {}) {
 
     // CI adapter (verified only)
     if (ci.artifact) {
-      writeOwned(ci.artifact.relativePath, ci.artifact.contents);
+      writeOwned(ci.artifact.relativePath, ci.artifact.contents, undefined, ci.artifact.ownership);
     }
 
     // Git hook dispatcher
     const gitDir = path.join(target, '.git');
     if (fs.existsSync(gitDir)) {
-      const hooksDir = path.join(gitDir, 'hooks');
+      const hooksDir = containedPath(target, '.git/hooks');
       fs.mkdirSync(hooksDir, { recursive: true });
       const hook = path.join(hooksDir, 'pre-commit');
       if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
@@ -474,14 +446,15 @@ function applyPlan(target, manifest, review, plan, options = {}) {
 
     let historyScan = null;
     if (manifest.services && manifest.services[LEAK_SCANNER_SERVICE]) {
-      historyScan = runFirstEnableHistoryScan(target);
-      if (!historyScan.ok) {
-        historyScanNote = `first-enable history scan failed: ${historyScan.reason}`;
+      const scan = scanBeforeActivation(target);
+      historyScan = scan.history_scan;
+      if (!scan.activated) {
+        historyScanNote = `first-enable history scan failed: ${historyScan.status}`;
         writeReport(target, {
           service_id: LEAK_SCANNER_SERVICE,
           status: 'failed',
           summary: 'First-enable history scan failed',
-          reason: historyScan.reason,
+          reason: historyScan.status,
           fix_context: ['install gitleaks or trufflehog, remediate findings, then re-run apply'],
         });
         fs.rmSync(lockPath, { force: true });
@@ -502,6 +475,22 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       ci: { status: ci.status, provider: ci.provider || null },
     };
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
+
+    const jsonRecords = readManifest(target)
+      .filter((record) => record.state === 'applied')
+      .map(({ seq: recordSeq, path: recordPath, ownership, digest, managed_block }) => ({
+        seq: recordSeq,
+        path: recordPath,
+        ownership,
+        digest: digest || null,
+        ...(managed_block ? { managed_block } : {}),
+      }));
+    writeOwned(
+      '.rig/install-manifest.json',
+      `${JSON.stringify({ schema_version: 1, records: jsonRecords }, null, 2)}\n`,
+    );
+
+    appendManifestRecord(target, { kind: 'install_state', complete: true });
 
     fs.rmSync(lockPath, { force: true });
     return { ok: true, receipt, historyScanNote };
@@ -526,7 +515,6 @@ function remediate(target, proposal, approveDigest) {
   if (!Array.isArray(proposal.actions) || proposal.actions.length === 0) {
     throw new Error('remediate: actions required');
   }
-  const root = path.resolve(target);
   const backups = new Map();
   const created = [];
   try {
@@ -537,10 +525,7 @@ function remediate(target, proposal, approveDigest) {
       if (typeof action.path !== 'string' || typeof action.content !== 'string') {
         throw new Error('remediate: rewrite requires path and content');
       }
-      const abs = path.resolve(root, action.path);
-      if (!abs.startsWith(root + path.sep) && abs !== root) {
-        throw new Error(`remediate: out-of-root path ${action.path}`);
-      }
+      const abs = containedPath(target, action.path);
       const before = fs.existsSync(abs) ? fs.readFileSync(abs) : null;
       if (before && before.toString('utf8') === action.content) {
         throw new Error(`remediate: no-op rewrite ${action.path}`);
@@ -551,11 +536,11 @@ function remediate(target, proposal, approveDigest) {
       fs.writeFileSync(abs, action.content);
     }
   } catch (error) {
-    for (const rel of created) fs.rmSync(path.join(root, rel), { force: true });
-    for (const [rel, bytes] of backups.entries()) fs.writeFileSync(path.join(root, rel), bytes);
+    for (const rel of created) fs.rmSync(containedPath(target, rel), { force: true });
+    for (const [rel, bytes] of backups.entries()) fs.writeFileSync(containedPath(target, rel), bytes);
     throw error;
   }
-  return { ok: true, digest };
+  return { ok: true, status: 'applied', digest };
 }
 
 module.exports = { applyPlan, remediate, acquireLock, POINTER_LINE };

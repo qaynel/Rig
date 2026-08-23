@@ -1,3 +1,5 @@
-# infrastructure.networking.load-balancer-ingress slice floor
+# infrastructure.networking.load-balancer-ingress - slice floor + mutation-floor
 
-Razor-scoped dependency slice.
+Policy-grade generic baseline practice, not repository-tailored Context or Evidence coverage.
+
+The `floor` and `mutation-floor` slice establishes the lowest non-vacuous load balancer ingress verdict for `source-code`. It activates `load-balancer-ingress-source-code-boundary` and reports a named coverage gap when its repository binding or required dependency is unavailable.

@@ -8,6 +8,7 @@ const os = require('node:os');
 const {
   withRepo,
   inspect,
+  runMaterialize,
   seedMaliciousAgents,
   seedEscapingSymlink,
   seedOversizedHarnessFile,
@@ -27,6 +28,23 @@ test('inspect performs bounded byte-only reads and emits digests', () => {
     const serialized = JSON.stringify(body);
     assert.doesNotMatch(serialized, new RegExp(FAKE_CREDENTIAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.match(serialized, /REDACTED|redacted|\*\*\*/i);
+  });
+});
+
+test('inspect discovers every present host without an explicit selector', () => {
+  withRepo((target) => {
+    fs.mkdirSync(path.join(target, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(target, '.cursor'), { recursive: true });
+    const outPath = path.join(target, '.rig-test', 'detected-inspection.json');
+    const result = runMaterialize(['inspect', '--target', target, '--out', outPath]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(
+      readJson(outPath).hosts.map(({ id, provenance }) => ({ id, provenance })),
+      [
+        { id: 'claude', provenance: 'detected' },
+        { id: 'cursor', provenance: 'detected' },
+      ],
+    );
   });
 });
 

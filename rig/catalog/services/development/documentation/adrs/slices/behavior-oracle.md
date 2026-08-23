@@ -1,3 +1,5 @@
-# development.documentation.adrs slice behavior-oracle
+# development.documentation.adrs - slice behavior-oracle
 
-Razor-scoped dependency slice.
+Policy-grade generic baseline practice, not repository-tailored Context or Evidence coverage.
+
+The `behavior-oracle` slice requires an example that distinguishes a conforming adrs result from a real policy violation. It activates `adrs-source-code-boundary`, `adrs-documentation-context` and reports a named coverage gap when its repository binding or required dependency is unavailable.

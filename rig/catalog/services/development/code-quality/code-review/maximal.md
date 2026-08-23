@@ -1,3 +1,5 @@
-# development.code-quality.code-review — maximal
+# development.code-quality.code-review - maximal
 
-TODO(Slice 10): expand concrete checks for code review.
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal and mid checks pass, `code-review-evidence-receipt` covers `code-quality.code-review`. Given the code-quality.code-review binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:development.code-quality.code-review:evidence-replay` names the binding, inputs, outcome, and current digest.

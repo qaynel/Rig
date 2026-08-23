@@ -1,3 +1,5 @@
-# development.code-quality.correctness-static — maximal
+# development.code-quality.correctness-static - maximal
 
-TODO(Slice 10): expand concrete checks for correctness static.
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal and mid checks pass, `correctness-static-evidence-receipt` covers `correctness-static-analysis`, `complexity-static`. Given the correctness-static-analysis binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:development.code-quality.correctness-static:evidence-replay` names the binding, inputs, outcome, and current digest.

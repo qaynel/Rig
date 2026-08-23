@@ -6,9 +6,12 @@ SOURCE_ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 TARGET_ROOT=$(pwd)
 TIER=
 HOSTS=${RIG_HOSTS:-}
+HOSTS_EXPLICIT=0
+ACTIVE_DELIVERY=0
+[ "${RIG_HOSTS+x}" = x ] && HOSTS_EXPLICIT=1
 
 usage() {
-  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2]" >&2
+  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2] [--with-runtime]" >&2
   echo "  Hosts may also be set via RIG_HOSTS (comma-separated)." >&2
   echo "  Install reads rig/manifest.json through rig/lib/payload.js and requires 'node' on PATH." >&2
   exit 2
@@ -29,7 +32,12 @@ while [ "$#" -gt 0 ]; do
     --hosts)
       [ "$#" -ge 2 ] || usage
       HOSTS=$2
+      HOSTS_EXPLICIT=1
       shift 2
+      ;;
+    --with-runtime)
+      ACTIVE_DELIVERY=1
+      shift
       ;;
     -h|--help)
       usage
@@ -55,20 +63,36 @@ command -v node >/dev/null 2>&1 || {
   exit 1
 }
 
-if [ -n "$HOSTS" ]; then
+if [ "$HOSTS_EXPLICIT" = 1 ]; then
   echo "Installing Rig Tier 1 into $TARGET_ROOT (hosts: $HOSTS)"
 else
   echo "Installing Rig Tier 1 into $TARGET_ROOT"
 fi
 
-HOSTS="$HOSTS" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
+HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
 const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
-const hosts = process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean);
-runPayload(process.env.TARGET_ROOT, hosts);
-for (const host of hosts) console.log('  host:', host);
+const hosts = process.env.HOSTS_EXPLICIT === '1'
+  ? process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
+  : undefined;
+let result;
+try {
+  result = runPayload(process.env.TARGET_ROOT, hosts, {
+    releaseTag: process.env.RIG_RELEASE_TAG || undefined,
+    activeDelivery: process.env.ACTIVE_DELIVERY === '1',
+  });
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
+if (!result.hosts.length) console.log('  host: none detected');
+for (const host of result.hosts) {
+  const markers = host.marker_paths.length ? `: ${host.marker_paths.join(', ')}` : '';
+  console.log(`  host: ${host.id} (${host.provenance}${markers})`);
+}
+console.log(`  writes: ${result.writes} (recorded in .rig/install-manifest.jsonl)`);
 EOF
-if [ -n "$HOSTS" ]; then
+if [ "$HOSTS_EXPLICIT" = 1 ]; then
   echo "Rig Tier 1 installed for selected hosts via payload.js."
 else
-  echo "Rig Tier 1 installed: shared router, 7 native Claude/Codex skills, Antigravity workflows, and instruction adapters."
+  echo "Rig Tier 1 installed for detected hosts via payload.js."
 fi

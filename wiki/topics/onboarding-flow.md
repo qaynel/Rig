@@ -107,6 +107,13 @@ judgment, and when it guesses wrong it does the exact thing the à-la-carte mode
 exists to prevent: imposing tools the repository did not ask for. Family
 auto-selection is deferred until there is real signal about which mapping is
 correct, which is one of the things beta feedback is for.
+
+**Implemented 2026-08-23.** The released bootstrap uses the registry's bounded
+marker table whenever no host list is supplied. An explicit list replaces auto
+detection rather than adding to it. The payload writer journals each mutation
+before and after it lands, reports selection provenance and the write count,
+and rejects destinations that escape through a symlink. The generic host stays
+explicit-only because a shared root instruction file is ambiguous.
 [roadmap](../specs/mvp-roadmap.md) ·
 [ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
 [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)

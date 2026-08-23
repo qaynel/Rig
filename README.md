@@ -12,11 +12,13 @@ delivery surfaces:
 1. **Markdown bootstrap (Tier 1)** — one shared router, an always-on Ponytail
    implementation rule, and focused skills for intent, design, execution, TDD,
    debugging, and code review. No processes, API keys, or dependencies.
-2. **Baseline + à-la-carte catalogue** — make the agent harness safe first,
-   then let the user pick engineering capabilities as
+2. **À-la-carte catalogue** — let the user pick engineering capabilities as
    `family → group → service → grade` (Development · Testing · Infrastructure ·
    Product-Security). Fixed Basic / mid / Advanced install packages are
    retired; the catalogue is the product.
+
+> **Beta note:** The mandatory agent-technology safety baseline is included.
+> Catalogue services beyond their declared Policy assurance remain opt-in.
 
 ## Install the markdown bootstrap
 
@@ -26,8 +28,13 @@ From this checkout:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-The bootstrap currently installs from a local Rig checkout. The pinned
-release/git-ref path described in the foundational design is not shipped yet.
+The local bootstrap installs the static Tier-1 surface from a checkout. The root
+`install.sh` resolves a named release, downloads it before execution, and invokes
+the bootstrap with the active catalogue and safety runtime included:
+
+```sh
+sh install.sh --version v5.0.0 --target /path/to/repository
+```
 
 Interactively it prompts for the bootstrap tier; automation can be explicit:
 
@@ -35,15 +42,17 @@ Interactively it prompts for the bootstrap tier; automation can be explicit:
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-Narrow the install to selected hosts (same gating as the Tier 2 materializer):
+Without `--hosts`, Rig mechanically detects existing host configuration from
+the 19-host registry and installs no absent host tree. Narrow or override that
+selection explicitly with a comma-separated list:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
 # or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-Host selection requires `node` on `PATH`. The default full install remains
-POSIX `sh` only.
+Bootstrap requires `node` on `PATH`. Its output names each detected or explicit
+host and records every payload write in `.rig/install-manifest.jsonl`.
 
 Tier 1 installs the same instruction set for these host entrypoints:
 
@@ -108,12 +117,12 @@ Install Rig as a native Hermes plugin (`plugin.yaml`): it injects the active
 mode through `pre_llm_call`, registers `/rig` mode switching, and exposes the
 skills as `rig:<skill>`.
 
-## Baseline + à-la-carte catalogue
+## À-la-carte catalogue
 
-After the harness is safe, Rig offers a scan-recommended menu. The user selects
-leaf services and grades in `rig.json`; missing dependencies auto-pull only
-their exact required slices. Install grafts onto existing agent infrastructure
-and always keeps the sanitation, drift, secret, git, and CI floors.
+Rig offers a scan-recommended menu. The user selects leaf services and grades in
+`rig.json`; missing dependencies auto-pull only their exact required slices.
+Install grafts onto existing agent infrastructure while the beta focuses on the
+catalogue and host integration.
 
 ```text
 inspect → host review → recommend → select (rig.json) → plan → apply → check
@@ -126,6 +135,9 @@ node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review
 node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
 node .rig/bin/check.js --scope repo
 ```
+
+For a tagged install, replace `node rig/materialize.js` with
+`node .rig/runtime/rig/materialize.js`.
 
 Operator details: [`docs/advanced/operator.md`](docs/advanced/operator.md).
 Design sources and reasoning: [`wiki/`](wiki/).
@@ -151,10 +163,10 @@ distinctive parts of each workflow instead of concatenating source documents.
 
 ## Markdown bootstrap boundary
 
-The Tier 1 bootstrap is intentionally a dumb install with a fixed file list. It
-has no catalogue resolver, runtime, keys, or `.env` handling. The shared layout
-is predictable so the catalogue materializer can describe it without reshaping
-what was installed.
+The Tier 1 bootstrap has a fixed file list and mechanical host detection only.
+It has no catalogue resolver, runtime, keys, or `.env` handling. The shared
+layout is predictable so the catalogue materializer can describe it without
+reshaping what was installed.
 
 The workflow is advisory because the bootstrap ships markdown only. Claude and
 other hook-capable hosts can provide real tool-boundary enforcement where the
@@ -167,9 +179,9 @@ prose is a hard guardrail.
 npm run test:rig
 ```
 
-The test bootstraps a fresh temporary repository and checks the complete shared
-payload, every instruction adapter, preservation of existing host files, the
-markdown-only boundary, and absence of secret placeholders.
+The tests cover detected-host-only installation, explicit host trimming, the
+write journal, the complete shared payload, preservation of existing host
+files, the markdown-only boundary, and absence of secret placeholders.
 
 Catalogue acceptance lives in `tests/advanced-*.test.js` and is included in
 `npm test`.

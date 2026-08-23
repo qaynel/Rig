@@ -1,0 +1,26 @@
+{
+  "verdict": "reject",
+  "findings": [
+    {
+      "severity": "blocker",
+      "anchor": "rig/lib/policy.js:142-170, 206-260; rig/lib/cli-advanced.js:52-70",
+      "detail": "Policy proposal and activation parse candidate policy bytes into objects, include the parsed object in the proposal, and JSON.stringify the active policy. The signed exact candidate bytes are therefore not preserved as the active snapshot."
+    },
+    {
+      "severity": "major",
+      "anchor": "rig/lib/policy.js:97-116; tests/advanced-oracle.test.js:157-163",
+      "detail": "Policy status reports .rig/policy/active.json as the authority and .rig/network-policy.md as the guide, while the signed contract requires .rig/network-policy.json and .rig/network-rules.md."
+    },
+    {
+      "severity": "major",
+      "anchor": "rig/lib/reports.js:67-88; tests/advanced-oracle.test.js:541-546",
+      "detail": "A bare options.model_assisted_triage boolean reveals matched content. Model-assisted triage must require disclosure-backed authorization rather than a caller-controlled boolean."
+    },
+    {
+      "severity": "major",
+      "anchor": "rig/lib/host-capabilities.js; rig/lib/cli-advanced.js inspect; rig/lib/inspect.js; tests/advanced-hosts.test.js",
+      "detail": "Host coverage still uses a coarse instruction/native/live/MCP projection instead of the exact six axis-local contracts, and inspection requires one explicitly named host rather than detecting all present hosts."
+    }
+  ],
+  "unresolved": []
+}

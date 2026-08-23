@@ -1,3 +1,5 @@
-# development.architecture.tech-debt slice floor
+# development.architecture.tech-debt - slice floor + mutation-floor
 
-Razor-scoped dependency slice.
+Policy-grade generic baseline practice, not repository-tailored Context or Evidence coverage.
+
+The `floor` and `mutation-floor` slice establishes the lowest non-vacuous tech debt verdict for `source-code`. It activates `tech-debt-source-code-boundary` and reports a named coverage gap when its repository binding or required dependency is unavailable.

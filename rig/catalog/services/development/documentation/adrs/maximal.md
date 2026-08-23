@@ -1,7 +1,5 @@
-# development.documentation.adrs — maximal
+# development.documentation.adrs - maximal
 
-Owned scope: documentation.adrs
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
 
-Checks: adrs-thorough
-
-Concrete convention for maximal grade.
+After the minimal and mid checks pass, `adrs-evidence-receipt` covers `documentation.adrs`. Given the documentation.adrs binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:development.documentation.adrs:evidence-replay` names the binding, inputs, outcome, and current digest.

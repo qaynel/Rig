@@ -47,14 +47,17 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 - Verification mechanism: [Gate 2 AD-28 and §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 - Owner ceremony sequencing: [status](../status.md#ordered-next-steps)
 
-## What is still open
+## Standing
 
-The gate is currently unarmed: no allowed-signers or signature file exists.
-The intent owner approved the D24/one-gate oracle amendment on 2026-08-21, but
-that approval is not the cryptographic ceremony. The deterministic five-file
-testing infrastructure is now complete, manifested, and structurally verified
-at all 68 exact IDs. The owner can now perform the live-human signature before
-implementation begins. The signature covers the testing-infrastructure
-manifest as well as intent and acceptance.
+The gate is armed. `wiki/gate1/gate1.sig` and
+`wiki/gate1/gate1.allowed-signers` both exist. Running
+`node scripts/check-advanced-spec.js` prints
+`Gate 1 protected: principal=gate1-owner
+fingerprint=SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY` over the
+unchanged five-file oracle. The signature covers business intent, acceptance,
+and the manifest — a change to any of the manifested files invalidates it.
+Owner key comment is `rig-gate-key@secretive.Manoj's-MacBook-Pro.local`;
+class is owner-attested Secretive / Secure Enclave (D19: the artifact cannot
+prove this; the owner did).
 [Approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
 [Status](../status.md#gate-standing)

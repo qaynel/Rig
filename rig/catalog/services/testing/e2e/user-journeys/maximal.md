@@ -1,3 +1,5 @@
-# testing.e2e.user-journeys — maximal
+# testing.e2e.user-journeys - maximal
 
-TODO(Slice 10): expand concrete checks for user journeys.
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal and mid checks pass, `user-journeys-evidence-receipt` covers `e2e.user-journeys`. Given the e2e.user-journeys binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:testing.e2e.user-journeys:evidence-replay` names the binding, inputs, outcome, and current digest.

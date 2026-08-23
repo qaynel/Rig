@@ -37,6 +37,8 @@ reach for.
 - Not a claim that 115 services are deeply supported. One leaf
   (`development.code-quality.lint-format`) has evidence behind it. The other 114
   state baseline practice and say so.
+- Not a claim of complete safety-oriented capabilities or safety benchmarking.
+  Standard engineering safeguards remain active for the beta.
 - Not the end of the fifteen-slice delivery plan. This roadmap reorders the
   early part of that plan for time-to-beta; the rest survives intact.
 
@@ -47,12 +49,12 @@ reach for.
 | Layer | State |
 |---|---|
 | Catalogue structure | **Done.** `rig/catalog.json` defines all 115 services: ids, families, groups, labels, MECE `owns`/`excludes`, delivery, fragment paths, per-grade check ids, slices. |
-| Catalogue content | **1 of 115 authored.** 428 `TODO(Slice 10)` fragments remain. |
-| Swallowed skills | **55 vendored, 0 wired.** Landed in `ff7cea5`. Nothing in `rig/lib`, `rig/manifest.json`, `rig/bootstrap.sh`, `scripts`, `tests`, or `package.json` references them. The earlier count of 56 was an inventory error; both the commit and matching upstream release contain 55 `SKILL.md` packages. |
+| Catalogue content | **All 115 authored and gate-proven.** 805 fragments carry declared grade content; the honest authorship check reports zero failures. |
+| Swallowed skills | **55 vendored, all wired (2026-08-23).** `rig/manifest.json` carries three per-host `install_vendored_skills` entries; `rig/lib/payload.js` expands them at install time. New `tests/vendored-skills-install.test.js` binds the installed layout. |
 | Host map | **Researched.** 19 hosts with instruction / skills / hook / MCP paths; seams exist in `host-capabilities.js`, `renderers.js`, `ci-adapters.js`, `config.js`. |
-| Specification gate | **Complete candidate, awaiting signature.** The first-running verifier checks a sorted five-file manifest, exact 68-case equality, exact trace titles, and the package-script order. Pre-implementation behavior is 5 pass / 63 named failures. |
-| Distribution | **Does not exist.** No `install.sh`; package private at `4.8.4`; Gate 2 §12.4 requires `5.0.0`. |
-| Oracle signature | **Unarmed.** Neither `gate1.sig` nor `gate1.allowed-signers` exists anywhere. |
+| Specification gate | **Armed and green.** The signed oracle verifies over the frozen five-file manifest; all 68 acceptance cases pass against `rig/lib` modules and 115 Policy-grade fragments authored under D24. Fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`. |
+| Distribution | **`install.sh` and `5.0.0` shipped.** Package is `5.0.0` (private); a released tag is not yet cut. |
+| Oracle signature | **Armed.** The owner signature verifies over the unchanged oracle with the protected `gate1-owner` fingerprint. |
 | Licence position | **Approved.** The swallowed source is MIT-licensed `garrytan/gstack` version `1.60.1.0` at `7c9df1c…`; its notice and local modifications are recorded and must ship with every installed copy, with no endorsement claim. |
 
 ---
@@ -76,54 +78,69 @@ The wiki now records D24, the two record defects, and this roadmap.
 **Verify:** `wiki/status.md` names D24, the unwired swallowed suite, and the
 restored upstream licence/provenance evidence.
 
-### 2. Build and freeze the complete specification gate — **candidate complete 2026-08-22**
+### 2. Build and freeze the complete specification gate — **signed 2026-08-22**
 
 **Standing red cleared 2026-08-21.** The swallowed-suite README and the status
 record now describe the neutralized credential shapes without reproducing them.
 The secret floor passes, followed by all 264 root tests and all 15 pi-extension
 tests.
 
-**Gate candidate complete 2026-08-22.** `scripts/check-advanced-spec.js` runs
+**Gate signed 2026-08-22.** `scripts/check-advanced-spec.js` runs
 ahead of code tests and `npm run test:code` is the implementation-only split.
 All 68 amended acceptance cases have deterministic static titles, every Gate 2
 trace row names its exact manifested target, and the stable five-file manifest
-verifies. D24 supersedes D23, so the catalogue-content target covers all 115
-leaves and is expected to fail before step 5 supplies their behavior. The owner
-must now sign the exact Gate 1 and testing-infrastructure digests before step 3
-starts.
+verifies under the owner signature. D24 supersedes D23, so the
+catalogue-content target covers all 115 leaves.
 
-Effort remaining: owner ceremony only. **Verify:** the gate runs first and short-circuits code tests;
-`npm run test:code` runs code tests alone; every one of the 68 cases maps to an
-executable target; the pre-implementation gate fails only for named missing
-product behavior; and the owner signature verifies over the exact oracle and
-testing-infrastructure manifest.
+Effort remaining: none for the gate. **Verify:** the gate runs first and
+short-circuits code tests; `npm run test:code` runs code tests alone; every one
+of the 68 cases maps to an executable target; the product oracle is green; and
+the owner signature verifies over the exact oracle and testing-infrastructure
+manifest.
 
-### 3. Wire the swallowed skills and ship a real install path
+### 3. Wire the swallowed skills and ship a real install path — **done 2026-08-23**
 
-Wire all 55 skills into materialize and host discovery so they are installable
-and callable by their Rig names. Add root `install.sh` resolving a named
-released tag, downloading before execution, never `curl | sh`. Move the package
-to `5.0.0`. Cut a pre-release tag.
+All 55 skills and the plumbing tree install through `rig/manifest.json`. Native
+hosts (Claude, Codex, Antigravity) get each skill under `rig-<name>/` with the
+frontmatter `name:` rewritten to match the installed directory so discovery
+resolves correctly; instruction-only hosts get the neutral `.rig/skills/<name>/`
+layout the router already knew. `LICENSE.upstream` and `UPSTREAM.md` ship into
+every install root the notice must reach. `_core` installs under its declared
+name `rig`, satisfying the frozen oracle's 55-count without a re-sign.
 
-This is the first step that produces something a stranger can hold. It lands
-early on purpose.
+`install.sh` is present, works on macOS, resolves either `--version` or `latest`
+against the GitHub API, downloads to a temp path before executing, and refuses
+tags containing shell metacharacters or path traversal. `package.json` is
+`5.0.0` (private). A pre-release tag has not yet been cut; that remains for
+step 7's release checks.
 
-Effort: M. **Verify:** from a fresh repository with no checkout of this one, a
-single command installs and all 55 skills are discoverable by their Rig names on
-at least one host.
+**Verify:** `node --test tests/vendored-skills-install.test.js` proves the
+installed layout end to end; `sh rig/bootstrap.sh --tier 1 --target <fresh>`
+puts 55 skills into the target under their Rig names on Claude/Codex/neutral.
 
-### 4. Context-aware onboarding
+Tag-cutting still pending.
 
-Detect which of the 19 hosts a repository already uses from the researched
-per-host paths. Install only into trees that exist. Family selection stays
-explicit and trimmable, defaulting to the full set. Report what was added and
-why. No repo-shape guessing beyond mechanical host detection.
+### 4. Context-aware onboarding — **done 2026-08-23**
 
-Effort: M. **Verify:** installing into a repo with only `.claude/` writes no
-Codex or Copilot trees; installing into a bare repo writes nothing it was not
-asked for; the install manifest lists every write.
+The shipped bootstrap now calls the 19-host registry when `--hosts` is omitted,
+selects only hosts with bounded repo-relative markers, and reports both the
+detected host and the marker that selected it. `--hosts` and `RIG_HOSTS` remain
+exact explicit overrides; duplicate IDs are collapsed and unknown IDs fail.
+Shared `AGENTS.md` alone selects nothing, and `generic` remains explicit-only.
 
-### 5. Author all 115 leaves at Policy grade
+Every payload mutation now goes through one append-only record-before-mutate
+writer. Copy, tree-copy, vendored-skill rewrite, executable mode, and pointer
+append operations receive pending/applied records with preimage and post-write
+digests. Paths are containment-checked through symlinks before mutation.
+Family selection remains explicit and trimmable, defaulting to the full set;
+host detection does not infer catalogue families.
+
+**Verify:** `node --test tests/context-aware-onboarding.test.js` installs into a
+Claude-only repo without Codex/Copilot trees, keeps a bare repo free of implicit
+host trees, proves explicit narrowing, compares every payload file to the
+journal, and refuses an out-of-root detected-host symlink.
+
+### 5. Author all 115 leaves at Policy grade — **done 2026-08-23**
 
 The bulk pass, in family batches: development 26, testing 40, infrastructure 31,
 product-security 18. Each leaf keeps its existing fragments (`identity`,
@@ -145,14 +162,20 @@ its named product-behavior failures are cleared).
 **Verify:** the specification gate passes with zero `TODO(Slice 10)` fragments
 remaining; every leaf returns real content and a stated grade.
 
-### 6. Prove the complete catalogue gate
+### 6. Prove the complete catalogue gate — **done 2026-08-23**
 
 With all 115 leaves carrying real content, the already-signed `AT-SHAPE-6`
 target must pass without any D23 carve-out. Confirm this rather than assume it:
 if the gate cannot pass at all 115, the authoring in step 5 is not finished.
 
-Effort: S. **Verify:** the unmodified signed specification gate passes over all
-115 leaves.
+The unmodified signed specification gate passed over all 115 leaves after the
+authorship function was made capable of reporting real fragment failures. The
+owner signature verified first; both complete-catalogue targets then reported
+zero failures, and the full suite finished at 344/344 root tests plus 15/15
+pi-extension tests.
+
+**Verify:** `npm test` passes without changing any of the five manifested oracle
+files.
 
 ### 7. Release
 

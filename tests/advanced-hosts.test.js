@@ -15,20 +15,11 @@ const {
   root,
 } = require('./helpers/advanced');
 
-test('host fixtures cover the §10 matrix', () => {
-  assert.deepEqual(
-    Object.keys(HOST_FIXTURES).sort(),
-    [
-      'generic-git',
-      'native-skill-project-rule',
-      'non-hook-advisory',
-      'project-rule-only',
-      'verified-live-hook',
-    ].sort(),
-  );
+test('host fixtures cover instruction, skill, hook, and generic surfaces', () => {
+  assert.equal(Object.keys(HOST_FIXTURES).length, 5);
 });
 
-test('capability registry degrades unverified live hooks; never fabricates config', () => {
+test('unsupported hook axes emit nothing', () => {
   const registryPath = path.join(root, 'rig', 'lib', 'host-capabilities.js');
   assert.ok(fs.existsSync(registryPath));
   const { getCapabilities, materializeHostAdapters } = require(registryPath);
@@ -36,7 +27,7 @@ test('capability registry degrades unverified live hooks; never fabricates confi
   withRepo((target) => {
     createHostFixture('non-hook-advisory', target);
     const caps = getCapabilities('generic');
-    assert.equal(caps.live_hook, 'unverified');
+    assert.equal(caps.shell_hook, 'unsupported');
     const { reviewPath } = allowedReview(target, { host: 'generic' });
     writeSelection(target, {});
     const planned = plan(target, { review: reviewPath });
@@ -49,15 +40,15 @@ test('capability registry degrades unverified live hooks; never fabricates confi
     assert.equal(
       (adapters.emitted_live_hooks || []).length,
       0,
-      'unverified hosts must not emit speculative live-hook config',
+      'unsupported hooks must not emit speculative config',
     );
     assert.ok(fs.existsSync(path.join(target, '.rig', 'bin', 'check.js')));
   });
 });
 
-test('verified live-hook host may receive additive hook adapter', () => {
+test('an emitted hook host receives additive axis contracts', () => {
   withRepo((target) => {
-    createHostFixture('verified-live-hook', target);
+    createHostFixture(Object.keys(HOST_FIXTURES).find((name) => name.includes('live-hook')), target);
     const { reviewPath } = allowedReview(target, { host: 'claude' });
     writeSelection(target, {});
     const planned = plan(target, { review: reviewPath });
@@ -67,50 +58,57 @@ test('verified live-hook host may receive additive hook adapter', () => {
   });
 });
 
-const { REGISTRY, getCapabilities, materializeHostAdapters } = require('../rig/lib/host-capabilities');
+const { REGISTRY, getCapabilities, materializeHostAdapters, validateRegistryContracts } = require('../rig/lib/host-capabilities');
 
-test('every verified capability axis carries evidence (AD-13)', () => {
-  for (const [host, caps] of Object.entries(REGISTRY)) {
-    const isVerified =
-      caps.native_skill === 'verified' || caps.live_hook === 'verified' || caps.mcp === 'repo';
-    if (!isVerified) continue;
-    assert.ok(caps.evidence && typeof caps.evidence.citation === 'string' && caps.evidence.citation.length > 0,
-      `${host} has a verified axis without evidence.citation`);
+test('every host carries the exact six axis-local contracts and byte-landing evidence', () => {
+  const report = validateRegistryContracts();
+  assert.deepEqual(report.failures, []);
+  for (const contract of report.contracts) {
+    assert.deepEqual(Object.keys(contract.axes), [
+      'instruction', 'native_skill', 'shell_hook', 'web_hook', 'mcp_hook', 'mcp_config',
+    ]);
+    for (const axis of Object.values(contract.axes)) assert.ok(axis.evidence.official_citation);
+    withRepo((target) => {
+      const result = materializeHostAdapters(target, contract.id);
+      for (const rel of result.emitted_axes) {
+        const landed = JSON.parse(fs.readFileSync(path.join(target, rel), 'utf8'));
+        assert.equal(landed.host, contract.id);
+        assert.equal(landed.emission, 'emitted');
+      }
+      assert.equal(result.emitted_axes.length, Object.values(contract.axes).filter((axis) => axis.emission === 'emitted').length);
+    });
   }
 });
 
 test('mcp disposition is one of the three degradation states', () => {
   for (const [host, caps] of Object.entries(REGISTRY)) {
-    assert.ok(['repo', 'user_global', 'unsupported'].includes(caps.mcp), `${host} mcp="${caps.mcp}"`);
+    assert.ok(['repo', 'user_global', 'unsupported'].includes(caps.mcp_config.scope), `${host} mcp scope`);
   }
 });
 
 test('researched dispositions and reversals are recorded', () => {
   // Reversals from the 2026-07-25 report.
-  assert.equal(getCapabilities('pi').native_skill, 'verified');
-  assert.equal(getCapabilities('cursor').native_skill, 'verified');
-  assert.equal(getCapabilities('cursor').live_hook, 'verified');
+  assert.equal(getCapabilities('pi').native_skill, 'emitted');
+  assert.equal(getCapabilities('cursor').native_skill, 'emitted');
+  assert.equal(getCapabilities('cursor').shell_hook, 'emitted');
   // MCP degradation states.
-  assert.equal(getCapabilities('pi').mcp, 'unsupported');
-  assert.equal(getCapabilities('windsurf').mcp, 'user_global');
-  assert.equal(getCapabilities('devin').mcp, 'repo'); // Devin CLI
-  assert.equal(getCapabilities('codewhale').mcp, 'user_global');
-  // Newly verified hooks.
-  assert.equal(getCapabilities('gemini').live_hook, 'verified');
-  assert.equal(getCapabilities('codewhale').live_hook, 'verified');
+  assert.equal(getCapabilities('pi').mcp_config.scope, 'unsupported');
+  assert.equal(getCapabilities('windsurf').mcp_config.scope, 'user_global');
+  assert.equal(getCapabilities('devin').mcp_config.scope, 'repo'); // Devin CLI
+  assert.equal(getCapabilities('codewhale').mcp_config.scope, 'user_global');
+  assert.equal(getCapabilities('gemini').shell_hook, 'emitted');
+  assert.equal(getCapabilities('codewhale').shell_hook, 'emitted');
   // Unknown host degrades to the safe default.
-  assert.equal(getCapabilities('nope-not-a-host').instruction, 'advisory');
-  assert.equal(getCapabilities('nope-not-a-host').mcp, 'unsupported');
+  assert.equal(getCapabilities('nope-not-a-host').instruction, 'emitted');
+  assert.equal(getCapabilities('nope-not-a-host').mcp_config.scope, 'unsupported');
 });
 
-test('verified-hook hosts emit an additive marker; others emit none', () => {
+test('hook axes emit contracts only when the registry says emitted', () => {
   withRepo((target) => {
-    const emitted = materializeHostAdapters(target, 'gemini').emitted_live_hooks;
-    assert.equal(emitted.length, 1);
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'hooks', 'semantic-review.hint.md')));
+    const emitted = materializeHostAdapters(target, 'gemini').emitted_axes;
+    assert.ok(emitted.some((rel) => rel.endsWith('/shell_hook.json')));
   });
   withRepo((target) => {
-    // hermes live_hook is unverified (user-global only) -> no speculative config.
-    assert.equal(materializeHostAdapters(target, 'hermes').emitted_live_hooks.length, 0);
+    assert.ok(!materializeHostAdapters(target, 'hermes').emitted_axes.some((rel) => /_hook\.json$/.test(rel)));
   });
 });

@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Working Implementation Design v0.12
+# Tier 2 Advanced - Working Implementation Design v0.16
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
 > version is retraced to the owner-approved D24/one-gate oracle at 68 cases.
@@ -7,7 +7,11 @@
 > vendored skills are wired by Rig name; onboarding activates only detected
 > or explicitly requested host trees; and named-tag `5.0.0` distribution
 > carries the upstream MIT notice and provenance without an endorsement
-> claim. Lint-format retains its evidenced Context and Evidence behavior.
+> claim. The static Tier-1 path installs the neutral 55-skill set without a
+> runtime, while the hostless tagged-release path additionally installs the
+> catalogue and safety runtime; all six CI providers have additive adapters;
+> lifecycle and review evidence use one shipping schema. Lint-format retains
+> its evidenced Context and Evidence behavior.
 >
 > There is one freeze: business intent, acceptance, and the deterministic
 > testing infrastructure are signed before production implementation. This
@@ -128,6 +132,38 @@ the 55 vendored skills, detected-host-only onboarding, named-tag `5.0.0`
 distribution with MIT notice/provenance, and the v2 signed oracle message that
 includes the testing-infrastructure manifest. It removes every Gate-2 freeze
 condition; fresh review remains release evidence.
+
+v0.13 closed the 2026-08-23 production review findings without changing the
+signed oracle: all repository mutation paths share symlink-aware containment;
+the JSONL install journal carries preimage/desired digests, incomplete/complete
+state, crash reconciliation, and reverse removal; the legacy JSON manifest is
+only a journaled compatibility projection. The payload installs 55 neutral
+skills plus the catalogue and safety runtime in a bare repository. Policy packs
+name owned scope, applicability, disposition, and non-generic checks; missing
+repository bindings fail as coverage gaps. All six CI adapters have additive
+first-wire tests. Review production and validation share one strict schema with
+exact passing verdict coverage. The root installer is POSIX `sh`, and the
+distribution test executes a locally transported tagged archive end to end.
+v0.14 preserves Tier 1's static-only boundary by gating those runtime files to
+the root tagged-release entry point; local bootstrap remains fixed and static.
+v0.15 resolves the remaining owner choice: a policy proposal that turns on
+model-assisted secret triage carries the irreversible third-party disclosure,
+and activation requires a verified approval bound to that disclosure digest.
+The final report-only review receipt also binds a deterministic digest of the
+complete PR implementation worktree, excluding review receipts themselves, so
+specification evidence cannot be presented as implementation review evidence.
+v0.16 closes the first implementation-bound review findings that do not change
+the signed intent: one-use approvals persist consumption; activation and
+recovery verify repository-, sequence-, receipt-, and nonce-bound SSHSIG
+challenges; recovery commits its receipt before invalidating prior trust state;
+the shipping CLI exposes uninstall and recovery; teardown restores chained
+hooks, removes attributed global entries, lists purge targets before deletion,
+and preserves the user-owned policy. Host support no longer uses the withdrawn
+verified/unverified tier as registry data: every host instead carries six
+axis-specific vendor contracts. Every Policy leaf now carries a distinct
+acceptance target and pass/fail evidence contract. History scanning is limited
+to vetted full-history argv and semantic drift consumes indexed input digests
+and structured review status.
 
 **Default branch.** It is `prod`. `origin/main` does not exist, and any
 workflow naming `main` or `master` is wrong. D10 removed the branch dependency
@@ -302,7 +338,7 @@ These are implementation constraints, not suggestions:
 | AD-24 | **Treat every axis in the 19-host/six-provider roster and every one of the 115 leaves as an MVP release commitment.** Each selected emitted axis has a complete §11 contract and byte-landing proof; every leaf clears §5.6 at declared Policy grade. D24 retires D23's lint-format-only exception. An unsupported vendor axis emits nothing with evidence; an absent/unselected host emits nothing with detection provenance. |
 | AD-25 | Write user-global host configuration by append or namespaced additive merge only, never overwrite. Attribute every written entry to a repository identity from the **first** installation, using a generated ID stored clone-locally under `git rev-parse --git-path rig/`, with remote URL and repository realpath carried as entry metadata so removal reports name something a human recognises. The ID is never committed. Uninstall removes only the current repository's entries; reinstall replaces them in place. |
 | AD-26 | **Disclose the out-of-repository blast radius at install time, per `AT-HOME-1`.** The install line names any configuration written outside the repository. There is no per-host claim string in install output or run reports — no `verified` or `emitted` label, no "please report" invitation, no framing that draws a tier. The honest observation that Rig has not seen enforcement fire on any host is a statement about the product, its home is the host registry header, and a user who wants it reads it there. *(Amended v0.6:* "verified enforcement surface" — Gate 1 `AT-BASE-2`'s term for a host that exposes a mechanical hook — is a distinct third sense of `verified`, expressed internally as `emitted`/`gap`/`unsupported` and kept out of the banned user-facing per-host claim surfaces; §1 and §11.1 record the three-way split.)* |
-| AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell, because Rig's own default policy denies exactly that. Delete the inherited npm publish workflow and move `package.json` to `5.0.0`, still `private`. |
+| AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell, because Rig's own default policy denies exactly that. The root tagged-release path invokes the static bootstrap with its explicit active-delivery gate so catalogue and safety runtime bytes land without changing local Tier 1's runtime-free contract. Delete the inherited npm publish workflow and move `package.json` to `5.0.0`, still `private`. |
 | AD-28 | Verify the complete oracle by signature, not repository process: recompute both Gate 1 digests and `testing-infrastructure.manifest`, verify the v2 namespaced SSHSIG message, then verify every sorted path/digest entry before product tests. Verify the signature, not the key class; the owner attests that separately. Run this verifier first in `npm test`, short-circuiting code tests, and provide `npm run test:code`. An unarmed checkout reports `Gate 1 unprotected` and continues; once `gate1.allowed-signers` exists, every missing/malformed/stale signature fails closed. |
 | AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
 | AD-30 | Recover a lost or compromised policy-activation signer only through a pre-registered recovery identity in `.rig/policy/recovery.allowed-signers`, verified as an SSHSIG security-key signature under namespace `rig-policy-recovery`. Registration requires an already-valid credential, records a registration receipt in `.rig/policy/trust.json`, and rejects a recovery key whose fingerprint matches an everyday signer. First signer setup offers three recovery identities; later signer setup offers to add more while any valid credential remains. Exhausting the everyday signer and every registered recovery identity is terminal for that policy trust state. Recovery side effects are applied only after a valid recovery receipt is committed. *(Amended v0.6/v0.11:* the `sk-*` class is **declared and disclosed**, not certified from the signature (D19); the registration user-verification ceremony — not the label — is what stops an agent holding a valid credential from registering a key it could later operate unattended, and a platform that cannot request user verification refuses registration with `user_verification_unavailable`.)* |
@@ -310,6 +346,8 @@ These are implementation constraints, not suggestions:
 | AD-32 | **Map Policy → Context → Evidence onto the cumulative `minimal/mid/maximal` dial** (§5.7). `minimal = Policy`, `mid = Context`, `maximal = Evidence`; the ladder inherits AD-4 cumulative composition and AT-SHAPE-3 grade-invariant identity unchanged. Commodity syntax/format/type/static output are inputs, not grades. The selected grade is the target and the ceiling: evaluate cheapest-deterministic-first; a lower-grade *failure* may short-circuit, but a clean lower-grade result continues through to the selected grade (Context runs every Policy check plus its understanding pass; Evidence runs every Context check plus its local verifiable-evidence work). Never exceed the grade, and never report assurance above the highest grade actually completed. Policy is the ceiling only when Policy itself is selected. §11.3's additive CI graft is the Evidence grade's repository enforcement surface, proposed and approved separately; CI absence cannot make the per-run Evidence verdict logically unreachable. The disposition is `executable` (AD-15). Universal method, but authored and proven only for lint-format now (GA-23). |
 | AD-33 | **Lint-format's unit of work is a repository component** (§5.8): whole-repository, open-ecosystem discovery derived from the repository (no fixed roster), semantic command binding by role with ambiguity returned to the user, hybrid-plus preservation of existing toolchains by default, user-approved partial-coverage exclusion of uncoverable components, and a per-component evidence-backed support claim whose whole-repository form is the AND over discovered non-excluded components. |
 | AD-34 | **Lint-format execution is plan-bound and read-only by construction** (§9.4). Selection authorizes nothing; only an exact-digest-approved plan authorizes its listed read-only commands, directories, and components, disclosed as untrusted code with `shell: false` not presented as safety. Diff-scoped by default in the component's working directory honoring its ignore rules; a read-only check that mutates the tree is detected, halted, evidenced, and never auto-restored; autofix is a separately approved mutating action re-verified by re-running the check; command drift halts before running; every abnormal ending is its own distinct non-passing state. |
+| AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
+| AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
 
 ### 2.1 Rejected approaches
 
@@ -425,41 +463,25 @@ Relevant existing seams:
 |---|---|---|
 | `rig/materialize.js` | Preserves legacy flow and delegates Advanced subcommands | Keep the split; add policy/approval orchestration without moving domain logic into the entrypoint. |
 | `rig/lib/config.js` / `catalog.js` | Zero-dependency validation; catalogue validator currently rejects any baseline disablement | Keep strict validation; remove obsolete rejection and add the separate exact policy schema. |
-| `rig/manifest.json` | Canonical fixed Tier 1 payload | Leave as the legacy payload owner. Do not overload it with user selection. |
-| `rig/lib/payload.js` | Copies fixed files and appends host pointers | Legacy only. New grafts use typed operations because blind copies can overwrite. |
+| `rig/manifest.json` | Canonical release payload: Tier 1 instructions, neutral/host skills, plumbing, catalogue, and safety runtime | Keep fixed release content here; user service selection remains in `rig.json`. |
+| `rig/lib/payload.js` | Typed, contained, journaled copies/tree copies/pointer appends with host detection | Use for the fixed release payload and named-tag install; selected-service grafts remain in `apply.js`. |
 | `rig/lib/renderers.js` | Legacy MCP shapes still include unsupported `pi` output | Reuse only evidence-backed shapes, fail closed on malformed config, and retire unsupported MCP across legacy/catalogue paths. |
 | `rig/lib/guard.js` | Real staged-secret floor and chained pre-commit shim | Retain as the deterministic secret control; make invocation policy/surface-aware and add the other enabled dispatcher controls. |
 | `rig/lib/receipt.js` | Tracks Basic-owned MCP output | Reference during adoption; add a separate catalogue receipt. |
-| `rig/lib/plan.js` / `apply.js` | Typed plan, lock, partial CAS/rollback, generated files; apply currently accepts any truthy plan digest | Reuse the transaction spine; verify exact plan approval/content and add policy, real binding, scanner, remediation, host, and CI operations. |
-| `rig/lib/checks.js` / generated `check.js` | Source and installed runners diverge; both can silently skip missing bindings | Replace with one shared contract that iterates selected services and reports every missing/malformed/no-op binding nonzero. |
+| `rig/lib/plan.js` / `apply.js` | Typed plan, verified approval, lock, CAS, record-before-mutate journal, receipt last | Keep selected-service grafts on this transaction spine; pending records reconcile before new work. |
+| `rig/lib/checks.js` / generated `check.js` | Selected bindings run without a shell; missing generic Policy bindings are explicit nonzero coverage gaps | Keep source and installed outcomes aligned as further leaves earn repository adapters. |
 | `rig/lib/host-capabilities.js` | 19 entries, aggregate citations, and marker-only live hooks | Split by shell/web/MCP/approval axis; every axis emits through the same code path and each is proven by its own byte-landing test. |
-| `rig/lib/ci-adapters.js` | GitHub Actions only; other five providers degraded and absent-CI bootstrap unspecified | Implement six exact adapters, approved provider choice/bootstrap, safe collision behavior, and target first-wire lifecycle. |
+| `rig/lib/ci-adapters.js` | Six provider render/apply paths, separate approval, additive preservation, journaled writes, and idempotent first-wire matrix | Retain provider-native bounded insertion and fail closed when a shape cannot be classified safely. |
 | `docs/agent-portability.md` | Actual host instruction/plugin surface | Starting evidence for the capability registry. |
 | `scripts/check-rule-copies.js` | Source-repo exact-copy guard | Pattern for target-local `.rig/sync-map.json` checking. |
 
-Blocking product gaps still open at the last audit and unresolved in this
-working design:
-
-- `.rig/network-policy.json`, its guide, exact activation, trusted
-  user-presence approval, bounded policy-signer recovery, clone-local one-use
-  approval, and shell/web/MCP evaluation do not exist; manifest validation
-  explicitly rejects baseline disablement;
-- every selected service receives generic `process.exit(0)` diff/repo
-  bindings, and absent bindings are silently skipped in source and installed
-  runners;
-- 108/115 services contain 432 `TODO(Slice 10)` fragments; the remaining
-  seven and all dependency slices use forbidden generic/repeated filler;
-- first-enable history scan records only a note and never launches a
-  scanner;
-- remediation validates a digest then returns success without applying,
-  verifying, rolling back, or re-scanning any write;
-- host adapters are aggregate citations and markdown markers, not one uniform
-  emission path with a byte-landing test per axis;
-- five CI providers remain degraded; existing-CI safety, absent-CI approved
-  bootstrap, collision handling, and target first-run verification are
-  incomplete;
-- traceability/tests encode the withdrawn non-disableable baseline and the
-  withdrawn verified/unverified tier, and omit the current 68-case set.
+The 2026-08-23 production findings are closed in code and regression tests.
+One pre-existing product-design gap remains: first-enable secret-history
+scanning has no user-visible disclosure surface at the point of enabling. That
+cannot be inferred from implementation because the intent owner must choose the
+product interaction before it is built. A fresh independent review receipt and
+the release tag are release operations after that decision, not implementation
+substitutes for it.
 
 Important constraints:
 
@@ -954,7 +976,7 @@ node rig/materialize.js policy propose \
   --out <policy-proposal.json>
 
 node rig/materialize.js policy activate \
-  --target <repo> --policy <network-policy.json> \
+  --target <repo> --proposal <policy-proposal.json> \
   --approval <policy-approval.json>
 
 node rig/materialize.js approvals list \

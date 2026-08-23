@@ -14,3 +14,6 @@ when a supported repository-native command can be discovered.
 There are no service dependencies. A missing or malformed formatter/linter
 command is a named, nonzero coverage gap rather than a silent skip or a
 fabricated pass.
+
+Applicability signal: `source-code`. Disposition: executable, with one
+plan-bound command set per discovered repository component.

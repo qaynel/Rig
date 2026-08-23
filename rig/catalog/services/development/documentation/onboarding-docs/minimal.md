@@ -1,7 +1,5 @@
-# development.documentation.onboarding-docs — minimal
+# development.documentation.onboarding-docs - minimal
 
-Owned scope: documentation.onboarding-docs
+Grade: minimal. Assurance is Policy grade generic baseline practice and is not tailored to the installing repository.
 
-Checks: onboarding-docs-core
-
-Concrete convention for minimal grade.
+`onboarding-docs-source-code-boundary` owns `documentation.onboarding-docs`. Given source-code is present and documentation.onboarding-docs is selected, it passes only when the repository binding evaluates documentation.onboarding-docs and returns zero. It fails when the binding is missing, unreadable, exits nonzero, or claims an adjacent documentation concern. Evidence is recorded against `fixture:development.documentation.onboarding-docs:policy-boundary`; absence never becomes a pass.

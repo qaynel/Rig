@@ -1,3 +1,5 @@
-# testing.property-fuzz.shrinking — minimal
+# testing.property-fuzz.shrinking - minimal
 
-TODO(Slice 10): expand concrete checks for shrinking.
+Grade: minimal. Assurance is Policy grade generic baseline practice and is not tailored to the installing repository.
+
+`shrinking-source-code-boundary` owns `property-fuzz.shrinking`. Given source-code is present and property-fuzz.shrinking is selected, it passes only when the repository binding evaluates property-fuzz.shrinking and returns zero. It fails when the binding is missing, unreadable, exits nonzero, or claims an adjacent property fuzz concern. Evidence is recorded against `fixture:testing.property-fuzz.shrinking:policy-boundary`; absence never becomes a pass.

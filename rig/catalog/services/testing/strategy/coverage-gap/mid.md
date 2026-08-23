@@ -1,3 +1,5 @@
-# testing.strategy.coverage-gap — mid
+# testing.strategy.coverage-gap - mid
 
-TODO(Slice 10): expand concrete checks for coverage gap.
+Grade: mid (Context target). Until the named local evidence is wired, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal boundary passes, `coverage-gap-strategy-context` evaluates `strategy.coverage-gap`. Given strategy.coverage-gap has a repository-specific convention and evidence source, it passes only when the result names the consulted path or command and excludes an adjacent strategy concern; it fails when the result infers local convention without an inspectable source. The target is `fixture:testing.strategy.coverage-gap:repository-context`, and adjacent strategy ownership stays outside the verdict.

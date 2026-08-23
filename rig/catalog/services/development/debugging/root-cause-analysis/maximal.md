@@ -1,3 +1,5 @@
-# development.debugging.root-cause-analysis — maximal
+# development.debugging.root-cause-analysis - maximal
 
-TODO(Slice 10): expand concrete checks for root cause analysis.
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal and mid checks pass, `root-cause-analysis-evidence-receipt` covers `debugging.root-cause-analysis`. Given the debugging.root-cause-analysis binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:development.debugging.root-cause-analysis:evidence-replay` names the binding, inputs, outcome, and current digest.

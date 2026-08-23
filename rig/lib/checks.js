@@ -51,6 +51,21 @@ function runBinding(serviceId, binding, scope, target) {
     if (check.fix && (!Array.isArray(check.fix) || !check.fix.length)) {
       return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` };
     }
+    if (check.commands) {
+      for (const commandBinding of check.commands) {
+        if (!Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
+          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` };
+        }
+        const cwd = path.resolve(target, commandBinding.cwd || '.');
+        if (cwd !== path.resolve(target) && !cwd.startsWith(path.resolve(target) + path.sep)) {
+          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: component cwd escapes repository` };
+        }
+        const [command, ...rest] = commandBinding.argv;
+        const result = runArgv(command, rest, cwd);
+        if (result.error || result.status !== 0) return { ...result, checkId };
+      }
+      continue;
+    }
     const argv = check[scope] || check.repo;
     if (!argv) continue;
     if (!Array.isArray(argv) || !argv.length) {
@@ -64,30 +79,109 @@ function runBinding(serviceId, binding, scope, target) {
 }
 
 function checkCopies(target) {
+  const mapPath = path.join(target, '.rig', 'sync-map.json');
+  if (fs.existsSync(mapPath)) {
+    const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    const rootAbs = path.resolve(target);
+    const rootPrefix = rootAbs + path.sep;
+    for (const group of map.groups || []) {
+      const digests = new Set();
+      for (const rel of group) {
+        // sync-map.json is a repo-supplied config; refuse group entries that
+        // resolve outside the install target so a manipulated map cannot
+        // trick this drift-check into reading arbitrary bytes.
+        if (typeof rel !== 'string') continue;
+        const abs = path.resolve(target, rel);
+        if (abs !== rootAbs && !abs.startsWith(rootPrefix)) continue;
+        if (!fs.existsSync(abs)) continue;
+        digests.add(fs.readFileSync(abs).toString('utf8'));
+      }
+      if (digests.size > 1) {
+        throw new Error(`drift detected across sync group ${group.join(', ')}`);
+      }
+    }
+  }
   const script = path.join(target, '.rig', 'bin', 'check-copies.js');
   if (!fs.existsSync(script)) return { status: 0 };
   return runArgv(process.execPath, [script], target);
 }
 
 function semanticDrift(target) {
+  const findings = [];
   const indexPath = path.join(target, '.rig', 'context-index.json');
-  if (!fs.existsSync(indexPath)) return null;
-  const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
-  const deprecated = (index.documents || []).filter((d) => d.status === 'deprecated');
-  if (!deprecated.length) return null;
-  for (const doc of deprecated) {
-    const abs = path.join(target, doc.path);
-    if (fs.existsSync(abs)) {
-      return {
-        status: 'failed',
-        service_id: 'baseline.semantic-drift',
-        summary: 'Semantic drift detected',
-        reason: `stale/deprecated context at ${doc.path}`,
-        fix_context: [`deprecated document ${doc.path} replaces ${doc.replaces || 'canonical'}`],
-      };
+  if (fs.existsSync(indexPath)) {
+    const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+    for (const doc of index.documents || []) {
+      if (!doc || typeof doc.path !== 'string') {
+        findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_document_entry' });
+        continue;
+      }
+      const abs = path.resolve(target, doc.path);
+      if (abs !== path.resolve(target) && !abs.startsWith(path.resolve(target) + path.sep)) {
+        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'escaping_context_path' });
+        continue;
+      }
+      if (!fs.existsSync(abs)) {
+        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'missing_context' });
+        continue;
+      }
+      const current = require('node:crypto').createHash('sha256').update(fs.readFileSync(abs)).digest('hex');
+      if (doc.digest && doc.digest !== current) findings.push({ path: doc.path, status: 'stale', reason: 'digest_changed' });
+      if (doc.status === 'deprecated') findings.push({ path: doc.path, status: 'stale', replaces: doc.replaces || null });
+      if (doc.review && (doc.review.status !== 'pass' || !doc.review.input_digest)) {
+        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'missing_or_note_only_review' });
+      }
     }
   }
-  return null;
+  const wikiDir = path.join(target, 'wiki');
+  if (fs.existsSync(wikiDir)) {
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, entry.name);
+        if (entry.isDirectory()) { walk(abs); continue; }
+        const rel = path.relative(target, abs);
+        try {
+          const body = fs.readFileSync(abs, 'utf8');
+          const frontmatter = body.startsWith('---\n') ? body.slice(4, body.indexOf('\n---\n', 4)) : '';
+          const explicitlyDeprecated = /^status:\s*deprecated\s*$/mi.test(frontmatter) ||
+            /\b(?:use|follow) deprecated (?:tier|workflow|instructions?)\b/i.test(body);
+          if (explicitlyDeprecated && !findings.some((f) => f.path === rel)) {
+            findings.push({ path: rel, status: 'stale' });
+          }
+        } catch { /* ignore */ }
+      }
+    };
+    walk(wikiDir);
+  }
+  return findings;
+}
+
+function validateDisposition(disposition) {
+  if (!disposition || typeof disposition !== 'object') throw new Error('disposition required');
+  const kind = disposition.kind;
+  if (kind === 'executable') {
+    if (!Array.isArray(disposition.argv) || disposition.argv.length === 0) {
+      throw new Error('executable disposition needs argv: coverage gap');
+    }
+    return { kind: 'executable' };
+  }
+  if (kind === 'convention') {
+    const reason = disposition.reason || '';
+    if (!/repository|repo-specific|service-specific|tailored|convention:/i.test(reason)) {
+      throw new Error('convention disposition needs service-specific reason');
+    }
+    return { kind: 'convention' };
+  }
+  if (kind === 'surfaceless') {
+    if (!disposition.reason) throw new Error('surfaceless disposition needs reason');
+    return { kind: 'surfaceless' };
+  }
+  throw new Error(`unknown disposition kind: ${kind}`);
+}
+
+function resolveRunScope({ environment, changed }) {
+  if (environment === 'ci') return { kind: 'repo' };
+  return { kind: 'diff', files: changed || [] };
 }
 
 function runChecks(target, { scope = 'repo', service = null } = {}) {
@@ -104,10 +198,18 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     return { status: 1, stdout: copy.stdout, stderr: copy.stderr };
   }
 
-  const drift = semanticDrift(target);
-  if (drift) {
-    writeReport(target, { ...drift, scope });
-    return { status: 1, stdout: '', stderr: drift.reason };
+  const driftFindings = semanticDrift(target);
+  if (driftFindings && driftFindings.length) {
+    const first = driftFindings[0];
+    writeReport(target, {
+      status: 'failed',
+      service_id: 'baseline.semantic-drift',
+      summary: 'Semantic drift detected',
+      reason: `stale/deprecated context at ${first.path}`,
+      fix_context: [`deprecated document ${first.path}`],
+      scope,
+    });
+    return { status: 1, stdout: '', stderr: `stale/deprecated context at ${first.path}` };
   }
 
   const bindings = loadBindings(target);
@@ -200,4 +302,12 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
   return failure || { status: 0, stdout: '', stderr: '' };
 }
 
-module.exports = { runArgv, runBinding, runChecks, checkCopies };
+module.exports = {
+  runArgv,
+  runBinding,
+  runChecks,
+  checkCopies,
+  semanticDrift,
+  validateDisposition,
+  resolveRunScope,
+};

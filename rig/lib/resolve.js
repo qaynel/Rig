@@ -121,7 +121,17 @@ function resolve(catalog, selection) {
     if (!seen.has(id)) order.push(id);
   }
 
-  return { effective, order, services: effective };
+  const arrayView = order.map((id) => ({
+    id,
+    grade: effective[id].selected_grade,
+    reason: effective[id].install_reason === 'dependency' ? 'dependency' : 'selected',
+    slices: [...effective[id].required_slices],
+    required_by: [...effective[id].required_by],
+  }));
+  arrayView.effective = effective;
+  arrayView.order = order;
+  arrayView.services = effective;
+  return arrayView;
 }
 
 module.exports = { resolve };

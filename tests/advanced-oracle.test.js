@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 
 const h = require('./helpers/advanced');
@@ -158,8 +159,9 @@ test('AT-BASE-3 structured active policy is authoritative and discoverable', () 
   const status = api('policy.js', 'policyStatus');
   h.withRepo((target) => {
     const result = status(target, { candidate: policyFixture({ allow: ['network_access'] }), prose: 'deny everything' });
-    assert.equal(result.authority, '.rig/policy/active.json');
-    assert.equal(result.guide, '.rig/network-policy.md');
+    assert.equal(result.authority, '.rig/network-policy.json');
+    assert.equal(result.guide, '.rig/network-rules.md');
+    assert.equal(result.active_snapshot, '.rig/policy/active.json');
     assert.notEqual(result.active_digest, digest(JSON.stringify(result.candidate)));
   });
 });
@@ -540,10 +542,51 @@ test('AT-REPORT-1 finding detail stays on the producing machine', () => {
 
 test('AT-SECRET-1 matched secret content stays out of model context by default', () => {
   const project = api('reports.js', 'projectForAgent');
+  const propose = api('policy.js', 'proposePolicy');
+  const activate = api('policy.js', 'activatePolicy');
+  const activationMessage = api('policy.js', 'activationMessage');
   const secret = ['ghp_', 'fixtureValue12345678901234567890'].join('');
   const report = { findings: [{ rule: 'credential', path: 'a.txt', matched: secret }] };
   assert.doesNotMatch(JSON.stringify(project(report, { model_assisted_triage: false })), new RegExp(secret));
-  assert.match(JSON.stringify(project(report, { model_assisted_triage: true })), new RegExp(secret));
+  assert.doesNotMatch(JSON.stringify(project(report, { model_assisted_triage: true })), new RegExp(secret));
+  h.withRepo((target) => {
+    assert.doesNotMatch(JSON.stringify(project(report, { target })), new RegExp(secret));
+    const proposal = propose(target, {
+      schema_version: 1,
+      controls: {},
+      enforcement: {},
+      allow: [],
+      secrets: { model_assisted_triage: true },
+    }, { explicit_request: true, session: 's1' });
+    assert.match(proposal.disclosures[0].text, /third.party/i);
+    assert.match(proposal.disclosures[0].text, /cannot be unsent/i);
+    const key = path.join(target, 'policy-test-key');
+    const message = path.join(target, 'policy-approval-message');
+    fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
+    const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
+    assert.equal(generated.status, 0, generated.stderr);
+    fs.writeFileSync(
+      path.join(target, '.rig/policy/allowed-signers'),
+      `owner namespaces="rig-policy-activation" ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
+    );
+    fs.writeFileSync(message, activationMessage(proposal));
+    const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
+    assert.equal(signed.status, 0, signed.stderr);
+    activate(target, proposal, {
+      approval: {
+        schema_version: 1,
+        kind: 'policy-approval',
+        proposal_digest: proposal.digest,
+        approval: {
+          method: 'external-sshsig',
+          identity: 'owner',
+          signature: fs.readFileSync(`${message}.sig`, 'utf8'),
+        },
+        confirmed_disclosures: [proposal.disclosures[0].digest],
+      },
+    });
+    assert.match(JSON.stringify(project(report, { target })), new RegExp(secret));
+  });
 });
 
 test('AT-LF-1 lint-format discovery is whole-repository and open-ecosystem', () => {

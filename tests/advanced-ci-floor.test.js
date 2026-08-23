@@ -38,13 +38,13 @@ test('every emitted adapter has doc/first-wire evidence; unverified degrade', ()
   const gha = planCiIntegration;
   assert.equal(typeof gha, 'function');
   const artifact = githubActionsStandalone();
-  assert.equal(artifact.relativePath, '.github/workflows/rig-check.yml');
+  assert.equal(artifact.relativePath, '.github/workflows/rig.yml');
   assert.match(artifact.contents, /node \.rig\/bin\/check\.js --scope repo/);
-  assert.match(artifact.contents, /reports\/rig\//);
+  assert.doesNotMatch(artifact.contents, /reports\/rig\/|upload-artifact/);
   assert.ok(REPORTS_UPLOAD.github_actions.evidence.citation);
 });
 
-test('unverified provider plan does not fabricate CI config', () => {
+test('a detected provider still requires separate approval before CI changes', () => {
   const result = planCiIntegration;
   // Simulate a gitlab target via resolve path indirectly: no workflows dir.
   const os = require('node:os');
@@ -52,7 +52,7 @@ test('unverified provider plan does not fabricate CI config', () => {
   try {
     fs.writeFileSync(path.join(tmp, '.gitlab-ci.yml'), 'image: node\n');
     const plan = planCiIntegration(tmp);
-    assert.equal(plan.status, 'degraded');
+    assert.equal(plan.status, 'approval_required');
     assert.equal(plan.artifact, null);
     assert.equal(plan.always_install_check_command, true);
   } finally {
