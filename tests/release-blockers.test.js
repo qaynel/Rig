@@ -122,6 +122,29 @@ test('the lifecycle uninstaller consumes the shipping JSONL journal', () => {
   });
 });
 
+test('uninstall does not crash when `.git` is a file, as in a linked worktree', () => {
+  withTarget((target) => {
+    // A linked worktree's `.git` is a file (pointing at the shared common
+    // dir), not a directory. A manifest record under `.git/hooks/...` — left
+    // over from before this target became a worktree, or from any install
+    // path that once wrote one — used to make `containedPath` throw ENOTDIR
+    // walking through that file as if it were a directory.
+    fs.writeFileSync(path.join(target, '.git'), 'gitdir: /elsewhere/.git/worktrees/example\n');
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
+      { seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: sha256('shim') },
+    ].map(JSON.stringify).join('\n') + '\n');
+
+    const result = uninstall(target);
+    assert.equal(result.status, 'removed');
+    assert.equal(
+      result.removed.includes('.git/hooks/pre-commit'),
+      false,
+      'a path that cannot exist under a file-shaped .git has nothing to remove',
+    );
+  });
+});
+
 test('the shipping CLI restores chained hooks and removes only attributed global entries', () => {
   withTarget((target, outside) => {
     const originalHook = '#!/bin/sh\necho user-hook\n';
@@ -385,6 +408,42 @@ test('matched content reaches the agent only through the active signed triage po
     assert.match(JSON.stringify(projectForAgent(report, { target })), new RegExp(matched));
     fs.appendFileSync(path.join(target, '.rig/policy/active.json'), ' ');
     assert.doesNotMatch(JSON.stringify(projectForAgent(report, { target })), new RegExp(matched));
+  });
+});
+
+test('rewriting active.json and patching the receipt candidate_digest to match does not pass verification', () => {
+  withTarget((target) => {
+    const activePath = path.join(target, '.rig/policy/active.json');
+    const receiptPath = path.join(target, '.rig/policy/activation-receipt.json');
+    const proposal = proposePolicy(target, Buffer.from(JSON.stringify({
+      schema_version: 1, controls: {}, enforcement: {}, allow: [],
+      secrets: { model_assisted_triage: true },
+    })), { explicit_request: true });
+    const approval = signPolicyProposal(target, proposal);
+    approval.confirmed_disclosures = [proposal.disclosures[0].digest];
+    activatePolicy(target, proposal, { approval });
+    assert.equal(policyStatus(target).model_assisted_triage.authorized, true, 'sanity: a real activation verifies');
+
+    // An attacker who can write `.rig/policy/` (but does not hold the signing
+    // key) rewrites the active policy and patches the receipt's bare
+    // `candidate_digest` field to match the new bytes. The signature itself
+    // — over `proposal_digest` — is untouched and still verifies fine, so
+    // this must fail only because `candidate_digest` is bound inside the
+    // signed proposal rather than trusted as a loose field.
+    const malicious = Buffer.from(`${JSON.stringify({
+      schema_version: 1, controls: {}, enforcement: {}, allow: [],
+      secrets: { model_assisted_triage: true },
+    })} `);
+    fs.writeFileSync(activePath, malicious);
+    const receipt = JSON.parse(fs.readFileSync(receiptPath, 'utf8'));
+    receipt.candidate_digest = sha256(malicious);
+    fs.writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
+
+    assert.equal(
+      policyStatus(target).model_assisted_triage.authorized,
+      false,
+      'a spoofed candidate_digest without a new signature must not authorize triage',
+    );
   });
 });
 

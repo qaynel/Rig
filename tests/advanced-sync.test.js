@@ -15,6 +15,7 @@ const {
   writeJson,
   check,
 } = require('./helpers/advanced');
+const { runChecks } = require('../rig/lib/checks');
 
 test('byte-exact copy check fails when a registered duplicate drifts', () => {
   withRepo((target) => {
@@ -56,6 +57,41 @@ test('byte-exact copy check fails when a registered duplicate drifts', () => {
 
     const ci = check(target, { scope: 'repo' });
     assert.notEqual(ci.status, 0, 'CI whole-repo check must also fail on drift');
+  });
+});
+
+test('runChecks reports sync-group drift as a failure instead of crashing', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    fs.writeFileSync(path.join(target, 'a.md'), 'one\n');
+    fs.writeFileSync(path.join(target, 'b.md'), 'two\n');
+    writeJson(path.join(target, '.rig', 'sync-map.json'), { groups: [['a.md', 'b.md']] });
+
+    const result = runChecks(target);
+    assert.equal(result.status, 1, 'drift must be reported, not thrown');
+    assert.match(result.stderr, /drift detected/);
+
+    const reportsDir = path.join(target, 'reports', 'rig');
+    assert.ok(fs.existsSync(reportsDir), 'a failure report must be written, like every other check failure');
+    const [reportFile] = fs.readdirSync(reportsDir);
+    const report = JSON.parse(fs.readFileSync(path.join(reportsDir, reportFile), 'utf8'));
+    assert.equal(report.service_id, 'baseline.exact-copy');
+    assert.equal(report.status, 'failed');
+  });
+});
+
+test('copy check refuses a sync-map entry that is a symlink out of the repository', () => {
+  withRepo((target) => {
+    createRepoFixture('generic-git', target);
+    const outside = path.join(path.dirname(target), 'outside-secret.md');
+    fs.writeFileSync(outside, 'secret\n');
+    fs.writeFileSync(path.join(target, 'inside.md'), 'secret\n');
+    fs.symlinkSync(outside, path.join(target, 'linked.md'));
+    writeJson(path.join(target, '.rig', 'sync-map.json'), { groups: [['inside.md', 'linked.md']] });
+
+    const result = runChecks(target);
+    assert.equal(result.status, 1, 'an escaping symlink must fail the check, not be followed');
+    assert.match(result.stderr, /outside symlink|escapes|escaping/i);
   });
 });
 

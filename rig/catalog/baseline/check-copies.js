@@ -5,6 +5,26 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+function inspectInside(root, rel, kind) {
+  const abs = path.resolve(root, rel);
+  if (abs !== root && !abs.startsWith(root + path.sep)) {
+    return { ok: false, reason: `out-of-root ${kind} path: ${rel}` };
+  }
+  let stat;
+  try {
+    stat = fs.lstatSync(abs);
+  } catch {
+    return { ok: false, reason: `missing ${kind}: ${rel}` };
+  }
+  if (stat.isSymbolicLink()) {
+    const real = fs.realpathSync(abs);
+    if (real !== root && !real.startsWith(root + path.sep)) {
+      return { ok: false, reason: `escaping symlink: ${rel}` };
+    }
+  }
+  return { ok: true, abs };
+}
+
 function main() {
   const root = path.resolve(__dirname, '..', '..');
   const mapPath = path.join(root, '.rig', 'sync-map.json');
@@ -14,39 +34,21 @@ function main() {
   const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
   let failed = false;
   for (const group of map.groups || []) {
-    const canonical = path.resolve(root, group.canonical);
-    if (!canonical.startsWith(root + path.sep) && canonical !== root) {
-      console.error(`out-of-root canonical path: ${group.canonical}`);
+    const canonical = inspectInside(root, group.canonical, 'canonical');
+    if (!canonical.ok) {
+      console.error(canonical.reason);
       failed = true;
       continue;
     }
-    if (!fs.existsSync(canonical)) {
-      console.error(`missing canonical: ${group.canonical}`);
-      failed = true;
-      continue;
-    }
-    const canonBytes = fs.readFileSync(canonical);
+    const canonBytes = fs.readFileSync(canonical.abs);
     for (const copyRel of group.copies || []) {
-      const copy = path.resolve(root, copyRel);
-      if (!copy.startsWith(root + path.sep) && copy !== root) {
-        console.error(`out-of-root copy path: ${copyRel}`);
+      const copy = inspectInside(root, copyRel, 'copy');
+      if (!copy.ok) {
+        console.error(copy.reason);
         failed = true;
         continue;
       }
-      if (!fs.existsSync(copy)) {
-        console.error(`missing copy: ${copyRel}`);
-        failed = true;
-        continue;
-      }
-      if (fs.lstatSync(copy).isSymbolicLink()) {
-        const real = fs.realpathSync(copy);
-        if (!real.startsWith(root + path.sep)) {
-          console.error(`escaping symlink: ${copyRel}`);
-          failed = true;
-          continue;
-        }
-      }
-      const copyBytes = fs.readFileSync(copy);
+      const copyBytes = fs.readFileSync(copy.abs);
       if (!canonBytes.equals(copyBytes)) {
         console.error(`byte drift: ${copyRel} != ${group.canonical}`);
         failed = true;

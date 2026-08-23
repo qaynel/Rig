@@ -5,14 +5,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { spawnSync } = require('node:child_process');
 const { loadCatalog, servicesOf, catalogDigest, validateRigJson, isReviewAccepted, validateReview } = require('./catalog');
 const { resolve } = require('./resolve');
 const { materializeHostAdapters } = require('./host-capabilities');
-const { planCiIntegration, detectProvider } = require('./ci-adapters');
+const { planCiIntegration } = require('./ci-adapters');
 const { GUARD_SCRIPT, SHIM } = require('./guard');
 const { writeReport } = require('./reports');
-const { containedPath } = require('./path-safety');
+const { containedPath, gitPath } = require('./path-safety');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
 
@@ -29,21 +28,10 @@ function sha256File(file) {
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 
-// Clone-local, never committed (§4.2): a linked worktree must not share
-// identity, and a shared committed ID would let one clone's uninstall strip
-// entries from another clone's global config.
-function gitPath(target, rel) {
-  const result = spawnSync('git', ['rev-parse', '--git-path', rel], {
-    cwd: target,
-    encoding: 'utf8',
-    shell: false,
-  });
-  const out = (result.stdout || '').trim();
-  return path.isAbsolute(out) ? out : path.join(target, out);
-}
-
 function getInstallId(target) {
-  const idPath = gitPath(target, path.join('rig', 'install-id'));
+  // Non-git targets have no `.git` to scope an identity to; a repo-local file
+  // is a fine fallback since there is no shared global config to leak into.
+  const idPath = gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
   fs.mkdirSync(path.dirname(idPath), { recursive: true });
   if (fs.existsSync(idPath)) return fs.readFileSync(idPath, 'utf8').trim();
   const id = crypto.randomUUID();
@@ -256,18 +244,23 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     throw new Error(`apply: stale preimage for ${rel}`);
   }
 
+  // Lock acquisition itself must stay outside the try: on EEXIST it throws
+  // before creating anything, so there is nothing of ours to clean up. Once
+  // acquired, every following step (including install-identity resolution)
+  // must run inside the guarded section so any failure still releases it.
   const lockPath = acquireLock(target);
-  const installId = getInstallId(target);
-  const existingRecords = readManifest(target);
-  const latestByPath = new Map();
-  let seq = 0;
-  for (const record of existingRecords) {
-    seq = Math.max(seq, record.seq || 0);
-    if (Number.isInteger(record.seq) && record.path) latestByPath.set(record.path, record);
-  }
   let historyScanNote = '';
 
   try {
+    const installId = getInstallId(target);
+    const existingRecords = readManifest(target);
+    const latestByPath = new Map();
+    let seq = 0;
+    for (const record of existingRecords) {
+      seq = Math.max(seq, record.seq || 0);
+      if (Number.isInteger(record.seq) && record.path) latestByPath.set(record.path, record);
+    }
+
     appendManifestRecord(target, { kind: 'install_state', complete: false });
     const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
 
@@ -370,7 +363,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // detected provider even at Policy grade with no maximal service in the
     // plan. Now the graft only lands when the approved plan includes at
     // least one maximal-grade service and the plan-approval is verified.
-    const detectedCi = detectProvider(target);
+    //
+    // The provider itself comes from `plan.ci` — computed once at plan time
+    // and folded into `plan_digest`, which the approval signs — instead of a
+    // fresh `detectProvider(target)` scan here. Re-detecting let the target
+    // drift after signing (a CI file added or swapped between plan and
+    // apply) silently change which provider's workflow gets written; the
+    // plan the approver actually signed is the only source of truth for it.
+    const plannedProvider = plan.ci && plan.ci.provider ? plan.ci.provider : null;
     const planNeedsCi = (plan.effective_services || []).some((entry) => entry.selected_grade === 'maximal');
     const approvalVerified = Boolean(
       options.approval && (
@@ -378,9 +378,9 @@ function applyPlan(target, manifest, review, plan, options = {}) {
           || (options.approval.approval && options.approval.approval.verified)
       ),
     );
-    const ci = detectedCi
-      ? planCiIntegration(target, { provider: detectedCi, approved: planNeedsCi && approvalVerified })
-      : planCiIntegration(target);
+    const ci = plannedProvider
+      ? planCiIntegration(target, { provider: plannedProvider, approved: planNeedsCi && approvalVerified })
+      : (plan.ci || planCiIntegration(target));
 
     // Services
     const bindings = {};
@@ -427,21 +427,52 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // Host adapters
     materializeHostAdapters(target, validated.host || 'generic', writeOwned);
 
-    // CI adapter (verified only)
+    // CI adapter (verified only). The write is allowed only for a path the
+    // signed plan listed — apply must not introduce a file the approver never
+    // saw, and must not skip CAS for a path that was never in preimages.
     if (ci.artifact) {
-      writeOwned(ci.artifact.relativePath, ci.artifact.contents, undefined, ci.artifact.ownership);
+      const rel = ci.artifact.relativePath;
+      const signed = Object.prototype.hasOwnProperty.call(plan.preimages || {}, rel)
+        || (plan.operations || []).some((op) => op.path === rel);
+      if (signed) {
+        writeOwned(rel, ci.artifact.contents, undefined, ci.artifact.ownership);
+      }
     }
 
-    // Git hook dispatcher
-    const gitDir = path.join(target, '.git');
-    if (fs.existsSync(gitDir)) {
-      const hooksDir = containedPath(target, '.git/hooks');
-      fs.mkdirSync(hooksDir, { recursive: true });
-      const hook = path.join(hooksDir, 'pre-commit');
-      if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
-        writeOwned('.git/hooks/pre-commit.rig-chained', fs.readFileSync(hook), 0o755);
+    // Git hook dispatcher. `.git` is a file, not a directory, in a linked
+    // worktree, so a hardcoded `.git/hooks` join throws ENOTDIR there.
+    // Resolving through git itself gives the real hooks directory — shared
+    // across worktrees — and returns null cleanly for a non-git target.
+    const hooksDirAbs = gitPath(target, 'hooks');
+    if (hooksDirAbs) {
+      const hooksDirRel = path.relative(target, hooksDirAbs);
+      const insideTarget = !path.isAbsolute(hooksDirRel) && !hooksDirRel.startsWith('..');
+      if (insideTarget) {
+        const hooksDir = containedPath(target, hooksDirRel);
+        fs.mkdirSync(hooksDir, { recursive: true });
+        const hook = path.join(hooksDir, 'pre-commit');
+        if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
+          writeOwned(path.join(hooksDirRel, 'pre-commit.rig-chained'), fs.readFileSync(hook), 0o755);
+        }
+        writeOwned(path.join(hooksDirRel, 'pre-commit'), SHIM, 0o755);
+      } else {
+        // A linked worktree's hooks directory lives outside `target`, in the
+        // main clone's shared git-common dir — `writeOwned`/`containedPath`
+        // assume target-relative bookkeeping and don't apply here, and the
+        // hook isn't owned by any single worktree's install anyway: every
+        // worktree of this repo shares and re-resolves the same shim (via
+        // `git rev-parse --show-toplevel` at commit time, see guard.js).
+        // Writing it directly, untracked by this install's manifest, is the
+        // same idempotent backup-then-shim behavior `writeOwned` gives the
+        // common case, applied to a path outside this install's ownership.
+        fs.mkdirSync(hooksDirAbs, { recursive: true });
+        const hook = path.join(hooksDirAbs, 'pre-commit');
+        const chained = path.join(hooksDirAbs, 'pre-commit.rig-chained');
+        if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
+          fs.renameSync(hook, chained);
+        }
+        fs.writeFileSync(hook, SHIM, { mode: 0o755 });
       }
-      writeOwned('.git/hooks/pre-commit', SHIM, 0o755);
     }
 
     let historyScan = null;

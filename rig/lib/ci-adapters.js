@@ -146,11 +146,20 @@ function detectUnknownCi(target) {
   return UNKNOWN_CI_MARKERS.some((marker) => fs.existsSync(path.join(target, marker)));
 }
 
+// The file a provider's artifact would land at, independent of approval —
+// so plan time can CAS-track it even before it's known whether the plan
+// will be approved (see `resolveProviderPath` callers in plan.js).
+function resolveProviderPath(providerId, target) {
+  const provider = PROVIDERS[providerId];
+  if (!provider) return null;
+  return providerId === 'azure_pipelines' && fs.existsSync(path.join(target, 'azure-pipelines.yaml'))
+    ? 'azure-pipelines.yaml' : provider.file;
+}
+
 function artifactFor(providerId, target, spec = {}) {
   const provider = PROVIDERS[providerId];
   if (!provider) return null;
-  const rel = providerId === 'azure_pipelines' && fs.existsSync(path.join(target, 'azure-pipelines.yaml'))
-    ? 'azure-pipelines.yaml' : provider.file;
+  const rel = resolveProviderPath(providerId, target);
   if (providerId === 'github-actions') return githubActionsStandalone(spec);
   const abs = containedPath(target, rel);
   const existing = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
@@ -206,4 +215,5 @@ function renderPipeline(providerId, spec) {
 module.exports = {
   PROVIDERS, REPORTS_UPLOAD, detectProvider, detectUnknownCi, resolveAdapter,
   planCiIntegration, applyCiPlan, renderPipeline, githubActionsStandalone,
+  resolveProviderPath,
 };
