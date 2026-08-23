@@ -4,19 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
-const { materialize, exampleServer, withRepo } = require('./helpers/basic-install');
-
-function git(target, args) {
-  return execFileSync('git', args, { cwd: target, stdio: 'pipe' });
-}
-
-function initRepo(target) {
-  git(target, ['init', '-q']);
-  git(target, ['config', 'user.email', 'test@example.com']);
-  git(target, ['config', 'user.name', 'Rig Test']);
-  git(target, ['config', 'commit.gpgsign', 'false']);
-}
+const { materialize, exampleServer, withRepo, git, initRepo } = require('./helpers/basic-install');
 
 test('TP-C6.9 installed pre-commit shim chains the user hook at commit time', () => {
   withRepo((target) => {

@@ -1,33 +1,48 @@
 ---
 name: rig-grilling
-description: Establish business intent and independently authored acceptance tests before technical scoping or implementation.
+status: ready
+description: Establish business intent, acceptance criteria, and the testing infrastructure that checks them, then freeze that oracle under one signature before implementation.
 ---
 
-# Grilling: Gate 1
+# Grilling: the gate
 
 Use this for new features, ambiguous requests, expensive mistakes, and any work
 whose definition of correct is not already frozen. This phase owns **what and
-why**, never implementation.
+why** and produces the oracle the gate freezes; it never writes implementation.
 
 ## Process
 
-1. Read existing product language, constraints, and behavior before asking
-   questions the repository can answer.
+1. Check the existing record first — the wiki, or a README, reasoning traces,
+   `CLAUDE.md`, or whatever markdown exists — and derive as much intent and
+   acceptance as it already supports before spending the developer's time on a
+   question. Where you infer a criterion from that record, **declare it
+   outright** ("this looks like how you test X, so I added it — remove it if
+   wrong") so the sign-off is never blind.
 2. State the user, problem, desired outcome, and explicit non-goals.
 3. Pressure-test assumptions, failure modes, permissions, data boundaries,
    lifecycle, and observable edge cases.
 4. Resolve ambiguity one decision at a time. Record a default only when it is
    reversible and low-risk.
 5. Write acceptance criteria as externally observable examples.
-6. Author the smallest runnable acceptance tests or exact test cases that fail
-   before implementation and pass only when the intent is met.
-7. Freeze those artifacts as Gate 1 and hand them to product design.
+6. Build the testing infrastructure that deterministically checks those criteria:
+   the smallest runnable tests or exact cases that fail before implementation and
+   pass only when the intent is met.
+7. Verify the technical specification exists (from `rig-product-design`) — it is
+   checked for presence, not frozen — then freeze the oracle (intent, acceptance,
+   and tests) under one signature. That single freeze is the gate.
 
 ## Gate Contract
 
-The implementation agent must not author or edit Gate 1. A wrong test can
-change only by returning here, recording why the intent changed, and having the
-intent owner revise it. The test verdict outranks an implementer's claim.
+The gate protects one property: an agent cannot move its own goalpost. It is
+enforced by the human signature taken before any code exists plus the
+immutability of the signed oracle after — not by independent authorship. An
+agent may draft the oracle, because the informed human signature is the
+safeguard.
+
+The implementation agent must not edit the frozen oracle. A wrong locked test is
+corrected only by the key holder, as a quick re-sign — never a full return to
+grilling; an agent may propose the change but can never make it. The test
+verdict outranks an implementer's claim.
 
 ## Output
 
@@ -35,7 +50,8 @@ intent owner revise it. The test verdict outranks an implementer's claim.
 - Users and business rules
 - In scope / out of scope
 - Acceptance examples and edge cases
-- Acceptance-test files or exact executable cases
-- Open decisions that block Gate 1
+- The testing infrastructure (test files or exact executable cases)
+- A present, checked technical specification
+- Open decisions that block the freeze
 
-Source: mattpocock grilling doctrine, adapted for Rig's two-gate pipeline.
+Source: mattpocock grilling doctrine, adapted for Rig's one-gate pipeline.

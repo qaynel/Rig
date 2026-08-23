@@ -1,0 +1,5 @@
+# infrastructure.cost.utilization-analysis - maximal
+
+Grade: maximal (Evidence target). Until a rerunnable receipt exists, assurance remains Policy-grade generic baseline practice rather than repository-tailored coverage.
+
+After the minimal and mid checks pass, `utilization-analysis-evidence-receipt` covers `cost.utilization-analysis`. Given the cost.utilization-analysis binding and its inputs are unchanged, it passes only when a second run reproduces the verdict and input/output digests; it fails when the receipt is stale, incomplete, or cannot be rerun. The receipt at `fixture:infrastructure.cost.utilization-analysis:evidence-replay` names the binding, inputs, outcome, and current digest.

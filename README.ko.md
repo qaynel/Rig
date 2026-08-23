@@ -6,14 +6,18 @@
 </figure>
 
 ---
-Rig은 코딩 에이전트를 위한 엄선된 호스트 독립형 도구 상자다. Tier 1은
-어떤 저장소에도 마크다운만으로 된 워크플로를 설치한다. 하나의 공유
-라우터, 항상 켜져 있는 Ponytail 구현 규칙, 그리고 의도, 설계, 실행,
-TDD, 디버깅, 코드 리뷰를 위한 집중 스킬로 구성된다.
+Rig은 코딩 에이전트를 위한 엄선된 호스트 독립형 도구 상자다. 두 가지 전달
+표면을 제공한다.
 
-프로세스를 시작하지 않고, API 키가 필요 없으며, 의존성을 설치하지 않는다.
+1. **마크다운 부트스트랩 (Tier 1)** — 공유 라우터, 항상 켜져 있는 Ponytail
+   구현 규칙, 의도·설계·실행·TDD·디버깅·코드 리뷰용 집중 스킬. 프로세스,
+   API 키, 의존성 없음.
+2. **베이스라인 + à-la-carte 카탈로그** — 먼저 에이전트 하네스를 안전하게
+   만든 뒤, 사용자가 `family → group → service → grade`로 기능을 고른다
+   (Development · Testing · Infrastructure · Product-Security). 고정된
+   Basic / mid / Advanced 설치 패키지는 폐기되었고, 카탈로그가 제품이다.
 
-## Tier 1 설치
+## 마크다운 부트스트랩 설치
 
 이 체크아웃에서:
 
@@ -21,8 +25,21 @@ TDD, 디버깅, 코드 리뷰를 위한 집중 스킬로 구성된다.
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Tier 1은 현재 로컬 Rig 체크아웃에서 설치한다. foundational design에
-설명된 고정 릴리스/git-ref 부트스트랩 경로는 아직 제공되지 않는다.
+기본적으로 로컬 부트스트랩은 마크다운만 설치한다: 각 스킬의 `SKILL.md`는
+설치되지만, 코드와 `.rig/plumbing` 트리는 제외된다. 이것도 설치하려면
+`--with-runtime`을 추가한다:
+
+```sh
+sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+```
+
+루트 스크립트 `install.sh`는 이름이 지정된 릴리스를 해석하고, 실행 전에
+다운로드하며, 항상 `--with-runtime`으로 부트스트랩을 호출한다. 그래서 활성
+카탈로그와 안전 runtime이 함께 설치된다:
+
+```sh
+sh install.sh --version v5.0.0 --target /path/to/repository
+```
 
 부트스트랩은 대화형으로 실행될 때 tier를 묻는다. 자동화에서는 같은 선택을
 명시적으로 지정할 수 있다:
@@ -31,14 +48,18 @@ Tier 1은 현재 로컬 Rig 체크아웃에서 설치한다. foundational design
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-선택한 호스트만 설치하려면 (Tier 2 materializer와 같은 게이팅):
+`--hosts` 없이 실행하면 Rig은 19개 호스트 레지스트리를 기준으로 기존 호스트
+설정을 기계적으로 감지하고, 없는 호스트 트리는 설치하지 않는다. 쉼표로
+구분한 목록으로 그 선택을 명시적으로 좁히거나 덮어쓸 수 있다:
 
 ```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
 # 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
-호스트 선택에는 `PATH`에 `node`가 필요하다. 기본 전체 설치는 POSIX `sh`만 사용한다.
+부트스트랩에는 `PATH`에 `node`가 필요하다. 출력은 감지되거나 명시적으로
+지정된 각 호스트를 나열하고, 모든 payload 기록을
+`.rig/install-manifest.jsonl`에 남긴다.
 
 Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 
@@ -83,78 +104,22 @@ Hermes 네이티브 플러그인(`plugin.yaml`)으로 Rig을 설치한다. `pre_
 활성 모드를 주입하고, `/rig` 모드 전환 명령을 등록하며, 스킬을
 `rig:<skill>` 형식으로 노출한다.
 
-## Tier 2 설치 (MCP)
+## 베이스라인 + à-la-carte 카탈로그
 
-Tier 2 "Basic"은 Tier 1 위에 한 가지 기능을 더한다: **자격 증명 기반 멀티
-호스트 MCP 구성기**. MCP 서버와 그 자격 증명 슬롯을 한 번 선언하면, Rig은
-선택한 각 호스트에 맞는 설정을 생성하고, `.env.example`을 작성하며, `.env`를
-gitignore에 추가하고, 어떤 키도 git에 들어가지 않도록 secret guard를 설치한다.
-여전히 프로세스를 시작하지 않으며 secret 값을 저장하지 않는다.
+하네스를 안전하게 만든 뒤, Rig은 스캔 추천 메뉴를 제공한다. 사용자는
+`rig.json`에서 리프 서비스와 grade를 고르고, 누락된 의존성은 필요한
+슬라이스만 정확히 끌어온다. 설치는 기존 에이전트 인프라에 graft되며
+sanitation · drift · secret · git · CI floor는 항상 유지된다.
 
-```sh
-node rig/materialize.js --target /path/to/repository --manifest rig.config.json
+```text
+inspect → host review → recommend → select (rig.json) → plan → apply → check
 ```
 
-제거는 Rig이 소유한 MCP 파일과 항목만 삭제한다:
+운영자 가이드: [`docs/advanced/operator.md`](docs/advanced/operator.md).
+설계 및 추론: [`wiki/`](wiki/).
 
-```sh
-node rig/materialize.js --target /path/to/repository --uninstall
-```
-
-### 매니페스트
-
-`rig.config.json`은 호스트를 선택하고 MCP 서버를 선언한다. 자격 증명은 **환경
-변수 이름만** 쓰며 값은 절대 넣지 않는다. 검증기는 키 형태의 값을 거부한다.
-
-```json
-{
-  "hosts": ["claude", "cursor", "codex"],
-  "mcp_servers": [
-    {
-      "name": "app-db",
-      "variants": [
-        {
-          "id": "stdio",
-          "transport": "stdio",
-          "credential_safety": "manual_note_required",
-          "command": "npx",
-          "args": ["-y", "@example/db-mcp"],
-          "credentials": ["APP_DB_TOKEN"]
-        }
-      ]
-    }
-  ]
-}
-```
-
-원격 서버는 `command`/`args` 대신 `"url"`과 함께 `"transport": "http"`를 쓴다.
-
-### 호스트별 MCP 동작
-
-Rig은 MCP 설정 파일을 지원하는 각 호스트에는 네이티브 설정 파일을 생성하고,
-나머지에는 수동 노트를 남긴다. Cursor와 GitHub Copilot은 `.env` / inputs에서
-secret을 자체적으로 로드한다. 설정을 생성하는 다른 호스트는 환경 변수를
-연결하라는 노트도 함께 출력한다.
-
-| 호스트 | 생성되는 MCP 파일 |
-|---|---|
-| Claude Code | `.mcp.json` |
-| Cursor | `.cursor/mcp.json` |
-| Codex / VS Code Codex | `.codex/config.toml` |
-| GitHub Copilot | `.vscode/mcp.json` |
-| OpenCode | `opencode.json` |
-| pi | `.omp/mcp.json` |
-| Gemini CLI | `.gemini/settings.json` |
-| Kiro | `.kiro/settings/mcp.json` |
-| Devin | `.devin/config.json` |
-| OpenClaw | `.openclaw/openclaw.json` |
-| CodeWhale | `.codewhale/mcp.json` |
-| Swival | `.swival/mcp.json` |
-| Windsurf, Cline, Hermes, Copilot CLI, Antigravity | 노트만 — 네이티브 MCP 파일 없음 |
-| `generic` | MCP 미지원 |
-
-호스트별 토큰 문법과 자격 증명 메커니즘은 `docs/agent-portability.md`와
-`project-dev-docs/tier-2-design-docs/basic/basic-design.md`에 문서화되어 있다.
+레거시 MCP 설정 CLI는 호환 경로로 남아 있으며, 더 이상 별도의 설치
+tier가 아니다.
 
 ## 큐레이션 축
 
@@ -171,19 +136,16 @@ secret을 자체적으로 로드한다. 설정을 생성하는 다른 호스트�
 큐레이션된 스킬은 워크플로 단계별로 자체 점검에 라벨을 붙인다. 소스 문서를
 그냥 이어 붙이지 않고, 각 워크플로의 특징적인 부분을 합친다.
 
-## Tier 1 경계
+## 마크다운 부트스트랩 경계
 
-Tier 1은 기본적으로 고정 파일 목록만 가진 단순한 부트스트랩이다. sync engine,
-runtime, keys, `.env` 처리가 없다. 선택적 `--hosts` / `RIG_HOSTS`는 Tier 2
-payload 필터(`rig/lib/payload.js`)를 재사용해 좁은 설치가 materializer와
-일치하게 한다. 플래그가 없으면 전체 고정 목록이 그대로 오라클이다. 공유
-레이아웃은 예측 가능하므로, Tier 2(위 참조)가 설치된 형태를 바꾸지 않고도 이를
-설명한다.
+Tier 1 부트스트랩은 의도적으로 고정 파일 목록만 가진 단순한 설치다.
+카탈로그 해석기, runtime, keys, `.env` 처리가 없다. 공유 레이아웃은 예측
+가능하므로 카탈로그 materializer가 설치된 형태를 바꾸지 않고 설명할 수 있다.
 
-Tier 1은 마크다운만 제공하므로 워크플로는 권고 사항이다. Claude와 다른
-hook 가능 호스트는 이후 tier에서 실제 도구 경계 강제를 제공할 수 있지만,
-Cursor는 그럴 수 없다. Rig은 산문이 단단한 가드레일이라고 주장하지 않고
-그 한계를 명시한다.
+부트스트랩은 마크다운만 제공하므로 워크플로는 권고 사항이다. Claude와 다른
+hook 가능 호스트는 호스트가 지원하는 곳에서 실제 도구 경계 강제를 제공할 수
+있지만, Cursor는 그럴 수 없다. Rig은 산문이 단단한 가드레일이라고 주장하지
+않고 그 한계를 명시한다.
 
 ## 검증
 
@@ -195,9 +157,5 @@ npm run test:rig
 어댑터, 기존 호스트 파일 보존, 마크다운 전용 경계, secret placeholder의
 부재를 확인한다.
 
-Tier 2 materializer와 전체 CI 게이트(룰 복사본, 버전 핀, 전체 Node 스위트)는
-다음으로 실행한다:
-
-```sh
-npm test
-```
+카탈로그 인수 테스트는 `tests/advanced-*.test.js`에 있으며 `npm test`에
+포함된다.

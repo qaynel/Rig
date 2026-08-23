@@ -1,0 +1,84 @@
+# Status - checked 2026-08-23
+
+The signed oracle remains unchanged and green at 68 acceptance cases. The
+working technical design is v0.16 and is present rather than frozen. D24 keeps
+the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,
+detected-host onboarding, the mandatory safety baseline, six CI providers, and
+named-tag `5.0.0` distribution.
+
+The protected oracle, secret scan, rule-copy check, and version check pass on
+the current bytes. The root suite is **363/365**: two assertions inside the
+signed oracle conflict with the frozen business text and the corrected shipping
+behavior. `AT-BASE-3` expects the active snapshot path to be reported as the
+user-owned authority instead of `.rig/network-policy.json`; `AT-SECRET-1`
+expects a caller-controlled boolean to disclose matched secret content without
+the required disclosure-bound policy activation. The pi-extension suite was
+not reached by this red root run. Correcting those signed assertions requires
+an owner-authorized Gate 1 re-signing ceremony.
+
+## Production review findings
+
+The nine findings supplied on 2026-08-23 are implemented and have focused
+regression coverage.
+
+| Finding | Current state |
+|---|---|
+| Repository symlinks escape write/delete boundaries | One shared realpath-aware containment guard protects lifecycle, payload, coverage, remediation, apply, and CI paths. Ancestor symlinks resolving outside the target fail before mutation. |
+| Installer omits catalogue and safety runtime | The tagged-release payload installs the catalogue metadata, all service/baseline fragments, `materialize.js`, and all runtime modules under `.rig/runtime/`; local Tier 1 remains static-only. |
+| Bare repository receives no vendored skills | Hostless install now receives all 55 neutral skills under `.rig/skills/` while still creating no absent host-specific tree. |
+| Service packs repeat prohibited generic boilerplate | All Policy packs name exact scopes, applicability, dispositions, leaf-specific checks, distinct acceptance targets, explicit given/pass/fail evidence, and slice behavior. Generic selected services without repository bindings fail as coverage gaps instead of `process.exit(0)`. |
+| Five CI providers have no adapter | GitHub Actions, GitLab CI, CircleCI, Jenkins, Buildkite, and Azure Pipelines each render and apply a provider-visible, detail-free repository check with approval, preservation, idempotence, journaling, and first-wire coverage. |
+| Shipping journal and uninstall are incompatible; crash window is ambiguous | JSONL is authoritative for install, resume, and reverse removal. Pending records reconcile landed, unlanded, or conflicting state. The shipping CLI restores chained hooks, removes install-ID-attributed global entries, writes removal evidence, lists purge targets before deletion, and preserves user policy. |
+| Review producer and validator schemas differ | Both use one strict `report-only` schema bound to technical-spec, catalogue-fragment, and exact PR implementation digests plus the PR base, exact passing case coverage, no release-blocking findings, and no unresolved IDs. |
+| Distribution test never runs the installer/archive | The regression builds a tagged archive, transports it through fake `curl`, executes the real installer under `dash`, and checks tag, skills, catalogue, and runtime in the installed target. |
+| Installer requires Bash | The root stub is POSIX `sh` with no Bash shebang, `pipefail`, substring expansion, or `[[ ... ]]`. |
+
+[Intent-owner findings](reasoning/2026-08-23-production-release-blockers.md)
+
+## Release boundary
+
+The owner selected plan-time disclosure for model-assisted secret triage. The
+policy proposal, exact disclosure-bound approval, CLI flow, persistent status,
+and regressions are implemented with actual SSHSIG verification. One-use
+approval replay, recovery signing/ordering, real lint argv execution, vetted
+history scanning, structured semantic drift, axis-specific host contracts, and
+uninstall integration are also covered. The release is blocked on correction
+and re-signing of the two contradictory oracle assertions, the signer-class
+attestation, a green full gate, and a fresh independent receipt bound to the
+resulting exact PR worktree.
+
+After those are resolved, rerun the full gate on the final bytes and explicitly
+cut/publish `v5.0.0`; tag publication is never an implicit side effect of code
+changes.
+
+A default local `sh rig/bootstrap.sh` (no `--with-runtime`) is now
+markdown-only end to end: per-skill code and `.rig/plumbing` are gated behind
+`active_delivery` alongside the runtime engine, and `.tmpl`/`TODOS-format.md`
+never land. All 55 `SKILL.md` files still land unconditionally, so the frozen
+oracle's 55-skill reading is unaffected and no re-sign was required
+([AD-37](index/decisions.md), [lean-install protocol](reasoning/2026-08-23-lean-install-protocol.md)).
+
+## Current mechanics
+
+- `npm test` verifies the protected oracle first, then secrets, rule copies,
+  versions, the root Node suite, and pi-extension tests.
+- `install.sh` downloads a named tag to disk and executes only the extracted
+  local bootstrap with its explicit active-delivery runtime gate.
+- `.rig/install-manifest.jsonl` is the single lifecycle authority.
+- Policy activation and recovery verify external SSHSIG receipts under separate
+  namespaces; caller-set verification booleans are not accepted by shipping
+  commands.
+- The release-review wrapper starts a fresh reviewer process, binds the exact PR
+  implementation worktree and base, and refuses incomplete or failing evidence.
+- Historical review receipts remain void for current bytes.
+
+## Owner-controlled release inputs
+
+- Authorize correction and re-signing of the two contradictory Gate 1 oracle
+  assertions without changing their business intent.
+- Produce the authorized fresh independent review against the exact PR worktree
+  after that correction.
+- Add the intent owner's signer-class attestation comment to the frozen Gate 1
+  signer file through an owner-authorized re-signing ceremony.
+- Confirm the final `v5.0.0` tag and publication operation after the full gate
+  is green.

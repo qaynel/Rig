@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Gate-1 acceptance tests for Tier 2 Basic — SC7 / §9 of
-// project-dev-docs/tier-2-design-docs/basic/basic-design.md.
+// wiki/sources/superseded/deprecated-tier-taxonomy/basic/basic-design.md.
 // Authored in the grilling phase; the implementer MUST NOT edit these (gate
 // contract, routing.md). RED until the materializer is built, then GREEN.
 const test = require('node:test');

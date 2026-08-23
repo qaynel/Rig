@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "wrapper_version": 1,
+  "kind": "report-only-review",
+  "target": "wiki/gate2/technical-spec.md",
+  "target_digest": "df4b8ec7488603c889aa680319930858a6825a933f9be3d5044cee6737d9bde1",
+  "gate1": [
+    {
+      "path": "wiki/gate1/business-spec.md",
+      "digest": "07afa02f157f34fde0c95c11417d03874e4b7626137eaee2b223c602b8ed52ff"
+    },
+    {
+      "path": "wiki/gate1/acceptance.md",
+      "digest": "1d9b7a4eca76e3b375be85fea5d532c6194df8ef280770db12e47070126c4489"
+    }
+  ],
+  "reviewed_at": "2026-08-21T11:43:17.586Z",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "contradiction",
+      "anchor": "§14 Slice 2 vs §12.3 step 9 / §17.2 item 4",
+      "detail": "Slice 2 instructs: 'Add explicit executable/convention/surfaceless metadata, real evidence targets, anti-filler/duplicate checks, exact inventory counts, and the exact-digest per-leaf semantic review schema. Keep all unauthored leaves red,' verified by `tests/advanced-catalogue.test.js` and `tests/advanced-services.test.js` — files distinct from the specification gate's own AT-SHAPE-6 test (`tests/advanced-spec-gate.test.js`/`tests/advanced-acceptance.test.js`, Slice 1). D23 (§5.6, §12.3 step 3, §17.2 item 3, and the §13 AT-SHAPE-6 row) explicitly narrows only the *specification gate's* AT-SHAPE-6 evaluation to `development.code-quality.lint-format` for this release; nothing in the document narrows Slice 2's separate anti-filler code test the same way, and the version-history note claiming v0.9 'narrow[ed] §5.6, ... §12.3/§17.2, ... and the AT-SHAPE-6 row in §13 to match' does not list §14/Slice 2 among the sections updated. Yet §12.3 step 9 and §17.2 item 4 both require '`npm test` passes on the final source state' as a release condition, and AD-28 states '`npm test` remains the full code gate' (all Node test files, not a curated subset). If Slice 2's anti-filler check keeps the 114 non-release leaves 'red' as literally instructed, and Slice 14 (the leaf-authoring work that would turn them non-red) is explicitly 'not release-blocking for this release,' then `npm test` cannot go green at the intended lint-format-only release point — reproducing, at the code-gate layer, exactly the 'npm test red forever on the 114 leaves' deadlock that D23 was created to solve at the specification-gate layer. Gate 2 never states the mechanism (a skip list, a separate green/red status distinct from test-suite exit code, or scoping this test the same way AT-SHAPE-6 was scoped) that would make both requirements simultaneously true."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "Header intro / §16 / §17.1 / Slice 15",
+      "detail": "The document's intro states 'Implementation may not begin against a candidate: §16 lists what must be true before this file may be marked FROZEN,' but §16 is 'Implementation Handoff' (a list of things the implementer must preserve); the actual freeze-blocker checklist is §17.1. Separately, §17.1 states freeze happens *before* implementation ('When these hold, this file is marked FROZEN and implementation begins'), i.e. before Slice 1 — yet Slice 15, the *last* of fifteen implementation slices, says its own fresh review 'may change this document's status to FROZEN.' Read literally, Gate 2 asserts two incompatible things about when and how often 'FROZEN' status is granted: once, pre-implementation (§17.1, consistent with Gate 1 §8's 'specification gate before code gate' ordering), and again, post-implementation, after the full 115-leaf/19-host build (Slice 15) — which would mean Gate 2 is never actually frozen (and per Gate 1 §8, code correctness can never be evaluated) until the entire catalogue is built, directly undercutting D21/AD-31's premise that lint-format alone may ship first."
+    },
+    {
+      "severity": "minor",
+      "category": "testability",
+      "anchor": "AT-PRESENCE-2 / §13",
+      "detail": "The traceability row's test description says to 'Assert an agent holding a valid credential cannot self-appoint a recovery key it controls: registration requires the user-verification ceremony...' but Gate 2's own §8.4 prose immediately concedes 'per D19 [Rig] cannot[] certify the key's class from the signature' and that the residual risk is 'an owner who registers a weak recovery key while recording a strong class.' An automated `node --test` fixture cannot exercise a real hardware user-verification touch, so the only things actually checkable are fingerprint distinctness, receipt-chain validity, and that `policy status` discloses the declared class — not that self-appointment is impossible. AT-GATE-2's row correctly disclaims this class of limitation ('It does not test the key's class'); AT-PRESENCE-2's row states the stronger, unverifiable claim as if it were a directly testable assertion."
+    }
+  ],
+  "unresolved": []
+}

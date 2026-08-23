@@ -1,8 +1,12 @@
 name: test
 
+# Runs on every branch deliberately. This repository is public, and the secret
+# hygiene guard in `npm test` is only a guard on the branches it actually runs
+# on. The previous filter named `main`, a branch that does not exist here — the
+# default is `prod` — so pushing any working branch ran no checks at all.
 on:
   push:
-    branches: [main]
+    branches: ['**']
     tags: ['v*']
   pull_request:
 
@@ -19,6 +23,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      # Runs on its own, before everything else. `npm test` chains with `&&`, so
+      # a failure in an unrelated check would otherwise stop the secret guard
+      # from ever executing. A leaked credential is the one failure here that
+      # cannot be undone by fixing it and re-running — it can only be rotated —
+      # so it does not queue behind version and rule-copy checks.
+      - name: Secret hygiene (no credentials tracked or publishable)
+        run: npm run test:secrets
 
       - name: Run tests
         run: npm test
