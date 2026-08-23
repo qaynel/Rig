@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { containedPath } = require('./path-safety');
+const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig } = require('./global-writes');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
@@ -115,6 +115,18 @@ function resumeInstall(target, opts) {
   };
 }
 
+function resolveRecordPath(target, rel) {
+  // Hook paths are stored as `.git/hooks/...` in the journal, but in a linked
+  // worktree `.git` is a file and the real hooks dir lives in the shared
+  // git-common dir. Resolve through git so uninstall can restore or remove
+  // the shared shim instead of crashing on ENOTDIR.
+  if (typeof rel === 'string' && rel.startsWith('.git/hooks/')) {
+    const hooksDir = gitPath(target, 'hooks');
+    if (hooksDir) return path.join(hooksDir, path.basename(rel));
+  }
+  return containedPath(target, rel);
+}
+
 function uninstall(target, opts = {}) {
   const manifest = readManifest(target);
   const records = latestOperations(manifest.records)
@@ -136,10 +148,10 @@ function uninstall(target, opts = {}) {
     }
   }
   for (const record of records) {
-    const abs = containedPath(target, record.path);
+    const abs = resolveRecordPath(target, record.path);
     if (!fs.existsSync(abs)) continue;
     if (record.path === '.git/hooks/pre-commit') {
-      const chained = containedPath(target, '.git/hooks/pre-commit.rig-chained');
+      const chained = resolveRecordPath(target, '.git/hooks/pre-commit.rig-chained');
       const expected = record.digest || record.desired_digest || null;
       if (expected && currentDigest(abs) !== expected) {
         bestEffort.push(record.path);

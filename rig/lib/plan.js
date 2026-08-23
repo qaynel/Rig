@@ -8,7 +8,7 @@ const { loadCatalog, validateRigJson, effectiveChecks, servicesOf, catalogDigest
 const { resolve } = require('./resolve');
 const { validateReview, isReviewAccepted } = require('./catalog');
 const { getCapabilities } = require('./host-capabilities');
-const { planCiIntegration } = require('./ci-adapters');
+const { planCiIntegration, resolveProviderPath } = require('./ci-adapters');
 const { buildBinding: buildLintFormatBinding } = require('./lint-format');
 
 const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
@@ -85,11 +85,18 @@ function createPlan(target, manifest, review, catalog = loadCatalog()) {
   }
 
   const ci = planCiIntegration(target);
-  if (ci.artifact) {
-    notePreimage(ci.artifact.relativePath);
+  // Track the exact file a later `apply` would write, keyed off the
+  // provider recorded here — not just when `ci.artifact` is already
+  // populated (approval hasn't happened yet at plan time, so it rarely is).
+  // Without this, the CI path carries no preimage and apply's CAS check
+  // never covers it, letting an approved apply overwrite a file that
+  // drifted after signing with no stale-preimage protection at all.
+  const ciPath = ci.provider ? resolveProviderPath(ci.provider, target) : null;
+  if (ciPath) {
+    notePreimage(ciPath);
     operations.push({
-      op: preimages[ci.artifact.relativePath] ? 'replace_owned' : 'create_owned',
-      path: ci.artifact.relativePath,
+      op: preimages[ciPath] ? 'replace_owned' : 'create_owned',
+      path: ciPath,
       owner: 'rig-ci',
     });
   }
