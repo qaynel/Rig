@@ -1,4 +1,26 @@
-# Status - checked 2026-08-24
+# Status - checked 2026-08-24 (updated 2026-08-24, 11:41 UTC)
+
+## Owner approval ceremony — all design-complete tickets approved (2026-08-24)
+
+Owner re-signed Gate 1 oracle with Secretive key (fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`) a second time to approve all 16 design-complete tickets (RIG-101, 103–116) for implementation. All tickets moved from **Request for Signing** → **Coding**. Oracle verified: 5 files, 68 acceptance cases. Full test suite green: root 380/380, pi-extension 15/15, rig-mcp 3/3.
+
+**Approved for implementation (moved to Coding):** RIG-101 (rig-mcp distribution), RIG-103–104 (MCP unification), RIG-106–107 (subagent mode + runtime entrypoint), RIG-108–111 (zero-caller modules + shipping paths + host contracts), RIG-112–116 (catalogue contract through leaf promotion).
+
+## Ticketing structure updated (2026-08-24)
+
+The Kanban board (`wiki/Tickets.md`) has been restructured to reflect the Rig development workflow:
+
+**Current stages (as of 2026-08-24, post-approval):**
+1. **Backlog** — nothing started
+2. **Solution Discovery** — grilling in session, solution not yet clear
+3. **Acceptance Criteria & Testing** — acceptance criteria and testing infrastructure being defined
+4. **Request for Signing** — ready for hardware-key sign-off (currently empty; all approved)
+5. **Coding** — development in progress (19 tickets: RIG-101, 103-116, 105, 119, 122 — all owner-approved)
+6. **Ready for Commit** — tests green, ready for deployment (currently empty)
+7. **Blocked** — waiting for owner input (2 tickets: RIG-102, 120)
+8. **Done** — deployed and complete (4 tickets: RIG-102, 117, 118, 121)
+
+All existing tickets have been organized into their appropriate stage based on status.
 
 ## Grilling session — owner rulings landed (2026-08-24)
 
@@ -25,8 +47,38 @@ Process doctrine captured verbatim in
   owner will supply the "good code / good linting" knowledge base and, if needed,
   the specific `AT-LF-*` test cases. Agent to draft first passes to react to.
 
-Oracle-touching outcomes (RIG-108 deletions, RIG-113 lists, RIG-115 cases) batch
-into the single RIG-120 re-sign when ready.
+Oracle-touching outcomes (RIG-113 lists, RIG-115 cases) batch into the single
+RIG-120 re-sign when ready.
+
+## Testing-infrastructure audit (2026-08-24) — owner's instinct confirmed
+
+Acceptance criteria largely exist (as prose in `wiki/specs/`); **runnable
+testing infrastructure does not**, for the active close-out tickets:
+
+- **RIG-108/109 (enforcement + git-dispatch):** now WIRED into the CLI
+  (`rig policy grant-approval` → `grantApproval`; `rig validate-commit` →
+  `runPreCommit`), so they have real production callers. **But every test still
+  reaches them by direct `require`** (`release-blockers.test.js:23`,
+  `advanced-oracle.test.js:288/335`) — no test exercises the CLI shipping path.
+  The green gate does **not** prove the wiring works end to end. This is exactly
+  RIG-109's unmet ask. Needed: a shipping-path test invoking the two CLI
+  commands + the invariant meta-test (no `rig/lib/*.js` reached only by
+  direct-require).
+- **RIG-113 (`ecosystem-preferences.md` + `setup-decision-rule.md`):** ranked
+  lists, EOL signals, setup contracts, and the propose/deliver/write decision
+  rule are authored and good. **No tests.** One `[ASSUMED]` open item: the
+  `.rig-backup` mechanism must reconcile with Rig's existing git-floor/clean-tree
+  write convention.
+- **RIG-115 (`acceptance-test-profiles.md`):** three suites / 14 Given-Expected
+  cases (Applicability, Execution consent, Shell trust) authored well. **Not in
+  signed `acceptance.md`** (which holds only AT-LF-1..19) and **in no test
+  file.** Cases CONSENT-5, SHELL-2/3/5 are `[ASSUMED]` and need verification
+  against the real `.rig/` policy (network-policy.json, resource caps, symlink
+  handling) before they can be locked.
+
+Path to finish: answer the `[ASSUMED]` open questions → build the AT-LF-* test
+infrastructure (and the shipping-path tests) so each fails-before/passes-after →
+one re-sign locks RIG-115 cases + any RIG-113 acceptance into the oracle.
 
 ## Owner ceremony + decisions (2026-08-24, later)
 
