@@ -7,7 +7,7 @@
 // source of truth.
 //
 // OpenCode loads this as a server plugin — add it to your opencode.json:
-//   { "plugin": ["@vaibhav-kodiyan/agentic-harness-demo"] }
+//   { "plugin": ["@qaynel/Rig"] }
 
 import { createRequire } from 'module';
 import fs from 'fs';

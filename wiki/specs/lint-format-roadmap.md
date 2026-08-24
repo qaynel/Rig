@@ -56,7 +56,7 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
 | Manifest/resume mechanics this leaf's apply path exercises | **Minimal version implemented** in `rig/lib/apply.js` (`.rig/install-manifest.jsonl`, write-record-then-mutate, `applied` supersede with digest). **Not** the full §7.6 contract — no `complete: false` header field (the incomplete signal is currently receipt-absence, reused from the pre-existing pattern), no preimage content-addressed storage, and no reverse-walk removal. Those remain the Slice 6/Slice 12 lifecycle work. |
 | Tests | `tests/advanced-lint-format.test.js` and `tests/advanced-apply.test.js` assert real behavior (reject placeholder content, exercise real formatter/linter/CI commands, exercise the manifest/resume path) — not placeholder presence. |
 | Authored-service gate (`AT-SHAPE-6`: mechanical + fresh-context semantic/MECE review) | **Not passed.** The gate itself does not exist yet (Slice 2), and no fresh exact-digest lint-format leaf review receipt exists. |
-| Other 114 leaves | **Still placeholders.** 428 `TODO(Slice 10)` files remain. Gate 2 proposes that they block only their own support and the complete-catalogue claim; frozen Gate 1 still makes them release-blocking. |
+| Other 114 leaves | **Authored at Policy grade, no placeholders.** Superseded 2026-08-24: [delivery-plan](../topics/delivery-plan.md) step 5 records 805 files, zero placeholders — the earlier "428 `TODO(Slice 10)` files remain" count is stale. Their Context/Evidence promotion is deferred (RIG-116). Gate 2 proposes they block only their own support and the complete-catalogue claim; frozen Gate 1 still makes them release-blocking. |
 
 ---
 

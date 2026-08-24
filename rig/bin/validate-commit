@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { runPreCommit } = require('../lib/git-dispatch');
+
+const target = process.argv[2] || process.cwd();
+const policyFile = process.argv[3];
+
+const policy = policyFile && fs.existsSync(policyFile)
+  ? JSON.parse(fs.readFileSync(policyFile, 'utf8'))
+  : null;
+
+try {
+  const result = runPreCommit(target, policy);
+  console.log(JSON.stringify(result, null, 2));
+  if (!result.allowed) process.exit(1);
+} catch (err) {
+  console.error(`Commit validation failed: ${err.message}`);
+  process.exit(1);
+}

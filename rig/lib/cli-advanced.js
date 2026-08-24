@@ -8,10 +8,11 @@ const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
+const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
 const { uninstall } = require('./lifecycle');
+const { runPreCommit } = require('./git-dispatch');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall']);
+const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -90,7 +91,16 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
       return;
     }
-    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, or recover');
+    if (action === 'grant-approval') {
+      const actionPath = parseFlag(argv, '--action');
+      const out = parseFlag(argv, '--out');
+      if (!actionPath || !fs.existsSync(actionPath) || !out) {
+        throw new Error('rig: policy grant-approval requires --action <action.json> and --out');
+      }
+      writeOut(out, grantApproval(target, readJson(actionPath)));
+      return;
+    }
+    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, recover, or grant-approval');
   }
 
   if (subcommand === 'inspect') {
@@ -157,6 +167,17 @@ function runAdvanced(subcommand, argv) {
       if (result.stderr) process.stderr.write(result.stderr);
       process.exit(result.status || 1);
     }
+  }
+
+  if (subcommand === 'validate-commit') {
+    const policyPath = parseFlag(argv, '--policy');
+    const policy = policyPath && fs.existsSync(policyPath) ? readJson(policyPath) : null;
+    const result = runPreCommit(target, policy);
+    if (!result.allowed) {
+      process.stderr.write(`${JSON.stringify(result, null, 2)}\n`);
+      process.exit(1);
+    }
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   }
 }
 

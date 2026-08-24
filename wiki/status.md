@@ -1,4 +1,84 @@
-# Status - checked 2026-08-23
+# Status - checked 2026-08-24
+
+## Grilling session — owner rulings landed (2026-08-24)
+
+Owner ruled on the five close-out items ([framing](reasoning/2026-08-24-grilling-five-open-decisions.md)).
+Process doctrine captured verbatim in
+[reasoning/2026-08-24-process-doctrine-and-one-lock.md](reasoning/2026-08-24-process-doctrine-and-one-lock.md)
+(D25 business intent optional, D26 one lock, D27 freeze-timing), synthesized into
+[the gate](topics/the-two-gates.md).
+
+- **RIG-120 naming — DONE (code):** canonical name is just `qaynel/Rig`; the
+  reverted `-v0.1` suffix is stripped from every manifest, marketplace,
+  openclaw/opencode, `check-versions.js`, and the wiki. **Owner action left:**
+  rename the GitHub remote from `Rig-v0.1` to `Rig` or install URLs 404.
+- **RIG-112 — CLOSED, no freeze:** the "freeze now?" was a mis-raised question;
+  by D27 nothing locks until solution+acceptance+tests are all in and sound. Fixed
+  the `catalogue-contract` phrasing that generated it so it won't regenerate.
+- **RIG-108 — WIRED (2026-08-24):** graft = augment-existing-capability
+  managed blocks (**keep**, owner-confirmed); enforcement = policy allow/deny +
+  one-use approval (now: `rig policy grant-approval` CLI + deterministic script);
+  git-dispatch = pre-commit injection/secret scan (now: `rig validate-commit` CLI).
+  Both callable, testable, integrated into Hermes plugin. See
+  [enforcement-and-git-dispatch-wiring](topics/enforcement-and-git-dispatch-wiring.md).
+- **RIG-113 / RIG-115 — pending owner content:** the lint skill is context-driven;
+  owner will supply the "good code / good linting" knowledge base and, if needed,
+  the specific `AT-LF-*` test cases. Agent to draft first passes to react to.
+
+Oracle-touching outcomes (RIG-108 deletions, RIG-113 lists, RIG-115 cases) batch
+into the single RIG-120 re-sign when ready.
+
+## Owner ceremony + decisions (2026-08-24, later)
+
+Owner ran the Gate 1 re-signing ceremony (`node scripts/approve-gate1.js`) with
+their Secretive key (fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`,
+comment `rig-gate-key@secretive.Manoj's-MacBook-Pro.local`) after landing
+**RIG-102**: `test:code` now runs `npm test --prefix rig-mcp`, mirrored in the
+signed `wiki/gate1/package-scripts.json`. Full gate green: root 380/380,
+pi-extension 15/15, rig-mcp 3/3. Local signing convention moved from the
+locally-excluded `.context/` to a tracked-gitignored `.credentials/` directory
+(`scripts/approve-gate1.js` now reads `.credentials/gate1.env`).
+
+Owner also approved three pending product decisions (implementation still
+pending, doesn't touch the signed oracle): **RIG-119** fold spec-driven dev
+into `rig-grilling`/`rig-product-design`, no new skill; **RIG-122** ship the
+wiki convention as an optional markdown-only graft post-release; **RIG-105**
+surface the Antigravity manual MCP step + a verification check, not
+auto-write. RIG-108/112/113/115 remain blocked — each needs decision
+*content* (not just approval) before there's anything to land or re-sign.
+
+## Ticket burndown pass complete (2026-08-24)
+
+Worked the whole RIG-101..122 backlog (`Tickets.md`). Every ticket now has a
+solution doc under [`wiki/tickets/`](tickets/) linked from its board card, and
+the board is re-columned (Done / To Do / Blocked). Full gate green throughout:
+`npm test` = 13/13 + 380/380 + 15/15.
+
+**Resolved + landed (Done):** RIG-117 (stale `agentic-harness-demo` →
+`qaynel/Rig-v0.1` across all manifests/marketplace/openclaw/opencode + new
+identity guard in `check-versions.js`), RIG-118 (README capability column +
+rig-mcp pointer), RIG-121 (roadmap placeholder count + product-spec gap rows).
+Incidental: gitignored `wiki/.obsidian/` — its vendored plugin binaries tripped
+the secret-hygiene scan and were blocking the gate.
+
+**Designed, implementation-ready (To Do):** RIG-101, 103, 104, 106, 107, 108,
+109, 110, 111, 112, 113, 114, 115, 116 — each solution doc gives files, contract,
+and tests. Key finding: several (102, 108, 112, 113, 115) ultimately re-sign the
+Gate 1 oracle to *land*, because `package.json` scripts + `acceptance.md` are
+under `gate1.sig`. RIG-108: verified `release-evidence.js` *does* have a caller
+(`scripts/review-receipt.js`); the other three modules are genuinely zero-caller.
+
+**Deferred — needs owner/PM input (Blocked):** RIG-102 (owner re-sign to land the
+1-line change), RIG-105 (1-line approach confirm), RIG-119 (spec-driven adoption
+decision), RIG-120 (release ceremony — owner signing keys), RIG-122 (wiki-graft
+decision). Each carries a recommendation.
+
+Open reconciliation surfaced for the release: `qaynel/Rig` (install.sh/README)
+vs `qaynel/Rig-v0.1` (actual remote) — see RIG-117/RIG-120.
+See [burndown trace](reasoning/2026-08-24-ticket-burndown.md).
+
+---
+
 
 If a page elsewhere in the wiki seems to disagree with this one, trust this one
 — and check [the timeline's "reading a document by its date" table](index/timeline.md#reading-a-document-by-its-date)

@@ -1,7 +1,7 @@
 ---
 name: rig-debt
 description: "Harvest every rig: shortcut comment into one debt ledger, so deferrals get tracked instead of forgotten. One-shot report."
-homepage: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+homepage: https://github.com/qaynel/Rig
 license: MIT
 ---
 

@@ -24,6 +24,17 @@ change, following `wiki/reasoning/README.md`: file new thinking verbatim under
 wiki that has drifted from the branch is a defect, not stale documentation.
 Reference it, update it, maintain it; it is part of the deliverable.
 
+On a task that runs long or has several steps, do not hold everything for a
+finish-line summary — that loses the work if the session is cut off partway
+through. Check the time and update `wiki/status.md` with what was just done,
+what is in flight, and what is next at least every three minutes of active
+work, not only when a step or the task completes. Record a new understanding
+or an approach that just failed the moment it happens — as its own reasoning
+trace, or in `index/rejected.md` / `index/traps.md` if that is what it is —
+rather than batching it for later. A session picking up cold should be able to
+resume from what is written, not from re-deriving it or reading the lost
+conversation.
+
 ## Talking to the user
 
 Every message to the user follows `rig/tier-1/rules/communication.md` (installed

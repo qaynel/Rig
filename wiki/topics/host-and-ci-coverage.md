@@ -33,12 +33,18 @@ The neutral payload is independent of host detection, so bare repositories get
 the complete neutral product without receiving `.claude`, `.agents`, or other
 fabricated host trees.
 
+Hermes is a first-class host surface, not a candidate to prune: the root
+`plugin.yaml` and `__init__.py` are Rig's Hermes plugin, and its test suite —
+including the `.venv`/pandas-backed benchmark import — is part of the supported
+`npm test` run, not a thing to deprecate or relocate.
+
 ## Authorities and sources
 
 - Frozen host/CI intent: [business specification](../gate1/business-spec.md)
 - Working contracts: [technical specification](../gate2/technical-spec.md#11-host-and-ci-coverage-one-uniform-path)
 - Captured provider research: [host/CI reference](../sources/reference/host-ci-capability-verification.raw.md)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
+- Hermes first-class ruling: [intent-owner trace](../reasoning/2026-08-20-hermes-first-class.md)
 
 ## Remaining work
 

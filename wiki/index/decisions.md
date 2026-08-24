@@ -60,6 +60,10 @@ both Gate 1 files.
 | D23 | 2026-08-21 | One-release exception: `AT-SHAPE-6` evaluates only `development.code-quality.lint-format` for this release; the other 114 leaves are excluded from this pass, unchanged. Named and dated, not a standing rule — reverts next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
 | D24 | 2026-08-21 | **Owner-approved, landed in both Gate 1 files, and signed — the oracle is armed.** The MVP is built in one pass at agent discretion: all 115 leaves at Policy grade, all 55 physically vendored skills wired, detected-host-only onboarding, and named-tag `5.0.0` distribution. Each fragment declares its grade and untailored baseline status. Suspends locked decision 8 for this release, preserves the safety floor, supersedes D21's single-leaf boundary, and retires D23. The modified partial vendored suite may ship under MIT with notice/provenance and no endorsement claim. | [the MVP roadmap](../specs/mvp-roadmap.md) |
 
+| D25 | 2026-08-24 | Business intent is highly recommended and surfaced through every host, but **optional** — technical specs alone may ship a fast feature. The gate still requires acceptance + tests (locked) and a present technical spec. | [the gate](../topics/the-two-gates.md) |
+| D26 | 2026-08-24 | **One lock**, not many: it locks tests and acceptance together; only the owner changes a locked expectation, through the hardware key. The lock exists to stop an agent moving its own goalpost. | [the gate](../topics/the-two-gates.md) |
+| D27 | 2026-08-24 | Nothing locks until solution + acceptance + tests are all in place and the owner agrees. "Not yet frozen" is the normal default for in-progress design, never a pending "freeze now?" decision — this is why RIG-112 was a mis-raised question. | [the gate](../topics/the-two-gates.md), [catalogue contract](../topics/catalogue-contract.md) |
+
 **The D5 → D10 → D17 → D19 sequence** is the most-revised thread in the project:
 four revisions to arrive at one honest, implementable statement of how Gate 1
 protects itself. Read it in order — each one corrects a specific failure in the

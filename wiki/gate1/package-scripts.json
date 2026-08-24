@@ -3,7 +3,7 @@
   "pretest:code": "npm run pretest",
   "setup:dev": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt",
   "test": "node scripts/check-advanced-spec.js && npm run test:code",
-  "test:code": "npm run test:secrets && node scripts/check-rule-copies.js && node scripts/check-versions.js && PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension",
+  "test:code": "npm run test:secrets && node scripts/check-rule-copies.js && node scripts/check-versions.js && PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension && npm test --prefix rig-mcp",
   "test:rig": "node --test tests/rig-bootstrap.test.js",
   "test:secrets": "node --test tests/repo-secret-hygiene.test.js tests/repo-secret-fixtures.test.js"
 }
