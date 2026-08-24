@@ -38,6 +38,53 @@ Hermes is a first-class host surface, not a candidate to prune: the root
 including the `.venv`/pandas-backed benchmark import — is part of the supported
 `npm test` run, not a thing to deprecate or relocate.
 
+Subagent mode propagation (RIG-106) is researched per host, not inferred:
+Claude, Codex/vscode-codex, and Copilot/Copilot CLI have a confirmed subagent
+lifecycle hook that can inject context, and all three are wired
+(`hooks/claude-codex-hooks.json`, `hooks/copilot-hooks.json` ->
+`hooks/rig-subagent.js`, tested in `tests/hooks.test.js`). Every other host in
+the 19-host roster is recorded N/A for a specific, evidenced reason — no
+subagent-scoped hook event, a subagent hook that can only gate/observe rather
+than inject, or no hook mechanism at all — see host-coverage-spec §3.1a and
+[the disposition trace](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md).
+
+MCP disposition is unified (RIG-103/RIG-104, 2026-08-24): `rig/lib/mcp-hosts.js`
+derives one `{ disposition, autoWrite, file, key }` table from
+`host-capabilities.js`'s researched `REGISTRY`, and both the legacy Basic
+`renderers.js` path and the catalogue descriptor path read it. The two paths'
+prior divergences are resolved: `pi` no longer emits `.omp/mcp.json` (a
+pre-existing user file is preserved with migration guidance, AT-HOST-5, now
+covered end-to-end and not only via the catalogue path's `direct-require`
+test); OpenClaw's registry metadata was corrected to the shipped, tested shape
+(`.openclaw/openclaw.json`, nested `mcp.servers`) rather than the other way
+around; `codewhale`'s repo-write override (`DEEPSEEK_MCP_CONFIG` redirect) is
+now an explicit, documented exception to its raw `user_global` scope pending
+RIG-110's resolution of the underlying project-vs-global conflict. A single
+`mergeMcpEntry` merge writer places every JSON-shaped host's entry at its
+governing key and is idempotent + preserves unrelated entries for every shape,
+proven by `tests/basic-mcp-merge.test.js`. Network-capable (http-transport)
+MCP entries are evaluated through the same `evaluateAction` engine and the
+same active policy as shell/web, recorded on the install receipt — MCP is not
+an enforcement bypass. See
+[reasoning](../reasoning/2026-08-24-rig-104-mcp-unification.md).
+
+OpenClaw's active MCP surface has since been verified as the user-global
+`~/.openclaw/openclaw.json` JSON5 configuration, managed through `openclaw
+mcp set`. The intent owner requested a clearly warned, explicit install opt-in
+for the bundled `rig-mcp` server. Its complete amended oracle is now drafted:
+the default install remains untouched, the selected path uses a per-clone
+server name plus the native CLI, and uninstall keeps the runtime if it cannot
+remove the global entry. The matching installer test is red until the owner
+signs the new contract. [Intent record](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md)
+
+Antigravity MCP is first-class manual setup by owner decision (RIG-105), not an
+automatic global write. Onboarding renders the exact selected stdio
+`mcpServers` object for `~/.gemini/config/mcp_config.json` and prints
+`.rig/bin/rig check --host antigravity`; that check structurally verifies the
+selected entries and reports missing, malformed, or drifted configuration.
+The repository template remains empty and explanatory while upstream CLI issue
+#60 makes the project-local `.agents/mcp_config.json` path unreliable.
+
 ## Authorities and sources
 
 - Frozen host/CI intent: [business specification](../gate1/business-spec.md)

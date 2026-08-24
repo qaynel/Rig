@@ -27,9 +27,6 @@ kanban-plugin: board
 - [x] **RIG-119 — Incorporate spec-driven development into the Rig pipeline**
 	**Status:** RESOLVED (2026-08-24) — full gate green, ready to commit · [Solution](tickets/RIG-119.md)
 	**Landed:** Spec-driven requests now route through the existing grilling and product-design owners. Grilling names the five executable-spec checkpoints, product design owns code-grounded technical interrogation, and an acceptance case enforces the route and synchronized native-host copies without adding a new skill.
-- [x] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
-	**Status:** RESOLVED (2026-08-24) — full gate green, ready to commit · [Solution](tickets/RIG-105.md)
-	**Landed:** Antigravity onboarding emits exact selected-server stdio JSON for manual merge into `~/.gemini/config/mcp_config.json` and an installed verification command. The check accepts semantically equivalent JSON, rejects drift and malformed configuration, and Rig never writes the global file while CLI issue #60 remains open.
 - [x] **RIG-123 — Implement the OpenClaw global MCP opt-in**
 	**Status:** Implemented (2026-08-24) - tests green, ready to commit/push · [Solution](tickets/RIG-123.md)
 	**Landed:** The explicit installer flag warns about the global JSON5 file and all-workspace effect, installs the locked `rig-mcp` runtime, registers through `openclaw mcp set`, attributes the server key in `.rig/global-writes.json`, and unsets before runtime deletion. Failed unregister retains the runtime and ledger entry.
@@ -84,6 +81,9 @@ kanban-plugin: board
 
 ## Done
 
+- [x] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
+	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-105.md)
+	**Done:** Antigravity onboarding emits exact selected-server stdio JSON for manual merge into `~/.gemini/config/mcp_config.json` and an installed verification command. The check accepts semantically equivalent JSON, rejects drift and malformed configuration, and Rig never writes the global file while CLI issue #60 remains open.
 - [x] **RIG-114 — Replace fixed npm-script discovery with whole-repo semantic discovery**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-114.md)
 	**Done:** Whole-repository discovery now binds non-standard manifest/task commands and configured polyglot tools with exact argv, cwd, ignore metadata, and source digests. Ambiguity blocks apply for user choice; unbuildable components are named unprotected and suppress the repository-wide support claim.

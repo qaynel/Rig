@@ -1,4 +1,4 @@
 {
-  "_comment": "Template only — Rig stays Tier B for Antigravity (PD-open-4). Copy entries into ~/.gemini/config/mcp_config.json by hand; load secrets from the shell env, never paste them here. Verify on install.",
+  "_comment": "Manual setup by owner decision: merge the exact block generated in .rig/mcp-setup.md into ~/.gemini/config/mcp_config.json, then run .rig/bin/rig check --host antigravity. Rig never writes the global file; load secrets from the shell env, never paste them here.",
   "mcpServers": {}
 }

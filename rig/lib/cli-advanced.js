@@ -11,6 +11,7 @@ const { loadCatalog, validateReview } = require('./catalog');
 const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
 const { uninstall } = require('./lifecycle');
 const { runPreCommit } = require('./git-dispatch');
+const { verifyManualMcp } = require('./credentials');
 
 const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
 
@@ -30,7 +31,8 @@ function readJson(file) {
 }
 
 function runAdvanced(subcommand, argv) {
-  const target = parseFlag(argv, '--target');
+  const hostCheck = subcommand === 'check' && parseFlag(argv, '--host');
+  const target = parseFlag(argv, '--target') || (hostCheck ? process.cwd() : null);
   if (!target || !fs.existsSync(target)) {
     throw new Error('rig: --target <dir> is required and must exist');
   }
@@ -160,6 +162,17 @@ function runAdvanced(subcommand, argv) {
   }
 
   if (subcommand === 'check') {
+    const host = parseFlag(argv, '--host');
+    if (host) {
+      const result = verifyManualMcp(target, host);
+      const output = `${JSON.stringify(result, null, 2)}\n`;
+      if (result.status !== 0) {
+        process.stderr.write(output);
+        process.exit(result.status || 1);
+      }
+      process.stdout.write(output);
+      return;
+    }
     const scope = parseFlag(argv, '--scope') || 'repo';
     const service = parseFlag(argv, '--service');
     const result = runChecks(target, { scope, service });

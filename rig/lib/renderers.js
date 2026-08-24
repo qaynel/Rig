@@ -212,6 +212,7 @@ function renderMcp(target, config) {
     credentialNames: [],
     tierC: [],
     migrationHosts: [],
+    manualEntries: {},
     networkPolicy: [],
     chainedBackup: Boolean(previous.chainedBackup),
   };
@@ -230,6 +231,11 @@ function renderMcp(target, config) {
       if (CREDENTIAL_SAFETY[`${host}:${variant.transport}`] === 'manual_note_required') record(receipt.noteHosts, host);
       const policyDecision = networkPolicyDecision(target, server, variant);
       if (policyDecision) receipt.networkPolicy.push({ host, ...policyDecision });
+      for (const name of variant.credentials) credentialNames.add(name);
+    }
+    if (hosts.includes('antigravity')) {
+      const variant = assignVariants(server, ['antigravity']).antigravity;
+      (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
       for (const name of variant.credentials) credentialNames.add(name);
     }
   }

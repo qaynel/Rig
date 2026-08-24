@@ -13,6 +13,9 @@ const SUPPORTED_TRANSPORTS = {
   codewhale: ['stdio', 'http'],
   swival: ['stdio', 'http'],
   'vscode-codex': ['stdio', 'http'],
+  // RIG-105: Rig never writes Antigravity config, but stdio selection is
+  // retained so onboarding can render an exact manual global-file entry.
+  antigravity: ['stdio'],
 };
 
 function representable(host, variant, support = SUPPORTED_TRANSPORTS) {
