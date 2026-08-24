@@ -25,6 +25,7 @@ intent.
 |---|---|---|
 | 2026-08-21 | **Collapse the two gates into one.** One signed freeze locks the oracle (intent, acceptance, tests) before code; the technical spec is checked for presence, not frozen. Enforced by human signature before code plus oracle immutability, not by independent authorship. | [intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) |
 | 2026-08-21 | **Escape hatch = key-holder instant re-sign (Option A).** A wrong locked test is corrected only by the key holder as a quick re-sign; an agent may propose but never make the change. Rejected Option B (full return to grilling). | [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md) |
+| 2026-08-25 | **Cap the nested release-review retry loop and scope the per-turn tax to multi-step work.** `review-receipt.js` enforces at most one re-review per author-context itself (not agent discipline), gains a cheap-model `--interim` mode that never writes the binding receipt, and stays release-only; `rig-tdd`'s inner loop is `npm run test:rig`/single test file, full gate once before push; `routing.md` adds a lightweight path for single-step, single-file, non-wiki-truth-changing tasks. | [RIG-124](../tickets/RIG-124.md), [implementation trace](../reasoning/2026-08-25-rig124-implementation.md) |
 
 ---
 

@@ -1,4 +1,23 @@
-# Status - checked 2026-08-24 (updated 2026-08-24, 22:52 IST)
+# Status - checked 2026-08-25 (updated 2026-08-25)
+
+## RIG-124 implemented, ready for commit (2026-08-25)
+
+All three token-burn fixes landed on this branch (`qa-prod-finishing-up`), not
+yet committed: `scripts/review-receipt.js` now enforces a one-re-review cap
+per `--author-context` in the script itself (a sibling `<out>.attempts.json`
+state file), adds a cheap-model `--interim` mode that never writes the binding
+receipt, and `--force-rereview` as an explicit override; `rig-tdd`'s red/green
+inner loop is `npm run test:rig`/a single test file, full gate once before
+push (synced to `.claude/skills/rig-tdd` and `.agents/skills/rig-tdd`);
+`rig/tier-1/routing.md` gained a "Task weight" section carving out a
+lightweight path for single-step, single-file, non-wiki-truth-changing tasks,
+cross-referenced from `CLAUDE.md`. Confirmed no Gate 1 re-sign is needed —
+neither touched file is in `wiki/gate1/testing-infrastructure.manifest`, and
+the frozen `AT-GATE-3` test doesn't touch the wrapper's CLI. New test coverage
+in `tests/release-blockers.test.js`; full gate green (434 root / 15
+pi-extension / 6 rig-mcp). See [[2026-08-25-rig124-implementation]] for the
+design and the declared inferences. Ticket moved Backlog → Ready for Commit on
+[[Tickets]]. Next: user decides whether to commit/push.
 
 ## RIG-122 blocked behind the published release (2026-08-24)
 

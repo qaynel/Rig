@@ -24,7 +24,9 @@ kanban-plugin: board
 
 ## Ready for Commit
 
-
+- [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
+	**Status:** READY FOR COMMIT (2026-08-25) — implemented, not yet committed · [Solution](tickets/RIG-124.md)
+	**Done:** `review-receipt.js` enforces a one-re-review cap per author-context itself, gains a cheap-model `--interim` mode that never writes the binding receipt, and stays release-only; `rig-tdd`'s inner loop is `npm run test:rig`/a single test file with the full gate once before push; `routing.md`/`CLAUDE.md` add a lightweight path for single-step, single-file, non-wiki-truth-changing tasks. No re-sign needed (neither touched file is in the Gate 1 manifest). Full gate green: 434 root / 15 pi-extension / 6 rig-mcp.
 
 ## Blocked
 

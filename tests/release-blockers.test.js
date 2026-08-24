@@ -39,6 +39,43 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [] }) {
+  const root = path.join(__dirname, '..');
+  const bin = path.join(target, 'bin');
+  if (!fs.existsSync(bin)) fs.mkdirSync(bin);
+  const invocations = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-review-invocations-'));
+  const invocationMarker = path.join(invocations, 'called');
+  const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
+  const ids = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))].sort();
+  const reported = JSON.stringify({
+    verdict,
+    verdicts: ids.map((id) => ({ id, verdict: verdict === 'fail' ? 'fail' : 'pass', note: 'stub' })),
+    findings: verdict === 'fail' ? [{ severity: 'blocker', category: 'correctness', anchor: 'x', detail: 'stub failure' }] : [],
+    unresolved: [],
+  });
+  const fake = path.join(bin, 'claude');
+  fs.writeFileSync(
+    fake,
+    `#!/bin/sh\ncat >/dev/null\nprintf 'x' >> '${invocationMarker}'\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`,
+    { mode: 0o755 },
+  );
+  const run = spawnSync(process.execPath, [
+    path.join(root, 'scripts/review-receipt.js'),
+    '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
+    '--catalogue', path.join(root, 'rig/catalog.json'),
+    '--implementation-root', root,
+    '--base', 'origin/implement-advanced-a-la-carte-catalogue',
+    '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
+    '--author-context', authorContext,
+    '--model', 'fake-reviewer',
+    '--out', out,
+    ...extraArgs,
+  ], { encoding: 'utf8', env: { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}` } });
+  const invocationCount = fs.existsSync(invocationMarker) ? fs.readFileSync(invocationMarker, 'utf8').length : 0;
+  fs.rmSync(invocations, { recursive: true, force: true });
+  return { run, invocationCount };
+}
+
 function signPolicyProposal(target, proposal) {
   const key = path.join(target, 'policy-test-key');
   const message = path.join(target, 'policy-approval-message');
@@ -1030,5 +1067,65 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
     ], { encoding: 'utf8' });
     assert.equal(runtime.status, 0, runtime.stderr);
     assert.ok(fs.existsSync(inspection));
+  });
+});
+
+test('review-receipt caps re-review after one retry for the same author-context (RIG-124)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const authorContext = 'release-attempt-1';
+
+    const first = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.notEqual(first.run.status, 0);
+    assert.equal(first.invocationCount, 1);
+
+    const second = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.notEqual(second.run.status, 0);
+    assert.equal(second.invocationCount, 1, 'the allowed one re-review still spawns a reviewer');
+
+    const third = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.notEqual(third.run.status, 0);
+    assert.match(third.run.stderr, /re-review cap reached/);
+    assert.equal(third.invocationCount, 0, 'the capped attempt must not spawn another reviewer');
+
+    const forced = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--force-rereview'] });
+    assert.equal(forced.invocationCount, 1, '--force-rereview is an explicit, visible override');
+  });
+});
+
+test('review-receipt cap is scoped per author-context and clears on a passing verdict (RIG-124)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+
+    // Cap out 'release-attempt-a': two fails, then a third that must be blocked.
+    runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-a', out });
+    runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-a', out });
+    const capped = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-a', out });
+    assert.equal(capped.invocationCount, 0, 'release-attempt-a is now capped');
+
+    const otherContext = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
+    assert.equal(otherContext.invocationCount, 1, 'a different author-context is not capped by another attempt\'s failures');
+
+    const fixed = runReviewReceipt(target, { verdict: 'pass', authorContext: 'release-attempt-b', out });
+    assert.equal(fixed.run.status, 0, fixed.run.stderr);
+    assert.ok(fs.existsSync(out));
+
+    const again = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
+    assert.equal(again.invocationCount, 1, 'a passing verdict resets the cap for later, unrelated review needs');
+  });
+});
+
+test('review-receipt --interim never writes the binding receipt (RIG-124)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+
+    const passing = runReviewReceipt(target, { verdict: 'pass', authorContext: 'release-attempt-1', out, extraArgs: ['--interim'] });
+    assert.equal(passing.run.status, 0, passing.run.stderr);
+    assert.match(passing.run.stdout, /interim pass — no receipt written/);
+    assert.ok(!fs.existsSync(out), 'an interim pass must never produce the release-evidence receipt');
+
+    const failing = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-2', out, extraArgs: ['--interim'] });
+    assert.notEqual(failing.run.status, 0);
+    assert.ok(!fs.existsSync(out));
   });
 });

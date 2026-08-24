@@ -40,6 +40,16 @@ technical-interrogation step. One executable acceptance case checks the route,
 the absence of a `rig-spec` row, the five checkpoints, and byte-identical
 Claude/Codex skill copies.
 
+A single-step task — a one-line fix, a factual question, or a single-file edit
+with no cross-file coordination and no wiki-truth change — takes a lightweight
+path (RIG-124): `rig/tier-1/routing.md`'s "Task weight" section skips the
+routing re-read on resume, the full-skill read, the wiki pre-read, and the
+3-minute `status.md` cadence. Anything that turns out to be multi-file,
+multi-turn, or that moves a decision/spec/status/rejected-approach uses the
+full cadence below unchanged. `rig-tdd`'s red/green inner loop also changed:
+`npm run test:rig` or the single relevant test file, never the full `npm test`
+gate, which runs once, right before push.
+
 ## Why it is this way
 
 Three tools read three separate instruction files here. A rule stated once and
@@ -73,6 +83,9 @@ state changes, rather than adding a second live-state mechanism.
 - Rule text: `rig/tier-1/rules/rig.md`, `rig/tier-1/rules/communication.md`,
   `CLAUDE.md`, `AGENTS.md`
 - Copy-equality enforcement: `scripts/check-rule-copies.js`
+- Lightweight path + inner-loop test discipline: [RIG-124](../tickets/RIG-124.md),
+  [implementation trace](../reasoning/2026-08-25-rig124-implementation.md),
+  token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
 
 ## What's still open
 
