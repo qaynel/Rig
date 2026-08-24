@@ -43,6 +43,7 @@ function runAdvanced(subcommand, argv) {
       beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
     });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    if (result.status === 'best_effort') process.exitCode = 1;
     return;
   }
 

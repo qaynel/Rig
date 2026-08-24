@@ -28,6 +28,18 @@ intent.
 
 ---
 
+## Product-integration rulings
+
+Owner decisions that resolve a delivery integration without changing the
+frozen business oracle or claiming a new numbered architecture decision.
+
+| Date | Ruling | Source |
+|---|---|---|
+| 2026-08-24 | **Antigravity MCP is first-class manual setup for beta.** Onboarding emits exact selected-server JSON plus a verification command; Rig does not write the user-global file while upstream CLI issue #60 remains open. | [RIG-105](../tickets/RIG-105.md), [host contract](../specs/host-coverage-spec.md#321-rig-mcp-server-coverage-rig-101) |
+| 2026-08-24 | **Spec-driven development folds into the existing phase owners.** Requests route through grilling's five executable-spec checkpoints and product design's code-grounded technical interrogation; no separate skill or graft is added. | [RIG-119](../tickets/RIG-119.md), [working conventions](../topics/agent-working-conventions.md) |
+
+---
+
 ## `D#` — Gate 1 revisions
 
 These changed frozen business intent. Each is marked at its point of effect in
@@ -114,6 +126,7 @@ Implementation constraints, not suggestions.
 | AD-35 | Enabling model-assisted secret triage requires plan-time third-party disclosure and exact disclosure-bound approval. | [drift and secret controls](../topics/drift-and-secret-controls.md) |
 | AD-36 | Fresh release review evidence binds the exact PR implementation worktree and base, not only its specification. | [review receipts](../topics/review-receipts.md) |
 | AD-37 | A default `rig/bootstrap.sh` install is markdown-only end to end: per-skill code and the `.rig/plumbing` tree are gated behind the existing `active_delivery` (`--with-runtime`) flag, same as the runtime engine; `.tmpl` build inputs and `TODOS-format.md` are dropped in both modes. All 55 `SKILL.md` files still land unconditionally — only their code backing is gated. | [distribution and release](../topics/distribution-and-release.md), [the catalogue](../topics/the-catalogue.md) |
+| AD-38 | OpenClaw global MCP installation is an explicit `--openclaw-mcp` choice, uses the native CLI, has per-clone server ownership, and removes the global entry before its runtime. The default install does neither an OpenClaw nor an npm operation. | [user-global writes](../topics/user-global-writes.md), [host and CI coverage](../topics/host-and-ci-coverage.md) |
 
 ---
 

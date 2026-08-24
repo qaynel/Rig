@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
+const { removeOpenClawMcp } = require('./openclaw-mcp');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
@@ -158,16 +159,22 @@ function uninstall(target, opts = {}) {
         retainedEntries.push(entry);
         continue;
       }
-      const result = entry.kind === 'global-mcp'
-        ? removeGlobalMcp(entry)
-        : entry.kind === undefined || entry.kind === 'json-namespace'
-          ? removeGlobalConfig(entry.path, entry.install_id)
-          : { removed: false };
+      const result = entry.kind === 'openclaw-mcp'
+        ? removeOpenClawMcp(target, entry)
+        : entry.kind === 'global-mcp'
+          ? removeGlobalMcp(entry)
+          : entry.kind === undefined || entry.kind === 'json-namespace'
+            ? removeGlobalConfig(entry.path, entry.install_id)
+            : { removed: false };
       if (result.removed) removed.push(entry.path);
       else {
         bestEffort.push(entry.path);
         bestEffortDetails.push(`${entry.path} (${entry.server_key || entry.install_id})`);
         retainedEntries.push(entry);
+        if (entry.kind === 'openclaw-mcp') {
+          stopped = true;
+          if (entry.runtime) preservePrefixes.push(entry.runtime);
+        }
       }
     }
     if (retainedEntries.length === 0 && (ledger.entries || []).length > 0) {

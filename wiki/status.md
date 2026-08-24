@@ -1,4 +1,474 @@
-# Status - checked 2026-08-24 (updated 2026-08-24, 11:41 UTC)
+# Status - checked 2026-08-24 (updated 2026-08-24, 22:52 IST)
+
+## RIG-122 blocked behind the published release (2026-08-24)
+
+The thirteenth and final Coding ticket was reconciled without implementation.
+Its owner-approved scope is explicitly post-release. RIG-107 is resolved, but
+RIG-120 has no passing independent review, is paused on three confirmed release
+defects, and still precedes owner signing plus `v5.0.0` publication. Creating
+the optional wiki graft now would violate that sequencing. RIG-122 is Blocked
+until RIG-120 is Done and the release exists; its decided plain-Markdown,
+runtime-free, Obsidian-optional contract is preserved for resumption. No Coding
+cards remain.
+
+## RIG-119 folded spec-driven flow ready to commit (2026-08-24)
+
+The twelfth sequential ticket is resolved and moved to Ready for Commit. The
+router sends spec-driven requests through grilling and product design, with no
+new skill. Grilling names the five checkpoints and product design owns code-
+grounded technical interrogation. The acceptance case plus bootstrap/copy suite
+pass 9/9, native-host copies match their canonical sources, and fresh review
+found no ticket-scope blocker. The final gate verifies the protected 68-case
+oracle and passes 431 root, 15 pi-extension, and 6 rig-mcp tests. RIG-122 may
+now open from fresh context.
+
+## RIG-105 manual Antigravity MCP flow ready to commit (2026-08-24)
+
+The eleventh sequential ticket is resolved and moved to Ready for Commit. It
+renders an exact selected-server stdio JSON block for manual merge into
+Antigravity's user-global config and prints an installed host-check command.
+The check validates exact receipt-bound entries, supports the shipped
+receipt-free `rig` entry, and fails visibly on missing, malformed, or drifted
+configuration. Rig does not write the global file while upstream CLI issue #60
+remains open. Fresh review found no ticket-scope blocker. The final gate
+verifies the protected 68-case oracle and passes 430 root, 15 pi-extension,
+and 6 rig-mcp tests. RIG-119 may now open from fresh context.
+
+## RIG-120 paused mid-remediation — handoff written (2026-08-24)
+
+Resumed RIG-120 (the fourth attempt at a passing independent release review).
+Round 1 found and fixed a real defect: a failed dependency install during the
+OpenClaw opt-in left a dangling ledger entry that permanently bricked both
+uninstall and retry — fixed in `rig/lib/openclaw-mcp.js` with two new
+regression cases in `tests/release-blockers.test.js`; full gate confirmed
+green (426/15/6) before moving on. Round 2's review on those fixed bytes
+rejected again with three new, independently-verified major findings: an
+uninstall abort-on-one-entry bug that skips removing everything else, not
+just the stuck piece; a security-relevant gap where the credential backup
+store is written to a committable path instead of the clone-local directory
+the design requires, with no `.gitignore` protection at all; and two
+production functions (`resumeInstall`, `verifyRemoval`) that the frozen
+acceptance tests call directly but no shipping code path reaches, so a real
+defect in the shipping equivalents wouldn't fail those tests. Paused here on
+explicit request before fixing those three — full verbatim findings,
+verification notes, and the exact fix shape for each (including the one
+frozen-test boundary that must not be crossed without an owner re-sign) are
+recorded in
+[reasoning/2026-08-24-rig120-review-round2-findings.md](reasoning/2026-08-24-rig120-review-round2-findings.md).
+Nothing from this session is committed yet. No valid review receipt exists
+on disk — the round-2 wrapper run failed the verdict gate and never wrote
+one. Next Coding session should read that reasoning trace first and resume
+at its "Next steps" list.
+
+## RIG-116 blocked until post-beta demand evidence exists (2026-08-24)
+
+The tenth sequential ticket was reconciled without code changes. Its governing
+roadmap requires Context/Evidence promotion after beta, prioritized by observed
+leaf use under ordinary owner review. There are no beta selection receipts or
+approved demand rankings in the repository, the release is still blocked, and
+the reusable lint-format consent template is also blocked. Guessing that
+Development or Testing is highest demand would fail the ticket's own
+acceptance. RIG-116 is Blocked until those prerequisites exist; the next Coding
+ticket may open from fresh context.
+
+## RIG-115 blocked on granular shell-trust policy and re-sign (2026-08-24)
+
+The ninth sequential ticket was reconciled without changing the frozen oracle
+or runtime. Broad signed cases already cover selection consent, exact plan
+digests, partial coverage, mutation detection, separate autofix approval, and
+the outer argv boundary. The ticket's requested deterministic profile still
+marks approval lifetime, filesystem/environment isolation, memory limits, and
+symlink behavior as assumptions, and requests network denial the current
+runner does not enforce. The owner must approve or amend those concrete
+guarantees and re-sign their acceptance/tests before implementation. RIG-115
+is Blocked; the next Coding ticket may open from fresh context.
+
+## RIG-114 semantic discovery ready to commit (2026-08-24)
+
+The eighth sequential ticket is resolved and moved to Ready for Commit.
+Repository discovery no longer has a depth ceiling or fixed npm-script names;
+it derives component commands from non-standard tasks, tool configs, known
+polyglot workflows, and open-ended role declarations with exact argv, cwd,
+ignore metadata, and source digests. Ambiguity blocks apply for user choice,
+while unbuildable components are named unprotected and suppress the repository
+support claim. Fresh review found no ticket-scope blockers. The final full gate
+verifies the signed 68-case oracle and passes 425 root, 15 pi-extension, and 6
+rig-mcp tests. The next Coding ticket may now open from fresh context.
+
+## RIG-113 blocked on owner lint policy choices (2026-08-24)
+
+The seventh sequential ticket was reconciled without code changes. Drafts
+already define five ranked ecosystem lists, EOL/coverage signals, proposal
+conditions, explicit approval, and generated file scopes. They are not frozen
+product policy or runnable acceptance: the owner still must approve/amend the
+rankings and signals, and choose whether replacement uses the draft
+`<file>.rig-backup` convention or Rig's existing preimage lifecycle. RIG-113 is
+Blocked on those inputs and the resulting oracle re-sign; RIG-114 may now open
+from fresh context.
+
+## RIG-112 blocked on intentionally deferred owner freeze (2026-08-24)
+
+The sixth sequential ticket was reconciled without code changes. The existing
+signed authored-service gate enumerates exactly 115 catalogue leaves, rejects
+generic IDs/placeholders/duplicate bodies/missing ownership and applicability,
+and currently returns zero failures; it runs in the green full CI gate. The
+remaining ticket criterion is the catalogue freeze itself. D27 and the ticket's
+owner ruling explicitly defer that non-delegable re-signing ceremony until the
+owner accepts the final contract, acceptance, and tests. RIG-112 is Blocked on
+that future owner action; the next Coding ticket may be opened fresh.
+
+## RIG-111 user-global contracts ready to commit (2026-08-24)
+
+The fifth Coding ticket is resolved and moved to Ready for Commit. Exact
+current contracts and one attributed merge/remove writer now cover
+Windsurf/Devin Desktop legacy Cascade, Cline IDE, Hermes, and CodeWhale.
+Multi-repository, repeat-apply, malformed-input, changed-value, forged-path,
+and uninstall behavior is executable. Fresh review tightened empty identifier,
+unknown ledger kind, malformed ledger, incompatible YAML, and exact current-
+home validation. The final full gate verifies the signed 68-case oracle and
+passes 422 root, 15 pi-extension, and 6 rig-mcp tests. Activation intentionally
+remains note-only behind RIG-110. The next Coding ticket may now be opened from
+a fresh recovery checkpoint.
+
+## RIG-111 implementation passed focused verification (2026-08-24)
+
+The fifth sequential ticket now has exact, primary-source-checked user-global
+MCP contracts for Windsurf/Devin Desktop legacy Cascade, Cline IDE, Hermes, and
+CodeWhale. One shared writer uses install-ID-scoped server keys, preserves
+unrelated content, is byte-idempotent, and fails closed on malformed JSON,
+unsupported YAML, changed owned values, or forged ledger paths. Both uninstall
+paths remove only the matching attributed entry. The focused RIG-111 and shared
+lifecycle suites pass 42/42. Activation remains note-only behind RIG-110; next
+is the full `npm test` gate and a fresh diff review before board promotion.
+
+## RIG-110 blocked on real vendor wires and roster decision (2026-08-24)
+
+The fourth Coding ticket was reconciled without changing code or weakening its
+acceptance criteria. The authoritative host-coverage spec still marks all 19
+host and six CI executable contracts/first wires pending, and the repository
+contains no dated real-wire result bundles. Existing registry and byte-landing
+tests are fixture evidence only; the frozen acceptance contract explicitly
+requires real vendor execution. RIG-110 is therefore Blocked until the owner
+decides the beta executable versus pointer-only roster and supplies access to,
+or dated results from, the retained host/CI environments. The next Coding
+ticket may now be opened from a fresh recovery checkpoint.
+
+## RIG-109 shipping-path evidence ready to commit (2026-08-24)
+
+The third Coding ticket was reconciled from fresh context and moved to Ready
+for Commit without new code. Its dependency is already complete: active-runtime
+bootstrap drives lint-format plan/apply/check through the installed command,
+and the runtime caller work adds tagged-release inspection, installed commit
+validation, managed graft, MCP enforcement, and review-wrapper evidence. The
+testing record now distinguishes this real reachability proof from the narrower
+remaining limit that no single tracer proves every behavior. Focused public-seam
+checks pass; the immediately preceding full gate is green at 414 root, 15
+pi-extension, and 6 rig-mcp tests.
+
+## Final release-review remediation verified; receipt next (2026-08-24)
+
+The ownership and disclosure blockers from the final independent review are
+fixed. Reinstall and uninstall now require the current native registry value to
+exactly match Rig's recorded server before they can replace or remove it; a
+failed reinstall restores the prior Rig value rather than deleting it; and the
+bootstrap warning uses the same configured path passed to the native CLI. The
+review-specific regressions, existing lifecycle suite, and release installer
+path pass 94/94 focused cases. The latest review also found that the installed
+MCP runtime fell back to a shortened rule set because its canonical rule file
+was not in the active-delivery payload. The payload now carries that file at
+the runtime hook's expected path, covered by a shipping-payload regression.
+
+Focused release and acceptance checks pass 95/95. The full release gate is
+green on these bytes: 415 root checks, 15 Pi-extension checks, and 6 MCP
+checks. Next: produce a fresh independent receipt bound to this stable
+worktree; do not change publishable bytes after it is issued.
+
+## RIG-108 runtime callers ready to commit (2026-08-24)
+
+The second Coding ticket is resolved and moved to Ready for Commit. All four named modules
+now have production seams: enforcement through MCP rendering/policy, release
+evidence through the review wrapper, managed grafting through catalogue apply,
+and commit dispatch through the installed runtime command. The existing bare
+catalogue pointer migrates into one named managed block without duplication.
+A repository-wide runtime caller-graph guard and focused behavioral suites are
+green. Fresh review found and fixed journal-bypassing legacy migration and
+over-broad managed-block uninstall; the exact legacy frozen case remains green.
+The final full gate verifies the signed 68-case oracle and passes 414 root, 15
+pi-extension, and 6 rig-mcp tests. No work remains in RIG-108.
+
+## OpenClaw release remediation ready for owner re-signature (2026-08-24)
+
+The failed release receipt's OpenClaw lifecycle findings are fixed. Rig now
+requires a successful native registry read before it installs dependencies or
+writes a global entry; a failed `mcp set` immediately attempts native rollback;
+and a rollback failure remains in the local pending ledger so uninstall retries
+native removal before it can remove the runtime. The release-installer fixture
+now models the vendor's successful registry read, and focused release tests
+cover both a failed read and a set that mutates before reporting failure.
+
+Focused checks are green (91/91), but the strengthened release-installer test
+changes the signed test snapshot. Next: owner re-signs the unchanged intent and
+acceptance contract with the refreshed test snapshot, then the agent runs the
+full release gate and a new independent receipt on the stable release bytes.
+
+The separately active runtime-entrypoint work is now complete and its full gate
+is green. Release verification remains governed by the OpenClaw re-signature
+and receipt steps above, not by the entrypoint ticket.
+
+## RIG-107 runtime entrypoint ready to commit (2026-08-24)
+
+The first Coding-column ticket is resolved and has moved to Ready for Commit.
+Active-runtime
+installs now journal an executable `.rig/bin/rig` shim and print the staged
+workflow. A new black-box regression installs it, plans and applies lint-format
+through it, and executes the installed check; the tagged-archive regression now
+invokes inspection through the same public command. That tracer also found and
+fixed discovery treating Rig's own `.rig` packages as customer components.
+Focused installer, payload, lint-format, and release-byte suites are green. The
+post-review full gate verifies the signed 68-case oracle and passes 408 root,
+15 pi-extension, and 6 rig-mcp tests. No work remains in RIG-107; the next
+Coding ticket may now be opened with a fresh recovery checkpoint.
+
+## Release receipt found OpenClaw failure-path blockers (2026-08-24)
+
+The final independent release review did not pass. It found that a failed
+OpenClaw ownership probe is treated as proof that no server exists, and that a
+failed `openclaw mcp set` may leave a newly written global server entry while
+the pending ledger entry is skipped during uninstall. Those paths can leave a
+global server pointing at a removed runtime. The release is blocked until both
+native-command failure paths fail closed, pending registration state is safely
+reconciled during uninstall, and the shipped installer tests prove those cases.
+
+Next: fix the shared OpenClaw registration/removal flow, add focused failure
+coverage, rerun the full release gate, and obtain a new independent receipt on
+the resulting bytes.
+
+## Ready board reconciled with branch commits (2026-08-24)
+
+The four MCP-related tickets that were still sitting in the ready column but
+already have commits in this branch are now marked Done on the board:
+RIG-101, RIG-103, RIG-104, and RIG-106. The OpenClaw opt-in stays in Ready for
+Commit because its implementation is still only in the working tree, not in the
+branch history yet.
+
+## RIG-102 resolved; blocked card was stale (2026-08-24)
+
+The CI gate now runs `npm test --prefix rig-mcp`. The matching signed test
+snapshot and manifest digest are present, the owner re-signing ceremony is
+complete, and the oracle verifies. The current rig-mcp suite passes 6/6. The
+duplicate blocked board entry was removed; RIG-102 remains in Done.
+
+## v5.0.0 release bytes ready for independent receipt (2026-08-24)
+
+The independent review's OpenClaw lifecycle findings were addressed and then
+tightened after a second review pass. OpenClaw registration now runs inside the
+payload transaction before the install journal is marked complete;
+`.rig/global-writes.json` is written through the shared append-only journal as
+pending/applied state; `npm ci` installs into a temporary runtime and only
+journal-copies `node_modules` after success; successful unregister removes the
+ledger instead of creating a digest mismatch; and failed `openclaw mcp unset`
+stops teardown with `.rig/global-writes.json`, the install journal, and the
+referenced runtime retained for retry.
+
+Focused release checks are green:
+`node --test tests/release-blockers.test.js`,
+`node --test tests/advanced-oracle.test.js --test-name-pattern 'OpenClaw MCP opt-in'`,
+`node --test tests/basic-uninstall.test.js tests/basic-uninstall-merge.test.js`,
+`node --test tests/rig-bootstrap.test.js tests/basic-payload-gating.test.js tests/basic-architecture.test.js`,
+`npm test --prefix rig-mcp`, and `node scripts/check-advanced-spec.js`.
+
+Full release gate also passed on this branch after the fixes: `npm test`
+verified Gate 1, rule copies, version pins, secret hygiene, 405/405 root Node
+tests, 15/15 pi-extension tests, and 6/6 rig-mcp tests. Next: rerun the full
+release-byte gate after this status checkpoint, then generate the independent
+release review receipt without further byte changes.
+
+## Independent review found OpenClaw lifecycle blockers (2026-08-24)
+
+The fresh Codex review wrapper now runs with the current read-only sandbox, but
+the first valid semantic review failed the receipt. It reported two actionable
+OpenClaw lifecycle blockers: registration currently happens after the payload
+journal is marked complete, so a later `npm ci`/`openclaw mcp set` failure can
+leave a nonzero install with a complete journal; and `.rig/global-writes.json`
+is written directly instead of through the shared append-only journal. The
+review also noted an implementation digest mismatch caused by bytes moving
+during the review attempt, so a new receipt must be generated after these fixes
+and a fresh full gate.
+
+Next: move OpenClaw registration inside `runPayload` before journal completion,
+journal the global-write ledger through the shared writer, leave runtime
+deletion to the manifest walk after a successful `openclaw mcp unset`, rerun
+the full gate, then rerun the independent review receipt.
+
+## OpenClaw global MCP opt-in implemented — full gate green (2026-08-24)
+
+Owner signed the amended OpenClaw oracle for inclusion in v5.0.0. The
+implementation now accepts `--openclaw-mcp` through the release installer and
+bootstrap, installs the bundled `rig-mcp` runtime from a shipped lockfile with
+`npm ci --omit=dev --ignore-scripts`, registers one per-install OpenClaw server through
+`openclaw mcp set`, records the global write in `.rig/global-writes.json`, and
+unregisters with `openclaw mcp unset` before deleting the referenced runtime.
+If unregister fails, uninstall keeps that runtime and reports best-effort so the
+global server is not left pointing at a deleted file.
+
+The full gate is green:
+`node --test --test-name-pattern='AT-HOME-1 OpenClaw MCP opt-in' tests/advanced-oracle.test.js`,
+`node --test tests/release-blockers.test.js`,
+`node --test tests/rig-bootstrap.test.js tests/basic-payload-gating.test.js tests/basic-architecture.test.js`,
+`npm test` (403 root tests, 15 pi-extension tests, 6 rig-mcp tests). Next:
+produce the final independent release review receipt on these passing bytes.
+
+## RIG-120 release preflight blocked by unsigned OpenClaw oracle (2026-08-24)
+
+Release preflight was run against the current worktree for v5.0.0 preparation.
+Gate 1 integrity still verifies against the current oracle files
+(`gate1-owner`, fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`),
+but the full gate is red: `npm test` passes 401/402 root Node cases and fails
+the new OpenClaw global MCP opt-in acceptance case because `install.sh` does not
+yet accept `--openclaw-mcp`. This confirms the OpenClaw D25 oracle/test draft is
+not a release candidate yet; final independent review, release-byte test rerun,
+tagging, and publishing must wait until the owner either signs this amended
+oracle for implementation or explicitly defers the OpenClaw option out of
+v5.0.0.
+
+Next: get the owner decision. Recommended path is to sign the OpenClaw oracle
+now, implement the smallest installer/runtime/uninstall support for
+`--openclaw-mcp`, rerun the full gate, then generate the final release review
+receipt on the passing bytes.
+
+## OpenClaw global MCP opt-in — oracle ready for owner signature (2026-08-24)
+
+The owner requested an explicit, warned installation option that registers
+`rig-mcp` in OpenClaw's user-global MCP configuration rather than committing a
+repository-local file. Current OpenClaw documentation confirms the active file
+is `~/.openclaw/openclaw.json` (JSON5) and that the supported non-interactive
+writer is `openclaw mcp set <name> <json>`; this resolves RIG-101's prior
+repo-vs-global scope conflict in favour of the global surface. The requested
+host-specific option conflicted with the signed global-write rule, so it was
+returned to grilling. The amended business intent, acceptance, and working
+technical design now define an explicit `--openclaw-mcp` selection: default
+installation still performs no OpenClaw or npm operation; the selected path
+warns before a global write, installs the locked server runtime, uses the
+vendor CLI only, records a distinct per-clone server name, and refuses to
+delete that runtime if the vendor CLI cannot unregister it. The new executable
+acceptance test is intentionally red at the missing option (not a harness
+error), ready to turn green after owner signing and implementation. Next:
+owner runs the Gate 1 signing ceremony, then implementation starts.
+
+## RIG-101 expanded from 4 to 11 wired hosts (2026-08-24)
+
+User asked for `rig-mcp` wiring to cover more hosts, then requested a
+web-research prompt for the hosts still missing it. That research (12 hosts,
+official-docs-sourced) came back and was cross-checked against
+`rig/lib/host-capabilities.js` REGISTRY, RIG-104's single source of truth that
+landed concurrently in this same working directory. Agreement on 6 of 7 newly
+wired hosts (cursor, kiro, swival, copilot VS Code, copilot-cli, codex CLI +
+IDE extension); devin's config filename has a low-stakes possible drift
+(`.devin/config.json` vs. a maybe-renamed `.devin/mcp_config.json`), wired
+as-is per REGISTRY. One real, unresolved conflict: **openclaw** — REGISTRY
+says repo-scoped `.openclaw/openclaw.json` (tested/shipped shape), fresh docs
+say single global file, no per-repo concept at all. Left un-wired rather than
+guessed; see
+[reasoning/2026-08-24-rig-101-host-expansion-openclaw-conflict.md](reasoning/2026-08-24-rig-101-host-expansion-openclaw-conflict.md)
+and `host-coverage-spec §3.2.1` for the full record. `tests/rig-mcp-adapters.test.js` now covers 11 hosts, 11/11
+green. `docs/agent-portability.md`, `host-coverage-spec.md`, and
+`wiki/tickets/RIG-101.md` all updated to match.
+
+## RIG-106 disposition corrected after independent review (2026-08-24)
+
+Four corrections to the subagent-hook research below, each re-verified against
+primary sources before applying — see
+[reasoning/2026-08-24-subagent-disposition-corrections.md](reasoning/2026-08-24-subagent-disposition-corrections.md).
+None change what's wired (Claude/Codex/Copilot remain the only hosts with a
+context-injecting subagent hook); all four sharpen the record:
+**Copilot** gained a real caveat — `subagentStart` never fires for the
+built-in `general-purpose` agent, only named/custom agents, a vendor
+limitation Rig's graft can't work around. **Hermes** moved out of "no hook
+mechanism" into the observer-only bucket with Cursor/CodeWhale — it has a real
+26-event hook system including `subagent_start`/`subagent_stop`, but they're
+explicitly return-value-ignored observer hooks. **Pi**'s "no hook mechanism"
+was softened to "no native mechanism" — a third-party extension
+(`@vahor/pi-hooks`) exists but its 30 events still don't include a
+subagent-scoped one, so the disposition is unchanged. **Kiro** moved from
+explicitly unresolved to resolved N/A — `AgentSpawn`'s payload carries only
+`session_id`, reading as per-session rather than per-subagent, though a
+first-wire test is recommended given an open vendor bug report about its
+firing behavior. `host-coverage-spec §3.1a`, the RIG-106 ticket doc, and the
+Tickets board card are all updated.
+
+## RIG-103/RIG-104 resolved — legacy and catalogue MCP paths unified under one disposition table (2026-08-24)
+
+Moved RIG-103 and RIG-104 from Coding → Ready for Commit. Neither touches the
+signed oracle, so both landed without a re-sign. New `rig/lib/mcp-hosts.js` is
+the single `{ disposition, autoWrite, file, key }` table (derived from
+`host-capabilities.js`'s researched `REGISTRY`, with two named overrides:
+antigravity stays manual-only per RIG-105, codewhale keeps its shipped
+`DEEPSEEK_MCP_CONFIG` repo-redirect pending RIG-110); both `renderers.js`
+(legacy Basic path) and the catalogue descriptor path read it now, replacing
+the two independently-hardcoded `HOST_TIER`/`HOST_FILES` tables that had
+silently diverged. `pi`'s renderer is deleted — selecting `pi` now emits no
+MCP config, and a pre-existing user file is preserved with migration
+guidance (AT-HOST-5), covered for the legacy path the frozen catalogue-only
+oracle test didn't reach (new cases in `tests/basic-renderers.test.js`). One
+shared `mergeMcpEntry` writer replaces 11 near-duplicate per-host JSON
+mutators; new `tests/basic-mcp-merge.test.js` proves it's idempotent and
+preserves unrelated entries for every shape (flat `mcpServers`, copilot
+`servers`+`inputs`, opencode `mcp`, OpenClaw's nested `mcp.servers`, and the
+Codex TOML block). Network-capable (http) MCP entries are now evaluated
+through the same `evaluateAction` policy engine as shell/web, with a parity
+test — MCP is not an enforcement bypass. Two real divergences between the two
+paths were found and reconciled in favor of already-shipped, tested behavior:
+OpenClaw's registry metadata was corrected to `.openclaw/openclaw.json` +
+nested `mcp.servers` (was bare `openclaw.json` + flat `mcpServers`, a value
+no code actually consumed); `docs/agent-portability.md`'s shape table
+corrected to match. `copilot-cli` is wired too (added after a same-day
+push for full serviceability): it's a cited, non-conflicted `mcp: 'repo'`
+host using the plain default shape, not one of the §3.1 unresolved-conflict
+hosts, so there was no real reason to leave it note-only by omission — a
+fourth previously-undiscovered per-host hardcoded list
+(`rig/lib/variants.js` `SUPPORTED_TRANSPORTS`) had to gain an entry too.
+Full gate green: root 393/393, pi-extension 15/15, rig-mcp 6/6. See
+[landing reasoning](reasoning/2026-08-24-rig-104-mcp-unification.md).
+
+## RIG-106 resolved — Copilot subagentStart wired, full 19-host disposition recorded (2026-08-24)
+
+Moved RIG-106 from Coding → Ready for Commit. Doesn't touch the signed oracle.
+Researched every `SUPPORTED_HOSTS` entry against vendor docs for a subagent
+lifecycle hook capable of *injecting* context (gating/observing isn't enough
+to load Rig mode) — full findings in
+[reasoning/2026-08-24-subagent-mode-propagation-disposition.md](reasoning/2026-08-24-subagent-mode-propagation-disposition.md),
+recorded in [host-coverage-spec §3.1a](specs/host-coverage-spec.md). Wired the
+ticket's named gap: `hooks/copilot-hooks.json` gained a `subagentStart` entry
+invoking `hooks/rig-subagent.js`; `hooks/rig-runtime.js`'s Copilot branch of
+`writeHookOutput` previously injected only on `SessionStart` (silently
+dropping everything else) and now also injects on `SubagentStart`, matching
+GitHub's documented `{ additionalContext }` shape. Two new cases in
+`tests/hooks.test.js` cover mode-present and mode-absent. Every other host is
+N/A for a distinct, cited reason (cursor/codewhale gate or observe but can't
+inject; gemini/antigravity/devin/windsurf have hooks but no subagent-scoped
+event; opencode's is an unshipped feature request; openclaw's and cline's
+subagent events live in mechanisms Rig doesn't graft; pi/hermes/swival/generic
+have no hook mechanism at all); kiro's `AgentSpawn` is left explicitly
+unresolved rather than guessed. Full gate green: root 384/384, pi-extension
+15/15, rig-mcp 6/6.
+
+## RIG-101 implemented — rig-mcp wired into opencode + documented (2026-08-24)
+
+Moved RIG-101 from Coding → Ready for Commit. Doesn't touch the signed
+oracle, so it landed without a re-sign. `opencode.json` registers `rig-mcp`
+as a local MCP server (`mcp.rig`, real array-form `command` per OpenCode's
+docs, not the `command`+`args` shape `rig/lib/renderers.js` uses for the
+unrelated catalogue path — that gap is [[RIG-104]]'s to close), verified by
+new `tests/opencode-mcp.test.js`. New `rig-mcp/test/stdio.test.js` spawns the
+real server over stdio via the MCP client SDK and asserts non-empty,
+correctly-tagged `rig_instructions` output for `lite`/`full`/`ultra`.
+`docs/agent-portability.md` gained copy-paste config for all four MCP key
+shapes; `host-coverage-spec §3.2.1` records the intentional exclusions (`pi`,
+`generic` unsupported; `windsurf`/`cline`/`hermes`/`codewhale` user-global
+only). Full gate green: root 381/381, pi-extension 15/15, rig-mcp 6/6. See
+[[RIG-101]] for the full landed/not-done breakdown — wiring the remaining
+`mcp: 'repo'` hosts (claude, gemini, cursor, etc.) is deliberately deferred;
+the acceptance bar was one host and the doc table covers the rest.
 
 ## Owner approval ceremony — all design-complete tickets approved (2026-08-24)
 
@@ -15,10 +485,10 @@ The Kanban board (`wiki/Tickets.md`) has been restructured to reflect the Rig de
 2. **Solution Discovery** — grilling in session, solution not yet clear
 3. **Acceptance Criteria & Testing** — acceptance criteria and testing infrastructure being defined
 4. **Request for Signing** — ready for hardware-key sign-off (currently empty; all approved)
-5. **Coding** — development in progress (19 tickets: RIG-101, 103-116, 105, 119, 122 — all owner-approved)
-6. **Ready for Commit** — tests green, ready for deployment (currently empty)
-7. **Blocked** — waiting for owner input (2 tickets: RIG-102, 120)
-8. **Done** — deployed and complete (4 tickets: RIG-102, 117, 118, 121)
+5. **Coding** — development in progress (13 tickets: RIG-105, RIG-107-116, RIG-119, RIG-122 — all owner-approved)
+6. **Ready for Commit** — tests green, ready for deployment (1 ticket: RIG-123)
+7. **Blocked** — waiting for owner input (1 ticket: RIG-120)
+8. **Done** — committed on this branch and complete (8 tickets: RIG-101, RIG-102, RIG-103, RIG-104, RIG-106, RIG-117, RIG-118, RIG-121)
 
 All existing tickets have been organized into their appropriate stage based on status.
 
@@ -106,7 +576,8 @@ solution doc under [`wiki/tickets/`](tickets/) linked from its board card, and
 the board is re-columned (Done / To Do / Blocked). Full gate green throughout:
 `npm test` = 13/13 + 380/380 + 15/15.
 
-**Resolved + landed (Done):** RIG-117 (stale `agentic-harness-demo` →
+**Resolved + landed (Done):** RIG-102 (the `rig-mcp` suite added to the signed
+CI gate), RIG-117 (stale `agentic-harness-demo` →
 `qaynel/Rig-v0.1` across all manifests/marketplace/openclaw/opencode + new
 identity guard in `check-versions.js`), RIG-118 (README capability column +
 rig-mcp pointer), RIG-121 (roadmap placeholder count + product-spec gap rows).
@@ -120,8 +591,7 @@ Gate 1 oracle to *land*, because `package.json` scripts + `acceptance.md` are
 under `gate1.sig`. RIG-108: verified `release-evidence.js` *does* have a caller
 (`scripts/review-receipt.js`); the other three modules are genuinely zero-caller.
 
-**Deferred — needs owner/PM input (Blocked):** RIG-102 (owner re-sign to land the
-1-line change), RIG-105 (1-line approach confirm), RIG-119 (spec-driven adoption
+**Deferred — needs owner/PM input (Blocked):** RIG-105 (1-line approach confirm), RIG-119 (spec-driven adoption
 decision), RIG-120 (release ceremony — owner signing keys), RIG-122 (wiki-graft
 decision). Each carries a recommendation.
 

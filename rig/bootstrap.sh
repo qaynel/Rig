@@ -8,10 +8,11 @@ TIER=
 HOSTS=${RIG_HOSTS:-}
 HOSTS_EXPLICIT=0
 ACTIVE_DELIVERY=0
+OPENCLAW_MCP=0
 [ "${RIG_HOSTS+x}" = x ] && HOSTS_EXPLICIT=1
 
 usage() {
-  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2] [--with-runtime]" >&2
+  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2] [--with-runtime] [--openclaw-mcp]" >&2
   echo "  Hosts may also be set via RIG_HOSTS (comma-separated)." >&2
   echo "  Install reads rig/manifest.json through rig/lib/payload.js and requires 'node' on PATH." >&2
   exit 2
@@ -39,6 +40,11 @@ while [ "$#" -gt 0 ]; do
       ACTIVE_DELIVERY=1
       shift
       ;;
+    --openclaw-mcp)
+      OPENCLAW_MCP=1
+      ACTIVE_DELIVERY=1
+      shift
+      ;;
     -h|--help)
       usage
       ;;
@@ -63,22 +69,40 @@ command -v node >/dev/null 2>&1 || {
   exit 1
 }
 
+if [ "$OPENCLAW_MCP" = 1 ]; then
+  OPENCLAW_PATH=${OPENCLAW_CONFIG_PATH:-"$HOME/.openclaw/openclaw.json"}
+  echo "WARNING: --openclaw-mcp writes global OpenClaw configuration at $OPENCLAW_PATH and affects all OpenClaw workspaces."
+  for tool in openclaw node npm; do
+    command -v "$tool" >/dev/null 2>&1 || {
+      echo "rig: --openclaw-mcp needs '$tool' on PATH." >&2
+      exit 1
+    }
+  done
+fi
+
 if [ "$HOSTS_EXPLICIT" = 1 ]; then
   echo "Installing Rig Tier 1 into $TARGET_ROOT (hosts: $HOSTS)"
 else
   echo "Installing Rig Tier 1 into $TARGET_ROOT"
 fi
 
-HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
+HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" OPENCLAW_MCP="$OPENCLAW_MCP" OPENCLAW_CONFIG_PATH="${OPENCLAW_PATH:-${OPENCLAW_CONFIG_PATH:-}}" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
 const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
+const { registerOpenClawMcp } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'openclaw-mcp'));
 const hosts = process.env.HOSTS_EXPLICIT === '1'
   ? process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
   : undefined;
 let result;
+let openclaw = null;
 try {
   result = runPayload(process.env.TARGET_ROOT, hosts, {
     releaseTag: process.env.RIG_RELEASE_TAG || undefined,
     activeDelivery: process.env.ACTIVE_DELIVERY === '1',
+    afterPayload: ({ writeFile }) => {
+      if (process.env.OPENCLAW_MCP === '1') {
+        openclaw = registerOpenClawMcp(process.env.TARGET_ROOT, { writeFile });
+      }
+    },
   });
 } catch (error) {
   console.error(error.message);
@@ -89,6 +113,7 @@ for (const host of result.hosts) {
   const markers = host.marker_paths.length ? `: ${host.marker_paths.join(', ')}` : '';
   console.log(`  host: ${host.id} (${host.provenance}${markers})`);
 }
+if (openclaw) console.log(`  openclaw: registered ${openclaw.name} in ${openclaw.path}`);
 console.log(`  writes: ${result.writes} (recorded in .rig/install-manifest.jsonl)`);
 EOF
 if [ "$HOSTS_EXPLICIT" = 1 ]; then

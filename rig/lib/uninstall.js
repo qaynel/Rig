@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { RECEIPT_PATH, readReceipt } = require('./receipt');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
+const { removeOpenClawMcp } = require('./openclaw-mcp');
 
 function uninstall(target) {
   const bestEffort = removeGlobalWrites(target);
@@ -40,11 +41,13 @@ function removeGlobalWrites(target) {
   for (const entry of ledger.entries || []) {
     let result = { removed: false };
     if (entry && typeof entry.path === 'string' && typeof entry.install_id === 'string') {
-      result = entry.kind === 'global-mcp'
-        ? removeGlobalMcp(entry)
-        : entry.kind === undefined || entry.kind === 'json-namespace'
-          ? removeGlobalConfig(entry.path, entry.install_id)
-          : { removed: false };
+      result = entry.kind === 'openclaw-mcp'
+        ? removeOpenClawMcp(target, entry)
+        : entry.kind === 'global-mcp'
+          ? removeGlobalMcp(entry)
+          : entry.kind === undefined || entry.kind === 'json-namespace'
+            ? removeGlobalConfig(entry.path, entry.install_id)
+            : { removed: false };
     }
     if (!result.removed) retained.push(entry);
   }

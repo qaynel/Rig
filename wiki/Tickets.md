@@ -24,9 +24,6 @@ kanban-plugin: board
 
 ## Ready for Commit
 
-- [x] **RIG-123 — Implement the OpenClaw global MCP opt-in**
-	**Status:** Implemented (2026-08-24) - tests green, ready to commit/push · [Solution](tickets/RIG-123.md)
-	**Landed:** The explicit installer flag warns about the global JSON5 file and all-workspace effect, installs the locked `rig-mcp` runtime, registers through `openclaw mcp set`, attributes the server key in `.rig/global-writes.json`, and unsets before runtime deletion. Failed unregister retains the runtime and ledger entry.
 
 
 ## Blocked
@@ -78,6 +75,9 @@ kanban-plugin: board
 
 ## Done
 
+- [x] **RIG-123 — Implement the OpenClaw global MCP opt-in**
+	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-123.md)
+	**Done:** The explicit installer flag warns about the global JSON5 file and all-workspace effect, installs the locked `rig-mcp` runtime, registers through `openclaw mcp set`, attributes the server key in `.rig/global-writes.json`, and unsets before runtime deletion. Failed unregister retains the runtime and ledger entry.
 - [x] **RIG-119 — Incorporate spec-driven development into the Rig pipeline**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-119.md)
 	**Done:** Spec-driven requests now route through the existing grilling and product-design owners. Grilling names the five executable-spec checkpoints, product design owns code-grounded technical interrogation, and an acceptance case enforces the route and synchronized native-host copies without adding a new skill.
