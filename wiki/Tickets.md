@@ -1,5 +1,7 @@
 ---
+
 kanban-plugin: board
+
 ---
 
 ## Backlog
@@ -17,36 +19,9 @@ kanban-plugin: board
 ## Request for Signing
 
 
+
 ## Coding
 
-- [ ] **RIG-101 — Wire the `rig-mcp` server into host distribution**
-	**Status:** Designed — implementation-ready · [Solution](tickets/RIG-101.md)
-	**Problem:** `rig-mcp/` implements a working MCP server that serves the Rig ruleset as a prompt (`rig`) and a tool (`rig_instructions`). Its own header calls it "the clean option for hosts whose only injection point is the prompt menu (#70)." But nothing references it: no host manifest (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, `gemini-extension.json`, `opencode.json`, `antigravity-plugin/mcp_config.json`, `plugin.yaml`) declares it; root `package.json`, the payload `rig/manifest.json`, and `install.sh` never install or launch it; and no doc tells a user how to add it. The server is built but unreachable.
-	**Acceptance:**
-	- At least one host lacking always-on injection registers the `rig` prompt / `rig_instructions` tool through its native MCP config, verified by a test.
-	- The distribution surface (install path and/or `docs/agent-portability.md`) documents exactly how each supported host wires the server, with copy-paste config.
-	- A regression asserts the server starts over stdio and returns non-empty instructions for `lite`, `full`, and `ultra`.
-	- Any host intentionally excluded from serving `rig-mcp` is recorded in the wiki (host-coverage-spec), not left silent.
-- [ ] **RIG-103 — Stop emitting MCP config for hosts that don't support it (pi contradiction)**
-	**Status:** Designed — contained code change + test · [Solution](tickets/RIG-103.md)
-	**Problem:** host-coverage-spec §3.2 lists `pi` as `mcp: 'unsupported'` — "vendor refuses MCP … no path may emit MCP configuration for it" — and flags the `.omp/mcp.json` target as "speculative." Yet `rig/lib/renderers.js` defines `renderPi`, sets `HOST_FILES.pi = '.omp/mcp.json'`, and actively writes `mcpServers` config for pi (exercised by `tests/basic-renderers.test.js`). Rig emits MCP config for a host the governing design says cannot consume it.
-	**Acceptance:**
-	- Either authoritative evidence confirms pi MCP support (recorded in the wiki) and the disposition is corrected, or renderers stop emitting MCP for pi and instead preserve any pre-existing user file with migration guidance.
-	- The `mcp` disposition in the renderer/catalogue path matches host-coverage-spec §3.2 (repo / user_global / unsupported) for every host, asserted by a test.
-	- AT-HOST-5 (the case §3.2 says this path violates) has explicit coverage.
-- [ ] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
-	**Status:** Designed — single source of truth + merge contract · [Solution](tickets/RIG-104.md)
-	**Problem:** host-coverage-spec §3.2 records that the legacy Basic `renderers.js`/`HOST_FILES` path and the à-la-carte catalogue MCP materialization were "deliberately left … untouched and deferred," which it calls "incompatible with AT-HOST-5." Two independent code paths can emit MCP config with divergent per-host keys/shapes and no single safe merge/preflight contract.
-	**Acceptance:**
-	- One governing MCP disposition + `surfaces.mcp`/`mcp_key` map drives both install paths; per-host key overrides (copilot `servers`, opencode `mcp`+`type`, codex TOML `[mcp_servers]`, else `mcpServers`) come from one source of truth.
-	- Merge into an existing user MCP file is idempotent and preserves unrelated servers for every supported shape.
-	- Network-capable MCP entries obey the same active policy as shell/web access (MCP is never an enforcement bypass), with a test.
-- [ ] **RIG-106 — Propagate Rig mode to subagents on every host that supports them**
-	**Status:** Designed — needs host-capability disposition first · [Solution](tickets/RIG-106.md)
-	**Problem:** `hooks/claude-codex-hooks.json` wires `rig-subagent.js` on `SubagentStart`, but `hooks/copilot-hooks.json` has no subagent hook. On Copilot (and any other subagent-capable host) spawned subagents don't inherit Rig mode, so the ruleset silently drops inside sub-tasks.
-	**Acceptance:**
-	- For each supported host with a subagent lifecycle event, a subagent hook loads the active Rig mode; verified by a test.
-	- Hosts with no subagent concept are explicitly recorded as N/A in the wiki.
 - [ ] **RIG-107 — Wire the advanced runtime into a real install/run entrypoint**
 	**Status:** Designed — implementation-ready (core blocker) · [Solution](tickets/RIG-107.md)
 	**Problem:** `rig/materialize.js` orchestrates the entire à-la-carte engine (`inspect`, `recommend`, `plan`, `apply`, `remediate`, `check`, `policy`, `uninstall`) via `cli-advanced.js`, which pulls in `policy`, `lifecycle`, `apply`, `plan`, `secret-history`, `lint-format`, and more. But nothing invokes it: `bootstrap.sh` and `install.sh` only run `rig/lib/payload.js` (the static markdown copy). `materialize.js` is installed as an inert file (`.rig/runtime/rig/materialize.js`, `active_delivery` gate) with no wrapper, bin, or documented command. The 2026-08-22 fresh review confirmed all ten oracle modules have no production caller — a customer cannot actually reach the catalogue/policy/safety runtime the project's core promise is built on.
@@ -109,7 +84,6 @@ kanban-plugin: board
 	**Acceptance:**
 	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
 	- At least the highest-demand families reach Context/Evidence with real verifiable checks.
-
 - [ ] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
 	**Status:** DECIDED (2026-08-24) — owner approved: surface manual step + verification, not auto-write. Implementation-ready. · [Solution](tickets/RIG-105.md)
 	**Problem:** `antigravity-plugin/mcp_config.json` ships `{"mcpServers": {}}` with a comment telling users to hand-copy entries into `~/.gemini/config/mcp_config.json`. Antigravity users get no automated MCP wiring today (documented as Tier B / PD-open-4).
@@ -131,6 +105,18 @@ kanban-plugin: board
 
 ## Ready for Commit
 
+- [x] **RIG-101 — Wire the `rig-mcp` server into host distribution**
+	**Status:** Implemented (2026-08-24) — doesn't touch the signed oracle, ready to commit/push · [Solution](tickets/RIG-101.md)
+	**Landed:** `opencode.json` registers `rig-mcp` (`mcp.rig`), verified by `tests/opencode-mcp.test.js`; `rig-mcp/test/stdio.test.js` spawns the real server over stdio and checks all three modes; `docs/agent-portability.md` documents copy-paste config for every host key shape; exclusions (`pi`, `generic`, user-global-only hosts) recorded in `host-coverage-spec §3.2.1`.
+- [x] **RIG-106 — Propagate Rig mode to subagents on every host that supports them**
+	**Status:** Resolved (2026-08-24) — doesn't touch the signed oracle, ready to commit/push · [Solution](tickets/RIG-106.md)
+	**Landed:** Researched all 19 hosts against vendor docs for a subagent hook that can inject context (host-coverage-spec §3.1a). Wired the ticket's named gap — Copilot/Copilot CLI's `subagentStart` — into `hooks/copilot-hooks.json` + `hooks/rig-runtime.js`, verified by new cases in `tests/hooks.test.js` (caveat: never fires for Copilot's built-in `general-purpose` agent, only named/custom agents — vendor limitation, not a Rig gap). Every other host recorded N/A with a distinct evidenced reason (gate/observer-only hook — cursor, codewhale, hermes; no subagent-scoped event; plugin-only or SDK-only mechanism; or no hooks at all). Corrected post-review 2026-08-24: hermes moved from "no mechanism" to observer-only, pi's "no mechanism" softened to "no native mechanism," kiro resolved from unresolved to N/A (session-scoped payload).
+- [x] **RIG-103 — Stop emitting MCP config for hosts that don't support it (pi contradiction)**
+	**Status:** Resolved (2026-08-24) — landed as the first slice of RIG-104, doesn't touch the signed oracle, ready to commit/push · [Solution](tickets/RIG-103.md)
+	**Landed:** `pi` removed from the MCP auto-write set and its renderer deleted; selecting `pi` now emits no `.omp/mcp.json`, and a pre-existing user-owned file is preserved byte-for-byte with migration guidance (AT-HOST-5), covered end-to-end for the legacy path the frozen catalogue-only oracle test didn't reach. The shared disposition map is `rig/lib/mcp-hosts.js` (RIG-104).
+- [x] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
+	**Status:** Resolved (2026-08-24) — doesn't touch the signed oracle, ready to commit/push · [Solution](tickets/RIG-104.md)
+	**Landed:** New `rig/lib/mcp-hosts.js` is the single disposition/file/key table (from `host-capabilities.js` research, with two named documented overrides) driving both the legacy Basic path and the catalogue descriptor path. One shared `mergeMcpEntry` writer replaces 12 near-duplicate per-host JSON mutators, proven idempotent and unrelated-entry-preserving per shape by new `tests/basic-mcp-merge.test.js`. Network-capable MCP entries are evaluated through the same policy engine as shell/web, with a parity test. Two real path/shape divergences between the two paths (pi, OpenClaw) were found and reconciled. `copilot-cli` — cited, non-conflicted `mcp: 'repo'` host — got a renderer too, closing the last serviceability gap among researched hosts (only the §3.1 unresolved-conflict/user-global/unsupported hosts remain note-only). Full gate green.
 
 
 ## Blocked
@@ -154,23 +140,18 @@ kanban-plugin: board
 
 ## Done
 
-(Deployed and complete)
-
 - [x] **RIG-102 — Run the `rig-mcp` test suite in the CI gate**
 	**Status:** RESOLVED — landed via owner re-signing ceremony · [Solution](tickets/RIG-102.md)
 	**Problem:** `npm test` → `test:code` ran the root Node suite and `npm test --prefix pi-extension`, but never `npm test --prefix rig-mcp`, so the MCP server's shared instruction contract could regress undetected.
 	**Done:** Added `&& npm test --prefix rig-mcp` to `test:code` in `package.json`, mirrored in the signed `wiki/gate1/package-scripts.json`, owner re-signed Gate 1 (`node scripts/approve-gate1.js`, fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`). Full gate green: root 380/380, pi-extension 15/15, rig-mcp 3/3.
-
 - [x] **RIG-117 — Fix stale plugin/repo identity across manifests and README**
 	**Status:** RESOLVED — landed + verified · [Solution](tickets/RIG-117.md)
 	**Problem:** The remote is now `github.com/qaynel/Rig-v0.1`, but published plugin metadata still points at the old identity: `.codex-plugin/plugin.json`, `.devin-plugin/plugin.json`, and `antigravity-plugin/plugin.json` all set `homepage`/`repository` to `github.com/vaibhav-kodiyan/agentic-harness-demo`, and README/product-spec note lingering ponytail-era naming. Customers install a plugin whose links go to the wrong repo.
 	**Done:** Replaced the stale slug with `qaynel/Rig-v0.1` across all manifests, the marketplace entry, openclaw skills, the opencode plugin, and the openclaw generator; added an identity guard to `check-versions.js` that fails on the stale slug. One open naming reconciliation (`qaynel/Rig` vs `qaynel/Rig-v0.1`) flagged for the release — see solution + RIG-120.
-
 - [x] **RIG-118 — Make the full plugin distribution discoverable from the README**
 	**Status:** RESOLVED — landed · [Solution](tickets/RIG-118.md)
 	**Problem:** The richer plugin installs (Claude/Codex/OpenCode/pi/Hermes/Gemini CLI/Copilot CLI/OpenClaw/Devin, with hooks/commands/statusline) are a shipped surface, but the README only documents Tier 1 + Tier 2; the host install commands live only in `docs/agent-portability.md`. A user landing on the README never finds them.
 	**Done:** README already carried the host matrix + install commands; added a **Capability** column (full-hook vs pointer-only) with a legend, folded in the Hermes row, and pointed prompt-menu-only hosts to the `rig-mcp` server.
-
 - [x] **RIG-121 — Refresh drifted wiki specs to match shipped reality**
 	**Status:** RESOLVED — landed · [Solution](tickets/RIG-121.md)
 	**Problem:** Per CLAUDE.md a drifted wiki is a defect. `specs/lint-format-roadmap.md` still says "Still placeholders. 428 `TODO(Slice 10)` files remain," but zero such files exist and delivery-plan step 5 records "805 files, zero placeholders." `specs/product-spec.md`'s gap table lists items already resolved (e.g. `publish.yml` — now deleted; the `main`-vs-`master` branch gate — test.yml now runs on `branches: ['**']`).
@@ -181,6 +162,6 @@ kanban-plugin: board
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false}
+{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false,"list-collapse":[true,true,true,true,false,false,false,true]}
 ```
 %%
