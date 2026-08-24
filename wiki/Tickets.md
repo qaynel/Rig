@@ -33,9 +33,6 @@ kanban-plugin: board
 - [x] **RIG-114 — Replace fixed npm-script discovery with whole-repo semantic discovery**
 	**Status:** RESOLVED (2026-08-24) — full gate green, ready to commit · [Solution](tickets/RIG-114.md)
 	**Landed:** Whole-repository discovery now binds non-standard manifest/task commands and configured polyglot tools with exact argv, cwd, ignore metadata, and source digests. Ambiguity blocks apply for user choice; unbuildable components are named unprotected and suppress the repository-wide support claim.
-- [x] **RIG-111 — Define exact user-global MCP contracts + byte-landing tests**
-	**Status:** RESOLVED (2026-08-24) — full gate green, ready to commit · [Solution](tickets/RIG-111.md)
-	**Landed:** Exact current contracts and attributed merge/remove writers for Windsurf/Devin Desktop legacy Cascade, Cline IDE, Hermes, and CodeWhale; multi-repository, idempotence, malformed-input, changed-value, forged-ledger, and uninstall coverage. Activation remains note-only behind RIG-110's roster and real-wire gate.
 - [x] **RIG-123 — Implement the OpenClaw global MCP opt-in**
 	**Status:** Implemented (2026-08-24) - tests green, ready to commit/push · [Solution](tickets/RIG-123.md)
 	**Landed:** The explicit installer flag warns about the global JSON5 file and all-workspace effect, installs the locked `rig-mcp` runtime, registers through `openclaw mcp set`, attributes the server key in `.rig/global-writes.json`, and unsets before runtime deletion. Failed unregister retains the runtime and ledger entry.
@@ -90,6 +87,9 @@ kanban-plugin: board
 
 ## Done
 
+- [x] **RIG-111 — Define exact user-global MCP contracts + byte-landing tests**
+	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-111.md)
+	**Done:** Exact current contracts and attributed merge/remove writers for Windsurf/Devin Desktop legacy Cascade, Cline IDE, Hermes, and CodeWhale; multi-repository, idempotence, malformed-input, changed-value, forged-ledger, and uninstall coverage. Activation remains note-only behind RIG-110's roster and real-wire gate.
 - [x] **RIG-109 — Test the runtime through its shipping path, not by direct `require`**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-109.md)
 	**Done:** Active-runtime bootstrap plans, applies, and checks lint-format through `.rig/bin/rig`; tagged-release inspection, installed commit validation, managed grafting, MCP enforcement, and the review wrapper add shipping-path coverage while the signed direct-require oracle remains intact.
