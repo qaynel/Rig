@@ -110,6 +110,12 @@ exists to prevent: imposing tools the repository did not ask for. Family
 auto-selection is deferred until there is real signal about which mapping is
 correct, which is one of the things beta feedback is for.
 
+For detected Antigravity installs with selected MCP servers, onboarding also
+owns a first-class manual boundary: `.rig/mcp-setup.md` contains the exact
+stdio JSON to merge into the user-global Antigravity config and the installed
+verification command. Rig does not write that global file; the check makes the
+manual step observable instead of leaving it as an unverified template note.
+
 **Implemented 2026-08-23.** The released bootstrap uses the registry's bounded
 marker table whenever no host list is supplied. An explicit list replaces auto
 detection rather than adding to it. The payload writer journals each mutation
@@ -119,3 +125,11 @@ explicit-only because a shared root instruction file is ambiguous.
 [roadmap](../specs/mvp-roadmap.md) ·
 [ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
 [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)
+
+**Installed entrypoint implemented 2026-08-24.** Active-runtime installs now
+journal an executable `.rig/bin/rig` command and print the complete
+`inspect → recommend → plan → apply → check` command sequence after bootstrap.
+The default markdown-only bootstrap still installs neither the command nor the
+runtime. A shipping-path regression installs the runtime, selects lint-format,
+plans and applies it through the installed command, then executes its installed
+check successfully.

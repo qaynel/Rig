@@ -153,7 +153,8 @@ node .rig/bin/check.js --scope repo
 ```
 
 For a tagged install, replace `node rig/materialize.js` with
-`node .rig/runtime/rig/materialize.js`.
+`.rig/bin/rig`. The installed command is available only when the active runtime
+is selected; tagged installs select it automatically.
 
 Operator details: [`docs/advanced/operator.md`](docs/advanced/operator.md).
 Design sources and reasoning: [`wiki/`](wiki/).

@@ -12,7 +12,8 @@ Remediation is separate and requires an explicit proposal digest approval.
 ## CLI
 
 From a source checkout use `node rig/materialize.js`; from a tagged release
-install use `node .rig/runtime/rig/materialize.js` with the same arguments.
+install use `.rig/bin/rig` with the same arguments. The installed command is
+present only for active-runtime installs (`--with-runtime`).
 
 ```sh
 node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json

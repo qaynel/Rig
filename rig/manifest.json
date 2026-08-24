@@ -59,6 +59,7 @@
     { "op": "copy", "from": "rig/catalog/baseline/network-rules.md", "to": ".rig/network-rules.md", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/catalog/baseline/network-policy.md", "to": ".rig/network-policy.md", "host": "neutral", "gate": "active_delivery" },
 
+    { "op": "copy", "from": "rig/bin/rig", "to": ".rig/bin/rig", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/materialize.js", "to": ".rig/runtime/rig/materialize.js", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/manifest.json", "to": ".rig/runtime/rig/manifest.json", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/catalog.json", "to": ".rig/runtime/rig/catalog.json", "host": "neutral", "gate": "active_delivery" },

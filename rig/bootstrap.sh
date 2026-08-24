@@ -96,3 +96,14 @@ if [ "$HOSTS_EXPLICIT" = 1 ]; then
 else
   echo "Rig Tier 1 installed for detected hosts via payload.js."
 fi
+if [ "$ACTIVE_DELIVERY" = 1 ]; then
+  cat <<EOF
+Rig runtime workflow:
+  cd "$TARGET_ROOT"
+  .rig/bin/rig inspect --target "$TARGET_ROOT" --host <host-id> --out inspection.json
+  .rig/bin/rig recommend --target "$TARGET_ROOT" --review review.json --out menu.json
+  .rig/bin/rig plan --target "$TARGET_ROOT" --manifest "$TARGET_ROOT/rig.json" --review review.json --out plan.json
+  .rig/bin/rig apply --target "$TARGET_ROOT" --manifest "$TARGET_ROOT/rig.json" --review review.json --plan plan.json --approval approval.json
+  .rig/bin/rig check --target "$TARGET_ROOT"
+EOF
+fi
