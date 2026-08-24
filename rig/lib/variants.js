@@ -3,6 +3,7 @@ const SUPPORTED_TRANSPORTS = {
   codex: ['stdio', 'http'],
   cursor: ['stdio', 'http'],
   copilot: ['stdio', 'http'],
+  'copilot-cli': ['stdio', 'http'],
   opencode: ['stdio', 'http'],
   pi: ['stdio', 'http'],
   gemini: ['stdio', 'http'],

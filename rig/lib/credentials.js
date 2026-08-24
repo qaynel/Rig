@@ -14,6 +14,12 @@ const CAVEAT = {
   // syntax is documented; stay note-only until PD7 flips.
   antigravity: 'Edit .agents/mcp_config.json for this workspace or ~/.gemini/config/mcp_config.json globally (stdio command/args/env, or serverUrl + authProviderType). Do not commit secrets; use the shell env for stdio and a supported auth provider for remote servers.',
 };
+// AT-HOST-5: hosts whose MCP disposition is unsupported/manual keep any
+// pre-existing user-owned file byte-for-byte and get migration guidance
+// instead of silent deletion (RIG-103/RIG-104).
+const MIGRATION = {
+  pi: 'pi does not support MCP; the existing .omp/mcp.json was left untouched. Migrate any entries you rely on to a host with MCP support.',
+};
 const LABELS = {
   claude: 'Claude',
   codex: 'Codex',
@@ -55,6 +61,7 @@ function writeMcpSetup(target, receipt) {
     lines.push(LOAD_STEP);
     if (host === 'codex' || host === 'vscode-codex') lines.push('Never paste the key into config.toml; use env_vars or bearer_token_env_var by name.');
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
+    if ((receipt.migrationHosts || []).includes(host)) lines.push(MIGRATION[host] || `${LABELS[host] || host} does not support MCP; any pre-existing config file was left untouched.`);
     const block = lines.join('\n');
     if (!blocks.includes(block)) blocks.push(block);
   }
