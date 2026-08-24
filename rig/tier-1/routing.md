@@ -26,6 +26,8 @@ wiki and the diff, and are reproduced on request.
 For a new feature or behavioral change, use the phases in order. There is **one
 freeze** — the gate — not two:
 
+Spec-driven requests route through `rig-grilling` and then `rig-product-design`; they do not create a separate `rig-spec` phase or skill.
+
 1. `rig-grilling` establishes the oracle: business intent, acceptance criteria,
    and the testing infrastructure that deterministically checks them. It derives
    as much as possible from the existing record before spending the developer's
@@ -65,7 +67,7 @@ than two viable paths.
 
 | Skill | Read when |
 |---|---|
-| `rig-grilling` | Requirements are new, ambiguous, risky, or need acceptance tests. |
+| `rig-grilling` | Requirements are new, ambiguous, risky, need acceptance tests, or ask for a specification-driven/executable-spec flow. |
 | `rig-product-design` | The oracle is being established and a technical specification, tradeoff decision, or implementation approach is needed. The spec is checked for presence at the gate, not frozen. |
 | `rig-implementation` | Any code will be written, changed, refactored, or removed. Always active for implementation. |
 | `rig-execution` | A plan has multiple independent tasks, parallel work is requested, or completion needs verification. |

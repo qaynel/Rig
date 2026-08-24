@@ -32,6 +32,14 @@ at least every three minutes of active work — not only when a step or the task
 finishes — so an interrupted session can resume from what's written instead of
 the lost conversation.
 
+Spec-driven development is folded into the existing phase owners (RIG-119),
+not exposed as another overlapping skill. Requests such as "spec this out"
+route through `rig-grilling`'s Why, Scope, Technical interrogation, Draft
+review, and Gate checkpoints; `rig-product-design` owns the code-grounded
+technical-interrogation step. One executable acceptance case checks the route,
+the absence of a `rig-spec` row, the five checkpoints, and byte-identical
+Claude/Codex skill copies.
+
 ## Why it is this way
 
 Three tools read three separate instruction files here. A rule stated once and

@@ -28,6 +28,12 @@ with authoring acceptance, not a separate phase (90–100% of the test strategy
 falls out of acceptance directly). **Only then** does the single lock close.
 [process doctrine](../reasoning/2026-08-24-process-doctrine-and-one-lock.md)
 
+Requests framed as "spec this out" use that same pipeline rather than a
+separate spec skill: grilling establishes Why and Scope, product design performs
+code-grounded Technical interrogation, both artifacts receive Draft review,
+and the existing Gate is the fifth checkpoint. This preserves one owner per
+phase and adds no runtime to Tier 1.
+
 ### One lock (D26), and freeze timing (D27)
 
 There is **one lock**: it locks the tests and acceptance together, and the only
