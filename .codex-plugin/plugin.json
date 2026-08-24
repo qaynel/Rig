@@ -12,6 +12,12 @@
   "keywords": ["yagni", "minimalism", "code-review", "productivity"],
   "skills": "./skills/",
   "hooks": "./hooks/claude-codex-hooks.json",
+  "mcpServers": {
+    "rig": {
+      "command": "node",
+      "args": ["./rig-mcp/index.js"]
+    }
+  },
   "interface": {
     "displayName": "Rig",
     "shortDescription": "Lazy senior developer mode",

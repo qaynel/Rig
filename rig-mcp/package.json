@@ -5,7 +5,10 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "scripts": { "test": "node --test ./test/*.test.js" },
+  "scripts": {
+    "pretest": "[ -d node_modules ] || npm install --no-audit --no-fund",
+    "test": "node --test ./test/*.test.js"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "zod": "^3.23.0"
