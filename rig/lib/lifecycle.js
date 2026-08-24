@@ -127,11 +127,17 @@ function resolveRecordPath(target, rel) {
   return containedPath(target, rel);
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function uninstall(target, opts = {}) {
   const manifest = readManifest(target);
-  const records = latestOperations(manifest.records)
-    .filter((record) => (record.transaction_kind || 'install') === 'install')
-    .sort((a, b) => b.seq - a.seq);
+  const latestByPath = new Map();
+  for (const record of latestOperations(manifest.records)) {
+    if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
+  }
+  const records = [...latestByPath.values()].sort((a, b) => b.seq - a.seq);
   const bestEffort = [];
   const removed = [];
   const globalLedger = containedPath(target, '.rig/global-writes.json');
@@ -170,7 +176,14 @@ function uninstall(target, opts = {}) {
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
-      const stripped = body.replace(/<!-- rig:[^\n]*start -->\n[\s\S]*?<!-- rig:[^\n]*end -->\n?/g, '');
+      const name = typeof record.managed_block === 'string'
+        ? escapeRegExp(record.managed_block)
+        : '[^\\n]*';
+      const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
+      const stripped = body.replace(
+        new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
+        '',
+      );
       if (stripped === body) bestEffort.push(record.path);
       fs.writeFileSync(abs, stripped);
       if (stripped !== body) removed.push(record.path);

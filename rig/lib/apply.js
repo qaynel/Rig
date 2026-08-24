@@ -14,10 +14,12 @@ const { writeReport } = require('./reports');
 const { containedPath, gitPath } = require('./path-safety');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
+const { ensureManagedBlock } = require('./graft');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
+const POINTER_GRAFT = 'catalog-routing';
 const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
 const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
 const TEST_CASE_GENERATION_SERVICE = 'testing.unit.test-case-generation';
@@ -156,12 +158,15 @@ function acquireLock(target) {
   return lockPath;
 }
 
-function ensureLine(file, line) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const body = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  if (body.split('\n').includes(line)) return;
-  const sep = body && !body.endsWith('\n') ? '\n' : '';
-  fs.writeFileSync(file, `${body}${sep}${line}\n`);
+function pointerGraft(source) {
+  const start = `<!-- rig:${POINTER_GRAFT}:start -->`;
+  if (!source.includes(start)) {
+    const lines = source.split('\n');
+    const legacy = lines.indexOf(POINTER_LINE);
+    if (legacy !== -1) lines.splice(legacy, 1);
+    source = lines.join('\n');
+  }
+  return ensureManagedBlock(source, POINTER_GRAFT, POINTER_LINE);
 }
 
 function testCaseGenerationBinding(target, service, grade) {
@@ -219,10 +224,12 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         normalize(existingServices) === normalize(desiredServices) &&
         existing.harness_digest === validated.harness_digest
       ) {
-        // Still ensure pointer line once (no-op if present).
-        ensureLine(path.join(target, 'AGENTS.md'), POINTER_LINE);
-        const historyScanNote = existing.history_scan ? 'history scan already verified' : '';
-        return { ok: true, receipt: existing, historyScanNote, idempotent: true };
+        const agents = path.join(target, 'AGENTS.md');
+        const body = fs.existsSync(agents) ? fs.readFileSync(agents, 'utf8') : '';
+        if (pointerGraft(body) === body) {
+          const historyScanNote = existing.history_scan ? 'history scan already verified' : '';
+          return { ok: true, receipt: existing, historyScanNote, idempotent: true };
+        }
       }
     } catch {
       /* fall through to full apply */
@@ -317,12 +324,12 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       latestByPath.set(rel, applied);
     };
 
-    const ensureLineOwned = (rel, line) => {
+    const ensurePointerOwned = (rel) => {
       const abs = containedPath(target, rel);
       const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
-      if (body.split('\n').includes(line)) return;
-      const sep = body && !body.endsWith('\n') ? '\n' : '';
-      writeOwned(rel, `${body}${sep}${line}\n`, undefined, 'append_managed');
+      const desired = pointerGraft(body);
+      if (desired === body) return;
+      writeOwned(rel, desired, undefined, 'append_managed', { managed_block: POINTER_GRAFT });
     };
 
     // Baseline phase
@@ -354,7 +361,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     }
 
     // Pointer graft
-    ensureLineOwned('AGENTS.md', POINTER_LINE);
+    ensurePointerOwned('AGENTS.md');
 
     // AT-CI-2: creation of a CI artifact needs both a real trigger (a plan
     // entry that actually asks for the maximal CI gate) and a verified
