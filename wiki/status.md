@@ -1,4 +1,16 @@
-# Status - checked 2026-08-25
+# Status - checked 2026-08-26 (updated 2026-08-26)
+
+## RIG-127.11 / 127.12 filed as GitHub issues (2026-08-26)
+
+Post-merge hand review found two uninstall follow-ups the green roundtrip suite
+does not catch. They are open GitHub issues (not buried only in the closed
+parent):
+
+- [[RIG-127]] **127.11** → [GitHub #69](https://github.com/qaynel/Rig/issues/69) — hard-crash on corrupted legacy global config
+- [[RIG-127]] **127.12** → [GitHub #70](https://github.com/qaynel/Rig/issues/70) — legacy nameless managed-block over-strip
+
+Parent [[RIG-127]] remains Done (GitHub #36 / PR #31). Trace:
+[[2026-08-26-review-round-code-level-findings]].
 
 ## RIG-126 onboarding (solved 2026-08-25)
 
