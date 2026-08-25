@@ -59,6 +59,25 @@ infrastructure form the oracle that is signed once before implementation.
 > *(The 45-case instruction here is historical: superseded by the 2026-07-28
 > note below, which moves the set to 52.)*
 
+> **Revision note (2026-08-24) - D25, OpenClaw global MCP opt-in.** Re-grilled
+> after the intent owner asked Rig to offer an explicit installation choice for
+> OpenClaw's global MCP registry. Current vendor documentation establishes that
+> OpenClaw reads `~/.openclaw/openclaw.json` as JSON5 and manages
+> `mcp.servers` through its own `openclaw mcp` CLI; a repository-local config is
+> not a supported delivery surface.
+>
+> D25 is a narrow exception to the no-host-specific-option rule: the default
+> installer remains non-interactive and writes no OpenClaw configuration, while
+> an explicit `--openclaw-mcp` selection authorizes one disclosed global write.
+> The entry must be uniquely attributable to its installing repository, use the
+> native CLI rather than a JSON5 rewriter, point at an installed and runnable
+> Rig MCP runtime, and be removed before that runtime during uninstall. The
+> selection is not a claim about enforcement and does not add a tier.
+>
+> No acceptance ID is added. `AT-HOME-1`, `AT-HOME-2`, and `AT-DIST-1` are
+> revised; the ID set remains **68**. Production implementation remains
+> prohibited until the owner signs the amended oracle and its executable test.
+
 > **Revision note (2026-07-26, later the same day) — D10, Gate 1 integrity.**
 > Re-grilled once more by the intent owner after Gate 2 design work surfaced
 > that the D5 mechanism did not fit how this repository is actually used. D5
@@ -440,6 +459,17 @@ Host-agnostic; config-only (B1).
     the first installation onward, so that uninstalling one repository leaves
     every other repository's configuration intact and reinstalling replaces
     rather than accumulates.
+  - **OpenClaw's global MCP registry is explicit-only (D25).** The default
+    installer neither prompts for nor writes OpenClaw configuration. The
+    explicit `--openclaw-mcp` installer selection is the sole consent to add
+    Rig's bundled MCP server to the user's global OpenClaw configuration. Before
+    the native OpenClaw CLI is invoked, output names the global file and states
+    that the entry affects every OpenClaw workspace. The entry is keyed by the
+    installing repository's stable local identity, so another repository and
+    unrelated user entries remain untouched; uninstall removes that exact entry
+    before deleting the local runtime it invokes. A missing or failing native
+    CLI never falls back to rewriting JSON5 and never leaves a global entry
+    pointing at a removed runtime.
   - **Removal is part of the product (D11).** Rig can be taken out of a
     repository as completely as it was put in. Every write Rig makes to a file
     it does not exclusively own is delimited by managed-block markers and
@@ -725,10 +755,12 @@ mistake them for oversights.
   No host's enforcement has been observed firing, and Rig makes no claim that it
   has. The honest statement of this lives in the host registry header, not in
   user-facing output; a user who wants it reads it there.
-- **A user-global write has global blast radius (D9).** Installing in one
+- **A user-global write has global blast radius (D9/D25).** Installing in one
   repository changes behavior in every project that host opens. This is
   disclosed at install time in the user's own output, naming the file written
-  outside the repository (AT-HOME-1); there is no separate prompt.
+  outside the repository (AT-HOME-1). OpenClaw is the sole explicit installer
+  opt-in: its selection is the consent because its effect is global; the
+  default installer remains non-interactive and does not write it.
 - **Gate 1 integrity depends on a key the intent owner must hold (D10).** If
   that key is lost, or was never obtained, nothing protects Gate 1 from an agent
   that can write the repository. The honest fallback is a visible multi-file

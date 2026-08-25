@@ -12,7 +12,8 @@ Remediation is separate and requires an explicit proposal digest approval.
 ## CLI
 
 From a source checkout use `node rig/materialize.js`; from a tagged release
-install use `node .rig/runtime/rig/materialize.js` with the same arguments.
+install use `.rig/bin/rig` with the same arguments. The installed command is
+present only for active-runtime installs (`--with-runtime`).
 
 ```sh
 node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
@@ -64,7 +65,18 @@ artifacts. The user-owned `.rig/network-policy.json` is preserved.
 
 Release review uses `scripts/review-receipt.js`. Claude is the default reviewer;
 `--reviewer codex` uses a fresh ephemeral read-only Codex process with the same
-prompt and receipt validator when the default driver is unavailable.
+prompt and receipt validator when the default driver is unavailable. It is a
+release-only gate — never a mid-development inner loop; use `rig-tdd`'s
+`npm run test:rig` / single-test-file loop for that instead.
+
+A `fail` verdict is real signal: fix it, then re-review once. The wrapper
+enforces the cap itself — a third consecutive fail for the same
+`--author-context` refuses to spawn another reviewer (`--force-rereview`
+overrides it, as an explicit, visible step, not silent retry). Pass `--interim`
+for a cheap sanity-check pass with a cheap `--model`: it prints the verdict and
+findings but never writes the binding receipt. Only a run without `--interim`
+produces the receipt the gate relies on, and it should use the model the
+release designates.
 
 Legacy Basic path is unchanged:
 

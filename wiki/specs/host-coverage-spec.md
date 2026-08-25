@@ -129,7 +129,48 @@ frontmatter key is community-corroborated only — append the pointer to any fil
 under `.agents/rules/` (the officially-grounded target) rather than relying on
 that key.
 
+### 3.1a Subagent lifecycle event disposition ([[RIG-106]])
+
+Whether a host's subagent hook (if any) can *inject* context, not merely
+observe or gate subagent creation — loading the active Rig mode requires
+injection. Full per-host evidence and citations:
+[reasoning/2026-08-24-subagent-mode-propagation-disposition.md](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md),
+corrected by
+[reasoning/2026-08-24-subagent-disposition-corrections.md](../reasoning/2026-08-24-subagent-disposition-corrections.md)
+(Hermes rebucketed, Pi/Kiro/Copilot refined).
+
+| Host | Subagent hook | Can inject context | Disposition |
+|---|---|---|---|
+| claude | ✅ `SubagentStart` | ✅ | Wired |
+| codex / vscode-codex | ✅ `SubagentStart`/`SubagentStop` | ✅ | Wired |
+| copilot / copilot-cli | ✅ `subagentStart` | ✅ (named/custom agents only — never fires for the built-in `general-purpose` agent) | **Wired (RIG-106)** |
+| cursor | ✅ `subagentStart` | ⛔ gate-only (`allow`/`deny`) | N/A |
+| codewhale | ✅ `subagent_spawn` | ⛔ observer-only | N/A |
+| hermes | ✅ `subagent_start`/`subagent_stop` (26-event `~/.hermes/config.yaml` system) | ⛔ observer-only, return value ignored | N/A |
+| gemini | ⛔ no subagent-scoped event | — | N/A |
+| antigravity | ⛔ no subagent-scoped event | — | N/A |
+| devin | ⛔ no subagent-scoped event | — | N/A |
+| windsurf (Devin Desktop) | ⛔ no subagent-scoped event | — | N/A |
+| opencode | ⛔ requested, unshipped (issue #20387) | — | N/A |
+| openclaw | ⛔ plugin-hooks-only; operator `HOOK.md` has none | — | N/A |
+| cline | ⛔ SDK-only (`@cline/agents` `AgentPlugin`); repo hooks have none | — | N/A |
+| kiro | ⛔ `AgentSpawn` payload is session-scoped only (`session_id`, no `agent_id`/`subagent_type`) — per-session, not per-subagent | — | N/A (first-wire test recommended if ever depended on — vendor bug #7138 open) |
+| pi | ⛔ no native hooks; the one documented extension (`@vahor/pi-hooks`, 30 events) has no subagent-scoped event either | — | N/A |
+| swival, generic | ⛔ no hook mechanism at all | — | N/A (trivial) |
+
 ### 3.2 MCP disposition across every install path
+
+**Landed 2026-08-24 (RIG-103/RIG-104).** `rig/lib/mcp-hosts.js` is the single
+`{ disposition, autoWrite, file, key }` table, derived from this section's
+research (`host-capabilities.js` `REGISTRY`), that both the legacy Basic
+`renderers.js` path and the catalogue descriptor path read. `pi` no longer
+emits `.omp/mcp.json`; a pre-existing user-owned file is preserved with
+migration guidance (AT-HOST-5), covered for both paths, not only the
+catalogue path's `direct-require` test. See
+[host-and-ci-coverage](../topics/host-and-ci-coverage.md) and the
+[landing reasoning](../reasoning/2026-08-24-rig-104-mcp-unification.md) for
+the two other divergences this reconciled (OpenClaw's actual key/path, and
+codewhale's documented repo-write override of its raw `user_global` scope).
 
 The prior plan deliberately left Basic `renderers.js` / `HOST_FILES` untouched
 and deferred catalogue MCP materialization. That is incompatible with
@@ -149,11 +190,81 @@ The current registry research records a candidate `mcp` disposition plus
   windsurf/Devin Desktop, cline, hermes, codewhale.
 - **`mcp: 'unsupported'`** (vendor refuses MCP): pi; generic.
 
+#### 3.2a Exact user-global MCP writer contracts ([[RIG-111]])
+
+**Implemented and byte-tested 2026-08-24; activation remains gated by
+RIG-110.** `rig/lib/global-writes.js` now defines the exact merge/remove
+contract for each of the four user-global hosts:
+
+| Host | Exact current path | Format / server container | Evidence checked 2026-08-24 |
+|---|---|---|---|
+| windsurf / Devin Desktop legacy Cascade | `~/.codeium/windsurf/mcp_config.json` | JSON `mcpServers` | [Devin Desktop MCP](https://docs.devin.ai/desktop/cascade/mcp) |
+| cline IDE | `~/.cline/data/settings/cline_mcp_settings.json` | JSON `mcpServers` | [Cline configuration](https://docs.cline.bot/getting-started/config) and [MCP shape](https://docs.cline.bot/mcp/mcp-overview) |
+| hermes | `~/.hermes/config.yaml` | YAML `mcp_servers` | [Hermes MCP](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) |
+| codewhale | `~/.codewhale/mcp.json` | JSON `servers` | [CodeWhale MCP](https://github.com/Hmbown/CodeWhale/blob/main/docs/MCP.md) and [configuration precedence](https://github.com/Hmbown/CodeWhale/blob/main/docs/CONFIGURATION.md) |
+
+Every server key is `rig-<install-id>-<server-name>`. Merge preserves unrelated
+settings/servers, repeat merge is a byte-identical no-op, and uninstall removes
+only an unchanged entry attributed to the current repository. Malformed JSON,
+unsupported Hermes YAML shapes, a changed owned value, or a ledger path outside
+the exact current-home contract fails unchanged and remains in the ledger for
+manual recovery. `tests/global-mcp-writes.test.js` exercises all four contracts,
+multi-repository coexistence, repeat apply, removal, and trust-boundary failure.
+
+The CodeWhale result resolves the MCP-path half of §3.1: the current primary is
+`~/.codewhale/mcp.json`; `~/.deepseek/mcp.json` is only a legacy fallback. The
+repo-local override remains shipped but provisional until RIG-110's first wire
+and roster decision. Cline's newer CLI-specific `~/.cline/mcp.json` is distinct
+from the IDE shared-settings axis represented by the `cline` host entry.
+
 Per-host MCP key overrides are researched in `surfaces.mcp_key` (copilot
 `servers`; opencode `mcp`+`type`; codex/vscode-codex TOML `[mcp_servers]`; else
 `mcpServers`). Gate 2 must specify the exact safe preflight/merge contract for
 every supported shape and ensure network-capable MCP calls obey the same active
 policy as shell and built-in web access. MCP is never an enforcement bypass.
+
+#### 3.2.1 `rig-mcp` server coverage ([[RIG-101]])
+
+`rig-mcp/` (the bundled stdio server serving the ruleset as the `rig`
+prompt / `rig_instructions` tool) follows this same `mcp` disposition, one host
+at a time rather than through the generic catalogue renderer:
+
+- **Wired:** opencode (`opencode.json`, `mcp.rig`), claude
+  (`.claude-plugin/plugin.json`, `mcpServers.rig`, `${CLAUDE_PLUGIN_ROOT}`-relative),
+  codex plugin (`.codex-plugin/plugin.json`, `mcpServers.rig`, plugin-root-relative),
+  gemini (`gemini-extension.json`, `mcpServers.rig`, `${extensionPath}`-relative),
+  cursor (`.cursor/mcp.json`, `mcpServers.rig`), kiro
+  (`.kiro/settings/mcp.json`, `mcpServers.rig`), devin CLI (`.devin/config.json`,
+  `mcpServers.rig`), swival (`.swival/mcp.json`, `mcpServers.rig`), copilot VS
+  Code (`.vscode/mcp.json`, `servers.rig`), copilot-cli (`.github/mcp.json`,
+  `mcpServers.rig`), codex CLI + IDE extension (`.codex/config.toml`,
+  `[mcp_servers.rig]`) — all eleven verified by `tests/rig-mcp-adapters.test.js`.
+  Each shape was cross-checked against both a fresh official-docs pass and
+  `rig/lib/host-capabilities.js` REGISTRY ([[RIG-104]]'s single source of truth
+  for MCP disposition, landed concurrently); the two agreed on file/key shape
+  for all eleven except one flagged conflict below (openclaw).
+- **`rig-mcp`: OpenClaw global opt-in (D25, implemented):**
+  current official documentation resolves the earlier scope conflict: OpenClaw
+  owns one user-global JSON5 configuration at `~/.openclaw/openclaw.json` and
+  its `openclaw mcp set` / `unset` CLI is the supported writer. The
+  `--openclaw-mcp` installer opt-in warns before changing that global context,
+  installs a locked local runtime, and records a `rig-<install-id>` server for
+  exact removal. The default installer does not invoke OpenClaw or npm. The
+  signed acceptance test is green. Devin's possible config filename drift
+  remains a separate low-stakes flag.
+- **`rig-mcp`: manual, owner-decided:** `antigravity` — Rig never writes the
+  user-global file while upstream CLI issue #60 leaves project-local behavior
+  unreliable. Onboarding instead emits the exact selected stdio `mcpServers`
+  object for manual merge into `~/.gemini/config/mcp_config.json`, then closes
+  the loop with `.rig/bin/rig check --host antigravity`. The committed
+  `antigravity-plugin/mcp_config.json` remains an empty explanatory template,
+  not an auto-written entry. Remote variants remain unrendered because their
+  `authProviderType` is server-specific and cannot be inferred safely.
+- **`rig-mcp`: N/A (unsupported disposition):** `pi`, `generic` — §3.1 records
+  both as refusing MCP entirely; no path may emit a `rig-mcp` config for them.
+- **`rig-mcp`: N/A (user-global only):** `windsurf`, `cline`, `hermes`,
+  `codewhale` — §3.1 records these as accepting only user-global MCP files, so
+  `rig-mcp` there is a manual per-user opt-in, never a file this repo commits.
 
 ### 3.3 CI providers (`PROVIDERS`)
 

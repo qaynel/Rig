@@ -68,7 +68,12 @@ const REGISTRY = {
   openclaw: {
     instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: 'AGENTS.md', skills: 'native + bundles', hooks: 'HOOK.md + handler', mcp: 'openclaw.json', mcp_key: 'mcpServers' },
+    // mcp path/key corrected to the shipped, tested shape (RIG-104): the
+    // config lives at .openclaw/openclaw.json, not bare openclaw.json, and
+    // servers nest under mcp.servers (dotted-path), not a top-level
+    // mcpServers. See rig/lib/renderers.js renderOpenclaw + credentials.js
+    // OPENCLAW_CONFIG_PATH wiring, both pre-dating this fix.
+    surfaces: { instruction: 'AGENTS.md', skills: 'native + bundles', hooks: 'HOOK.md + handler', mcp: '.openclaw/openclaw.json', mcp_key: 'mcp.servers' },
     evidence: { citation: 'https://docs.openclaw.ai/plugins/bundles' },
   },
   antigravity: {
@@ -288,6 +293,7 @@ function contractFor(id, caps) {
         },
       },
     };
+    if (axis === 'mcp_config') axes[axis].output.key = surfaces.mcp_key || 'mcpServers';
     axes[axis].evidence.adapter_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].output)).digest('hex');
     axes[axis].evidence.fixture_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].input)).digest('hex');
   }
@@ -347,7 +353,8 @@ function materializeSelectedHosts(target, hostIds) {
         guidance: 'MCP is unsupported for this host; preserving user files unchanged.',
       };
     } else {
-      entry.mcp = { status: mcpStatus.scope, path: caps.surfaces && caps.surfaces.mcp };
+      const surfaces = caps.surfaces || {};
+      entry.mcp = { status: mcpStatus.scope, path: surfaces.mcp, key: surfaces.mcp_key || 'mcpServers' };
     }
     results[id] = entry;
   }

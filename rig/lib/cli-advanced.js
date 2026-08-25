@@ -8,11 +8,15 @@ const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
+const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
 const { uninstall } = require('./lifecycle');
+const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'host-review', 'select']);
+const ADVANCED = new Set([
+  'inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy',
+  'uninstall', 'host-review', 'select', 'validate-commit',
+]);
 const GRADES = new Set(['minimal', 'mid', 'maximal']);
 
 function parseFlag(argv, name) {
@@ -55,7 +59,8 @@ function runAdvanced(subcommand, argv) {
     return;
   }
 
-  const target = parseFlag(argv, '--target');
+  const hostCheck = subcommand === 'check' && parseFlag(argv, '--host');
+  const target = parseFlag(argv, '--target') || (hostCheck ? process.cwd() : null);
   if (!target || !fs.existsSync(target)) {
     throw new Error('rig: --target <dir> is required and must exist');
   }
@@ -66,6 +71,7 @@ function runAdvanced(subcommand, argv) {
       beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
     });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    if (result.status === 'best_effort') process.exitCode = 1;
     return;
   }
 
@@ -116,7 +122,16 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
       return;
     }
-    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, or recover');
+    if (action === 'grant-approval') {
+      const actionPath = parseFlag(argv, '--action');
+      const out = parseFlag(argv, '--out');
+      if (!actionPath || !fs.existsSync(actionPath) || !out) {
+        throw new Error('rig: policy grant-approval requires --action <action.json> and --out');
+      }
+      writeOut(out, grantApproval(target, readJson(actionPath)));
+      return;
+    }
+    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, recover, or grant-approval');
   }
 
   if (subcommand === 'inspect') {
@@ -186,24 +201,37 @@ function runAdvanced(subcommand, argv) {
   }
 
   if (subcommand === 'check') {
-    const scope = parseFlag(argv, '--scope') || 'repo';
-    const service = parseFlag(argv, '--service');
     const host = parseFlag(argv, '--host');
     if (host) {
-      const verified = verifyManualMcp(target, host, process.env.HOME);
-      if (verified.status !== 0) {
-        process.stderr.write(`${verified.reason || 'manual MCP check failed'}\n`);
-        process.exit(verified.status || 1);
+      const result = verifyManualMcp(target, host, process.env.HOME);
+      const output = `${JSON.stringify(result, null, 2)}\n`;
+      if (result.status !== 0) {
+        process.stderr.write(output);
+        process.exit(result.status || 1);
       }
-      process.stdout.write(`Rig check passed: ${host} manual MCP verified\n`);
+      process.stdout.write(output);
       return;
     }
+    const scope = parseFlag(argv, '--scope') || 'repo';
+    const service = parseFlag(argv, '--service');
     const result = runChecks(target, { scope, service });
     if (result.stdout) process.stdout.write(result.stdout.endsWith('\n') ? result.stdout : `${result.stdout}\n`);
     if (result.status !== 0) {
       if (result.stderr) process.stderr.write(result.stderr);
       process.exit(result.status || 1);
     }
+    return;
+  }
+
+  if (subcommand === 'validate-commit') {
+    const policyPath = parseFlag(argv, '--policy');
+    const policy = policyPath && fs.existsSync(policyPath) ? readJson(policyPath) : null;
+    const result = runPreCommit(target, policy);
+    if (!result.allowed) {
+      process.stderr.write(`${JSON.stringify(result, null, 2)}\n`);
+      process.exit(1);
+    }
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   }
 }
 

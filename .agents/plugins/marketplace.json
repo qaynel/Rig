@@ -8,7 +8,7 @@
       "name": "rig",
       "source": {
         "source": "url",
-        "url": "https://github.com/vaibhav-kodiyan/agentic-harness-demo.git",
+        "url": "https://github.com/qaynel/Rig.git",
         "ref": "main"
       },
       "policy": {

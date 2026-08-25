@@ -8,7 +8,9 @@ shaped the way it is, and what is true right now.
 [the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
-[glossary](glossary.md) if a term or ID is unfamiliar.
+[glossary](glossary.md) if a term or ID is unfamiliar ·
+[timeline](index/timeline.md) if you are reading an older page and want to know
+what it might have wrong.
 
 **If you are an agent working on this project:** this wiki is your first source
 of truth. Read it before grepping the code, keep it in sync with the branch, and
@@ -20,10 +22,10 @@ update it as part of your change — never as an afterthought.
 
 | Kind | Where | What it is |
 |---|---|---|
-| **Topics** | [`topics/`](topics/) | 26 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
+| **Topics** | [`topics/`](topics/) | 27 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
 | **Indexes** | [`index/`](index/) | Flat lookups across everything: every decision, every acceptance case, every rejected idea, every trap. |
 | **Authorities** | [`gate1/`](gate1/), [`gate2/`](gate2/) | The documents that actually decide things. Frozen or candidate. Nothing here is rewritten by the wiki. |
-| **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written. |
+| **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written — see the [sources index](index/sources.md) for a linked way in. |
 
 Plus [`reasoning/`](reasoning/) — where new thinking lands, verbatim and dated, and
 [`specs/`](specs/) — subordinate scope and status documents.
@@ -72,6 +74,9 @@ topic is wrong.
 [testing strategy](topics/testing-strategy.md) ·
 [the delivery plan](topics/delivery-plan.md)
 
+**How agents work here**
+[agent working conventions](topics/agent-working-conventions.md)
+
 ---
 
 ## Indexes
@@ -82,6 +87,7 @@ topic is wrong.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Timeline**](index/timeline.md) — how the design moved, by date.
 - [**Path map**](index/path-map.md) — old `project-dev-docs/` paths to their wiki homes.
+- [**Sources**](index/sources.md) — every log, captured reference, review receipt, and superseded design, one linked way in.
 
 ---
 

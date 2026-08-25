@@ -6,5 +6,11 @@
     "name": "Vaibhav Kodiyan",
     "url": "https://github.com/vaibhav-kodiyan"
   },
-  "hooks": "./hooks/claude-codex-hooks.json"
+  "hooks": "./hooks/claude-codex-hooks.json",
+  "mcpServers": {
+    "rig": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/rig-mcp/index.js"]
+    }
+  }
 }

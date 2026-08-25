@@ -42,6 +42,11 @@ skill inside Rig's broader workflow. Do not treat every task as only a
   any change that moves what is true updates the wiki in the same change. A
   wiki that has drifted from the branch is a defect. Reference it, maintain it,
   update it.
+- On a task that runs long or has several steps, do not hold everything for a
+  finish-line summary. Check the time and update `wiki/status.md` with what was
+  just done, what is in flight, and what is next at least every three minutes
+  of active work, not only when a step or the task completes, so a session cut
+  off mid-task can resume from the file instead of the lost conversation.
 - File every reasoning trace supplied by the intent owner under
   `wiki/reasoning/` verbatim, then update its topic hubs and decision index in
   the same change; follow `wiki/reasoning/README.md`.

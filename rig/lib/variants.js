@@ -12,6 +12,7 @@ const SUPPORTED_TRANSPORTS = {
   codewhale: ['stdio', 'http'],
   swival: ['stdio', 'http'],
   'vscode-codex': ['stdio', 'http'],
+  // RIG-105: Rig never writes Antigravity config; transports retained for manual onboarding entries.
   antigravity: ['stdio', 'http'],
 };
 

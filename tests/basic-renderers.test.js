@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { materialize, exampleServer, valueShaped, walk, withRepo } = require('./helpers/basic-install');
+const { materialize, exampleServer, valueShaped, walk, withRepo, root } = require('./helpers/basic-install');
 
 const exists = (target, rel) => fs.existsSync(path.join(target, rel));
 const read = (target, rel) => fs.readFileSync(path.join(target, rel), 'utf8');
@@ -70,7 +70,7 @@ test('TP-C4.3 bucket-2 project renderers emit value-free config plus a manual no
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);
       assert.match(read(target, file), token, `${host} uses its documented name-only token`);
-      assert.match(note(target), new RegExp(host, 'i'), `${host} has a manual setup note`);
+      assert.match(note(target), new RegExp(host.replace('-', '.*'), 'i'), `${host} has a manual setup note`);
       assertNoLiteralSecret(target);
     });
   }
@@ -149,6 +149,7 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
     ['cline', ['.cline/mcp.json']],
     ['copilot-cli', ['.copilot/mcp-config.json']],
     ['antigravity', ['.agents/mcp_config.json', '.gemini/antigravity/mcp_config.json', '.gemini/config/mcp_config.json']],
+    ['pi', ['.omp/mcp.json']],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);
@@ -157,6 +158,51 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
       assertNoLiteralSecret(target);
     });
   }
+});
+
+test('AT-HOST-5 (legacy path) pi emits no MCP config and preserves + guides a pre-existing user file', () => {
+  withRepo((target) => {
+    materializeOne(target, 'pi', stdioOnly);
+    assert.equal(exists(target, '.omp/mcp.json'), false, 'no config is emitted when none pre-existed');
+  });
+  withRepo((target) => {
+    const userFile = path.join(target, '.omp', 'mcp.json');
+    fs.mkdirSync(path.dirname(userFile), { recursive: true });
+    fs.writeFileSync(userFile, '{"user":true}\n');
+    materializeOne(target, 'pi', stdioOnly);
+    assert.equal(fs.readFileSync(userFile, 'utf8'), '{"user":true}\n', 'pre-existing user file is untouched byte-for-byte');
+    assert.match(note(target), /pi supports MCP through the pi-mcp-extension/i, 'migration guidance names the extension path without claiming MCP is unsupported');
+  });
+});
+
+test('AT-HOST-5b network-capable MCP entries obey the same active policy as shell/web (no bypass)', () => {
+  const { evaluateAction } = require('../rig/lib/enforcement');
+  const baseline = JSON.parse(fs.readFileSync(path.join(root, 'rig/catalog/baseline/network-policy.json'), 'utf8'));
+
+  withRepo((target) => {
+    materializeOne(target, 'claude', httpOnly);
+    const receipt = JSON.parse(read(target, '.rig/basic-receipt.json'));
+    const mcpDecision = receipt.networkPolicy.find((entry) => entry.host === 'claude');
+    const shellEquivalent = evaluateAction(baseline, { surface: 'shell', category: 'network_access', target: httpOnly.variants[0].url });
+    assert.equal(mcpDecision.decision, shellEquivalent.decision, 'mcp surface gets the identical decision shell/web would get');
+    assert.equal(mcpDecision.decision, 'deny', 'default policy denies network access by default');
+  });
+
+  withRepo((target) => {
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'network-policy.json'), JSON.stringify({
+      schema_version: 1, enabled: true, controls: {}, enforcement: { shell: true, web: true, mcp: false }, allow: [], secrets: { model_assisted_triage: false },
+    }));
+    materializeOne(target, 'claude', httpOnly);
+    const receipt = JSON.parse(read(target, '.rig/basic-receipt.json'));
+    assert.equal(receipt.networkPolicy.find((entry) => entry.host === 'claude').decision, 'disabled', 'disabling the mcp surface disables it, same as shell/web would');
+  });
+
+  withRepo((target) => {
+    materializeOne(target, 'claude', stdioOnly);
+    const receipt = JSON.parse(read(target, '.rig/basic-receipt.json'));
+    assert.deepEqual(receipt.networkPolicy, [], 'stdio-transport entries are not network-capable and are not evaluated');
+  });
 });
 
 test('TP-C4.9 Generic emits no renderer output and exactly one acknowledgment line', () => {

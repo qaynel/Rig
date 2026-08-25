@@ -3,7 +3,10 @@ const path = require('node:path');
 const { SUPPORTED_HOSTS } = require('./config');
 const { assignVariants } = require('./variants');
 const { readReceipt } = require('./receipt');
+const { evaluateAction } = require('./enforcement');
 const { MCP_HOSTS } = require('./mcp-hosts');
+
+const BASELINE_NETWORK_POLICY_PATH = path.join(__dirname, '..', 'catalog', 'baseline', 'network-policy.json');
 
 const HOST_TIER = Object.fromEntries(SUPPORTED_HOSTS.map((host) => [host, 'B']));
 Object.assign(HOST_TIER, {
@@ -173,11 +176,16 @@ function renderSwival(target, server, variant) {
   return mergeMcpEntry(target, 'swival', server, entry);
 }
 
+function renderCopilotCli(target, server, variant) {
+  return mergeMcpEntry(target, 'copilot-cli', server, genericEntry(variant, '${%s}'));
+}
+
 const RENDERERS = {
   claude: renderClaude,
   cursor: renderCursor,
   codex: renderCodex,
   copilot: renderCopilot,
+  'copilot-cli': renderCopilotCli,
   opencode: renderOpencode,
   pi: renderPi,
   gemini: renderGemini,
@@ -188,6 +196,37 @@ const RENDERERS = {
   swival: renderSwival,
   'vscode-codex': renderCodex,
 };
+
+
+function baselineNetworkPolicy() {
+  return JSON.parse(fs.readFileSync(BASELINE_NETWORK_POLICY_PATH, 'utf8'));
+}
+
+function activeNetworkPolicy(target) {
+  const activePath = path.join(target, '.rig', 'network-policy.json');
+  if (!fs.existsSync(activePath)) return baselineNetworkPolicy();
+  try {
+    return JSON.parse(fs.readFileSync(activePath, 'utf8'));
+  } catch {
+    return baselineNetworkPolicy();
+  }
+}
+
+// MCP is never an enforcement bypass (host-coverage-spec §3.2, §4): a
+// network-capable (http-transport) MCP entry is evaluated through the exact
+// same `evaluateAction` engine as shell/web network access, against the
+// exact same active policy. The decision is recorded on the receipt; it does
+// not block config emission, since writing config is not itself the guarded
+// network action — the runtime hook that fires when the entry is used is.
+function networkPolicyDecision(target, server, variant) {
+  if (variant.transport !== 'http') return null;
+  const decision = evaluateAction(activeNetworkPolicy(target), {
+    surface: 'mcp',
+    category: 'network_access',
+    target: variant.url,
+  });
+  return { serverName: server.name, url: variant.url, decision: decision.decision, rule: decision.rule };
+}
 
 const AUTO_WRITE_HOSTS = Object.keys(MCP_HOSTS).filter((host) => MCP_HOSTS[host].autoWrite && RENDERERS[host]);
 
@@ -201,6 +240,7 @@ function renderMcp(target, config) {
     tierC: [],
     migrationHosts: [],
     manualEntries: {},
+    networkPolicy: [],
     chainedBackup: Boolean(previous.chainedBackup),
   };
   const hosts = config.hosts && config.hosts.length ? config.hosts : SUPPORTED_HOSTS;
@@ -216,6 +256,8 @@ function renderMcp(target, config) {
       if (!existed || receipt.ownedFiles.includes(rendered.file)) recordOwned(receipt, rendered.file);
       else receipt.mergedEntries.push({ file: rendered.file, serverName: rendered.serverName });
       if (CREDENTIAL_SAFETY[`${host}:${variant.transport}`] === 'manual_note_required') record(receipt.noteHosts, host);
+      const policyDecision = networkPolicyDecision(target, server, variant);
+      if (policyDecision) receipt.networkPolicy.push({ host, ...policyDecision });
       for (const name of variant.credentials) credentialNames.add(name);
     }
     if (hosts.includes('antigravity')) {

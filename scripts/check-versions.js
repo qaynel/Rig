@@ -71,6 +71,34 @@ if (shared && process.env.GITHUB_REF_TYPE === 'tag') {
   }
 }
 
+// Identity guard (RIG-117). A published manifest whose homepage/repository/author
+// URL points at a dead repo sends every customer's "view source"/"report issue"
+// click to the wrong place. The old repo was `vaibhav-kodiyan/agentic-harness-demo`;
+// the real published repo is qaynel/Rig. Fail closed if the stale slug
+// survives anywhere in the shipped manifests or the marketplace entry.
+const STALE_IDENTITY = 'agentic-harness-demo';
+const IDENTITY_FILES = [
+  '.claude-plugin/plugin.json',
+  '.codex-plugin/plugin.json',
+  '.devin-plugin/plugin.json',
+  '.github/plugin/plugin.json',
+  'antigravity-plugin/plugin.json',
+  'gemini-extension.json',
+  '.agents/plugins/marketplace.json',
+];
+for (const relPath of IDENTITY_FILES) {
+  let raw = '';
+  try {
+    raw = fs.readFileSync(path.join(root, relPath), 'utf8');
+  } catch {
+    continue; // a host that doesn't ship this manifest is fine
+  }
+  if (raw.includes(STALE_IDENTITY)) {
+    console.error(`${relPath}: stale repository identity "${STALE_IDENTITY}" — point homepage/repository/author URLs at the real published repo (qaynel/Rig).`);
+    failed = true;
+  }
+}
+
 if (failed) {
   console.error('Align the version fields (see issue #260) so every manifest shares one version.');
   process.exit(1);
@@ -87,4 +115,4 @@ for (const rel of ['scripts/check-ticket-traceability.js', 'scripts/check-raw-re
   if (result.status !== 0) process.exit(result.status || 1);
 }
 
-console.log(`All ${VERSION_FILES.length} version files pinned at ${shared}.`);
+console.log(`All ${VERSION_FILES.length} version files pinned at ${shared}; identity URLs clean across ${IDENTITY_FILES.length} manifests.`);

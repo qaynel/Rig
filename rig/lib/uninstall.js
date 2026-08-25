@@ -1,8 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { RECEIPT_PATH, readReceipt } = require('./receipt');
+const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
+const { removeOpenClawMcp } = require('./openclaw-mcp');
 
 function uninstall(target) {
+  const bestEffort = removeGlobalWrites(target);
   const receipt = readReceipt(target) || { ownedFiles: [], mergedEntries: [] };
   for (const file of receipt.ownedFiles || []) rm(target, file);
   for (const entry of receipt.mergedEntries || []) unmerge(target, entry.file, entry.serverName);
@@ -22,6 +25,35 @@ function uninstall(target) {
     const dir = path.join(target, rel);
     if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
   }
+  return { best_effort: bestEffort };
+}
+
+function removeGlobalWrites(target) {
+  const file = path.join(target, '.rig', 'global-writes.json');
+  if (!fs.existsSync(file)) return [];
+  let ledger;
+  try {
+    ledger = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return ['.rig/global-writes.json'];
+  }
+  const retained = [];
+  for (const entry of ledger.entries || []) {
+    let result = { removed: false };
+    if (entry && typeof entry.path === 'string' && typeof entry.install_id === 'string') {
+      result = entry.kind === 'openclaw-mcp'
+        ? removeOpenClawMcp(target, entry)
+        : entry.kind === 'global-mcp'
+          ? removeGlobalMcp(entry)
+          : entry.kind === undefined || entry.kind === 'json-namespace'
+            ? removeGlobalConfig(entry.path, entry.install_id)
+            : { removed: false };
+    }
+    if (!result.removed) retained.push(entry);
+  }
+  if (retained.length) fs.writeFileSync(file, `${JSON.stringify({ ...ledger, entries: retained }, null, 2)}\n`);
+  else fs.rmSync(file, { force: true });
+  return retained.map((entry) => entry?.path || '.rig/global-writes.json');
 }
 
 function unmerge(target, file, serverName) {
