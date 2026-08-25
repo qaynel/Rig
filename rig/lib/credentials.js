@@ -16,6 +16,7 @@ const CAVEAT = {
   // Tier B: documented project scope exists, but no value-free credential
   // syntax is documented; stay note-only until PD7 flips.
   antigravity: 'The Antigravity CLI may ignore workspace-local `.agents/mcp_config.json` while issue #60 remains open; use ~/.gemini/config/mcp_config.json for this manual setup.',
+  pi: 'MCP is available via an installed pi extension (https://pi.dev/packages/pi-mcp-extension). Rig has no first-party MCP config file it can merge into and does not auto-write extension configuration.',
 };
 const MIGRATION = {
   pi: 'pi supports MCP through the pi-mcp-extension. Rig has no mergeable first-party config file, so any existing .omp/mcp.json was left untouched.',
@@ -72,7 +73,7 @@ function writeMcpSetup(target, receipt) {
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
     if (host === 'antigravity') lines.push('Verify after saving: .rig/bin/rig check --host antigravity');
     if ((receipt.migrationHosts || []).includes(host) || host === 'pi') {
-      lines.push(MIGRATION[host] || `${LABELS[host] || host}: Rig did not modify a pre-existing config file.`);
+      lines.push(MIGRATION[host] || `A pre-existing config file for ${LABELS[host] || host} was left untouched; Rig did not modify it.`);
     }
     const block = lines.join('\n');
     if (!blocks.includes(block)) blocks.push(block);
