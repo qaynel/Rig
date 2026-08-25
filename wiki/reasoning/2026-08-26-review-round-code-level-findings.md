@@ -59,12 +59,15 @@ what the six merged PRs claim to have done, and the evidence now agrees.
 current code:**
 
 - **[[RIG-127]] 127.11 (new, GitHub #69) — uninstall can hard-crash on a corrupted legacy
-  global config.** `removeGlobalConfig()` in `global-writes.js:198-205` calls
-  `readJson()` (raw `JSON.parse`, no try/catch), invoked unguarded from both
-  `lifecycle.js:171` and `uninstall.js:1875`. A corrupted global file throws
-  uncaught mid-uninstall. No test feeds a corrupted global file into an
-  uninstall run, so the now-green suite does not exercise this path. Sibling
-  functions for the same failure mode already catch it; this one doesn't.
+  global config.** `removeGlobalConfig()` in `global-writes.js:198-204` calls
+  `readJson()` at line 200 (raw `JSON.parse`, no try/catch). There is one
+  unguarded call site: `uninstall()` in `lifecycle.js:187`, at line 222;
+  `uninstall.js`'s `uninstall()` only delegates to it, it does not add a
+  second call. A corrupted global file throws uncaught mid-uninstall. No test
+  feeds a corrupted global file into an uninstall run, so the now-green suite
+  does not exercise this path. The sibling function for the same failure mode
+  (`removeGlobalMcp`, `global-writes.js:173-176`) already catches it; this
+  one doesn't.
 - **[[RIG-127]] 127.12 (new, GitHub #70) — legacy pre-RIG-104 managed-block records
   over-strip.** `lifecycle.js:280-286`: a record with no block name falls
   back to a wildcard regex (global flag) matching *any* managed block in the
