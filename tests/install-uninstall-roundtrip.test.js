@@ -7,9 +7,10 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const { runPayload } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
+const { writePlanApproval } = require('./helpers/advanced');
 
 const root = path.join(__dirname, '..');
 const materializer = path.join(root, 'rig', 'materialize.js');
@@ -112,4 +113,49 @@ test('missing OpenClaw tooling does not stop unrelated local removal', () => wit
   assert.equal(result.status, 'best_effort');
   assert.equal(fs.existsSync(local), false);
   assert.ok(result.best_effort.some((entry) => entry.includes('openclaw')));
+}));
+
+test('linked-worktree uninstall restores the original pre-commit hook', () => withTarget((root) => {
+  const main = path.join(root, 'main');
+  const worktree = path.join(root, 'linked');
+  fs.mkdirSync(main);
+  execFileSync('git', ['init'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['config', 'user.email', 'rig-test@example.com'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['config', 'user.name', 'Rig Test'], { cwd: main, stdio: 'pipe' });
+  fs.writeFileSync(path.join(main, 'package.json'), JSON.stringify({
+    name: 'linked-worktree-fixture', private: true, scripts: { 'format:check': 'git diff --check' },
+  }) + '\n');
+  fs.writeFileSync(path.join(main, 'index.js'), 'module.exports = 1;\n');
+  execFileSync('git', ['add', '.'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['commit', '-m', 'fixture'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['worktree', 'add', '-b', 'linked-fixture', worktree], { cwd: main, stdio: 'pipe' });
+
+  const hooks = execFileSync('git', ['rev-parse', '--git-path', 'hooks'], { cwd: worktree, encoding: 'utf8' }).trim();
+  const hook = path.resolve(worktree, hooks, 'pre-commit');
+  const original = '#!/bin/sh\necho user-hook\n';
+  fs.mkdirSync(path.dirname(hook), { recursive: true });
+  fs.writeFileSync(hook, original, { mode: 0o755 });
+
+  const review = path.join(worktree, 'review.json');
+  const selection = path.join(worktree, 'rig.json');
+  const plan = path.join(worktree, 'plan.json');
+  fs.writeFileSync(review, JSON.stringify({
+    schema_version: 1, host: 'codex', harness_digest: 'linked-worktree-fixture', verdict: 'ALLOW',
+    findings: [], restrictions: [], unverifiable: [],
+  }) + '\n');
+  fs.writeFileSync(selection, JSON.stringify({
+    schema_version: 1, services: { 'development.code-quality.lint-format': 'minimal' },
+  }) + '\n');
+  let result = spawnSync(process.execPath, [materializer, 'plan', '--target', worktree, '--manifest', selection, '--review', review, '--out', plan], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const approval = writePlanApproval(worktree, plan);
+  result = spawnSync(process.execPath, [materializer, 'apply', '--target', worktree, '--manifest', selection, '--review', review, '--plan', plan, '--approval', approval], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(fs.readFileSync(hook, 'utf8'), /Rig secret guard shim/);
+  assert.match(fs.readFileSync(path.join(worktree, '.rig', 'install-manifest.jsonl'), 'utf8'), /\.git\/hooks\/pre-commit/);
+
+  result = spawnSync(process.execPath, [materializer, '--target', worktree, '--uninstall'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(fs.readFileSync(hook, 'utf8'), original);
+  assert.equal(fs.existsSync(path.join(path.dirname(hook), 'pre-commit.rig-chained')), false);
 }));

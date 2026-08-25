@@ -24,6 +24,14 @@ real host-native or external-signature boundary; test fixtures isolate that
 separate issuer and do not authorize production code to fabricate a receipt.
 No production code or owner-signed oracle changed in this offboarding pass.
 
+Every pre-v5 ticket in Coding now has a bounded solution packet, an explicit
+`## Acceptance` section, and a committed exact-test reference for each
+observable condition. The pre-v5 gate suite executes every mapped leaf suite,
+so it can turn green only when the whole release-scoped set is green. The
+linked-worktree uninstall regression is included in that set. The focused
+baseline is intentionally red only on unimplemented behavior; no production
+code or owner-signed oracle changed in this completion pass.
+
 ## Owner approved Option A — pre-v5 gate offboarded for a low-reasoning model (2026-08-25)
 
 The owner approved **Option A** of [[RIG-134]]: classify every known finding as
