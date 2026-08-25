@@ -44,9 +44,6 @@ kanban-plugin: board
 - [ ] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
 	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: 127.1–127.8 and 127.10; 127.9 remains fixed · [Solution](tickets/RIG-127.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
 	**Class:** DELIVERABILITY. Public uninstall, retained journals, purge cleanup, corrupt-ledger refusal, empty-file cleanup, and independent local removal are covered by committed red tests.
-- [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
-	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: descriptor parity plus 128.4/128.5; 128.3 internal and 128.6 remain debt · [Solution](tickets/RIG-128.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
-	**Class:** DELIVERABILITY. The red suite covers descriptor parity, invalid-file preservation, JSON5 no-clobber behavior, primitive-path rejection, and idempotent valid merges.
 - [ ] **RIG-129 — Host-capability citation & claim-accuracy audit**
 	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: 129.1 only; 129.2–129.4 remain debt · [Solution](tickets/RIG-129.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
 	**Class:** DOCUMENTATION/EVIDENCE. The red claim-integrity suite requires pi guidance to name the extension path without claiming that MCP is unsupported or creating a configuration Rig cannot safely manage.
@@ -54,6 +51,9 @@ kanban-plugin: board
 
 ## Ready for Commit
 
+- [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
+	**Status:** READY FOR COMMIT (2026-08-25) — observable scope implemented; named tests green · [Solution](tickets/RIG-128.md)
+	**Done:** Emitted descriptors now match the interpreted write contract (Antigravity manual global, CodeWhale repo redirect, pi unsupported). Repo merge writer fail-closes on invalid JSON, JSON5, and primitive dotted paths — user bytes stay identical. Named green tests: `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract` (plus three host-specific cases) and `tests/repo-mcp-write-safety.test.js` (invalid-file, JSON5, primitive-path, valid idempotent merge). 128.3 internal and 128.6 remain debt.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** READY FOR COMMIT (2026-08-25) — implemented, not yet committed · [Solution](tickets/RIG-124.md)
 	**Done:** `review-receipt.js` enforces a one-re-review cap per author-context itself, gains a cheap-model `--interim` mode that never writes the binding receipt, and stays release-only; `rig-tdd`'s inner loop is `npm run test:rig`/a single test file with the full gate once before push; `routing.md`/`CLAUDE.md` add a lightweight path for single-step, single-file, non-wiki-truth-changing tasks. No re-sign needed (neither touched file is in the Gate 1 manifest). Full gate green: 434 root / 15 pi-extension / 6 rig-mcp.
