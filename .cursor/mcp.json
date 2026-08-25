@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rig": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["rig-mcp/index.js"]
+    }
+  }
+}

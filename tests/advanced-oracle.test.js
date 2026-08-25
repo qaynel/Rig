@@ -457,6 +457,135 @@ test('AT-HOME-1 global writes append and disclose the exact path', () => {
   });
 });
 
+test('AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible', { timeout: 30000 }, () => {
+  h.withTempDir('rig-openclaw-', (fixture) => {
+    const root = path.join(__dirname, '..');
+    const staging = path.join(fixture, 'staging', 'Rig-v5.0.0');
+    const archive = path.join(fixture, 'rig-v5.0.0.tar.gz');
+    const bin = path.join(fixture, 'bin');
+    const home = path.join(fixture, 'home');
+    const target = path.join(fixture, 'repository');
+    const downloadLog = path.join(fixture, 'download.log');
+    const npmLog = path.join(fixture, 'npm.log');
+    const openclawLog = path.join(fixture, 'openclaw.log');
+    const config = path.join(home, '.openclaw', 'openclaw.json');
+
+    fs.mkdirSync(staging, { recursive: true });
+    for (const rel of ['rig', '.agents', '.claude', 'skills']) {
+      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true });
+    }
+    fs.cpSync(path.join(root, 'rig-mcp'), path.join(staging, 'rig-mcp'), {
+      recursive: true,
+      filter(source) { return path.basename(source) !== 'node_modules'; },
+    });
+    fs.mkdirSync(path.dirname(config), { recursive: true });
+    fs.writeFileSync(config, JSON.stringify({ user: true, mcp: { servers: { keep: { command: 'keep' } } } }, null, 2) + '\n');
+    const before = fs.readFileSync(config, 'utf8');
+    fs.mkdirSync(bin);
+    fs.mkdirSync(target);
+
+    const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(staging), path.basename(staging)], { encoding: 'utf8' });
+    assert.equal(packed.status, 0, packed.stderr);
+    fs.writeFileSync(path.join(bin, 'curl'), [
+      '#!/bin/sh',
+      'printf "%s\\n" "$*" >> "$RIG_TEST_DOWNLOAD_LOG"',
+      'while [ "$#" -gt 0 ]; do',
+      '  if [ "$1" = "-o" ]; then cp "$RIG_TEST_ARCHIVE" "$2"; exit 0; fi',
+      '  shift',
+      'done',
+      'exit 1',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), [
+      '#!/bin/sh',
+      'printf "%s\\n" "$*" >> "$RIG_TEST_NPM_LOG"',
+      'dest=$PWD',
+      'while [ "$#" -gt 0 ]; do',
+      '  if [ "$1" = "--prefix" ]; then dest=$2; shift 2; continue; fi',
+      '  shift',
+      'done',
+      'mkdir -p "$dest"',
+      'cp -R "$RIG_TEST_MCP_NODE_MODULES" "$dest/node_modules"',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'openclaw'), [
+      '#!/usr/bin/env node',
+      "const fs = require('node:fs');",
+      "const path = require('node:path');",
+      'const [, , group, action, name, value] = process.argv;',
+      "if (group !== 'mcp' || !['show', 'set', 'unset'].includes(action)) process.exit(2);",
+      "const file = process.env.OPENCLAW_CONFIG_PATH || path.join(process.env.HOME, '.openclaw', 'openclaw.json');",
+      "const config = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};",
+      'config.mcp ??= {}; config.mcp.servers ??= {};',
+      "if (action === 'show' && name === '--json') { process.stdout.write(JSON.stringify(config.mcp.servers)); process.exit(0); }",
+      "if (action === 'set') config.mcp.servers[name] = JSON.parse(value);",
+      "else if (action === 'unset') delete config.mcp.servers[name];",
+      'else process.exit(2);',
+      "fs.mkdirSync(path.dirname(file), { recursive: true });",
+      "fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\\n');",
+      "fs.appendFileSync(process.env.RIG_TEST_OPENCLAW_LOG, JSON.stringify({ action, name }) + '\\n');",
+      '',
+    ].join('\n'), { mode: 0o755 });
+
+    const env = {
+      ...process.env,
+      HOME: home,
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      RIG_TEST_ARCHIVE: archive,
+      RIG_TEST_DOWNLOAD_LOG: downloadLog,
+      RIG_TEST_NPM_LOG: npmLog,
+      RIG_TEST_OPENCLAW_LOG: openclawLog,
+      RIG_TEST_MCP_NODE_MODULES: path.join(root, 'rig-mcp', 'node_modules'),
+    };
+    const installer = path.join(root, 'install.sh');
+    const normal = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target], { encoding: 'utf8', env });
+    assert.equal(normal.status, 0, normal.stderr);
+    assert.equal(fs.readFileSync(config, 'utf8'), before, 'the default install leaves OpenClaw untouched');
+    assert.equal(fs.existsSync(openclawLog), false, 'the default install never invokes OpenClaw');
+    assert.equal(fs.existsSync(npmLog), false, 'the default install does not require npm');
+
+    const optedIn = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target, '--openclaw-mcp'], { encoding: 'utf8', env });
+    assert.equal(optedIn.status, 0, optedIn.stderr);
+    assert.match(optedIn.stdout, /global.*OpenClaw|OpenClaw.*global/i, 'the global blast radius is disclosed');
+    assert.match(optedIn.stdout, /\.openclaw\/openclaw\.json/, 'the global file is named before writing it');
+    assert.match(fs.readFileSync(npmLog, 'utf8'), /\bci\b/, 'the bundled runtime installs from its lockfile');
+    const global = JSON.parse(fs.readFileSync(config, 'utf8'));
+    const names = Object.keys(global.mcp.servers).filter((name) => name.startsWith('rig-'));
+    assert.equal(names.length, 1, 'the installation owns exactly one namespaced OpenClaw server');
+    const server = global.mcp.servers[names[0]];
+    assert.equal(server.command, 'node');
+    assert.deepEqual(server.args, [path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')]);
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')), 'the configured runtime is installed');
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig-mcp', 'package-lock.json')), 'the configured runtime carries its dependency lockfile');
+
+    const client = path.join(target, '.rig', 'runtime', 'rig-mcp', 'probe.mjs');
+    fs.writeFileSync(client, [
+      'import assert from "node:assert/strict";',
+      'import { Client } from "@modelcontextprotocol/sdk/client/index.js";',
+      'import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";',
+      'const transport = new StdioClientTransport({ command: "node", args: [process.argv[2]] });',
+      'const client = new Client({ name: "rig-install-test", version: "0.0.0" });',
+      'await client.connect(transport);',
+      'const result = await client.callTool({ name: "rig_instructions", arguments: { mode: "full" } });',
+      'assert.ok(result.content[0].text.length > 0);',
+      'await client.close();',
+      '',
+    ].join('\n'));
+    const probe = spawnSync(process.execPath, [client, path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')], { encoding: 'utf8', env });
+    assert.equal(probe.status, 0, probe.stderr);
+
+    const reinstall = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target, '--openclaw-mcp'], { encoding: 'utf8', env });
+    assert.equal(reinstall.status, 0, reinstall.stderr);
+    assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(config, 'utf8')).mcp.servers).filter((name) => name.startsWith('rig-')), names, 'reinstall replaces in place');
+
+    const uninstall = spawnSync(process.execPath, [path.join(target, '.rig', 'runtime', 'rig', 'materialize.js'), 'uninstall', '--target', target], { encoding: 'utf8', env });
+    assert.equal(uninstall.status, 0, uninstall.stderr);
+    const after = JSON.parse(fs.readFileSync(config, 'utf8'));
+    assert.deepEqual(after.mcp.servers, { keep: { command: 'keep' } }, 'uninstall removes only the owned OpenClaw server');
+    assert.ok(fs.readFileSync(openclawLog, 'utf8').includes('"unset"'), 'uninstall delegates removal to OpenClaw before deleting the runtime');
+  });
+});
+
 test('AT-HOME-2 global entries are attributed per repository', () => {
   const merge = api('global-writes.js', 'mergeGlobalConfig');
   const remove = api('global-writes.js', 'removeGlobalConfig');

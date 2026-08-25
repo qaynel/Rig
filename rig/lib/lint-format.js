@@ -7,14 +7,16 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { containedPath } = require('./path-safety');
 
-const ECOSYSTEM_SIGNALS = [
-  { name: 'package.json', ecosystem: 'js' },
-  { name: 'pnpm-lock.yaml', ecosystem: 'js' },
-  { name: 'pyproject.toml', ecosystem: 'python' },
-  { name: 'ruff.toml', ecosystem: 'python' },
-  { name: 'Cargo.toml', ecosystem: 'rust' },
-  { name: 'go.mod', ecosystem: 'go' },
-];
+const ECOSYSTEM_SIGNALS = new Map([
+  ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
+  ['pyproject.toml', 'python'], ['setup.cfg', 'python'], ['tox.ini', 'python'], ['ruff.toml', 'python'],
+  ['Cargo.toml', 'rust'], ['rustfmt.toml', 'rust'], ['go.mod', 'go'],
+  ['Gemfile', 'ruby'], ['composer.json', 'php'], ['mix.exs', 'elixir'],
+]);
+
+const TASK_FILES = new Set(['Makefile', 'makefile', 'justfile', 'Justfile']);
+const TOOL_CONFIG = /^(?:\.eslintrc(?:\..+)?|eslint\.config\..+|\.prettierrc(?:\..+)?|prettier\.config\..+|biome\.jsonc?|dprint\.jsonc?|\.rubocop\.ya?ml)$/i;
+const SKIP_DIRS = new Set(['.git', '.rig', 'node_modules']);
 
 const KNOWN_LINTERS = /(eslint|biome|pylint|flake8|ruff|golangci-lint|rubocop|standard)/i;
 const KNOWN_FORMATTERS = /(prettier|black|gofmt|rustfmt|dprint)/i;
@@ -23,43 +25,80 @@ function digest(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 }
 
-function walkDirs(root, target, out, depth = 0) {
-  if (depth > 6) return;
+function fallbackFiles(target, root = '', out = []) {
   const abs = path.join(target, root);
-  if (!fs.existsSync(abs)) return;
-  const entries = fs.readdirSync(abs, { withFileTypes: true });
-  const signals = [];
-  let ecosystem = null;
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    const match = ECOSYSTEM_SIGNALS.find((sig) => sig.name === entry.name);
-    if (match) {
-      signals.push(entry.name);
-      ecosystem = match.ecosystem;
-      continue;
-    }
-    if (/\.(conf|toml|yaml|yml|json)$/i.test(entry.name)) {
-      try {
-        const body = fs.readFileSync(path.join(abs, entry.name), 'utf8');
-        if (/role\s*=\s*(formatter|linter)/i.test(body)) {
-          signals.push(entry.name);
-          ecosystem = ecosystem || 'unknown';
-        }
-      } catch { /* ignore */ }
-    }
+  if (!fs.existsSync(abs)) return out;
+  for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+    if (SKIP_DIRS.has(entry.name)) continue;
+    const rel = path.join(root, entry.name);
+    if (entry.isDirectory()) fallbackFiles(target, rel, out);
+    else if (entry.isFile()) out.push(rel);
   }
-  if (signals.length) out.push({ root: root || '.', ecosystem, signals });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    if (entry.name === 'node_modules' || entry.name === '.git') continue;
-    walkDirs(path.join(root, entry.name), target, out, depth + 1);
-  }
+  return out;
+}
+
+function repositoryFiles(target) {
+  const result = spawnSync('git', ['-C', target, 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
+    encoding: 'buffer',
+    shell: false,
+  });
+  const files = result.status === 0
+    ? result.stdout.toString('utf8').split('\0').filter(Boolean)
+    : fallbackFiles(target);
+  return files
+    .filter((rel) => !rel.split(path.sep).some((part) => SKIP_DIRS.has(part)))
+    .sort();
+}
+
+function readText(target, rel) {
+  try { return fs.readFileSync(path.join(target, rel), 'utf8'); } catch { return ''; }
+}
+
+function isComponentSignal(target, rel) {
+  const name = path.basename(rel);
+  if (ECOSYSTEM_SIGNALS.has(name) || TASK_FILES.has(name) || TOOL_CONFIG.test(name)) return true;
+  return /\.(?:conf|toml|ya?ml|json)$/i.test(name) && /\brole\s*=\s*(?:formatter|linter)\b/i.test(readText(target, rel));
+}
+
+function ignoreMetadata(target, root, files) {
+  const localNames = new Set(['.gitignore', '.ignore', '.eslintignore', '.prettierignore']);
+  const parts = root === '.' ? [] : root.split(path.sep);
+  const dirs = ['.'];
+  for (let i = 1; i <= parts.length; i += 1) dirs.push(parts.slice(0, i).join(path.sep));
+  const ignoreFiles = files.filter((rel) => {
+    const dir = path.dirname(rel) || '.';
+    return localNames.has(path.basename(rel)) && dirs.includes(dir);
+  });
+  const ignores = ignoreFiles.flatMap((rel) => readText(target, rel)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#')));
+  return { ignore_files: ignoreFiles, ignores: [...new Set(ignores)] };
 }
 
 function discoverComponents(target) {
-  const out = [];
-  walkDirs('', target, out);
-  return out;
+  const files = repositoryFiles(target);
+  const byRoot = new Map();
+  for (const rel of files) {
+    if (!isComponentSignal(target, rel)) continue;
+    const root = path.dirname(rel) || '.';
+    const signal = path.basename(rel);
+    const current = byRoot.get(root) || { root, ecosystems: new Set(), signals: [] };
+    current.signals.push(signal);
+    current.ecosystems.add(ECOSYSTEM_SIGNALS.get(signal) || 'unknown');
+    byRoot.set(root, current);
+  }
+  return [...byRoot.values()].map((component) => {
+    const ecosystems = [...component.ecosystems].filter((item) => item !== 'unknown').sort();
+    const ecosystem = ecosystems.length ? ecosystems.join('+') : 'unknown';
+    return {
+      root: component.root,
+      ecosystem,
+      ecosystems: ecosystems.length ? ecosystems : ['unknown'],
+      signals: component.signals.sort(),
+      ...ignoreMetadata(target, component.root, files),
+    };
+  }).sort((a, b) => a.root === '.' ? -1 : b.root === '.' ? 1 : a.root.localeCompare(b.root));
 }
 
 function recommendTooling({ tools, roles }) {
@@ -112,50 +151,174 @@ function discoverCommands({ scripts }) {
   return { roles };
 }
 
-// A component leaf binds to conventional package scripts, not tool-name
-// heuristics: `format:check` is the read-only formatter verifier, `format` is
-// the explicit (mutating) fix, and `lint` is the linter. Keeping these three
-// role→script names distinct is what lets the installed check stay read-only
-// while the maximal grade still records a real fix command. discoverCommands()
-// stays as the frozen semantic-discovery oracle (AT-LF-3) and is deliberately
-// not reused here.
-const ROLE_SCRIPT = { format_check: 'format:check', format: 'format', lint: 'lint' };
+function taskRoles(name, body) {
+  const text = `${name} ${body}`;
+  const mutating = /(?:--write|--fix\b|--apply\b|\b(?:fix|repair|write)(?::|-|_|\b))/i.test(text);
+  const readOnly = /(?:--check\b|--list-different\b|\bdiff\s+--check\b|\b(?:check|guard|verify|validate)(?::|-|_|\b))/i.test(text);
+  const formatter = KNOWN_FORMATTERS.test(text) || /\b(?:ruff\s+format|biome\s+(?:check|format))\b/i.test(text) || /(?:^|[:_-])(?:format|fmt|style)(?=$|[:_-])/i.test(name);
+  const formatOnly = /\b(?:ruff|biome)\s+format\b/i.test(text);
+  const linter = !formatOnly && (KNOWN_LINTERS.test(text) || /(?:^|[:_-])(?:lint|quality)(?=$|[:_-])/i.test(name));
+  const roles = [];
+  if (formatter && mutating) roles.push('format');
+  else if (formatter && readOnly) roles.push('format_check');
+  else if (formatter) roles.push('format');
+  if (linter && !mutating) roles.push('lint');
+  return roles;
+}
 
-function commandForRole(target, component, role) {
-  const script = ROLE_SCRIPT[role];
-  const manifest = path.join(component.root, 'package.json');
-  const abs = path.join(target, manifest);
-  if (component.ecosystem !== 'js' || !fs.existsSync(abs)) {
-    return { coverage_gap: `${component.root}: ${script} task missing` };
+function packageRunner(target, component, pkg) {
+  const declared = typeof pkg.packageManager === 'string' ? pkg.packageManager.split('@')[0] : '';
+  if (['pnpm', 'yarn', 'bun'].includes(declared)) return declared;
+  if (component.signals.includes('pnpm-lock.yaml')) return 'pnpm';
+  if (component.signals.includes('yarn.lock')) return 'yarn';
+  return 'npm';
+}
+
+function addCandidate(candidates, role, argv, component, source) {
+  const item = { argv, cwd: component.root, source };
+  if (!candidates[role].some((entry) => JSON.stringify(entry.argv) === JSON.stringify(argv))) {
+    candidates[role].push(item);
   }
-  let scripts;
-  try {
-    scripts = JSON.parse(fs.readFileSync(abs, 'utf8')).scripts || {};
-  } catch (error) {
-    return { coverage_gap: `${manifest}: ${error.message}` };
+}
+
+function declaredTaskCandidates(target, component, candidates) {
+  const packageRel = path.join(component.root, 'package.json');
+  if (component.signals.includes('package.json')) {
+    let pkg;
+    try { pkg = JSON.parse(readText(target, packageRel)); }
+    catch (error) { return `${packageRel}: ${error.message}`; }
+    const runner = packageRunner(target, component, pkg);
+    for (const [name, body] of Object.entries(pkg.scripts || {})) {
+      const argv = runner === 'npm' ? ['npm', 'run', '--silent', name] : [runner, 'run', name];
+      for (const role of taskRoles(name, String(body))) addCandidate(candidates, role, argv, component, `${packageRel}#scripts.${name}`);
+    }
   }
-  if (!scripts[script]) {
-    return { coverage_gap: `${component.root}: ${script} task missing` };
+
+  for (const signal of component.signals.filter((name) => TASK_FILES.has(name))) {
+    const rel = path.join(component.root, signal);
+    const lines = readText(target, rel).split(/\r?\n/);
+    for (let i = 0; i < lines.length; i += 1) {
+      const match = lines[i].match(/^([A-Za-z0-9_.:-]+)\s*:(?![=])(.*)$/);
+      if (!match) continue;
+      const body = [match[2]];
+      while (i + 1 < lines.length && /^\s+/.test(lines[i + 1])) body.push(lines[++i]);
+      for (const role of taskRoles(match[1], body.join('\n'))) {
+        const runner = /justfile/i.test(signal) ? 'just' : 'make';
+        addCandidate(candidates, role, [runner, match[1]], component, `${rel}#${match[1]}`);
+      }
+    }
   }
-  return { argv: ['npm', 'run', '--silent', script], cwd: component.root };
+  return null;
+}
+
+function configuredToolCandidates(target, component, candidates) {
+  const signalSet = new Set(component.signals);
+  const declared = Object.fromEntries(Object.entries(candidates).map(([role, items]) => [role, items.length > 0]));
+  const sourceFor = (predicate) => component.signals.find(predicate);
+  const addConfigured = (role, argv, signal) => {
+    if (!declared[role] && signal) addCandidate(candidates, role, argv, component, path.join(component.root, signal));
+  };
+  const ruff = sourceFor((name) => name === 'ruff.toml' || (name === 'pyproject.toml' && /\[tool\.ruff(?:\.|\])/i.test(readText(target, path.join(component.root, name)))));
+  addConfigured('format_check', ['ruff', 'format', '--check', '.'], ruff);
+  addConfigured('format', ['ruff', 'format', '.'], ruff);
+  addConfigured('lint', ['ruff', 'check', '.'], ruff);
+
+  const prettier = sourceFor((name) => /prettier/i.test(name));
+  addConfigured('format_check', ['npx', '--no-install', 'prettier', '--check', '.'], prettier);
+  addConfigured('format', ['npx', '--no-install', 'prettier', '--write', '.'], prettier);
+  const eslint = sourceFor((name) => /eslint/i.test(name));
+  addConfigured('lint', ['npx', '--no-install', 'eslint', '.'], eslint);
+  const biome = sourceFor((name) => /^biome\.jsonc?$/i.test(name));
+  addConfigured('format_check', ['npx', '--no-install', 'biome', 'format', '.'], biome);
+  addConfigured('format', ['npx', '--no-install', 'biome', 'format', '--write', '.'], biome);
+  addConfigured('lint', ['npx', '--no-install', 'biome', 'lint', '.'], biome);
+  const dprint = sourceFor((name) => /^dprint\.jsonc?$/i.test(name));
+  addConfigured('format_check', ['dprint', 'check'], dprint);
+  addConfigured('format', ['dprint', 'fmt'], dprint);
+
+  if (signalSet.has('Cargo.toml')) {
+    addConfigured('format_check', ['cargo', 'fmt', '--check'], 'Cargo.toml');
+    addConfigured('format', ['cargo', 'fmt'], 'Cargo.toml');
+    addConfigured('lint', ['cargo', 'clippy', '--all-targets', '--all-features', '--', '-D', 'warnings'], 'Cargo.toml');
+  }
+  if (signalSet.has('go.mod')) addConfigured('lint', ['go', 'vet', './...'], 'go.mod');
+  const rubocop = sourceFor((name) => /^\.rubocop\.ya?ml$/i.test(name));
+  addConfigured('lint', ['bundle', 'exec', 'rubocop'], rubocop);
+
+  for (const signal of component.signals) {
+    const rel = path.join(component.root, signal);
+    const body = readText(target, rel);
+    if (!/\brole\s*=\s*(?:formatter|linter)\b/i.test(body)) continue;
+    const command = body.match(/^\s*command\s*=\s*(\[[^\n]+\])\s*$/mi);
+    if (!command) continue;
+    let argv;
+    try { argv = JSON.parse(command[1]); } catch { continue; }
+    if (!Array.isArray(argv) || !argv.length || argv.some((part) => typeof part !== 'string' || !part)) continue;
+    const declaredRole = body.match(/\brole\s*=\s*(formatter|linter)\b/i)[1].toLowerCase();
+    const roles = declaredRole === 'linter'
+      ? ['lint']
+      : /(?:--check\b|--list-different\b|\bdiff\s+--check\b)/i.test(argv.join(' '))
+        ? ['format_check']
+        : ['format'];
+    for (const role of roles) addCandidate(candidates, role, argv, component, rel);
+  }
+}
+
+function resolveCandidate(component, role, candidates, error) {
+  if (error) return { coverage_gap: error };
+  const items = candidates[role].sort((a, b) => a.argv.join('\0').localeCompare(b.argv.join('\0')));
+  if (!items.length) {
+    const label = role === 'format_check' ? 'format:check task missing (no runnable formatter check)' : `${role} task missing`;
+    return { coverage_gap: `${component.root}: ${label}` };
+  }
+  if (items.length === 1) return { ...items[0], ignores: component.ignores };
+  return { status: 'needs_user_choice', options: items.map((item) => ({ ...item, ignores: component.ignores })) };
+}
+
+function requiredRoles(grade) {
+  return ['format_check', ...(grade === 'mid' || grade === 'maximal' ? ['lint'] : []), ...(grade === 'maximal' ? ['format'] : [])];
+}
+
+function bindComponent(target, component, grade) {
+  const candidates = { format_check: [], format: [], lint: [] };
+  const error = declaredTaskCandidates(target, component, candidates);
+  configuredToolCandidates(target, component, candidates);
+  const bound = {
+    format_check: resolveCandidate(component, 'format_check', candidates, error),
+    format: resolveCandidate(component, 'format', candidates, error),
+    lint: resolveCandidate(component, 'lint', candidates, error),
+  };
+  const missing = requiredRoles(grade).filter((role) => bound[role].coverage_gap);
+  return {
+    ...component,
+    id: component.root,
+    cwd: component.root,
+    ...bound,
+    ...(missing.length ? {
+      excluded: true,
+      exclusion_reason: missing.map((role) => bound[role].coverage_gap).join('; '),
+    } : {}),
+  };
 }
 
 function buildBinding(target, grade, ci = null) {
   const components = discoverComponents(target).map((component) => {
-    const manifest = path.join(component.root, component.signals.find((signal) => signal === 'package.json') || component.signals[0]);
-    const abs = path.join(target, manifest);
+    const sourcePaths = [...component.signals.map((signal) => path.join(component.root, signal)), ...component.ignore_files];
+    const sources = [...new Set(sourcePaths)].map((source) => ({ path: source, digest: digest(fs.readFileSync(path.join(target, source))) }));
+    const manifest = sources[0]?.path || null;
     return {
-      id: component.root,
-      ...component,
+      ...bindComponent(target, component, grade),
       manifest,
-      manifest_digest: fs.existsSync(abs) ? digest(fs.readFileSync(abs)) : null,
-      format_check: commandForRole(target, component, 'format_check'),
-      format: commandForRole(target, component, 'format'),
-      lint: commandForRole(target, component, 'lint'),
+      manifest_digest: sources[0]?.digest || null,
+      sources,
     };
   });
   const commands = (role) => components.map((component) => component[role]);
-  const gaps = (role) => commands(role).filter((entry) => entry.coverage_gap).map((entry) => entry.coverage_gap);
+  const gaps = (role) => commands(role).flatMap((entry) => entry.coverage_gap
+    ? [entry.coverage_gap]
+    : entry.status === 'needs_user_choice'
+      ? [`user choice required: ${entry.options.map((option) => option.argv.join(' ')).join(', ')}`]
+      : []);
   const checks = {
     'lint-format-formatter-clean': gaps('format_check').length
       ? { coverage_gap: gaps('format_check').join('; ') }
@@ -172,21 +335,41 @@ function buildBinding(target, grade, ci = null) {
       ? { required_paths: [ci.artifact.relativePath], fix: rootFormat.argv }
       : { coverage_gap: ci?.artifact ? 'root component has no explicit formatter task' : 'no approved CI adapter was emitted' };
   }
+  const unresolved = components.some((component) => component.excluded || requiredRoles(grade)
+    .some((role) => component[role].status === 'needs_user_choice'));
+  const unprotected = components.filter((component) => component.excluded).map((component) => component.id);
   return {
     disposition: 'executable',
     engine: 'component-lint-format-v1',
     grade,
     components,
     checks,
+    unprotected,
+    coverage: {
+      whole_repository: components.length > 0 && !unresolved,
+    },
+    support_claim: {
+      whole_repository: components.length > 0 && !unresolved ? 'pending_evidence' : 'suppressed',
+      unprotected,
+    },
   };
 }
 
 function validateBindingSources(target, binding) {
   for (const component of binding?.components || []) {
-    const abs = containedPath(target, component.manifest);
-    const current = fs.existsSync(abs) ? digest(fs.readFileSync(abs)) : null;
-    if (current !== component.manifest_digest) {
-      throw new Error(`lint-format: command source drift at ${component.manifest}`);
+    for (const role of requiredRoles(binding.grade)) {
+      if (component[role]?.status === 'needs_user_choice') {
+        const options = component[role].options.map((option) => option.argv.join(' ')).join(', ');
+        throw new Error(`lint-format: user choice required for ${component.id} ${role}: ${options}`);
+      }
+    }
+    const sources = component.sources || [{ path: component.manifest, digest: component.manifest_digest }];
+    for (const source of sources) {
+      const abs = containedPath(target, source.path);
+      const current = fs.existsSync(abs) ? digest(fs.readFileSync(abs)) : null;
+      if (current !== source.digest) {
+        throw new Error(`lint-format: command source drift at ${source.path}`);
+      }
     }
   }
   return true;

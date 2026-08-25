@@ -50,6 +50,7 @@ function isLitter(srcAbs) {
 
 function copyTree(target, srcAbs, dstRel, writeFile, transform, filter) {
   const stat = fs.statSync(srcAbs);
+  if (path.basename(srcAbs) === 'node_modules') return;
   if (stat.isDirectory()) {
     for (const entry of fs.readdirSync(srcAbs)) {
       copyTree(target, path.join(srcAbs, entry), path.join(dstRel, entry), writeFile, transform, filter);
@@ -209,7 +210,7 @@ function hostSelected(entryHost, selected) {
   return hosts.some((host) => selected.includes(host));
 }
 
-function runPayload(target, hosts, { releaseTag, activeDelivery = false } = {}) {
+function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPayload = null } = {}) {
   const hostEntries = hosts === undefined
     ? discoverHosts(target)
     : [...new Set(hosts)].map((id) => {
@@ -234,6 +235,7 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false } = {}) 
   if (releaseTag) {
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag }, null, 2)}\n`);
   }
+  if (afterPayload) afterPayload({ writeFile });
   writeFile.finish();
   return { hosts: hostEntries, writes: writeFile.appliedCount() - writesBefore };
 }

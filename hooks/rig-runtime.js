@@ -32,9 +32,12 @@ function readMode() {
 
 function writeHookOutput(event, mode, context = '') {
   if (isCopilot) {
-    // Copilot reads additionalContext on SessionStart; ignores output elsewhere.
+    // Copilot's subagentStart hook takes the identical top-level additionalContext
+    // shape as sessionStart (docs.github.com/en/copilot/reference/hooks-reference);
+    // every other event ignores hook output.
+    const injectable = event === 'SessionStart' || event === 'SubagentStart';
     process.stdout.write(JSON.stringify(
-      event === 'SessionStart' && context ? { additionalContext: context } : {}));
+      injectable && context ? { additionalContext: context } : {}));
     return;
   }
   if (isCodex) {

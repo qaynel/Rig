@@ -34,6 +34,16 @@ harness: it lands in the repository, evaluates what is already there, and
 complements that setup with delivered Rig tools rather than trying to become a
 parallel infrastructure stack. [Packaged harness clarification](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
 
+A later office-hours session tested this identity against a candidate fork
+(DeepSeek Harness, "DSH") — a full agent-runtime host, the opposite category
+from Rig's config-only doctrine layer. The resolution: Rig's moat is the
+adaptation-onto-existing-infra engine, not any instruction set, and a DSH-style
+shell may be adopted only as an optional, frozen, tier-1-only delivery medium
+for the no-host segment — reach, not moat — never chased upstream.
+[`GA-36`](../index/decisions.md) [DSH envy and the audience fork](../reasoning/2026-08-23-dsh-envy-and-the-audience-fork.md)
+[DSH routes to models, not hosts](../reasoning/2026-08-23-dsh-routes-to-models-not-hosts.md)
+[DSH is a delivery medium, not the moat](../reasoning/2026-08-23-dsh-delivery-medium-not-moat.md)
+
 ## What binds it
 
 The binding rulings are `G1`–`G6`, `G10`, `GA-1`, `GA-2`, `GA-9g`, `GA-17`,
@@ -61,6 +71,7 @@ taxonomy remains only as historical evidence and compatibility context.
 - Packaged forward-deployed harness clarification: [reasoning trace](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
 - Beta safety posture: [reasoning trace](../reasoning/2026-08-23-beta-safety-posture.md)
 - Universal capability model, lint-format first: [reasoning trace](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
+- DSH audience-fork question, opened then resolved: [envy and the fork](../reasoning/2026-08-23-dsh-envy-and-the-audience-fork.md), [DSH routes to models not hosts](../reasoning/2026-08-23-dsh-routes-to-models-not-hosts.md), [delivery medium not moat](../reasoning/2026-08-23-dsh-delivery-medium-not-moat.md)
 
 ## What is still open
 
@@ -68,6 +79,13 @@ The product identity, broad Policy delivery, and plan-time model-assisted
 secret-triage disclosure are implemented. Production release still needs fresh
 independent review evidence over the final PR bytes and explicit tag
 publication. [Current status](../status.md)
+
+The audience-fork question (whether to widen reach with a DSH-derived shell) is
+closed as `GA-36`: adaptation quality is the moat and is still unproven, and a
+DSH shell is at most an optional, frozen, tier-1 reach play. What remains open
+is proof, not architecture — whether Rig's merge-not-overwrite pass on a real
+repository actually produces a better result, and whether anyone wants to
+install it.
 
 Rig's universal service-depth method is Policy → Context → Evidence: govern,
 understand, then prove the change, while using the lowest level that can reach a

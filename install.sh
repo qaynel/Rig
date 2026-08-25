@@ -8,10 +8,11 @@ set -eu
 REPO="${RIG_REPO:-qaynel/Rig}"
 VERSION="latest"
 TARGET_DIR="${PWD}"
+OPENCLAW_MCP=0
 
 usage() {
   cat <<'EOF'
-Usage: install.sh [--version <tag>] [--target <path>]
+Usage: install.sh [--version <tag>] [--target <path>] [--openclaw-mcp]
 
 Resolves the requested release tag (or "latest") from GitHub, downloads the
 released tarball locally, and runs the bundled bootstrap. The remote payload
@@ -20,6 +21,7 @@ is written to disk before any script executes.
 Options:
   --version <tag>   Install a specific release (default: latest)
   --target <path>   Repository to install into (default: current directory)
+  --openclaw-mcp    Register rig-mcp in OpenClaw's global MCP config
   -h, --help        Show this message
 
 Environment:
@@ -48,6 +50,10 @@ while [ $# -gt 0 ]; do
       require_value "$1" "${2:-}"
       TARGET_DIR="$2"
       shift 2
+      ;;
+    --openclaw-mcp)
+      OPENCLAW_MCP=1
+      shift
       ;;
     -h|--help)
       usage
@@ -125,4 +131,8 @@ if [ ! -x "${SRC_DIR}/rig/bootstrap.sh" ]; then
   exit 1
 fi
 
-RIG_RELEASE_TAG="$TAG" exec "${SRC_DIR}/rig/bootstrap.sh" --target "$TARGET_DIR" --with-runtime
+set -- "${SRC_DIR}/rig/bootstrap.sh" --target "$TARGET_DIR" --with-runtime
+if [ "$OPENCLAW_MCP" = 1 ]; then
+  set -- "$@" --openclaw-mcp
+fi
+RIG_RELEASE_TAG="$TAG" exec "$@"

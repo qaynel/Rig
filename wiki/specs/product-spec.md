@@ -60,13 +60,13 @@ content, a secret-pattern scan over every installed file, and `.env` absence.
 |---|---|---|
 | Install requires a local Rig checkout — the "pull from a pinned source" half of model C (#1) doesn't exist | `bootstrap.sh` resolves `SOURCE_ROOT` from its own path; README says "From this checkout" | S1 |
 | No Rig release exists; tags v1.0.0–v4.8.0 and `package.json` 4.8.4 are ponytail history | `git tag`; `package.json` | S1 |
-| `publish.yml` npm-publishes on any `v*` tag but the package is now `"private": true` — the next tag fails CI | `.github/workflows/publish.yml`; `package.json:4` | S1 |
-| CI gates pushes to `main`, but the default branch is `master` — direct pushes are ungated | `.github/workflows/test.yml`; `origin/HEAD` | S1 |
+| ~~`publish.yml` npm-publishes on any `v*` tag but the package is now `"private": true`~~ **Resolved 2026-08-24:** `publish.yml` is deleted; only `test.yml` remains. | `.github/workflows/` | S1 |
+| ~~CI gates pushes to `main`, but the default branch is `master`~~ **Resolved 2026-08-24:** `test.yml` runs on `branches: ['**']`, so every branch is gated. | `.github/workflows/test.yml` | S1 |
 | No manifest, materializer, or sync/check (deliberate Tier 1 bound, G3) | `rig/bootstrap.sh` comment | S2–S3 |
 | No credential wiring, `.env.example` generation, or gitignore management (Tier 1 forbids it) | test asserts `.env*` absent | S4 |
 | Zero enforcing entries — #13's hard gate and the debug freeze hook are prose-only everywhere today | `rig/tier-1/routing.md` "best-effort on both supported hosts" | S5 |
 | Curation proof point (G1a) recommended, never run; grafts shipped on the unproven thesis | `../sources/logs/grill-decisions.md` G1a | S6 / R2 |
-| Repo identity is still ponytail-era at the edges: remote `agentic-harness-demo`, npm name/version lineage | `git remote -v` | R3 |
+| ~~Repo identity is still ponytail-era at the edges: remote `agentic-harness-demo`~~ **Resolved 2026-08-24 (RIG-117):** remote is `qaynel/Rig`; plugin manifests/marketplace point there and `check-versions.js` fails on the stale slug. | `git remote -v` | R3 |
 
 ## 3. Chosen approach and touched seams
 
@@ -211,9 +211,12 @@ memory store). Memory store and Cap A runtime stay Tier 3. Design sources:
 - **R2 — curation thesis unproven (G1a).** The grafts shipped without the
   proof point. S6's dogfood is the cheap retro-proof; if it fails, that is
   Gate 1 feedback for the graft in question, not something to patch silently.
-- **R3 — repo identity.** The remote is still `agentic-harness-demo` and the
-  npm lineage is ponytail's. Recommendation: rename the repo to match Rig at
-  the v5.0.0 release. Owner action; flagged, not taken here.
+- **R3 — repo identity.** Resolved 2026-08-24: the owner ruled the canonical
+  name is just `qaynel/Rig` — the `-v0.1` suffix (a reverted refactor) is
+  dropped. All manifests, marketplace, openclaw/opencode, `check-versions.js`,
+  `install.sh`, and README now say `qaynel/Rig`. **Remaining owner action:** the
+  GitHub remote itself is still `qaynel/Rig`; the owner must rename the repo
+  to `Rig` on GitHub before publish, or the install URLs 404.
 - **R4 — host drift.** Adapters encode point-in-time knowledge of host
   entrypoints. Production cadence: the scripted matrix test at every release,
   plus a manual smoke on one native-skill host and one router-less host.
@@ -260,7 +263,7 @@ Files: **new** `rig/install.sh`; **modify** `rig/bootstrap.sh`,
    ```sh
    #!/usr/bin/env sh
    set -eu
-   RIG_REPO=${RIG_REPO:-https://github.com/vaibhav-kodiyan/agentic-harness-demo}
+   RIG_REPO=${RIG_REPO:-https://github.com/qaynel/Rig}
    RIG_REF=${RIG_REF:-v5.0.0}
    tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
    curl -fsSL "$RIG_REPO/archive/$RIG_REF.tar.gz" | tar -xz -C "$tmp" --strip-components=1

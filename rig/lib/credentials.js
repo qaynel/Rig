@@ -1,6 +1,9 @@
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { isDeepStrictEqual } = require('node:util');
 const { ensureLine } = require('./payload');
+const { readReceipt } = require('./receipt');
 
 const LOAD_STEP = 'set -a; source .env; set +a';
 const WIRING = {
@@ -12,7 +15,13 @@ const CAVEAT = {
   codewhale: 'Confirm on first wire whether the mcp_config_path overlay can replace DEEPSEEK_MCP_CONFIG.',
   // Tier B: documented project scope exists, but no value-free credential
   // syntax is documented; stay note-only until PD7 flips.
-  antigravity: 'Edit .agents/mcp_config.json for this workspace or ~/.gemini/config/mcp_config.json globally (stdio command/args/env, or serverUrl + authProviderType). Do not commit secrets; use the shell env for stdio and a supported auth provider for remote servers.',
+  antigravity: 'The Antigravity CLI may ignore workspace-local .agents/mcp_config.json while issue #60 remains open; use the global file for this manual setup.',
+};
+// AT-HOST-5: hosts whose MCP disposition is unsupported/manual keep any
+// pre-existing user-owned file byte-for-byte and get migration guidance
+// instead of silent deletion (RIG-103/RIG-104).
+const MIGRATION = {
+  pi: 'pi does not support MCP; the existing .omp/mcp.json was left untouched. Migrate any entries you rely on to a host with MCP support.',
 };
 const LABELS = {
   claude: 'Claude',
@@ -54,7 +63,20 @@ function writeMcpSetup(target, receipt) {
     if (WIRING[host]) lines.push(WIRING[host]);
     lines.push(LOAD_STEP);
     if (host === 'codex' || host === 'vscode-codex') lines.push('Never paste the key into config.toml; use env_vars or bearer_token_env_var by name.');
+    if (host === 'antigravity' && receipt.manualEntries?.antigravity && Object.keys(receipt.manualEntries.antigravity).length) {
+      lines.push(
+        'Merge this exact object into ~/.gemini/config/mcp_config.json without replacing unrelated servers:',
+        '```json',
+        JSON.stringify({ mcpServers: receipt.manualEntries.antigravity }, null, 2),
+        '```',
+        'This generated block uses stdio; remote servers require serverUrl plus a supported authProviderType.',
+      );
+    } else if (host === 'antigravity') {
+      lines.push('No MCP server was selected.');
+    }
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
+    if (host === 'antigravity') lines.push('Verify after saving: .rig/bin/rig check --host antigravity');
+    if ((receipt.migrationHosts || []).includes(host)) lines.push(MIGRATION[host] || `${LABELS[host] || host} does not support MCP; any pre-existing config file was left untouched.`);
     const block = lines.join('\n');
     if (!blocks.includes(block)) blocks.push(block);
   }
@@ -78,4 +100,35 @@ function writeCredentialOutputs(target, config, receipt) {
   pointReadme(target);
 }
 
-module.exports = { writeCredentialOutputs, writeEnvExample, gitignoreEnv, writeMcpSetup, pointReadme, LOAD_STEP };
+function verifyManualMcp(target, host, home = os.homedir()) {
+  if (host !== 'antigravity') throw new Error(`rig: no manual MCP verification contract for host "${host}"`);
+  const expected = readReceipt(target)?.manualEntries?.antigravity;
+  const file = path.join(home, '.gemini', 'config', 'mcp_config.json');
+  if (!fs.existsSync(file)) {
+    return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: 'global MCP config is missing' };
+  }
+  let config;
+  try { config = JSON.parse(fs.readFileSync(file, 'utf8')); }
+  catch (error) {
+    return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: `global MCP config is invalid JSON: ${error.message}` };
+  }
+  if (!config || typeof config !== 'object' || Array.isArray(config) ||
+      !config.mcpServers || typeof config.mcpServers !== 'object' || Array.isArray(config.mcpServers)) {
+    return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: 'global MCP config has no mcpServers object' };
+  }
+  if (!expected || !Object.keys(expected).length) {
+    const rig = config.mcpServers.rig;
+    if (!rig || typeof rig !== 'object' || Array.isArray(rig) ||
+        !((typeof rig.command === 'string' && rig.command) || (typeof rig.serverUrl === 'string' && rig.serverUrl))) {
+      return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: 'global MCP config has no runnable rig server entry' };
+    }
+    return { status: 0, host, path: '~/.gemini/config/mcp_config.json', verified: ['rig'] };
+  }
+  const mismatched = Object.keys(expected).filter((name) => !isDeepStrictEqual(config.mcpServers[name], expected[name]));
+  if (mismatched.length) {
+    return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: `${mismatched.join(', ')} does not match the selected server entry` };
+  }
+  return { status: 0, host, path: '~/.gemini/config/mcp_config.json', verified: Object.keys(expected).sort() };
+}
+
+module.exports = { writeCredentialOutputs, writeEnvExample, gitignoreEnv, writeMcpSetup, pointReadme, verifyManualMcp, LOAD_STEP };

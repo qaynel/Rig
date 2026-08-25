@@ -9,12 +9,13 @@ Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
 table. The number below is documentation; if it disagrees with the file, the file
 wins and the gate fails.
 
-**Re-verified 2026-08-21:** D24 revises existing verdicts without changing the
-68-ID set. It restores `AT-SHAPE-6` to all 115 leaves, makes the broad Policy
-catalogue release-blocking, moves the executable targets into the signed
-oracle, requires detected-host-only onboarding, and extends distribution to the
-all 55 named skills plus MIT notice/provenance. Gate 2 and the executable target map
-must now be retraced against these meanings. See [status](../status.md).
+**Re-verified 2026-08-21, retrace complete:** D24 revises existing verdicts
+without changing the 68-ID set. It restores `AT-SHAPE-6` to all 115 leaves,
+makes the broad Policy catalogue release-blocking, moves the executable
+targets into the signed oracle, requires detected-host-only onboarding, and
+extends distribution to all 55 named skills plus MIT notice/provenance. The
+technical design has since been retraced against these meanings through v0.16,
+and the full suite is green on the current bytes. See [status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.

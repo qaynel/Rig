@@ -1,7 +1,7 @@
 ---
 name: rig-gain
 description: "Show rig measured impact as a scoreboard: less code, less cost, more speed, from the benchmark medians. One-shot display."
-homepage: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+homepage: https://github.com/qaynel/Rig
 license: MIT
 ---
 

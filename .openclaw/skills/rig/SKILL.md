@@ -1,7 +1,7 @@
 ---
 name: rig
 description: "Lazy senior dev mode for any coding task (write, refactor, fix, review): YAGNI, stdlib first, no unrequested abstractions. Not for non-coding requests."
-homepage: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+homepage: https://github.com/qaynel/Rig
 license: MIT
 ---
 

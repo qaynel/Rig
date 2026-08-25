@@ -4,7 +4,8 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
-const { removeGlobalConfig } = require('./global-writes');
+const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
+const { removeOpenClawMcp } = require('./openclaw-mcp');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
@@ -48,6 +49,10 @@ function digestOf(buf) {
 
 function currentDigest(abs) {
   return fs.existsSync(abs) ? digestOf(fs.readFileSync(abs)) : null;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function latestOperations(records) {
@@ -181,12 +186,17 @@ function dropEmptyOrWrite(abs, stripped) {
 
 function uninstall(target, opts = {}) {
   const manifest = readManifest(target);
-  const records = latestOperations(manifest.records)
-    .filter((record) => (record.transaction_kind || 'install') === 'install')
-    .sort((a, b) => b.seq - a.seq);
+  const latestByPath = new Map();
+  for (const record of latestOperations(manifest.records)) {
+    if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
+  }
+  const records = [...latestByPath.values()].sort((a, b) => b.seq - a.seq);
   const bestEffort = [];
+  const bestEffortDetails = [];
   const removed = [];
   const deletedRels = [];
+  const preservePrefixes = [];
+  let stopped = false;
   const globalLedger = containedPath(target, '.rig/global-writes.json');
   if (fs.existsSync(globalLedger)) {
     let ledger;
@@ -204,11 +214,25 @@ function uninstall(target, opts = {}) {
           retainedEntries.push(entry);
           continue;
         }
-        const result = removeGlobalConfig(entry.path, entry.install_id);
+        const result = entry.kind === 'openclaw-mcp'
+          ? removeOpenClawMcp(target, entry)
+          : entry.kind === 'global-mcp'
+            ? removeGlobalMcp(entry)
+            : entry.kind === undefined || entry.kind === 'json-namespace'
+              ? removeGlobalConfig(entry.path, entry.install_id)
+              : { removed: false };
         if (result.removed) removed.push(entry.path);
         else {
           bestEffort.push(entry.path);
+          bestEffortDetails.push(`${entry.path} (${entry.server_key || entry.install_id})`);
           retainedEntries.push(entry);
+          if (entry.kind === 'openclaw-mcp') {
+            if (entry.runtime) preservePrefixes.push(entry.runtime);
+            // Missing tooling: keep removing unrelated local files (RIG-127.9).
+            // Present tooling that fails unregister: stop so a live global
+            // entry cannot be left pointing at deleted runtime bytes.
+            if (!result.tooling_missing) stopped = true;
+          }
         }
       }
       if (retainedEntries.length === 0 && (ledger.entries || []).length > 0) {
@@ -224,8 +248,12 @@ function uninstall(target, opts = {}) {
   // it before the shim decision; restore consumes it by rename, and a
   // best-effort shim still needs it for a later retry.
   let retainChainedBackup = false;
-  for (const record of records) {
+  if (!stopped) for (const record of records) {
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
+    if (preservePrefixes.some((prefix) => record.path === prefix || record.path.startsWith(`${prefix}/`))) {
+      bestEffort.push(record.path);
+      continue;
+    }
     const abs = resolveRecordPath(target, record.path);
     if (record.path === '.git/hooks/pre-commit') {
       const chained = resolveRecordPath(target, '.git/hooks/pre-commit.rig-chained');
@@ -251,7 +279,14 @@ function uninstall(target, opts = {}) {
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
-      const stripped = body.replace(/<!-- rig:[^\n]*start -->\n[\s\S]*?<!-- rig:[^\n]*end -->\n?/g, '');
+      const name = typeof record.managed_block === 'string'
+        ? escapeRegExp(record.managed_block)
+        : '[^\\n]*';
+      const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
+      const stripped = body.replace(
+        new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
+        '',
+      );
       if (stripped === body) bestEffort.push(record.path);
       else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       if (stripped !== body) removed.push(record.path);
@@ -266,7 +301,7 @@ function uninstall(target, opts = {}) {
       deletedRels.push(record.path);
     }
   }
-  if (!retainChainedBackup) {
+  if (!stopped && !retainChainedBackup) {
     const chainedRel = '.git/hooks/pre-commit.rig-chained';
     const chainedRecord = records.find((record) => record.path === chainedRel);
     if (chainedRecord) {
@@ -288,6 +323,7 @@ function uninstall(target, opts = {}) {
     kind: 'uninstall',
     removed,
     best_effort: bestEffort,
+    best_effort_details: bestEffortDetails,
     at: new Date().toISOString(),
   };
   const evidenceDir = path.join(target, 'reports/rig');
@@ -311,6 +347,7 @@ function uninstall(target, opts = {}) {
     status: bestEffort.length ? 'best_effort' : 'removed',
     removed,
     best_effort: bestEffort,
+    best_effort_details: bestEffortDetails,
     purge_list: purgeList,
   };
 }

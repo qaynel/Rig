@@ -6,13 +6,42 @@ survive.)*
 
 ## What it is
 
-There is **one freeze** — the gate. It locks the **oracle**: business intent,
-acceptance criteria, and the testing infrastructure that deterministically
-checks them, signed with one key before any code exists. The **technical
-specification** owns *how*, but it is only **checked for presence** at the gate,
-never locked; the code adapts to it, and it adapts to what the code learns, as
-long as the frozen tests stay green.
+There is **one freeze** — the gate. It locks the **oracle**: acceptance
+criteria and the testing infrastructure that deterministically checks them,
+signed with one key before any code exists. Business intent is **highly
+recommended but optional** (D25); the **technical specification** owns *how* and
+is only **checked for presence**, never locked. The code adapts to the spec, and
+the spec adapts to what the code learns, as long as the frozen tests stay green.
 [oracle](../gate1/business-spec.md) · [acceptance](../gate1/acceptance.md) · [technical spec](../gate2/technical-spec.md) · [router](../../rig/tier-1/routing.md)
+
+### The pipeline into the lock
+
+A task enters either as a **new feature** (get the business specs — the use
+cases) or an **identified problem** (bug report → root cause → solution). Then in
+both cases: **explore the codebase and existing docs**; write the **technical
+spec as genuine open questions only** — the architectural forks that *cannot* be
+inferred from the code or the docs, never a restatement of intent, each layer
+adding new context; state **acceptance criteria** (the observable "this works",
+or for a bug the exact failure never recurring); and derive the **testing
+infrastructure from the acceptance criteria** — a near-automatic step lined up
+with authoring acceptance, not a separate phase (90–100% of the test strategy
+falls out of acceptance directly). **Only then** does the single lock close.
+[process doctrine](../reasoning/2026-08-24-process-doctrine-and-one-lock.md)
+
+Requests framed as "spec this out" use that same pipeline rather than a
+separate spec skill: grilling establishes Why and Scope, product design performs
+code-grounded Technical interrogation, both artifacts receive Draft review,
+and the existing Gate is the fifth checkpoint. This preserves one owner per
+phase and adds no runtime to Tier 1.
+
+### One lock (D26), and freeze timing (D27)
+
+There is **one lock**: it locks the tests and acceptance together, and the only
+way to change a locked expectation is the owner through the hardware key — that
+is why the key exists. Nothing is locked until three things are in place **and
+sound**: a solution/spec the owner agrees with, refined acceptance criteria, and
+tests built on that acceptance. **"Not yet frozen" is the normal default for
+in-progress design — it is a state, never a pending "freeze now?" decision.**
 
 ## Why it is this way
 

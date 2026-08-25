@@ -36,6 +36,21 @@ orphans; it does not guess who owns them. [Rejected approaches](../index/rejecte
 
 ## What is still open
 
-The host registry still needs exact contracts for every axis whose MCP or other
-configuration is user-global. Those contracts and byte-landing tests are release
-work. [Host and CI coverage](host-and-ci-coverage.md)
+Activation remains open: RIG-110 must decide the executable versus pointer-only
+roster and collect real first-wire evidence. The four MCP write contracts are
+no longer open. RIG-111 defines and byte-tests Windsurf/Devin Desktop legacy
+Cascade, Cline IDE, Hermes, and CodeWhale merges and exact attributed removal in
+`rig/lib/global-writes.js`; the signed Basic path remains note-only until the
+RIG-110 gate authorizes use. [Host and CI coverage](host-and-ci-coverage.md)
+
+OpenClaw is now confirmed as a user-global MCP surface at
+`~/.openclaw/openclaw.json`; its supported writer is the `openclaw mcp` CLI,
+which preserves the host's JSON5 format and validates the server definition.
+The owner-requested explicit, warned installation opt-in is now implemented:
+it is the only host-specific install selection, leaves the default unchanged,
+uses one attributed server name per clone, fails closed when the native registry
+read fails, and retains the runtime when native rollback or removal cannot be
+proven. Before a reinstall or uninstall, the current native registry value must
+exactly match the clone-local recorded server, so a later user replacement is
+preserved. The bootstrap also names the exact configured path that is passed to
+the native CLI before registration. [Intent record](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md)

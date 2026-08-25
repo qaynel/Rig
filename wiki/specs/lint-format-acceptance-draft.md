@@ -1,11 +1,16 @@
 ---
-status: approved
+status: historical
 checked: 2026-08-21
 owner: rig-grilling
 phase: acceptance-authoring
 ---
 
 # Lint-format acceptance — Stage A draft (approved and landed in Gate 1)
+
+> **HISTORICAL SNAPSHOT.** This draft did its job: its content is now the
+> live text in [`gate1/acceptance.md`](../gate1/acceptance.md) §7, under the
+> owner's signature. Read that file for the current, authoritative wording;
+> read this one only for how the cases were originally reasoned out.
 
 Independently authored observable acceptance for the first production leaf,
 `development.code-quality.lint-format`. This was the reversible Stage A

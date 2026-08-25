@@ -242,6 +242,15 @@
 > Approval source:
 > [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
 
+> **Revision note (2026-08-24) - D25, OpenClaw global MCP opt-in.** Re-grilled
+> with [`business-spec.md`](business-spec.md) from the intent owner's request
+> for an explicit, warned installer selection that registers `rig-mcp` in
+> OpenClaw's global MCP configuration. The vendor-owned `openclaw mcp` CLI,
+> rather than a JSON5 parser, is the only permitted writer. The default install
+> remains unchanged. `AT-HOME-1`, `AT-HOME-2`, and `AT-DIST-1` now specify the
+> selection, warning, attribution, runtime, removal, and failure boundaries.
+> The ID set remains **68**.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are owner-approved observable cases. Their deterministic executable form
@@ -583,14 +592,25 @@ behavior exists and pass only when the product intent is met.
   silently. This case is independent of `AT-GATE-2`: the Gate 1 integrity
   signer (D10/D19) keeps no recovery path of its own, and nothing here creates
   one for it.
-- **AT-HOME-1 (global writes append, never overwrite) [D9].** *Given* a host
+- **AT-HOME-1 (global writes append, never overwrite) [D9, D25].** *Given* a host
   whose only configuration surface is user-global, *when* Rig writes it, *then*
   the write is an append or a namespaced additive merge; every pre-existing
   user value survives byte-for-byte; and the write is disclosed in the user's
   own output, naming the file written outside the repository. A destructive or
   wholesale rewrite of a user-global file fails this case, as does an
   undisclosed one.
-- **AT-HOME-2 (multi-repository attribution) [D9].** *Given* Rig installed from
+
+  *And given* a normal Rig install, *then* it neither invokes OpenClaw nor
+  writes the user's OpenClaw configuration. *Given* the explicit
+  `--openclaw-mcp` installer selection, *when* OpenClaw, Node, and the locked
+  runtime dependencies are available, *then* output first names
+  `~/.openclaw/openclaw.json`, states that the write affects every OpenClaw
+  workspace, installs a runnable bundled MCP runtime, and invokes only
+  `openclaw mcp set` to add one standard-input/output server. Rig must not
+  parse, reformat, or otherwise rewrite OpenClaw's JSON5 file itself. A missing
+  prerequisite or failed dependency install leaves the OpenClaw configuration
+  unchanged and fails visibly.
+- **AT-HOME-2 (multi-repository attribution) [D9, D25].** *Given* Rig installed from
   repository A and repository B, both appending to one user-global
   configuration, *then* each installation's entries carry the identity of the
   repository that wrote them, and:
@@ -609,6 +629,16 @@ behavior exists and pass only when the product intent is met.
   and retrofitting attribution onto entries already in a user's global file is
   a migration this product does not want to owe. A design that attributes
   lazily, on the second install, fails this case.
+
+  *And given* both repositories select `--openclaw-mcp`, *then* each receives
+  one distinct `rig-<install-id>` OpenClaw server name recorded in its local
+  global-write ledger. Reinstalling a repository replaces only its own named
+  server. Uninstall invokes `openclaw mcp unset` for that recorded name before
+  deleting its runtime, preserving the other repository's server and every
+  unrelated OpenClaw server. If the native CLI cannot remove the entry,
+  uninstall stops before deleting the referenced runtime and reports the named
+  global configuration for repair; it never silently leaves a broken global
+  server entry.
 - **AT-DIST-1 (a stranger can install the complete release) [D7, D24].**
   *Given* a stranger with git, curl, and sh and no Rig checkout, *when* they run
   the committed root install stub for a named released tag, *then* the stub
@@ -620,6 +650,12 @@ behavior exists and pass only when the product intent is met.
   inherited npm publish workflow no longer exists, so tagging cannot fail on a
   private package. A build that passes every other case but cannot be installed
   by someone without this checkout is not shipped.
+
+  *And given* that stranger explicitly selects `--openclaw-mcp`, *then* the
+  tagged archive carries the bundled MCP server and a lockfile for its runtime
+  dependencies; the installer preflights `openclaw`, `node`, and `npm`, installs
+  those locked dependencies without lifecycle scripts, and only then registers
+  the global server. The default install still requires no OpenClaw or npm.
 
 ### G. Install lifecycle, removal, and finding disclosure (2026-07-28)
 

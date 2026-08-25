@@ -1,4 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["./.opencode/plugins/rig.mjs"]
+  "plugin": ["./.opencode/plugins/rig.mjs"],
+  "mcp": {
+    "rig": {
+      "type": "local",
+      "command": ["node", "rig-mcp/index.js"],
+      "enabled": true
+    }
+  }
 }

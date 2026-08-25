@@ -68,4 +68,4 @@ If `/plugin` is not recognized, your Claude Code is out of date. Update it (`npm
 
 ## More
 
-Full docs + examples: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+Full docs + examples: https://github.com/qaynel/Rig
