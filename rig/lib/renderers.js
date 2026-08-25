@@ -8,17 +8,26 @@ const { MCP_HOSTS } = require('./mcp-hosts');
 
 const BASELINE_NETWORK_POLICY_PATH = path.join(__dirname, '..', 'catalog', 'baseline', 'network-policy.json');
 
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 function mergeJson(filePath, mutate) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   let obj = {};
   if (fs.existsSync(filePath)) {
+    let parsed;
     try {
-      obj = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     } catch {
-      obj = {};
+      throw new Error(`rig: invalid JSON in ${filePath}; left unchanged`);
     }
+    if (!isPlainObject(parsed)) {
+      throw new Error(`rig: ${filePath} root must be an object; left unchanged`);
+    }
+    obj = parsed;
   }
   mutate(obj);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(obj, null, 2) + '\n');
 }
 
@@ -40,11 +49,19 @@ const jsonFile = (target, rel, mutate) => mergeJson(path.join(target, rel), muta
 // OpenClaw's nested 'mcp.servers'), preserving every unrelated key at every
 // level and every sibling server already under that key. Re-applying the
 // same entry is a byte-identical no-op.
+function objectAt(node, part) {
+  if (node[part] === undefined) node[part] = {};
+  if (!isPlainObject(node[part])) {
+    throw new Error(`rig: ${part} must be an object; left unchanged`);
+  }
+  return node[part];
+}
+
 function setAtPath(obj, dottedKey, name, entry) {
   const parts = dottedKey.split('.');
   let node = obj;
-  for (const part of parts.slice(0, -1)) node = (node[part] ??= {});
-  (node[parts[parts.length - 1]] ??= {})[name] = entry;
+  for (const part of parts.slice(0, -1)) node = objectAt(node, part);
+  objectAt(node, parts[parts.length - 1])[name] = entry;
 }
 
 function mergeMcpEntry(target, host, server, entry) {

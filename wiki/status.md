@@ -1,5 +1,17 @@
 # Status - checked 2026-08-25 (updated 2026-08-25)
 
+## RIG-128 observable scope implemented (2026-08-25)
+
+Emitted host MCP descriptors now match the write path: Antigravity advertises
+the manual global file, CodeWhale advertises the repo redirect the writer
+uses, and pi emits an explicit unsupported contract without touching a
+user-owned MCP file. The repository merge writer fail-closes on invalid JSON,
+JSON5, or a primitive in the nested path — a failed merge leaves the file
+byte-identical. Named tests green:
+`tests/host-contract-parity.test.js` and `tests/repo-mcp-write-safety.test.js`.
+128.3 (internal CodeWhale triplication) and 128.6 (harmless table mismatches)
+remain deferred debt. Resume from [[RIG-128]] Status/Progress.
+
 ## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
 
 The owner asked that every pre-v5 fix be offboarded onto its ticket so a

@@ -48,11 +48,15 @@ subagent-scoped hook event, a subagent hook that can only gate/observe rather
 than inject, or no hook mechanism at all — see host-coverage-spec §3.1a and
 [the disposition trace](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md).
 
-MCP disposition is unified (RIG-103/RIG-104, 2026-08-24): `rig/lib/mcp-hosts.js`
-derives one `{ disposition, autoWrite, file, key }` table from
-`host-capabilities.js`'s researched `REGISTRY`, and both the legacy Basic
-`renderers.js` path and the catalogue descriptor path read it. The two paths'
-prior divergences are resolved: `pi` no longer emits `.omp/mcp.json` (a
+MCP disposition is unified (RIG-103/RIG-104, 2026-08-24; descriptor parity
+RIG-128/134.1, 2026-08-25): `rig/lib/mcp-hosts.js` derives one
+`{ disposition, autoWrite, file, key, descriptor }` table from
+`host-capabilities.js`'s researched `REGISTRY`. The writer (`renderers.js`)
+and the shipped host-contract (`contractFor`) both read that table, so
+Antigravity advertises the manual global file, CodeWhale advertises the repo
+redirect the writer uses, and pi emits an explicit unsupported contract
+without touching a user-owned `.omp/mcp.json`. The two paths' prior
+divergences are resolved: `pi` no longer auto-writes `.omp/mcp.json` (a
 pre-existing user file is preserved with migration guidance, AT-HOST-5, now
 covered end-to-end and not only via the catalogue path's `direct-require`
 test); OpenClaw's registry metadata was corrected to the shipped, tested shape
@@ -61,8 +65,10 @@ around; `codewhale`'s repo-write override (`DEEPSEEK_MCP_CONFIG` redirect) is
 now an explicit, documented exception to its raw `user_global` scope pending
 RIG-110's resolution of the underlying project-vs-global conflict. A single
 `mergeMcpEntry` merge writer places every JSON-shaped host's entry at its
-governing key and is idempotent + preserves unrelated entries for every shape,
-proven by `tests/basic-mcp-merge.test.js`. Network-capable (http-transport)
+governing key, is idempotent + preserves unrelated entries for every valid
+shape (`tests/basic-mcp-merge.test.js`), and fail-closes on invalid JSON,
+JSON5, or a primitive in the dotted path so user bytes stay unchanged
+(`tests/repo-mcp-write-safety.test.js`). Network-capable (http-transport)
 MCP entries are evaluated through the same `evaluateAction` engine and the
 same active policy as shell/web, recorded on the install receipt — MCP is not
 an enforcement bypass. See
