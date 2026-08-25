@@ -238,11 +238,6 @@ function renderMcp(target, config) {
       (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
       for (const name of variant.credentials) credentialNames.add(name);
     }
-    if (hosts.includes('antigravity')) {
-      const variant = assignVariants(server, ['antigravity']).antigravity;
-      (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
-      for (const name of variant.credentials) credentialNames.add(name);
-    }
   }
   for (const host of hosts) {
     const entry = MCP_HOSTS[host];
