@@ -1,5 +1,13 @@
 # Status - checked 2026-08-25 (updated 2026-08-25)
 
+## RIG-131 ready for commit (2026-08-25)
+
+`scripts/check-ticket-traceability.js` is wired into `test:code` before the
+Node glob. Completed-column cards now name a present test or `manual:`.
+RIG-104 / RIG-105 / RIG-107 moved Backlog with stated reasons. Named suite:
+`tests/ticket-traceability.test.js`. Later pre-v5 red suites (126/127/128/134)
+are out of this ticket's scope.
+
 ## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
 
 The owner asked that every pre-v5 fix be offboarded onto its ticket so a
