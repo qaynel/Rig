@@ -8,7 +8,7 @@ const { renderMcp } = require('./lib/renderers');
 const { writeCredentialOutputs } = require('./lib/credentials');
 const { installGuard } = require('./lib/guard');
 const { writeReceipt } = require('./lib/receipt');
-const { uninstall } = require('./lib/lifecycle');
+const { uninstall } = require('./lib/uninstall');
 const { assignVariants } = require('./lib/variants');
 const { ADVANCED, runAdvanced } = require('./lib/cli-advanced');
 
