@@ -5,7 +5,8 @@
 //   host-ci-capability-verification.raw.md (2026-07-24) and
 //   host-config-surfaces-verification.raw.md (2026-07-25).
 // `mcp`: 'repo' = committable per-repo file; 'user_global' = advisory only
-//   (vendor ships no per-repo file); 'unsupported' = vendor refuses MCP.
+//   (vendor ships no per-repo file); 'unsupported' = Rig does not emit MCP
+//   configuration for this host.
 // Host identity notes: `devin` = Devin CLI; `windsurf` = Devin Desktop
 //   (ex-Windsurf, vendor-renamed); Cloud Devin is out of scope.
 'use strict';
@@ -131,11 +132,13 @@ const REGISTRY = {
     evidence: { citation: 'https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp' },
   },
   pi: {
-    // Skills use .agents/skills/. No hook file (extensions only). MCP is refused by design.
+    // Skills use .agents/skills/. No hook file (extensions only). MCP is
+    // available via the pi MCP extension; Rig has no first-party config file
+    // it can merge, so it does not auto-write.
     instruction: 'emitted', native_skill: 'emitted', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
     mcp_config: { emission: 'unsupported', scope: 'unsupported' },
     surfaces: { instruction: 'AGENTS.md / .pi/settings.json', skills: '.agents/skills/', hooks: 'extensions (.ts) only', mcp: null },
-    evidence: { citation: 'https://pi.dev/docs/latest/skills' },
+    evidence: { citation: 'https://pi.dev/packages/pi-mcp-extension' },
   },
   generic: {
     instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
@@ -162,7 +165,7 @@ function materializeHostAdapters(target, host, writeFile = null) {
   }
   const contract = contractFor(host, caps);
   for (const [axis, axisContract] of Object.entries(contract.axes)) {
-    if (axisContract.emission === 'unsupported') continue;
+    if (axisContract.emission === 'unsupported' && axis !== 'mcp_config') continue;
     const rel = `.rig/host-contracts/${host}/${axis}.json`;
     const contents = `${JSON.stringify(axisContract, null, 2)}\n`;
     if (writeFile) {
@@ -172,7 +175,7 @@ function materializeHostAdapters(target, host, writeFile = null) {
       fs.mkdirSync(path.dirname(marker), { recursive: true });
       fs.writeFileSync(marker, contents);
     }
-    emittedAxes.push(rel);
+    if (axisContract.emission === 'emitted') emittedAxes.push(rel);
   }
   return { capabilities: caps, emitted_axes: emittedAxes, emitted_live_hooks: [], pointers };
 }
@@ -222,13 +225,16 @@ function discoverHosts(target, options = {}) {
 
 function contractFor(id, caps) {
   const surfaces = caps.surfaces || {};
+  const mcp = require('./mcp-hosts').MCP_HOSTS[id] || {
+    descriptor: { emission: 'unsupported', auto_write: false },
+  };
   const statuses = {
     instruction: caps.instruction,
     native_skill: caps.native_skill,
     shell_hook: caps.shell_hook,
     web_hook: caps.web_hook,
     mcp_hook: caps.mcp_hook,
-    mcp_config: caps.mcp_config.emission,
+    mcp_config: mcp.descriptor.emission,
   };
   const axisPath = {
     instruction: surfaces.instruction ?? null,
@@ -236,7 +242,7 @@ function contractFor(id, caps) {
     shell_hook: surfaces.hooks ?? null,
     web_hook: surfaces.hooks ?? null,
     mcp_hook: surfaces.hooks ?? null,
-    mcp_config: surfaces.mcp ?? null,
+    mcp_config: mcp.descriptor.path ?? null,
   };
   const events = {
     instruction: 'session-context-load', native_skill: 'native-skill-discovery',
@@ -250,6 +256,7 @@ function contractFor(id, caps) {
         host: id, axis, emission: 'unsupported',
         evidence: { vendor: id, researched_on: RESEARCHED_ON, official_citation: caps.evidence?.citation || 'product-defined generic fallback' },
       };
+      if (axis === 'mcp_config') axes[axis].auto_write = false;
       continue;
     }
     const format = /\.toml|\[mcp_servers\]/.test(axisPath[axis] || '') ? 'toml' : /\.md|\.mdc|AGENTS|CLAUDE|GEMINI/.test(axisPath[axis] || '') ? 'markdown' : 'json';
@@ -257,7 +264,7 @@ function contractFor(id, caps) {
       host: id,
       axis,
       emission: 'emitted',
-      config_scope: axis === 'mcp_config' ? caps.mcp_config.scope : 'repo',
+      config_scope: axis === 'mcp_config' ? mcp.descriptor.config_scope : 'repo',
       output: {
         path: axisPath[axis], format, owned_namespace: `rig.${id}.${axis}`,
         first_apply: 'additive_merge', repeat_apply: 'idempotent_replace_owned_namespace',
@@ -282,7 +289,10 @@ function contractFor(id, caps) {
         },
       },
     };
-    if (axis === 'mcp_config') axes[axis].output.key = surfaces.mcp_key || 'mcpServers';
+    if (axis === 'mcp_config') {
+      axes[axis].auto_write = mcp.descriptor.auto_write;
+      axes[axis].output.key = mcp.descriptor.key;
+    }
     axes[axis].evidence.adapter_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].output)).digest('hex');
     axes[axis].evidence.fixture_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].input)).digest('hex');
   }
@@ -339,7 +349,9 @@ function materializeSelectedHosts(target, hostIds) {
     if (mcpStatus.emission === 'unsupported') {
       entry.mcp = {
         status: 'unsupported',
-        guidance: 'MCP is unsupported for this host; preserving user files unchanged.',
+        guidance: id === 'pi'
+          ? 'MCP is available via a pi extension; Rig has no mergeable first-party config and is preserving user files unchanged.'
+          : 'MCP is unsupported for this host; preserving user files unchanged.',
       };
     } else {
       const surfaces = caps.surfaces || {};

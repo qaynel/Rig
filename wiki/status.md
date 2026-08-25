@@ -1,5 +1,17 @@
 # Status - checked 2026-08-25 (updated 2026-08-25)
 
+## RIG-128 observable scope implemented (2026-08-25)
+
+Emitted host MCP descriptors now match the write path: Antigravity advertises
+the manual global file, CodeWhale advertises the repo redirect the writer
+uses, and pi emits an explicit unsupported contract without touching a
+user-owned MCP file. The repository merge writer fail-closes on invalid JSON,
+JSON5, or a primitive in the nested path — a failed merge leaves the file
+byte-identical. Named tests green:
+`tests/host-contract-parity.test.js` and `tests/repo-mcp-write-safety.test.js`.
+128.3 (internal CodeWhale triplication) and 128.6 (harmless table mismatches)
+remain deferred debt. Resume from [[RIG-128]] Status/Progress.
+
 ## RIG-126 onboarding (solved 2026-08-25)
 
 The printed post-install chain is runnable for 126.1–126.4: host-review and
@@ -8,7 +20,7 @@ apply renders the Antigravity manual MCP entry it verifies, and a clean check
 prints a success confirmation. 126.5 (source-checkout wrapper) remains deferred.
 Named onboarding suite is green (`runtime-onboarding` + bootstrap +
 antigravity-manual-mcp). Full `npm test` remains red on sibling v5-observable
-suites (127/128/129/131 red baseline), not on RIG-126's named tests. The
+suites (127/129/131 red baseline), not on RIG-126's named tests. The
 owner-signed oracle is unchanged.
 
 ## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
