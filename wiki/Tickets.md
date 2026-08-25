@@ -6,6 +6,15 @@ kanban-plugin: board
 
 ## Backlog
 
+- [ ] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
+	**Status:** BACKLOG (2026-08-25) — moved from Done by [[RIG-131]]; no current test proves both install paths read `MCP_HOSTS` · [Solution](tickets/RIG-104.md)
+	**Reason:** The shared merge writer is real, but `materializeSelectedHosts` still reads `REGISTRY` directly and never applies `AUTO_WRITE_OVERRIDE` / `FILE_OVERRIDE` / `LEGACY_FILE`. Re-verify under [[RIG-128]] / [[RIG-134]] after the catalogue path uses the same authority.
+- [ ] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
+	**Status:** BACKLOG (2026-08-25) — moved from Done by [[RIG-131]]; the staged `--with-runtime` path never renders the manual step · [Solution](tickets/RIG-105.md)
+	**Reason:** `tests/antigravity-manual-mcp.test.js` covers the legacy Basic path (`materialize.js`), not the staged apply flow a real user follows. Tracked as 126.2 on [[RIG-126]].
+- [ ] **RIG-107 — Wire the advanced runtime into a real install/run entrypoint**
+	**Status:** BACKLOG (2026-08-25) — moved from Done by [[RIG-131]]; printed inspect→recommend→plan→apply→check sequence is not runnable · [Solution](tickets/RIG-107.md)
+	**Reason:** Printed commands require `review.json` / `rig.json` / `approval.json` that no printed step produces, and "host review" is not a subcommand. Tracked as 126.1 on [[RIG-126]].
 - [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
 	**Status:** OPEN (2026-08-25) — raised by the git-trace investigation; awaiting owner approve-for-Coding · [Solution](tickets/RIG-132.md)
 	**Class:** STRUCTURAL (the exponent). Every finding ever received is pairwise ("§X says A, §Y says B"). The spec has ~124 claim anchors → **~7,600 pairs**; a pass reports 2–8, so six rounds covered ~0.4%. Receipt anchors prove it: §8.4 recurs in rounds 3 and 5, §5.7/§8.9/§11.3 in 4 and 5, §13 four times in round 5 and again in 6 — same section, different partner each time. 60 tracked files have a byte-identical twin; the project's answer to duplication has always been "add a guard" (O(1) per pair) against an O(N²) pool. Fix: one home per fact, generated everywhere else; new duplication ships with its generator or doesn't ship. **Do before [[RIG-125]]** — property tests over a collapsed N are near-exhaustive; over today's N they're another sample. Analysis: [why each pass finds new issues](reasoning/2026-08-25-why-each-pass-finds-new-issues.md). **Goal re-stated 2026-08-25 after the outside analysis:** "one home per fact" is *not* sufficient — `REGISTRY` already is a single source of truth and `materializeSelectedHosts` still diverged from `mcp-hosts.js` by re-interpreting the raw rows. The goal is one authority for the **meaning**, with runtime/docs/tests as generated projections through one narrow contract (semantic model + narrow waist + fitness functions — established terms, see [assessment](reasoning/2026-08-25-semantic-model-assessment.md)). Takes **two** fitness functions, not seven, and does not name the architecture. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
@@ -32,9 +41,6 @@ kanban-plugin: board
 
 ## Coding
 
-- [ ] **RIG-131 — "Done" is agent prose, not a named green test**
-	**Status:** APPROVED — CODING (2026-08-25) — Option A, pre-v5 gate **step 1** · [Solution](tickets/RIG-131.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
-	**Class:** STRUCTURAL (loop generator). A card reaches Done on an agent's own `**Done:**` paragraph; nothing checks it against the repo. RIG-104/105/107 all moved that way and are unmet in shipped code while the full gate stayed green. Fix: every acceptance bullet names `→ <test file>::<test name>`, plus `scripts/check-ticket-traceability.js` wired into `npm test` that fails on a Done card naming no test / a missing test / a renamed test. Expect RIG-104, RIG-105, RIG-107 to move back to Backlog. Do this **first** so every later gate step's Done claim is checkable.
 - [ ] **RIG-134 — Pre-v5 release gate: classify every known finding as debt or v5-observable**
 	**Status:** APPROVED — CODING (2026-08-25) — Option A; classification run, drives the observable fixes across 126/127/128/129 · [Solution](tickets/RIG-134.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
 	**Class:** RELEASE GATE. The gate umbrella. Classification is **done** (see the runbook): **v5-observable (must-fix):** 134.1 (`contractFor`, covers 128.1/128.2 + shipped descriptor of 128.3), 128.4/128.5, uninstall 127.1–127.8/127.10, onboarding 126.1–126.4, 129.1. **debt (defer to v5.1 inventory):** 134.2, 134.3, 128.3 internal, 128.6, 126.5, 129.2–129.4. 134.1 is the one confirmed release blocker: `rig apply` (printed by `bootstrap.sh:131`) → `applyPlan`:197 → `materializeHostAdapters`:435 → `contractFor` writes `.rig/host-contracts/<host>/<axis>.json` into the user's repo from raw `REGISTRY`, so descriptors contradict the write path. Bounded leaf fix, **not** the collapse. The low model executes the observable set via the runbook's ordered task list; the debt set is committed as the v5.1 migration inventory ([[RIG-132]]).
@@ -51,6 +57,9 @@ kanban-plugin: board
 
 ## Ready for Commit
 
+- [ ] **RIG-131 — "Done" is agent prose, not a named green test**
+	**Status:** READY FOR COMMIT (2026-08-25) — Option A checker landed; RIG-104/105/107 returned to Backlog · [Solution](tickets/RIG-131.md)
+	**Done:** `scripts/check-ticket-traceability.js` is wired into `test:code` before the Node glob. Completed-column cards must name `tests/<file>.test.js::<title>` or `manual:`; missing, invented, or renamed titles fail the gate. Named green tests: `tests/ticket-traceability.test.js` (six cases).
 - [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
 	**Status:** READY FOR COMMIT (2026-08-25) — observable scope implemented; named tests green · [Solution](tickets/RIG-128.md)
 	**Done:** Emitted descriptors now match the interpreted write contract (Antigravity manual global, CodeWhale repo redirect, pi unsupported). Repo merge writer fail-closes on invalid JSON, JSON5, and primitive dotted paths — user bytes stay identical. Named green tests: `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract` (plus three host-specific cases) and `tests/repo-mcp-write-safety.test.js` (invalid-file, JSON5, primitive-path, valid idempotent merge). 128.3 internal and 128.6 remain debt.
@@ -114,9 +123,6 @@ kanban-plugin: board
 - [x] **RIG-119 — Incorporate spec-driven development into the Rig pipeline**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-119.md)
 	**Done:** Spec-driven requests now route through the existing grilling and product-design owners. Grilling names the five executable-spec checkpoints, product design owns code-grounded technical interrogation, and an acceptance case enforces the route and synchronized native-host copies without adding a new skill.
-- [x] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
-	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-105.md)
-	**Done:** Antigravity onboarding emits exact selected-server stdio JSON for manual merge into `~/.gemini/config/mcp_config.json` and an installed verification command. The check accepts semantically equivalent JSON, rejects drift and malformed configuration, and Rig never writes the global file while CLI issue #60 remains open.
 - [x] **RIG-114 — Replace fixed npm-script discovery with whole-repo semantic discovery**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-114.md)
 	**Done:** Whole-repository discovery now binds non-standard manifest/task commands and configured polyglot tools with exact argv, cwd, ignore metadata, and source digests. Ambiguity blocks apply for user choice; unbuildable components are named unprotected and suppress the repository-wide support claim.
@@ -129,9 +135,6 @@ kanban-plugin: board
 - [x] **RIG-108 — Resolve the four zero-caller runtime modules (wire or delete)**
 	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-108.md)
 	**Done:** All runtime modules now have production callers guarded by a repository-wide caller test. The existing enforcement, release-review, and commit-dispatch seams are proven; catalogue apply now uses managed graft blocks with journaled legacy migration and exact named-block uninstall.
-- [x] **RIG-107 — Wire the advanced runtime into a real install/run entrypoint**
-	**Status:** COMMITTED (2026-08-24) — landed on this branch · [Solution](tickets/RIG-107.md)
-	**Done:** Active-runtime installs journal `.rig/bin/rig`, bootstrap prints a copy-pasteable inspect → recommend → plan → apply → check workflow, and tagged-release plus lint-format regressions exercise the installed command. The tracer also excludes Rig-owned `.rig` packages from customer component discovery.
 - [x] **RIG-101 — Wire the `rig-mcp` server into host distribution**
 	**Status:** Implemented (2026-08-24) — committed on this branch · [Solution](tickets/RIG-101.md)
 	**Done:** `opencode.json` registers `rig-mcp` (`mcp.rig`), verified by `tests/opencode-mcp.test.js`; `rig-mcp/test/stdio.test.js` spawns the real server over stdio and checks all three modes; `docs/agent-portability.md` documents copy-paste config for every host key shape; exclusions (`pi`, `generic`, user-global-only hosts) recorded in `host-coverage-spec §3.2.1`.
@@ -141,9 +144,6 @@ kanban-plugin: board
 - [x] **RIG-103 — Stop emitting MCP config for hosts that don't support it (pi contradiction)**
 	**Status:** Resolved (2026-08-24) — committed on this branch · [Solution](tickets/RIG-103.md)
 	**Done:** `pi` removed from the MCP auto-write set and its renderer deleted; selecting `pi` now emits no `.omp/mcp.json`, and a pre-existing user-owned file is preserved byte-for-byte with migration guidance (AT-HOST-5), covered end-to-end for the legacy path the frozen catalogue-only oracle test didn't reach. The shared disposition map is `rig/lib/mcp-hosts.js` (RIG-104).
-- [x] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
-	**Status:** Resolved (2026-08-24) — committed on this branch · [Solution](tickets/RIG-104.md)
-	**Done:** New `rig/lib/mcp-hosts.js` is the single disposition/file/key table (from `host-capabilities.js` research, with two named documented overrides) driving both the legacy Basic path and the catalogue descriptor path. One shared `mergeMcpEntry` writer replaces 12 near-duplicate per-host JSON mutators, proven idempotent and unrelated-entry-preserving per shape by new `tests/basic-mcp-merge.test.js`. Network-capable MCP entries are evaluated through the same policy engine as shell/web, with a parity test. Two real path/shape divergences between the two paths (pi, OpenClaw) were found and reconciled. `copilot-cli` — cited, non-conflicted `mcp: 'repo'` host — got a renderer too, closing the last serviceability gap among researched hosts (only the §3.1 unresolved-conflict/user-global/unsupported hosts remain note-only). Full gate green.
 - [x] **RIG-102 — Run the `rig-mcp` test suite in the CI gate**
 	**Status:** RESOLVED — landed via owner re-signing ceremony · [Solution](tickets/RIG-102.md)
 	**Problem:** `npm test` → `test:code` ran the root Node suite and `npm test --prefix pi-extension`, but never `npm test --prefix rig-mcp`, so the MCP server's shared instruction contract could regress undetected.
