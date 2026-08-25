@@ -28,13 +28,13 @@ function makeKey(root) {
 
 test('local Gate 1 env config is parsed without shell evaluation', () => {
   const root = tempRoot();
-  fs.mkdirSync(path.join(root, '.context'), { recursive: true });
-  fs.writeFileSync(path.join(root, '.context/gate1.env'), 'RIG_GATE1_SIGNING_KEY="$HOME/.ssh/gate1.pub"\n');
+  fs.mkdirSync(path.join(root, '.credentials'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.credentials/gate1.env'), 'RIG_GATE1_SIGNING_KEY="$HOME/.ssh/gate1.pub"\n');
   assert.equal(approve.loadLocalEnv(root, {}), '$HOME/.ssh/gate1.pub');
 });
 
 test('tracked example env names the one local key variable', () => {
-  const example = fs.readFileSync(path.join(__dirname, '..', 'scripts/gate1.env.example'), 'utf8');
+  const example = fs.readFileSync(path.join(__dirname, '..', '.credentials/gate1.env.example'), 'utf8');
   assert.match(example, /^RIG_GATE1_SIGNING_KEY=/);
   assert.doesNotMatch(example, /PRIVATE|SECRET|TOKEN/);
 });

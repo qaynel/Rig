@@ -59,13 +59,13 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-D24 and the one-gate contract are now owner-approved and landed in both Gate 1
-files. Before implementation, the complete 68-case deterministic testing
-infrastructure must be built and manifested, and the owner must sign that
-manifest together with intent and acceptance. Gate 2 is a present working
-technical approach, not a second freeze; it must be retraced to D24 before the
-oracle is presented for signature.
-[Status](../status.md#ordered-next-steps)
+D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
+and signed: the 68-case deterministic testing infrastructure is built,
+manifested, and covered by the oracle signature. See "Where the eight steps
+actually stand" below for the current per-step status — as of the last check,
+steps 1–6 are done and step 7 (release) is blocked only on the owner's fresh
+review and signer attestation plus the tag itself, not on any of this plan's
+mechanisms. [Status](../status.md)
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 
 The former lint-format-only path is historical. D24 supersedes D21's release

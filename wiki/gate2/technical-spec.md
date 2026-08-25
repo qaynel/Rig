@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Working Implementation Design v0.16
+# Tier 2 Advanced - Working Implementation Design v0.17
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
 > version is retraced to the owner-approved D24/one-gate oracle at 68 cases.
@@ -22,9 +22,10 @@
 
 | Gate 1 file | SHA-256 |
 |---|---|
-| `business-spec.md` | `0c93eaf5a9e28128a767806b8d0fcb1075b3b7ee4744f0d20a214aebc3952990` |
-| `acceptance.md` | `1e9fcd0e9aec2126995f836bead1aac3e48efdcdf48ef102ec1c9bfb9f62f360` |
+| `business-spec.md` | `e13f38586454218355114f3969bceebe175a092d74a164875d5bbb36cc0f6c5e` |
+| `acceptance.md` | `af1d36f74ac7f89b21fa5c9275cefcf2a9b2d8a38a4101a58ba57dbff3b52109` |
 
+The D25 amendment is signed into the oracle for the v5.0.0 release candidate.
 If either digest changes, this design is stale and every review receipt bound
 to it is void.
 
@@ -92,78 +93,14 @@ task list, coverage plan, or later ruling cannot supersede the signed oracle.
 - Prior production-plan context (subordinate for the re-grilled catalogue):
   [`../specs/product-spec.md`](../specs/product-spec.md)
 
-**Version history.** v0.1 was frozen 2026-07-24 and withdrawn by the 2026-07-25
-re-grill. v0.2 absorbed 2026-07-26 rulings but was superseded the same day.
-v0.3 was rewritten against D1-D19 at 52 cases. v0.4 was rewritten against the
-2026-08-17 host-tier amendment at 48 cases and removed every trace of the
-verified/unverified tier from Rig's output and data. v0.5 adds D20's bounded
-policy-signer recovery path and rewrites the Gate-2 traceability set to 49
-cases. v0.6 traces D21's nineteen `AT-LF-*` lint-format cases (49→68),
-narrows §12.3/§17.2's release boundary to the single
-`development.code-quality.lint-format` leaf, adds the Policy → Context →
-Evidence grade ladder (§5.7) with the lint-format vertical mechanisms (§5.8,
-§9.4, §11.3), and resolves the three round-3 findings. v0.7 corrects the two
-accepted round-4 consistency findings: it rewrites the §5.7/AD-32 short-circuit
-so only a lower-grade *failure* stops early while a clean lower-grade pass runs
-through to the selected grade, and makes repository-CI applicability grade-aware
-in §8.9/§11.2/§11.3 so lint-format participates in CI only at the Evidence grade.
-v0.8 incorporates D22's matching Gate 1 clarification in `AT-CI-3`, preserving
-the 68-case set while updating the Gate 1 digests and this candidate's pins.
-v0.9 incorporates D23, Gate 1's one-release exception to `AT-SHAPE-6`: the
-specification gate's full-content evaluation of that case applies to
-`development.code-quality.lint-format` alone for this release, not all 115
-leaves, while leaving the 68-case set and every other case unchanged. §5.6,
-§12.3, §17.2, and the `AT-SHAPE-6` row in §13 are narrowed to match, and the
-Gate 1 digests and this candidate's pins are updated again. v0.10 resolves the
-round-6 candidate-review findings without changing Gate 1: Slice 2's "red"
-state for the other 114 leaves is defined as unauthored status and a
-future-support/complete-catalogue blocker rather than a release-scoped test
-failure; the freeze checklist pointer and Slice 15 review wording are aligned
-with §17.1; and `AT-PRESENCE-2`'s executable evidence is narrowed to
-pre-registration, distinctness, receipt validity, exhaustion, and declared-class
-disclosure. v0.11 resolves four remaining round-5 mechanism findings: it
-separates the per-run Evidence verdict from the separately approved CI graft,
-adds remediation-specific terminal journal states, fails recovery registration
-closed when user verification cannot be requested, and includes §9.4's six
-abnormal outcomes in §9.3's report enum. The round-5 traceability-target finding
-remains open until the complete executable oracle names and supplies every
-target. v0.12 retraces D24 and the one-gate amendment: all 115 Policy leaves,
-the 55 vendored skills, detected-host-only onboarding, named-tag `5.0.0`
-distribution with MIT notice/provenance, and the v2 signed oracle message that
-includes the testing-infrastructure manifest. It removes every Gate-2 freeze
-condition; fresh review remains release evidence.
-
-v0.13 closed the 2026-08-23 production review findings without changing the
-signed oracle: all repository mutation paths share symlink-aware containment;
-the JSONL install journal carries preimage/desired digests, incomplete/complete
-state, crash reconciliation, and reverse removal; the legacy JSON manifest is
-only a journaled compatibility projection. The payload installs 55 neutral
-skills plus the catalogue and safety runtime in a bare repository. Policy packs
-name owned scope, applicability, disposition, and non-generic checks; missing
-repository bindings fail as coverage gaps. All six CI adapters have additive
-first-wire tests. Review production and validation share one strict schema with
-exact passing verdict coverage. The root installer is POSIX `sh`, and the
-distribution test executes a locally transported tagged archive end to end.
-v0.14 preserves Tier 1's static-only boundary by gating those runtime files to
-the root tagged-release entry point; local bootstrap remains fixed and static.
-v0.15 resolves the remaining owner choice: a policy proposal that turns on
-model-assisted secret triage carries the irreversible third-party disclosure,
-and activation requires a verified approval bound to that disclosure digest.
-The final report-only review receipt also binds a deterministic digest of the
-complete PR implementation worktree, excluding review receipts themselves, so
-specification evidence cannot be presented as implementation review evidence.
-v0.16 closes the first implementation-bound review findings that do not change
-the signed intent: one-use approvals persist consumption; activation and
-recovery verify repository-, sequence-, receipt-, and nonce-bound SSHSIG
-challenges; recovery commits its receipt before invalidating prior trust state;
-the shipping CLI exposes uninstall and recovery; teardown restores chained
-hooks, removes attributed global entries, lists purge targets before deletion,
-and preserves the user-owned policy. Host support no longer uses the withdrawn
-verified/unverified tier as registry data: every host instead carries six
-axis-specific vendor contracts. Every Policy leaf now carries a distinct
-acceptance target and pass/fail evidence contract. History scanning is limited
-to vetted full-history argv and semantic drift consumes indexed input digests
-and structured review status.
+**Version history.** v0.1 through v0.16 moved to
+[the timeline](../index/timeline.md#the-technical-designs-own-version-history-v01v016)
+— it is a changelog, not part of the current design. The short version: each
+point release retraced this document to a new owner ruling or closed a
+specific review finding without changing the signed oracle; nothing in that
+history is a live open item. History scanning is limited to vetted
+full-history argv and semantic drift consumes indexed input digests and
+structured review status.
 
 **Default branch.** It is `prod`. `origin/main` does not exist, and any
 workflow naming `main` or `master` is wrong. D10 removed the branch dependency
@@ -348,6 +285,7 @@ These are implementation constraints, not suggestions:
 | AD-34 | **Lint-format execution is plan-bound and read-only by construction** (§9.4). Selection authorizes nothing; only an exact-digest-approved plan authorizes its listed read-only commands, directories, and components, disclosed as untrusted code with `shell: false` not presented as safety. Diff-scoped by default in the component's working directory honoring its ignore rules; a read-only check that mutates the tree is detected, halted, evidenced, and never auto-restored; autofix is a separately approved mutating action re-verified by re-running the check; command drift halts before running; every abnormal ending is its own distinct non-passing state. |
 | AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
+| AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. Without it they do not invoke OpenClaw or require npm. With it they print the global-path/blast-radius disclosure, preflight `openclaw`, `node`, and `npm`, copy `rig-mcp/` into the target runtime, run `npm ci --omit=dev --ignore-scripts` against its committed lockfile, and then call `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
 
 ### 2.1 Rejected approaches
 
@@ -986,6 +924,12 @@ node rig/materialize.js approvals revoke \
   --target <repo> --action-digest <sha256>
 ```
 
+Source checkouts use the `node rig/materialize.js` form above. Active-runtime
+installs journal an executable `.rig/bin/rig` shim that accepts the same
+subcommands and delegates to the installed runtime; bootstrap changes into the
+target and prints the staged command sequence. The default markdown-only
+bootstrap installs neither the shim nor runtime.
+
 The CLI remains argument parsing and orchestration. Domain logic stays under
 `rig/lib/`. Approval files contain a verified host-native attestation or
 external user-presence signature; a bare digest flag is never approval. There
@@ -1225,6 +1169,30 @@ installation onward:
 | TOML | The same, expressed as a namespaced table per install ID. |
 | Line-oriented or markdown | Sentinel fences carrying the install ID, wrapping only Rig's own lines. |
 
+The exact user-global MCP writer contracts verified on 2026-08-24 are:
+
+| Host surface | File | Format / vendor container | Rig ownership key |
+|---|---|---|---|
+| Windsurf / Devin Desktop legacy Cascade | `~/.codeium/windsurf/mcp_config.json` | JSON `mcpServers` | `rig-<install-id>-<server-name>` |
+| Cline IDE shared settings | `~/.cline/data/settings/cline_mcp_settings.json` | JSON `mcpServers` | `rig-<install-id>-<server-name>` |
+| Hermes | `~/.hermes/config.yaml` | YAML `mcp_servers` | `rig-<install-id>-<server-name>` inside install-ID sentinel comments |
+| CodeWhale | `~/.codewhale/mcp.json` | JSON `servers` | `rig-<install-id>-<server-name>` |
+
+`rig/lib/global-writes.js` owns these contracts and their merge/remove
+implementation. JSON merges preserve all unrelated keys and server values;
+Hermes accepts only the block-mapping form it can update without guessing and
+fails unchanged on unsupported YAML shapes. Reapply replaces the same
+attributed entry, and removal first verifies the current value and exact
+current-home contract path. The CodeWhale `~/.deepseek/mcp.json` location is a
+legacy fallback, not the primary contract. Cline CLI's separate
+`~/.cline/mcp.json` surface is not conflated with the Cline IDE contract above.
+
+These writers do not by themselves activate a host. The signed Basic path
+continues to emit advisory notes for these four hosts until the host roster and
+first-wire gate in RIG-110 authorizes activation; that preserves the existing
+consent and release boundary while making the write lifecycle executable and
+testable.
+
 Attribution is required on the first install, when no second repository
 exists yet: an unattributed entry can never afterwards be safely removed.
 Attributing lazily on the second install would owe the user a migration
@@ -1243,11 +1211,32 @@ Operations:
   removed, using the recorded realpath and remote, and does not claim to have
   removed entries belonging to another repository.
 
+**OpenClaw exception (D25).** OpenClaw's active configuration is JSON5 at
+`~/.openclaw/openclaw.json`, so Rig must not reuse the JSON writer above. The
+root installer and bootstrap accept `--openclaw-mcp`; the flag is the sole
+explicit consent and the default never prompts for or writes this host. Before
+the write, output names that path and its all-workspaces effect. The installer
+requires `openclaw`, `node`, and `npm`; copies `rig-mcp/` to
+`.rig/runtime/rig-mcp`; installs its committed lockfile with
+`npm ci --omit=dev --ignore-scripts`; and then invokes `openclaw mcp set` with
+the stdio server definition. The server key is `rig-<install-id>`, where the
+stable, clone-local ID and exact key are recorded in `.rig/global-writes.json`.
+The native CLI owns JSON5 parsing, validation, and atomic writes. Failed
+preflight or dependency installation occurs before that command and leaves the
+global configuration untouched.
+
+During uninstall, read the recorded OpenClaw entry and invoke `openclaw mcp
+unset <server-name>` before deleting `.rig/runtime/rig-mcp`. A missing or
+failing CLI makes this one removal best-effort, names the global file and
+server, and retains that runtime and its ledger record for a safe retry. It
+must not hand-edit JSON5 or leave a configuration entry pointing at deleted
+code.
+
 A user-global write changes behavior in every project that host opens. That
 blast radius is disclosed in the install line by naming the file written
-outside the repository (`AT-HOME-1`). There is no separate prompt and no
-per-host claim string of any kind (2026-08-17 amendment, AD-26): the
-disclosure is the control, and it names a file rather than making a claim.
+outside the repository (`AT-HOME-1`). OpenClaw is the D25 exception: its
+explicit installer flag is the sole host-specific selection; the default stays
+non-interactive. Neither path emits a per-host claim string.
 
 ### 7.5 Install-line output
 
@@ -1259,10 +1248,11 @@ Rig has not observed enforcement fire on any host is a product-level
 statement whose home is the host registry header; a user who wants that
 context reads it there.
 
-The install line is deterministic and non-interactive. Every host that
-onboards is treated the same way: no prompt, no extra flag, no acknowledgement
-gates any host path. A design that adds a prompt or a claim label on one host
-but not another draws a tier by another name and fails the amendment.
+The install line is deterministic and non-interactive. Every host is treated
+the same way except the D25 OpenClaw flag: selecting it authorizes the global
+write and causes the required warning before the native CLI runs. It is not an
+interactive acknowledgement or a host-quality claim. The default path never
+requires OpenClaw or npm and never creates its global configuration.
 
 ### 7.6 Install manifest, resume, and removal
 
@@ -2433,9 +2423,9 @@ results rather than trusting an aggregate exit code.
 | AT-CLAIM-1 | AD-13/§6 discovers unambiguous host markers, activates exactly detected or explicit hosts, and routes all 19 hosts/six providers through one adapter contract. Absent hosts receive no tree. | `tests/advanced-oracle.test.js` title `AT-CLAIM-1 detected hosts only, whole roster reachable`: exercise every marker, mixed and bare repositories, ambiguous `AGENTS.md`, explicit absent-host opt-in, all roster entries, and exact per-axis byte landing. |
 | AT-PRESENCE-1 | §8.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-1 activation refuses when no verified presence path exists`: Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
 | AT-PRESENCE-2 | §8.4/AD-30 recovery uses only pre-registered, distinct `sk-*` SSHSIG recovery identities under `rig-policy-recovery`; registration requires an already-valid credential and recovery exhaustion is terminal for the current policy trust state. The `sk-*` class is declared and disclosed, not certified from the signature (D19); the user-verification registration ceremony is the product ceremony, while automation proves only the enforceable preconditions and disclosures around it. Authorized recovery writes a disclosed receipt before invalidating pending candidates, burning one-use approvals, or resetting evidence generations. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-2 recovery is pre-registered distinct and terminal`: First signer setup offers exactly three recovery identities and later valid signer setup offers to add more. Accept a recovery signed by a pre-registered distinct recovery key and assert the receipt, replacement signer, stale pending candidate, deleted prior one-use approvals, incremented evidence generations, and disclosed status. Reject ordinary confirmation, same-key recovery, a fresh post-loss key, a recovery key under the activation namespace, a missing registration receipt, and exhausted registered credentials with reason `recovery_credentials_exhausted`; assert none of those rejected attempts changes candidate bytes, approvals, evidence generations, or signer state. Assert the registration path records a valid pre-loss registration receipt, rejects fingerprint reuse and namespace confusion, and that `policy status` discloses each recovery credential's declared class so a weak registration is visible rather than passing as hardware-backed. Do not assert a hardware touch in `node --test`; per D19 no signature artifact proves that class. |
-| AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository. | `tests/advanced-oracle.test.js` title `AT-HOME-1 global writes append and disclose the exact path`: Seed a user-global file with hand-written values, install, and assert byte-for-byte survival of every pre-existing value **and** that the install line names the out-of-repo file it wrote. A wholesale rewrite fails; an install that writes outside the repo and does not name the file fails. |
+| AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository; D25 makes OpenClaw an explicit flagged exception that is written only through its native CLI. | `tests/advanced-oracle.test.js` title `AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible`: Use the released installer against a temporary HOME plus fake `openclaw`, `npm`, and download commands. Assert the default installation calls neither OpenClaw nor npm and leaves the global config byte-identical. Assert `--openclaw-mcp` warns before calling `openclaw mcp set`, installs and starts the target runtime, uses one `rig-<install-id>` key, and preserves an unrelated server. Reinstall is key-identical. Uninstall calls `openclaw mcp unset` and preserves the unrelated server. |
 | AT-HOME-2 | §7.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | `tests/advanced-oracle.test.js` title `AT-HOME-2 global entries are attributed per repository`: Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
-| AT-DIST-1 | §12.4 root stub resolves and records a named tag, downloads before execution, installs private version `5.0.0`, all 55 unique Rig-named skills, and required MIT notice/provenance with no endorsement claim. | `tests/advanced-oracle.test.js` title `AT-DIST-1 stranger installs complete named-tag release`: run from a no-checkout git/curl/sh fixture; reject branches and remote piping; assert byte-stable repeat install, all 55 skills, both provenance files, no endorsement string, and no npm publish workflow. |
+| AT-DIST-1 | §12.4 root stub resolves and records a named tag, downloads before execution, installs private version `5.0.0`, all 55 unique Rig-named skills, and required MIT notice/provenance with no endorsement claim. `--openclaw-mcp` additionally ships the locked MCP runtime, but the default needs neither OpenClaw nor npm. | `tests/advanced-oracle.test.js` title `AT-DIST-1 stranger installs complete named-tag release`: run from a no-checkout git/curl/sh fixture; reject branches and remote piping; assert byte-stable repeat install, all 55 skills, both provenance files, no endorsement string, and no npm publish workflow. |
 | AT-INSTALL-1 | §7.6 append-only manifest with record-before-mutate ordering, `applied` supersede carrying the post-write digest, resume from the manifest, and the `complete: false` header that suppresses every protection claim. Teardown of a partial install is the §7.6 removal path, not a second one. | `tests/advanced-oracle.test.js` title `AT-INSTALL-1 interrupted installs resume without premature claims`: Interrupt an install at each write boundary — crash, signal, permission denial, and a full-disk write failure — and assert applied writes stay, the manifest records how far it got, and the install is marked incomplete. Assert no partially applied control is reported as enabled, installed, or protecting anything, in `policy status`, the install line, and a run report. Re-run and assert resume applies only what did not land, with no duplicated work and no restart. Separately uninstall the partial install and assert it is removed by the same teardown path. |
 | AT-UNINSTALL-1 | §7.6 reverse-`seq` walk over the manifest; owned files deleted, managed blocks stripped from files Rig only added to, chained hooks restored, user-global entries removed by `install_id` per §7.4; removal report names what went. | `tests/advanced-oracle.test.js` title `AT-UNINSTALL-1 uninstall removes exactly manifest-owned content`: Install across every surface at once — Rig's own files, a grafted `AGENTS.md`, a pre-commit hook, an `AT-CI-1` CI job, host configuration, and a user-global file — then uninstall and assert each is gone and every byte the user owns survives unchanged. Assert teardown order is the reverse of install by killing uninstall mid-run and asserting no hook references a removed target. Assert the report enumerates exactly what was removed. Deleting `.rig/` and declaring the repository clean must fail the case. |
 | AT-UNINSTALL-2 | §7.6 clone-local content-addressed preimage store, post-removal diff, and the verified-clean versus named-best-effort split. | `tests/advanced-oracle.test.js` title `AT-UNINSTALL-2 uninstall reports verified clean or named best effort`: Uninstall a repository whose touched files carry the user's own later edits and assert **verified clean**. Edit a managed block's markers away, uninstall, and assert **best-effort** with that exact file named and the result never called clean; do the same for a file another tool rewrote. Assert no preimage is ever written back over a current file, by seeding a post-install user edit and asserting it survives. Delete the clone-local store and assert removal degrades to best-effort and says so rather than claiming clean. |

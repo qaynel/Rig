@@ -70,6 +70,7 @@ print(json.dumps({'skills': ctx.skills, 'hooks': ctx.hooks, 'commands': ctx.comm
     'rig',
     'rig-audit',
     'rig-debt',
+    'rig-enforcement',
     'rig-gain',
     'rig-help',
     'rig-review',

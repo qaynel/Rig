@@ -4,7 +4,8 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
-const { removeGlobalConfig } = require('./global-writes');
+const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
+const { removeOpenClawMcp } = require('./openclaw-mcp');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
@@ -36,6 +37,10 @@ function digestOf(buf) {
 
 function currentDigest(abs) {
   return fs.existsSync(abs) ? digestOf(fs.readFileSync(abs)) : null;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function latestOperations(records) {
@@ -129,25 +134,60 @@ function resolveRecordPath(target, rel) {
 
 function uninstall(target, opts = {}) {
   const manifest = readManifest(target);
-  const records = latestOperations(manifest.records)
-    .filter((record) => (record.transaction_kind || 'install') === 'install')
-    .sort((a, b) => b.seq - a.seq);
+  const latestByPath = new Map();
+  for (const record of latestOperations(manifest.records)) {
+    if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
+  }
+  const records = [...latestByPath.values()].sort((a, b) => b.seq - a.seq);
   const bestEffort = [];
+  const bestEffortDetails = [];
   const removed = [];
+  const retainedEntries = [];
+  const preservePrefixes = [];
+  let stopped = false;
   const globalLedger = containedPath(target, '.rig/global-writes.json');
   if (fs.existsSync(globalLedger)) {
-    const ledger = JSON.parse(fs.readFileSync(globalLedger, 'utf8'));
+    let ledger;
+    try {
+      ledger = JSON.parse(fs.readFileSync(globalLedger, 'utf8'));
+    } catch {
+      ledger = { entries: [null] };
+    }
     for (const entry of ledger.entries || []) {
       if (!entry || typeof entry.path !== 'string' || typeof entry.install_id !== 'string') {
         bestEffort.push('.rig/global-writes.json');
+        retainedEntries.push(entry);
         continue;
       }
-      const result = removeGlobalConfig(entry.path, entry.install_id);
+      const result = entry.kind === 'openclaw-mcp'
+        ? removeOpenClawMcp(target, entry)
+        : entry.kind === 'global-mcp'
+          ? removeGlobalMcp(entry)
+          : entry.kind === undefined || entry.kind === 'json-namespace'
+            ? removeGlobalConfig(entry.path, entry.install_id)
+            : { removed: false };
       if (result.removed) removed.push(entry.path);
-      else bestEffort.push(entry.path);
+      else {
+        bestEffort.push(entry.path);
+        bestEffortDetails.push(`${entry.path} (${entry.server_key || entry.install_id})`);
+        retainedEntries.push(entry);
+        if (entry.kind === 'openclaw-mcp') {
+          stopped = true;
+          if (entry.runtime) preservePrefixes.push(entry.runtime);
+        }
+      }
+    }
+    if (retainedEntries.length === 0 && (ledger.entries || []).length > 0) {
+      fs.rmSync(globalLedger, { force: true });
+    } else if (retainedEntries.length !== (ledger.entries || []).length) {
+      fs.writeFileSync(globalLedger, `${JSON.stringify({ ...ledger, entries: retainedEntries }, null, 2)}\n`);
     }
   }
-  for (const record of records) {
+  if (!stopped) for (const record of records) {
+    if (preservePrefixes.some((prefix) => record.path === prefix || record.path.startsWith(`${prefix}/`))) {
+      bestEffort.push(record.path);
+      continue;
+    }
     const abs = resolveRecordPath(target, record.path);
     if (!fs.existsSync(abs)) continue;
     if (record.path === '.git/hooks/pre-commit') {
@@ -170,7 +210,14 @@ function uninstall(target, opts = {}) {
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
-      const stripped = body.replace(/<!-- rig:[^\n]*start -->\n[\s\S]*?<!-- rig:[^\n]*end -->\n?/g, '');
+      const name = typeof record.managed_block === 'string'
+        ? escapeRegExp(record.managed_block)
+        : '[^\\n]*';
+      const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
+      const stripped = body.replace(
+        new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
+        '',
+      );
       if (stripped === body) bestEffort.push(record.path);
       fs.writeFileSync(abs, stripped);
       if (stripped !== body) removed.push(record.path);
@@ -189,23 +236,30 @@ function uninstall(target, opts = {}) {
     kind: 'uninstall',
     removed,
     best_effort: bestEffort,
+    best_effort_details: bestEffortDetails,
     at: new Date().toISOString(),
   };
   const evidenceDir = path.join(target, 'reports/rig');
   fs.mkdirSync(evidenceDir, { recursive: true });
   fs.writeFileSync(path.join(evidenceDir, 'last-uninstall.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   let purgeList = [];
-  if (opts.purge) {
+  if (opts.purge && !stopped) {
     purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
     for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
-  } else {
+  } else if (!stopped) {
     const mfile = containedPath(target, MANIFEST_REL);
     if (fs.existsSync(mfile)) fs.rmSync(mfile, { force: true });
     const legacy = containedPath(target, LEGACY_MANIFEST_REL);
     if (fs.existsSync(legacy)) fs.rmSync(legacy, { force: true });
   }
-  return { status: 'removed', removed, best_effort: bestEffort, purge_list: purgeList };
+  return {
+    status: stopped || bestEffort.length ? 'best_effort' : 'removed',
+    removed,
+    best_effort: bestEffort,
+    best_effort_details: bestEffortDetails,
+    purge_list: purgeList,
+  };
 }
 
 function verifyRemoval(target, evidence) {

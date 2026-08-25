@@ -13,6 +13,10 @@ acceptance, tests). The specification is a working design, not a second freeze:
 the approach may change during implementation as long as the frozen tests stay
 green.
 
+For a spec-driven request, this is the technical-interrogation checkpoint of
+the folded spec-driven flow: inspect the current code and documents before
+asking questions, then return a concrete working design for draft review.
+
 ## Process
 
 1. Restate the oracle and trace the current system end to end.

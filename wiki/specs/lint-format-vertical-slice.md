@@ -4,10 +4,11 @@ status: draft
 
 # Lint-format vertical slice
 
-Status: bounded pre-freeze tracer design, 2026-08-20. For this leaf's current
-state and the ordered path from here to production, see
-[the lint-format roadmap](lint-format-roadmap.md) — that file is kept current;
-this one is the fixed design record.
+Status: bounded pre-freeze tracer design, 2026-08-20 — historical. For this
+leaf's current state, see [the delivery plan](../topics/delivery-plan.md) and
+[status](../status.md); [the lint-format roadmap](lint-format-roadmap.md) is
+now itself a historical snapshot rather than the live tracker it once was.
+This file is the fixed design record of the original probe.
 
 ## Outcome
 

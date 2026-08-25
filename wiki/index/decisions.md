@@ -5,7 +5,7 @@ Every ruling this project has made, across four ID schemes, in one place.
 | Scheme | Count | What it is | Defined in |
 |---|---|---|---|
 | `G#` | 16 | Foundational grilling — what Rig is and how it is built. | [`sources/logs/grill-decisions.md`](../sources/logs/grill-decisions.md) |
-| `GA-#` | 85 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
+| `GA-#` | 86 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
 | `D#` | 24 | Gate 1 revisions — rulings that changed owner-approved intent. All 24 have landed; D24 awaits the combined oracle signature. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
 | `AD-#` | 36 | Gate 2 mechanisms — working implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
@@ -25,6 +25,19 @@ intent.
 |---|---|---|
 | 2026-08-21 | **Collapse the two gates into one.** One signed freeze locks the oracle (intent, acceptance, tests) before code; the technical spec is checked for presence, not frozen. Enforced by human signature before code plus oracle immutability, not by independent authorship. | [intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) |
 | 2026-08-21 | **Escape hatch = key-holder instant re-sign (Option A).** A wrong locked test is corrected only by the key holder as a quick re-sign; an agent may propose but never make the change. Rejected Option B (full return to grilling). | [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md) |
+| 2026-08-25 | **Cap the nested release-review retry loop and scope the per-turn tax to multi-step work.** `review-receipt.js` enforces at most one re-review per author-context itself (not agent discipline), gains a cheap-model `--interim` mode that never writes the binding receipt, and stays release-only; `rig-tdd`'s inner loop is `npm run test:rig`/single test file, full gate once before push; `routing.md` adds a lightweight path for single-step, single-file, non-wiki-truth-changing tasks. | [RIG-124](../tickets/RIG-124.md), [implementation trace](../reasoning/2026-08-25-rig124-implementation.md) |
+
+---
+
+## Product-integration rulings
+
+Owner decisions that resolve a delivery integration without changing the
+frozen business oracle or claiming a new numbered architecture decision.
+
+| Date | Ruling | Source |
+|---|---|---|
+| 2026-08-24 | **Antigravity MCP is first-class manual setup for beta.** Onboarding emits exact selected-server JSON plus a verification command; Rig does not write the user-global file while upstream CLI issue #60 remains open. | [RIG-105](../tickets/RIG-105.md), [host contract](../specs/host-coverage-spec.md#321-rig-mcp-server-coverage-rig-101) |
+| 2026-08-24 | **Spec-driven development folds into the existing phase owners.** Requests route through grilling's five executable-spec checkpoints and product design's code-grounded technical interrogation; no separate skill or graft is added. | [RIG-119](../tickets/RIG-119.md), [working conventions](../topics/agent-working-conventions.md) |
 
 ---
 
@@ -58,7 +71,11 @@ both Gate 1 files.
 | D21 | 2026-08-21 | Lint-format ships first, alone, as the release-blocking leaf; the other 114 remain commitments but do not block this release. Adds `AT-LF-1`–`AT-LF-19`, 49→68. | [the delivery plan](../topics/delivery-plan.md) |
 | D22 | 2026-08-21 | CI runs selected executable services only when they are repo-CI-applicable at their active grade; lint-format remains CI-enforced only at Evidence. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | D23 | 2026-08-21 | One-release exception: `AT-SHAPE-6` evaluates only `development.code-quality.lint-format` for this release; the other 114 leaves are excluded from this pass, unchanged. Named and dated, not a standing rule — reverts next release absent a further amendment. | [the authored-service gate](../topics/authored-service-gate.md) |
-| D24 | 2026-08-21 | **Owner-approved and landed in both Gate 1 files; oracle signature pending.** The MVP is built in one pass at agent discretion: all 115 leaves at Policy grade, all 55 physically vendored skills wired, detected-host-only onboarding, and named-tag `5.0.0` distribution. Each fragment declares its grade and untailored baseline status. Suspends locked decision 8 for this release, preserves the safety floor, supersedes D21's single-leaf boundary, and retires D23. The modified partial vendored suite may ship under MIT with notice/provenance and no endorsement claim. | [the MVP roadmap](../specs/mvp-roadmap.md) |
+| D24 | 2026-08-21 | **Owner-approved, landed in both Gate 1 files, and signed — the oracle is armed.** The MVP is built in one pass at agent discretion: all 115 leaves at Policy grade, all 55 physically vendored skills wired, detected-host-only onboarding, and named-tag `5.0.0` distribution. Each fragment declares its grade and untailored baseline status. Suspends locked decision 8 for this release, preserves the safety floor, supersedes D21's single-leaf boundary, and retires D23. The modified partial vendored suite may ship under MIT with notice/provenance and no endorsement claim. | [the MVP roadmap](../specs/mvp-roadmap.md) |
+
+| D25 | 2026-08-24 | Business intent is highly recommended and surfaced through every host, but **optional** — technical specs alone may ship a fast feature. The gate still requires acceptance + tests (locked) and a present technical spec. | [the gate](../topics/the-two-gates.md) |
+| D26 | 2026-08-24 | **One lock**, not many: it locks tests and acceptance together; only the owner changes a locked expectation, through the hardware key. The lock exists to stop an agent moving its own goalpost. | [the gate](../topics/the-two-gates.md) |
+| D27 | 2026-08-24 | Nothing locks until solution + acceptance + tests are all in place and the owner agrees. "Not yet frozen" is the normal default for in-progress design, never a pending "freeze now?" decision — this is why RIG-112 was a mis-raised question. | [the gate](../topics/the-two-gates.md), [catalogue contract](../topics/catalogue-contract.md) |
 
 **The D5 → D10 → D17 → D19 sequence** is the most-revised thread in the project:
 four revisions to arrive at one honest, implementable statement of how Gate 1
@@ -110,6 +127,7 @@ Implementation constraints, not suggestions.
 | AD-35 | Enabling model-assisted secret triage requires plan-time third-party disclosure and exact disclosure-bound approval. | [drift and secret controls](../topics/drift-and-secret-controls.md) |
 | AD-36 | Fresh release review evidence binds the exact PR implementation worktree and base, not only its specification. | [review receipts](../topics/review-receipts.md) |
 | AD-37 | A default `rig/bootstrap.sh` install is markdown-only end to end: per-skill code and the `.rig/plumbing` tree are gated behind the existing `active_delivery` (`--with-runtime`) flag, same as the runtime engine; `.tmpl` build inputs and `TODOS-format.md` are dropped in both modes. All 55 `SKILL.md` files still land unconditionally — only their code backing is gated. | [distribution and release](../topics/distribution-and-release.md), [the catalogue](../topics/the-catalogue.md) |
+| AD-38 | OpenClaw global MCP installation is an explicit `--openclaw-mcp` choice, uses the native CLI, has per-clone server ownership, and removes the global entry before its runtime. The default install does neither an OpenClaw nor an npm operation. | [user-global writes](../topics/user-global-writes.md), [host and CI coverage](../topics/host-and-ci-coverage.md) |
 
 ---
 
@@ -196,6 +214,7 @@ parent.
 | GA-33 | 2026-08-21 | Every abnormal check ending is its own distinct, reported, non-passing state: timeout, cancelled, missing-dependency, signalled, partial-output, and command-not-found each resolve to a specific truthful result—never collapsed into "pass," never silently swallowed. The one-honest-outcome rule applied to the messy endings: a check that could not reach a verdict says exactly why. |
 | GA-34 | 2026-08-21 | Lint-format lifecycle follows the frozen install-manifest/removal contract: reinstall is an idempotent resume claiming nothing until complete; removal reverses exactly what Rig's manifest recorded it created (generated CI, config, managed blocks) and touches nothing else; user-invoked source fixes are the user's own edits and always survive uninstall. |
 | GA-35 | 2026-08-21 | Production support is claimed per component and only on positive evidence: a component is supported only when Rig built at least the Policy level, discovered and bound its commands, and produced a real (non-placeholder) check result under plan-bound consent; the whole repository is supported only when every discovered, non-excluded component clears that bar, and any approved exclusion suppresses the whole-repository claim while the covered components stay truthfully supported. |
+| GA-36 | 2026-08-23 | DSH (a forked agent-runtime harness) is adopted only as an optional, frozen, tier-1-only delivery shell for the no-host segment — reach, not moat — and is never chased upstream. The moat is the adaptation-onto-existing-infra engine (merge-not-overwrite, repo-shape-aware, one analysis emitted per host); its quality, not its existence, is unproven and is validated on real repos before further shell work. DSH's skill-generation is replicated onto whichever host is present through study and prompting, not inherited as running code. Build order stays corpus-first: adaptation engine, then an authoring/preview/approve surface, then the optional shell last. |
 
 ### Re-grill sub-rulings
 

@@ -1,8 +1,14 @@
 ---
-status: draft
+status: historical
 ---
 
 # Lint-format — from current state to production
+
+> **HISTORICAL SNAPSHOT, checked 2026-08-21.** This file's step-by-step
+> tracking is superseded by [the delivery plan](../topics/delivery-plan.md)'s
+> "Where the eight steps actually stand" table and by
+> [status](../status.md), both kept current. Read this file for the original
+> reasoning behind the steps, not for their present state.
 
 > **This file is a map for one catalogue leaf, not a rulebook.** The two
 > documents that actually decide anything are
@@ -41,16 +47,16 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
 | Thing | State |
 |---|---|
 | Catalogue entry (`identity.md`, `minimal.md`, `mid.md`, `maximal.md`, `slices/{floor,property-floor,behavior-oracle}.md`) | **Authored**, service-specific — not template filler. See [the vertical-slice design](lint-format-vertical-slice.md). |
-| Check discovery/binding | **Prototype implemented** across `rig/lib/catalog.js`, `plan.js`, `apply.js`, `checks.js`, `ci-adapters.js`, but it recognizes only fixed npm script names. The production contract now requires whole-repository, open-ecosystem semantic discovery; this implementation is not sufficient. |
+| Check discovery/binding | **Implemented and full-gate green.** Discovery covers the complete Git-visible repository without the old depth limit, finds root/workspace/nested/polyglot components from manifests, tool config, task files, and open-ended role declarations, and binds non-standard task names by command semantics. Each command records exact argv, cwd, source digests, and inherited ignore files. Ambiguity becomes `needs_user_choice` and blocks apply; unbuildable components are named unprotected and suppress the repository-wide claim. |
 | Grade model | **Designed in Gate 2 v0.6 §5.7 (`AD-32`); prototype superseded.** Policy → Context → Evidence are the `minimal/mid/maximal` names of the cumulative dial, the selected grade is a ceiling, and ordinary formatter/linter/type/static output are commodity inputs. The prototype's formatter-only → formatter-plus-linter → CI-plus-fix split and its `convention` catalogue entry must be re-authored to this contract. Current specification remains focused only on this leaf. |
 | Applicability | **Intent frozen, acceptance not yet authored.** Rig may install covered components while explicitly reporting user-approved uncovered components as unprotected. Partial installation suppresses any whole-repository support claim. |
 | Execution consent | **Intent frozen, acceptance not yet authored.** Service selection authorizes nothing to run. Approval of the concrete plan authorizes its listed read-only commands and scopes; mutating fixes require separate approval. |
 | Shell trust | **Intent frozen, acceptance not yet authored.** Repository tasks remain untrusted code under Rig policy, privilege, secret, network, and resource/time controls. `shell: false` protects only the outer argv boundary. |
 | `.rig/service-bindings.json` + `.rig/bin/check.js` writing | **Implemented.** Argv arrays only, `shell: false`; the recorded `fix` command is never dispatched by a check. |
 | Manifest/resume mechanics this leaf's apply path exercises | **Minimal version implemented** in `rig/lib/apply.js` (`.rig/install-manifest.jsonl`, write-record-then-mutate, `applied` supersede with digest). **Not** the full §7.6 contract — no `complete: false` header field (the incomplete signal is currently receipt-absence, reused from the pre-existing pattern), no preimage content-addressed storage, and no reverse-walk removal. Those remain the Slice 6/Slice 12 lifecycle work. |
-| Tests | `tests/advanced-lint-format.test.js` and `tests/advanced-apply.test.js` assert real behavior (reject placeholder content, exercise real formatter/linter/CI commands, exercise the manifest/resume path) — not placeholder presence. |
+| Tests | `tests/advanced-lint-format.test.js`, `tests/advanced-apply.test.js`, and `tests/semantic-lint-format.test.js` assert real behavior (reject placeholder content, exercise real formatter/linter/CI commands, exercise the manifest/resume path, and cover deep polyglot discovery plus task/config ambiguity) — not placeholder presence. |
 | Authored-service gate (`AT-SHAPE-6`: mechanical + fresh-context semantic/MECE review) | **Not passed.** The gate itself does not exist yet (Slice 2), and no fresh exact-digest lint-format leaf review receipt exists. |
-| Other 114 leaves | **Still placeholders.** 428 `TODO(Slice 10)` files remain. Gate 2 proposes that they block only their own support and the complete-catalogue claim; frozen Gate 1 still makes them release-blocking. |
+| Other 114 leaves | **Authored at Policy grade, no placeholders.** Superseded 2026-08-24: [delivery-plan](../topics/delivery-plan.md) step 5 records 805 files, zero placeholders — the earlier "428 `TODO(Slice 10)` files remain" count is stale. Their Context/Evidence promotion is deferred (RIG-116). Gate 2 proposes they block only their own support and the complete-catalogue claim; frozen Gate 1 still makes them release-blocking. |
 
 ---
 

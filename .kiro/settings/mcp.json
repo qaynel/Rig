@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rig": {
+      "command": "node",
+      "args": ["rig-mcp/index.js"],
+      "disabled": false
+    }
+  }
+}

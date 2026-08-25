@@ -1,0 +1,3 @@
+[mcp_servers.rig]
+command = "node"
+args = ["rig-mcp/index.js"]

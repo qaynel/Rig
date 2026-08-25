@@ -1,7 +1,7 @@
 ---
 name: rig-review
 description: "Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding."
-homepage: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+homepage: https://github.com/qaynel/Rig
 license: MIT
 ---
 

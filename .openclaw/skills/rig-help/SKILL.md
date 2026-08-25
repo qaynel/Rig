@@ -1,7 +1,7 @@
 ---
 name: rig-help
 description: "Quick reference for rig's modes, skills, and commands. One-shot display."
-homepage: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+homepage: https://github.com/qaynel/Rig
 license: MIT
 ---
 
@@ -67,4 +67,4 @@ If `/plugin` is not recognized, your Claude Code is out of date. Update it (`npm
 
 ## More
 
-Full docs + examples: https://github.com/vaibhav-kodiyan/agentic-harness-demo
+Full docs + examples: https://github.com/qaynel/Rig

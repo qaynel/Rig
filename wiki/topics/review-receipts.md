@@ -27,6 +27,20 @@ and report-only authority are. Review receipt files are excluded
 from the implementation digest to avoid a self-referential hash; all other
 tracked and publishable untracked files are covered.
 
+## Re-review cap and interim passes (RIG-124)
+
+The wrapper is a release-only gate, never a mid-development inner loop. It
+tracks failures per `--author-context` in a sibling `<out>.attempts.json`
+file: a `fail` verdict increments the count, a `pass` clears it, and a prior
+count above one refuses to spawn another reviewer — "at most one re-review
+after a fix," enforced by the script itself rather than agent discipline.
+`--force-rereview` overrides the cap as an explicit, visible step. `--interim`
+runs the same review with a cheap `--model` for a fix-and-recheck cycle but
+never writes the binding receipt (prints verdict and findings, exits non-zero
+on fail); only a run without `--interim` produces AT-GATE-3 evidence, using
+the model the release designates. Default behavior with neither flag is
+unchanged from before RIG-124.
+
 ## Authorities and sources
 
 - Review intent: [business specification](../gate1/business-spec.md)
@@ -35,6 +49,7 @@ tracked and publishable untracked files are covered.
 - Latest rejected implementation review: [v0.16 failed review](../sources/reviews/a-la-carte-v0.16-implementation.failed.review.json)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
 - PR review binding: [owner decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
+- Re-review cap / interim passes: [RIG-124](../tickets/RIG-124.md), [implementation trace](../reasoning/2026-08-25-rig124-implementation.md), token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
 
 ## Remaining work
 

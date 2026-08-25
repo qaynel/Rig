@@ -34,7 +34,9 @@ action receive conflicting or fabricated treatment. [Rejected approaches](../ind
 
 ## What is still open
 
-No evaluator or complete host-axis contract is implemented. The round-3
-terminology conflict between host claims and control evidence is **resolved** in
-Gate 2 v0.6: §1/§11.1 disambiguate the three senses of `verified`, including
-`AT-BASE-2`'s "verified enforcement surface". [Status](../status.md)
+**Resolved.** The evaluator and the host-axis contracts (all 19 researched
+hosts, six CI providers) are implemented and pass the green full test suite.
+The round-3 terminology conflict between host claims and control evidence is
+also resolved, in Gate 2 v0.6: §1/§11.1 disambiguate the three senses of
+`verified`, including `AT-BASE-2`'s "verified enforcement surface".
+[Status](../status.md)

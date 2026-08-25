@@ -5,7 +5,23 @@ and `.rig/rules/communication.md` to every message you send the user, then
 choose the smallest set of skills whose trigger matches the work. In this
 source checkout, use `rig/tier-1/rules/rig.md` and
 `rig/tier-1/rules/communication.md` instead. Read each chosen skill completely
-before proceeding.
+before proceeding, except on the lightweight path below.
+
+## Task weight
+
+A **single-step task** — a one-line fix, a factual question, or one small edit
+confined to a single file, with no cross-file coordination and no change to
+what's true in the wiki (no new decision, spec, status, or rejected approach)
+— takes the lightweight path: skim this table for the matching skill instead
+of re-reading this whole file on every resume, skim only the skill's relevant
+section instead of reading it end to end, and skip the wiki-read-before-
+grepping step and the 3-minute `status.md` cadence. If the task turns out to
+need coordination across files, span multiple turns, or move what's true in
+the wiki, switch to the full cadence below for the rest of it.
+
+Everything else uses the full cadence: read this file, read the wiki, read
+each chosen skill completely, and update `wiki/status.md` at least every three
+minutes of active work, per `CLAUDE.md`. `(RIG-124)`
 
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`;
@@ -25,6 +41,8 @@ wiki and the diff, and are reproduced on request.
 
 For a new feature or behavioral change, use the phases in order. There is **one
 freeze** — the gate — not two:
+
+Spec-driven requests route through `rig-grilling` and then `rig-product-design`; they do not create a separate `rig-spec` phase or skill.
 
 1. `rig-grilling` establishes the oracle: business intent, acceptance criteria,
    and the testing infrastructure that deterministically checks them. It derives
@@ -65,7 +83,7 @@ than two viable paths.
 
 | Skill | Read when |
 |---|---|
-| `rig-grilling` | Requirements are new, ambiguous, risky, or need acceptance tests. |
+| `rig-grilling` | Requirements are new, ambiguous, risky, need acceptance tests, or ask for a specification-driven/executable-spec flow. |
 | `rig-product-design` | The oracle is being established and a technical specification, tradeoff decision, or implementation approach is needed. The spec is checked for presence at the gate, not frozen. |
 | `rig-implementation` | Any code will be written, changed, refactored, or removed. Always active for implementation. |
 | `rig-execution` | A plan has multiple independent tasks, parallel work is requested, or completion needs verification. |

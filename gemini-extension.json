@@ -2,5 +2,12 @@
   "name": "rig",
   "version": "5.0.0",
   "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
-  "contextFileName": "AGENTS.md"
+  "contextFileName": "AGENTS.md",
+  "mcpServers": {
+    "rig": {
+      "command": "node",
+      "args": ["${extensionPath}/rig-mcp/index.js"],
+      "cwd": "${extensionPath}"
+    }
+  }
 }

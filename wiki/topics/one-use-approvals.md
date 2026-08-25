@@ -35,6 +35,7 @@ risks or state that expires unchanged user intent. [Rejected approaches](../inde
 
 ## What is still open
 
-The mechanism is designed but not implemented. Policy recovery must invalidate
-pending one-use approvals only after an authorized recovery receipt commits.
-[Policy-signer recovery](policy-signer-recovery.md)
+**Resolved.** The mechanism is implemented — clone-local storage, exact-action
+binding, and atomic consumption pass the green full test suite. Policy recovery
+invalidates pending one-use approvals only after an authorized recovery receipt
+commits, per [policy-signer recovery](policy-signer-recovery.md).
