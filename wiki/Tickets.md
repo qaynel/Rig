@@ -6,8 +6,18 @@ kanban-plugin: board
 
 ## Backlog
 
-
-
+- [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
+	**Status:** OPEN (2026-08-25) — raised by the git-trace investigation; awaiting owner approve-for-Coding · [Solution](tickets/RIG-132.md)
+	**Class:** STRUCTURAL (the exponent). Every finding ever received is pairwise ("§X says A, §Y says B"). The spec has ~124 claim anchors → **~7,600 pairs**; a pass reports 2–8, so six rounds covered ~0.4%. Receipt anchors prove it: §8.4 recurs in rounds 3 and 5, §5.7/§8.9/§11.3 in 4 and 5, §13 four times in round 5 and again in 6 — same section, different partner each time. 60 tracked files have a byte-identical twin; the project's answer to duplication has always been "add a guard" (O(1) per pair) against an O(N²) pool. Fix: one home per fact, generated everywhere else; new duplication ships with its generator or doesn't ship. **Do before [[RIG-125]]** — property tests over a collapsed N are near-exhaustive; over today's N they're another sample. Analysis: [why each pass finds new issues](reasoning/2026-08-25-why-each-pass-finds-new-issues.md). **Goal re-stated 2026-08-25 after the outside analysis:** "one home per fact" is *not* sufficient — `REGISTRY` already is a single source of truth and `materializeSelectedHosts` still diverged from `mcp-hosts.js` by re-interpreting the raw rows. The goal is one authority for the **meaning**, with runtime/docs/tests as generated projections through one narrow contract (semantic model + narrow waist + fitness functions — established terms, see [assessment](reasoning/2026-08-25-semantic-model-assessment.md)). Takes **two** fitness functions, not seven, and does not name the architecture. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
+- [ ] **RIG-133 — The signature freezes 68 samples; it should freeze the properties and a case generator**
+	**Status:** OPEN (2026-08-25) — raised by the "escaping the quadratic" investigation; awaiting owner approve-for-Coding · [Solution](tickets/RIG-133.md)
+	**Class:** STRUCTURAL (coverage cap). `wiki/gate1/testing-infrastructure.manifest` byte-pins `tests/advanced-oracle.test.js` — an **enumerated list of 68 samples**, 63 at the direct-require seam. Pinning an enumeration caps the checked surface at sign time while `rig/lib` grows, charges a re-sign ceremony for every coverage increase (3 in 20 commits), and is why round 2 recorded *"I cannot edit that test file without invalidating the owner's signature."* Fix: sign the **properties + the case generator** (cases derived from `REGISTRY`), so adding a host extends coverage with no signed byte changed. Costs **one** re-sign — share [[RIG-120]]'s. Analysis: [escaping the quadratic](reasoning/2026-08-25-escaping-the-quadratic.md). **Moves ahead of RIG-125:** collapse the space (132), make signed coverage grow *with* it (133), then write composition properties into a signing scheme that can hold them. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
+- [ ] **RIG-130 — The review loop has no memory, so convergence is unmeasurable**
+	**Status:** OPEN (2026-08-25) — raised by the structural root-cause investigation; awaiting owner approve-for-Coding · [Solution](tickets/RIG-130.md)
+	**Class:** STRUCTURAL (loop generator). Every review round is an independent draw: `review-receipt.js` carries no record of what prior rounds found or which classes are closed. Seven receipts, all `fail`, counts never fall (round 5 is the worst, after four rounds of correct fixes). Fix: append-only finding-class ledger, closed-class feed-in to the next reviewer prompt, and a findings-in-closed-classes convergence metric that becomes the release stopping rule. Cheap; do with [[RIG-131]] alongside [[RIG-132]] and **before** RIG-125, so RIG-125's result is measurable. Analysis: [root cause](reasoning/2026-08-25-structural-nondeterminism-root-cause.md). **Relabelled 2026-08-25:** this measures a *confidence criterion*, not the definition of done — completion is the conjunction of the structural conditions; two clean rounds is corroboration on top. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
+- [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
+	**Status:** OPEN (2026-08-25) — branch review + round-3 receipt major; awaiting owner approve-for-Coding · [Solution](tickets/RIG-125.md)
+	**Class:** STRUCTURAL (loop generator). Receipt re-confirmed: split MCP tables, two uninstallers, no inspect→apply→uninstall roundtrip. Loop-breaker: one MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip; printed bootstrap sequence to a green check — landed **inside the signed oracle** under RIG-120's re-sign, not beside it. Do [[RIG-132]] (collapse N) + [[RIG-130]]/[[RIG-131]] first, then this, then 126/127. Map: [round-3 finding map](reasoning/2026-08-25-rig120-round3-finding-map.md).
 ## Solution Discovery
 
 
@@ -22,17 +32,38 @@ kanban-plugin: board
 
 ## Coding
 
+- [ ] **RIG-131 — "Done" is agent prose, not a named green test**
+	**Status:** APPROVED — CODING (2026-08-25) — Option A, pre-v5 gate **step 1** · [Solution](tickets/RIG-131.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** STRUCTURAL (loop generator). A card reaches Done on an agent's own `**Done:**` paragraph; nothing checks it against the repo. RIG-104/105/107 all moved that way and are unmet in shipped code while the full gate stayed green. Fix: every acceptance bullet names `→ <test file>::<test name>`, plus `scripts/check-ticket-traceability.js` wired into `npm test` that fails on a Done card naming no test / a missing test / a renamed test. Expect RIG-104, RIG-105, RIG-107 to move back to Backlog. Do this **first** so every later gate step's Done claim is checkable.
+- [ ] **RIG-134 — Pre-v5 release gate: classify every known finding as debt or v5-observable**
+	**Status:** APPROVED — CODING (2026-08-25) — Option A; classification run, drives the observable fixes across 126/127/128/129 · [Solution](tickets/RIG-134.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** RELEASE GATE. The gate umbrella. Classification is **done** (see the runbook): **v5-observable (must-fix):** 134.1 (`contractFor`, covers 128.1/128.2 + shipped descriptor of 128.3), 128.4/128.5, uninstall 127.1–127.8/127.10, onboarding 126.1–126.4, 129.1. **debt (defer to v5.1 inventory):** 134.2, 134.3, 128.3 internal, 128.6, 126.5, 129.2–129.4. 134.1 is the one confirmed release blocker: `rig apply` (printed by `bootstrap.sh:131`) → `applyPlan`:197 → `materializeHostAdapters`:435 → `contractFor` writes `.rig/host-contracts/<host>/<axis>.json` into the user's repo from raw `REGISTRY`, so descriptors contradict the write path. Bounded leaf fix, **not** the collapse. The low model executes the observable set via the runbook's ordered task list; the debt set is committed as the v5.1 migration inventory ([[RIG-132]]).
+- [ ] **RIG-126 — Onboarding is not runnable end-to-end**
+	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope only: 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** DELIVERABILITY. The staged commands now have named red tests for generated review, explicit selection, manual Antigravity setup, and an observable successful check. A real host-native or external approval remains mandatory; tests use only the isolated fixture receipt.
+- [ ] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
+	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: 127.1–127.8 and 127.10; 127.9 remains fixed · [Solution](tickets/RIG-127.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** DELIVERABILITY. Public uninstall, retained journals, purge cleanup, corrupt-ledger refusal, empty-file cleanup, and independent local removal are covered by committed red tests.
+- [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
+	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: descriptor parity plus 128.4/128.5; 128.3 internal and 128.6 remain debt · [Solution](tickets/RIG-128.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** DELIVERABILITY. The red suite covers descriptor parity, invalid-file preservation, JSON5 no-clobber behavior, primitive-path rejection, and idempotent valid merges.
+- [ ] **RIG-129 — Host-capability citation & claim-accuracy audit**
+	**Status:** APPROVED — CODING (2026-08-25) — pre-v5 observable scope: 129.1 only; 129.2–129.4 remain debt · [Solution](tickets/RIG-129.md) · [Runbook](reasoning/2026-08-25-prev5-gate-runbook-and-classification.md)
+	**Class:** DOCUMENTATION/EVIDENCE. The red claim-integrity suite requires pi guidance to name the extension path without claiming that MCP is unsupported or creating a configuration Rig cannot safely manage.
+
+
 ## Ready for Commit
 
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** READY FOR COMMIT (2026-08-25) — implemented, not yet committed · [Solution](tickets/RIG-124.md)
 	**Done:** `review-receipt.js` enforces a one-re-review cap per author-context itself, gains a cheap-model `--interim` mode that never writes the binding receipt, and stays release-only; `rig-tdd`'s inner loop is `npm run test:rig`/a single test file with the full gate once before push; `routing.md`/`CLAUDE.md` add a lightweight path for single-step, single-file, non-wiki-truth-changing tasks. No re-sign needed (neither touched file is in the Gate 1 manifest). Full gate green: 434 root / 15 pi-extension / 6 rig-mcp.
 
+
 ## Blocked
 
 - [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
 	**Status:** BLOCKED (2026-08-24) — approved post-release work; RIG-120 and publication are incomplete · [Solution](tickets/RIG-122.md)
-	**Blocker:** The owner approved this only after the core release. RIG-120 has no passing independent review, is paused on three confirmed release defects, and still precedes owner signing plus `v5.0.0` publication. Resume after RIG-120 is Done and the release exists.
+	**Blocker:** The owner approved this only after the core release. [[RIG-120]] still has no passing independent review (round-3 receipt failed on the 125–127 cluster). Resume after RIG-120 is Done and the release exists.
 	**Acceptance:**
 	- Any shipped form respects the Tier 1 markdown-only constraint (structure + conventions as markdown; no installed runtime, sync engine, or required third-party app).
 	- If it depends on Obsidian/Kanban specifically, that dependency is optional and the structure degrades to plain markdown without it.
@@ -67,7 +98,7 @@ kanban-plugin: board
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
 	- The §3.1 ❔/🟡 conflicts (codewhale, hermes, swival, antigravity CLI) are each resolved to a decided disposition in the wiki.
 - [ ] **RIG-120 — Finish the release ceremony and cut v5.0.0**
-	**Status:** BLOCKED — owner action only (signing keys); branch gate is green · [Solution](tickets/RIG-120.md)
+	**Status:** BLOCKED (2026-08-25) — round-2 defects fixed, gate green 438/15/6; round-3 receipt failed on the RIG-125/126/127 cluster; owner must choose scope before another receipt · [Solution](tickets/RIG-120.md)
 	**Problem:** status.md: the release is blocked on owner-controlled inputs — a fresh independent review receipt bound to the exact PR worktree, the intent owner's signer-class attestation on the frozen Gate 1 signer file, and the explicit `v5.0.0` tag/publish (never an implicit side effect). Until these land there is no installable release, only a source checkout.
 	**Acceptance:**
 	- A fresh independent review receipt is produced against the exact PR worktree and passes.
@@ -135,6 +166,6 @@ kanban-plugin: board
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false,"list-collapse":[true,true,true,true,false,false,false,true]}
+{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false,"list-collapse":[false,false,false,false,false,false,false,true]}
 ```
 %%

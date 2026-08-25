@@ -38,3 +38,55 @@ test('the raw-registry ratchet rejects a new capability reader', () => {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
+
+test('an allowlist entry cannot hide missing debt', () => {
+  if (!fs.existsSync(checker)) return;
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-raw-registry-stale-'));
+  try {
+    const lib = path.join(fixture, 'lib');
+    fs.mkdirSync(lib);
+    fs.writeFileSync(path.join(lib, 'host-capabilities.js'), "const REGISTRY = {}; module.exports = { REGISTRY };\n");
+    const inventoryPath = path.join(fixture, 'allowlist.json');
+    fs.writeFileSync(inventoryPath, JSON.stringify({
+      schema_version: 1,
+      readers: [{ file: 'lib/missing-reader.js', fields: ['mcp_config'] }],
+      expected_count: 1,
+    }));
+    const result = spawnSync(process.execPath, [checker, '--root', fixture, '--inventory', inventoryPath], { encoding: 'utf8' });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr + result.stdout, /missing-reader\.js|mcp_config/);
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test('the source owner and host-id validation are not counted as consumers', () => {
+  if (!fs.existsSync(checker)) return;
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-raw-registry-owner-'));
+  try {
+    const lib = path.join(fixture, 'lib');
+    fs.mkdirSync(lib);
+    fs.writeFileSync(path.join(lib, 'host-capabilities.js'), "const REGISTRY = { pi: { mcp_config: {} } }; module.exports = { REGISTRY };\n");
+    fs.writeFileSync(path.join(lib, 'host-id-only.js'), "const { REGISTRY } = require('./host-capabilities');\nmodule.exports = (id) => Boolean(REGISTRY[id]);\n");
+    const inventoryPath = path.join(fixture, 'allowlist.json');
+    fs.writeFileSync(inventoryPath, JSON.stringify({ schema_version: 1, readers: [], expected_count: 0 }));
+    const result = spawnSync(process.execPath, [checker, '--root', fixture, '--inventory', inventoryPath], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /raw registry debt:\s*0/i);
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test('the ratchet never writes target-runtime artifacts', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-raw-registry-install-'));
+  try {
+    const { runPayload } = require('../rig/lib/payload');
+    runPayload(target, ['codex']);
+    for (const name of ['HostContract', 'raw-registry-access.json', 'semantic-runtime.json']) {
+      assert.equal(fs.existsSync(path.join(target, '.rig', name)), false, name);
+    }
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});

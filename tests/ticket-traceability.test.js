@@ -90,3 +90,9 @@ test('manual evidence is counted and reported', () => {
   assert.match(result.stdout, /manual evidence:\s*1/i);
   });
 });
+
+test('the current board has no unresolved completed-card violation', () => {
+  assert.ok(fs.existsSync(checker), 'add the traceability checker before marking cards complete');
+  const result = spawnSync(process.execPath, [checker], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+});

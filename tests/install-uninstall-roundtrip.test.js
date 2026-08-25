@@ -71,3 +71,45 @@ test('a corrupted middle journal record fails closed before removal', () => with
   assert.equal(fs.readFileSync(first, 'utf8'), 'first\n');
   assert.equal(fs.readFileSync(second, 'utf8'), 'second\n');
 }));
+
+test('uninstall removes preimages empty instruction files and empty Rig directories', () => withTarget((target) => {
+  const preimage = path.join(target, '.rig', 'preimages', 'saved');
+  const agents = path.join(target, 'AGENTS.md');
+  const skill = path.join(target, '.claude', 'skills', 'rig-example', 'SKILL.md');
+  fs.mkdirSync(path.dirname(preimage), { recursive: true });
+  fs.mkdirSync(path.dirname(skill), { recursive: true });
+  fs.writeFileSync(preimage, 'original user bytes\n');
+  fs.writeFileSync(agents, 'Before acting, read `.rig/routing.md`.\n');
+  fs.writeFileSync(skill, 'skill\n');
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
+    JSON.stringify({ seq: 1, path: '.rig/preimages/saved', state: 'applied', transaction_kind: 'install', digest: digest('original user bytes\n') }),
+    JSON.stringify({ seq: 2, path: 'AGENTS.md', state: 'applied', transaction_kind: 'install', managed_line: 'Before acting, read `.rig/routing.md`.' }),
+    JSON.stringify({ seq: 3, path: '.claude/skills/rig-example/SKILL.md', state: 'applied', transaction_kind: 'install', digest: digest('skill\n') }),
+    '',
+  ].join('\n'));
+  const result = uninstall(target);
+  assert.equal(result.status, 'removed');
+  assert.equal(fs.existsSync(preimage), false);
+  assert.equal(fs.existsSync(agents), false);
+  assert.equal(fs.existsSync(path.join(target, '.claude', 'skills')), false);
+}));
+
+test('missing OpenClaw tooling does not stop unrelated local removal', () => withTarget((target) => {
+  const local = path.join(target, 'local-rig-file');
+  fs.writeFileSync(local, 'remove me\n');
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: 'local-rig-file',
+    state: 'applied',
+    transaction_kind: 'install',
+    digest: digest('remove me\n'),
+  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), JSON.stringify({
+    entries: [{ kind: 'openclaw-mcp', path: '~/.openclaw/config.json', install_id: 'fixture', runtime: '.rig/runtime' }],
+  }) + '\n');
+  const result = uninstall(target);
+  assert.equal(result.status, 'best_effort');
+  assert.equal(fs.existsSync(local), false);
+  assert.ok(result.best_effort.some((entry) => entry.includes('openclaw')));
+}));

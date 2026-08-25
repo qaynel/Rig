@@ -1,5 +1,407 @@
 # Status - checked 2026-08-25 (updated 2026-08-25)
 
+## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
+
+The owner asked that every pre-v5 fix be offboarded onto its ticket so a
+lower-reasoning implementation model can work without reconstructing the
+investigation. In flight: turn the existing finding classification into
+self-contained packets with the chosen behavior, touched seams, explicit
+non-goals, deterministic acceptance cases, exact red-test targets, fixtures,
+and the completion command. The owner-signed oracle remains unchanged; these
+are unsigned, behavior-focused tests that the implementation model writes red
+before each leaf fix.
+
+Completed: implementation packets now live on RIG-125, RIG-126, RIG-127,
+RIG-128, RIG-129, RIG-131, RIG-132's pre-v5 ratchet slice, and RIG-134. They
+name the public path and production seam, the exact files to add, test titles,
+fixture state, required observable assertion, forbidden shortcuts, and narrow
+then-full verification command. The committed red baseline now includes the
+named traceability, descriptor, write-safety, uninstall, onboarding, claim, and
+ratchet suites; the remaining failures are all missing production behavior,
+not fixture or syntax failures. Gate-2 onboarding seams record the chosen
+`host-review` and explicit `select` contracts. The required approval remains a
+real host-native or external-signature boundary; test fixtures isolate that
+separate issuer and do not authorize production code to fabricate a receipt.
+No production code or owner-signed oracle changed in this offboarding pass.
+
+## Owner approved Option A — pre-v5 gate offboarded for a low-reasoning model (2026-08-25)
+
+The owner approved **Option A** of [[RIG-134]]: classify every known finding as
+`v5-observable` or `debt`, fix (or downgrade) the observable set before v5.0.0,
+defer the debt to the v5.1 migration inventory. Then asked for every gate fix to
+be tracked as a ticket with enough context that a **lower-reasoning model** can
+execute it without re-deriving the investigation.
+
+Done this session (report-only; no code, no frozen-oracle edit, nothing signed):
+
+- **The classification was run.** Every finding across [[RIG-126]] / [[RIG-127]]
+  / [[RIG-128]] / [[RIG-129]] is tagged `v5-observable` or `debt` with one line of
+  evidence, on each ticket and collected in the runbook. Full table + the ordered
+  low-model task list + the exit condition:
+  [[2026-08-25-prev5-gate-runbook-and-classification]].
+- **The pre-v5 must-fix set** (the `v5-observable` findings) is: 134.1
+  (`contractFor`, covers 128.1/128.2 and the shipped descriptor of 128.3), 128.4
+  + 128.5 (JSON5 clobber / fail-closed writer), the whole uninstall cluster
+  127.1–127.8 + 127.10 (127.9 already fixed), the onboarding cluster 126.1–126.4,
+  and 129.1 (pi's false MCP claim → correct or downgrade to `unknown`). Plus
+  [[RIG-131]] and the raw-field allowlist ratchet ([[RIG-132]] pre-v5 slice, which
+  is also the debt inventory).
+- **Scope note for the owner:** Option A pulls **most of the uninstall and
+  onboarding clusters into the release**, exactly as predicted — uninstall writes
+  to the user's repo by definition, so almost every 127 finding is observable.
+  That is the real cost of A and it is now visible as a bounded leaf-fix list, not
+  an open-ended review.
+- **Board + tickets updated:** [[RIG-131]] and [[RIG-134]] moved Backlog → Coding
+  (owner-approved); 126/127/128/129 tagged gate-scoped for the observable half;
+  [[RIG-132]] (full collapse) / [[RIG-133]] / [[RIG-125]] / [[RIG-130]] stay
+  post-v5 except RIG-132's pre-v5 ratchet slice.
+
+**Execution order for the low model:** [[RIG-131]] → 134.1 → the observable leaf
+fixes (127 cluster, 126 cluster, 128.4/128.5, 129.1) → commit the debt inventory
++ ratchet → re-run the gate → ship v5.0.0. Each step's exact files, fix shape,
+and acceptance test are in the runbook.
+
+
+
+## Session record — the 2026-08-25 structural investigation
+
+The whole arc of this day's work in one trace, including the owner's questions as
+asked, the three points where the analysis corrected itself, and the evidence
+commands with their output:
+[`2026-08-25-structural-investigation-session-record`](reasoning/2026-08-25-structural-investigation-session-record.md).
+
+A session picking this up cold should start there, then read the five
+sub-traces it indexes and the two outside documents under `sources/reference/`.
+The sections below are that day's conclusions in the order they were reached
+(newest first).
+
+## Pre-v5 classification run — one confirmed release blocker, and a correction (2026-08-25)
+
+Second outside analysis assessed
+([source](sources/reference/branch-by-abstraction-migration.raw.md),
+[assessment](reasoning/2026-08-25-prev5-classification-and-migration-pattern.md)).
+It answers the before-or-after-v5.0.0 question: **ship v5.0.0 behind a ratchet,
+migrate the spine in v5.1 as Branch by Abstraction / Parallel Change (Expand →
+Migrate → Contract).** Accepted — and it dissolves the question rather than
+answering it, because my framing assumed "after" meant a big-bang v5.1. It does
+not: the system stays releasable at every commit of the migration. That matters
+here specifically, since bulk authoring is one of the five mistakes named in the
+first-attempt retrospective.
+
+**Its release-blocking exception was run, and the result splits.**
+
+- **BLOCKER, confirmed — [[RIG-134]] 134.1.** `rig apply` (printed by
+  `rig/bootstrap.sh:131`) → `applyPlan`:197 → `materializeHostAdapters`:435 →
+  `contractFor` writes `.rig/host-contracts/<host>/<axis>.json` **into the
+  user's repository**, reading `REGISTRY` raw so the three product overrides
+  never apply. Antigravity's emitted descriptor advertises `config_scope: repo`
+  at `.agents/mcp_config.json`, contradicting RIG-105's owner-approved
+  manual-only decision. Wrong files, under a supported capability. Bounded leaf
+  fix before ship — **not** a licence to pull the collapse into v5.0.0.
+- **DEBT, defer — 134.2, and this corrects the wiki.** `materializeSelectedHosts`
+  has **zero production callers**; only `advanced-hosts.test.js` and the signed
+  oracle reach it. Earlier analysis on this branch named it as the live shipped
+  divergence and called RIG-104's Done claim "false in shipped code" — overstated
+  for that function; it ships nothing. Verified by execution that the live write
+  path (`renderers.js` → `MCP_HOSTS`) honours all three overrides: antigravity
+  `autoWrite:false`, no renderer, absent from `AUTO_WRITE_HOSTS`; codewhale repo
+  `.codewhale/mcp.json`; pi `unsupported` with the legacy file preserved.
+  RIG-104's unification claim is still unmet — the unmet half is the descriptor
+  path, not the write path. RIG-125 and RIG-128 corrected; traces stay as
+  written.
+- **134.3 — the sharpest finding.** One of the **68 signed acceptance cases**
+  tests `materializeSelectedHosts`, a function with no production caller, while
+  `contractFor` — which writes into user repos — has no signed case at all. The
+  signature is spending a capped, ceremony-gated budget certifying dead code.
+  Strengthens RIG-133. Also shows why `runtime-caller-graph.test.js` can't catch
+  it: it checks *modules*, and `host-capabilities.js` has production importers
+  for its other exports.
+
+**Two corrections to the migration plan as given.** (1) The pre-v5 ratchet cannot
+reference `HostContract`, which arrives a phase later — the implementable form is
+a grandfathered allowlist of modules permitted to read raw `REGISTRY` fields,
+which may only shrink, and which doubles as the migration's progress bar. (2) The
+debt inventory must *be* the allowlist, not a second artefact — otherwise the
+de-duplication programme opens by duplicating a fact.
+
+**Also taken verbatim into RIG-132:** *"Consumers may consume semantic results,
+but may not independently interpret semantic inputs."* Better than "one authority
+for the meaning" because it is a prohibition on a consumer, which a fitness
+function can check.
+
+**Sequence: RIG-134 (pre-v5 gate) → RIG-131 → ship v5.0.0 → RIG-132 → RIG-133 →
+RIG-125 → 126/127/128**, RIG-130 alongside, RIG-129 in parallel. Report-only; no
+code changed, nothing signed, nothing committed.
+
+## Outside analysis assessed — four accepted, two declined (2026-08-25)
+
+The intent owner supplied an outside architectural analysis against the
+"escaping the quadratic" trace. Held verbatim at
+[sources/reference/normalized-semantic-architecture.raw.md](sources/reference/normalized-semantic-architecture.raw.md);
+assessment at
+[2026-08-25-semantic-model-assessment](reasoning/2026-08-25-semantic-model-assessment.md).
+Its thesis: *author intent once; derive everything else; force all behaviour
+through one small contract; mechanically prevent the architecture from expanding
+back out* — DRY-as-stated + semantic model / model-aware generation + narrow
+waist + property-based testing + architectural fitness functions.
+
+**Accepted, and it changes tickets:**
+
+1. **"One home per fact" was the wrong goal, and this repo proves it.** `REGISTRY`
+   already *is* a single source of truth; `mcp-hosts.js` applies the overrides and
+   `materializeSelectedHosts` re-interprets the same raw rows without them. One
+   home, two meanings, gate green. The goal is **one authority for the meaning**,
+   with runtime/docs/tests as generated projections through one narrow contract.
+   RIG-132 retitled accordingly.
+2. **Contract conformance beats reachability.** The loop-breaker property is
+   *"all host-specific behaviour flows through the host contract"*, not *"every
+   module has a production caller"* — the latter is rung 2 of our own proxy
+   ladder and is green today while the divergence is live. Conformance covers
+   host 20 before host 20 exists. RIG-125 updated.
+3. **Provenance is a modelled enum, not prose.** `verified | unsupported |
+   unknown` plus an evidence receipt in the host model; generation refuses to
+   emit "supported" without `verified`. Makes undocumented certainty about
+   third-party behaviour unrepresentable rather than reviewable. RIG-129 updated.
+4. **The stopping rule was wrong.** "New-class rate zero across two rounds" is a
+   *confidence criterion*, not the definition of done — promoting it repeats the
+   clean-pass error one level up. Completion is the conjunction of the structural
+   conditions; two clean rounds corroborates. RIG-130 relabelled.
+
+**Declined:**
+
+- **Seven numbered fitness functions, a normative-intent layer, and a name for
+  the architecture.** The first-attempt retrospective lists over-engineered
+  governance and mechanism-before-leaf among the five named mistakes; that is
+  this shape exactly. Take **two** fitness functions — no second semantic
+  authority, no bypass of the host contract — write the rest as ordinary tests,
+  and do not name an architecture that does not exist yet. Adopt the established
+  *terms* (semantic model, narrow waist, property-based testing, fitness
+  function); do not erect a regime.
+- **RIG-131 fourth.** It is the check that a Done claim resolves to a green
+  test, and 132/133/125 are large pieces of work agents will mark Done. Landing
+  it last means the whole structural programme is recorded as complete in agent
+  prose — the exact mechanism behind RIG-104/105/107. It is also the cheapest
+  item on the board. It goes first.
+
+**Two constraints the source does not know about:** Tier 1 stays markdown-only in
+installed repos (the semantic model is a build-time artefact here, never a
+shipped runtime), and this branch is finishing v5.0.0 — the target architecture
+is a spine rewrite, so before-or-after-release is a real decision with real cost
+either way.
+
+**Working order: RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128**, with
+RIG-130 alongside and RIG-129's first-wire inventory in parallel. Report-only;
+no code changed, nothing signed, nothing committed.
+
+## How this closes — the exit criterion (2026-08-25)
+
+Third pass of the same investigation, answering *"is there an established
+principle, and how do we come to a close?"* Filed verbatim as
+[escaping the quadratic](reasoning/2026-08-25-escaping-the-quadratic.md).
+
+**The escape is not on the review side.** More passes sample; better reviewers
+buy a constant factor against 7,600; a deterministic reviewer samples the *same*
+0.4% forever. The only moves that terminate change the size of the space.
+
+**The principles, all established:** DRY as actually stated (a single
+authoritative representation of *knowledge* — satisfied by generation, not by
+comparison); make illegal states unrepresentable; the narrow waist (M×N
+agreements become M+N conformances — exactly the host-matrix problem, and
+`materializeSelectedHosts` bypassing `MCP_HOSTS` is a producer that went around
+the waist); correct-by-construction plus a ratchet.
+
+**The strongest evidence is in-repo.** `scripts/build-openclaw-skills.js` and
+`scripts/build-review-doctrine.js` already run generate-then-verify, and say so
+in their headers ("so the ruleset never drifts" / "can never drift"). **Neither
+of those two facts has ever produced a review finding.** All findings come from
+the ten facts handled by comparison guards or nothing. So RIG-132 is "apply the
+pattern we already run to the rows without it" — mechanical and finite, not a
+philosophical change.
+
+**Four defect classes, four terminating moves** — duplicated fact → generate;
+unreachable/miswired module → one reachability property over the shipping path;
+spec↔code drift → Done bound to a named green test; unverified external claim →
+a first wire, because review cannot close those at all under any budget.
+
+**New ticket RIG-133.** The owner signature byte-pins
+`tests/advanced-oracle.test.js`, an enumerated list of 68 samples. Pinning an
+enumeration caps the checked surface at sign time while `rig/lib` grows, charges
+a re-sign per coverage increase (3 in 20 commits), and already halted an agent
+("I cannot edit that test file without invalidating the owner's signature"). Sign
+the **properties + the case generator** instead; costs one re-sign, shared with
+RIG-120's.
+
+**The stopping rule, replacing "the last review came back clean":** (1) every
+fact has one home, ratchet green; (2) every Done card names a green test; (3)
+**new-finding-class rate zero across two consecutive rounds**; (4) every external
+capability claim has a first-wire receipt or is downgraded in shipped docs. A
+quiet round with 1/2/4 unmet is the state this project has been in for six
+rounds.
+
+Board: RIG-133 raised. RIG-132 gained the in-repo precedent and the ratchet
+framing (a collapse without a ratchet re-inflates — `192f35e` "Unify MCP renderer
+dispositions" ended with a third table). Sequencing unchanged: RIG-132 →
+RIG-125 → 126/127/128, RIG-130/131 alongside, RIG-129 in parallel. Report-only;
+no code changed, nothing signed, nothing committed.
+
+## Why every pass finds new issues — measured, and it is quadratic (2026-08-25)
+
+Second pass on the owner's question, from the git trace and the receipt anchors.
+Filed at [[2026-08-25-why-each-pass-finds-new-issues]]. Report-only; **no code
+changed, nothing signed, nothing committed.** Full gate re-verified green
+(438 root / 15 pi-extension / 6 rig-mcp).
+
+**Correction to the earlier framing.** The first trace said reviews sample a
+large *static* pool. Measured, that is wrong and the truth is worse: the pool is
+**quadratic in the number of places a fact can live, and every fix grows it.**
+
+Every finding this project has ever received — spec or code — is **pairwise**:
+"§X says A, §Y says B." Consistency belongs to a *pair*, not a location. The spec
+carries ~124 claim anchors (79 sections, 37 `AD-`, 68 `AT-`, 19 `D`) ≈ **7,600
+pairs**; a pass reports 2–8. Six rounds covered ~0.4%.
+
+The receipt anchors prove the mechanism rather than implying it: the same
+sections recur across rounds paired with **different partners** each time —
+`§8.4` in rounds 3 and 5, `§5.7`/`§8.9`/`§11.3` in 4 and 5, `§13` four times in
+round 5 and again in 6. §8.4 was not fixed wrong; it was reconciled with one
+neighbour and later found inconsistent with another.
+
+Also worth noting: 6 of the 7 receipts are **specification** reviews of
+`technical-spec.md`, not code reviews. The code side is the same shape with
+implicit cross-references, and the git trace dates the pairs — the second
+uninstaller has been in the tree since **July 2026**, through every review ever
+run. Two round-3 findings were introduced by commits that were themselves fixes
+for earlier findings (`192f35e` "Unify MCP renderer dispositions" added a third
+MCP table; `35fc852` RIG-107 printed a sequence with no producer).
+
+**The losing move, in one file.** `scripts/check-rule-copies.js` guards 7 copies
+of the rule body, cannot guard the 8th, falls back to 8 substring canaries, and
+carries the comment *"Upgrade path: generate the copies from SKILL.md"* — the
+correct fix, written down and not done. 60 tracked files have a byte-identical
+twin. Guards cost O(1) per pair somebody noticed; the pairs are O(N²).
+
+**Board.** New ticket [[RIG-132]] — one home per fact, generated everywhere else;
+new duplication ships with its generator or does not ship; carries the
+duplicate-fact inventory with guard status. **Sequencing changed:** [[RIG-132]]
+now precedes [[RIG-125]] (property tests over a collapsed N are near-exhaustive;
+over today's N they are another sample), with [[RIG-130]]/[[RIG-131]] alongside,
+then 126/127/128. [[RIG-125]] gained a sequencing-correction section. New traps
+recorded for the guard-vs-generator move and for fixes that create the next
+finding.
+
+
+## Structural root-cause investigation done — two new loop generators ticketed (2026-08-25)
+
+Owner asked why every review round props up new bugs. Answer filed at
+[[2026-08-25-structural-nondeterminism-root-cause]]. Report-only analysis plus
+wiki/ticket updates; **no code changed, nothing signed, nothing committed.**
+
+**The finding.** The symptom is not unstable code. Across seven review receipts
+the specific findings never recur (each fix is guarded by a named case in
+`tests/release-blockers.test.js`, 38 of them) and the per-round counts never
+fall — round 5 is the worst round, after four rounds of correct fixes. That is
+sampling from a pool nobody drains, not regression.
+
+Four generators, verified first-hand in code, not read off the wiki:
+
+1. **Acceptance is signed at the unit seam and frozen there.** All **68**
+   acceptance cases load through `api(file, name)` — one module, one exported
+   function; **5 of 65** oracle tests reach the shipping path. Every round-3
+   finding is a composition property that seam cannot express. The file is
+   byte-pinned, so the check surface cannot grow while `rig/lib` does.
+2. **Every previous fix for the loop was a new proxy.** inventory → behavior →
+   "has a production caller". Rung 3 now: `mcp-hosts.js` has exactly one importer
+   (`renderers.js`); `materializeSelectedHosts` reads `REGISTRY` directly.
+   [[RIG-104]]'s Done claim is false in shipped code, with the full gate green.
+3. **The review loop has no memory**, so convergence is unmeasurable.
+4. **The claim surface (19 hosts x 5 axes, zero first wires) dwarfs the verified
+   surface**, and `contradiction` is the modal finding category.
+
+**Board changes.** Two uncovered generators raised as new tickets — [[RIG-130]]
+(finding-class ledger + convergence metric) and [[RIG-131]] (Done must name a
+green test, with a `npm test` checker). Both cheap, both OPEN, neither approved
+for Coding. Existing tickets expanded rather than duplicated: [[RIG-125]] gained
+the root cause beneath its symptom (its four loop-breaker tests must land
+**inside** the signed oracle under [[RIG-120]]'s re-sign, not beside it, plus the
+proxy-ladder table); [[RIG-110]] gained the claim-surface framing that raises its
+priority without changing its recommendation. [[RIG-126]]/[[RIG-127]]/[[RIG-128]]
+/[[RIG-129]] left as-is — genuinely separate deliverability/documentation issues.
+
+**Recommended order** (changes the existing playbook): [[RIG-130]] + [[RIG-131]]
+first — cheap, and they make RIG-125's result stick and measurable — then
+[[RIG-125]], then 126/127/128 under its tests, 129 alongside.
+
+Hubs updated: [[testing-strategy]] (the proxy ladder), [[review-receipts]] (no
+memory), [[agent-working-conventions]] (Done is not evidence),
+[[host-and-ci-coverage]] (claim surface), [[distribution-and-release]] (no
+stopping rule). Three new entries in `index/traps.md`.
+
+## Round-3 receipt findings mapped onto existing tickets (2026-08-25)
+
+Did not mint new IDs — that would duplicate [[RIG-125]]–[[RIG-128]]. Wrote
+the finding→ticket map, what the round-2 RIG-120 diff did and did not
+change, and a next-agent playbook at
+[[2026-08-25-rig120-round3-finding-map]]. Decision briefs added on
+[[RIG-125]], [[RIG-126]], [[RIG-127]] so they can be approved for Coding
+without this chat. [[RIG-127]] §127.9 (OpenClaw short-circuit) marked
+fixed; §127.8 promoted to major; §127.4 path-only progress noted.
+
+## RIG-120 round-2 defects fixed; round-3 receipt failed (2026-08-25)
+
+The three assigned round-2 majors are fixed in the worktree. Full gate is
+green: **438** root / **15** pi-extension / **6** rig-mcp. Frozen oracle hash
+unchanged (`ffd5041a3ea91860a05a849aeee61d70e0bd5a1f0acffc8d341996a9f309cc58`).
+
+The independent Codex receipt (same wrapper as round 2, base `origin/prod`)
+returned **fail**. The original three majors did not reappear. The eight
+findings are the already-open [[RIG-125]]–[[RIG-128]] cluster — **no new
+ticket IDs**. Agent-ready decision briefs are on those tickets. Map:
+[[2026-08-25-rig120-round3-finding-map]]. Verbatim JSON:
+[[2026-08-25-rig120-review-round3-receipt]]. No receipt file on disk.
+
+Owner re-sign and `v5.0.0` tag were not attempted. Next needs an owner
+call: keep v5.0.0 scoped to the original three and treat the new findings
+as the already-open tickets, or expand this release to close them first.
+
+## Wiki architecture map + de-dup pass done (2026-08-25)
+
+Added a new top-level [[architecture]] front-door page — a code-structure map
+(concept → file/dir) so an agent can navigate the code through text instead of
+grepping — then ran a de-dup/format-normalization pass over the hubs. Design
+approved in chat and filed at [[2026-08-25-wiki-architecture-map-and-dedup]].
+
+**Phase 1:** [[architecture]] written (orientation + whole-tree directory table +
+`rig/lib`-by-concern and `scripts` file tables + tests-by-area — every entry links
+to the hub that explains *why*, duplicating none of the reasoning). Wired into
+`Home.md`'s front-door line and page-kinds framing; `CLAUDE.md`'s Architecture
+section now points to it instead of standing alone. All internal links verified.
+
+**Phase 2:** heading vocabulary normalized to the canonical six across all 28
+hubs (`Why`→`Why it is this way`; `Remaining work`/`What's still open`→`What is
+still open`); content-bearing mechanism sections (`Current implementation`,
+`Shipping payload`, `Validation`, `Standing`, …) kept rather than force-fit.
+Reshaped the one true outlier `enforcement-and-git-dispatch-wiring` from a wiring
+log into a proper hub that links to [[action-evaluator]]/[[one-use-approvals]]
+instead of re-explaining one-use approvals. Fixed the found defect: that hub was
+missing from `Home.md`'s topic list (Home said 27; there were 28) — now listed,
+count corrected. `status.md`'s historical log left untouched by design. No code,
+no frozen-oracle edit; wiki-only.
+
+## Blocked-ticket decision briefs offboarded (2026-08-25)
+
+Added a standardized **"Decision brief — offboarded 2026-08-25"** block to the
+top of all seven Blocked tickets (RIG-110, 112, 113, 115, 116, 120, 122) so the
+owner can unblock each tomorrow against a low-reasoning agent without chasing
+context. Each brief states the single decision, the concrete options in a
+blast-radius table, one recommendation (chosen for least blast radius / no
+cascade), and the exact next action a low-reasoning agent runs once the owner
+picks. Briefs link into the existing graph (topics, `[[status]]`, sibling
+tickets, reasoning traces) rather than duplicating the reconciliation bodies
+already on each ticket. Keystone is [[RIG-120]]: RIG-122 and RIG-116 auto-unblock
+once the release ships; RIG-112/113/115 batch their oracle changes into RIG-120's
+single owner re-sign ceremony; RIG-110's recommended path (pointer-only beta
+roster) needs no vendor access. No code, no frozen-oracle edit.
+
 ## RIG-124 implemented, ready for commit (2026-08-25)
 
 All three token-burn fixes landed on this branch (`qa-prod-finishing-up`), not
@@ -709,3 +1111,26 @@ oracle's 55-skill reading is unaffected and no re-sign was required
   signer file through an owner-authorized re-signing ceremony.
 - Confirm the final `v5.0.0` tag and publication operation after the full gate
   is green.
+
+## Branch code review complete — 5 tickets raised (2026-08-25)
+
+Reviewed the whole `qa-prod-finishing-up` branch vs `origin/prod` (20 commits,
+188 files) for application coherence and production readiness. Full record:
+[[2026-08-25-branch-code-review-snapshot]]. Report-only — no code changed.
+
+Split along the owner's two axes:
+- **Structural (loop generators):** [[RIG-125]] — RIG-104/105/107 are marked
+  Done but unmet in shipped code because the same fact is defined in several
+  places (MCP disposition ×3; two uninstallers) and acceptance tests check the
+  mechanism, not the end-to-end property. This is what regenerates review→ticket
+  →re-review churn; fixed by equivalence + roundtrip + printed-sequence tests.
+- **Deliverability (production readiness):** [[RIG-126]] onboarding isn't
+  runnable end-to-end; [[RIG-127]] uninstall leaves orphans (install itself is
+  sound); [[RIG-128]] MCP emitted contracts misdescribe reality + repo writer
+  clobbers JSON5. [[RIG-129]] (clubbed doc/evidence) citation audit — pi's "MCP
+  refused by design" is false; copilot/copilot-cli/cline/openclaw/antigravity
+  #60/codewhale citations verified correct.
+
+All five are OPEN/un-triaged; recommended order RIG-125 first (its tests stop the
+loop), then 126/127/128 under those tests, 129 alongside. Not yet approved for
+implementation.
