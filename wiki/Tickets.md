@@ -18,6 +18,10 @@ kanban-plugin: board
 - [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
 	**Status:** OPEN (2026-08-25) — branch review + round-3 receipt major; awaiting owner approve-for-Coding · [Solution](tickets/RIG-125.md)
 	**Class:** STRUCTURAL (loop generator). Receipt re-confirmed: split MCP tables, two uninstallers, no inspect→apply→uninstall roundtrip. Loop-breaker: one MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip; printed bootstrap sequence to a green check — landed **inside the signed oracle** under RIG-120's re-sign, not beside it. Do [[RIG-132]] (collapse N) + [[RIG-130]]/[[RIG-131]] first, then this, then 126/127. Map: [round-3 finding map](reasoning/2026-08-25-rig120-round3-finding-map.md).
+- [ ] **RIG-127.11 — Uninstall hard-crashes on a corrupted legacy global config**
+	**Status:** OPEN (2026-08-26) — GitHub #69 — found after RIG-127 suite went green; awaiting Coding · [Solution](tickets/RIG-127.md)
+- [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
+	**Status:** OPEN (2026-08-26) — GitHub #70 — found after RIG-127 suite went green; awaiting Coding · [Solution](tickets/RIG-127.md)
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** BACKLOG (2026-08-25) — RIG-131: Ready-for-Commit card had no ## Acceptance evidence; not present on origin/prod · [Solution](tickets/RIG-124.md)
 - [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**
@@ -104,7 +108,7 @@ kanban-plugin: board
 	**Status:** READY FOR COMMIT (2026-08-25) — 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md)
 	**Done:** `tests/runtime-onboarding.test.js::the staged sequence produces review selection plan and a green check`.
 - [ ] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
-	**Status:** READY FOR COMMIT (2026-08-25) — 127.1–127.8 and 127.10; 127.9 remains the earlier fix · [Solution](tickets/RIG-127.md)
+	**Status:** DONE (2026-08-26) — GitHub #36 closed by PR #31; 127.1–127.8 and 127.10; 127.9 remains the earlier fix; follow-ups 127.11 → GitHub #69, 127.12 → GitHub #70 · [Solution](tickets/RIG-127.md)
 	**Done:** `tests/install-uninstall-roundtrip.test.js::public uninstall reverses a default bootstrap install`.
 - [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
 	**Status:** READY FOR COMMIT (2026-08-25) — descriptor parity plus 128.4/128.5; 128.3/128.6 remain debt · [Solution](tickets/RIG-128.md)
