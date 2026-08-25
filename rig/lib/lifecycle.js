@@ -175,6 +175,7 @@ function uninstall(target, opts = {}) {
   const removed = [];
   const retainedEntries = [];
   const preservePrefixes = [];
+  let stopped = false;
   const globalLedger = containedPath(target, '.rig/global-writes.json');
   if (fs.existsSync(globalLedger)) {
     let ledger;
@@ -202,10 +203,12 @@ function uninstall(target, opts = {}) {
           bestEffort.push(entry.path);
           bestEffortDetails.push(`${entry.path} (${entry.server_key || entry.install_id})`);
           retainedEntries.push(entry);
-          // Missing OpenClaw tooling must not block unrelated local removal; only
-          // the registered runtime tree is preserved for a later retry.
-          if (entry.kind === 'openclaw-mcp' && entry.runtime) {
-            preservePrefixes.push(entry.runtime);
+          if (entry.kind === 'openclaw-mcp') {
+            if (entry.runtime) preservePrefixes.push(entry.runtime);
+            // Missing tooling: keep removing unrelated local files.
+            // Present tooling that fails unregister: stop so a live global
+            // entry cannot be left pointing at deleted runtime bytes.
+            if (!result.tooling_missing) stopped = true;
           }
         }
       } catch {
@@ -224,7 +227,7 @@ function uninstall(target, opts = {}) {
     fs.rmSync(installIdGit, { force: true });
     removed.push('.rig/install-id');
   }
-  for (const record of records) {
+  if (!stopped) for (const record of records) {
     if (preservePrefixes.some((prefix) => record.path === prefix || record.path.startsWith(`${prefix}/`))) {
       bestEffort.push(record.path);
       continue;
@@ -295,12 +298,12 @@ function uninstall(target, opts = {}) {
   fs.mkdirSync(evidenceDir, { recursive: true });
   fs.writeFileSync(path.join(evidenceDir, 'last-uninstall.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   let purgeList = [];
-  if (opts.purge) {
+  if (opts.purge && !stopped) {
     purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
     for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
   }
-  const status = bestEffort.length ? 'best_effort' : 'removed';
+  const status = stopped || bestEffort.length ? 'best_effort' : 'removed';
   if (status === 'removed') {
     try { require('./uninstall').uninstall(target); } catch { /* receipt cleanup is best-effort */ }
     deleteManifests(target);
