@@ -125,10 +125,13 @@ if [ "$ACTIVE_DELIVERY" = 1 ]; then
   cat <<EOF
 Rig runtime workflow:
   cd "$TARGET_ROOT"
-  .rig/bin/rig inspect --target "$TARGET_ROOT" --host <host-id> --out inspection.json
+  .rig/bin/rig inspect --target "$TARGET_ROOT" --hosts auto --out inspection.json
+  .rig/bin/rig host-review --target "$TARGET_ROOT" --inspection inspection.json --out review.json
   .rig/bin/rig recommend --target "$TARGET_ROOT" --review review.json --out menu.json
-  .rig/bin/rig plan --target "$TARGET_ROOT" --manifest "$TARGET_ROOT/rig.json" --review review.json --out plan.json
-  .rig/bin/rig apply --target "$TARGET_ROOT" --manifest "$TARGET_ROOT/rig.json" --review review.json --plan plan.json --approval approval.json
+  .rig/bin/rig select --menu menu.json --out rig.json --service id=grade
+  .rig/bin/rig plan --target "$TARGET_ROOT" --manifest rig.json --review review.json --out plan.json
+  Approve the exact plan through a host-native attestation or an external signature before apply. Do not create a verified approval file yourself.
+  .rig/bin/rig apply --target "$TARGET_ROOT" --manifest rig.json --review review.json --plan plan.json --approval approval.json
   .rig/bin/rig check --target "$TARGET_ROOT"
 EOF
 fi

@@ -149,7 +149,7 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
     ['windsurf', ['.windsurf/mcp_config.json', '.codeium/mcp_config.json']],
     ['cline', ['.cline/mcp.json']],
     ['antigravity', ['.agents/mcp_config.json', '.gemini/antigravity/mcp_config.json', '.gemini/config/mcp_config.json']],
-    ['pi', ['.omp/mcp.json']],
+    ['pi', ['.omp/mcp.json', '.pi/mcp.json']],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);
@@ -171,7 +171,8 @@ test('AT-HOST-5 (legacy path) pi emits no MCP config and preserves + guides a pr
     fs.writeFileSync(userFile, '{"user":true}\n');
     materializeOne(target, 'pi', stdioOnly);
     assert.equal(fs.readFileSync(userFile, 'utf8'), '{"user":true}\n', 'pre-existing user file is untouched byte-for-byte');
-    assert.match(note(target), /pi does not support MCP/i, 'migration guidance names the disposition and the preserved file');
+    assert.match(note(target), /extension/i, 'setup guidance names the pi extension path');
+    assert.match(note(target), /\.omp\/mcp\.json.*left untouched/i, 'migration guidance names the preserved file');
   });
 });
 

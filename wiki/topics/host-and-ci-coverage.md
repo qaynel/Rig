@@ -25,7 +25,10 @@ The withdrawn verified/unverified tier is absent from registry state. Each host
 has separate `instruction`, `native_skill`, `shell_hook`, `web_hook`,
 `mcp_hook`, and `mcp_config` contracts that name its vendor path, event, input
 schema, matcher, denial/exit behavior, namespace, merge boundary, and
-first/repeat apply behavior. Git and CI remain separate deterministic
+first/repeat apply behavior. Pi MCP is not a vendor refusal: the host exposes
+MCP through an installed extension, and Rig does not auto-write that
+configuration because there is no first-party file it can safely merge. Any
+pre-existing legacy file is left unchanged. Git and CI remain separate deterministic
 surfaces. Unsupported axes are explicit no-emit contracts rather than inferred
 gaps. Inspection discovers all marker-present hosts by default and records the
 marker provenance; an explicit host remains a compatibility override.
