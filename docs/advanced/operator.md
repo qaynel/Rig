@@ -16,14 +16,14 @@ install use `.rig/bin/rig` with the same arguments. The installed command is
 present only for active-runtime installs (`--with-runtime`).
 
 ```sh
-node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
-# host agent writes review.json from inspection + sanitation-review skill
+node rig/materialize.js inspect --target <repo> --hosts auto --out inspection.json
+node rig/materialize.js host-review --target <repo> --inspection inspection.json --out review.json
 node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
-# write leaf selections to <repo>/rig.json
+node rig/materialize.js select --menu menu.json --out <repo>/rig.json --service id=grade
 node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
-node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
-node .rig/bin/check.js --scope diff    # local/dev
-node .rig/bin/check.js --scope repo    # CI
+# Approve the exact plan through a host-native attestation or an external signature.
+node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json --approval approval.json
+.rig/bin/rig check --target <repo>
 ```
 
 Model-assisted secret triage is enabled only through a disclosed policy plan:

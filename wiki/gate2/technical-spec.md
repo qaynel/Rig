@@ -887,8 +887,15 @@ New seams:
 node rig/materialize.js inspect \
   --target <repo> --hosts <auto|comma-separated-host-ids> --out <inspection.json>
 
+node rig/materialize.js host-review \
+  --target <repo> --inspection <inspection.json> --out <review.json>
+
 node rig/materialize.js recommend \
   --target <repo> --review <review.json> --out <recommendation.json>
+
+node rig/materialize.js select \
+  --menu <recommendation.json> --service <service-id>=<grade> [--service ...] \
+  --out <repo>/rig.json
 
 node rig/materialize.js plan \
   --target <repo> --manifest <repo>/rig.json \
@@ -935,6 +942,19 @@ The CLI remains argument parsing and orchestration. Domain logic stays under
 external user-presence signature; a bare digest flag is never approval. There
 is no on-disk delegated policy-edit receipt to present either: per §8.3
 delegation lives in the session and nothing records it.
+
+**Pre-v5 onboarding execution contract.** `host-review` is the only conversion
+from an inspection to the verdict-bearing review consumed by
+recommend/plan/apply: it carries the original harness digest and computes the
+adoption verdict from the inspection findings. `select` is the only conversion
+from a recommendation menu to `rig.json`; it accepts explicit user-selected
+`service=grade` pairs, rejects services absent from the menu and unsupported
+grades, and executes no repository code. Bootstrap prints those producers in
+order with `--hosts auto`, not a literal host placeholder. After plan it may
+pause for real consent, but it never manufactures an approval receipt or a
+manual MCP server entry. The staged path reuses the same selected-server receipt
+as legacy credential output when one exists; otherwise it emits only honest
+no-server-selected guidance.
 
 `--hosts auto` is the default. It checks only the registry's bounded
 repo-relative marker paths and returns the exact detected set in canonical host
