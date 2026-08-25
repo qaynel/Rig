@@ -1,5 +1,14 @@
 # Status - checked 2026-08-25 (updated 2026-08-25)
 
+## RIG-126 onboarding (solved 2026-08-25)
+
+The printed post-install chain is runnable for 126.1–126.4: host-review and
+explicit select produce the review and `rig.json` later steps consume, staged
+apply renders the Antigravity manual MCP entry it verifies, and a clean check
+prints a success confirmation. 126.5 (source-checkout wrapper) remains deferred.
+Named onboarding suite and the full gate are green. The owner-signed oracle is
+unchanged.
+
 ## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
 
 The owner asked that every pre-v5 fix be offboarded onto its ticket so a
@@ -1043,7 +1052,7 @@ named-tag `5.0.0` distribution.
 
 The protected oracle, secret scan, rule-copy check, and version check pass on
 the current bytes. `npm test` is green end to end: the root suite is
-**380/380** and the pi-extension suite is **15/15**. A prior read of this page
+**391/391** and the pi-extension suite is **15/15**. A prior read of this page
 claimed `AT-BASE-3` and `AT-SECRET-1` were failing against the frozen business
 text and required an owner-authorized Gate 1 re-signing ceremony; re-running
 both on the current bytes shows they pass, so that re-signing ceremony is not
