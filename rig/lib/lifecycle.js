@@ -219,14 +219,20 @@ function uninstall(target, opts = {}) {
       }
     }
   }
+  // The chained path holds the user's original hook so uninstall can restore
+  // it. Skip it in the main pass so a higher-seq backup record cannot delete
+  // it before the shim decision; restore consumes it by rename, and a
+  // best-effort shim still needs it for a later retry.
+  let retainChainedBackup = false;
   for (const record of records) {
+    if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
     const abs = resolveRecordPath(target, record.path);
-    if (!fs.existsSync(abs)) continue;
     if (record.path === '.git/hooks/pre-commit') {
       const chained = resolveRecordPath(target, '.git/hooks/pre-commit.rig-chained');
       const expected = record.digest || record.desired_digest || null;
-      if (expected && currentDigest(abs) !== expected) {
+      if (fs.existsSync(abs) && expected && currentDigest(abs) !== expected) {
         bestEffort.push(record.path);
+        retainChainedBackup = true;
         continue;
       }
       if (fs.existsSync(chained)) {
@@ -234,6 +240,9 @@ function uninstall(target, opts = {}) {
         removed.push(record.path);
         continue;
       }
+      if (!fs.existsSync(abs)) continue;
+    } else if (!fs.existsSync(abs)) {
+      continue;
     }
     if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
@@ -255,6 +264,22 @@ function uninstall(target, opts = {}) {
       fs.rmSync(abs, { recursive: true, force: true });
       removed.push(record.path);
       deletedRels.push(record.path);
+    }
+  }
+  if (!retainChainedBackup) {
+    const chainedRel = '.git/hooks/pre-commit.rig-chained';
+    const chainedRecord = records.find((record) => record.path === chainedRel);
+    if (chainedRecord) {
+      const chainedAbs = resolveRecordPath(target, chainedRel);
+      if (fs.existsSync(chainedAbs)) {
+        const expected = chainedRecord.digest || chainedRecord.desired_digest || null;
+        if (expected && currentDigest(chainedAbs) !== expected) {
+          bestEffort.push(chainedRel);
+        } else {
+          fs.rmSync(chainedAbs, { force: true });
+          removed.push(chainedRel);
+        }
+      }
     }
   }
   for (const rel of deletedRels) pruneEmptyParents(target, rel);

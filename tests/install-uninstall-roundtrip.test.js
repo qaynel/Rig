@@ -24,12 +24,16 @@ const digest = (value) => crypto.createHash('sha256').update(value).digest('hex'
 
 test('public uninstall reverses a default bootstrap install', () => withTarget((target) => {
   const agents = path.join(target, 'AGENTS.md');
+  const envExample = path.join(target, '.env.example');
   fs.writeFileSync(agents, '# User instructions\n');
+  fs.writeFileSync(envExample, '# user env example\n');
   const before = fs.readFileSync(agents, 'utf8');
+  const envBefore = fs.readFileSync(envExample, 'utf8');
   runPayload(target, ['codex']);
   const result = spawnSync(process.execPath, [materializer, '--target', target, '--uninstall'], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(fs.readFileSync(agents, 'utf8'), before);
+  assert.equal(fs.readFileSync(envExample, 'utf8'), envBefore);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'routing.md')), false);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), false);
 }));
@@ -158,4 +162,100 @@ test('linked-worktree uninstall restores the original pre-commit hook', () => wi
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.equal(fs.readFileSync(hook, 'utf8'), original);
   assert.equal(fs.existsSync(path.join(path.dirname(hook), 'pre-commit.rig-chained')), false);
+}));
+
+test('public uninstall retains an edited pre-commit shim and its chained backup', () => withTarget((root) => {
+  const main = path.join(root, 'main');
+  const worktree = path.join(root, 'linked');
+  fs.mkdirSync(main);
+  execFileSync('git', ['init'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['config', 'user.email', 'rig-test@example.com'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['config', 'user.name', 'Rig Test'], { cwd: main, stdio: 'pipe' });
+  fs.writeFileSync(path.join(main, 'package.json'), JSON.stringify({
+    name: 'linked-worktree-fixture', private: true, scripts: { 'format:check': 'git diff --check' },
+  }) + '\n');
+  fs.writeFileSync(path.join(main, 'index.js'), 'module.exports = 1;\n');
+  execFileSync('git', ['add', '.'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['commit', '-m', 'fixture'], { cwd: main, stdio: 'pipe' });
+  execFileSync('git', ['worktree', 'add', '-b', 'linked-edited-hook', worktree], { cwd: main, stdio: 'pipe' });
+
+  const hooks = execFileSync('git', ['rev-parse', '--git-path', 'hooks'], { cwd: worktree, encoding: 'utf8' }).trim();
+  const hook = path.resolve(worktree, hooks, 'pre-commit');
+  const chained = path.join(path.dirname(hook), 'pre-commit.rig-chained');
+  const original = '#!/bin/sh\necho user-hook\n';
+  fs.mkdirSync(path.dirname(hook), { recursive: true });
+  fs.writeFileSync(hook, original, { mode: 0o755 });
+
+  const review = path.join(worktree, 'review.json');
+  const selection = path.join(worktree, 'rig.json');
+  const plan = path.join(worktree, 'plan.json');
+  fs.writeFileSync(review, JSON.stringify({
+    schema_version: 1, host: 'codex', harness_digest: 'linked-worktree-fixture', verdict: 'ALLOW',
+    findings: [], restrictions: [], unverifiable: [],
+  }) + '\n');
+  fs.writeFileSync(selection, JSON.stringify({
+    schema_version: 1, services: { 'development.code-quality.lint-format': 'minimal' },
+  }) + '\n');
+  let result = spawnSync(process.execPath, [materializer, 'plan', '--target', worktree, '--manifest', selection, '--review', review, '--out', plan], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const approval = writePlanApproval(worktree, plan);
+  result = spawnSync(process.execPath, [materializer, 'apply', '--target', worktree, '--manifest', selection, '--review', review, '--plan', plan, '--approval', approval], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+
+  const shim = fs.readFileSync(hook, 'utf8');
+  const edited = `${shim}# user edited shim\n`;
+  fs.writeFileSync(hook, edited);
+  result = spawnSync(process.execPath, [materializer, '--target', worktree, '--uninstall'], { encoding: 'utf8' });
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.match(result.stderr, /\.git\/hooks\/pre-commit/);
+  assert.equal(fs.readFileSync(hook, 'utf8'), edited);
+  assert.equal(fs.readFileSync(chained, 'utf8'), original);
+  assert.equal(fs.existsSync(path.join(worktree, '.rig', 'install-manifest.jsonl')), true);
+
+  fs.writeFileSync(hook, shim);
+  result = spawnSync(process.execPath, [materializer, '--target', worktree, '--uninstall'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(fs.readFileSync(hook, 'utf8'), original);
+  assert.equal(fs.existsSync(chained), false);
+  assert.equal(fs.existsSync(path.join(worktree, '.rig', 'install-manifest.jsonl')), false);
+}));
+
+test('best-effort shim keeps the chained backup even when that record is processed first', () => withTarget((target) => {
+  const hookDir = path.join(target, '.git', 'hooks');
+  fs.mkdirSync(hookDir, { recursive: true });
+  const original = '#!/bin/sh\necho user-hook\n';
+  const shim = '#!/bin/sh\necho Rig secret guard shim\n';
+  const edited = `${shim}# edited\n`;
+  fs.writeFileSync(path.join(hookDir, 'pre-commit'), edited);
+  fs.writeFileSync(path.join(hookDir, 'pre-commit.rig-chained'), original);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
+    JSON.stringify({ seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: digest(shim) }),
+    JSON.stringify({ seq: 2, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: digest(original) }),
+    '',
+  ].join('\n'));
+  const result = uninstall(target);
+  assert.equal(result.status, 'best_effort');
+  assert.equal(fs.readFileSync(path.join(hookDir, 'pre-commit'), 'utf8'), edited);
+  assert.equal(fs.readFileSync(path.join(hookDir, 'pre-commit.rig-chained'), 'utf8'), original);
+  assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), true);
+}));
+
+test('missing shim restores the chained backup instead of orphaning it', () => withTarget((target) => {
+  const hookDir = path.join(target, '.git', 'hooks');
+  fs.mkdirSync(hookDir, { recursive: true });
+  const original = '#!/bin/sh\necho user-hook\n';
+  const shim = '#!/bin/sh\necho Rig secret guard shim\n';
+  fs.writeFileSync(path.join(hookDir, 'pre-commit.rig-chained'), original);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
+    JSON.stringify({ seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: digest(shim) }),
+    JSON.stringify({ seq: 2, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: digest(original) }),
+    '',
+  ].join('\n'));
+  const result = uninstall(target);
+  assert.equal(result.status, 'removed');
+  assert.equal(fs.readFileSync(path.join(hookDir, 'pre-commit'), 'utf8'), original);
+  assert.equal(fs.existsSync(path.join(hookDir, 'pre-commit.rig-chained')), false);
+  assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), false);
 }));
