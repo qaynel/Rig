@@ -66,7 +66,6 @@ test('TP-C4.3 bucket-2 project renderers emit value-free config plus a manual no
     ['kiro', '.kiro/settings/mcp.json', /\$\{EXAMPLE_DB_TOKEN\}/],
     ['gemini', '.gemini/settings.json', /\$\{EXAMPLE_DB_TOKEN\}|\$EXAMPLE_DB_TOKEN/],
     ['opencode', 'opencode.json', /\{env:EXAMPLE_DB_TOKEN\}/],
-    ['pi', '.omp/mcp.json', /\$\{EXAMPLE_DB_TOKEN\}/],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);

@@ -21,7 +21,7 @@ test('TP-X.3 materialize.js delegates every install pass to rig/lib', () => {
     ['./lib/credentials', ['writeCredentialOutputs']],
     ['./lib/guard', ['installGuard']],
     ['./lib/receipt', ['writeReceipt']],
-    ['./lib/uninstall', ['uninstall']],
+    ['./lib/lifecycle', ['uninstall']],
   ];
 
   for (const [modulePath, operations] of boundaries) {

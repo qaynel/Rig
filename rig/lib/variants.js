@@ -12,6 +12,7 @@ const SUPPORTED_TRANSPORTS = {
   codewhale: ['stdio', 'http'],
   swival: ['stdio', 'http'],
   'vscode-codex': ['stdio', 'http'],
+  antigravity: ['stdio', 'http'],
 };
 
 function representable(host, variant, support = SUPPORTED_TRANSPORTS) {

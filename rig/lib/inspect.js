@@ -154,6 +154,29 @@ function inspectTarget(target, { host, hosts } = {}) {
   };
 }
 
+function hostReview(inspection) {
+  if (!inspection || typeof inspection !== 'object' || inspection.schema_version !== 1) {
+    throw new Error('host-review: malformed inspection');
+  }
+  if (typeof inspection.harness_digest !== 'string' || !inspection.harness_digest) {
+    throw new Error('host-review: stale or malformed inspection');
+  }
+  const verdict = adoptionVerdict({
+    findings: inspection.findings || [],
+    unverifiable: inspection.unverifiable || [],
+  });
+  const detected = Array.isArray(inspection.hosts) && inspection.hosts[0] && inspection.hosts[0].id;
+  return {
+    schema_version: 1,
+    host: inspection.host || detected || 'generic',
+    harness_digest: inspection.harness_digest,
+    verdict: verdict.verdict,
+    findings: inspection.findings || [],
+    restrictions: inspection.restrictions || [],
+    unverifiable: inspection.unverifiable || [],
+  };
+}
+
 function adoptionVerdict({ findings = [], unverifiable = [] } = {}) {
   const blockers = findings.filter((f) => f && f.severity === 'blocker');
   if (blockers.length) return { verdict: 'BLOCK', findings: blockers, unverifiable };
@@ -170,4 +193,5 @@ module.exports = {
   VERDICTS,
   KNOWN_RESTRICTIONS,
   adoptionVerdict,
+  hostReview,
 };

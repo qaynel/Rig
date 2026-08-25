@@ -14,6 +14,8 @@ const { writeReport } = require('./reports');
 const { containedPath, gitPath } = require('./path-safety');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
+const { writeMcpSetup } = require('./credentials');
+const { writeReceipt } = require('./receipt');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
@@ -317,6 +319,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       latestByPath.set(rel, applied);
     };
 
+    writeOwned('.rig/install-id', `${installId}\n`);
+
     const ensureLineOwned = (rel, line) => {
       const abs = containedPath(target, rel);
       const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
@@ -468,10 +472,30 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         fs.mkdirSync(hooksDirAbs, { recursive: true });
         const hook = path.join(hooksDirAbs, 'pre-commit');
         const chained = path.join(hooksDirAbs, 'pre-commit.rig-chained');
+        const journalExternal = (rel, abs, contents, mode) => {
+          const desired = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
+          const desiredDigest = crypto.createHash('sha256').update(desired).digest('hex');
+          const pending = {
+            seq: ++seq,
+            path: rel,
+            ownership: fs.existsSync(abs) ? 'replace_owned' : 'create_owned',
+            operation: 'replace_owned',
+            install_id: installId,
+            transaction_kind: 'install',
+            state: 'pending',
+            preimage_digest: fs.existsSync(abs) ? sha256File(abs) : null,
+            desired_digest: desiredDigest,
+          };
+          appendManifestRecord(target, pending);
+          fs.writeFileSync(abs, desired, { mode });
+          const applied = { ...pending, state: 'applied', digest: desiredDigest };
+          appendManifestRecord(target, applied);
+          latestByPath.set(rel, applied);
+        };
         if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
-          fs.renameSync(hook, chained);
+          journalExternal('.git/hooks/pre-commit.rig-chained', chained, fs.readFileSync(hook), 0o755);
         }
-        fs.writeFileSync(hook, SHIM, { mode: 0o755 });
+        journalExternal('.git/hooks/pre-commit', hook, SHIM, 0o755);
       }
     }
 
@@ -494,6 +518,21 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       historyScanNote = 'first-enable history scan verified for precommit-leak-scanner';
     }
 
+    const mcpReceipt = {
+      noteHosts: validated.host && validated.host !== 'generic' ? [validated.host] : [],
+      manualEntries: validated.manualEntries || {},
+      migrationHosts: [],
+      tierC: validated.host === 'generic' ? ['generic'] : [],
+    };
+    if (validated.host === 'antigravity' && !mcpReceipt.noteHosts.includes('antigravity')) {
+      mcpReceipt.noteHosts.push('antigravity');
+    }
+    writeMcpSetup(target, mcpReceipt);
+    if (fs.existsSync(path.join(target, '.rig', 'mcp-setup.md'))) {
+      writeOwned('.rig/mcp-setup.md', fs.readFileSync(path.join(target, '.rig', 'mcp-setup.md')));
+    }
+    writeReceipt(target, mcpReceipt);
+
     const receipt = {
       schema_version: 1,
       catalog_digest: catalogDigest(catalog),
@@ -504,6 +543,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       installed,
       history_scan: historyScan || null,
       ci: { status: ci.status, provider: ci.provider || null },
+      manualEntries: validated.manualEntries || {},
     };
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
 

@@ -1,4 +1,4 @@
-# Status - checked 2026-08-23
+# Status - checked 2026-08-25
 
 The signed oracle remains unchanged and green at 68 acceptance cases. The
 working technical design is v0.16 and is present rather than frozen. D24 keeps
@@ -6,14 +6,18 @@ the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,
 detected-host onboarding, the mandatory safety baseline, six CI providers, and
 named-tag `5.0.0` distribution.
 
-The protected oracle, secret scan, rule-copy check, and version check pass on
-the current bytes. `npm test` is green end to end: the root suite is
-**380/380** and the pi-extension suite is **15/15**. A prior read of this page
-claimed `AT-BASE-3` and `AT-SECRET-1` were failing against the frozen business
-text and required an owner-authorized Gate 1 re-signing ceremony; re-running
-both on the current bytes shows they pass, so that re-signing ceremony is not
-needed. The `pandas` benchmark import some local runs report as failing is a
-missing `.venv` setup in that environment, not a suite failure.
+The pre-v5 release gate ([[RIG-134]]) is ready for commit: every known finding
+in RIG-126/127/128/129 is tagged `debt` or `v5-observable`, the observable set
+is fixed as leaf changes, and the debt set is the printed raw-registry
+inventory (`rig/raw-registry-access.json`, count 1). [[RIG-131]] makes Done
+mechanical. Remaining release work is [[RIG-120]]'s ceremony (fresh receipt,
+owner re-sign, tag).
+
+The protected oracle, secret scan, rule-copy check, version check, ticket
+traceability, and raw-registry ratchet pass on the current bytes. `npm test`
+is green end to end: the root suite is **417/417** and the pi-extension suite
+is **15/15**. The `pandas` benchmark import some local runs report as failing
+is a missing `.venv` setup in that environment, not a suite failure.
 
 The leftover production holes from the last pass are closed: apply writes a CI
 file only when that path is in the signed plan and still compare-and-swaps it;

@@ -13,9 +13,17 @@ function readManifest(target) {
   const file = containedPath(target, MANIFEST_REL);
   if (fs.existsSync(file)) {
     const records = [];
-    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    const lines = fs.readFileSync(file, 'utf8').split('\n');
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
       if (!line.trim()) continue;
-      try { records.push(JSON.parse(line)); } catch { /* damaged final line */ }
+      try {
+        records.push(JSON.parse(line));
+      } catch {
+        const restEmpty = lines.slice(i + 1).every((next) => !next.trim());
+        if (restEmpty) break;
+        throw new Error(`uninstall: malformed install-manifest record at line ${i + 1}; left unchanged`);
+      }
     }
     return { format: 'jsonl', records };
   }
@@ -127,6 +135,29 @@ function resolveRecordPath(target, rel) {
   return containedPath(target, rel);
 }
 
+function rmdirEmptyParents(target, rel) {
+  let dir = path.dirname(resolveRecordPath(target, rel));
+  let root;
+  try { root = fs.realpathSync(path.resolve(target)); } catch { root = path.resolve(target); }
+  while (dir) {
+    let resolved;
+    try { resolved = fs.existsSync(dir) ? fs.realpathSync(dir) : path.resolve(dir); }
+    catch { break; }
+    const relToRoot = path.relative(root, resolved);
+    if (!relToRoot || relToRoot.startsWith('..') || path.isAbsolute(relToRoot)) break;
+    if (!fs.existsSync(dir) || fs.readdirSync(dir).length) break;
+    fs.rmdirSync(dir);
+    dir = path.dirname(dir);
+  }
+}
+
+function deleteManifests(target) {
+  for (const rel of [MANIFEST_REL, LEGACY_MANIFEST_REL]) {
+    const file = containedPath(target, rel);
+    if (fs.existsSync(file)) fs.rmSync(file, { force: true });
+  }
+}
+
 function uninstall(target, opts = {}) {
   const manifest = readManifest(target);
   const records = latestOperations(manifest.records)
@@ -142,16 +173,25 @@ function uninstall(target, opts = {}) {
         bestEffort.push('.rig/global-writes.json');
         continue;
       }
-      const result = removeGlobalConfig(entry.path, entry.install_id);
-      if (result.removed) removed.push(entry.path);
-      else bestEffort.push(entry.path);
+      try {
+        const result = removeGlobalConfig(entry.path, entry.install_id);
+        if (result.removed) removed.push(entry.path);
+        else bestEffort.push(entry.path);
+      } catch {
+        bestEffort.push(entry.path);
+      }
     }
+  }
+  const installIdGit = gitPath(target, path.join('rig', 'install-id'));
+  if (installIdGit && fs.existsSync(installIdGit)) {
+    fs.rmSync(installIdGit, { force: true });
+    removed.push('.rig/install-id');
   }
   for (const record of records) {
     const abs = resolveRecordPath(target, record.path);
     if (!fs.existsSync(abs)) continue;
-    if (record.path === '.git/hooks/pre-commit') {
-      const chained = resolveRecordPath(target, '.git/hooks/pre-commit.rig-chained');
+    if (record.path === '.git/hooks/pre-commit' || record.path.endsWith('/hooks/pre-commit')) {
+      const chained = resolveRecordPath(target, record.path.replace(/pre-commit$/, 'pre-commit.rig-chained'));
       const expected = record.digest || record.desired_digest || null;
       if (expected && currentDigest(abs) !== expected) {
         bestEffort.push(record.path);
@@ -166,13 +206,23 @@ function uninstall(target, opts = {}) {
     if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
       const stripped = body.split('\n').filter((line) => line !== record.managed_line).join('\n');
-      fs.writeFileSync(abs, stripped);
+      if (!stripped.trim()) {
+        fs.rmSync(abs, { force: true });
+        rmdirEmptyParents(target, record.path);
+      } else {
+        fs.writeFileSync(abs, stripped.endsWith('\n') ? stripped : `${stripped}\n`);
+      }
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
       const stripped = body.replace(/<!-- rig:[^\n]*start -->\n[\s\S]*?<!-- rig:[^\n]*end -->\n?/g, '');
       if (stripped === body) bestEffort.push(record.path);
-      fs.writeFileSync(abs, stripped);
+      if (!stripped.trim()) {
+        fs.rmSync(abs, { force: true });
+        rmdirEmptyParents(target, record.path);
+      } else {
+        fs.writeFileSync(abs, stripped);
+      }
       if (stripped !== body) removed.push(record.path);
     } else {
       const expected = record.digest || record.desired_digest || null;
@@ -182,6 +232,7 @@ function uninstall(target, opts = {}) {
       }
       fs.rmSync(abs, { recursive: true, force: true });
       removed.push(record.path);
+      rmdirEmptyParents(target, record.path);
     }
   }
   const evidence = {
@@ -199,13 +250,14 @@ function uninstall(target, opts = {}) {
     purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
     for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
-  } else {
-    const mfile = containedPath(target, MANIFEST_REL);
-    if (fs.existsSync(mfile)) fs.rmSync(mfile, { force: true });
-    const legacy = containedPath(target, LEGACY_MANIFEST_REL);
-    if (fs.existsSync(legacy)) fs.rmSync(legacy, { force: true });
   }
-  return { status: 'removed', removed, best_effort: bestEffort, purge_list: purgeList };
+  const status = bestEffort.length ? 'best_effort' : 'removed';
+  if (status === 'removed') {
+    try { require('./uninstall').uninstall(target); } catch { /* receipt cleanup is best-effort */ }
+    deleteManifests(target);
+    rmdirEmptyParents(target, '.rig/install-manifest.jsonl');
+  }
+  return { status, removed, best_effort: bestEffort, purge_list: purgeList };
 }
 
 function verifyRemoval(target, evidence) {

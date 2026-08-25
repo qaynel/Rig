@@ -304,7 +304,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     }
   }
 
-  return failure || { status: 0, stdout: '', stderr: '' };
+  return failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
 }
 
 module.exports = {

@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const root = path.join(__dirname, '..');
 const PINNED_SEMVER = /^\d+\.\d+\.\d+$/;
@@ -73,6 +74,17 @@ if (shared && process.env.GITHUB_REF_TYPE === 'tag') {
 if (failed) {
   console.error('Align the version fields (see issue #260) so every manifest shares one version.');
   process.exit(1);
+}
+
+// Pre-v5 gate scripts (RIG-131, RIG-132 ratchet). Invoked here so they run
+// before the Node test glob without editing the signed package.json scripts.
+for (const rel of ['scripts/check-ticket-traceability.js', 'scripts/check-raw-registry-access.js']) {
+  const result = spawnSync(process.execPath, [path.join(root, rel)], {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: 'inherit',
+  });
+  if (result.status !== 0) process.exit(result.status || 1);
 }
 
 console.log(`All ${VERSION_FILES.length} version files pinned at ${shared}.`);

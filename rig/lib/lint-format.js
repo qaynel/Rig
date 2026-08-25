@@ -18,6 +18,7 @@ const ECOSYSTEM_SIGNALS = [
 
 const KNOWN_LINTERS = /(eslint|biome|pylint|flake8|ruff|golangci-lint|rubocop|standard)/i;
 const KNOWN_FORMATTERS = /(prettier|black|gofmt|rustfmt|dprint)/i;
+const SKIP_DIRS = new Set(['.git', '.rig', 'node_modules']);
 
 function digest(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
@@ -51,7 +52,7 @@ function walkDirs(root, target, out, depth = 0) {
   if (signals.length) out.push({ root: root || '.', ecosystem, signals });
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    if (entry.name === 'node_modules' || entry.name === '.git') continue;
+    if (SKIP_DIRS.has(entry.name)) continue;
     walkDirs(path.join(root, entry.name), target, out, depth + 1);
   }
 }

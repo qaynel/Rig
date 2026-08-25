@@ -3,6 +3,7 @@ const path = require('node:path');
 const { SUPPORTED_HOSTS } = require('./config');
 const { assignVariants } = require('./variants');
 const { readReceipt } = require('./receipt');
+const { MCP_HOSTS } = require('./mcp-hosts');
 
 const HOST_TIER = Object.fromEntries(SUPPORTED_HOSTS.map((host) => [host, 'B']));
 Object.assign(HOST_TIER, {
@@ -22,6 +23,21 @@ Object.assign(HOST_TIER, {
   generic: 'C',
 });
 
+function mergeJson(filePath, mutate) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  let obj = {};
+  if (fs.existsSync(filePath)) {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    try {
+      obj = JSON.parse(raw);
+    } catch {
+      throw new Error(`invalid JSON in ${filePath}; left unchanged`);
+    }
+  }
+  mutate(obj);
+  fs.writeFileSync(filePath, JSON.stringify(obj, null, 2) + '\n');
+}
+
 const CREDENTIAL_SAFETY = {};
 for (const host of Object.keys(HOST_TIER).filter((host) => HOST_TIER[host] === 'A')) {
   CREDENTIAL_SAFETY[`${host}:stdio`] = 'manual_note_required';
@@ -30,36 +46,6 @@ for (const host of Object.keys(HOST_TIER).filter((host) => HOST_TIER[host] === '
 CREDENTIAL_SAFETY['cursor:stdio'] = 'config_only_safe';
 CREDENTIAL_SAFETY['copilot:stdio'] = 'config_only_safe';
 CREDENTIAL_SAFETY['copilot:http'] = 'config_only_safe';
-
-const HOST_FILES = {
-  claude: '.mcp.json',
-  cursor: '.cursor/mcp.json',
-  codex: '.codex/config.toml',
-  copilot: '.vscode/mcp.json',
-  opencode: 'opencode.json',
-  pi: '.omp/mcp.json',
-  gemini: '.gemini/settings.json',
-  kiro: '.kiro/settings/mcp.json',
-  devin: '.devin/config.json',
-  openclaw: '.openclaw/openclaw.json',
-  codewhale: '.codewhale/mcp.json',
-  swival: '.swival/mcp.json',
-  'vscode-codex': '.codex/config.toml',
-};
-
-function mergeJson(filePath, mutate) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  let obj = {};
-  if (fs.existsSync(filePath)) {
-    try {
-      obj = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch {
-      obj = {};
-    }
-  }
-  mutate(obj);
-  fs.writeFileSync(filePath, JSON.stringify(obj, null, 2) + '\n');
-}
 
 function appendTomlBlock(filePath, header, body) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -74,27 +60,48 @@ const envMap = (fmt, variant) => Object.fromEntries(variant.credentials.map((nam
 const authHeader = (fmt, variant) => ({ Authorization: `Bearer ${ref(fmt, variant.credentials[0])}` });
 const jsonFile = (target, rel, mutate) => mergeJson(path.join(target, rel), mutate);
 
+function setAtPath(obj, dottedKey, name, entry) {
+  const parts = dottedKey.split('.');
+  let node = obj;
+  for (const part of parts.slice(0, -1)) {
+    if (node[part] == null) node[part] = {};
+    else if (typeof node[part] !== 'object' || Array.isArray(node[part])) {
+      throw new Error(`invalid JSON path ${dottedKey}; left unchanged`);
+    }
+    node = node[part];
+  }
+  const last = parts[parts.length - 1];
+  if (node[last] == null) node[last] = {};
+  else if (typeof node[last] !== 'object' || Array.isArray(node[last])) {
+    throw new Error(`invalid JSON path ${dottedKey}; left unchanged`);
+  }
+  node[last][name] = entry;
+}
+
+function mergeMcpEntry(target, host, server, entry) {
+  const spec = MCP_HOSTS[host];
+  if (!spec || !spec.file) throw new Error(`rig: no MCP write contract for host "${host}"`);
+  jsonFile(target, spec.file, (obj) => setAtPath(obj, spec.key, server.name, entry));
+  return { file: spec.file, serverName: server.name };
+}
+
 function genericEntry(variant, tokenFmt = '${%s}') {
   if (variant.transport === 'http') return { type: 'http', url: variant.url, headers: authHeader(tokenFmt, variant) };
   return { command: variant.command, args: variant.args, env: envMap(tokenFmt, variant) };
 }
 
 function renderClaude(target, server, variant) {
-  const file = HOST_FILES.claude;
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = genericEntry(variant, '${%s}'); });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'claude', server, genericEntry(variant, '${%s}'));
 }
 
 function renderCursor(target, server, variant) {
-  const file = HOST_FILES.cursor;
   const entry = genericEntry(variant, '${env:%s}');
   if (variant.transport === 'stdio') entry.envFile = '${workspaceFolder}/.env';
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'cursor', server, entry);
 }
 
 function renderCodex(target, server, variant) {
-  const file = HOST_FILES.codex;
+  const file = MCP_HOSTS.codex.file;
   const body = variant.transport === 'http'
     ? `url = "${variant.url}"\nbearer_token_env_var = "${variant.credentials[0]}"\n`
     : `command = "${variant.command}"\nargs = [${variant.args.map((arg) => JSON.stringify(arg)).join(', ')}]\nenv_vars = [${variant.credentials.map((name) => JSON.stringify(name)).join(', ')}]\n`;
@@ -103,85 +110,67 @@ function renderCodex(target, server, variant) {
 }
 
 function renderCopilot(target, server, variant) {
-  const file = HOST_FILES.copilot;
+  const file = MCP_HOSTS.copilot.file;
   const inputs = variant.credentials.map((name) => ({ id: name, type: 'promptString', password: true }));
   const entry = variant.transport === 'http'
     ? { type: 'http', url: variant.url, headers: authHeader('${input:%s}', variant) }
     : { command: variant.command, args: variant.args, env: envMap('${input:%s}', variant), envFile: '${workspaceFolder}/.env' };
   jsonFile(target, file, (obj) => {
     obj.inputs = mergeById(obj.inputs || [], inputs);
-    (obj.servers ??= {})[server.name] = entry;
+    setAtPath(obj, MCP_HOSTS.copilot.key, server.name, entry);
   });
   return { file, serverName: server.name };
 }
 
 function renderOpencode(target, server, variant) {
-  const file = HOST_FILES.opencode;
   const entry = variant.transport === 'http'
     ? { type: 'remote', url: variant.url, headers: authHeader('{env:%s}', variant) }
     : { type: 'local', command: variant.command, args: variant.args, environment: envMap('{env:%s}', variant) };
-  jsonFile(target, file, (obj) => { (obj.mcp ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'opencode', server, entry);
 }
 
 function renderPi(target, server, variant) {
-  const file = HOST_FILES.pi;
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = genericEntry(variant, '${%s}'); });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'pi', server, genericEntry(variant, '${%s}'));
 }
 
 function renderGemini(target, server, variant) {
-  const file = HOST_FILES.gemini;
   const entry = variant.transport === 'http'
     ? { httpUrl: variant.url, headers: authHeader('${%s}', variant) }
     : { command: variant.command, args: variant.args, env: envMap('${%s}', variant) };
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'gemini', server, entry);
 }
 
 function renderKiro(target, server, variant) {
-  const file = HOST_FILES.kiro;
   const entry = variant.transport === 'http'
     ? { type: 'remote', url: variant.url, headers: authHeader('${%s}', variant) }
     : { type: 'local', command: variant.command, args: variant.args, env: envMap('${%s}', variant) };
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'kiro', server, entry);
 }
 
 function renderDevin(target, server, variant) {
-  const file = HOST_FILES.devin;
   const entry = variant.transport === 'http'
     ? { transport: 'http', url: variant.url, headers: authHeader('${env:%s}', variant) }
     : genericEntry(variant, '${env:%s}');
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'devin', server, entry);
 }
 
 function renderOpenclaw(target, server, variant) {
-  const file = HOST_FILES.openclaw;
   const entry = variant.transport === 'http'
     ? { transport: 'streamable-http', url: variant.url, headers: authHeader('${%s}', variant) }
     : genericEntry(variant, '${%s}');
-  jsonFile(target, file, (obj) => {
-    ((obj.mcp ??= {}).servers ??= {})[server.name] = entry;
-  });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'openclaw', server, entry);
 }
 
 function renderCodewhale(target, server, variant) {
-  const file = HOST_FILES.codewhale;
   const entry = variant.transport === 'http'
     ? { url: variant.url, bearer_token_env_var: variant.credentials[0] }
     : { command: variant.command, args: variant.args, env: envMap('${%s}', variant) };
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'codewhale', server, entry);
 }
 
 function renderSwival(target, server, variant) {
-  const file = HOST_FILES.swival;
   const entry = variant.transport === 'http' ? { url: variant.url } : { command: variant.command, args: variant.args };
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
-  return { file, serverName: server.name };
+  return mergeMcpEntry(target, 'swival', server, entry);
 }
 
 const RENDERERS = {
@@ -200,6 +189,8 @@ const RENDERERS = {
   'vscode-codex': renderCodex,
 };
 
+const AUTO_WRITE_HOSTS = Object.keys(MCP_HOSTS).filter((host) => MCP_HOSTS[host].autoWrite && RENDERERS[host]);
+
 function renderMcp(target, config) {
   const previous = readReceipt(target) || {};
   const receipt = {
@@ -208,10 +199,12 @@ function renderMcp(target, config) {
     noteHosts: [],
     credentialNames: [],
     tierC: [],
+    migrationHosts: [],
+    manualEntries: {},
     chainedBackup: Boolean(previous.chainedBackup),
   };
   const hosts = config.hosts && config.hosts.length ? config.hosts : SUPPORTED_HOSTS;
-  const tierA = hosts.filter((host) => HOST_TIER[host] === 'A' && RENDERERS[host]);
+  const tierA = hosts.filter((host) => AUTO_WRITE_HOSTS.includes(host));
   const credentialNames = new Set();
 
   for (const server of config.mcp_servers) {
@@ -225,21 +218,34 @@ function renderMcp(target, config) {
       if (CREDENTIAL_SAFETY[`${host}:${variant.transport}`] === 'manual_note_required') record(receipt.noteHosts, host);
       for (const name of variant.credentials) credentialNames.add(name);
     }
+    if (hosts.includes('antigravity')) {
+      const variant = assignVariants(server, ['antigravity']).antigravity;
+      if (variant) {
+        (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
+        for (const name of variant.credentials) credentialNames.add(name);
+      }
+    }
   }
   for (const host of hosts) {
-    if (HOST_TIER[host] === 'B') record(receipt.noteHosts, host);
-    if (HOST_TIER[host] === 'C') record(receipt.tierC, host);
+    const entry = MCP_HOSTS[host];
+    if (host === 'generic') { record(receipt.tierC, host); continue; }
+    if (!entry || AUTO_WRITE_HOSTS.includes(host)) continue;
+    record(receipt.noteHosts, host);
+    if (entry.file && !entry.file.startsWith('~') && fs.existsSync(path.join(target, entry.file))) {
+      record(receipt.migrationHosts, host);
+    }
   }
   receipt.credentialNames = [...credentialNames].sort();
   receipt.mergedEntries.sort((a, b) => `${a.file}:${a.serverName}`.localeCompare(`${b.file}:${b.serverName}`));
   receipt.noteHosts.sort();
   receipt.tierC.sort();
+  receipt.migrationHosts.sort();
   receipt.ownedFiles.sort();
   return receipt;
 }
 
 function fileFor(host) {
-  return HOST_FILES[host];
+  return MCP_HOSTS[host].file;
 }
 
 function mergeById(existing, additions) {
@@ -256,4 +262,4 @@ function recordOwned(receipt, file) {
   record(receipt.ownedFiles, file);
 }
 
-module.exports = { HOST_TIER, CREDENTIAL_SAFETY, mergeJson, appendTomlBlock, renderMcp, RENDERERS, fileFor };
+module.exports = { HOST_TIER, CREDENTIAL_SAFETY, mergeJson, appendTomlBlock, mergeMcpEntry, renderMcp, RENDERERS, fileFor };

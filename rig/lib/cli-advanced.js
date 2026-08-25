@@ -2,7 +2,7 @@
 'use strict';
 
 const fs = require('node:fs');
-const { inspectTarget } = require('./inspect');
+const { inspectTarget, hostReview } = require('./inspect');
 const { recommend } = require('./profile');
 const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
@@ -10,8 +10,10 @@ const { runChecks } = require('./checks');
 const { loadCatalog, validateReview } = require('./catalog');
 const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
 const { uninstall } = require('./lifecycle');
+const { verifyManualMcp } = require('./credentials');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall']);
+const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'host-review', 'select']);
+const GRADES = new Set(['minimal', 'mid', 'maximal']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -29,6 +31,30 @@ function readJson(file) {
 }
 
 function runAdvanced(subcommand, argv) {
+  if (subcommand === 'select') {
+    const menuPath = parseFlag(argv, '--menu');
+    const out = parseFlag(argv, '--out');
+    if (!menuPath || !fs.existsSync(menuPath) || !out) {
+      throw new Error('rig: select requires --menu and --out');
+    }
+    const menu = readJson(menuPath);
+    const allowed = new Set((menu.services || menu.menu || []).map((row) => row.service_id));
+    const services = {};
+    for (let i = 0; i < argv.length; i += 1) {
+      if (argv[i] !== '--service') continue;
+      const spec = argv[i + 1] || '';
+      const cut = spec.lastIndexOf('=');
+      if (cut < 1) throw new Error('rig: --service <id>=<grade> is required');
+      const id = spec.slice(0, cut);
+      const grade = spec.slice(cut + 1);
+      if (!allowed.has(id)) throw new Error(`select: unknown service "${id}"`);
+      if (!GRADES.has(grade)) throw new Error(`select: invalid grade "${grade}"`);
+      services[id] = grade;
+    }
+    writeOut(out, { schema_version: 1, services });
+    return;
+  }
+
   const target = parseFlag(argv, '--target');
   if (!target || !fs.existsSync(target)) {
     throw new Error('rig: --target <dir> is required and must exist');
@@ -95,13 +121,23 @@ function runAdvanced(subcommand, argv) {
 
   if (subcommand === 'inspect') {
     const host = parseFlag(argv, '--host');
-    const hosts = parseFlag(argv, '--hosts');
+    const hostsFlag = parseFlag(argv, '--hosts');
     const out = parseFlag(argv, '--out');
     if (!out) throw new Error('rig: --out is required for inspect');
+    const hosts = !hostsFlag || hostsFlag === 'auto' ? undefined : hostsFlag.split(',').filter(Boolean);
     writeOut(out, inspectTarget(target, {
-      host,
-      hosts: hosts ? hosts.split(',').filter(Boolean) : undefined,
+      host: host && host !== 'auto' ? host : undefined,
+      hosts,
     }));
+    return;
+  }
+
+  if (subcommand === 'host-review') {
+    const inspectionPath = parseFlag(argv, '--inspection');
+    const out = parseFlag(argv, '--out');
+    if (!inspectionPath || !fs.existsSync(inspectionPath)) throw new Error('rig: --inspection is required for host-review');
+    if (!out) throw new Error('rig: --out is required for host-review');
+    writeOut(out, hostReview(readJson(inspectionPath)));
     return;
   }
 
@@ -152,7 +188,18 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'check') {
     const scope = parseFlag(argv, '--scope') || 'repo';
     const service = parseFlag(argv, '--service');
+    const host = parseFlag(argv, '--host');
+    if (host) {
+      const verified = verifyManualMcp(target, host, process.env.HOME);
+      if (verified.status !== 0) {
+        process.stderr.write(`${verified.reason || 'manual MCP check failed'}\n`);
+        process.exit(verified.status || 1);
+      }
+      process.stdout.write(`Rig check passed: ${host} manual MCP verified\n`);
+      return;
+    }
     const result = runChecks(target, { scope, service });
+    if (result.stdout) process.stdout.write(result.stdout.endsWith('\n') ? result.stdout : `${result.stdout}\n`);
     if (result.status !== 0) {
       if (result.stderr) process.stderr.write(result.stderr);
       process.exit(result.status || 1);

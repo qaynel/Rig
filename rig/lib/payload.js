@@ -169,9 +169,25 @@ function journalWriter(target) {
     } else {
       const preimageDigest = before ? sha256(before) : null;
       if (before) {
-        const preimage = containedPath(target, `.rig/preimages/${preimageDigest}`);
+        const preimageRel = `.rig/preimages/${preimageDigest}`;
+        const preimage = containedPath(target, preimageRel);
         fs.mkdirSync(path.dirname(preimage), { recursive: true });
-        if (!fs.existsSync(preimage)) fs.writeFileSync(preimage, before, { mode: 0o600 });
+        if (!fs.existsSync(preimage)) {
+          fs.writeFileSync(preimage, before, { mode: 0o600 });
+          start();
+          const preimageRecord = {
+            seq: ++seq,
+            path: preimageRel,
+            ownership: 'create_owned',
+            operation: 'create_owned',
+            transaction_kind: 'install',
+            state: 'applied',
+            digest: preimageDigest,
+            desired_digest: preimageDigest,
+          };
+          append(preimageRecord);
+          latestByPath.set(preimageRel, preimageRecord);
+        }
       }
       record = {
         seq: ++seq,
