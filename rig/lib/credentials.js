@@ -15,14 +15,11 @@ const CAVEAT = {
   codewhale: 'Confirm on first wire whether the mcp_config_path overlay can replace DEEPSEEK_MCP_CONFIG.',
   // Tier B: documented project scope exists, but no value-free credential
   // syntax is documented; stay note-only until PD7 flips.
-  antigravity: 'The Antigravity CLI may ignore workspace-local .agents/mcp_config.json while issue #60 remains open; use the global file for this manual setup.',
+  antigravity: 'The Antigravity CLI may ignore workspace-local `.agents/mcp_config.json` while issue #60 remains open; use ~/.gemini/config/mcp_config.json for this manual setup.',
   pi: 'MCP is available via an installed pi extension (https://pi.dev/packages/pi-mcp-extension). Rig has no first-party MCP config file it can merge into and does not auto-write extension configuration.',
 };
-// AT-HOST-5: hosts whose MCP disposition is unsupported/manual keep any
-// pre-existing user-owned file byte-for-byte and get migration guidance
-// instead of silent deletion (RIG-103/RIG-104).
 const MIGRATION = {
-  pi: 'A pre-existing .omp/mcp.json was left untouched; Rig did not modify it.',
+  pi: 'pi supports MCP through the pi-mcp-extension. Rig has no mergeable first-party config file, so any existing .omp/mcp.json was left untouched.',
 };
 const LABELS = {
   claude: 'Claude',
@@ -55,8 +52,6 @@ function gitignoreEnv(target) {
   ensureLine(target, '.gitignore', '!.env.example');
 }
 
-// Each host block is a single `\n`-joined stanza starting with `Display:`; blocks
-// are `\n\n`-separated so a reader (and TP-C9) can slice one host at a time.
 function writeMcpSetup(target, receipt) {
   const blocks = [];
   for (const host of receipt.noteHosts || []) {
@@ -77,7 +72,7 @@ function writeMcpSetup(target, receipt) {
     }
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
     if (host === 'antigravity') lines.push('Verify after saving: .rig/bin/rig check --host antigravity');
-    if ((receipt.migrationHosts || []).includes(host)) {
+    if ((receipt.migrationHosts || []).includes(host) || host === 'pi') {
       lines.push(MIGRATION[host] || `A pre-existing config file for ${LABELS[host] || host} was left untouched; Rig did not modify it.`);
     }
     const block = lines.join('\n');
@@ -103,10 +98,16 @@ function writeCredentialOutputs(target, config, receipt) {
   pointReadme(target);
 }
 
+function readManualReceipt(target) {
+  const catalog = path.join(target, '.rig', 'catalog-receipt.json');
+  if (fs.existsSync(catalog)) return JSON.parse(fs.readFileSync(catalog, 'utf8'));
+  return readReceipt(target);
+}
+
 function verifyManualMcp(target, host, home = os.homedir()) {
   if (host !== 'antigravity') throw new Error(`rig: no manual MCP verification contract for host "${host}"`);
-  const expected = readReceipt(target)?.manualEntries?.antigravity;
-  const file = path.join(home, '.gemini', 'config', 'mcp_config.json');
+  const expected = readManualReceipt(target)?.manualEntries?.antigravity;
+  const file = path.join(home || os.homedir(), '.gemini', 'config', 'mcp_config.json');
   if (!fs.existsSync(file)) {
     return { status: 1, host, path: '~/.gemini/config/mcp_config.json', reason: 'global MCP config is missing' };
   }

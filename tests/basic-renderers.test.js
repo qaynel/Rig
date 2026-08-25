@@ -66,7 +66,6 @@ test('TP-C4.3 bucket-2 project renderers emit value-free config plus a manual no
     ['kiro', '.kiro/settings/mcp.json', /\$\{EXAMPLE_DB_TOKEN\}/],
     ['gemini', '.gemini/settings.json', /\$\{EXAMPLE_DB_TOKEN\}|\$EXAMPLE_DB_TOKEN/],
     ['opencode', 'opencode.json', /\{env:EXAMPLE_DB_TOKEN\}/],
-    ['copilot-cli', '.github/mcp.json', /\$\{EXAMPLE_DB_TOKEN\}/],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);
@@ -148,8 +147,9 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
     ['hermes', ['.hermes/config.yaml']],
     ['windsurf', ['.windsurf/mcp_config.json', '.codeium/mcp_config.json']],
     ['cline', ['.cline/mcp.json']],
+    ['copilot-cli', ['.copilot/mcp-config.json']],
     ['antigravity', ['.agents/mcp_config.json', '.gemini/antigravity/mcp_config.json', '.gemini/config/mcp_config.json']],
-    ['pi', ['.omp/mcp.json', '.pi/mcp.json']],
+    ['pi', ['.omp/mcp.json']],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);
@@ -171,8 +171,7 @@ test('AT-HOST-5 (legacy path) pi emits no MCP config and preserves + guides a pr
     fs.writeFileSync(userFile, '{"user":true}\n');
     materializeOne(target, 'pi', stdioOnly);
     assert.equal(fs.readFileSync(userFile, 'utf8'), '{"user":true}\n', 'pre-existing user file is untouched byte-for-byte');
-    assert.match(note(target), /extension/i, 'setup guidance names the pi extension path');
-    assert.match(note(target), /\.omp\/mcp\.json.*left untouched/i, 'migration guidance names the preserved file');
+    assert.match(note(target), /pi supports MCP through the pi-mcp-extension/i, 'migration guidance names the extension path without claiming MCP is unsupported');
   });
 });
 

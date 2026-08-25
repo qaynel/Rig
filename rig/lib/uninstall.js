@@ -65,4 +65,4 @@ function rm(target, rel) {
   if (fs.existsSync(p)) fs.rmSync(p, { force: true });
 }
 
-module.exports = { uninstall };
+module.exports = { uninstall, cleanupReceiptArtifacts };

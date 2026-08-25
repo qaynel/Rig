@@ -36,10 +36,22 @@ test('traceability checker runs from npm test', () => {
   assert.ok(fs.existsSync(checker), 'add the traceability checker before marking cards complete');
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   const script = pkg.scripts['test:code'];
-  const checkerAt = script.indexOf('scripts/check-ticket-traceability.js');
+  // Prefer an indirect wire through check-versions.js so package.json stays on
+  // the signed Gate 1 oracle snapshot (RIG-131 / RIG-134).
+  const versions = fs.readFileSync(path.join(root, 'scripts', 'check-versions.js'), 'utf8');
+  const wiredDirect = script.includes('scripts/check-ticket-traceability.js');
+  const wiredViaVersions = script.includes('scripts/check-versions.js')
+    && versions.includes('check-ticket-traceability.js');
+  assert.ok(wiredDirect || wiredViaVersions, 'wire the checker into npm test before the Node glob');
   const nodeTestsAt = script.search(/node --test tests\//);
-  assert.notEqual(checkerAt, -1, 'wire the checker into npm run test:code');
-  assert.ok(nodeTestsAt !== -1 && checkerAt < nodeTestsAt, 'the checker must run before the Node test glob');
+  assert.notEqual(nodeTestsAt, -1, 'npm test must still run the Node test glob');
+  if (wiredDirect) {
+    const checkerAt = script.indexOf('scripts/check-ticket-traceability.js');
+    assert.ok(checkerAt < nodeTestsAt, 'the checker must run before the Node test glob');
+  } else {
+    const versionsAt = script.indexOf('scripts/check-versions.js');
+    assert.ok(versionsAt < nodeTestsAt, 'check-versions (and thus the checker) must run before the Node test glob');
+  }
   const result = spawnSync(process.execPath, [checker], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);
 });

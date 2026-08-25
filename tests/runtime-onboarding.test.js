@@ -47,7 +47,8 @@ test('the staged sequence produces review selection plan and a green check', () 
     name: 'onboarding-fixture', private: true, scripts: { 'format:check': 'git diff --check' },
   }) + '\n');
   fs.writeFileSync(path.join(target, 'index.js'), 'module.exports = 1;\n');
-  spawnSync('git', ['init', '-q'], { cwd: target, encoding: 'utf8' });
+  const inited = spawnSync('git', ['init', '-q'], { cwd: target, encoding: 'utf8' });
+  assert.equal(inited.status, 0, inited.stderr);
   const installed = spawnSync('sh', [bootstrap, '--tier', '1', '--target', target, '--with-runtime'], {
     encoding: 'utf8',
   });

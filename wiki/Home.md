@@ -4,6 +4,7 @@ Everything this project knows about itself: what it is, why every part of it is
 shaped the way it is, and what is true right now.
 
 **Start here:** [status](status.md) if you are picking the work up cold ·
+[Tickets](Tickets.md) for the live board ·
 [the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·

@@ -3,7 +3,6 @@ const SUPPORTED_TRANSPORTS = {
   codex: ['stdio', 'http'],
   cursor: ['stdio', 'http'],
   copilot: ['stdio', 'http'],
-  'copilot-cli': ['stdio', 'http'],
   opencode: ['stdio', 'http'],
   pi: ['stdio', 'http'],
   gemini: ['stdio', 'http'],
@@ -13,9 +12,8 @@ const SUPPORTED_TRANSPORTS = {
   codewhale: ['stdio', 'http'],
   swival: ['stdio', 'http'],
   'vscode-codex': ['stdio', 'http'],
-  // RIG-105: Rig never writes Antigravity config, but stdio selection is
-  // retained so onboarding can render an exact manual global-file entry.
-  antigravity: ['stdio'],
+  // RIG-105: Rig never writes Antigravity config; transports retained for manual onboarding entries.
+  antigravity: ['stdio', 'http'],
 };
 
 function representable(host, variant, support = SUPPORTED_TRANSPORTS) {

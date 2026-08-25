@@ -8,28 +8,47 @@ const { MCP_HOSTS } = require('./mcp-hosts');
 
 const BASELINE_NETWORK_POLICY_PATH = path.join(__dirname, '..', 'catalog', 'baseline', 'network-policy.json');
 
-function isPlainObject(value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
+const HOST_TIER = Object.fromEntries(SUPPORTED_HOSTS.map((host) => [host, 'B']));
+Object.assign(HOST_TIER, {
+  claude: 'A',
+  codex: 'A',
+  cursor: 'A',
+  copilot: 'A',
+  opencode: 'A',
+  pi: 'A',
+  gemini: 'A',
+  kiro: 'A',
+  devin: 'A',
+  openclaw: 'A',
+  codewhale: 'A',
+  swival: 'A',
+  'vscode-codex': 'A',
+  generic: 'C',
+});
 
 function mergeJson(filePath, mutate) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   let obj = {};
   if (fs.existsSync(filePath)) {
-    let parsed;
+    const raw = fs.readFileSync(filePath, 'utf8');
     try {
-      parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      obj = JSON.parse(raw);
     } catch {
-      throw new Error(`rig: invalid JSON in ${filePath}; left unchanged`);
+      throw new Error(`invalid JSON in ${filePath}; left unchanged`);
     }
-    if (!isPlainObject(parsed)) {
-      throw new Error(`rig: ${filePath} root must be an object; left unchanged`);
-    }
-    obj = parsed;
   }
   mutate(obj);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(obj, null, 2) + '\n');
 }
+
+const CREDENTIAL_SAFETY = {};
+for (const host of Object.keys(HOST_TIER).filter((host) => HOST_TIER[host] === 'A')) {
+  CREDENTIAL_SAFETY[`${host}:stdio`] = 'manual_note_required';
+  CREDENTIAL_SAFETY[`${host}:http`] = 'manual_note_required';
+}
+CREDENTIAL_SAFETY['cursor:stdio'] = 'config_only_safe';
+CREDENTIAL_SAFETY['copilot:stdio'] = 'config_only_safe';
+CREDENTIAL_SAFETY['copilot:http'] = 'config_only_safe';
 
 function appendTomlBlock(filePath, header, body) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -44,30 +63,29 @@ const envMap = (fmt, variant) => Object.fromEntries(variant.credentials.map((nam
 const authHeader = (fmt, variant) => ({ Authorization: `Bearer ${ref(fmt, variant.credentials[0])}` });
 const jsonFile = (target, rel, mutate) => mergeJson(path.join(target, rel), mutate);
 
-// One merge writer for every JSON-shaped host (RIG-104): places `entry` at
-// the dotted `key` path from MCP_HOSTS (e.g. 'mcpServers', 'mcp', or
-// OpenClaw's nested 'mcp.servers'), preserving every unrelated key at every
-// level and every sibling server already under that key. Re-applying the
-// same entry is a byte-identical no-op.
-function objectAt(node, part) {
-  if (node[part] === undefined) node[part] = {};
-  if (!isPlainObject(node[part])) {
-    throw new Error(`rig: ${part} must be an object; left unchanged`);
-  }
-  return node[part];
-}
-
 function setAtPath(obj, dottedKey, name, entry) {
   const parts = dottedKey.split('.');
   let node = obj;
-  for (const part of parts.slice(0, -1)) node = objectAt(node, part);
-  objectAt(node, parts[parts.length - 1])[name] = entry;
+  for (const part of parts.slice(0, -1)) {
+    if (node[part] == null) node[part] = {};
+    else if (typeof node[part] !== 'object' || Array.isArray(node[part])) {
+      throw new Error(`invalid JSON path ${dottedKey}; left unchanged`);
+    }
+    node = node[part];
+  }
+  const last = parts[parts.length - 1];
+  if (node[last] == null) node[last] = {};
+  else if (typeof node[last] !== 'object' || Array.isArray(node[last])) {
+    throw new Error(`invalid JSON path ${dottedKey}; left unchanged`);
+  }
+  node[last][name] = entry;
 }
 
 function mergeMcpEntry(target, host, server, entry) {
-  const file = MCP_HOSTS[host].file;
-  jsonFile(target, file, (obj) => setAtPath(obj, MCP_HOSTS[host].key, server.name, entry));
-  return { file, serverName: server.name };
+  const spec = MCP_HOSTS[host];
+  if (!spec || !spec.file) throw new Error(`rig: no MCP write contract for host "${host}"`);
+  jsonFile(target, spec.file, (obj) => setAtPath(obj, spec.key, server.name, entry));
+  return { file: spec.file, serverName: server.name };
 }
 
 function genericEntry(variant, tokenFmt = '${%s}') {
@@ -112,6 +130,10 @@ function renderOpencode(target, server, variant) {
     ? { type: 'remote', url: variant.url, headers: authHeader('{env:%s}', variant) }
     : { type: 'local', command: variant.command, args: variant.args, environment: envMap('{env:%s}', variant) };
   return mergeMcpEntry(target, 'opencode', server, entry);
+}
+
+function renderPi(target, server, variant) {
+  return mergeMcpEntry(target, 'pi', server, genericEntry(variant, '${%s}'));
 }
 
 function renderGemini(target, server, variant) {
@@ -165,6 +187,7 @@ const RENDERERS = {
   copilot: renderCopilot,
   'copilot-cli': renderCopilotCli,
   opencode: renderOpencode,
+  pi: renderPi,
   gemini: renderGemini,
   kiro: renderKiro,
   devin: renderDevin,
@@ -174,21 +197,6 @@ const RENDERERS = {
   'vscode-codex': renderCodex,
 };
 
-// The hosts that actually receive a written repo file: the governing
-// disposition says so (MCP_HOSTS[host].autoWrite) *and* a renderer exists
-// for the shape. A host can be disposition-eligible without implementation
-// coverage (no renderer yet) — that host still gets an advisory note, never
-// a silent skip.
-const AUTO_WRITE_HOSTS = Object.keys(MCP_HOSTS).filter((host) => MCP_HOSTS[host].autoWrite && RENDERERS[host]);
-
-const CREDENTIAL_SAFETY = {};
-for (const host of AUTO_WRITE_HOSTS) {
-  CREDENTIAL_SAFETY[`${host}:stdio`] = 'manual_note_required';
-  CREDENTIAL_SAFETY[`${host}:http`] = 'manual_note_required';
-}
-CREDENTIAL_SAFETY['cursor:stdio'] = 'config_only_safe';
-CREDENTIAL_SAFETY['copilot:stdio'] = 'config_only_safe';
-CREDENTIAL_SAFETY['copilot:http'] = 'config_only_safe';
 
 function baselineNetworkPolicy() {
   return JSON.parse(fs.readFileSync(BASELINE_NETWORK_POLICY_PATH, 'utf8'));
@@ -219,6 +227,8 @@ function networkPolicyDecision(target, server, variant) {
   });
   return { serverName: server.name, url: variant.url, decision: decision.decision, rule: decision.rule };
 }
+
+const AUTO_WRITE_HOSTS = Object.keys(MCP_HOSTS).filter((host) => MCP_HOSTS[host].autoWrite && RENDERERS[host]);
 
 function renderMcp(target, config) {
   const previous = readReceipt(target) || {};
@@ -252,18 +262,17 @@ function renderMcp(target, config) {
     }
     if (hosts.includes('antigravity')) {
       const variant = assignVariants(server, ['antigravity']).antigravity;
-      (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
-      for (const name of variant.credentials) credentialNames.add(name);
+      if (variant) {
+        (receipt.manualEntries.antigravity ??= {})[server.name] = genericEntry(variant, '${%s}');
+        for (const name of variant.credentials) credentialNames.add(name);
+      }
     }
   }
   for (const host of hosts) {
     const entry = MCP_HOSTS[host];
-    if (!entry || AUTO_WRITE_HOSTS.includes(host)) continue;
     if (host === 'generic') { record(receipt.tierC, host); continue; }
+    if (!entry || AUTO_WRITE_HOSTS.includes(host)) continue;
     record(receipt.noteHosts, host);
-    // Preserve + guide: only meaningful for a repo-relative path (a
-    // user-global path like `~/.deepseek/...` lives outside this repo and is
-    // untouched by construction, not by this check).
     if (entry.file && !entry.file.startsWith('~') && fs.existsSync(path.join(target, entry.file))) {
       record(receipt.migrationHosts, host);
     }
@@ -295,4 +304,4 @@ function recordOwned(receipt, file) {
   record(receipt.ownedFiles, file);
 }
 
-module.exports = { MCP_HOSTS, CREDENTIAL_SAFETY, mergeJson, appendTomlBlock, mergeMcpEntry, renderMcp, RENDERERS, fileFor };
+module.exports = { HOST_TIER, CREDENTIAL_SAFETY, mergeJson, appendTomlBlock, mergeMcpEntry, renderMcp, RENDERERS, fileFor };

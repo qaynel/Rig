@@ -507,6 +507,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       installed,
       history_scan: historyScan || null,
       ci: { status: ci.status, provider: ci.provider || null },
+      manualEntries: validated.manualEntries || {},
     };
     const staged = stagedMcpReceipt(validated);
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
