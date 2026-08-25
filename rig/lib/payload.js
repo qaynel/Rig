@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const { listVendoredSkills } = require('./skills');
 const { discoverHosts, REGISTRY } = require('./host-capabilities');
 const { containedPath } = require('./path-safety');
+const { parseJournalRecords } = require('./lifecycle');
 
 const ROOT = path.join(__dirname, '..', '..');
 // Antigravity co-reads `.agents/skills` natively and also gets `.rig/skills` as
@@ -119,10 +120,7 @@ function sha256(contents) {
 function journalWriter(target) {
   const manifest = containedPath(target, MANIFEST_REL);
   const records = fs.existsSync(manifest)
-    ? fs.readFileSync(manifest, 'utf8').split('\n').flatMap((line) => {
-      if (!line.trim()) return [];
-      try { return [JSON.parse(line)]; } catch { return []; }
-    })
+    ? parseJournalRecords(fs.readFileSync(manifest, 'utf8'))
     : [];
   let seq = records.reduce((max, record) => Math.max(max, record.seq || 0), 0);
   const latestByPath = new Map();
@@ -170,9 +168,7 @@ function journalWriter(target) {
     } else {
       const preimageDigest = before ? sha256(before) : null;
       if (before) {
-        const preimage = containedPath(target, `.rig/preimages/${preimageDigest}`);
-        fs.mkdirSync(path.dirname(preimage), { recursive: true });
-        if (!fs.existsSync(preimage)) fs.writeFileSync(preimage, before, { mode: 0o600 });
+        write(target, `.rig/preimages/${preimageDigest}`, before, 0o600);
       }
       record = {
         seq: ++seq,

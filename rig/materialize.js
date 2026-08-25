@@ -35,8 +35,11 @@ function main() {
   }
   if (args.uninstall) {
     const result = uninstall(args.target) || { best_effort: [] };
-    if (result.best_effort.length) {
-      console.error(`rig: uninstall best effort; retained: ${(result.best_effort_details || result.best_effort).join(', ')}`);
+    if ((result.best_effort || []).length) {
+      const retained = (result.best_effort_details || []).length
+        ? result.best_effort_details
+        : result.best_effort;
+      console.error(`rig: uninstall best effort; retained: ${retained.join(', ')}`);
       process.exitCode = 1;
     }
     return;

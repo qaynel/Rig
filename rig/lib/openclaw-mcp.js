@@ -204,18 +204,21 @@ function registerOpenClawMcp(target, opts = {}) {
 }
 
 function removeOpenClawMcp(target, entry) {
+  if (!have('openclaw')) return { removed: false, tooling_missing: true };
   let servers;
   try {
     servers = openClawServers();
   } catch {
-    return { removed: false };
+    // Tool is present but show/unset failed — treat as unregister failure so
+    // uninstall stops before deleting files a live global entry may still need.
+    return { removed: false, tooling_missing: false };
   }
-  if (!hasExpectedServer(servers, entry)) return { removed: false };
+  if (!hasExpectedServer(servers, entry)) return { removed: false, tooling_missing: false };
   const unset = spawnSync('openclaw', ['mcp', 'unset', entry.server_key || entry.install_id], {
     encoding: 'utf8',
     shell: false,
   });
-  if (unset.status !== 0) return { removed: false };
+  if (unset.status !== 0) return { removed: false, tooling_missing: false };
   return { removed: true };
 }
 

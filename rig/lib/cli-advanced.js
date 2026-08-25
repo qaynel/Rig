@@ -9,7 +9,7 @@ const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
 const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
-const { uninstall } = require('./lifecycle');
+const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
 

@@ -23,13 +23,20 @@ regressions cover resume, uninstall, coverage application, remediation,
 payload, and CI mutations.
 
 Removal walks the last record for each sequence in reverse. It deletes only
-unchanged Rig-owned output, removes recorded managed lines/blocks, preserves
-later user edits as named best-effort cases, ignores remediation transactions,
-restores a chained pre-commit hook, removes only install-ID-attributed global
-entries, and consumes both current JSONL and historical JSON manifests. The
-shipping `uninstall` command writes removal evidence. Reports and user-owned
-policy files survive ordinary removal; `--purge` lists reports/run history
-before deleting those usage artifacts and still preserves the user policy.
+unchanged Rig-owned output, removes recorded managed lines/blocks, deletes a
+file that becomes empty after a managed strip, removes empty Rig-created
+parent directories, preserves later user edits as named best-effort cases,
+ignores remediation transactions, restores a chained pre-commit hook
+(including across linked worktrees), removes only install-ID-attributed
+global entries, and consumes both current JSONL and historical JSON
+manifests. Public uninstall uses this journal; a receipt shim only covers
+legacy Basic MCP leftovers. The journal is retained while best-effort files
+remain and is deleted last in both ordinary and purge modes. Preimage
+backups, install-id, and shared hook writes are journaled so they reverse.
+The shipping `uninstall` command writes removal evidence. Reports and
+user-owned policy files survive ordinary removal; `--purge` lists
+reports/run history before deleting those usage artifacts and still
+preserves the user policy.
 
 ## Why
 
@@ -47,6 +54,5 @@ beyond the selected target.
 
 ## Remaining work
 
-The shipping CLI, purge presentation, chained-hook restoration, JSONL removal,
-and attributed global cleanup all have integration coverage. Fresh independent
+A real install→uninstall roundtrip now gates clean removal. Fresh independent
 review remains the release check on the combined lifecycle.
