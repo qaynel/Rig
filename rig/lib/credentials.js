@@ -16,12 +16,13 @@ const CAVEAT = {
   // Tier B: documented project scope exists, but no value-free credential
   // syntax is documented; stay note-only until PD7 flips.
   antigravity: 'The Antigravity CLI may ignore workspace-local .agents/mcp_config.json while issue #60 remains open; use the global file for this manual setup.',
+  pi: 'MCP is available via an installed pi extension (https://pi.dev/packages/pi-mcp-extension). Rig has no first-party MCP config file it can merge into and does not auto-write extension configuration.',
 };
 // AT-HOST-5: hosts whose MCP disposition is unsupported/manual keep any
 // pre-existing user-owned file byte-for-byte and get migration guidance
 // instead of silent deletion (RIG-103/RIG-104).
 const MIGRATION = {
-  pi: 'pi does not support MCP; the existing .omp/mcp.json was left untouched. Migrate any entries you rely on to a host with MCP support.',
+  pi: 'A pre-existing .omp/mcp.json was left untouched; Rig did not modify it.',
 };
 const LABELS = {
   claude: 'Claude',
@@ -76,7 +77,9 @@ function writeMcpSetup(target, receipt) {
     }
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
     if (host === 'antigravity') lines.push('Verify after saving: .rig/bin/rig check --host antigravity');
-    if ((receipt.migrationHosts || []).includes(host)) lines.push(MIGRATION[host] || `${LABELS[host] || host} does not support MCP; any pre-existing config file was left untouched.`);
+    if ((receipt.migrationHosts || []).includes(host)) {
+      lines.push(MIGRATION[host] || `A pre-existing config file for ${LABELS[host] || host} was left untouched; Rig did not modify it.`);
+    }
     const block = lines.join('\n');
     if (!blocks.includes(block)) blocks.push(block);
   }
