@@ -9,7 +9,7 @@ const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview } = require('./catalog');
 const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
-const { uninstall } = require('./lifecycle');
+const { uninstall } = require('./uninstall');
 
 const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall']);
 

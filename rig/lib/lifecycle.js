@@ -8,16 +8,28 @@ const { removeGlobalConfig } = require('./global-writes');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
+const PRUNE_TOP = new Set(['.rig', '.claude', '.agents', '.github']);
+
+function parseJournalRecords(text) {
+  const lines = String(text).split('\n');
+  const records = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    try {
+      records.push(JSON.parse(line));
+    } catch {
+      const later = lines.slice(i + 1).some((next) => next.trim());
+      if (later) throw new Error(`manifest record is not valid JSON (line ${i + 1})`);
+    }
+  }
+  return records;
+}
 
 function readManifest(target) {
   const file = containedPath(target, MANIFEST_REL);
   if (fs.existsSync(file)) {
-    const records = [];
-    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-      if (!line.trim()) continue;
-      try { records.push(JSON.parse(line)); } catch { /* damaged final line */ }
-    }
-    return { format: 'jsonl', records };
+    return { format: 'jsonl', records: parseJournalRecords(fs.readFileSync(file, 'utf8')) };
   }
   const legacy = containedPath(target, LEGACY_MANIFEST_REL);
   if (!fs.existsSync(legacy)) return { format: 'jsonl', records: [] };
@@ -124,7 +136,47 @@ function resolveRecordPath(target, rel) {
     const hooksDir = gitPath(target, 'hooks');
     if (hooksDir) return path.join(hooksDir, path.basename(rel));
   }
+  if (rel === '.rig/install-id') {
+    const abs = gitPath(target, path.join('rig', 'install-id'));
+    if (abs) return abs;
+  }
   return containedPath(target, rel);
+}
+
+function pruneEmptyParents(target, rel) {
+  if (typeof rel !== 'string') return;
+  const top = rel.split(/[/\\]/)[0];
+  if (!PRUNE_TOP.has(top)) return;
+  let abs;
+  try {
+    abs = containedPath(target, rel);
+  } catch {
+    return;
+  }
+  const root = fs.realpathSync(target);
+  let dir = path.dirname(abs);
+  while (dir !== root && dir.startsWith(`${root}${path.sep}`)) {
+    const relDir = path.relative(root, dir);
+    if (!PRUNE_TOP.has(relDir.split(path.sep)[0])) break;
+    if (!fs.existsSync(dir)) {
+      dir = path.dirname(dir);
+      continue;
+    }
+    let entries;
+    try { entries = fs.readdirSync(dir); } catch { break; }
+    if (entries.length) break;
+    fs.rmdirSync(dir);
+    dir = path.dirname(dir);
+  }
+}
+
+function dropEmptyOrWrite(abs, stripped) {
+  if (!stripped.trim()) {
+    fs.rmSync(abs, { force: true });
+    return 'deleted';
+  }
+  fs.writeFileSync(abs, stripped);
+  return 'rewritten';
 }
 
 function uninstall(target, opts = {}) {
@@ -134,17 +186,37 @@ function uninstall(target, opts = {}) {
     .sort((a, b) => b.seq - a.seq);
   const bestEffort = [];
   const removed = [];
+  const deletedRels = [];
   const globalLedger = containedPath(target, '.rig/global-writes.json');
   if (fs.existsSync(globalLedger)) {
-    const ledger = JSON.parse(fs.readFileSync(globalLedger, 'utf8'));
-    for (const entry of ledger.entries || []) {
-      if (!entry || typeof entry.path !== 'string' || typeof entry.install_id !== 'string') {
-        bestEffort.push('.rig/global-writes.json');
-        continue;
+    let ledger;
+    try {
+      ledger = JSON.parse(fs.readFileSync(globalLedger, 'utf8'));
+    } catch {
+      bestEffort.push('.rig/global-writes.json');
+      ledger = null;
+    }
+    if (ledger) {
+      const retainedEntries = [];
+      for (const entry of ledger.entries || []) {
+        if (!entry || typeof entry.path !== 'string' || typeof entry.install_id !== 'string') {
+          bestEffort.push('.rig/global-writes.json');
+          retainedEntries.push(entry);
+          continue;
+        }
+        const result = removeGlobalConfig(entry.path, entry.install_id);
+        if (result.removed) removed.push(entry.path);
+        else {
+          bestEffort.push(entry.path);
+          retainedEntries.push(entry);
+        }
       }
-      const result = removeGlobalConfig(entry.path, entry.install_id);
-      if (result.removed) removed.push(entry.path);
-      else bestEffort.push(entry.path);
+      if (retainedEntries.length === 0 && (ledger.entries || []).length > 0) {
+        fs.rmSync(globalLedger, { force: true });
+        deletedRels.push('.rig/global-writes.json');
+      } else if (retainedEntries.length !== (ledger.entries || []).length) {
+        fs.writeFileSync(globalLedger, `${JSON.stringify({ ...ledger, entries: retainedEntries }, null, 2)}\n`);
+      }
     }
   }
   for (const record of records) {
@@ -166,13 +238,13 @@ function uninstall(target, opts = {}) {
     if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
       const stripped = body.split('\n').filter((line) => line !== record.managed_line).join('\n');
-      fs.writeFileSync(abs, stripped);
+      if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
       const stripped = body.replace(/<!-- rig:[^\n]*start -->\n[\s\S]*?<!-- rig:[^\n]*end -->\n?/g, '');
       if (stripped === body) bestEffort.push(record.path);
-      fs.writeFileSync(abs, stripped);
+      else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       if (stripped !== body) removed.push(record.path);
     } else {
       const expected = record.digest || record.desired_digest || null;
@@ -182,8 +254,10 @@ function uninstall(target, opts = {}) {
       }
       fs.rmSync(abs, { recursive: true, force: true });
       removed.push(record.path);
+      deletedRels.push(record.path);
     }
   }
+  for (const rel of deletedRels) pruneEmptyParents(target, rel);
   const evidence = {
     schema_version: 1,
     kind: 'uninstall',
@@ -199,13 +273,21 @@ function uninstall(target, opts = {}) {
     purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
     for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
-  } else {
+  }
+  if (bestEffort.length === 0) {
     const mfile = containedPath(target, MANIFEST_REL);
     if (fs.existsSync(mfile)) fs.rmSync(mfile, { force: true });
     const legacy = containedPath(target, LEGACY_MANIFEST_REL);
     if (fs.existsSync(legacy)) fs.rmSync(legacy, { force: true });
+    pruneEmptyParents(target, MANIFEST_REL);
+    pruneEmptyParents(target, LEGACY_MANIFEST_REL);
   }
-  return { status: 'removed', removed, best_effort: bestEffort, purge_list: purgeList };
+  return {
+    status: bestEffort.length ? 'best_effort' : 'removed',
+    removed,
+    best_effort: bestEffort,
+    purge_list: purgeList,
+  };
 }
 
 function verifyRemoval(target, evidence) {
@@ -226,4 +308,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { readManifest, resumeInstall, uninstall, verifyRemoval };
+module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval };

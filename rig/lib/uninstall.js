@@ -1,8 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { RECEIPT_PATH, readReceipt } = require('./receipt');
+const { uninstall: uninstallJournal } = require('./lifecycle');
+const { gitPath } = require('./path-safety');
 
-function uninstall(target) {
+function uninstall(target, opts = {}) {
+  const result = uninstallJournal(target, opts);
+  cleanupReceiptArtifacts(target);
+  return result;
+}
+
+function cleanupReceiptArtifacts(target) {
   const receipt = readReceipt(target) || { ownedFiles: [], mergedEntries: [] };
   for (const file of receipt.ownedFiles || []) rm(target, file);
   for (const entry of receipt.mergedEntries || []) unmerge(target, entry.file, entry.serverName);
@@ -12,8 +20,9 @@ function uninstall(target) {
   rm(target, '.rig/hooks/secret-guard.sh');
   rm(target, RECEIPT_PATH);
 
-  const hook = path.join(target, '.git', 'hooks', 'pre-commit');
-  const chained = path.join(target, '.git', 'hooks', 'pre-commit.rig-chained');
+  const hooksDir = gitPath(target, 'hooks') || path.join(target, '.git', 'hooks');
+  const hook = path.join(hooksDir, 'pre-commit');
+  const chained = path.join(hooksDir, 'pre-commit.rig-chained');
   const hasRigShim = fs.existsSync(hook) && fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim');
   if (fs.existsSync(chained) && (!fs.existsSync(hook) || hasRigShim)) fs.renameSync(chained, hook);
   else if (hasRigShim) fs.rmSync(hook, { force: true });

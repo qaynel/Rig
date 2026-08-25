@@ -8,7 +8,7 @@ named-tag `5.0.0` distribution.
 
 The protected oracle, secret scan, rule-copy check, and version check pass on
 the current bytes. `npm test` is green end to end: the root suite is
-**380/380** and the pi-extension suite is **15/15**. A prior read of this page
+**387/387** and the pi-extension suite is **15/15**. A prior read of this page
 claimed `AT-BASE-3` and `AT-SECRET-1` were failing against the frozen business
 text and required an owner-authorized Gate 1 re-signing ceremony; re-running
 both on the current bytes shows they pass, so that re-signing ceremony is not
@@ -18,7 +18,11 @@ missing `.venv` setup in that environment, not a suite failure.
 The leftover production holes from the last pass are closed: apply writes a CI
 file only when that path is in the signed plan and still compare-and-swaps it;
 uninstall on a linked worktree no longer crashes, and install still places the
-secret-guard hook in the shared hooks directory. The copy check fails closed
+secret-guard hook in the shared hooks directory. Public uninstall now reverses
+a real install through the journal: user-edited files keep the ledger for
+retry, purge deletes the ledger only after a clean removal, empty instruction
+files and empty Rig directories do not remain, and a damaged middle ledger
+line is refused before any deletion. The copy check fails closed
 on a sync-map entry that is a symlink out of the repository.
 
 ## Production review findings
@@ -68,7 +72,9 @@ oracle's 55-skill reading is unaffected and no re-sign was required
   versions, the root Node suite, and pi-extension tests.
 - `install.sh` downloads a named tag to disk and executes only the extracted
   local bootstrap with its explicit active-delivery runtime gate.
-- `.rig/install-manifest.jsonl` is the single lifecycle authority.
+- `.rig/install-manifest.jsonl` is the single lifecycle authority. Public
+  uninstall uses it; the journal is kept while removal is best-effort and
+  deleted last in both ordinary and purge modes.
 - Policy activation and recovery verify external SSHSIG receipts under separate
   namespaces; caller-set verification booleans are not accepted by shipping
   commands.

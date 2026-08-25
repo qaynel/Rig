@@ -34,7 +34,11 @@ function main() {
     throw new Error('rig: --target <dir> is required and must exist');
   }
   if (args.uninstall) {
-    uninstall(args.target);
+    const result = uninstall(args.target) || { best_effort: [] };
+    if ((result.best_effort || []).length) {
+      console.error(`rig: uninstall best effort; retained: ${result.best_effort.join(', ')}`);
+      process.exitCode = 1;
+    }
     return;
   }
   if (!args.manifest) throw new Error('rig: --manifest <config.json> is required');

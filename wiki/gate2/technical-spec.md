@@ -1274,7 +1274,9 @@ eventually infer wrong.
 one JSON object per line, covering every mutation Rig makes — inside the
 repository or user-global. Append-only and line-delimited so a crash
 mid-write truncates only the final line, which parses as damaged and is
-discarded. Each record carries a monotonic `seq`, the absolute `path`, the
+discarded. A malformed **non-final** line is not treated as crash damage:
+uninstall and resume refuse before deleting or reconciling anything, and
+name the bad record. Each record carries a monotonic `seq`, the absolute `path`, the
 `ownership` class from §7.1, the `operation` (`create_owned`,
 `replace_owned`, `append_managed`, `merge_namespaced`,
 `global_merge_namespaced`, `global_append`, `remediate_user_content`), the
@@ -1329,11 +1331,20 @@ preimage is recorded `rolled_back`, and any third state blocks by path.
 
 **Removal walks the manifest in reverse.** Install writes a target before any
 reference to it; uninstall walks descending `seq` so a reference is always
-removed before its target. Files Rig exclusively owns are deleted. Files Rig
-only added to have their managed block removed and nothing else, and chained
-hooks are restored per §7.1. User-global entries are removed by `install_id`
-per §7.4. Uninstall then reports exactly what it removed. There is no second
-teardown path for a partial install.
+removed before its target. The public uninstall command (`--uninstall` and
+the `uninstall` subcommand) uses this journal as the only removal authority;
+receipt-based cleanup is a compatibility shim for Basic MCP artifacts that
+predate the journal, not a second set of semantics. Files Rig exclusively
+owns are deleted. Files Rig only added to have their managed line or block
+removed and nothing else; if that strip leaves a file Rig created empty, the
+file is deleted, and empty Rig-created parent directories are removed.
+Chained hooks are restored per §7.1, including when the hooks directory
+lives outside a linked worktree. User-global entries are removed by
+`install_id` per §7.4. The journal itself is kept while any local removal is
+best-effort, so a later retry still has a record; both ordinary uninstall
+and `--purge` delete the journal only after a clean local removal. Uninstall
+then reports exactly what it removed. There is no second teardown path for a
+partial install.
 
 Entries whose `transaction_kind` is `remediation` are never uninstall targets:
 `committed_user_change` is a user-approved working-tree edit and `rolled_back`
