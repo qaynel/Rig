@@ -34,60 +34,66 @@ function run({ board, tickets }) {
 
 test('traceability checker runs from npm test', () => {
   assert.ok(fs.existsSync(checker), 'add the traceability checker before marking cards complete');
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const script = pkg.scripts['test:code'];
+  const checkerAt = script.indexOf('scripts/check-ticket-traceability.js');
+  const nodeTestsAt = script.search(/node --test tests\//);
+  assert.notEqual(checkerAt, -1, 'wire the checker into npm run test:code');
+  assert.ok(nodeTestsAt !== -1 && checkerAt < nodeTestsAt, 'the checker must run before the Node test glob');
   const result = spawnSync(process.execPath, [checker], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
 test('a completed card without an evidence reference fails', () => {
   if (!fs.existsSync(checker)) return;
-  return withFixture(({ tickets, ...fixture }) => {
-  fs.writeFileSync(path.join(tickets, 'RIG-1.md'), '## Acceptance\n\n- behavior works\n');
-  const result = run(fixture);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /RIG-1.*evidence|evidence.*RIG-1/i);
+  return withFixture((fixture) => {
+    fs.writeFileSync(path.join(fixture.tickets, 'RIG-1.md'), '## Acceptance\n\n- behavior works\n');
+    const result = run(fixture);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr + result.stdout, /RIG-1.*evidence|evidence.*RIG-1/i);
   });
 });
 
 test('a missing file or missing named test fails', () => {
   if (!fs.existsSync(checker)) return;
-  return withFixture(({ tickets, ...fixture }) => {
-  fs.writeFileSync(path.join(tickets, 'RIG-1.md'), [
-    '## Acceptance',
-    '',
-    '- missing file → tests/missing.test.js::test exists',
-    '- missing title → tests/evidence.test.js::renamed test',
-    '',
-  ].join('\n'));
-  const result = run(fixture);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /missing\.test\.js/);
-  assert.match(result.stderr + result.stdout, /renamed test/);
+  return withFixture((fixture) => {
+    fs.writeFileSync(path.join(fixture.tickets, 'RIG-1.md'), [
+      '## Acceptance',
+      '',
+      '- missing file → tests/missing.test.js::test exists',
+      '- missing title → tests/evidence.test.js::renamed test',
+      '',
+    ].join('\n'));
+    const result = run(fixture);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr + result.stdout, /missing\.test\.js/);
+    assert.match(result.stderr + result.stdout, /renamed test/);
   });
 });
 
 test('the checker rejects a stale test title', () => {
   if (!fs.existsSync(checker)) return;
-  return withFixture(({ tickets, ...fixture }) => {
-  fs.writeFileSync(path.join(tickets, 'RIG-1.md'), '## Acceptance\n\n- behavior → tests/evidence.test.js::old title\n');
-  const result = run(fixture);
-  assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /old title/);
+  return withFixture((fixture) => {
+    fs.writeFileSync(path.join(fixture.tickets, 'RIG-1.md'), '## Acceptance\n\n- behavior → tests/evidence.test.js::old title\n');
+    const result = run(fixture);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr + result.stdout, /old title/);
   });
 });
 
 test('manual evidence is counted and reported', () => {
   if (!fs.existsSync(checker)) return;
-  return withFixture(({ tickets, ...fixture }) => {
-  fs.writeFileSync(path.join(tickets, 'RIG-1.md'), [
-    '## Acceptance',
-    '',
-    '- behavior → tests/evidence.test.js::evidence exists',
-    '- hardware boundary → manual: requires a real external device',
-    '',
-  ].join('\n'));
-  const result = run(fixture);
-  assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /manual evidence:\s*1/i);
+  return withFixture((fixture) => {
+    fs.writeFileSync(path.join(fixture.tickets, 'RIG-1.md'), [
+      '## Acceptance',
+      '',
+      '- behavior → tests/evidence.test.js::evidence exists',
+      '- hardware boundary → manual: requires a real external device',
+      '',
+    ].join('\n'));
+    const result = run(fixture);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /manual evidence:\s*1/i);
   });
 });
 

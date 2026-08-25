@@ -25,7 +25,10 @@ The withdrawn verified/unverified tier is absent from registry state. Each host
 has separate `instruction`, `native_skill`, `shell_hook`, `web_hook`,
 `mcp_hook`, and `mcp_config` contracts that name its vendor path, event, input
 schema, matcher, denial/exit behavior, namespace, merge boundary, and
-first/repeat apply behavior. Git and CI remain separate deterministic
+first/repeat apply behavior. Pi MCP is not a vendor refusal: the host exposes
+MCP through an installed extension, and Rig does not auto-write that
+configuration because there is no first-party file it can safely merge. Any
+pre-existing legacy file is left unchanged. Git and CI remain separate deterministic
 surfaces. Unsupported axes are explicit no-emit contracts rather than inferred
 gaps. Inspection discovers all marker-present hosts by default and records the
 marker provenance; an explicit host remains a compatibility override.
@@ -48,11 +51,15 @@ subagent-scoped hook event, a subagent hook that can only gate/observe rather
 than inject, or no hook mechanism at all — see host-coverage-spec §3.1a and
 [the disposition trace](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md).
 
-MCP disposition is unified (RIG-103/RIG-104, 2026-08-24): `rig/lib/mcp-hosts.js`
-derives one `{ disposition, autoWrite, file, key }` table from
-`host-capabilities.js`'s researched `REGISTRY`, and both the legacy Basic
-`renderers.js` path and the catalogue descriptor path read it. The two paths'
-prior divergences are resolved: `pi` no longer emits `.omp/mcp.json` (a
+MCP disposition is unified (RIG-103/RIG-104, 2026-08-24; descriptor parity
+RIG-128/134.1, 2026-08-25): `rig/lib/mcp-hosts.js` derives one
+`{ disposition, autoWrite, file, key, descriptor }` table from
+`host-capabilities.js`'s researched `REGISTRY`. The writer (`renderers.js`)
+and the shipped host-contract (`contractFor`) both read that table, so
+Antigravity advertises the manual global file, CodeWhale advertises the repo
+redirect the writer uses, and pi emits an explicit unsupported contract
+without touching a user-owned `.omp/mcp.json`. The two paths' prior
+divergences are resolved: `pi` no longer auto-writes `.omp/mcp.json` (a
 pre-existing user file is preserved with migration guidance, AT-HOST-5, now
 covered end-to-end and not only via the catalogue path's `direct-require`
 test); OpenClaw's registry metadata was corrected to the shipped, tested shape
@@ -61,8 +68,10 @@ around; `codewhale`'s repo-write override (`DEEPSEEK_MCP_CONFIG` redirect) is
 now an explicit, documented exception to its raw `user_global` scope pending
 RIG-110's resolution of the underlying project-vs-global conflict. A single
 `mergeMcpEntry` merge writer places every JSON-shaped host's entry at its
-governing key and is idempotent + preserves unrelated entries for every shape,
-proven by `tests/basic-mcp-merge.test.js`. Network-capable (http-transport)
+governing key, is idempotent + preserves unrelated entries for every valid
+shape (`tests/basic-mcp-merge.test.js`), and fail-closes on invalid JSON,
+JSON5, or a primitive in the dotted path so user bytes stay unchanged
+(`tests/repo-mcp-write-safety.test.js`). Network-capable (http-transport)
 MCP entries are evaluated through the same `evaluateAction` engine and the
 same active policy as shell/web, recorded on the install receipt — MCP is not
 an enforcement bypass. See

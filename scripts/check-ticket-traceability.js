@@ -1,155 +1,201 @@
 #!/usr/bin/env node
+// Completed-card traceability guard (RIG-131). A card in Done or Ready for
+// Commit is evidence only when each ## Acceptance bullet names a present test
+// (`→ tests/<file>.test.js::<exact title>`) or an explicit `→ manual: <reason>`.
+// Missing, invented, or renamed titles fail the gate. Manual evidence is
+// counted on every run so it cannot become a silent escape hatch.
 'use strict';
 
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('fs');
+const path = require('path');
+
+const repoRoot = path.join(__dirname, '..');
+
+function arg(flag, fallback) {
+  const index = process.argv.indexOf(flag);
+  if (index !== -1 && process.argv[index + 1]) return process.argv[index + 1];
+  return fallback;
+}
+
+const boardPath = path.resolve(arg('--board', path.join(repoRoot, 'wiki/Tickets.md')));
+const ticketsDir = path.resolve(arg('--tickets', path.join(repoRoot, 'wiki/tickets')));
 
 const COMPLETED = new Set(['Done', 'Ready for Commit']);
-const EVIDENCE = /→\s*`?(tests\/\S+\.test\.js)::([^`\n]+?)`?\s*$/;
-const MANUAL = /→\s*`?manual:\s*(.+?)`?\s*$/;
+const ACCEPTANCE_HEADING = /^## Acceptance(?:\s*\([^)]*\))?\s*$/;
+const CARD_START = /^- \[[ xX]\] /;
+const SOLUTION_LINK = /\[Solution\]\(([^)]+)\)/i;
+const TEST_EVIDENCE = /→\s*`?(tests\/[A-Za-z0-9._/-]+\.test\.js)::([^`\n]+?)`?\s*$/;
+const MANUAL_EVIDENCE = /→\s*`?manual:\s*(.+?)`?\s*$/i;
 
-function parseArgs(argv) {
-  const args = { board: 'wiki/Tickets.md', tickets: 'wiki/tickets' };
-  for (let i = 0; i < argv.length; i += 1) {
-    if (argv[i] === '--board') {
-      args.board = argv[++i];
-      continue;
-    }
-    if (argv[i] === '--tickets') {
-      args.tickets = argv[++i];
-      continue;
-    }
-  }
-  return args;
+function read(file) {
+  return fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
 }
 
-function sectionCards(board) {
-  const text = fs.readFileSync(board, 'utf8');
+function sections(text) {
   const lines = text.split('\n');
-  const cards = [];
-  let column = null;
-  let current = null;
-  const flush = () => {
-    if (current && COMPLETED.has(current.column)) cards.push(current);
-    current = null;
-  };
+  const found = [];
+  let current = { title: '', lines: [] };
   for (const line of lines) {
-    const heading = line.match(/^##\s+(.+?)\s*$/);
+    const heading = line.match(/^## (.+)$/);
     if (heading) {
-      flush();
-      column = heading[1];
-      continue;
+      found.push(current);
+      current = { title: heading[1].trim(), lines: [] };
+    } else {
+      current.lines.push(line);
     }
-    if (column && /^- \[[ x]\]/.test(line)) {
-      flush();
-      current = { column, body: line };
-      continue;
-    }
-    if (current) current.body += `\n${line}`;
   }
-  flush();
-  return cards;
+  found.push(current);
+  return found;
 }
 
-function ticketPath(card, ticketsDir, board) {
-  const match = card.body.match(/\[Solution\]\(([^)]+)\)/i)
-    || card.body.match(/(tickets\/RIG-\d+\.md)/i);
-  if (!match) return null;
-  const rel = match[1];
-  const name = path.basename(rel);
-  const candidates = [
-    path.join(ticketsDir, name),
-    path.resolve(path.dirname(board), rel),
-    path.join(ticketsDir, rel),
-  ];
-  return candidates.find((file) => fs.existsSync(file)) || candidates[0];
-}
-
-function ticketId(file, card) {
-  const fromFile = path.basename(file || '', '.md');
-  if (/^RIG-\d+$/.test(fromFile)) return fromFile;
-  const fromCard = card.body.match(/RIG-\d+/);
-  return fromCard ? fromCard[0] : 'unknown';
-}
-
-function acceptanceBullets(text) {
-  const heading = text.search(/^## Acceptance\b/m);
-  if (heading < 0) return [];
-  const rest = text.slice(heading);
-  const match = rest.match(/^## Acceptance[^\n]*\n([\s\S]*?)(?=\n## |\s*$)/);
-  if (!match) return [];
-  const bullets = [];
+function cards(sectionLines) {
+  const found = [];
   let current = null;
-  for (const line of match[1].split('\n')) {
-    if (/^- /.test(line)) {
-      if (current) bullets.push(current);
-      current = line.replace(/^- /, '').trim();
-    } else if (current && line.trim()) {
-      current += ` ${line.trim()}`;
-    } else if (current && !line.trim()) {
-      bullets.push(current);
-      current = null;
+  for (const line of sectionLines) {
+    if (CARD_START.test(line)) {
+      if (current) found.push(current);
+      current = line;
+    } else if (current !== null) {
+      current += `\n${line}`;
     }
   }
-  if (current) bullets.push(current);
-  return bullets;
+  if (current) found.push(current);
+  return found;
 }
 
-function resolveTestFile(ref, board) {
-  const candidates = [
-    path.resolve(process.cwd(), ref),
-    path.resolve(path.dirname(board), ref),
-    path.resolve(path.dirname(board), path.basename(ref)),
-  ];
-  return candidates.find((file) => fs.existsSync(file)) || null;
+function ticketIdFrom(fileName) {
+  return fileName.replace(/\.md$/i, '');
 }
 
-function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const board = path.resolve(args.board);
-  const ticketsDir = path.resolve(args.tickets);
-  const violations = [];
-  let manuals = 0;
-
-  for (const card of sectionCards(board)) {
-    const file = ticketPath(card, ticketsDir, board);
-    const id = ticketId(file, card);
-    if (!file || !fs.existsSync(file)) {
-      violations.push(`${id}: missing ticket file`);
-      continue;
-    }
-    const bullets = acceptanceBullets(fs.readFileSync(file, 'utf8'));
-    if (!bullets.length) {
-      violations.push(`${id}: missing evidence reference`);
-      continue;
-    }
-    for (const bullet of bullets) {
-      const manual = bullet.match(MANUAL);
-      if (manual) {
-        manuals += 1;
-        continue;
+function resolveTestFile(relPath) {
+  if (!relPath || relPath.includes('..') || path.isAbsolute(relPath)) return null;
+  const basename = path.basename(relPath);
+  const dirs = [repoRoot, path.dirname(boardPath), path.dirname(ticketsDir)];
+  const seen = new Set();
+  for (const dir of dirs) {
+    for (const candidate of [path.join(dir, relPath), path.join(dir, basename)]) {
+      const absolute = path.resolve(candidate);
+      if (seen.has(absolute)) continue;
+      seen.add(absolute);
+      try {
+        if (fs.statSync(absolute).isFile()) return absolute;
+      } catch {
+        // try the next candidate
       }
-      const evidence = bullet.match(EVIDENCE);
+    }
+  }
+  return null;
+}
+
+function acceptanceSection(text) {
+  const lines = text.split('\n');
+  let start = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (ACCEPTANCE_HEADING.test(lines[i])) {
+      start = i + 1;
+      break;
+    }
+  }
+  if (start === -1) return null;
+  let end = lines.length;
+  for (let i = start; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join('\n');
+}
+
+function bullets(section) {
+  const items = [];
+  let current = null;
+  for (const line of section.split('\n')) {
+    const match = line.match(/^\s{0,3}[-*]\s+(.*)$/);
+    if (match) {
+      if (current !== null) items.push(current.trim());
+      current = match[1];
+    } else if (current !== null) {
+      current += `\n${line}`;
+    }
+  }
+  if (current !== null) items.push(current.trim());
+  return items.filter(Boolean);
+}
+
+function parseEvidence(bullet) {
+  const trimmed = bullet.trim();
+  const testMatch = trimmed.match(TEST_EVIDENCE);
+  if (testMatch) {
+    return { kind: 'test', file: testMatch[1], title: testMatch[2].trim() };
+  }
+  const manualMatch = trimmed.match(MANUAL_EVIDENCE);
+  if (manualMatch) {
+    return { kind: 'manual', reason: manualMatch[1].trim() };
+  }
+  return null;
+}
+
+const violations = [];
+let manualCount = 0;
+
+if (!fs.existsSync(boardPath)) {
+  console.error(`board not found: ${boardPath}`);
+  process.exit(1);
+}
+
+const board = read(boardPath);
+for (const section of sections(board)) {
+  if (!COMPLETED.has(section.title)) continue;
+  for (const card of cards(section.lines)) {
+    const link = card.match(SOLUTION_LINK);
+    if (!link) {
+      violations.push('completed card has no Solution link and therefore no evidence');
+      continue;
+    }
+    const ticketFile = path.join(ticketsDir, path.basename(link[1]));
+    const id = ticketIdFrom(path.basename(ticketFile));
+    if (!fs.existsSync(ticketFile)) {
+      violations.push(`${id}: ticket file not found (${ticketFile})`);
+      continue;
+    }
+    const sectionBody = acceptanceSection(read(ticketFile));
+    if (sectionBody === null) {
+      violations.push(`${id}: no ## Acceptance section with evidence`);
+      continue;
+    }
+    const items = bullets(sectionBody);
+    if (items.length === 0) {
+      violations.push(`${id}: ## Acceptance has no evidence bullets`);
+      continue;
+    }
+    for (const item of items) {
+      const evidence = parseEvidence(item);
       if (!evidence) {
-        violations.push(`${id}: missing evidence reference`);
+        violations.push(`${id}: acceptance bullet has no evidence reference`);
         continue;
       }
-      const [, rel, title] = evidence;
-      const testFile = resolveTestFile(rel, board);
+      if (evidence.kind === 'manual') {
+        if (!evidence.reason) {
+          violations.push(`${id}: manual evidence is missing a reason`);
+        } else {
+          manualCount += 1;
+        }
+        continue;
+      }
+      const testFile = resolveTestFile(evidence.file);
       if (!testFile) {
-        violations.push(`${id}: missing file ${rel}`);
+        violations.push(`${id}: ${evidence.file} does not exist`);
         continue;
       }
-      const body = fs.readFileSync(testFile, 'utf8');
-      if (!body.includes(title)) {
-        violations.push(`${id}: missing named test ${title}`);
+      const source = read(testFile);
+      if (!source.includes(evidence.title)) {
+        violations.push(`${id}: ${evidence.file} does not contain test title "${evidence.title}"`);
       }
     }
   }
-
-  for (const violation of violations) console.log(violation);
-  console.log(`manual evidence: ${manuals}`);
-  process.exit(violations.length ? 1 : 0);
 }
 
-main();
+for (const violation of violations) console.error(violation);
+console.log(`manual evidence: ${manualCount}`);
+process.exit(violations.length ? 1 : 0);

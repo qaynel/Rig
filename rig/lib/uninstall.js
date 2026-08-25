@@ -1,59 +1,49 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { RECEIPT_PATH, readReceipt } = require('./receipt');
-const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
-const { removeOpenClawMcp } = require('./openclaw-mcp');
+const { uninstall: uninstallJournal } = require('./lifecycle');
+const { gitPath } = require('./path-safety');
 
-function uninstall(target) {
-  const bestEffort = removeGlobalWrites(target);
-  const receipt = readReceipt(target) || { ownedFiles: [], mergedEntries: [] };
-  for (const file of receipt.ownedFiles || []) rm(target, file);
-  for (const entry of receipt.mergedEntries || []) unmerge(target, entry.file, entry.serverName);
+function uninstall(target, opts = {}) {
+  const result = uninstallJournal(target, opts);
+  cleanupReceiptArtifacts(target, result);
+  return result;
+}
 
-  rm(target, '.env.example');
-  rm(target, '.rig/mcp-setup.md');
-  rm(target, '.rig/hooks/secret-guard.sh');
-  rm(target, RECEIPT_PATH);
+function cleanupReceiptArtifacts(target, journalResult = {}) {
+  // Journal is the removal authority. The receipt path is only a compatibility
+  // shim for legacy Basic MCP leftovers: skip it when no Basic receipt exists
+  // so a journal-only uninstall cannot delete user files such as `.env.example`
+  // or re-mutate a hook the journal already restored or retained.
+  const retained = new Set(journalResult.best_effort || []);
+  const journalTouchedHook = [...(journalResult.removed || []), ...(journalResult.best_effort || [])]
+    .some((p) => typeof p === 'string' && (p === '.git/hooks/pre-commit' || p.startsWith('.git/hooks/pre-commit.')));
 
-  const hook = path.join(target, '.git', 'hooks', 'pre-commit');
-  const chained = path.join(target, '.git', 'hooks', 'pre-commit.rig-chained');
-  const hasRigShim = fs.existsSync(hook) && fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim');
-  if (fs.existsSync(chained) && (!fs.existsSync(hook) || hasRigShim)) fs.renameSync(chained, hook);
-  else if (hasRigShim) fs.rmSync(hook, { force: true });
+  const receipt = readReceipt(target);
+  if (receipt) {
+    for (const file of receipt.ownedFiles || []) {
+      if (!retained.has(file)) rm(target, file);
+    }
+    for (const entry of receipt.mergedEntries || []) unmerge(target, entry.file, entry.serverName);
+
+    for (const rel of ['.env.example', '.rig/mcp-setup.md', '.rig/hooks/secret-guard.sh', RECEIPT_PATH]) {
+      if (!retained.has(rel)) rm(target, rel);
+    }
+
+    if (!journalTouchedHook) {
+      const hooksDir = gitPath(target, 'hooks') || path.join(target, '.git', 'hooks');
+      const hook = path.join(hooksDir, 'pre-commit');
+      const chained = path.join(hooksDir, 'pre-commit.rig-chained');
+      const hasRigShim = fs.existsSync(hook) && fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim');
+      if (fs.existsSync(chained) && (!fs.existsSync(hook) || hasRigShim)) fs.renameSync(chained, hook);
+      else if (hasRigShim) fs.rmSync(hook, { force: true });
+    }
+  }
 
   for (const rel of ['.rig/hooks', '.rig']) {
     const dir = path.join(target, rel);
     if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
   }
-  return { best_effort: bestEffort };
-}
-
-function removeGlobalWrites(target) {
-  const file = path.join(target, '.rig', 'global-writes.json');
-  if (!fs.existsSync(file)) return [];
-  let ledger;
-  try {
-    ledger = JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch {
-    return ['.rig/global-writes.json'];
-  }
-  const retained = [];
-  for (const entry of ledger.entries || []) {
-    let result = { removed: false };
-    if (entry && typeof entry.path === 'string' && typeof entry.install_id === 'string') {
-      result = entry.kind === 'openclaw-mcp'
-        ? removeOpenClawMcp(target, entry)
-        : entry.kind === 'global-mcp'
-          ? removeGlobalMcp(entry)
-          : entry.kind === undefined || entry.kind === 'json-namespace'
-            ? removeGlobalConfig(entry.path, entry.install_id)
-            : { removed: false };
-    }
-    if (!result.removed) retained.push(entry);
-  }
-  if (retained.length) fs.writeFileSync(file, `${JSON.stringify({ ...ledger, entries: retained }, null, 2)}\n`);
-  else fs.rmSync(file, { force: true });
-  return retained.map((entry) => entry?.path || '.rig/global-writes.json');
 }
 
 function unmerge(target, file, serverName) {
@@ -75,4 +65,4 @@ function rm(target, rel) {
   if (fs.existsSync(p)) fs.rmSync(p, { force: true });
 }
 
-module.exports = { uninstall };
+module.exports = { uninstall, cleanupReceiptArtifacts };
