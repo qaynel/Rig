@@ -145,11 +145,13 @@ inspect → host review → recommend → select (rig.json) → plan → apply �
 ```
 
 ```sh
-node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
+node rig/materialize.js inspect --target <repo> --hosts auto --out inspection.json
+node rig/materialize.js host-review --target <repo> --inspection inspection.json --out review.json
 node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
+node rig/materialize.js select --menu menu.json --out <repo>/rig.json --service id=grade
 node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
-node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
-node .rig/bin/check.js --scope repo
+node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json --approval approval.json
+node .rig/bin/rig check --target <repo>
 ```
 
 For a tagged install, replace `node rig/materialize.js` with

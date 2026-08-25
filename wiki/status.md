@@ -1,5 +1,14 @@
 # Status - checked 2026-08-25
 
+## RIG-126 onboarding (solved 2026-08-25)
+
+The printed post-install chain is runnable for 126.1–126.4: host-review and
+explicit select produce the review and `rig.json` later steps consume, staged
+apply renders the Antigravity manual MCP entry it verifies, and a clean check
+prints a success confirmation. 126.5 (source-checkout wrapper) remains deferred.
+Named onboarding suite is green (`runtime-onboarding` + bootstrap +
+antigravity-manual-mcp). The owner-signed oracle is unchanged.
+
 The signed oracle remains unchanged and green at 68 acceptance cases. The
 working technical design is v0.16 and is present rather than frozen. D24 keeps
 the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,

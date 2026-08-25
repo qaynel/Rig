@@ -13,6 +13,8 @@ const WIRING = {
 const CAVEAT = {
   openclaw: 'Confirm on first wire that ${VAR} interpolation is honored inside mcp.servers.',
   codewhale: 'Confirm on first wire whether the mcp_config_path overlay can replace DEEPSEEK_MCP_CONFIG.',
+  // Tier B: documented project scope exists, but no value-free credential
+  // syntax is documented; stay note-only until PD7 flips.
   antigravity: 'The Antigravity CLI may ignore workspace-local `.agents/mcp_config.json` while issue #60 remains open; use ~/.gemini/config/mcp_config.json for this manual setup.',
 };
 const MIGRATION = {
@@ -56,7 +58,7 @@ function writeMcpSetup(target, receipt) {
     if (WIRING[host]) lines.push(WIRING[host]);
     lines.push(LOAD_STEP);
     if (host === 'codex' || host === 'vscode-codex') lines.push('Never paste the key into config.toml; use env_vars or bearer_token_env_var by name.');
-    if (host === 'antigravity' && receipt.manualEntries?.antigravity) {
+    if (host === 'antigravity' && receipt.manualEntries?.antigravity && Object.keys(receipt.manualEntries.antigravity).length) {
       lines.push(
         'Merge this exact object into ~/.gemini/config/mcp_config.json without replacing unrelated servers:',
         '```json',
@@ -65,7 +67,7 @@ function writeMcpSetup(target, receipt) {
         'This generated block uses stdio; remote servers require serverUrl plus a supported authProviderType.',
       );
     } else if (host === 'antigravity') {
-      lines.push('No MCP server was selected for Antigravity; add one and re-apply, or skip this check.');
+      lines.push('No MCP server was selected.');
     }
     if (CAVEAT[host]) lines.push(CAVEAT[host]);
     if (host === 'antigravity') lines.push('Verify after saving: .rig/bin/rig check --host antigravity');

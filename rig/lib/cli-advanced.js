@@ -7,22 +7,32 @@ const { recommend } = require('./profile');
 const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
-const { loadCatalog, validateReview } = require('./catalog');
+const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
 const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
 const { uninstall } = require('./lifecycle');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
 
-const ADVANCED = new Set([
-  'inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy',
-  'uninstall', 'host-review', 'select', 'validate-commit',
-]);
-const GRADES = new Set(['minimal', 'mid', 'maximal']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
   if (idx === -1) return null;
   return argv[idx + 1] || null;
+}
+
+function parseFlags(argv, name) {
+  const values = [];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === name) values.push(argv[++i] || '');
+  }
+  return values;
+}
+
+function parseHostsOption(hosts) {
+  if (!hosts || hosts === 'auto') return undefined;
+  const ids = hosts.split(',').map((h) => h.trim()).filter((h) => h && h !== 'auto');
+  return ids.length ? ids : undefined;
 }
 
 function writeOut(outPath, value) {
@@ -38,24 +48,13 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'select') {
     const menuPath = parseFlag(argv, '--menu');
     const out = parseFlag(argv, '--out');
-    if (!menuPath || !fs.existsSync(menuPath) || !out) {
-      throw new Error('rig: select requires --menu and --out');
+    if (!menuPath || !fs.existsSync(menuPath)) throw new Error('rig: --menu <menu.json> is required');
+    if (!out) throw new Error('rig: --out is required for select');
+    const target = parseFlag(argv, '--target');
+    if (target && !fs.existsSync(target)) {
+      throw new Error('rig: --target <dir> is required and must exist');
     }
-    const menu = readJson(menuPath);
-    const allowed = new Set((menu.services || menu.menu || []).map((row) => row.service_id));
-    const services = {};
-    for (let i = 0; i < argv.length; i += 1) {
-      if (argv[i] !== '--service') continue;
-      const spec = argv[i + 1] || '';
-      const cut = spec.lastIndexOf('=');
-      if (cut < 1) throw new Error('rig: --service <id>=<grade> is required');
-      const id = spec.slice(0, cut);
-      const grade = spec.slice(cut + 1);
-      if (!allowed.has(id)) throw new Error(`select: unknown service "${id}"`);
-      if (!GRADES.has(grade)) throw new Error(`select: invalid grade "${grade}"`);
-      services[id] = grade;
-    }
-    writeOut(out, { schema_version: 1, services });
+    writeOut(out, selectFromMenu(readJson(menuPath), parseFlags(argv, '--service')));
     return;
   }
 
@@ -136,13 +135,12 @@ function runAdvanced(subcommand, argv) {
 
   if (subcommand === 'inspect') {
     const host = parseFlag(argv, '--host');
-    const hostsFlag = parseFlag(argv, '--hosts');
+    const hosts = parseFlag(argv, '--hosts');
     const out = parseFlag(argv, '--out');
     if (!out) throw new Error('rig: --out is required for inspect');
-    const hosts = !hostsFlag || hostsFlag === 'auto' ? undefined : hostsFlag.split(',').filter(Boolean);
     writeOut(out, inspectTarget(target, {
-      host: host && host !== 'auto' ? host : undefined,
-      hosts,
+      host,
+      hosts: parseHostsOption(hosts),
     }));
     return;
   }
@@ -150,7 +148,9 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'host-review') {
     const inspectionPath = parseFlag(argv, '--inspection');
     const out = parseFlag(argv, '--out');
-    if (!inspectionPath || !fs.existsSync(inspectionPath)) throw new Error('rig: --inspection is required for host-review');
+    if (!inspectionPath || !fs.existsSync(inspectionPath)) {
+      throw new Error('rig: --inspection <inspection.json> is required');
+    }
     if (!out) throw new Error('rig: --out is required for host-review');
     writeOut(out, hostReview(readJson(inspectionPath)));
     return;
@@ -203,7 +203,7 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'check') {
     const host = parseFlag(argv, '--host');
     if (host) {
-      const result = verifyManualMcp(target, host, process.env.HOME);
+      const result = verifyManualMcp(target, host);
       const output = `${JSON.stringify(result, null, 2)}\n`;
       if (result.status !== 0) {
         process.stderr.write(output);
@@ -215,12 +215,12 @@ function runAdvanced(subcommand, argv) {
     const scope = parseFlag(argv, '--scope') || 'repo';
     const service = parseFlag(argv, '--service');
     const result = runChecks(target, { scope, service });
-    if (result.stdout) process.stdout.write(result.stdout.endsWith('\n') ? result.stdout : `${result.stdout}\n`);
     if (result.status !== 0) {
       if (result.stderr) process.stderr.write(result.stderr);
+      if (result.stdout) process.stdout.write(result.stdout);
       process.exit(result.status || 1);
     }
-    return;
+    process.stdout.write('check passed\n');
   }
 
   if (subcommand === 'validate-commit') {

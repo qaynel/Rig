@@ -14,8 +14,8 @@ const { writeReport } = require('./reports');
 const { containedPath, gitPath } = require('./path-safety');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
-const { writeMcpSetup } = require('./credentials');
-const { writeReceipt } = require('./receipt');
+const { writeCredentialOutputs } = require('./credentials');
+const { readReceipt, writeReceipt } = require('./receipt');
 const { ensureManagedBlock } = require('./graft');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -93,6 +93,22 @@ function planDigest(plan) {
   delete snapshot.plan_digest;
   delete snapshot.summary;
   return crypto.createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function stagedMcpReceipt(review) {
+  const manualEntries = review.manualEntries && typeof review.manualEntries === 'object' && !Array.isArray(review.manualEntries)
+    ? review.manualEntries
+    : {};
+  const noteHosts = [];
+  if (review.host === 'antigravity' || (manualEntries.antigravity && Object.keys(manualEntries.antigravity).length)) {
+    noteHosts.push('antigravity');
+  }
+  return {
+    noteHosts,
+    credentialNames: [],
+    tierC: [],
+    manualEntries,
+  };
 }
 
 function validatePlanSnapshot(plan, manifest, review, catalog) {
@@ -525,21 +541,6 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       historyScanNote = 'first-enable history scan verified for precommit-leak-scanner';
     }
 
-    const mcpReceipt = {
-      noteHosts: validated.host && validated.host !== 'generic' ? [validated.host] : [],
-      manualEntries: validated.manualEntries || {},
-      migrationHosts: [],
-      tierC: validated.host === 'generic' ? ['generic'] : [],
-    };
-    if (validated.host === 'antigravity' && !mcpReceipt.noteHosts.includes('antigravity')) {
-      mcpReceipt.noteHosts.push('antigravity');
-    }
-    writeMcpSetup(target, mcpReceipt);
-    if (fs.existsSync(path.join(target, '.rig', 'mcp-setup.md'))) {
-      writeOwned('.rig/mcp-setup.md', fs.readFileSync(path.join(target, '.rig', 'mcp-setup.md')));
-    }
-    writeReceipt(target, mcpReceipt);
-
     const receipt = {
       schema_version: 1,
       catalog_digest: catalogDigest(catalog),
@@ -552,7 +553,10 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       ci: { status: ci.status, provider: ci.provider || null },
       manualEntries: validated.manualEntries || {},
     };
+    const staged = stagedMcpReceipt(validated);
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
+    writeCredentialOutputs(target, { hosts: staged.noteHosts, mcp_servers: [] }, staged);
+    writeReceipt(target, { ...(readReceipt(target) || {}), ...staged });
 
     const jsonRecords = readManifest(target)
       .filter((record) => record.state === 'applied')
