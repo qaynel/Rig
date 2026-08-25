@@ -110,6 +110,14 @@ exists to prevent: imposing tools the repository did not ask for. Family
 auto-selection is deferred until there is real signal about which mapping is
 correct, which is one of the things beta feedback is for.
 
+**Implemented 2026-08-25 (RIG-126).** A runtime install now prints a complete
+staged command sequence: inspect with mechanical host detection, host-review
+to a verdict-bearing review, recommend, explicit select into `rig.json`, plan,
+apply after a real host-native or external approval, and check. Check prints a
+positive confirmation on success. The staged path renders the same Antigravity
+manual MCP entry it later verifies. A source-checkout `rig/bin/rig` shim still
+resolves only after install (126.5, deferred).
+
 For detected Antigravity installs with selected MCP servers, onboarding also
 owns a first-class manual boundary: `.rig/mcp-setup.md` contains the exact
 stdio JSON to merge into the user-global Antigravity config and the installed

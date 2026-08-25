@@ -15,6 +15,8 @@ const { containedPath, gitPath } = require('./path-safety');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
 const { ensureManagedBlock } = require('./graft');
+const { writeCredentialOutputs } = require('./credentials');
+const { readReceipt, writeReceipt } = require('./receipt');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
@@ -91,6 +93,22 @@ function planDigest(plan) {
   delete snapshot.plan_digest;
   delete snapshot.summary;
   return crypto.createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function stagedMcpReceipt(review) {
+  const manualEntries = review.manualEntries && typeof review.manualEntries === 'object' && !Array.isArray(review.manualEntries)
+    ? review.manualEntries
+    : {};
+  const noteHosts = [];
+  if (review.host === 'antigravity' || (manualEntries.antigravity && Object.keys(manualEntries.antigravity).length)) {
+    noteHosts.push('antigravity');
+  }
+  return {
+    noteHosts,
+    credentialNames: [],
+    tierC: [],
+    manualEntries,
+  };
 }
 
 function validatePlanSnapshot(plan, manifest, review, catalog) {
@@ -512,7 +530,10 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       history_scan: historyScan || null,
       ci: { status: ci.status, provider: ci.provider || null },
     };
+    const staged = stagedMcpReceipt(validated);
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
+    writeCredentialOutputs(target, { hosts: staged.noteHosts, mcp_servers: [] }, staged);
+    writeReceipt(target, { ...(readReceipt(target) || {}), ...staged });
 
     const jsonRecords = readManifest(target)
       .filter((record) => record.state === 'applied')

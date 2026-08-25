@@ -8,6 +8,17 @@ RIG-104 / RIG-105 / RIG-107 moved Backlog with stated reasons. Named suite:
 `tests/ticket-traceability.test.js`. Later pre-v5 red suites (126/127/128/134)
 are out of this ticket's scope.
 
+## RIG-126 onboarding (solved 2026-08-25)
+
+The printed post-install chain is runnable for 126.1–126.4: host-review and
+explicit select produce the review and `rig.json` later steps consume, staged
+apply renders the Antigravity manual MCP entry it verifies, and a clean check
+prints a success confirmation. 126.5 (source-checkout wrapper) remains deferred.
+Named onboarding suite is green (`runtime-onboarding` + bootstrap +
+antigravity-manual-mcp). Full `npm test` remains red on sibling v5-observable
+suites (127/128/129/131 red baseline), not on RIG-126's named tests. The
+owner-signed oracle is unchanged.
+
 ## Implementation packets in flight for the pre-v5 release gate (2026-08-25)
 
 The owner asked that every pre-v5 fix be offboarded onto its ticket so a
@@ -1050,13 +1061,15 @@ detected-host onboarding, the mandatory safety baseline, six CI providers, and
 named-tag `5.0.0` distribution.
 
 The protected oracle, secret scan, rule-copy check, and version check pass on
-the current bytes. `npm test` is green end to end: the root suite is
-**380/380** and the pi-extension suite is **15/15**. A prior read of this page
-claimed `AT-BASE-3` and `AT-SECRET-1` were failing against the frozen business
-text and required an owner-authorized Gate 1 re-signing ceremony; re-running
-both on the current bytes shows they pass, so that re-signing ceremony is not
-needed. The `pandas` benchmark import some local runs report as failing is a
-missing `.venv` setup in that environment, not a suite failure.
+the current bytes. As of the RIG-126 onboarding fix, the named onboarding suite
+is green; full `npm test` remains red on the committed sibling v5-observable
+red baseline (see RIG-127/128/129/131), not on RIG-126's named tests. A prior
+read of this page claimed `AT-BASE-3` and `AT-SECRET-1` were failing against
+the frozen business text and required an owner-authorized Gate 1 re-signing
+ceremony; re-running both on the current bytes shows they pass, so that
+re-signing ceremony is not needed. The `pandas` benchmark import some local
+runs report as failing is a missing `.venv` setup in that environment, not a
+suite failure.
 
 The leftover production holes from the last pass are closed: apply writes a CI
 file only when that path is in the signed plan and still compare-and-swaps it;
