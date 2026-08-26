@@ -6,26 +6,41 @@
 `unshare --net` on Linux and Seatbelt `sandbox-exec` on macOS, after a
 one-shot `--help` availability check. If neither tool is present it logs a
 warning and returns `network_isolation_unavailable`. Named check: `AT-LF-22
-a task has no network reachability without an explicit grant`. `AT-LF-21`
-already landed; `AT-LF-20`, `AT-LF-23`, and `AT-LF-24` remain unimplemented.
+a task has no network reachability without an explicit grant`. `AT-LF-20`,
+`AT-LF-21`, and `AT-LF-23` already landed; `AT-LF-24` remains unimplemented.
+
+## AT-LF-23 time-cap kill-and-report implemented (2026-08-26)
+
+`runReadOnly` now honors a configured `timeoutMs`, terminates the task through
+the shared spawn helper, and reports `timeout` as its own non-passing state.
+`AT-LF-20` and `AT-LF-21` already landed; `AT-LF-22` and `AT-LF-24` remain red
+until their separate implementations land.
 
 ## AT-LF-21 filesystem/env isolation landed (2026-08-26)
 
-Lint-format task spawn now refuses a working directory that escapes the
-repository through a symlink, and children receive only an explicit
-environment allowlist — not the parent process's secrets. `AT-LF-21` is
-green. `AT-LF-20`, `AT-LF-22`, `AT-LF-23`, and `AT-LF-24` remain
-unimplemented by design until each lands as its own change.
+`runReadOnly` now refuses a working directory that is, or is reached only
+through, a symlink resolving outside the repository (`boundary_violation`,
+the command is not started), and spawns each task with an explicit
+environment allowlist instead of the parent process's environment. Named
+check: `AT-LF-21 task filesystem and environment stay isolated`. Remaining
+red: `AT-LF-22`–`AT-LF-24` (`AT-LF-20` is implemented).
 Verify: `node --test --test-name-pattern "AT-LF-21" tests/advanced-oracle.test.js`.
+
+## AT-LF-20 single-use plan approval implemented (2026-08-26)
+
+`executePlan` now consumes a matching plan approval on a successful
+execution and refuses the same approval on a second presentation
+(`not_authorized`). `AT-LF-20` is green. `AT-LF-21` is green on this merge.
+`AT-LF-22` through `AT-LF-24` remain red until their runtimes land as
+separate tickets. The RIG-120 ceremony (independent review receipt,
+`v5.0.0` tag and publish) still waits until `npm test` is green.
 
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
 items, [[RIG-115]] shell-trust, and [[RIG-112]] catalogue-contract — now
-verifies. Three tests remain red by design (`AT-LF-20`, `AT-LF-23`,
-`AT-LF-24`) until `rig/lib/lint-format.js` implements those guarantees;
-`AT-LF-21` and `AT-LF-22` are implemented. Those remaining implementations
-ship as separate tickets; the
+verifies. Remaining red-by-design case: `AT-LF-24` (`AT-LF-20`–`AT-LF-23`
+implemented). That remaining implementation ships as a separate ticket; the
 RIG-120 ceremony (independent review receipt, `v5.0.0` tag and publish) waits
 until `npm test` is green.
 

@@ -432,6 +432,9 @@ function executePlan(plan, approval) {
   if (!approval || approval.plan_digest !== plan.plan_digest) {
     throw new Error('executePlan: approval digest mismatch');
   }
+  if (approval.used) {
+    return { status: 'not_authorized' };
+  }
   for (const cmd of plan.commands || []) {
     if (cmd.source && plan.target) {
       const [file, ref] = cmd.source.split('#');
@@ -449,6 +452,7 @@ function executePlan(plan, approval) {
       }
     }
   }
+  approval.used = true;
   return { status: 'executed' };
 }
 
@@ -610,7 +614,8 @@ function runReadOnly(target, commands) {
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    spawnTask(argvWithNetworkIsolation(cmd, isolation), { cwd });
+    const result = spawnTask(argvWithNetworkIsolation(cmd, isolation), { cwd, timeout: cmd.timeoutMs });
+    if (result.error?.code === 'ETIMEDOUT') return { status: 'timeout' };
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
