@@ -4,8 +4,18 @@
 
 `runReadOnly` now honors a configured `timeoutMs`, terminates the task through
 the shared spawn helper, and reports `timeout` as its own non-passing state.
-`AT-LF-20`, `AT-LF-21`, `AT-LF-22`, and `AT-LF-24` remain red until their
-separate implementations land.
+`AT-LF-21` already landed; `AT-LF-20`, `AT-LF-22`, and `AT-LF-24` remain red
+until their separate implementations land.
+
+## AT-LF-21 filesystem/env isolation landed (2026-08-26)
+
+`runReadOnly` now refuses a working directory that is, or is reached only
+through, a symlink resolving outside the repository (`boundary_violation`,
+the command is not started), and spawns each task with an explicit
+environment allowlist instead of the parent process's environment. Named
+check: `AT-LF-21 task filesystem and environment stay isolated`. The other
+four shell-trust cases (`AT-LF-20`, `AT-LF-22`–`AT-LF-24`) remain
+unimplemented.
 
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
