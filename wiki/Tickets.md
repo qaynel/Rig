@@ -127,7 +127,7 @@ kanban-plugin: board
 	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
 	- At least the highest-demand families reach Context/Evidence with real verifiable checks.
 - [ ] **RIG-115 — Author lint-format acceptance for applicability, execution consent, and shell trust**
-	**Status:** BLOCKED (2026-08-24) — GitHub #64 — granular shell-trust policy and owner re-sign required · [Solution](tickets/RIG-115.md)
+	**Status:** PARTIAL (2026-08-26) — GitHub #64 — oracle signed; `AT-LF-20` implemented; `AT-LF-21`–`AT-LF-24` remain · [Solution](tickets/RIG-115.md)
 	**Blocker:** The signed oracle has broad consent, exclusion, mutation, and argv-boundary cases, but the ticket's deterministic draft still marks approval lifetime, filesystem/env isolation, network denial, resource caps, and symlink behavior as assumptions. The owner must approve/correct those guarantees and re-sign the resulting acceptance/tests before implementation can claim them.
 	**Acceptance:**
 	- Deterministic acceptance cases exist and pass for each of the three contracts, added under the owner's re-sign.
