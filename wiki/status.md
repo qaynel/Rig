@@ -9,13 +9,12 @@ until their separate implementations land.
 
 ## AT-LF-21 filesystem/env isolation landed (2026-08-26)
 
-`runReadOnly` now refuses a working directory that is, or is reached only
-through, a symlink resolving outside the repository (`boundary_violation`,
-the command is not started), and spawns each task with an explicit
-environment allowlist instead of the parent process's environment. Named
-check: `AT-LF-21 task filesystem and environment stay isolated`. The other
-four shell-trust cases (`AT-LF-20`, `AT-LF-22`–`AT-LF-24`) remain
-unimplemented.
+Lint-format task spawn now refuses a working directory that escapes the
+repository through a symlink, and children receive only an explicit
+environment allowlist — not the parent process's secrets. `AT-LF-21` is
+green. `AT-LF-20`, `AT-LF-22`, `AT-LF-23`, and `AT-LF-24` remain
+unimplemented by design until each lands as its own change.
+Verify: `node --test --test-name-pattern "AT-LF-21" tests/advanced-oracle.test.js`.
 
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
