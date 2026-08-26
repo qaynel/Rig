@@ -1,5 +1,12 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-23 time-cap kill-and-report implemented (2026-08-26)
+
+`runReadOnly` now honors a configured `timeoutMs`, terminates the task through
+the shared spawn helper, and reports `timeout` as its own non-passing state.
+`AT-LF-20`, `AT-LF-21`, `AT-LF-22`, and `AT-LF-24` remain red until their
+separate implementations land.
+
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony

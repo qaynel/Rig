@@ -531,7 +531,10 @@ function runReadOnly(target, commands) {
   const changed_paths = [];
   for (const cmd of commands) {
     const cwd = cmd.cwd ? path.join(target, cmd.cwd) : target;
-    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd, encoding: 'utf8', shell: false });
+    const result = spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), {
+      cwd, encoding: 'utf8', shell: false, timeout: cmd.timeoutMs,
+    });
+    if (result.error?.code === 'ETIMEDOUT') return { status: 'timeout' };
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
