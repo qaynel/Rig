@@ -2012,7 +2012,7 @@ state (§9.4's abnormal-ending taxonomy below, `GA-33`), never left hanging or
 silently truncated. **(24) Symlink escapes:** a repository-supplied symlink
 whose real target resolves outside the repository is refused for read,
 write, or working-directory use, never followed because its lexical path
-looks contained. None of the five is implemented yet; they are frozen ahead
+looks contained. `AT-LF-22` is implemented in `runReadOnly`; the other four remain frozen ahead
 of the runtime that must satisfy them.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the

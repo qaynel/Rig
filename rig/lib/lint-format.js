@@ -526,12 +526,30 @@ function resolveScope({ root, changed, ignores, requested }) {
   return { kind: 'diff', cwd: root, files };
 }
 
+// AT-LF-22: no outbound network unless the plan grants it (`cmd.network === true`).
+// Seatbelt on macOS and a user+net namespace on Linux wrap the argv so
+// spawnGuardedSync still owns process-group teardown.
+const NETWORK_SANDBOX_PROFILE = '(version 1)(allow default)(deny network*)';
+
+function argvWithNetworkIsolation(cmd) {
+  const argv = cmd.argv || [];
+  if (cmd.network === true) return argv;
+  if (process.platform === 'darwin') {
+    return ['/usr/bin/sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, ...argv];
+  }
+  if (process.platform === 'linux') {
+    return ['/usr/bin/unshare', '--user', '--map-root-user', '--net', '--', ...argv];
+  }
+  throw new Error('runReadOnly: network isolation is unavailable on this platform');
+}
+
 function runReadOnly(target, commands) {
   const preState = snapshotDir(target);
   const changed_paths = [];
   for (const cmd of commands) {
     const cwd = cmd.cwd ? path.join(target, cmd.cwd) : target;
-    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd, encoding: 'utf8', shell: false });
+    const argv = argvWithNetworkIsolation(cmd);
+    spawnGuardedSync(argv[0], argv.slice(1), { cwd, encoding: 'utf8', shell: false });
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {

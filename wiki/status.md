@@ -1,13 +1,27 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
+
+`runReadOnly` now default-denies outbound network for untrusted lint-format
+tasks (`AT-LF-22`). macOS uses Seatbelt (`sandbox-exec`); Linux uses
+`unshare --user --map-root-user --net`. A command with `network: true` is
+the explicit grant and is left unwrapped. The AT-LF-22 oracle test binds
+`listen(0)` without a host so `server.address()` is populated synchronously
+on Node 24 — `listen(0, '127.0.0.1')` goes through `dns.lookup` and threw
+before `runReadOnly` ran. That test-setup edit changes the manifested
+oracle bytes; the owner must re-sign before `npm test`'s spec gate is
+green. The other four shell-trust cases (`AT-LF-20`, `AT-LF-21`,
+`AT-LF-23`, `AT-LF-24`) remain unimplemented.
+
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
 items, [[RIG-115]] shell-trust, and [[RIG-112]] catalogue-contract — now
-verifies. Five tests remain red by design (`AT-LF-20` through `AT-LF-24`)
-until `rig/lib/lint-format.js` implements the guarantees. Those
-implementations ship as separate tickets; the RIG-120 ceremony (independent
-review receipt, `v5.0.0` tag and publish) waits until `npm test` is green.
+verifies. Four tests remain red by design (`AT-LF-20`, `AT-LF-21`, `AT-LF-23`,
+`AT-LF-24`) until `rig/lib/lint-format.js` implements those guarantees; `AT-LF-22`
+is implemented. Those remaining implementations ship as separate tickets; the
+RIG-120 ceremony (independent review receipt, `v5.0.0` tag and publish) waits
+until `npm test` is green.
 
 ## RIG-120 release ceremony: bundling confirmed, ready for owner signing (2026-08-26)
 
