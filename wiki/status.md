@@ -1,20 +1,25 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
-## Why the RIG-124 red run took ~30 minutes (2026-08-26)
+## Why the RIG-124 red run took ~30 minutes — real defect found (2026-08-26)
 
 Follow-up question after filing RIG-124.1: was the ~30-minute duration itself
-a code defect (something making a stub subprocess call genuinely slow), or
-incidental? Investigated and ruled out: no other test in the suite reaches a
-real reviewer; the subprocess call is not structured in a way that can
-deadlock on its input pipe; and heavy synthetic OS-level contention (~2.3x
-this machine's core count) does not meaningfully slow the same call in a
-direct side-by-side timing test (584ms unloaded vs 230ms loaded). No sleep
-event on this machine during the window either. No reproducible cause found —
-most likely a one-off external stall, the same kind of stall a real reviewer
-network call can hit for mundane reasons. Doesn't change the fix: [[RIG-124]]
-**124.1** (silently dropped failure count on a killed/timed-out attempt) is
-still the actionable defect and still blocks [[RIG-120]]. Trace:
-[[2026-08-26-rig124-timeout-duration-investigation]].
+a code defect, or incidental? First pass ruled out several causes (no other
+test reaches a real reviewer, no pipe deadlock, no measurable slowdown from
+heavy synthetic load, no machine sleep event) and concluded no reproducible
+cause — but the user correctly pushed back that a 30-minute stall deserves an
+actual "is something stuck" check rather than resting on "network calls are
+sometimes slow." Checking directly found a real one: a leftover process from
+the earlier deterministic-repro work (which deliberately made a reviewer
+stand-in hang forever, to prove the cap bug) is still alive on this machine
+right now, orphaned, working directory long gone. Root cause, confirmed with
+a controlled test: killing the reviewer spawn only terminates the one tracked
+process — any child process it had already forked is not touched by that
+kill and is orphaned, running forever. The real reviewer is a full agent
+that plausibly forks children of its own; the same gap means a review the
+tool believes it cancelled may keep running unsupervised in the background.
+Added as a second fix, alongside the already-filed cap bug, to [[RIG-124]]
+**124.1** — both are about the same kill path being incomplete. Still blocks
+[[RIG-120]]. Trace: [[2026-08-26-rig124-timeout-duration-investigation]].
 
 ## RIG-127.11 / 127.12 and RIG-124.1 filed as follow-ups (2026-08-26)
 
@@ -42,6 +47,7 @@ extra, uncounted retry past the cap. Confirmed with a deterministic repro.
 Full trace: [[2026-08-26-rig124-cap-lost-update]].
 
 - [[RIG-124]] **124.1** → [GitHub #73](https://github.com/qaynel/Rig/issues/73) — killed/timed-out reviewer attempt is dropped from the re-review cap.
+- [[RIG-135]] → [GitHub #75](https://github.com/qaynel/Rig/issues/75) — general fix: create a shared process-cleanup helper to ensure all spawned subprocesses and their children are properly killed when cancelled or timed out.
 
 Same pattern as RIG-127.11/127.12 — defects found after the parent ticket's own
 suite went green. New invariant [[index/invariants|I-16]]. This sits directly on
