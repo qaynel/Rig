@@ -459,6 +459,38 @@ function applyCoverage(target, plan, approval) {
   return { unprotected: excluded.map((entry) => entry.component), manifest_records };
 }
 
+// rig: PATH/HOME/tmp/locale plus Windows process vars; secrets and injection
+// vectors (NODE_OPTIONS, LD_PRELOAD, AWS_*) stay off. Expand the list when a
+// real tool needs a named non-secret, not by copying process.env.
+const TASK_ENV_ALLOWLIST = [
+  'PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP',
+  'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
+  'SystemRoot', 'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR',
+  'COMSPEC', 'PATHEXT', 'USERNAME', 'USER', 'LOGNAME',
+];
+
+function isolatedTaskEnv() {
+  const env = {};
+  for (const key of TASK_ENV_ALLOWLIST) {
+    if (process.env[key] != null) env[key] = process.env[key];
+  }
+  return env;
+}
+
+function taskCwd(target, rel) {
+  if (!rel || rel === '.') return fs.realpathSync(target);
+  return containedPath(target, rel);
+}
+
+function spawnTask(argv, options) {
+  return spawnGuardedSync(argv[0], argv.slice(1), {
+    encoding: 'utf8',
+    shell: false,
+    env: isolatedTaskEnv(),
+    ...options,
+  });
+}
+
 function runGrade({ grade, changed, commands, context, ci }) {
   const gradeOrder = ['Policy', 'Context', 'Evidence'];
   const map = { minimal: 1, mid: 2, maximal: 3 };
@@ -470,8 +502,8 @@ function runGrade({ grade, changed, commands, context, ci }) {
     if (!Array.isArray(cmd.argv) || !cmd.argv.length) {
       return { ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null } };
     }
-    const result = spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), {
-      cwd: cmd.cwd || process.cwd(), encoding: 'utf8', shell: false, timeout: cmd.timeout_ms || 10 * 60 * 1000,
+    const result = spawnTask(cmd.argv, {
+      cwd: cmd.cwd || process.cwd(), timeout: cmd.timeout_ms || 10 * 60 * 1000,
     });
     const output = `${result.stdout || ''}\n${result.stderr || ''}`;
     return {
@@ -526,44 +558,17 @@ function resolveScope({ root, changed, ignores, requested }) {
   return { kind: 'diff', cwd: root, files };
 }
 
-// rig: PATH/HOME/tmp/locale only; secrets and injection vectors (NODE_OPTIONS,
-// LD_PRELOAD, AWS_*) stay off. Expand the list when a real tool needs a
-// named non-secret, not by copying process.env.
-const TASK_ENV_ALLOWLIST = [
-  'PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP',
-  'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
-  'SystemRoot', 'COMSPEC', 'PATHEXT', 'USERNAME', 'USER', 'LOGNAME',
-];
-
-function isolatedEnv() {
-  const env = {};
-  for (const key of TASK_ENV_ALLOWLIST) {
-    if (process.env[key] != null) env[key] = process.env[key];
-  }
-  return env;
-}
-
-function resolveTaskCwd(target, rel) {
-  if (!rel || rel === '.') return fs.realpathSync(target);
-  return containedPath(target, rel);
-}
-
 function runReadOnly(target, commands) {
   const preState = snapshotDir(target);
   const changed_paths = [];
   for (const cmd of commands) {
     let cwd;
     try {
-      cwd = resolveTaskCwd(target, cmd.cwd);
+      cwd = taskCwd(target, cmd.cwd);
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), {
-      cwd,
-      encoding: 'utf8',
-      shell: false,
-      env: isolatedEnv(),
-    });
+    spawnTask(cmd.argv, { cwd });
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
@@ -631,9 +636,9 @@ function diffSnapshots(a, b) {
 
 function runAutofix(target, cmd, approval) {
   if (!approval || !approval.verified) throw new Error('runAutofix: approval required');
-  spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd: target, encoding: 'utf8', shell: false });
+  spawnTask(cmd.argv, { cwd: target });
   if (cmd.verify) {
-    const check = spawnGuardedSync(cmd.verify[0], cmd.verify.slice(1), { cwd: target, encoding: 'utf8', shell: false });
+    const check = spawnTask(cmd.verify, { cwd: target });
     return { verification: check.status === 0 ? 'pass' : 'fail' };
   }
   return { verification: 'skipped' };
