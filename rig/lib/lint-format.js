@@ -459,10 +459,14 @@ function applyCoverage(target, plan, approval) {
   return { unprotected: excluded.map((entry) => entry.component), manifest_records };
 }
 
-// rig: mechanical vars a process needs to start; secrets stay in the parent.
+// rig: PATH/HOME/tmp/locale plus Windows process vars; secrets and injection
+// vectors (NODE_OPTIONS, LD_PRELOAD, AWS_*) stay off. Expand the list when a
+// real tool needs a named non-secret, not by copying process.env.
 const TASK_ENV_ALLOWLIST = [
-  'PATH', 'PATHEXT', 'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR', 'COMSPEC',
-  'TMPDIR', 'TEMP', 'TMP', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
+  'PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP',
+  'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
+  'SystemRoot', 'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR',
+  'COMSPEC', 'PATHEXT', 'USERNAME', 'USER', 'LOGNAME',
 ];
 
 function isolatedTaskEnv() {
@@ -601,13 +605,19 @@ function snapshotDir(root) {
   const map = new Map();
   const walk = (dir) => {
     if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (SNAPSHOT_SKIP.has(entry.name) || entry.isSymbolicLink()) continue;
-      const abs = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(abs);
-      else if (entry.isFile()) {
-        const bytes = fs.readFileSync(abs);
-        map.set(path.relative(root, abs), digest(bytes));
+    for (const name of fs.readdirSync(dir)) {
+      if (SNAPSHOT_SKIP.has(name)) continue;
+      const abs = path.join(dir, name);
+      let stat;
+      try {
+        stat = fs.lstatSync(abs);
+      } catch {
+        continue;
+      }
+      if (stat.isSymbolicLink()) continue;
+      if (stat.isDirectory()) walk(abs);
+      else if (stat.isFile()) {
+        map.set(path.relative(root, abs), digest(fs.readFileSync(abs)));
       }
     }
   };
