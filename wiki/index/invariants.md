@@ -19,6 +19,19 @@ stays as evidence that the class was recognized.
 
 Ranked most-severe (data-loss / crash / silent-drift) first.
 
+## I-14. Every guarded subprocess is terminated recursively
+
+Every subprocess that can be cancelled or timed out runs in an owned process
+group (or platform equivalent). Cancellation, timeout, and teardown terminate
+the direct child and every descendant; per-invocation cleanup runs once.
+
+**Protects against:** [[RIG-135]] — orphaned descendants surviving a direct
+child kill and continuing to hold locks, consume resources, or outlive Rig.
+
+**How to check:** `tests/spawn-guarded.test.js` proves recursive cancellation,
+timeout cleanup, exactly-once cleanup, and Linux parent-death cleanup;
+`tests/spawn-guard-allowlist.test.js` ratchets known unguarded sites.
+
 ---
 
 ## I-1. No installer mutation escapes the containment guard

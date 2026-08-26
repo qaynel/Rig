@@ -36,7 +36,7 @@
 
 import { existsSync, readFileSync, statSync, readdirSync } from "fs";
 import { join, dirname, basename, resolve } from "path";
-import { execFileSync, spawnSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { homedir } from "os";
 
 import { parseSkillManifest, type brainManifest, type brainManifestQuery, withErrorContext } from "../lib/rig-memory-helpers";
@@ -192,7 +192,7 @@ function resolveSkillFile(args: CliArgs): string | null {
 
 function brainAvailable(): boolean {
   try {
-    execFileSync("brain", ["--version"], {
+    spawnGuardedSync("brain", ["--version"], {
       stdio: "ignore",
       timeout: MCP_TIMEOUT_MS,
     });
@@ -220,7 +220,7 @@ function dispatchVector(q: brainManifestQuery, args: CliArgs): QueryResult {
   }
 
   const limit = q.limit ?? args.limit;
-  const result = spawnSync("brain", ["query", query, "--limit", String(limit), "--format", "compact"], {
+  const result = spawnGuardedSync("brain", ["query", query, "--limit", String(limit), "--format", "compact"], {
     encoding: "utf-8",
     timeout: MCP_TIMEOUT_MS,
   });
@@ -254,7 +254,7 @@ function dispatchList(q: brainManifestQuery, args: CliArgs): QueryResult {
       cliArgs.push("--filter", `${k}=${rv}`);
     }
   }
-  const result = spawnSync("brain", cliArgs, { encoding: "utf-8", timeout: MCP_TIMEOUT_MS });
+  const result = spawnGuardedSync("brain", cliArgs, { encoding: "utf-8", timeout: MCP_TIMEOUT_MS });
   if (result.status !== 0 || !result.stdout) {
     return {
       query: q,

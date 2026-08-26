@@ -20,6 +20,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, statSync, appendFileSync } from "fs";
 import { dirname, join } from "path";
 import { execFileSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { homedir } from "os";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -284,11 +285,14 @@ function freshDetectEngineTier(): EngineDetect {
   // environments where `2>/dev/null` is bash-specific. The stdio array
   // suppresses stderr without invoking a shell.
   try {
-    const out = execFileSync("brain", ["doctor", "--json", "--fast"], {
+    const result = spawnGuardedSync("brain", ["doctor", "--json", "--fast"], {
       encoding: "utf-8",
       timeout: 5000,
       stdio: ["ignore", "pipe", "ignore"],
     });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw Object.assign(new Error("brain doctor failed"), { stderr: result.stderr });
+    const out = result.stdout || "";
     parsed = JSON.parse(out);
   } catch (err: unknown) {
     // execFileSync throws on non-zero exit; stdout is still on the error

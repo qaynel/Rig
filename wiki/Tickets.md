@@ -25,8 +25,17 @@ kanban-plugin: board
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
 - [ ] **RIG-135 — Guaranteed subprocess cleanup: shared helper, no orphaned descendants**
-	**Status:** OPEN (2026-08-26) — GitHub #75 — follow-up from [[RIG-124]] 124.1; general helper, not the narrow `review-receipt.js` fix · [Solution](tickets/RIG-135.md)
+	**Status:** COMPLETE (2026-08-26) — GitHub #75 — shared helper and all 19 mandatory debt-site migrations landed; sub-findings 135.1/135.2/135.3 remain open as #78/#79/#80 · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY. When a spawned process is killed, only the tracked parent dies; forked children can be orphaned. RIG-124.1 fixed that for the reviewer launcher only; this ticket is the shared guaranteed-cleanup helper for every spawn site.
+- [ ] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
+	**Status:** OPEN (2026-08-26) — GitHub #78 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; highest-priority of the three · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY, browse-skill owned. `cookie-import-browser.ts`'s Windows-only CDP cookie import launches headless Chromium directly against the user's real installed Chrome/Edge profile (required — v20 ABE keys are path-bound) and kills it with a bare leader-pid `chromeProc.kill()`. An orphan holds a lock on the user's actual browser, not a scratch profile. Needs a Windows Job Object design; this repo has no Windows CI to verify one.
+- [ ] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
+	**Status:** OPEN (2026-08-26) — GitHub #79 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY, browse-skill owned. `browser-skill-commands.ts`'s `spawnSkill` runs caller-authored skill scripts via `Bun.spawn` with a bare `proc.kill()` on timeout — same orphan risk as RIG-135's already-debt runtime sites, but Bun's `Subprocess#kill()` has no negative-pid group-kill ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791)), so the Node-shaped helper can't be dropped in unchanged. Owner must choose: shim through `node:child_process`, or build a Bun-native group-kill.
+- [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
+	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** BACKLOG (2026-08-25) — RIG-131: Ready-for-Commit card had no ## Acceptance evidence; not present on origin/prod · [Solution](tickets/RIG-124.md)
 - [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**

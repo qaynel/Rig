@@ -31,7 +31,7 @@
 
 import { existsSync, statSync, mkdirSync, writeFileSync, readFileSync, unlinkSync, renameSync } from "fs";
 import { join, dirname } from "path";
-import { execSync, spawnSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { homedir, hostname } from "os";
 import { createHash } from "crypto";
 
@@ -305,8 +305,8 @@ function parseArgs(): CliArgs {
 
 function repoRoot(): string | null {
   try {
-    const out = execSync("git rev-parse --show-toplevel", { encoding: "utf-8", timeout: 2000 });
-    return out.trim();
+    const out = spawnGuardedSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf-8", timeout: 2000 });
+    return out.status === 0 ? (out.stdout || "").trim() : null;
   } catch {
     return null;
   }
@@ -314,8 +314,8 @@ function repoRoot(): string | null {
 
 function originUrl(): string | null {
   try {
-    const out = execSync("git remote get-url origin", { encoding: "utf-8", timeout: 2000 });
-    return out.trim();
+    const out = spawnGuardedSync("git", ["remote", "get-url", "origin"], { encoding: "utf-8", timeout: 2000 });
+    return out.status === 0 ? (out.stdout || "").trim() : null;
   } catch {
     return null;
   }
@@ -1100,7 +1100,7 @@ function runMemoryIngest(args: CliArgs): StageResult {
     process.env.RIG_SYNC_MEMORY_TIMEOUT_MS,
     "RIG_SYNC_MEMORY_TIMEOUT_MS",
   );
-  const result = spawnSync("bun", ingestArgs, {
+  const result = spawnGuardedSync("bun", ingestArgs, {
     encoding: "utf-8",
     timeout: memoryTimeoutMs,
     env: childEnv,
@@ -1147,12 +1147,12 @@ function runBrainSyncPush(args: CliArgs): StageResult {
 
   // #1731: rig-brain-sync is a bash shebang script; Windows can't spawn it
   // without a shell, which surfaced as "brain-sync exited undefined".
-  spawnSync(brainSyncPath, ["--discover-new"], {
+  spawnGuardedSync(brainSyncPath, ["--discover-new"], {
     stdio: args.quiet ? ["ignore", "ignore", "ignore"] : ["ignore", "inherit", "inherit"],
     timeout: 60 * 1000,
     shell: NEEDS_SHELL_ON_WINDOWS,
   });
-  const result = spawnSync(brainSyncPath, ["--once"], {
+  const result = spawnGuardedSync(brainSyncPath, ["--once"], {
     stdio: args.quiet ? ["ignore", "ignore", "ignore"] : ["ignore", "inherit", "inherit"],
     timeout: 60 * 1000,
     shell: NEEDS_SHELL_ON_WINDOWS,
