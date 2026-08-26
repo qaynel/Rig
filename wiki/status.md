@@ -1,5 +1,23 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
+
+Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
+items, [[RIG-115]] shell-trust, and [[RIG-112]] catalogue-contract — now
+verifies. Five tests remain red by design (`AT-LF-20` through `AT-LF-24`)
+until `rig/lib/lint-format.js` implements the guarantees. Those
+implementations ship as separate tickets; the RIG-120 ceremony (independent
+review receipt, `v5.0.0` tag and publish) waits until `npm test` is green.
+
+## RIG-120 release ceremony: bundling confirmed, ready for owner signing (2026-08-26)
+
+Owner confirmed: bundle [[RIG-112]] (catalogue-contract) into this signing
+round alongside [[RIG-115]] (shell-trust guarantees) and RIG-120's own items.
+All acceptance criteria and testing infrastructure are locked in. The three-part
+oracle — release ceremony + shell-trust + catalogue-contract — is ready for
+owner re-signature. Once signed, the ticket resolves and the independent review
+runs.
+
 ## RIG-115 shell-trust guarantees drafted; signed oracle now stale pending re-sign (2026-08-26)
 
 The owner approved five concrete guarantees closing [[RIG-115]]'s shell-trust
