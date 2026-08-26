@@ -1,5 +1,14 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-21 filesystem/env isolation landed (2026-08-26)
+
+Lint-format task spawn now refuses a working directory that escapes the
+repository through a symlink, and children receive only an explicit
+environment allowlist — not the parent process's secrets. `AT-LF-21` is
+green. `AT-LF-20`, `AT-LF-22`, `AT-LF-23`, and `AT-LF-24` remain
+unimplemented by design until each lands as its own change.
+Verify: `node --test --test-name-pattern "AT-LF-21" tests/advanced-oracle.test.js`.
+
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
