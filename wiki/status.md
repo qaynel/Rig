@@ -1,5 +1,12 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-23 time-cap kill-and-report implemented (2026-08-26)
+
+`runReadOnly` now honors a configured `timeoutMs`, terminates the task through
+the shared spawn helper, and reports `timeout` as its own non-passing state.
+`AT-LF-20` and `AT-LF-21` already landed; `AT-LF-22` and `AT-LF-24` remain red
+until their separate implementations land.
+
 ## AT-LF-21 filesystem/env isolation landed (2026-08-26)
 
 `runReadOnly` now refuses a working directory that is, or is reached only

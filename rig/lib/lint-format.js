@@ -572,7 +572,8 @@ function runReadOnly(target, commands) {
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    spawnTask(cmd.argv, { cwd });
+    const result = spawnTask(cmd.argv, { cwd, timeout: cmd.timeoutMs });
+    if (result.error?.code === 'ETIMEDOUT') return { status: 'timeout' };
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
