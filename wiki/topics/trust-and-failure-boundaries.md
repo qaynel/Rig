@@ -93,3 +93,12 @@ resolve to a distinct reported result rather than collapsing into "pass" or a
 generic "failed" that loses the actionable cause. Treating an inconclusive end
 as non-blocking is rejected as reintroducing false green.
 [reasoning trace](../reasoning/2026-08-21-lint-format-failure-semantics.md)
+
+RIG-115's per-AT-LF-case branches shard this section's guarantees rather than
+proving them whole: the symlink-containment check (AT-LF-21/24) is wired into
+`runReadOnly` only, leaving `runGrade` — the path that actually executes
+lint/format commands — reading `cmd.cwd` unguarded; AT-LF-23's "memory ceiling
+or wall-clock timeout" has only the timeout half implemented anywhere. Each
+branch's own test passes; neither proves the boundary this page states. See
+[guarantee sharding](../mistakes/guarantee-sharding.md) and
+[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).

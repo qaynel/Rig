@@ -68,3 +68,12 @@ honest limit is that the oracle still binds these functions by direct
 `require`, so a green result does not prove a shipping path calls them.
 [fresh review](../reasoning/2026-08-22-mvp-release-review.md) ·
 [Status](../status.md#what-exists-in-the-code-today)
+
+A third mechanism of the same family showed up 2026-08-27 in RIG-115's
+per-AT-LF-case branches: each branch's acceptance test passes for a slice of
+its guarantee narrower than the acceptance text states, and nothing checks
+whether the union of sibling branches' passing tests reconstructs the whole
+guarantee. Named as [guarantee sharding](../mistakes/guarantee-sharding.md) —
+see [`mistakes/`](../mistakes/) for this family of anti-patterns going
+forward, kept separate from this page's own two instances above.
+[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md)
