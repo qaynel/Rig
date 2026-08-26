@@ -54,7 +54,7 @@ before treating it as "just what happens sometimes."
   unconfirmed) but there's no further evidence to chase without instrumenting
   the *next* occurrence live.
 
-## Conclusion
+## Conclusion (superseded — see addendum below)
 
 No reproducible code-level defect explains the 30-minute duration itself —
 it doesn't reproduce under isolation or under heavy synthetic load, and the
@@ -63,15 +63,52 @@ independently ruled out by how the script is written. The most defensible
 reading: this was a one-off external stall of a single subprocess launch, the
 kind that a real reviewer call over the network can also produce for entirely
 mundane reasons (rate limiting, a slow response, a stuck connection) — which
-is exactly the scenario RIG-124's cap exists to bound. That reframes the red
-run correctly: the *duration* was incidental noise; the finding that matters
-is still [[RIG-124]] **124.1** — that when a subprocess genuinely does take
-the full timeout (for any reason, real or synthetic), its failure is silently
-dropped from the retry count instead of being counted against the cap. That
-conclusion, and the fix it calls for, are unchanged by this trace.
+is exactly the scenario RIG-124's cap exists to bound.
 
-**Recommendation: do not spend further time chasing the exact cause of one
-subprocess's one-off delay** — it isn't reproducible and isn't on the
-critical path. The actionable item remains fixing RIG-124.1 before RIG-120's
-ceremony run, since a real 30-minute-plus reviewer stall is an expected,
-recurring possibility in production, not a fluke specific to that run.
+## Addendum: a real leaked process, found by checking for one
+
+The user pushed back correctly: "a subprocess taking 30 minutes is itself
+suspicious — is there an actual defective/stuck process, not just noise?"
+That's a fair challenge to the conclusion above, and checking for it directly
+(rather than reasoning about plausibility) turned up a genuine defect.
+
+A live process was found still running on this machine, unrelated to this
+session: a shell interpreting the same throwaway reviewer stand-in script
+from the deterministic repro built in [[2026-08-26-rig124-cap-lost-update]]
+(the one deliberately made to hang forever to prove the cap's lost-update
+bug), orphaned (reparented to PID 1) and alive since that investigation, over
+40 minutes ago, still looping and still spawning children. Its working
+directory no longer exists — only the process does.
+
+**Root mechanism, confirmed with a controlled test:** the stand-in script has
+more than one line, so the shell interpreting it must fork a real child
+process for each step rather than replacing itself. When the wrapping
+process is killed — whether by the script's own internal timeout, or by an
+outside kill — only that direct shell is terminated. Any child *it* had
+already forked partway through the script is not touched by that kill and is
+never reaped; it is orphaned and keeps running indefinitely. Reproduced
+cleanly: a shell blocked on its own child when the timeout fires dies on
+cue, but its child survives, reparented to init, running forever.
+
+**Why this matters beyond one leaked process:** the real reviewer program
+(the actual review tool, not the throwaway stand-in) is a full agent that
+plausibly spawns its own child processes internally while it works. If that
+combination — kill the wrapper on timeout — doesn't reliably tear down
+everything underneath it, a review that the tool believes it cancelled can
+keep running in the background: still doing work, still consuming budget,
+indefinitely, invisible to anything watching the wrapper. That is a more
+serious version of the problem than "the retry count is wrong" — it means
+"killed" reviews may not actually stop.
+
+**Revised recommendation:** raising the timeout was never on the table and
+still isn't — this addendum confirms why: the problem was never that 30
+minutes is too short, it's that a kill doesn't reliably stop everything a
+review started. Two things now belong on the fix list together, not
+separately: (1) the already-filed cap bug [[RIG-124]] **124.1**, and (2) make
+a kill of the reviewer wrapper actually terminate its whole process tree
+(the standard fix is spawning it in its own process group and signaling the
+group, not just the one tracked process), so a cancelled review is guaranteed
+to actually stop. Filing (2) as part of the same follow-up rather than a
+separate ticket, since both are about the same kill path being incomplete.
+The one leaked process found on this machine is harmless debug debris (not
+reachable from real ceremony runs) but should be cleaned up.

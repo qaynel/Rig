@@ -24,9 +24,9 @@ kanban-plugin: board
 - [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
-- [ ] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
-	**Status:** OPEN (2026-08-26) — GitHub #73 — follow-up to closed [[RIG-124]] (#45); found investigating a red RIG-120 gate run · [Solution](tickets/RIG-124.md)
-	**Class:** RELEASE GATE / v5-observable. `scripts/review-receipt.js` only persists the failure count after the reviewer subprocess spawn returns cleanly; a spawn killed by its own `TIMEOUT_MS` exits the process first, so that failure is never recorded and the next same-`author-context` attempt is wrongly let through the cap. Directly on the RIG-120 release-ceremony path. Trace: [[2026-08-26-rig124-cap-lost-update]].
+- [ ] **RIG-135 — Implement guaranteed process cleanup for spawned subprocesses**
+	**Status:** OPEN (2026-08-26) — GitHub #75 — follow-up from [[RIG-124]] 124.1; general helper, not the narrow `review-receipt.js` fix · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY. When a spawned process is killed, only the tracked parent dies; forked children can be orphaned. RIG-124.1 fixed that for the reviewer launcher only; this ticket is the shared guaranteed-cleanup helper for every spawn site.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** BACKLOG (2026-08-25) — RIG-131: Ready-for-Commit card had no ## Acceptance evidence; not present on origin/prod · [Solution](tickets/RIG-124.md)
 - [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**
@@ -101,29 +101,7 @@ kanban-plugin: board
 
 ## Ready for Commit
 
-<<<<<<< HEAD
-- [ ] **RIG-134 — Pre-v5 release gate: classify every known finding as debt or v5-observable**
-	**Status:** READY FOR COMMIT (2026-08-25) — Option A observable set green; debt inventory is `rig/raw-registry-access.json` · [Solution](tickets/RIG-134.md)
-	**Done:** Classification tagged; 134.1 parity and the v5-observable cluster are proven by `tests/pre-v5-gate.test.js::every v5-observable finding has a green deterministic test` and `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
-- [ ] **RIG-131 — "Done" is agent prose, not a named green test**
-	**Status:** READY FOR COMMIT (2026-08-25) — checker in the npm test path · [Solution](tickets/RIG-131.md)
-	**Done:** `tests/ticket-traceability.test.js::the current board has no unresolved completed-card violation`.
-- [ ] **RIG-126 — Onboarding is not runnable end-to-end**
-	**Status:** READY FOR COMMIT (2026-08-25) — 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md)
-	**Done:** `tests/runtime-onboarding.test.js::the staged sequence produces review selection plan and a green check`.
-- [ ] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
-	**Status:** DONE (2026-08-26) — GitHub #36 closed by PR #31; 127.1–127.8 and 127.10; 127.9 remains the earlier fix; follow-ups 127.11 → GitHub #69, 127.12 → GitHub #70 · [Solution](tickets/RIG-127.md)
-	**Done:** `tests/install-uninstall-roundtrip.test.js::public uninstall reverses a default bootstrap install`.
-- [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
-	**Status:** READY FOR COMMIT (2026-08-25) — descriptor parity plus 128.4/128.5; 128.3/128.6 remain debt · [Solution](tickets/RIG-128.md)
-	**Done:** `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
-- [ ] **RIG-129 — Host-capability citation & claim-accuracy audit**
-	**Status:** READY FOR COMMIT (2026-08-25) — 129.1 only; 129.2–129.4 remain debt · [Solution](tickets/RIG-129.md)
-	**Done:** `tests/pi-mcp-claim.test.js::pi MCP guidance names the extension path and never says unsupported`.
 
-
-=======
->>>>>>> f2426c5 (Track RIG-124.1: review-receipt cap silently defeats retry limit on subprocess timeout)
 
 ## Blocked
 
@@ -174,6 +152,9 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
+	**Status:** DONE (2026-08-26) — GitHub #73 closed by PR #74; general process-cleanup helper remains [[RIG-135]] (#75) · [Solution](tickets/RIG-124.md)
+	**Done:** `tests/release-blockers.test.js::review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)`.
 - [ ] **RIG-126 — Onboarding is not runnable end-to-end**
 	**Status:** DONE (2026-08-26) — GitHub #35 closed by PR #32; 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md)
 	**Done:** `tests/runtime-onboarding.test.js::the staged sequence produces review selection plan and a green check`.
@@ -193,7 +174,7 @@ kanban-plugin: board
 	**Status:** DONE (2026-08-26) — GitHub #40 closed by PR #34; Option A observable set green; debt inventory is `rig/raw-registry-access.json` · [Solution](tickets/RIG-134.md)
 	**Done:** Classification tagged; 134.1 parity and the v5-observable cluster are proven by `tests/pre-v5-gate.test.js::every v5-observable finding has a green deterministic test` and `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
-	**Status:** DONE (2026-08-26) — GitHub #45 closed; RIG-124.1 (#73) is an open follow-up · [Solution](tickets/RIG-124.md)
+	**Status:** DONE (2026-08-26) — GitHub #45 closed; RIG-124.1 (#73) fixed by PR #74 · [Solution](tickets/RIG-124.md)
 	**Done:** `tests/release-blockers.test.js::review-receipt caps re-review after one retry for the same author-context (RIG-124)`.
 - [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**
 	**Status:** DONE (2026-08-26) — GitHub #46 closed · [Solution](tickets/RIG-123.md)

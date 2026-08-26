@@ -19,7 +19,9 @@ const { spawnSync } = require('node:child_process');
 const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
 
 const WRAPPER_VERSION = 4;
-const TIMEOUT_MS = 30 * 60 * 1000;
+// Test-only override so a regression test can force the reviewer spawn to
+// hit its timeout without waiting 30 minutes; unset in production.
+const TIMEOUT_MS = Number(process.env.RIG_REVIEW_RECEIPT_TIMEOUT_MS) || 30 * 60 * 1000;
 // RIG-124: a `fail` verdict is real signal. Cap automatic fix-and-re-review
 // cycles for one author-context at one re-review (two attempts total); a
 // second consecutive fail must stop and be surfaced, not retried again.
@@ -159,13 +161,34 @@ const reviewerCommand = reviewerDriver === 'codex' ? 'codex' : 'claude';
 const reviewerArgs = reviewerDriver === 'codex'
   ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
   : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob,Bash'];
+
+// RIG-124.1: write the failure optimistically, before the spawn, and only
+// clear it on a confirmed pass below. A spawn killed by its own timeout (or
+// any other signal) exits this process before it could reach a write placed
+// after the spawn, which silently dropped that attempt from the cap. Writing
+// first means every non-clean return is already counted.
+writeFileSync(attemptsPath, `${JSON.stringify({ authorContext, failures: priorFailures + 1 })}\n`);
+
+// RIG-124.1: run the reviewer in its own process group (detached) so that
+// after this call returns — however it returns — any descendant it forked
+// and left behind can be reaped too. spawnSync's own timeout only signals
+// the one process it tracks, not children that process had already forked;
+// those were being orphaned, reparented to init, and left running forever.
 const run = spawnSync(reviewerCommand, reviewerArgs, {
   input: prompt,
   cwd: implementationRoot,
   encoding: 'utf8',
   timeout: TIMEOUT_MS,
   maxBuffer: 64 * 1024 * 1024,
+  detached: true,
 });
+if (run.pid) {
+  try {
+    process.kill(-run.pid, 'SIGKILL');
+  } catch {
+    // process group already gone
+  }
+}
 
 if (run.error) fail(`reviewer failed to launch: ${run.error.message}`);
 if (run.status !== 0) fail(`reviewer exited ${run.status}: ${(`${run.stderr || ''}\n${run.stdout || ''}`).trim().slice(0, 2000)}`);
@@ -181,9 +204,10 @@ try {
   fail(`reviewer json did not parse: ${e.message}`);
 }
 
-if (reported.verdict === 'fail') {
-  writeFileSync(attemptsPath, `${JSON.stringify({ authorContext, failures: priorFailures + 1 })}\n`);
-} else if (existsSync(attemptsPath)) {
+// The optimistic write above already recorded this attempt as a failure.
+// Only a confirmed pass clears the cap; a fail (or anything short of pass)
+// leaves the count in place.
+if (reported.verdict !== 'fail' && existsSync(attemptsPath)) {
   unlinkSync(attemptsPath);
 }
 

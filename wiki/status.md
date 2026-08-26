@@ -1,5 +1,26 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## RIG-124.1 fixed, narrow scope (2026-08-26)
+
+GitHub [#73](https://github.com/qaynel/Rig/issues/73) closed to match. Both parts of [[RIG-124]] **124.1** are fixed in `scripts/review-receipt.js`,
+scope kept deliberately narrow to this one file per owner decision — the
+general "every spawned process gets guaranteed cleanup" version is tracked
+separately as [[RIG-135]] and is not part of this change. (1) The re-review
+cap now writes the failure record before spawning the reviewer and only
+clears it on a confirmed pass, so a killed/timed-out attempt can no longer be
+silently dropped from the count. (2) The reviewer now spawns in its own
+process group and the whole group is signalled right after the spawn call
+returns, so a descendant process it forked can no longer be orphaned when the
+spawn is killed. Both regressions have a named test in
+`tests/release-blockers.test.js`, confirmed red against the pre-fix code and
+green with the fix; a test-only `RIG_REVIEW_RECEIPT_TIMEOUT_MS` env override
+lets those tests force the timeout path without a real 30-minute wait. Full
+gate re-run on the fixed bytes: green end to end (root 476/476, pi-extension
+15/15, rig-mcp 6/6) — the only failure on the first pass
+(`AT-HOME-1`/`advanced-oracle.test.js`) was `rig-mcp/node_modules` not being
+installed in this workspace, unrelated to this change; fixed with `npm ci`
+in `rig-mcp/` and confirmed green after.
+
 ## Why the RIG-124 red run took ~30 minutes — real defect found (2026-08-26)
 
 Follow-up question after filing RIG-124.1: was the ~30-minute duration itself
@@ -61,11 +82,11 @@ risk**. Trace: [[2026-08-26-review-round-code-level-findings]], [[2026-08-26-rig
 Board and GitHub issues reconciled after the six merged ticket PRs landed.
 **Done (23 tickets):** RIG-101 through RIG-124 (except blocked structural
 tickets), plus RIG-126/127/128/129/131/134. GitHub #45–#61 closed to match.
-**Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), and RIG-124.1 (#73) —
-defects found in the post-merge hand-verification and gate-rerun passes
-([[2026-08-26-review-round-code-level-findings]],
+**Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), and RIG-135 (#75).
+RIG-124.1 (#73) is Done. Defects found in the post-merge hand-verification and
+gate-rerun passes ([[2026-08-26-review-round-code-level-findings]],
 [[2026-08-26-rig124-cap-lost-update]]). **Still blocked:** RIG-120
-(release ceremony — now also blocked on RIG-124.1), RIG-110–116, RIG-122.
+(release ceremony), RIG-110–116, RIG-122.
 **Structural backlog:** RIG-125, RIG-130, RIG-132, RIG-133.
 
 ## Invariants index seeded (2026-08-26)
