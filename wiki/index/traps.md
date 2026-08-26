@@ -171,6 +171,38 @@ OS `kill(2)` syscall on the negative pid directly rather than through
 `xvfb.ts`, and `cookie-import-browser.ts` — see [[RIG-135]]'s "Bun-native
 process spawns" section.
 
+## A ticket can cite a reasoning trace that was never committed
+
+Four tickets (RIG-125, RIG-130, RIG-132, RIG-133) landed via a single commit
+already containing `[[...]]` links to eight reasoning documents from the
+session that produced them. Those documents were never `git add`ed in that
+session — only captured transiently in tool checkpoint snapshots — and were
+gone by the time the tickets were committed elsewhere. The tickets read as
+complete and well-sourced; the citations are dead. Before trusting a `[[...]]`
+citation on a freshly-landed ticket, confirm the target file exists on disk,
+not just that the ticket prose reads as if it does. See
+[[2026-08-26-rig125-130-132-133-reinvestigation]].
+
+## A dead citation can hide behind an ordinary markdown link, not just `[[...]]`
+
+The first pass at [[2026-08-26-rig125-130-132-133-reinvestigation]] grepped only
+for `[[...]]` wiki-links and missed two dead sources in RIG-132 cited as
+`[text](../sources/reference/foo.raw.md)` — plain markdown links to files that
+also don't exist. When auditing citations for a ticket, grep both link forms;
+checking one and concluding "citations verified" is a false clean bill. See
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding A.
+
+## A ticket's own headline number can silently disagree with its own breakdown
+
+RIG-132 states "~124 addressable claim anchors (79 numbered sections, 37 `AD-`,
+68 `AT-`, 19 `D`)" — the parenthetical sums to 203, not 124. The "~7,600 pairs"
+that follows is consistent with 124 (`C(124,2)=7,626`), not with 203
+(`C(203,2)=20,503`), so the two halves of the same sentence contradict each
+other. Nothing about this required the missing citations to catch — arithmetic
+in a ticket is exactly as checkable as code, and is not checked by default just
+because it reads confidently. See
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding D.
+
 ## A partially applied control must never report as enabled
 
 While an install's manifest header says `complete: false`, `policy status`, the

@@ -152,6 +152,69 @@ implementation). Findings and deliverables:
   the intended TDD red state for this ticket's oracle, not a regression to
   fix blindly.
 
+## RIG-125/130/132/133 re-evaluated from committed evidence only, since the citations can't be recovered yet (2026-08-26)
+
+Follow-up to the re-investigation below, per owner request. Full trace:
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]].
+
+Two more dead citations found (RIG-132 cited two source files by plain markdown
+link, not `[[...]]`, missed by the first grep — neither exists). Everything else
+is positive: **RIG-125's and RIG-133's central claims no longer depend on the
+missing analysis at all** — both are independently corroborated by other
+committed material (a surviving distillation doc, and RIG-134, which is closed
+and carries the same evidence with line numbers). **RIG-130's evidence table is
+6/7 verified** against real receipt files; the 7th (worst-looking) round has no
+committed source and shouldn't be cited as fact yet — the conclusion holds on
+the six verified rounds alone. **RIG-132's shipped pre-v5 slice is unaffected**;
+its unshipped v5.1 case is weaker than it read — two more sources confirmed
+dead, plus an internal arithmetic error (a headline anchor count that doesn't
+match its own breakdown) unrelated to any citation.
+
+Net: RIG-125, RIG-130, RIG-133 now rest on committed, re-checkable evidence
+rather than the ticket's own word. RIG-132's shipped work does too; its
+architectural framing for v5.1 should wait on recovered sources before its
+specific figures are treated as verified.
+
+## RIG-125/130/132/133 re-investigated; two are further along than their board status said (2026-08-26)
+
+Full trace: [[2026-08-26-rig125-130-132-133-reinvestigation]].
+
+**Defect found:** all four tickets cite eight 2026-08-25 reasoning documents
+([[2026-08-25-branch-code-review-snapshot]], round-3 receipt/map, structural
+root-cause, semantic-model-assessment, escaping-the-quadratic, prev5
+classification-and-migration-pattern, why-each-pass-finds-new-issues) that do
+not exist in this repository's committed history on any branch. They existed
+only as uncommitted files in a prior session's checkpoints and were lost before
+being committed; the four ticket bodies landed via `da4a41e` already citing
+them. Each ticket's `[[...]]` links to these names are dangling. The ticket
+bodies remain self-contained (inline tables/grep/code quoted directly), but the
+analysis behind them is currently unreachable. **Needs an owner decision:**
+recover the original sessions and file the traces verbatim, or strike the
+citations and treat the inline evidence as the whole record.
+
+**RIG-125** — its three named loop-breaker tests (`tests/host-contract-parity.test.js`,
+`tests/install-uninstall-roundtrip.test.js`, `tests/runtime-onboarding.test.js`)
+and its uninstall-authority collapse (`uninstall.js` now delegates to
+`lifecycle.js` as sole authority) are already implemented and green — they
+landed as part of closing [[RIG-126]]/[[RIG-127]]/[[RIG-128]], which cite the
+same tests as their own Done evidence. Still open: promoting these into the
+signed oracle, blocked on RIG-133.
+
+**RIG-132** — its "pre-v5 ratchet only" packet (`rig/raw-registry-access.json`,
+`scripts/check-raw-registry-access.js`, `tests/raw-registry-allowlist.test.js`,
+5/5 passing, prints `raw registry debt: 1`) is already implemented, landed
+alongside [[RIG-134]]'s gate work. The ticket's v5.1 migration body (the
+`HostContract` semantic layer, generated rule/skill copies) has not started —
+correctly, per the ticket's own "does not land in v5.0.0" scoping.
+
+**RIG-130** and **RIG-133** — confirmed no progress on either. No finding-class
+ledger exists for RIG-130; `tests/advanced-oracle.test.js` is still 65
+enumerated cases for RIG-133. Both remain fully open, still blocking what they
+were filed to block (RIG-133 blocks RIG-125's last step; RIG-130 blocks making
+review convergence measurable).
+
+Board (`Tickets.md`) and all four ticket files updated to match.
+
 ## RIG-124.1 fixed, narrow scope (2026-08-26)
 
 GitHub [#73](https://github.com/qaynel/Rig/issues/73) closed to match. Both parts of [[RIG-124]] **124.1** are fixed in `scripts/review-receipt.js`,
