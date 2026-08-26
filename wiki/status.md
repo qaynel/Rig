@@ -8,6 +8,7 @@ the command is not started), and spawns each task with an explicit
 environment allowlist instead of the parent process's environment. Named
 check: `AT-LF-21 task filesystem and environment stay isolated`. Remaining
 red: `AT-LF-22`–`AT-LF-24` (`AT-LF-20` is implemented).
+Verify: `node --test --test-name-pattern "AT-LF-21" tests/advanced-oracle.test.js`.
 
 ## AT-LF-20 single-use plan approval implemented (2026-08-26)
 
