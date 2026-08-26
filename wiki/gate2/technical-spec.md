@@ -2014,7 +2014,8 @@ whose real target resolves outside the repository is refused for read,
 write, or working-directory use, never followed because its lexical path
 looks contained. `AT-LF-20` is implemented (`executePlan` consumes a matching
 approval on a successful execution and refuses the same approval on replay).
-`AT-LF-21`–`AT-LF-24` remain frozen ahead of the runtime that must satisfy
+`AT-LF-21` is implemented in `runReadOnly` (contained cwd, allowlisted env).
+`AT-LF-22`–`AT-LF-24` remain frozen ahead of the runtime that must satisfy
 them.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the

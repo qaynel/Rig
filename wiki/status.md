@@ -1,20 +1,30 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-21 filesystem/env isolation landed (2026-08-26)
+
+`runReadOnly` now refuses a working directory that is, or is reached only
+through, a symlink resolving outside the repository (`boundary_violation`,
+the command is not started), and spawns each task with an explicit
+environment allowlist instead of the parent process's environment. Named
+check: `AT-LF-21 task filesystem and environment stay isolated`. Remaining
+red: `AT-LF-22`–`AT-LF-24` (`AT-LF-20` is implemented).
+
 ## AT-LF-20 single-use plan approval implemented (2026-08-26)
 
 `executePlan` now consumes a matching plan approval on a successful
 execution and refuses the same approval on a second presentation
-(`not_authorized`). `AT-LF-20` is green. `AT-LF-21` through `AT-LF-24`
-remain red until their runtimes land as separate tickets. The RIG-120
-ceremony (independent review receipt, `v5.0.0` tag and publish) still
-waits until `npm test` is green.
+(`not_authorized`). `AT-LF-20` is green. `AT-LF-21` is green on this merge.
+`AT-LF-22` through `AT-LF-24` remain red until their runtimes land as
+separate tickets. The RIG-120 ceremony (independent review receipt,
+`v5.0.0` tag and publish) still waits until `npm test` is green.
 
 ## RIG-120 oracle re-signed; AT-LF-20–24 land as separate tickets (2026-08-26)
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
 items, [[RIG-115]] shell-trust, and [[RIG-112]] catalogue-contract — now
-verifies. Remaining red-by-design cases: `AT-LF-21` through `AT-LF-24`
-(`AT-LF-20` implemented). Those implementations ship as separate tickets; the
+verifies. Remaining red-by-design cases: `AT-LF-22` through `AT-LF-24`
+(`AT-LF-20` and `AT-LF-21` implemented). Those implementations ship as
+separate tickets; the
 RIG-120 ceremony (independent review receipt, `v5.0.0` tag and publish) waits
 until `npm test` is green.
 
