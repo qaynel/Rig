@@ -97,8 +97,10 @@ as non-blocking is rejected as reintroducing false green.
 RIG-115's per-AT-LF-case branches shard this section's guarantees rather than
 proving them whole: the symlink-containment check (AT-LF-21/24) is wired into
 `runReadOnly` only, leaving `runGrade` — the path that actually executes
-lint/format commands — reading `cmd.cwd` unguarded; AT-LF-23's "memory ceiling
-or wall-clock timeout" has only the timeout half implemented anywhere. Each
+lint/format commands — reading `cmd.cwd` unguarded
+([RIG-139 / #94](https://github.com/qaynel/Rig/issues/94)); AT-LF-23's
+"memory ceiling or wall-clock timeout" has only the timeout half implemented
+anywhere ([RIG-140 / #95](https://github.com/qaynel/Rig/issues/95)). Each
 branch's own test passes; neither proves the boundary this page states. See
 [guarantee sharding](../mistakes/guarantee-sharding.md) and
 [reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).

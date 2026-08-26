@@ -76,4 +76,7 @@ whether the union of sibling branches' passing tests reconstructs the whole
 guarantee. Named as [guarantee sharding](../mistakes/guarantee-sharding.md) —
 see [`mistakes/`](../mistakes/) for this family of anti-patterns going
 forward, kept separate from this page's own two instances above.
+Instances: [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93),
+[RIG-139 / #94](https://github.com/qaynel/Rig/issues/94),
+[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95).
 [reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md)

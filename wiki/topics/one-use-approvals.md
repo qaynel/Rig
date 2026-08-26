@@ -42,8 +42,9 @@ pending one-use approvals only after an authorized recovery receipt commits.
 Branch `rig-115-at-lf-20-single-use-approval` (RIG-115, AT-LF-20) sets
 `approval.used = true` on the in-memory approval object only — no clone-local
 persistence, so the flag does not survive the process boundary a real
-plan/execute flow crosses. It is one instance of a larger pattern, not an
-isolated bug: see [guarantee sharding](../mistakes/guarantee-sharding.md) and
+plan/execute flow crosses. Filed as [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93).
+It is one instance of a larger pattern, not an isolated bug: see
+[guarantee sharding](../mistakes/guarantee-sharding.md) and
 [reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md). Any
 implementation of atomic consumption here must be durable across processes,
 matching this page's "clone-local, atomically consumed" definition above, not

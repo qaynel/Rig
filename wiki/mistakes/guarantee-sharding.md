@@ -24,6 +24,7 @@ acceptance case: `rig-115-at-lf-20-single-use-approval`,
 `rig-124-timeout-duration-investigation`. Three of them shard the same way:
 
 **AT-LF-20 — "one execution per approval."**
+[RIG-138 / #93](https://github.com/qaynel/Rig/issues/93).
 Branch `rig-115-at-lf-20-single-use-approval`, `rig/lib/lint-format.js:421,441`:
 
 ```js
@@ -42,6 +43,7 @@ to. This project already has a durable pattern for exactly this
 branch does not use it.
 
 **AT-LF-21/24 — "no symlink escape."**
+[RIG-139 / #94](https://github.com/qaynel/Rig/issues/94).
 Branch `rig-115-at-lf-24-symlink-escape` adds `taskCwd(target, rel)`
 (`rig/lib/lint-format.js:502`, wrapping `containedPath`) and calls it inside
 `runReadOnly` (`:617`). `runGrade` — the function that actually executes
@@ -52,6 +54,7 @@ in the function. The branch's test passes because it only exercises
 path that matters most.
 
 **AT-LF-23 — "memory ceiling *or* wall-clock timeout."**
+[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95).
 Branch `rig-124-timeout-duration-investigation` implements
 `timeout: cmd.timeout_ms || 10 * 60 * 1000` and `ETIMEDOUT` handling. No
 `maxBuffer`, `--max-old-space-size`, `ulimit`, or any RSS/cgroup check exists
@@ -99,8 +102,10 @@ call-site/conjunct list before being split into tickets) and `rig-execution`
 (the seam check belongs at the point independent work is verified before a
 completion claim), not a one-time fix to these three branches.
 
-It also binds [RIG-120](https://github.com/qaynel/Rig-v0.1/issues/68): the
+It also binds [RIG-120 / #68](https://github.com/qaynel/Rig/issues/68): the
 release ceremony must not treat RIG-115 as Done — or the five `AT-LF-20`–
 `AT-LF-24` slices as proving the shell-trust guarantee — until this check
-passes against the landed bytes. RIG-138, RIG-139, and RIG-140 are instances
-of this pattern, not three independent follow-ups.
+passes against the landed bytes. [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93),
+[RIG-139 / #94](https://github.com/qaynel/Rig/issues/94), and
+[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95) are instances of this
+pattern, not three independent follow-ups.
