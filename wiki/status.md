@@ -2,16 +2,12 @@
 
 ## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
 
-`runReadOnly` now default-denies outbound network for untrusted lint-format
-tasks (`AT-LF-22`). macOS uses Seatbelt (`sandbox-exec`); Linux uses
-`unshare --user --map-root-user --net`. A command with `network: true` is
-the explicit grant and is left unwrapped. The AT-LF-22 oracle test binds
-`listen(0)` without a host so `server.address()` is populated synchronously
-on Node 24 — `listen(0, '127.0.0.1')` goes through `dns.lookup` and threw
-before `runReadOnly` ran. That test-setup edit changes the manifested
-oracle bytes; the owner must re-sign before `npm test`'s spec gate is
-green. `AT-LF-21` already landed; `AT-LF-20`, `AT-LF-23`, and `AT-LF-24`
-remain unimplemented.
+`runReadOnly` prepends OS network isolation to each ungranted task argv:
+`unshare --net` on Linux and Seatbelt `sandbox-exec` on macOS, after a
+one-shot `--help` availability check. If neither tool is present it logs a
+warning and returns `network_isolation_unavailable`. Named check: `AT-LF-22
+a task has no network reachability without an explicit grant`. `AT-LF-21`
+already landed; `AT-LF-20`, `AT-LF-23`, and `AT-LF-24` remain unimplemented.
 
 ## AT-LF-21 filesystem/env isolation landed (2026-08-26)
 
