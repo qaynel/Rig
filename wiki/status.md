@@ -1,5 +1,31 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## RIG-115 shell-trust guarantees drafted; signed oracle now stale pending re-sign (2026-08-26)
+
+The owner approved five concrete guarantees closing [[RIG-115]]'s shell-trust
+suite — single-use plan-bound approval, filesystem/env isolation including
+through symlinks, default-deny network reachability, killed-and-reported
+resource/time caps, refused symlink escapes (`GA-37`, `D28`). `AT-LF-20`
+through `AT-LF-24` are authored in `wiki/gate1/acceptance.md`, traced in
+`wiki/gate2/technical-spec.md` §9.4, and tested in
+`tests/advanced-oracle.test.js`; the acceptance ID set is now **73**, up from
+68. Trace: [[2026-08-26-rig115-shell-trust-guarantees]].
+
+None of the five is implemented. `node scripts/check-advanced-spec.js` now
+reports `oracle signature does not verify` — expected, not a regression: the
+manifest and 73-case coverage check both pass cleanly (confirming the draft is
+internally consistent), and only the final signature step fails because the
+signed bytes changed underneath the existing signature. The five new tests
+fail by design until `rig/lib/lint-format.js` is implemented against them.
+**This branch's gate is deliberately red until the owner re-signs and the
+implementation lands — do not treat this as a build break.**
+
+RIG-115 is now ready to bundle into [[RIG-120]]'s single signing round,
+alongside RIG-120's own naming/ceremony items. [[RIG-112]]'s catalogue-contract
+freeze remains a separate owner yes/no (no new oracle content needed — the
+mechanical work is already signed via `AT-SHAPE-6`) that has not yet been
+explicitly confirmed for this same round.
+
 ## Wiki reconciled against the branch and the issue board (2026-08-26)
 
 Drift audit of the wiki against the current bytes and the live GitHub board.
