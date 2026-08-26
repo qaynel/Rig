@@ -39,7 +39,7 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [] }) {
+function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub }) {
   const root = path.join(__dirname, '..');
   const bin = path.join(target, 'bin');
   if (!fs.existsSync(bin)) fs.mkdirSync(bin);
@@ -56,7 +56,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [] 
   const fake = path.join(bin, 'claude');
   fs.writeFileSync(
     fake,
-    `#!/bin/sh\ncat >/dev/null\nprintf 'x' >> '${invocationMarker}'\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`,
+    stub || `#!/bin/sh\ncat >/dev/null\nprintf 'x' >> '${invocationMarker}'\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`,
     { mode: 0o755 },
   );
   const run = spawnSync(process.execPath, [
@@ -70,7 +70,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [] 
     '--model', 'fake-reviewer',
     '--out', out,
     ...extraArgs,
-  ], { encoding: 'utf8', env: { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}` } });
+  ], { encoding: 'utf8', env: { ...process.env, ...env, PATH: `${bin}${path.delimiter}${process.env.PATH}` } });
   const invocationCount = fs.existsSync(invocationMarker) ? fs.readFileSync(invocationMarker, 'utf8').length : 0;
   fs.rmSync(invocations, { recursive: true, force: true });
   return { run, invocationCount };
@@ -1112,6 +1112,54 @@ test('review-receipt cap is scoped per author-context and clears on a passing ve
 
     const again = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
     assert.equal(again.invocationCount, 1, 'a passing verdict resets the cap for later, unrelated review needs');
+  });
+});
+
+test('review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const authorContext = 'release-attempt-timeout';
+    const hangingStub = '#!/bin/sh\ncat >/dev/null\nsleep 3600\n';
+
+    const first = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.notEqual(first.run.status, 0);
+
+    const timedOut = runReviewReceipt(target, {
+      verdict: 'fail',
+      authorContext,
+      out,
+      stub: hangingStub,
+      env: { RIG_REVIEW_RECEIPT_TIMEOUT_MS: '300' },
+    });
+    assert.notEqual(timedOut.run.status, 0, 'a hung reviewer spawn must still end the process with a failure');
+
+    const third = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(third.invocationCount, 0, 'a killed/timed-out attempt must still count toward the cap');
+    assert.match(third.run.stderr, /re-review cap reached/);
+  });
+});
+
+test('killing a hung reviewer spawn leaves no descendant process still running (RIG-124.1)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const authorContext = 'release-attempt-orphan';
+    const childMarker = path.join(target, 'child-alive');
+    // Backgrounds a grandchild before blocking on its own long sleep, so the
+    // grandchild is still alive and unreaped at the moment the timeout fires.
+    const hangingWithChildStub =
+      `#!/bin/sh\ncat >/dev/null\n( sleep 1; printf 'x' >> '${childMarker}' ) &\nsleep 3600\n`;
+
+    runReviewReceipt(target, {
+      verdict: 'fail',
+      authorContext,
+      out,
+      stub: hangingWithChildStub,
+      env: { RIG_REVIEW_RECEIPT_TIMEOUT_MS: '300' },
+    });
+
+    // Give the backgrounded grandchild time to run if it survived the kill.
+    spawnSync('sleep', ['1.5']);
+    assert.ok(!fs.existsSync(childMarker), 'a process the hung reviewer forked must not survive the kill');
   });
 });
 
