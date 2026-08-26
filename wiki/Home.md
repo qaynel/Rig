@@ -84,7 +84,7 @@ topic is wrong.
 ## Indexes
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
-- [**Acceptance cases**](index/acceptance-cases.md) — the 68 frozen cases and where each is traced.
+- [**Acceptance cases**](index/acceptance-cases.md) — the 73 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
@@ -103,7 +103,7 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves. The completed test manifest is covered by the owner signature with both documents. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves; D28 extends the set to 73 with RIG-115's shell-trust guarantees. The completed test manifest is covered by the owner signature with both documents. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 

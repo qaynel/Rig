@@ -6,7 +6,7 @@ Every ruling this project has made, across four ID schemes, in one place.
 |---|---|---|---|
 | `G#` | 16 | Foundational grilling — what Rig is and how it is built. | [`sources/logs/grill-decisions.md`](../sources/logs/grill-decisions.md) |
 | `GA-#` | 87 | Advanced grilling — the business intent behind Gate 1. | [`sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md), later intent-owner traces |
-| `D#` | 28 | Gate 1 revisions — rulings that changed owner-approved intent. D28 awaits the combined oracle signature. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
+| `D#` | 28 | Gate 1 revisions — rulings that changed owner-approved intent. D28 is signed into the oracle. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
 | `AD-#` | 36 | Gate 2 mechanisms — working implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
 The relationship: a `GA-` ruling is the conversation, the matching `D#` is what
@@ -78,7 +78,7 @@ both Gate 1 files.
 | D25 | 2026-08-24 | Business intent is highly recommended and surfaced through every host, but **optional** — technical specs alone may ship a fast feature. The gate still requires acceptance + tests (locked) and a present technical spec. | [the gate](../topics/the-two-gates.md) |
 | D26 | 2026-08-24 | **One lock**, not many: it locks tests and acceptance together; only the owner changes a locked expectation, through the hardware key. The lock exists to stop an agent moving its own goalpost. | [the gate](../topics/the-two-gates.md) |
 | D27 | 2026-08-24 | Nothing locks until solution + acceptance + tests are all in place and the owner agrees. "Not yet frozen" is the normal default for in-progress design, never a pending "freeze now?" decision — this is why RIG-112 was a mis-raised question. | [the gate](../topics/the-two-gates.md), [catalogue contract](../topics/catalogue-contract.md) |
-| D28 | 2026-08-26 | Pins `GA-26`'s untrusted-task principle to five concrete guarantees for lint-format's repository-owned task execution: single-use plan-bound approval, filesystem/env isolation including through symlinks, default-deny network reachability, killed-and-reported resource/time caps, and refused symlink escapes. Adds `AT-LF-20`–`AT-LF-24`, 68→73. `AT-LF-20` and `AT-LF-21` are implemented; `AT-LF-22`–`AT-LF-24` remain frozen ahead of their runtimes. | [RIG-115](../tickets/RIG-115.md), [trust and failure boundaries](../topics/trust-and-failure-boundaries.md) |
+| D28 | 2026-08-26 | Pins `GA-26`'s untrusted-task principle to five concrete guarantees for lint-format's repository-owned task execution: single-use plan-bound approval, filesystem/env isolation including through symlinks, default-deny network reachability, killed-and-reported resource/time caps, and refused symlink escapes. Adds `AT-LF-20`–`AT-LF-24`, 68→73. All five (`AT-LF-20`–`AT-LF-24`) are implemented (2026-08-26/27). | [RIG-115](../tickets/RIG-115.md), [trust and failure boundaries](../topics/trust-and-failure-boundaries.md) |
 
 **The D5 → D10 → D17 → D19 sequence** is the most-revised thread in the project:
 four revisions to arrive at one honest, implementable statement of how Gate 1

@@ -41,9 +41,9 @@ as pass were rejected. [Rejected approaches](../index/rejected.md)
 
 The executable specification gate now exists and runs first:
 `node scripts/check-advanced-spec.js` verifies the owner signature over the
-five-file manifest before any code test, and the 68 cases report 68 pass /
-0 fail. That closes the gap this section used to describe and opens a different
-one.
+five-file manifest before any code test, and the 73 cases (D24 + D28) report
+73 pass / 0 fail. That closes the gap this section used to describe and opens
+a different one.
 
 **A green oracle alone is not evidence that the product works.** The 2026-08-22
 fresh review found that the oracle bound behavior only by direct

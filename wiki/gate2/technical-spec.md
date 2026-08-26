@@ -1,7 +1,8 @@
 # Tier 2 Advanced - Working Implementation Design v0.17
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
-> version is retraced to the owner-approved D24/one-gate oracle at 68 cases.
+> version is retraced to the owner-approved D24/one-gate oracle, now at 73
+> cases after D28's shell-trust amendment.
 > It supersedes v0.11's lint-format-only D21/D23 release boundary: all 115
 > catalogue leaves are release-blocking at declared Policy grade; all 55
 > vendored skills are wired by Rig name; onboarding activates only detected
@@ -22,10 +23,10 @@
 
 | Gate 1 file | SHA-256 |
 |---|---|
-| `business-spec.md` | `e13f38586454218355114f3969bceebe175a092d74a164875d5bbb36cc0f6c5e` |
-| `acceptance.md` | `af1d36f74ac7f89b21fa5c9275cefcf2a9b2d8a38a4101a58ba57dbff3b52109` |
+| `business-spec.md` | `3b66c7705d293c14c43163945b60f9d190eb55c10d7246257fa7940dd8614375` |
+| `acceptance.md` | `34f427696e00c4c0cf6655425314f5f5e96c2d6dc6e3a184487b33f343ae4391` |
 
-The D25 amendment is signed into the oracle for the v5.0.0 release candidate.
+The D28 amendment is signed into the oracle for the v5.0.0 release candidate.
 If either digest changes, this design is stale and every review receipt bound
 to it is void.
 
@@ -2018,8 +2019,10 @@ approval on a successful execution and refuses the same approval on replay).
 the same containment check as other repository paths, and the child
 environment is an explicit allowlist rather than inherited `process.env`.
 `AT-LF-22` is implemented in `runReadOnly` (network isolation). `AT-LF-23`
-is implemented (timeoutMs kill-and-report). `AT-LF-24` remains frozen ahead
-of the runtime that must satisfy it.
+is implemented (timeoutMs kill-and-report). `AT-LF-24` is implemented:
+`planExecution` resolves real paths before snapshotting and refuses a read
+whose target escapes the repository through a symlink. All five guarantees
+are now implemented; the shell-trust suite is closed.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the

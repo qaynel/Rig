@@ -60,8 +60,8 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 ## What is still open
 
 D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
-and signed: the 68-case deterministic testing infrastructure is built,
-manifested, and covered by the oracle signature. See "Where the eight steps
+and signed: the 73-case (D24 + D28) deterministic testing infrastructure is
+built, manifested, and covered by the oracle signature. See "Where the eight steps
 actually stand" below for the current per-step status — as of the last check,
 steps 1–6 are done and step 7 (release) is blocked only on the owner's fresh
 review and signer attestation plus the tag itself, not on any of this plan's
@@ -128,7 +128,7 @@ Full detail, verify commands, and traps: [the MVP roadmap](../specs/mvp-roadmap.
 | Step | Standing |
 |---|---|
 | 1. Repair the record | Done. |
-| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 68 cases. |
+| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 73 cases (D24 + D28). |
 | 3. Wire the 55 skills, ship `install.sh` and `5.0.0` | **Done.** The payload installs all 55 skills and plumbing; the macOS-safe installer resolves named releases. Tag cutting stays in release step 7. |
 | 4. Context-aware onboarding | **Done.** The shipped bootstrap calls the registry, auto-selects only existing unambiguous host markers, keeps explicit overrides exact, and journals every payload write. `generic` is deliberately explicit-only. |
 | 5. Author all 115 leaves at Policy grade | **Done.** 805 files, zero placeholders, grade and untailored-baseline declared on every fragment. |

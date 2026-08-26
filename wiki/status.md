@@ -62,6 +62,47 @@ the ceremony branch. AT-LF-20–24, AT-PROC-1a/b/c, spawn-guard ratchet, and
 the lint-format suites are green. Next: finish the merge commit so PR #101
 is no longer conflicting.
 
+## RIG-136 filed for the oracle success-log stale count (2026-08-27)
+
+The wiki-only pass that closed [[RIG-115]] flagged a leftover literal in
+the oracle verifier: after confirming 73 acceptance IDs it still prints
+"68 acceptance cases". Filed as [[RIG-136]] (GitHub #92) so the log is
+derived from the verified set instead of a second hardcoded
+number. Not a v5 blocker — the freeze itself is correct; only the printed
+summary lies. The checker is byte-pinned, so the fix rides the next
+re-sign rather than burning a dedicated ceremony. Absorbed if [[RIG-133]]
+rewrites the verifier first.
+
+## Wiki brought back in sync with code; AT-LF-24 landed, RIG-115 fully Done (2026-08-27)
+
+HEAD (`dd65b97`, #90) implements `AT-LF-24` (`planExecution` refuses a read
+whose target escapes the repository through a symlink), closing out the last
+of RIG-115's five shell-trust guarantees — `AT-LF-20`–`AT-LF-24` are now all
+implemented and green. The wiki had not been updated across the four PRs
+(#87–#90) that landed them, so `status.md`, `wiki/tickets/RIG-115.md`,
+`wiki/tickets/RIG-120.md`, `wiki/Tickets.md`, `wiki/Home.md`,
+`wiki/index/decisions.md`, `wiki/index/acceptance-cases.md` (which was
+missing `AT-LF-20`–`24` outright, not just under-counting),
+`wiki/gate2/technical-spec.md` (stale case count, stale Gate-1 hash pins,
+wrong decision-ID citation "D25" instead of `D28`), `wiki/specs/mvp-roadmap.md`,
+`wiki/topics/delivery-plan.md`, `wiki/topics/testing-strategy.md`, and
+`wiki/topics/trust-and-failure-boundaries.md` all still described `AT-LF-22`–
+`24` as pending and the oracle as 68 cases. Verified directly: full `npm test`
+is green (root 490/491 — 1 expected Linux-only skip — pi-extension 15/15,
+rig-mcp 6/6), `check-advanced-spec.js` confirms the oracle signature and
+enforces exactly 73 accepted IDs (its own final log line is a separate,
+unfixed cosmetic bug printing a stale "68 acceptance cases" string —
+now [[RIG-136]] / GitHub #92, not in scope for that wiki-only pass).
+RIG-124.1 (the other thing RIG-120.md
+listed as an open blocker) was already Done in an earlier entry below; that
+ticket's stale references were corrected too. Full trace:
+[[2026-08-27-wiki-code-sync-at-lf-24]].
+
+**Net: RIG-115 is DONE. RIG-120's only remaining blockers are the three
+owner-controlled ceremony inputs** — a fresh independent review receipt bound
+to the exact PR worktree, the intent owner's signer-class attestation, and
+the explicit `v5.0.0` tag + publish. No implementation work is outstanding.
+
 ## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
 
 `runReadOnly` prepends OS network isolation to each ungranted task argv:
