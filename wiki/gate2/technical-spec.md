@@ -1996,6 +1996,25 @@ only the argv boundary and is **not** a safety guarantee. Any pre-approval
 execution, any command not in the approved plan, or a `shell: false` safety
 claim fails `AT-LF-5`.
 
+**Shell-trust guarantees (`AT-LF-20`–`AT-LF-24`, GA-37/26/33).** `AT-LF-5`'s
+disclosure names the controls; these five pin what each one concretely
+guarantees. **(20) Single-use approval:** a plan approval authorizes exactly
+one execution of its exact plan digest; presenting the same approval for a
+second execution is refused, not re-authorized. **(21) Filesystem/env
+isolation:** a command's working directory and every path it touches must
+resolve inside the repository even through a symlink, and it receives no
+ambient environment variable beyond an explicit allowlist. **(22) Network
+denial:** a command not explicitly granted network access by the plan has no
+outbound reachability; a command explicitly granted it may connect.
+**(23) Resource/time caps:** a command exceeding a configured memory ceiling
+or wall-clock timeout is killed and reported as its own distinct non-passing
+state (§9.4's abnormal-ending taxonomy below, `GA-33`), never left hanging or
+silently truncated. **(24) Symlink escapes:** a repository-supplied symlink
+whose real target resolves outside the repository is refused for read,
+write, or working-directory use, never followed because its lexical path
+looks contained. None of the five is implemented yet; they are frozen ahead
+of the runtime that must satisfy them.
+
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the
 component's working directory and honoring the component's own ignore rules. The
@@ -2482,6 +2501,11 @@ results rather than trusting an aggregate exit code.
 | AT-LF-17 | §7.6/§11.3 reinstall is the idempotent resume that claims no protection until complete and produces no duplicates. | `tests/advanced-oracle.test.js` title `AT-LF-17 reinstall is an idempotent resume with no premature support claim`: a resumed install with no duplicates and no premature protection claim; a from-scratch rewrite, a duplicate, or a mid-install "protected" claim fails. |
 | AT-LF-18 | §7.6/§11.3 removal reverses exactly the manifest-recorded generated CI/config/managed blocks and nothing else; user autofix edits are ordinary working-tree changes, not manifest entries, and survive. | `tests/advanced-oracle.test.js` title `AT-LF-18 removal reverses manifest artifacts and preserves source fixes`: manifest-recorded artifacts removed, the user's autofix edits and any artifact Rig cannot prove it created untouched; reverting user fixes or deleting an unrecorded artifact fails. |
 | AT-LF-19 | §5.8 per-component evidence-backed support claim (≥ Policy built, commands bound, real result under plan-bound consent); whole-repository claim is the AND over discovered non-excluded components and is suppressed by any exclusion. | `tests/advanced-oracle.test.js` title `AT-LF-19 support is evidence-backed per component and honest in aggregate`: on `POLY`, the covered component is supported on real evidence, the excluded one is not, and the whole-repository claim is withheld; claiming whole-repository support from install success or per-run results without a built level fails. |
+| AT-LF-20 | §9.4 a plan approval authorizes exactly one execution of its exact plan digest; re-presenting a consumed approval for a second execution is refused, not re-authorized. | `tests/advanced-oracle.test.js` title `AT-LF-20 a plan approval authorizes exactly one execution`: a first execution against a fresh approval succeeds; a second execution presenting the same already-consumed approval is refused; accepting the reused approval fails. |
+| AT-LF-21 | §9.4 a task's working directory and every path it touches resolve inside the repository even through a symlink; it receives no ambient environment variable beyond an explicit allowlist. | `tests/advanced-oracle.test.js` title `AT-LF-21 task filesystem and environment stay isolated`: a command whose cwd is an in-repo symlink resolving outside the repository is refused; a command run inside the repository does not see a parent-process environment variable absent from the allowlist; either leak fails. |
+| AT-LF-22 | §9.4 a task not explicitly granted network access by the plan has no outbound network reachability; a task explicitly granted it may connect. | `tests/advanced-oracle.test.js` title `AT-LF-22 a task has no network reachability without an explicit grant`: a command with no network grant fails to reach a local listener; a command with an explicit grant reaches it; a default-allowed connection without a grant fails. |
+| AT-LF-23 | §9.4 a task exceeding a configured memory ceiling or wall-clock timeout is killed and reported as its own distinct non-passing state (`GA-33`), never a hang or silent truncation. | `tests/advanced-oracle.test.js` title `AT-LF-23 a task exceeding its resource or time cap is killed and reported`: a command exceeding a configured timeout is terminated and reported with a named timeout state rather than left running or reported as a generic failure. |
+| AT-LF-24 | §9.4 a repository-supplied symlink whose real target resolves outside the repository is refused for read, write, or working-directory use, never followed because its lexical path looks contained. | `tests/advanced-oracle.test.js` title `AT-LF-24 a repository symlink escaping the repository is refused`: a command targeting a path reached only through an escaping symlink is refused and reported as a boundary violation rather than executed against the real outside path. |
 
 The first-running oracle verifier:
 

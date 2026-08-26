@@ -339,6 +339,45 @@ infrastructure form the oracle that is signed once before implementation.
 > endorsement. Approval source:
 > [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
 
+> **Revision note (2026-08-26) — D28, shell-trust guarantees for lint-format's
+> untrusted-task execution.** Re-grilled with [`acceptance.md`](acceptance.md)
+> after [[RIG-115]]'s reconciliation found that `GA-26`'s untrusted-task
+> principle — "enforce Rig policy, least privilege, secret isolation, network
+> restrictions, and resource/time limits" — had never been pinned to concrete,
+> testable guarantees. The existing acceptance set discloses the
+> untrusted-task boundary (`AT-LF-5`) but does not verify it holds; session
+> lifetime, filesystem/environment isolation, memory limits, and symlink
+> handling were labeled assumptions, and network denial was requested but the
+> process runner does not enforce it. The intent owner approved five concrete
+> guarantees for every repository-owned task Rig executes, even under
+> `shell: false`:
+>
+> 1. **Approval lifetime.** A plan approval authorizes exactly one execution
+>    of that exact plan digest; it does not carry over to a later run.
+> 2. **Filesystem/environment isolation.** A task's working directory, and
+>    every path it touches, must resolve inside the repository even through a
+>    symlink; it receives no ambient environment variables beyond an explicit
+>    allowlist.
+> 3. **Network denial.** A task has no outbound network reachability by
+>    default; nothing is reachable unless the plan explicitly allows it.
+> 4. **Resource/time caps.** A task that exceeds a configured memory ceiling
+>    or wall-clock timeout is killed and reported as its own distinct
+>    non-passing state (`GA-33`).
+> 5. **Symlink handling.** A repository-supplied symlink resolving outside the
+>    repository is refused the same as any other escape attempt, never
+>    followed.
+>
+> Five cases are added — `AT-LF-20` through `AT-LF-24`, drafted by the agent
+> per the two-stage acceptance handoff and approved by the intent owner on
+> 2026-08-26 — closing [[RIG-115]]'s shell-trust suite. The ID set grows from
+> **68** to **73**. None of the five guarantees is implemented yet: the new
+> cases and their tests in `tests/advanced-oracle.test.js` are expected to
+> fail until `rig/lib/lint-format.js` actually enforces them — the oracle
+> freezes the target behavior first, deliberately, per the order the intent
+> owner chose for this release round. Gate 2 must be rewritten and re-frozen
+> against this file and [`acceptance.md`](acceptance.md) at their current
+> 73-case set, under a re-signed combined digest (§8).
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local

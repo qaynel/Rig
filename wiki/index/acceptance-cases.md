@@ -14,7 +14,7 @@ without changing the 68-ID set. It restores `AT-SHAPE-6` to all 115 leaves,
 makes the broad Policy catalogue release-blocking, moves the executable
 targets into the signed oracle, requires detected-host-only onboarding, and
 extends distribution to all 55 named skills plus MIT notice/provenance. The
-technical design has since been retraced against these meanings through v0.16,
+technical design has since been retraced against these meanings through v0.17,
 and the full suite is green on the current bytes. See [status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.

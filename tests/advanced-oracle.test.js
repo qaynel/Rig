@@ -912,3 +912,92 @@ test('AT-LF-19 support is evidence-backed per component and honest in aggregate'
   assert.equal(result.components.legacy, 'excluded_unprotected');
   assert.equal(result.repository, 'not_supported');
 });
+
+test('AT-LF-20 a plan approval authorizes exactly one execution', () => {
+  const planExecution = api('lint-format.js', 'planExecution');
+  const executePlan = api('lint-format.js', 'executePlan');
+  h.withRepo((target) => {
+    const planned = planExecution({ target, commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] }] });
+    const approval = { plan_digest: planned.plan_digest };
+    const first = executePlan(planned, approval);
+    assert.equal(first.status, 'executed');
+    const second = executePlan(planned, approval);
+    assert.notEqual(second.status, 'executed');
+  });
+});
+
+test('AT-LF-21 task filesystem and environment stay isolated', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
+    fs.symlinkSync(outside, path.join(target, 'escape-link'));
+    const escapeResult = runReadOnly(target, [
+      { argv: [process.execPath, '-e', "require('fs').writeFileSync('marker','x')"], cwd: 'escape-link' },
+    ]);
+    assert.notEqual(escapeResult.status, 'clean');
+    assert.equal(fs.existsSync(path.join(outside, 'marker')), false);
+
+    const leakMarker = path.join(outside, 'leaked-env');
+    process.env.RIG_TEST_SECRET_AT_LF_21 = 'leaked';
+    try {
+      const probe = path.join(target, 'env-check.js');
+      fs.writeFileSync(probe, `if (process.env.RIG_TEST_SECRET_AT_LF_21) require('fs').writeFileSync(${JSON.stringify(leakMarker)}, 'x')`);
+      runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      assert.equal(fs.existsSync(leakMarker), false);
+    } finally {
+      delete process.env.RIG_TEST_SECRET_AT_LF_21;
+    }
+  });
+});
+
+test('AT-LF-22 a task has no network reachability without an explicit grant', () => {
+  const net = require('node:net');
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const server = net.createServer((socket) => socket.end());
+    server.listen(0, '127.0.0.1');
+    const { port } = server.address();
+    try {
+      const probe = path.join(target, 'net-check.js');
+      fs.writeFileSync(probe, `
+        const net = require('net');
+        const done = () => process.exit(0);
+        setTimeout(done, 800);
+        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
+          require('fs').writeFileSync('connected', 'x');
+          sock.end();
+          done();
+        });
+        sock.on('error', done);
+      `);
+      runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      assert.equal(fs.existsSync(path.join(target, 'connected')), false);
+    } finally {
+      server.close();
+    }
+  });
+});
+
+test('AT-LF-23 a task exceeding its resource or time cap is killed and reported', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const start = Date.now();
+    const result = runReadOnly(target, [
+      { argv: [process.execPath, '-e', 'setTimeout(() => {}, 2000)'], cwd: '.', timeoutMs: 200 },
+    ]);
+    const elapsed = Date.now() - start;
+    assert.ok(elapsed < 1500, `expected the task to be killed near its cap, took ${elapsed}ms`);
+    assert.equal(result.status, 'timeout');
+  });
+});
+
+test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
+  const planExecution = api('lint-format.js', 'planExecution');
+  h.withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
+    fs.writeFileSync(path.join(outside, 'secret.json'), JSON.stringify({ scripts: { lint: 'rm -rf /' } }));
+    fs.symlinkSync(path.join(outside, 'secret.json'), path.join(target, 'linked.json'));
+    const planned = planExecution({ target, commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'linked.json#scripts.lint' }] });
+    assert.equal(planned.commands[0].source_snapshot, null);
+  });
+});

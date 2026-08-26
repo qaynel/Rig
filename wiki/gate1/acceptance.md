@@ -251,6 +251,24 @@
 > selection, warning, attribution, runtime, removal, and failure boundaries.
 > The ID set remains **68**.
 
+> **Revision note (2026-08-26) — D28, shell-trust guarantees.** Re-grilled
+> with [`business-spec.md`](business-spec.md) after [[RIG-115]]'s
+> reconciliation found `AT-LF-5`'s untrusted-task disclosure (`GA-26`) was
+> never pinned to concrete, testable guarantees. The intent owner approved
+> five: single-use plan-bound approval; filesystem/env isolation including
+> through symlinks; default-deny network reachability; killed-and-reported
+> memory/wall-clock caps (`GA-33`); refused symlink escapes.
+>
+> Five new cases, independently authored against the approved guarantees:
+> `AT-LF-20` through `AT-LF-24`, closing the shell-trust suite. The ID set
+> grows from **68** to **73**, and the Gate-2 traceability table must match
+> that set exactly.
+>
+> **Frozen.** All five guarantees are recorded and no case is left open. None
+> of the five is implemented yet — the cases and their tests are expected to
+> fail until the runtime enforces them. A design or implementation context
+> must not edit this file; a genuine conflict returns to grilling.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are owner-approved observable cases. Their deterministic executable form
@@ -863,6 +881,44 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   claimed; and the whole-repository claim is suppressed because a discovered
   component was excluded. Claiming whole-repository support from install
   success, or from per-run results without a built level, fails this case.
+- **AT-LF-20 (a plan approval authorizes exactly one execution) [GA-37,
+  GA-26].** *Given* a plan approval already consumed by one execution of its
+  exact plan digest, *when* the same approval is presented again for another
+  execution of that plan, *then* Rig refuses it as not-authorized. Only a
+  fresh approval against the plan's current digest authorizes a further run.
+  Accepting a reused approval for a second execution fails this case.
+- **AT-LF-21 (task filesystem and environment stay isolated) [GA-37,
+  GA-26].** *Given* an approved command whose working directory is, or is
+  reached only through, a symlink resolving outside the repository, *then*
+  Rig refuses to run it rather than following the link. *Given* an approved
+  command run inside the repository, *then* it receives no ambient
+  environment variable beyond an explicit allowlist — a secret or credential
+  present only in the parent process's environment is not visible to the
+  task. A followed escaping symlink, or an unallowlisted environment variable
+  reaching the task, fails this case.
+- **AT-LF-22 (a task has no network reachability unless the plan explicitly
+  allows it) [GA-37, GA-26].** *Given* an approved command that is not
+  explicitly granted network access by the plan, *when* it attempts an
+  outbound connection, *then* the connection does not succeed. *Given* a plan
+  that explicitly grants network access for a listed command, *then* that
+  command's outbound connection is permitted. A default-allowed connection
+  from a command without an explicit grant fails this case.
+- **AT-LF-23 (a task exceeding its resource or time cap is killed and
+  reported as its own state) [GA-37, GA-26, GA-33].** *Given* a configured
+  memory ceiling or wall-clock timeout for an approved command, *when* the
+  command exceeds either, *then* Rig terminates it and reports a distinct
+  non-passing state naming which cap was exceeded, never a hang, a silent
+  truncation, or a generic failure. A command left running past its cap, or
+  an exceeded cap collapsed into a generic failed/passed state, fails this
+  case.
+- **AT-LF-24 (a repository symlink escaping the repository is refused like
+  any other escape attempt) [GA-37, GA-26].** *Given* a repository-supplied
+  symlink whose real target resolves outside the repository, *when* Rig
+  would read, write, or set a working directory through it, *then* Rig
+  refuses the operation and reports it as a boundary violation rather than
+  following the link. Silently following an escaping symlink, or treating it
+  as a same-repository path because its lexical form looks contained, fails
+  this case.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product

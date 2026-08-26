@@ -22,7 +22,7 @@ update it as part of your change — never as an afterthought.
 
 | Kind | Where | What it is |
 |---|---|---|
-| **Topics** | [`topics/`](topics/) | 27 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
+| **Topics** | [`topics/`](topics/) | 28 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
 | **Indexes** | [`index/`](index/) | Flat lookups across everything: every decision, every acceptance case, every rejected idea, every trap. |
 | **Authorities** | [`gate1/`](gate1/), [`gate2/`](gate2/) | The documents that actually decide things. Frozen or candidate. Nothing here is rewritten by the wiki. |
 | **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written — see the [sources index](index/sources.md) for a linked way in. |
@@ -58,6 +58,7 @@ topic is wrong.
 [policy-signer recovery](topics/policy-signer-recovery.md) ·
 [one-use approvals](topics/one-use-approvals.md) ·
 [the action evaluator](topics/action-evaluator.md) ·
+[enforcement and git-dispatch wiring](topics/enforcement-and-git-dispatch-wiring.md) ·
 [drift and secret controls](topics/drift-and-secret-controls.md)
 
 **Getting in and out of a repository**

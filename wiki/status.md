@@ -1,5 +1,57 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## Wiki reconciled against the branch and the issue board (2026-08-26)
+
+Drift audit of the wiki against the current bytes and the live GitHub board.
+The gate was re-run first to establish ground truth: **green end to end,
+root 476/476, pi-extension 15/15, rig-mcp 6/6** (plus the 13-case secret-hygiene
+pre-suite `npm test` runs ahead of them). One first-pass failure — `AT-HOME-1`
+in `advanced-oracle.test.js` — was again `rig-mcp/node_modules` missing from a
+fresh workspace, not a code defect; `npm ci` in `rig-mcp/` clears it. That
+workspace-setup step is not currently implied by anything the wiki or
+`CLAUDE.md` says, which is why it has now bitten twice.
+
+Five drifts found and corrected:
+
+- **Three open issues were never boarded.** RIG-135.1 (#78), RIG-135.2 (#79),
+  and RIG-135.3 (#80) — the spawn-site triage follow-ups from [[RIG-135]] —
+  existed only on GitHub. All three are now on [[Tickets]] with their code
+  locations verified against this branch's source. Each carries an open
+  owner decision, so they are unboarded *and* unanswered.
+- **The technical design's version was stale in three places.**
+  `gate2/technical-spec.md` is **v0.17**; status, the acceptance index still
+  read v0.16.
+- **Test counts were stale.** RIG-124.1 added two named regressions, taking the
+  root suite 474 → 476. Status, [[Tickets]], and [[RIG-120]] still cited 474.
+- **[[Home]] undercounted its own topics.** 27 → 28 hubs.
+- **A topic hub was unreachable.** `enforcement-and-git-dispatch-wiring.md` has
+  existed since 2026-08-24 but was linked from no index; it is now listed under
+  safety, consent, and control on [[Home]].
+
+- **Seven cited documents do not exist in any branch's history.** The four
+  structural backlog cards on [[Tickets]] ([[RIG-125]], [[RIG-130]],
+  [[RIG-132]], [[RIG-133]]) each cite a 2026-08-25 reasoning trace as the
+  analysis behind them, and [[RIG-132]] cites two `sources/reference/*.raw.md`
+  captures. None of the seven were ever committed. The citations are now marked
+  *"never landed in the repo"* rather than left as dead links or invented after
+  the fact — the argument behind those four tickets exists only in the card
+  text. Worth knowing before anyone treats those cards as backed by written
+  analysis.
+
+Verified as still accurate and left alone: 68 acceptance cases, 115 Policy
+leaves, 55 vendored `SKILL.md` files, six CI provider adapters, and the
+I-1–I-16 invariant set.
+
+The remaining broken links in the wiki are all inside `gate1/` (the signed
+oracle) and `sources/` (immutable by the reasoning convention) and were left
+untouched by rule — `gate1/` cannot be edited without invalidating the owner
+signature.
+
+**In flight elsewhere:** `origin/rig-135-subprocess-cleanup` carries an
+unmerged [[RIG-135]] implementation (`rig/lib/spawn-guarded.js`, which does not
+exist on this branch) plus its own wiki updates. That branch's wiki changes are
+deliberately not copied here — they land with its PR.
+
 ## RIG-124.1 fixed, narrow scope (2026-08-26)
 
 GitHub [#73](https://github.com/qaynel/Rig/issues/73) closed to match. Both parts of [[RIG-124]] **124.1** are fixed in `scripts/review-receipt.js`,
@@ -82,8 +134,9 @@ risk**. Trace: [[2026-08-26-review-round-code-level-findings]], [[2026-08-26-rig
 Board and GitHub issues reconciled after the six merged ticket PRs landed.
 **Done (23 tickets):** RIG-101 through RIG-124 (except blocked structural
 tickets), plus RIG-126/127/128/129/131/134. GitHub #45–#61 closed to match.
-**Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), and RIG-135 (#75).
-RIG-124.1 (#73) is Done. Defects found in the post-merge hand-verification and
+**Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), RIG-135 (#75), and
+RIG-135's three spawn-site sub-tickets RIG-135.1 (#78), RIG-135.2 (#79),
+RIG-135.3 (#80). RIG-124.1 (#73) is Done. Defects found in the post-merge hand-verification and
 gate-rerun passes ([[2026-08-26-review-round-code-level-findings]],
 [[2026-08-26-rig124-cap-lost-update]]). **Still blocked:** RIG-120
 (release ceremony), RIG-110–116, RIG-122.
@@ -104,7 +157,7 @@ the adversarial-read gate runs against.
 
 ## Test suite is fully green (2026-08-26)
 
-`npm test` across all three components is **fully green**: root suite 474/474,
+`npm test` across all three components is **fully green**: root suite 476/476,
 pi-extension suite 15/15, `rig-mcp` suite 6/6. [[RIG-126]], [[RIG-127]],
 [[RIG-128]], [[RIG-129]], [[RIG-131]], [[RIG-134]] are Done (GitHub #35–#40,
 closed and linked to their merged PRs).
@@ -119,7 +172,7 @@ Named onboarding suite is green (`runtime-onboarding` + bootstrap +
 antigravity-manual-mcp). The owner-signed oracle is unchanged.
 
 The signed oracle remains unchanged and green at 68 acceptance cases. The
-working technical design is v0.16 and is present rather than frozen. D24 keeps
+working technical design is v0.17 and is present rather than frozen. D24 keeps
 the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,
 detected-host onboarding, the mandatory safety baseline, six CI providers, and
 named-tag `5.0.0` distribution.
@@ -133,7 +186,7 @@ owner re-sign, tag).
 
 The protected oracle, secret scan, rule-copy check, version check, ticket
 traceability, and raw-registry ratchet pass on the current bytes. `npm test`
-is green end to end: the root suite is **474/474** and the pi-extension suite
+is green end to end: the root suite is **476/476** and the pi-extension suite
 is **15/15** (rig-mcp **6/6**).
 
 The leftover production holes from the last pass are closed: apply writes a CI
