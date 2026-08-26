@@ -2012,11 +2012,13 @@ state (§9.4's abnormal-ending taxonomy below, `GA-33`), never left hanging or
 silently truncated. **(24) Symlink escapes:** a repository-supplied symlink
 whose real target resolves outside the repository is refused for read,
 write, or working-directory use, never followed because its lexical path
-looks contained. `AT-LF-21` is now enforced at task spawn: working
-directories resolve through the same containment check as other repository
-paths, and the child environment is an explicit allowlist rather than
-inherited `process.env`. `AT-LF-20`, `AT-LF-22`, `AT-LF-23`, and `AT-LF-24`
-remain unimplemented.
+looks contained. `AT-LF-20` is implemented (`executePlan` consumes a matching
+approval on a successful execution and refuses the same approval on replay).
+`AT-LF-21` is now enforced at task spawn: working directories resolve through
+the same containment check as other repository paths, and the child
+environment is an explicit allowlist rather than inherited `process.env`.
+`AT-LF-22`–`AT-LF-24` remain frozen ahead of the runtime that must satisfy
+them.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the

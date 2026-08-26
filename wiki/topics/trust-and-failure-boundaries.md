@@ -86,8 +86,9 @@ task exceeding a configured memory ceiling or wall-clock timeout is killed
 and reported as its own distinct non-passing state (`GA-33`); a
 repository-supplied symlink resolving outside the repository is refused like
 any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases.
-`AT-LF-21` is now enforced at task spawn; `AT-LF-20`, `AT-LF-22`,
-`AT-LF-23`, and `AT-LF-24` still wait on their own runtime changes.
+`AT-LF-20` is implemented (`executePlan` consumes the approval on a
+successful run and refuses replay). `AT-LF-21` is now enforced at task
+spawn. `AT-LF-22`–`AT-LF-24` still wait on their own runtime changes.
 [reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
 
 A check approved as read-only that changes the working tree is a failure, not a

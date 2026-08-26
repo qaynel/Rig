@@ -418,6 +418,9 @@ function executePlan(plan, approval) {
   if (!approval || approval.plan_digest !== plan.plan_digest) {
     throw new Error('executePlan: approval digest mismatch');
   }
+  if (approval.used) {
+    return { status: 'not_authorized' };
+  }
   for (const cmd of plan.commands || []) {
     if (cmd.source && plan.target) {
       const [file, ref] = cmd.source.split('#');
@@ -435,6 +438,7 @@ function executePlan(plan, approval) {
       }
     }
   }
+  approval.used = true;
   return { status: 'executed' };
 }
 
