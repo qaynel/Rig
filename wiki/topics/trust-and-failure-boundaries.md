@@ -76,6 +76,20 @@ behavior of a package-manager task or tool that may invoke a shell internally.
 Repository-owned tasks remain untrusted and execute under Rig's policy,
 least-privilege, secret-isolation, network, and resource/time controls.
 
+Those five words are now five concrete, testable guarantees (`GA-37`, `D28`):
+a plan approval authorizes exactly one execution of its exact digest and does
+not carry over to a later run; a task's working directory and every path it
+touches must resolve inside the repository even through a symlink, and it
+receives no ambient environment variable beyond an explicit allowlist; a task
+has no outbound network reachability unless the plan explicitly grants it; a
+task exceeding a configured memory ceiling or wall-clock timeout is killed
+and reported as its own distinct non-passing state (`GA-33`); a
+repository-supplied symlink resolving outside the repository is refused like
+any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases;
+none of the five is implemented yet in `rig/lib/lint-format.js` — the cases
+are frozen ahead of the runtime that must satisfy them.
+[reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
+
 A check approved as read-only that changes the working tree is a failure, not a
 tolerated side effect (`GA-27`). Rig detects the mutation, stops before any
 further planned command runs, fails the check, and reports the exact changed
