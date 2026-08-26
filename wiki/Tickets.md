@@ -24,7 +24,7 @@ kanban-plugin: board
 - [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
-- [ ] **RIG-135 — Implement guaranteed process cleanup for spawned subprocesses**
+- [ ] **RIG-135 — Guaranteed subprocess cleanup: shared helper, no orphaned descendants**
 	**Status:** OPEN (2026-08-26) — GitHub #75 — follow-up from [[RIG-124]] 124.1; general helper, not the narrow `review-receipt.js` fix · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY. When a spawned process is killed, only the tracked parent dies; forked children can be orphaned. RIG-124.1 fixed that for the reviewer launcher only; this ticket is the shared guaranteed-cleanup helper for every spawn site.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
