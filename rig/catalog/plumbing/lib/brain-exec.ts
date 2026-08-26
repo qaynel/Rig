@@ -34,7 +34,8 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { spawnSync, spawn, execFileSync, type SpawnSyncReturns, type ChildProcess, type SpawnOptions } from "child_process";
+import { type SpawnSyncReturns, type ChildProcess, type SpawnOptions } from "child_process";
+import { spawnGuarded, spawnGuardedSync } from "../../../lib/spawn-guarded";
 
 interface brainConfig {
   database_url?: string;
@@ -159,7 +160,7 @@ export interface SpawnbrainOptions {
  * `stderr` exactly as they would with `spawnSync` directly.
  */
 export function spawnbrain(args: string[], opts: SpawnbrainOptions = {}): SpawnSyncReturns<string> {
-  return spawnSync("brain", args, {
+  return spawnGuardedSync("brain", args, {
     encoding: "utf-8",
     timeout: opts.timeout ?? 30_000,
     cwd: opts.cwd,
@@ -194,7 +195,7 @@ export function spawnbrainAsync(
   args: string[],
   opts: { stdio?: SpawnOptions["stdio"]; cwd?: string; baseEnv?: NodeJS.ProcessEnv } = {},
 ): ChildProcess {
-  return spawn("brain", args, {
+  return spawnGuarded("brain", args, {
     stdio: opts.stdio || ["ignore", "pipe", "pipe"],
     cwd: opts.cwd,
     env: buildbrainEnv({ baseEnv: opts.baseEnv, announce: false }),
@@ -207,7 +208,7 @@ export function spawnbrainAsync(
  * for callers that want to surface brain's stderr as the error message.
  */
 export function execbrainText(args: string[], opts: SpawnbrainOptions = {}): string {
-  return execFileSync("brain", args, {
+  const result = spawnGuardedSync("brain", args, {
     encoding: "utf-8",
     timeout: opts.timeout ?? 30_000,
     cwd: opts.cwd,
@@ -215,4 +216,11 @@ export function execbrainText(args: string[], opts: SpawnbrainOptions = {}): str
     env: buildbrainEnv({ baseEnv: opts.baseEnv, announce: opts.announce }),
     shell: NEEDS_SHELL_ON_WINDOWS, // #1731: brain is a .cmd shim on Windows
   });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    const error = new Error(`brain exited with status ${result.status}`);
+    error.stderr = result.stderr;
+    throw error;
+  }
+  return result.stdout || "";
 }

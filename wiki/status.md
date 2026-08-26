@@ -26,57 +26,232 @@ freeze remains a separate owner yes/no (no new oracle content needed — the
 mechanical work is already signed via `AT-SHAPE-6`) that has not yet been
 explicitly confirmed for this same round.
 
-## Wiki reconciled against the branch and the issue board (2026-08-26)
+## RIG-135 complete (2026-08-26)
 
-Drift audit of the wiki against the current bytes and the live GitHub board.
-The gate was re-run first to establish ground truth: **green end to end,
-root 476/476, pi-extension 15/15, rig-mcp 6/6** (plus the 13-case secret-hygiene
-pre-suite `npm test` runs ahead of them). One first-pass failure — `AT-HOME-1`
-in `advanced-oracle.test.js` — was again `rig-mcp/node_modules` missing from a
-fresh workspace, not a code defect; `npm ci` in `rig-mcp/` clears it. That
-workspace-setup step is not currently implied by anything the wiki or
-`CLAUDE.md` says, which is why it has now bitten twice.
+Implemented `rig/lib/spawn-guarded.js` with detached process-group cleanup,
+exactly-once callbacks, timeout/cancel escalation, and Linux parent-death
+protection. All 19 mandatory debt sites now route through it; the focused
+recursive-cleanup and ratchet suites pass on this host. The three Bun-native
+sites remain deferred to RIG-135.1/.2/.3 because their owner-specific process
+and Windows Job Object designs are not frozen.
+The full `npm test` gate is green: 485 passing, 1 expected Linux-only skip,
+including the pi-extension and rig-mcp suites.
 
-Five drifts found and corrected:
+## RIG-135 scope expanded: all 19 debt sites now mandatory (2026-08-26)
 
-- **Three open issues were never boarded.** RIG-135.1 (#78), RIG-135.2 (#79),
-  and RIG-135.3 (#80) — the spawn-site triage follow-ups from [[RIG-135]] —
-  existed only on GitHub. All three are now on [[Tickets]] with their code
-  locations verified against this branch's source. Each carries an open
-  owner decision, so they are unboarded *and* unanswered.
-- **The technical design's version was stale in three places.**
-  `gate2/technical-spec.md` is **v0.17**; status, the acceptance index still
-  read v0.16.
-- **Test counts were stale.** RIG-124.1 added two named regressions, taking the
-  root suite 474 → 476. Status, [[Tickets]], and [[RIG-120]] still cited 474.
-- **[[Home]] undercounted its own topics.** 27 → 28 hubs.
-- **A topic hub was unreachable.** `enforcement-and-git-dispatch-wiring.md` has
-  existed since 2026-08-24 but was linked from no index; it is now listed under
-  safety, consent, and control on [[Home]].
+Per owner instruction, `wiki/tickets/RIG-135.md`'s mandatory migration
+scope grew from 2 sites (site 1 `rig-memory-ingest.ts`, site 5
+`rig-brain-sync.ts`'s bun ingest) to all 19 sites `rig/spawn-guard-
+allowlist.json` classifies `debt` — including the 7 sites found during
+the grilling-pass extension (15–21) and the 4 found during the
+pending-triage pass (`rig/lib/checks.js`, `rig/lib/lint-format.js`,
+`rig/catalog/baseline/check.js`, `browse/src/project-slug.ts`). The 3
+`separate-follow-up` sites stay excluded, deferred to RIG-135.1/.2/.3
+(#78/#79/#80) as before; the 18 `allowlisted` sites are unaffected. No new
+investigation — every debt site was already individually traced and
+classified. Reasoning: [[reasoning/2026-08-26-rig135-scope-expansion]].
+GitHub issue #75 was previously synced to match; the implementation now
+closes the ticket's mandatory scope.
 
-- **Seven cited documents do not exist in any branch's history.** The four
-  structural backlog cards on [[Tickets]] ([[RIG-125]], [[RIG-130]],
-  [[RIG-132]], [[RIG-133]]) each cite a 2026-08-25 reasoning trace as the
-  analysis behind them, and [[RIG-132]] cites two `sources/reference/*.raw.md`
-  captures. None of the seven were ever committed. The citations are now marked
-  *"never landed in the repo"* rather than left as dead links or invented after
-  the fact — the argument behind those four tickets exists only in the card
-  text. Worth knowing before anyone treats those cards as backed by written
-  analysis.
+## RIG-135 pending-triage sites resolved: 0 remain (2026-08-26)
 
-Verified as still accurate and left alone: 68 acceptance cases, 115 Policy
-leaves, 55 vendored `SKILL.md` files, six CI provider adapters, and the
-I-1–I-16 invariant set.
+Investigation-only pass (no implementation) on the 21 `pending-triage` sites
+`wiki/tickets/RIG-135.md` flagged as needing owner triage. Every site's
+caller chain was traced by reading the actual spawn/kill call, not inferred
+from a `kill()`/`timeout`/`spawn` match alone. Result: **19 debt, 18
+allowlisted, 3 separate-follow-up, 0 pending-triage** (was 15 debt / 4
+allowlisted / 21 pending-triage before this pass; totals 40 sites tracked,
+unchanged).
 
-The remaining broken links in the wiki are all inside `gate1/` (the signed
-oracle) and `sources/` (immutable by the reasoning convention) and were left
-untouched by rule — `gate1/` cannot be edited without invalidating the owner
-signature.
+- **4 sites newly added to RIG-135's own scope as debt**: two generic
+  command runners (`rig/lib/checks.js`, `rig/lib/lint-format.js`) whose
+  caller chain ultimately executes `npm`/`pnpm`/`yarn`/`bun`/`make`/`just` or
+  a fully custom repo-declared command with a bare timeout and no
+  group-kill; `rig/catalog/baseline/check.js`, the materialized copy of that
+  same runner that ships into installed target repos; and
+  `rig/catalog/skills/browse/src/project-slug.ts`, which wraps a bash script
+  (`rig-slug`) that itself forks `git`/`mktemp`/`mkdir` children under a bare
+  timeout — the same pattern already known-debt elsewhere in the ticket.
+- **14 sites verified individually safe and allowlisted**: mostly fixed,
+  non-forking one-shot commands (`git rev-parse`, `node --version`,
+  `tasklist`, `osascript` over an enumerated app list) or thin client
+  wrappers whose real subprocess lifecycle is owned elsewhere and already
+  tracked. Two prior allowlist rationale strings were factually wrong and
+  corrected in the same pass — one said a call killed "a Chromium-launched
+  process" when it actually runs a `bun` script; another called an env var
+  "externally configured" when it is hardcoded to a sibling script one line
+  before use.
+- **3 sites need a browse-skill-owned follow-up, not migration inside this
+  ticket** (`browser-skill-commands.ts`, `xvfb.ts`, `cookie-import-browser.ts`):
+  all three spawn through Bun's own `Bun.spawn`/`Bun.spawnSync` API rather
+  than Node's `child_process`, and Bun's own documentation plus a linked
+  upstream bug ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791))
+  confirm Bun's subprocess handle cannot be group-killed by negative pid the
+  way the ticket's helper design assumes — so the fix shape isn't decided
+  yet. `cookie-import-browser.ts` is flagged highest priority of all 21: it
+  launches a real headless Chromium instance against the user's actual
+  installed Chrome/Edge profile (Windows-only) and can orphan a lock on that
+  real profile, with no Windows CI in this repo to verify a fix. Recorded as
+  a new trap ([[index/traps|Bun's spawn API cannot be group-killed the way
+  Node's can]]) so a future implementer checks this before assuming the
+  existing helper design just works for these files.
+- One unrelated implementation defect found and flagged, not fixed:
+  `xvfb.ts` has a comment claiming "spawn detached" that its code doesn't
+  match (no `detached: true` is actually passed to `Bun.spawn`).
+- Updated: `rig/spawn-guard-allowlist.json` (final classifications),
+  `wiki/tickets/RIG-135.md` (full 21-site triage table + Bun-native
+  follow-up section + updated scope), `wiki/index/traps.md` (new entry).
+  `scripts/check-spawn-guard.js` and both its tests pass; full `npm test`
+  gate re-run pending as the next step.
+- Ticket remains **OPEN** — this pass changed classification and
+  documentation only, no call sites were migrated to the (still
+  unimplemented) shared helper.
 
-**In flight elsewhere:** `origin/rig-135-subprocess-cleanup` carries an
-unmerged [[RIG-135]] implementation (`rig/lib/spawn-guarded.js`, which does not
-exist on this branch) plus its own wiki updates. That branch's wiki changes are
-deliberately not copied here — they land with its PR.
+## RIG-135.1/135.2/135.3 raised for the three separate-follow-up sites (2026-08-26)
+
+Per owner request, wrote up the three `separate-follow-up` sites from the
+pending-triage pass above as their own tracked follow-ups, following this
+project's existing `RIG-N.M` sub-ticket convention (same pattern as
+RIG-124.1, RIG-127.11/.12): a `## Follow-up — RIG-135.N` section in
+`wiki/tickets/RIG-135.md` plus a `wiki/Tickets.md` Backlog card for each,
+Solution-linked back to the same file. GitHub issues filed as #78/#79/#80.
+
+- **RIG-135.1** (highest priority): `cookie-import-browser.ts`'s Windows-only
+  cookie-import path launches headless Chromium against the user's real
+  installed Chrome/Edge profile and kills it leader-pid-only — an orphan
+  locks the user's actual browser. Needs a Windows Job Object design; no
+  Windows CI exists in this repo to verify one.
+- **RIG-135.2**: `browser-skill-commands.ts` spawns caller-authored skill
+  scripts via `Bun.spawn` with a bare `proc.kill()` on timeout — same risk
+  as the ticket's already-debt sites, but Bun's own API can't be
+  group-killed the way the helper design assumes.
+- **RIG-135.3** (lowest priority): `xvfb.ts`'s Xvfb daemon spawn has a
+  comment claiming "spawn detached" that its code doesn't match (no
+  `detached: true` passed), plus the same Bun group-kill gap as .2.
+
+`node scripts/check-ticket-traceability.js` passes (Backlog cards aren't
+subject to the completed-card evidence check). Acceptance criteria on all
+three are marked draft/not yet reviewed — these are freshly raised, not
+grilled or signed.
+
+## RIG-135 grilling pass: oracle written, not yet frozen (2026-08-26)
+
+Ran the rig-grilling process against [[RIG-135]] on the owner's request
+(context-sufficiency check → acceptance criteria → deterministic tests, no
+implementation). Findings and deliverables:
+
+- Spot-checked 3 of the ticket's original 14 surveyed sites directly against
+  file bytes — all matched exactly, so the recursive-cleanup contract itself
+  is trustworthy to build tests against.
+- The build-time-guard side of the record was **not** fully sufficient: a
+  mechanical scan for the same violation shapes (direct-pid kill on a
+  fork-prone child; `spawnSync`/`execFileSync` + `timeout` with no group-kill
+  pairing) found 6 more debt sites the original extension-scoped grep missed
+  — all in `rig/catalog/plumbing/lib/*` or extensionless `plumbing/bin/*`
+  shebang scripts, all confirmed by reading the actual call (`brain-exec.ts`,
+  `brain-guards.ts`, `brain-sources.ts`, `rig-memory-helpers.ts`,
+  `brain-local-status.ts`, `rig-brain-detect`), plus one more Category-A site
+  (`rig-detach`, a generic Python watchdog wrapper — higher blast radius than
+  a single call site since it wraps arbitrary caller-supplied commands).
+- 21 further candidate sites surfaced in the `browse` skill and `ios-qa`
+  daemon subsystems — neither was in the original survey at all. Seeded as
+  `pending-triage` in the new allowlist rather than guessed at; flagged as
+  the skill owner's call, not blocking this ticket.
+- Delivered: `tests/spawn-guarded.test.js` (functional recursive-cleanup +
+  cleanup-callback + parent-death-signal oracle, currently **red** — module
+  doesn't exist yet, expected pre-implementation), `scripts/check-spawn-guard.js`
+  + `rig/spawn-guard-allowlist.json` + `tests/spawn-guard-allowlist.test.js`
+  (build-time-guard ratchet, mirrors the `raw-registry-access` pattern,
+  currently **green** against today's tree, 6/6 passing).
+- `wiki/tickets/RIG-135.md` updated: survey extended with sites 15–21,
+  acceptance criteria rewritten as concrete test-file references, API shape
+  for `rig/lib/spawn-guarded.js` declared as an inferred default (not yet
+  signed off).
+- **Not done, and explicitly not this pass's job:** no implementation code
+  (`rig/lib/spawn-guarded.js` does not exist), no migration of the 15 debt
+  call sites, `wiki/index/invariants.md`/`traps.md`/`rejected.md` entries
+  the ticket's acceptance criteria call for (owed at ticket close). The gate
+  has not been asked to freeze; `rig-product-design`'s technical
+  specification is still owed before that can happen.
+- **Known effect on `npm test`:** `tests/spawn-guarded.test.js` will fail
+  (3 red, 1 skipped on non-Linux) until the helper is implemented — this is
+  the intended TDD red state for this ticket's oracle, not a regression to
+  fix blindly.
+
+## RIG-125/130/132/133 re-evaluated from committed evidence only, since the citations can't be recovered yet (2026-08-26)
+
+Follow-up to the re-investigation below, per owner request. Full trace:
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]].
+
+Two more dead citations found (RIG-132 cited two source files by plain markdown
+link, not `[[...]]`, missed by the first grep — neither exists). Everything else
+is positive: **RIG-125's and RIG-133's central claims no longer depend on the
+missing analysis at all** — both are independently corroborated by other
+committed material (a surviving distillation doc, and RIG-134, which is closed
+and carries the same evidence with line numbers). **RIG-130's evidence table is
+6/7 verified** against real receipt files; the 7th (worst-looking) round has no
+committed source and shouldn't be cited as fact yet — the conclusion holds on
+the six verified rounds alone. **RIG-132's shipped pre-v5 slice is unaffected**;
+its unshipped v5.1 case is weaker than it read — two more sources confirmed
+dead, plus an internal arithmetic error (a headline anchor count that doesn't
+match its own breakdown) unrelated to any citation.
+
+Net: RIG-125, RIG-130, RIG-133 now rest on committed, re-checkable evidence
+rather than the ticket's own word. RIG-132's shipped work does too; its
+architectural framing for v5.1 should wait on recovered sources before its
+specific figures are treated as verified.
+
+## RIG-125/130/132/133 re-investigated; two are further along than their board status said (2026-08-26)
+
+Full trace: [[2026-08-26-rig125-130-132-133-reinvestigation]].
+
+**Defect found:** all four tickets cite eight 2026-08-25 reasoning documents
+([[2026-08-25-branch-code-review-snapshot]], round-3 receipt/map, structural
+root-cause, semantic-model-assessment, escaping-the-quadratic, prev5
+classification-and-migration-pattern, why-each-pass-finds-new-issues) that do
+not exist in this repository's committed history on any branch. They existed
+only as uncommitted files in a prior session's checkpoints and were lost before
+being committed; the four ticket bodies landed via `da4a41e` already citing
+them. Each ticket's `[[...]]` links to these names are dangling. The ticket
+bodies remain self-contained (inline tables/grep/code quoted directly), but the
+analysis behind them is currently unreachable. **Needs an owner decision:**
+recover the original sessions and file the traces verbatim, or strike the
+citations and treat the inline evidence as the whole record.
+
+**RIG-125** — its three named loop-breaker tests (`tests/host-contract-parity.test.js`,
+`tests/install-uninstall-roundtrip.test.js`, `tests/runtime-onboarding.test.js`)
+and its uninstall-authority collapse (`uninstall.js` now delegates to
+`lifecycle.js` as sole authority) are already implemented and green — they
+landed as part of closing [[RIG-126]]/[[RIG-127]]/[[RIG-128]], which cite the
+same tests as their own Done evidence. Still open: promoting these into the
+signed oracle, blocked on RIG-133.
+
+**RIG-132** — its "pre-v5 ratchet only" packet (`rig/raw-registry-access.json`,
+`scripts/check-raw-registry-access.js`, `tests/raw-registry-allowlist.test.js`,
+5/5 passing, prints `raw registry debt: 1`) is already implemented, landed
+alongside [[RIG-134]]'s gate work. The ticket's v5.1 migration body (the
+`HostContract` semantic layer, generated rule/skill copies) has not started —
+correctly, per the ticket's own "does not land in v5.0.0" scoping.
+
+**RIG-130** and **RIG-133** — confirmed no progress on either. No finding-class
+ledger exists for RIG-130; `tests/advanced-oracle.test.js` is still 65
+enumerated cases for RIG-133. Both remain fully open, still blocking what they
+were filed to block (RIG-133 blocks RIG-125's last step; RIG-130 blocks making
+review convergence measurable).
+
+Board (`Tickets.md`) and all four ticket files updated to match.
+## Wiki reconcile notes retained from RIG-120 branch (2026-08-26)
+
+Still accurate after merging `qa-prod-finishing-up`:
+
+- `gate2/technical-spec.md` is **v0.17** (status/acceptance index had read v0.16).
+- [[Home]] topic hubs: 28 (was undercounted as 27).
+- `enforcement-and-git-dispatch-wiring.md` is linked from safety/consent/control on [[Home]].
+
+Superseded by this merge: RIG-135 is landed (see "RIG-135 complete"); root suite
+count is the post-RIG-135 figure (485), not 476; the missing 2026-08-25 citation
+issue is covered by the RIG-125/130/132/133 re-investigation entries.
+
 
 ## RIG-124.1 fixed, narrow scope (2026-08-26)
 

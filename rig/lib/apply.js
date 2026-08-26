@@ -359,6 +359,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/sync-map.json', `${JSON.stringify({ groups: [] }, null, 2)}\n`);
     writeOwned('.rig/bin/check.js', readSource('catalog/baseline/check.js'), 0o755);
     writeOwned('.rig/bin/check-copies.js', readSource('catalog/baseline/check-copies.js'), 0o755);
+    writeOwned('.rig/lib/spawn-guarded.js', readSource('lib/spawn-guarded.js'), 0o644);
     writeOwned('.rig/bin/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/hooks/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));

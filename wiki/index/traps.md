@@ -146,6 +146,63 @@ Gate 2 §17.1 lists freeze blockers — properties of the *document*, checkable
 against the specification alone. §17.2 lists release blockers — properties of the
 *built product*. **Do not merge them back together.**
 
+## Bun's spawn API cannot be group-killed the way Node's can
+
+Discovered 2026-08-26, triaging [[RIG-135]]'s `pending-triage` sites. The
+ticket's proposed `spawn-guarded.js` helper generalizes the pattern in
+`scripts/review-receipt.js`: `detached: true` + `process.kill(-pid, sig)`.
+That pattern is Node-specific and does not port to `Bun.spawn`/
+`Bun.spawnSync` unchanged. Verified against Bun's own docs, not assumed:
+`Bun.spawn` only calls `setsid()` (putting the child in its own
+session/process group) when `detached: true` is explicitly passed, and Bun's
+`Subprocess#kill()` does not currently accept a negative pid —
+[oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791) tracks this
+as a `RangeError`. A file that spawns via `Bun.spawn` and calls
+`proc.kill(-proc.pid, sig)` expecting group-kill semantics will throw, not
+silently no-op — but a file that never tries the negative-pid form (most of
+them, today) will look identically broken to the already-known
+direct-pid-kill bug, and an implementer porting these sites to the Node-
+shaped helper without checking this first will discover the gap only at
+runtime. Before wiring any Bun-runtime call site to `rig/lib/spawn-guarded.js`,
+confirm whether the fix path is (a) shim the call through `node:child_process`
+(Bun supports it) so the existing helper applies unchanged, or (b) call the
+OS `kill(2)` syscall on the negative pid directly rather than through
+`Subprocess#kill()`. Affects `rig/catalog/skills/browse/src/browser-skill-commands.ts`,
+`xvfb.ts`, and `cookie-import-browser.ts` — see [[RIG-135]]'s "Bun-native
+process spawns" section.
+
+## A ticket can cite a reasoning trace that was never committed
+
+Four tickets (RIG-125, RIG-130, RIG-132, RIG-133) landed via a single commit
+already containing `[[...]]` links to eight reasoning documents from the
+session that produced them. Those documents were never `git add`ed in that
+session — only captured transiently in tool checkpoint snapshots — and were
+gone by the time the tickets were committed elsewhere. The tickets read as
+complete and well-sourced; the citations are dead. Before trusting a `[[...]]`
+citation on a freshly-landed ticket, confirm the target file exists on disk,
+not just that the ticket prose reads as if it does. See
+[[2026-08-26-rig125-130-132-133-reinvestigation]].
+
+## A dead citation can hide behind an ordinary markdown link, not just `[[...]]`
+
+The first pass at [[2026-08-26-rig125-130-132-133-reinvestigation]] grepped only
+for `[[...]]` wiki-links and missed two dead sources in RIG-132 cited as
+`[text](../sources/reference/foo.raw.md)` — plain markdown links to files that
+also don't exist. When auditing citations for a ticket, grep both link forms;
+checking one and concluding "citations verified" is a false clean bill. See
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding A.
+
+## A ticket's own headline number can silently disagree with its own breakdown
+
+RIG-132 states "~124 addressable claim anchors (79 numbered sections, 37 `AD-`,
+68 `AT-`, 19 `D`)" — the parenthetical sums to 203, not 124. The "~7,600 pairs"
+that follows is consistent with 124 (`C(124,2)=7,626`), not with 203
+(`C(203,2)=20,503`), so the two halves of the same sentence contradict each
+other. Nothing about this required the missing citations to catch — arithmetic
+in a ticket is exactly as checkable as code, and is not checked by default just
+because it reads confidently. See
+[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding D.
+
 ## A partially applied control must never report as enabled
 
 While an install's manifest header says `complete: false`, `policy status`, the

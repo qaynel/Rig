@@ -28,7 +28,7 @@
  * Pure decision functions; the orchestrator logs the reasons (observability).
  */
 
-import { spawnSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { existsSync, realpathSync, readFileSync } from "fs";
 import { homedir } from "os";
 import { join, resolve, sep } from "path";
@@ -144,7 +144,7 @@ function isPidAlive(pid: number): boolean {
 function defaultProcessRunning(): boolean {
   // No reliable pgrep on Windows; rely on the lock-file signal there.
   if (process.platform === "win32") return false;
-  const r = spawnSync("pgrep", ["-f", "brain autopilot"], { encoding: "utf-8", timeout: 3_000 });
+  const r = spawnGuardedSync("pgrep", ["-f", "brain autopilot"], { encoding: "utf-8", timeout: 3_000 });
   return r.status === 0 && (r.stdout || "").trim().length > 0;
 }
 
@@ -158,7 +158,7 @@ function defaultProcessRunning(): boolean {
 let _keepStorageMemo: { key: string; value: boolean } | undefined;
 
 function brainIdentity(env: NodeJS.ProcessEnv): string {
-  const r = spawnSync("brain", ["--version"], {
+  const r = spawnGuardedSync("brain", ["--version"], {
     encoding: "utf-8",
     timeout: 3_000,
     shell: NEEDS_SHELL_ON_WINDOWS,

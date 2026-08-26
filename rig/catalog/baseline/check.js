@@ -7,7 +7,8 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { spawnGuardedSync } = require('../lib/spawn-guarded');
+// spawnSync-shaped results are preserved for the installed checker contract.
 
 function parseArgs(argv) {
   const args = { scope: 'repo', service: null };
@@ -29,7 +30,7 @@ function loadJson(rel) {
 }
 
 function runArgv(command, argv, cwd) {
-  return spawnSync(command, argv, {
+  return spawnGuardedSync(command, argv, {
     cwd,
     encoding: 'utf8',
     shell: false,
