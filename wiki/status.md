@@ -66,12 +66,12 @@ is no longer conflicting.
 
 The wiki-only pass that closed [[RIG-115]] flagged a leftover literal in
 the oracle verifier: after confirming 73 acceptance IDs it still prints
-"68 acceptance cases". Filed as [[RIG-136]] (GitHub #92) so the log is
-derived from the verified set instead of a second hardcoded
-number. Not a v5 blocker — the freeze itself is correct; only the printed
-summary lies. The checker is byte-pinned, so the fix rides the next
-re-sign rather than burning a dedicated ceremony. Absorbed if [[RIG-133]]
-rewrites the verifier first.
+"68 acceptance cases". Filed as [[RIG-136]] (GitHub #92). The success
+line must interpolate the number of tests present — not a replacement
+literal of 73, not a named constant. Same pattern as the file count
+already next to it. Not a v5 blocker. The checker is byte-pinned, so the
+fix rides the next re-sign. Absorbed if [[RIG-133]] rewrites the
+verifier first.
 
 ## Wiki brought back in sync with code; AT-LF-24 landed, RIG-115 fully Done (2026-08-27)
 
