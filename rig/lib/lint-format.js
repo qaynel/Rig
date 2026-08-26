@@ -413,11 +413,15 @@ function planExecution(input) {
       const abs = path.join(target, file);
       if (fs.existsSync(abs)) {
         try {
-          const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-          const parts = ref.split('.');
-          let node = doc;
-          for (const part of parts) node = node && node[part];
-          source_snapshot = node;
+          const root = fs.realpathSync(target);
+          const resolved = fs.realpathSync(abs);
+          if (resolved === root || resolved.startsWith(`${root}${path.sep}`)) {
+            const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
+            const parts = ref.split('.');
+            let node = doc;
+            for (const part of parts) node = node && node[part];
+            source_snapshot = node;
+          }
         } catch { /* ignore */ }
       }
     }
