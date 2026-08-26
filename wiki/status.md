@@ -1,5 +1,21 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## Why the RIG-124 red run took ~30 minutes (2026-08-26)
+
+Follow-up question after filing RIG-124.1: was the ~30-minute duration itself
+a code defect (something making a stub subprocess call genuinely slow), or
+incidental? Investigated and ruled out: no other test in the suite reaches a
+real reviewer; the subprocess call is not structured in a way that can
+deadlock on its input pipe; and heavy synthetic OS-level contention (~2.3x
+this machine's core count) does not meaningfully slow the same call in a
+direct side-by-side timing test (584ms unloaded vs 230ms loaded). No sleep
+event on this machine during the window either. No reproducible cause found —
+most likely a one-off external stall, the same kind of stall a real reviewer
+network call can hit for mundane reasons. Doesn't change the fix: [[RIG-124]]
+**124.1** (silently dropped failure count on a killed/timed-out attempt) is
+still the actionable defect and still blocks [[RIG-120]]. Trace:
+[[2026-08-26-rig124-timeout-duration-investigation]].
+
 ## RIG-127.11 / 127.12 and RIG-124.1 filed as follow-ups (2026-08-26)
 
 Post-merge and post-gate-rerun hand review found three defects the existing
