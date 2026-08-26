@@ -46,9 +46,10 @@ argue from, written by a different pass on 2026-08-25, and it agrees with them
 independently:
 
 - Its §1 table tags 134.2/134.3 (`materializeSelectedHosts` has zero production
-  callers; a signed oracle case tests it anyway) as `debt` and names this "the
-  strongest single argument for RIG-133" — matching RIG-133's own claim, sourced
-  independently.
+  callers; a signed oracle case tests it anyway) as `debt` — the same factual
+  basis RIG-133 calls "the strongest single argument for RIG-133." The runbook
+  corroborates the substance independently; that label is RIG-133's own phrasing,
+  not the runbook's.
 - Its §2 step 6 describes the raw-field allowlist ratchet exactly as RIG-132's
   "pre-v5 ratchet only" packet was actually built and already confirmed shipped
   (rig/raw-registry-access.json, 5/5 tests green).
@@ -124,7 +125,7 @@ should not be repeated as verified until re-derived from the current spec.
 ## Net effect on the four tickets, evidence-only
 
 - **RIG-125** — unaffected. Its claims were already independently verified by
-  running the named tests directly (26/26 passing) in the prior pass; this pass
+  running the named tests directly (21/21 passing) in the prior pass; this pass
   adds a second corroborating source (the runbook + RIG-134) that agrees. High
   confidence.
 - **RIG-133** — unaffected, and now better-sourced. Its central argument no
