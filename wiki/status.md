@@ -1,16 +1,70 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
-## RIG-127.11 / 127.12 filed as GitHub issues (2026-08-26)
+## RIG-127.11 / 127.12 and RIG-124.1 filed as follow-ups (2026-08-26)
 
-Post-merge hand review found two uninstall follow-ups the green roundtrip suite
-does not catch. They are open GitHub issues (not buried only in the closed
-parent):
+Post-merge and post-gate-rerun hand review found three defects the existing
+test suites do not catch, filed as GitHub issues (not buried only in the closed
+parents):
 
-- [[RIG-127]] **127.11** → [GitHub #69](https://github.com/qaynel/Rig/issues/69) — hard-crash on corrupted legacy global config
-- [[RIG-127]] **127.12** → [GitHub #70](https://github.com/qaynel/Rig/issues/70) — legacy nameless managed-block over-strip
+**Uninstall path findings:**
+- [[RIG-127]] **127.11** → [GitHub #69](https://github.com/qaynel/Rig/issues/69) — hard-crash on corrupted legacy global config. `removeGlobalConfig()` does raw `JSON.parse` with no try/catch.
+- [[RIG-127]] **127.12** → [GitHub #70](https://github.com/qaynel/Rig/issues/70) — legacy nameless managed-block over-strip. A nameless record falls back to wildcard regex.
 
-Parent [[RIG-127]] remains Done (GitHub #36 / PR #31). Trace:
-[[2026-08-26-review-round-code-level-findings]].
+**Release gate finding:**
+A fresh RIG-120 review-ceremony attempt started with `npm test`, which came back
+RED: `tests/release-blockers.test.js`'s `review-receipt cap is scoped per
+author-context and clears on a passing verdict (RIG-124)` failed (`capped.invocationCount` read `1`, expected `0`), after a run duration (~1,800,952ms)
+within ~1s of `scripts/review-receipt.js`'s `TIMEOUT_MS` (1,800,000ms).
+
+Investigated fresh (checkout confirmed current). The failure does not reproduce
+in isolation (34/34 green, 16s) — it is a genuine timing-dependent lost-update.
+Root cause: `scripts/review-receipt.js` only persists a failed attempt to
+`<out>.attempts.json` *after* the reviewer subprocess spawn returns cleanly; a
+spawn killed by its own 30-minute timeout exits the process first, so that
+failure is silently dropped and the next same-`author-context` attempt gets an
+extra, uncounted retry past the cap. Confirmed with a deterministic repro.
+Full trace: [[2026-08-26-rig124-cap-lost-update]].
+
+- [[RIG-124]] **124.1** → [GitHub #73](https://github.com/qaynel/Rig/issues/73) — killed/timed-out reviewer attempt is dropped from the re-review cap.
+
+Same pattern as RIG-127.11/127.12 — defects found after the parent ticket's own
+suite went green. New invariant [[index/invariants|I-16]]. This sits directly on
+the RIG-120 path (exactly the "reviewer subprocess times out" case); it defeats
+RIG-124's one-retry cap when it does. **RIG-120's fresh review-receipt run should
+not proceed until RIG-124.1 is fixed or the owner explicitly accepts the residual
+risk**. Trace: [[2026-08-26-review-round-code-level-findings]], [[2026-08-26-rig124-cap-lost-update]].
+
+## Wiki and GitHub issue sync (2026-08-26)
+
+Board and GitHub issues reconciled after the six merged ticket PRs landed.
+**Done (23 tickets):** RIG-101 through RIG-124 (except blocked structural
+tickets), plus RIG-126/127/128/129/131/134. GitHub #45–#61 closed to match.
+**Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), and RIG-124.1 (#73) —
+defects found in the post-merge hand-verification and gate-rerun passes
+([[2026-08-26-review-round-code-level-findings]],
+[[2026-08-26-rig124-cap-lost-update]]). **Still blocked:** RIG-120
+(release ceremony — now also blocked on RIG-124.1), RIG-110–116, RIG-122.
+**Structural backlog:** RIG-125, RIG-130, RIG-132, RIG-133.
+
+## Invariants index seeded (2026-08-26)
+
+Added [[index/invariants]] as a first-class wiki index alongside `traps.md` and
+`rejected.md`. Seeded with 15 invariants ranked by blast radius, converted
+from the traps index, the six merged tickets, the 127.11/127.12 findings, the
+MCP unification work, and the safety baseline. Motivation: the pattern of
+"every review pass surfaces new issues" traces to invariant surface > assertion
+surface — `traps.md` records reactively, `invariants.md` records proactively,
+and every ticket close from here writes one line here (matching an existing
+`I-N` or adding a new one). Wired into [[Home]] under the indexes list.
+Post-v5 depth-per-host-cluster cadence should treat this index as the checklist
+the adversarial-read gate runs against.
+
+## Test suite is fully green (2026-08-26)
+
+`npm test` across all three components is **fully green**: root suite 474/474,
+pi-extension suite 15/15, `rig-mcp` suite 6/6. [[RIG-126]], [[RIG-127]],
+[[RIG-128]], [[RIG-129]], [[RIG-131]], [[RIG-134]] are Done (GitHub #35–#40,
+closed and linked to their merged PRs).
 
 ## RIG-126 onboarding (solved 2026-08-25)
 
@@ -27,7 +81,7 @@ the beta boundary at all 115 Policy leaves plus the 55-skill vendored shelf,
 detected-host onboarding, the mandatory safety baseline, six CI providers, and
 named-tag `5.0.0` distribution.
 
-The pre-v5 release gate ([[RIG-134]]) is ready for commit: every known finding
+The pre-v5 release gate ([[RIG-134]]) is Done: every known finding
 in RIG-126/127/128/129 is tagged `debt` or `v5-observable`, the observable set
 is fixed as leaf changes, and the debt set is the printed raw-registry
 inventory (`rig/raw-registry-access.json`, count 1). [[RIG-131]] makes Done
@@ -36,9 +90,8 @@ owner re-sign, tag).
 
 The protected oracle, secret scan, rule-copy check, version check, ticket
 traceability, and raw-registry ratchet pass on the current bytes. `npm test`
-is green end to end: the root suite is **417/417** and the pi-extension suite
-is **15/15**. The `pandas` benchmark import some local runs report as failing
-is a missing `.venv` setup in that environment, not a suite failure.
+is green end to end: the root suite is **474/474** and the pi-extension suite
+is **15/15** (rig-mcp **6/6**).
 
 The leftover production holes from the last pass are closed: apply writes a CI
 file only when that path is in the signed plan and still compare-and-swaps it;

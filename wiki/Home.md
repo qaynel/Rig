@@ -85,6 +85,7 @@ topic is wrong.
 - [**Acceptance cases**](index/acceptance-cases.md) — the 68 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
+- [**Invariants**](index/invariants.md) — propositions that must always hold; seeded from traps and the six merged tickets, filled in by every ticket close.
 - [**Timeline**](index/timeline.md) — how the design moved, by date.
 - [**Path map**](index/path-map.md) — old `project-dev-docs/` paths to their wiki homes.
 - [**Sources**](index/sources.md) — every log, captured reference, review receipt, and superseded design, one linked way in.
