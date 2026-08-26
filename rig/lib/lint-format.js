@@ -526,12 +526,44 @@ function resolveScope({ root, changed, ignores, requested }) {
   return { kind: 'diff', cwd: root, files };
 }
 
+// rig: PATH/HOME/tmp/locale only; secrets and injection vectors (NODE_OPTIONS,
+// LD_PRELOAD, AWS_*) stay off. Expand the list when a real tool needs a
+// named non-secret, not by copying process.env.
+const TASK_ENV_ALLOWLIST = [
+  'PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP',
+  'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
+  'SystemRoot', 'COMSPEC', 'PATHEXT', 'USERNAME', 'USER', 'LOGNAME',
+];
+
+function isolatedEnv() {
+  const env = {};
+  for (const key of TASK_ENV_ALLOWLIST) {
+    if (process.env[key] != null) env[key] = process.env[key];
+  }
+  return env;
+}
+
+function resolveTaskCwd(target, rel) {
+  if (!rel || rel === '.') return fs.realpathSync(target);
+  return containedPath(target, rel);
+}
+
 function runReadOnly(target, commands) {
   const preState = snapshotDir(target);
   const changed_paths = [];
   for (const cmd of commands) {
-    const cwd = cmd.cwd ? path.join(target, cmd.cwd) : target;
-    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd, encoding: 'utf8', shell: false });
+    let cwd;
+    try {
+      cwd = resolveTaskCwd(target, cmd.cwd);
+    } catch {
+      return { status: 'boundary_violation', changed_paths };
+    }
+    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), {
+      cwd,
+      encoding: 'utf8',
+      shell: false,
+      env: isolatedEnv(),
+    });
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
@@ -568,13 +600,19 @@ function snapshotDir(root) {
   const map = new Map();
   const walk = (dir) => {
     if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (SNAPSHOT_SKIP.has(entry.name)) continue;
-      const abs = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(abs);
-      else {
-        const bytes = fs.readFileSync(abs);
-        map.set(path.relative(root, abs), digest(bytes));
+    for (const name of fs.readdirSync(dir)) {
+      if (SNAPSHOT_SKIP.has(name)) continue;
+      const abs = path.join(dir, name);
+      let stat;
+      try {
+        stat = fs.lstatSync(abs);
+      } catch {
+        continue;
+      }
+      if (stat.isSymbolicLink()) continue;
+      if (stat.isDirectory()) walk(abs);
+      else if (stat.isFile()) {
+        map.set(path.relative(root, abs), digest(fs.readFileSync(abs)));
       }
     }
   };
