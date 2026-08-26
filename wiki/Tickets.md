@@ -36,6 +36,9 @@ kanban-plugin: board
 - [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
 	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
+- [ ] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
+	**Status:** OPEN (2026-08-27) — GitHub #81 — production code embeds a test-specific workaround globally; contradicts AT-LF-22 guarantee · [Solution](tickets/RIG-137.md)
+	**Class:** CODE QUALITY / TRUST BOUNDARY. `rig/lib/lint-format.js` lines 11-22 globally monkey-patch `net.Server.prototype.listen` to work around a frozen test's timing issue. The patch silently changes any production caller's `listen(0, '127.0.0.1')` (loopback-only) to wildcard binding, contradicting AT-LF-22's "default-deny network reachability" guarantee. Recommended fix: unfreeze the test and rewrite it to handle Node 24's async host lookup; observable behavior (network isolation) does not change. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
 - [x] **RIG-142 — spawnTask safety defaults (shell:false, env allowlist) are caller-overridable with no guard or test**
 	**Status:** COMPLETE (2026-08-27) — GitHub #97 — safety options are now locked after caller options and the helper is exported; focused oracle is green · [Solution](tickets/RIG-142.md)
 	**Class:** CORRECTNESS / SHELL TRUST.
