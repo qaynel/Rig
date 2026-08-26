@@ -3,6 +3,7 @@
 **Date:** 2026-08-27  
 **Context:** Code review of `rig/lib/lint-format.js` lines 11-22 during RIG-120 release prep  
 **Finding:** Production code globally monkey-patches Node.js's `net.Server.prototype.listen` to work around a frozen test's timing issue.
+**Ticket:** [[RIG-137]] (GitHub #91)
 
 ## The Monkey-Patch
 
