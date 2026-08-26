@@ -25,7 +25,7 @@
  * reflects this via getStatus() in security.ts.
  */
 
-import { spawn } from 'child_process';
+import { spawnGuarded } from '../../../../lib/spawn-guarded';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -414,7 +414,7 @@ function checkHaikuAvailable(): Promise<boolean> {
     return Promise.resolve(false);
   }
   return new Promise((resolve) => {
-    const p = spawn(claude.command, [...claude.argsPrefix, '--version'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const p = spawnGuarded(claude.command, [...claude.argsPrefix, '--version'], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 });
     let done = false;
     const finish = (ok: boolean) => {
       if (done) return;
@@ -425,7 +425,7 @@ function checkHaikuAvailable(): Promise<boolean> {
     p.on('exit', (code) => finish(code === 0));
     p.on('error', () => finish(false));
     setTimeout(() => {
-      try { p.kill(); } catch {}
+      void p.cancel();
       finish(false);
     }, 3000);
   });
@@ -537,9 +537,9 @@ export async function checkTranscript(params: {
     if (!claude) {
       return finish({ layer: 'transcript_classifier', confidence: 0, meta: { degraded: true, reason: 'claude_cli_not_found' } });
     }
-    let p: ReturnType<typeof spawn>;
+    let p;
     try {
-      p = spawn(claude.command, [
+      p = spawnGuarded(claude.command, [
         ...claude.argsPrefix,
         '-p', prompt,
         '--model', HAIKU_MODEL,
@@ -595,7 +595,7 @@ export async function checkTranscript(params: {
       ? Number(process.env.RIG_HAIKU_TIMEOUT_MS)
       : 45000;
     setTimeout(() => {
-      try { p.kill('SIGTERM'); } catch {}
+      void p.cancel('SIGTERM');
       finish({ layer: 'transcript_classifier', confidence: 0, meta: { degraded: true, reason: 'timeout' } });
     }, timeoutMs);
   });

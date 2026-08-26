@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { spawnGuardedSync } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 
 const ECOSYSTEM_SIGNALS = new Map([
@@ -38,7 +38,7 @@ function fallbackFiles(target, root = '', out = []) {
 }
 
 function repositoryFiles(target) {
-  const result = spawnSync('git', ['-C', target, 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
+  const result = spawnGuardedSync('git', ['-C', target, 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
     encoding: 'buffer',
     shell: false,
   });
@@ -470,7 +470,7 @@ function runGrade({ grade, changed, commands, context, ci }) {
     if (!Array.isArray(cmd.argv) || !cmd.argv.length) {
       return { ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null } };
     }
-    const result = spawnSync(cmd.argv[0], cmd.argv.slice(1), {
+    const result = spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), {
       cwd: cmd.cwd || process.cwd(), encoding: 'utf8', shell: false, timeout: cmd.timeout_ms || 10 * 60 * 1000,
     });
     const output = `${result.stdout || ''}\n${result.stderr || ''}`;
@@ -531,7 +531,7 @@ function runReadOnly(target, commands) {
   const changed_paths = [];
   for (const cmd of commands) {
     const cwd = cmd.cwd ? path.join(target, cmd.cwd) : target;
-    spawnSync(cmd.argv[0], cmd.argv.slice(1), { cwd, encoding: 'utf8', shell: false });
+    spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd, encoding: 'utf8', shell: false });
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
@@ -593,9 +593,9 @@ function diffSnapshots(a, b) {
 
 function runAutofix(target, cmd, approval) {
   if (!approval || !approval.verified) throw new Error('runAutofix: approval required');
-  spawnSync(cmd.argv[0], cmd.argv.slice(1), { cwd: target, encoding: 'utf8', shell: false });
+  spawnGuardedSync(cmd.argv[0], cmd.argv.slice(1), { cwd: target, encoding: 'utf8', shell: false });
   if (cmd.verify) {
-    const check = spawnSync(cmd.verify[0], cmd.verify.slice(1), { cwd: target, encoding: 'utf8', shell: false });
+    const check = spawnGuardedSync(cmd.verify[0], cmd.verify.slice(1), { cwd: target, encoding: 'utf8', shell: false });
     return { verification: check.status === 0 ? 'pass' : 'fail' };
   }
   return { verification: 'skipped' };

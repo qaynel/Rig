@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn as nodeSpawn } from 'child_process';
 import { safeUnlink, safeUnlinkQuiet, safeKill, isProcessAlive } from './error-handling';
+import { spawnGuardedSync } from '../../../../lib/spawn-guarded';
 import { writeSecureFile, mkdirSecure } from './file-permissions';
 import { resolveConfig, ensureStateDir, readVersionHash } from './config';
 import { parseProxyConfig, computeConfigHash, ProxyConfigError } from './proxy-config';
@@ -141,10 +142,7 @@ async function killServer(pid: number): Promise<void> {
   if (IS_WINDOWS) {
     // taskkill /T /F kills the process tree (Node + Chromium)
     try {
-      Bun.spawnSync(
-        ['taskkill', '/PID', String(pid), '/T', '/F'],
-        { stdout: 'pipe', stderr: 'pipe', timeout: 5000 }
-      );
+      spawnGuardedSync('taskkill', ['/PID', String(pid), '/T', '/F'], { encoding: 'utf8', timeout: 5000 });
     } catch (err: any) {
       if (err?.code !== 'ENOENT') throw err;
     }
@@ -186,10 +184,10 @@ function cleanupLegacyState(): void {
         const data = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
         if (data.pid && isProcessAlive(data.pid)) {
           // Verify this is actually a browse server before killing
-          const check = Bun.spawnSync(['ps', '-p', String(data.pid), '-o', 'command='], {
-            stdout: 'pipe', stderr: 'pipe', timeout: 2000,
+          const check = spawnGuardedSync('ps', ['-p', String(data.pid), '-o', 'command='], {
+            encoding: 'utf8', timeout: 2000,
           });
-          const cmd = check.stdout.toString().trim();
+          const cmd = (check.stdout || '').trim();
           if (cmd.includes('bun') || cmd.includes('server.ts')) {
             safeKill(data.pid, 'SIGTERM');
           }

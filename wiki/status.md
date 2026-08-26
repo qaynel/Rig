@@ -1,5 +1,157 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## RIG-135 complete (2026-08-26)
+
+Implemented `rig/lib/spawn-guarded.js` with detached process-group cleanup,
+exactly-once callbacks, timeout/cancel escalation, and Linux parent-death
+protection. All 19 mandatory debt sites now route through it; the focused
+recursive-cleanup and ratchet suites pass on this host. The three Bun-native
+sites remain deferred to RIG-135.1/.2/.3 because their owner-specific process
+and Windows Job Object designs are not frozen.
+The full `npm test` gate is green: 485 passing, 1 expected Linux-only skip,
+including the pi-extension and rig-mcp suites.
+
+## RIG-135 scope expanded: all 19 debt sites now mandatory (2026-08-26)
+
+Per owner instruction, `wiki/tickets/RIG-135.md`'s mandatory migration
+scope grew from 2 sites (site 1 `rig-memory-ingest.ts`, site 5
+`rig-brain-sync.ts`'s bun ingest) to all 19 sites `rig/spawn-guard-
+allowlist.json` classifies `debt` — including the 7 sites found during
+the grilling-pass extension (15–21) and the 4 found during the
+pending-triage pass (`rig/lib/checks.js`, `rig/lib/lint-format.js`,
+`rig/catalog/baseline/check.js`, `browse/src/project-slug.ts`). The 3
+`separate-follow-up` sites stay excluded, deferred to RIG-135.1/.2/.3
+(#78/#79/#80) as before; the 18 `allowlisted` sites are unaffected. No new
+investigation — every debt site was already individually traced and
+classified. Reasoning: [[reasoning/2026-08-26-rig135-scope-expansion]].
+GitHub issue #75 was previously synced to match; the implementation now
+closes the ticket's mandatory scope.
+
+## RIG-135 pending-triage sites resolved: 0 remain (2026-08-26)
+
+Investigation-only pass (no implementation) on the 21 `pending-triage` sites
+`wiki/tickets/RIG-135.md` flagged as needing owner triage. Every site's
+caller chain was traced by reading the actual spawn/kill call, not inferred
+from a `kill()`/`timeout`/`spawn` match alone. Result: **19 debt, 18
+allowlisted, 3 separate-follow-up, 0 pending-triage** (was 15 debt / 4
+allowlisted / 21 pending-triage before this pass; totals 40 sites tracked,
+unchanged).
+
+- **4 sites newly added to RIG-135's own scope as debt**: two generic
+  command runners (`rig/lib/checks.js`, `rig/lib/lint-format.js`) whose
+  caller chain ultimately executes `npm`/`pnpm`/`yarn`/`bun`/`make`/`just` or
+  a fully custom repo-declared command with a bare timeout and no
+  group-kill; `rig/catalog/baseline/check.js`, the materialized copy of that
+  same runner that ships into installed target repos; and
+  `rig/catalog/skills/browse/src/project-slug.ts`, which wraps a bash script
+  (`rig-slug`) that itself forks `git`/`mktemp`/`mkdir` children under a bare
+  timeout — the same pattern already known-debt elsewhere in the ticket.
+- **14 sites verified individually safe and allowlisted**: mostly fixed,
+  non-forking one-shot commands (`git rev-parse`, `node --version`,
+  `tasklist`, `osascript` over an enumerated app list) or thin client
+  wrappers whose real subprocess lifecycle is owned elsewhere and already
+  tracked. Two prior allowlist rationale strings were factually wrong and
+  corrected in the same pass — one said a call killed "a Chromium-launched
+  process" when it actually runs a `bun` script; another called an env var
+  "externally configured" when it is hardcoded to a sibling script one line
+  before use.
+- **3 sites need a browse-skill-owned follow-up, not migration inside this
+  ticket** (`browser-skill-commands.ts`, `xvfb.ts`, `cookie-import-browser.ts`):
+  all three spawn through Bun's own `Bun.spawn`/`Bun.spawnSync` API rather
+  than Node's `child_process`, and Bun's own documentation plus a linked
+  upstream bug ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791))
+  confirm Bun's subprocess handle cannot be group-killed by negative pid the
+  way the ticket's helper design assumes — so the fix shape isn't decided
+  yet. `cookie-import-browser.ts` is flagged highest priority of all 21: it
+  launches a real headless Chromium instance against the user's actual
+  installed Chrome/Edge profile (Windows-only) and can orphan a lock on that
+  real profile, with no Windows CI in this repo to verify a fix. Recorded as
+  a new trap ([[index/traps|Bun's spawn API cannot be group-killed the way
+  Node's can]]) so a future implementer checks this before assuming the
+  existing helper design just works for these files.
+- One unrelated implementation defect found and flagged, not fixed:
+  `xvfb.ts` has a comment claiming "spawn detached" that its code doesn't
+  match (no `detached: true` is actually passed to `Bun.spawn`).
+- Updated: `rig/spawn-guard-allowlist.json` (final classifications),
+  `wiki/tickets/RIG-135.md` (full 21-site triage table + Bun-native
+  follow-up section + updated scope), `wiki/index/traps.md` (new entry).
+  `scripts/check-spawn-guard.js` and both its tests pass; full `npm test`
+  gate re-run pending as the next step.
+- Ticket remains **OPEN** — this pass changed classification and
+  documentation only, no call sites were migrated to the (still
+  unimplemented) shared helper.
+
+## RIG-135.1/135.2/135.3 raised for the three separate-follow-up sites (2026-08-26)
+
+Per owner request, wrote up the three `separate-follow-up` sites from the
+pending-triage pass above as their own tracked follow-ups, following this
+project's existing `RIG-N.M` sub-ticket convention (same pattern as
+RIG-124.1, RIG-127.11/.12): a `## Follow-up — RIG-135.N` section in
+`wiki/tickets/RIG-135.md` plus a `wiki/Tickets.md` Backlog card for each,
+Solution-linked back to the same file. GitHub issues filed as #78/#79/#80.
+
+- **RIG-135.1** (highest priority): `cookie-import-browser.ts`'s Windows-only
+  cookie-import path launches headless Chromium against the user's real
+  installed Chrome/Edge profile and kills it leader-pid-only — an orphan
+  locks the user's actual browser. Needs a Windows Job Object design; no
+  Windows CI exists in this repo to verify one.
+- **RIG-135.2**: `browser-skill-commands.ts` spawns caller-authored skill
+  scripts via `Bun.spawn` with a bare `proc.kill()` on timeout — same risk
+  as the ticket's already-debt sites, but Bun's own API can't be
+  group-killed the way the helper design assumes.
+- **RIG-135.3** (lowest priority): `xvfb.ts`'s Xvfb daemon spawn has a
+  comment claiming "spawn detached" that its code doesn't match (no
+  `detached: true` passed), plus the same Bun group-kill gap as .2.
+
+`node scripts/check-ticket-traceability.js` passes (Backlog cards aren't
+subject to the completed-card evidence check). Acceptance criteria on all
+three are marked draft/not yet reviewed — these are freshly raised, not
+grilled or signed.
+
+## RIG-135 grilling pass: oracle written, not yet frozen (2026-08-26)
+
+Ran the rig-grilling process against [[RIG-135]] on the owner's request
+(context-sufficiency check → acceptance criteria → deterministic tests, no
+implementation). Findings and deliverables:
+
+- Spot-checked 3 of the ticket's original 14 surveyed sites directly against
+  file bytes — all matched exactly, so the recursive-cleanup contract itself
+  is trustworthy to build tests against.
+- The build-time-guard side of the record was **not** fully sufficient: a
+  mechanical scan for the same violation shapes (direct-pid kill on a
+  fork-prone child; `spawnSync`/`execFileSync` + `timeout` with no group-kill
+  pairing) found 6 more debt sites the original extension-scoped grep missed
+  — all in `rig/catalog/plumbing/lib/*` or extensionless `plumbing/bin/*`
+  shebang scripts, all confirmed by reading the actual call (`brain-exec.ts`,
+  `brain-guards.ts`, `brain-sources.ts`, `rig-memory-helpers.ts`,
+  `brain-local-status.ts`, `rig-brain-detect`), plus one more Category-A site
+  (`rig-detach`, a generic Python watchdog wrapper — higher blast radius than
+  a single call site since it wraps arbitrary caller-supplied commands).
+- 21 further candidate sites surfaced in the `browse` skill and `ios-qa`
+  daemon subsystems — neither was in the original survey at all. Seeded as
+  `pending-triage` in the new allowlist rather than guessed at; flagged as
+  the skill owner's call, not blocking this ticket.
+- Delivered: `tests/spawn-guarded.test.js` (functional recursive-cleanup +
+  cleanup-callback + parent-death-signal oracle, currently **red** — module
+  doesn't exist yet, expected pre-implementation), `scripts/check-spawn-guard.js`
+  + `rig/spawn-guard-allowlist.json` + `tests/spawn-guard-allowlist.test.js`
+  (build-time-guard ratchet, mirrors the `raw-registry-access` pattern,
+  currently **green** against today's tree, 6/6 passing).
+- `wiki/tickets/RIG-135.md` updated: survey extended with sites 15–21,
+  acceptance criteria rewritten as concrete test-file references, API shape
+  for `rig/lib/spawn-guarded.js` declared as an inferred default (not yet
+  signed off).
+- **Not done, and explicitly not this pass's job:** no implementation code
+  (`rig/lib/spawn-guarded.js` does not exist), no migration of the 15 debt
+  call sites, `wiki/index/invariants.md`/`traps.md`/`rejected.md` entries
+  the ticket's acceptance criteria call for (owed at ticket close). The gate
+  has not been asked to freeze; `rig-product-design`'s technical
+  specification is still owed before that can happen.
+- **Known effect on `npm test`:** `tests/spawn-guarded.test.js` will fail
+  (3 red, 1 skipped on non-Linux) until the helper is implemented — this is
+  the intended TDD red state for this ticket's oracle, not a regression to
+  fix blindly.
+
 ## RIG-125/130/132/133 re-evaluated from committed evidence only, since the citations can't be recovered yet (2026-08-26)
 
 Follow-up to the re-investigation below, per owner request. Full trace:

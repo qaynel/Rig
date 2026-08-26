@@ -73,6 +73,11 @@ argument. The reason is the useful part, so every entry carries one.
 
 ## Architecture and packaging
 
+| Narrow per-site subprocess cleanup | Rejected for [[RIG-135]]: the same
+  direct-child-only pattern had been reimplemented multiple times, including
+  one incorrect fix. A shared guarded helper makes recursive cleanup the
+  default and the ratchet catches regressions. |
+
 | Rejected | Why |
 |---|---|
 | A second installer, target daemon, Rig model key, or mutable memory database | Duplicates the shipped spine, or violates B1. |
