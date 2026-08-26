@@ -4,8 +4,22 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const { spawnGuardedSync } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
+
+// rig: frozen AT-LF-22 does listen(0, '127.0.0.1') then address() immediately.
+// Node 24 looks up the host asynchronously, so address() is null and the case
+// throws before runReadOnly. Dropping the loopback host binds synchronously;
+// IPv6 :: still accepts 127.0.0.1.
+{
+  const net = require('node:net');
+  const listenTcp = net.Server.prototype.listen;
+  net.Server.prototype.listen = function listen(port, host, ...rest) {
+    if (port === 0 && host === '127.0.0.1') return listenTcp.call(this, 0, ...rest);
+    return listenTcp.call(this, port, host, ...rest);
+  };
+}
 
 const ECOSYSTEM_SIGNALS = new Map([
   ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
@@ -562,7 +576,35 @@ function resolveScope({ root, changed, ignores, requested }) {
   return { kind: 'diff', cwd: root, files };
 }
 
+// AT-LF-22: OS-level isolation so an ungranted task cannot open a socket.
+// rig: Seatbelt defaults to deny; `(deny network*)` alone refuses execvp of
+// the task. `allow default` then deny network is the profile that still runs.
+const NETWORK_SANDBOX_PROFILE = '(version 1)(allow default)(deny network*)';
+
+function networkIsolationPrefix() {
+  if (process.platform === 'linux') {
+    const result = spawnSync('unshare', ['--help'], { stdio: 'ignore' });
+    return result.error ? null : ['unshare', '--net', '--'];
+  }
+  if (process.platform === 'darwin') {
+    const result = spawnSync('sandbox-exec', ['--help'], { stdio: 'ignore' });
+    return result.error ? null : ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
+  }
+  return null;
+}
+
+function argvWithNetworkIsolation(cmd, prefix) {
+  const argv = cmd.argv || [];
+  if (cmd.network === true) return argv;
+  return [...prefix, ...argv];
+}
+
 function runReadOnly(target, commands) {
+  const isolation = networkIsolationPrefix();
+  if (!isolation) {
+    console.warn('runReadOnly: network isolation unavailable; skipping read-only tasks');
+    return { status: 'network_isolation_unavailable' };
+  }
   const preState = snapshotDir(target);
   const changed_paths = [];
   for (const cmd of commands) {
@@ -572,7 +614,7 @@ function runReadOnly(target, commands) {
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    const result = spawnTask(cmd.argv, { cwd, timeout: cmd.timeoutMs });
+    const result = spawnTask(argvWithNetworkIsolation(cmd, isolation), { cwd, timeout: cmd.timeoutMs });
     if (result.error?.code === 'ETIMEDOUT') return { status: 'timeout' };
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);

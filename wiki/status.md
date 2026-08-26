@@ -1,5 +1,14 @@
 # Status - checked 2026-08-26 (updated 2026-08-26)
 
+## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
+
+`runReadOnly` prepends OS network isolation to each ungranted task argv:
+`unshare --net` on Linux and Seatbelt `sandbox-exec` on macOS, after a
+one-shot `--help` availability check. If neither tool is present it logs a
+warning and returns `network_isolation_unavailable`. Named check: `AT-LF-22
+a task has no network reachability without an explicit grant`. `AT-LF-20`,
+`AT-LF-21`, and `AT-LF-23` already landed; `AT-LF-24` remains unimplemented.
+
 ## AT-LF-23 time-cap kill-and-report implemented (2026-08-26)
 
 `runReadOnly` now honors a configured `timeoutMs`, terminates the task through
@@ -30,9 +39,8 @@ separate tickets. The RIG-120 ceremony (independent review receipt,
 
 Owner re-signed `wiki/gate1/gate1.sig`. The bundled oracle — RIG-120 ceremony
 items, [[RIG-115]] shell-trust, and [[RIG-112]] catalogue-contract — now
-verifies. Remaining red-by-design cases: `AT-LF-22` through `AT-LF-24`
-(`AT-LF-20` and `AT-LF-21` implemented). Those implementations ship as
-separate tickets; the
+verifies. Remaining red-by-design case: `AT-LF-24` (`AT-LF-20`–`AT-LF-23`
+implemented). That remaining implementation ships as a separate ticket; the
 RIG-120 ceremony (independent review receipt, `v5.0.0` tag and publish) waits
 until `npm test` is green.
 

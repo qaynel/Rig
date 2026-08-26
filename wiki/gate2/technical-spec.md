@@ -2017,8 +2017,9 @@ approval on a successful execution and refuses the same approval on replay).
 `AT-LF-21` is now enforced at task spawn: working directories resolve through
 the same containment check as other repository paths, and the child
 environment is an explicit allowlist rather than inherited `process.env`.
-`AT-LF-23` is implemented (timeoutMs kill-and-report). `AT-LF-22` and
-`AT-LF-24` remain frozen ahead of the runtime that must satisfy them.
+`AT-LF-22` is implemented in `runReadOnly` (network isolation). `AT-LF-23`
+is implemented (timeoutMs kill-and-report). `AT-LF-24` remains frozen ahead
+of the runtime that must satisfy it.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the
