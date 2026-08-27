@@ -3,14 +3,6 @@
 Things that have already cost this project time. Every one was discovered the
 hard way. Read this before believing anything looks fine.
 
-Named, checkable anti-patterns now live in a separate directory,
-[`mistakes/`](../mistakes/) — start there when you're about to do something
-structurally similar to a mistake already on record, and use this page for
-the chronological "what happened" account. The two overlap: "the oracle is
-green at a seam the product does not use" and "a validator that returns
-`failures: []` as a literal" below are the same family as
-[guarantee sharding](../mistakes/guarantee-sharding.md).
-
 ---
 
 ## The oracle is green at a seam the product does not use

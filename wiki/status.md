@@ -84,14 +84,3 @@ oracle's 55-skill reading is unaffected and no re-sign was required
   signer file through an owner-authorized re-signing ceremony.
 - Confirm the final `v5.0.0` tag and publication operation after the full gate
   is green.
-
-## RIG-115 shell-trust guarantee (branch-local, not yet part of the v5.0.0 gate above)
-
-`rig/lib/lint-format.js`'s durable one-use plan approval, `runGrade`/
-`runReadOnly` symlink-and-cwd containment, and memory-ceiling enforcement
-(AT-LF-20/21/23/24) are implemented and green on this branch, closing
-RIG-138/139/140. This does not touch the 68-case oracle above and needed no
-re-sign — the acceptance text for these cases was already correctly scoped
-where it exists; the gap was in tests and implementation written against it
-on sibling branches. [Guarantee sharding](mistakes/guarantee-sharding.md) and
-[reasoning trace](reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).
