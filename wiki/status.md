@@ -1,4 +1,49 @@
-# Status - checked 2026-08-26 (updated 2026-08-26)
+# Status - checked 2026-08-27 (updated 2026-08-27)
+
+## RIG-141 and RIG-142 oracle written; awaiting owner sign-off (2026-08-27)
+
+Four acceptance tests added to `tests/advanced-oracle.test.js`:
+
+- `RIG-141 granted-network task runs when no sandbox tool is present` — asserts
+  `result.status === 'clean'` for a `{ network: true }` command when PATH is
+  emptied to prevent `unshare`/`sandbox-exec` from being found. RED against
+  `rig-115-at-lf-22-network-denial`'s early-return bug; GREEN after the fix.
+- `RIG-141 ungranted task still refuses when no sandbox tool is present` —
+  asserts `result.status === 'network_isolation_unavailable'` for an ungranted
+  command under the same PATH condition. Existing AT-LF-22 behaviour preserved
+  for ungranted tasks; GREEN on this branch before and after the fix.
+- `RIG-142 spawnTask shell is false even when caller passes shell: true` —
+  verifies shell injection cannot execute even if a caller passes `shell: true`.
+- `RIG-142 spawnTask env isolation holds even when caller passes env: process.env` —
+  verifies a secret env var absent from `TASK_ENV_ALLOWLIST` is invisible to
+  the child even if a caller passes `env: process.env`.
+
+RIG-142 tests require `spawnTask` to be added to `module.exports` on the
+implementation branch (`rig-115-task-isolation`); confirmed by owner (2026-08-27).
+Both ticket files updated with finalized (not draft) acceptance criteria.
+
+**Gate position:** testing infrastructure is present; the owner signs the oracle
+to freeze it. Implementation (fixing the spread order and the early-return) happens
+after the freeze on `rig-115-at-lf-22-network-denial` and `rig-115-task-isolation`.
+
+## RIG-141 and RIG-142 filed: two structural gaps in AT-LF-21/22 enforcement (2026-08-27)
+
+Two correctness/shell-trust issues filed from a code-level read of `runReadOnly`
+and `spawnTask` in `rig/lib/lint-format.js`. GitHub #96 and #97.
+
+**[[RIG-141]]** (#96): `runReadOnly` hard-refuses **all** tasks when `unshare`/
+`sandbox-exec` is absent — including tasks with `cmd.network === true`
+(explicitly granted network access). AT-LF-22 only requires blocking ungranted
+tasks; the early-return block fires before `argvWithNetworkIsolation` can apply
+the correct bypass. Separately, the granted-network execution path has no test
+at all. Fix: check the grant before deciding whether absence of sandbox tools
+is fatal; add a test for the granted path.
+
+**[[RIG-142]]** (#97): `spawnTask`'s `shell: false` and `env: isolatedTaskEnv()`
+defaults are placed before `...options` in the options object, so any caller
+can pass `shell: true` or a replacement env and silently win. No assertion,
+type guard, or test prevents this. Fix: move the safety properties after the
+spread (or validate and reject overrides), and add tests for each invariant.
 
 ## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
 

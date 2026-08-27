@@ -36,6 +36,12 @@ kanban-plugin: board
 - [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
 	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
+- [ ] **RIG-142 — spawnTask safety defaults (shell:false, env allowlist) are caller-overridable with no guard or test**
+	**Status:** OPEN (2026-08-27) — GitHub #97 — `spawnTask`'s `shell:false` and env allowlist are both placed before `...options`, so any caller can silently override them; no assertion or test prevents this; structural gap in AT-LF-21/AT-LF-22 enforcement · [Solution](tickets/RIG-142.md)
+	**Class:** CORRECTNESS / SHELL TRUST.
+- [ ] **RIG-141 — runReadOnly hard-refuses all tasks when sandbox absent, including network-granted ones; granted-network path untested**
+	**Status:** OPEN (2026-08-27) — GitHub #96 — when `unshare`/`sandbox-exec` is absent `runReadOnly` returns early for all tasks including `cmd.network === true` ones; over-blocks beyond AT-LF-22 scope; the granted-network execution path has no test at all · [Solution](tickets/RIG-141.md)
+	**Class:** CORRECTNESS / SHELL TRUST.
 - [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** BACKLOG (2026-08-25) — RIG-131: Ready-for-Commit card had no ## Acceptance evidence; not present on origin/prod · [Solution](tickets/RIG-124.md)
 - [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**
