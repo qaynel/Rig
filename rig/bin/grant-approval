@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { grantApproval } = require('../lib/policy');
+
+const target = process.argv[2] || process.cwd();
+const actionFile = process.argv[3];
+
+if (!actionFile || !fs.existsSync(actionFile)) {
+  console.error('Usage: grant-approval <target-dir> <action.json>');
+  process.exit(1);
+}
+
+try {
+  const action = JSON.parse(fs.readFileSync(actionFile, 'utf8'));
+  const result = grantApproval(target, action);
+  console.log(JSON.stringify(result, null, 2));
+} catch (err) {
+  console.error(`Error granting approval: ${err.message}`);
+  process.exit(1);
+}

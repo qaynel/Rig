@@ -44,3 +44,8 @@ targets evaluate all 115 leaves. On 2026-08-23 the unmodified signed gate passed
 after the authorship function inspected every declared fragment and reported no
 defects. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
 [Status](../status.md#what-exists-in-the-code-today)
+
+D23's original ruling — why a permanently-red 114-leaf check would have defeated
+the point of the gate, and why filling those leaves with placeholder content was
+rejected rather than scoping the check — is recorded in the
+[originating trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md).

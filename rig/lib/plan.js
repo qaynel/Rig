@@ -45,6 +45,7 @@ function createPlan(target, manifest, review, catalog = loadCatalog()) {
     '.rig/sync-map.json',
     '.rig/bin/check.js',
     '.rig/bin/check-copies.js',
+    '.rig/lib/spawn-guarded.js',
     '.rig/bin/secret-guard.sh',
     '.rig/catalog-routing.md',
     '.rig/service-bindings.json',

@@ -35,11 +35,13 @@ risks or state that expires unchanged user intent. [Rejected approaches](../inde
 
 ## What is still open
 
-The mechanism is designed but not implemented. Policy recovery must invalidate
-pending one-use approvals only after an authorized recovery receipt commits.
-[Policy-signer recovery](policy-signer-recovery.md)
+**Resolved** for the in-process one-use path: clone-local storage, exact-action
+binding, and atomic consumption pass the green full test suite. Policy recovery
+invalidates pending one-use approvals only after an authorized recovery receipt
+commits, per [policy-signer recovery](policy-signer-recovery.md).
 
-Branch `rig-115-at-lf-20-single-use-approval` (RIG-115, AT-LF-20) set
+The lint-format plan/execute flow is a second consumption site. Branch
+`rig-115-at-lf-20-single-use-approval` (RIG-115, AT-LF-20) set
 `approval.used = true` on the in-memory approval object only — no clone-local
 persistence, so the flag did not survive the process boundary a real
 plan/execute flow crosses. It was one instance of a larger pattern, not an

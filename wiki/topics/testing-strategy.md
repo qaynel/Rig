@@ -45,14 +45,12 @@ five-file manifest before any code test, and the 68 cases report 68 pass /
 0 fail. That closes the gap this section used to describe and opens a different
 one.
 
-**A green oracle is not evidence that the product works.** The 2026-08-22 fresh
-review found that all ten modules the oracle exercises — `skills`,
-`release-evidence`, `policy`, `enforcement`, `lifecycle`, `global-writes`,
-`git-dispatch`, `secret-history`, `graft`, `lint-format` — have no production
-caller. Nothing in `materialize.js`, `cli-advanced.js`, `payload.js`,
-`bootstrap.sh`, or `manifest.json` requires any of them. The oracle binds
-behavior by direct `require(file)[name]`, which means 68/68 is fully compatible
-with a library no shipped code path can reach.
+**A green oracle alone is not evidence that the product works.** The 2026-08-22
+fresh review found that the oracle bound behavior only by direct
+`require(file)[name]`, so 68/68 was compatible with a library no shipped code
+path could reach. That total-unreachability claim is now superseded: an
+active-runtime install journals `.rig/bin/rig`, and an end-to-end regression
+uses that installed command to plan, apply, and check the lint-format leaf.
 
 That is a property of how the oracle binds, not a defect in any one test, and it
 is worth stating plainly because it is the successor to the older trap on this
@@ -64,10 +62,18 @@ Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads
 declared host-contract fields instead of inventing them. The signed cases still
 assert `failures: []`, which now means no defects were found. The remaining
-honest limit is that the oracle still binds these functions by direct
-`require`, so a green result does not prove a shipping path calls them.
+honest limit is narrower: the signed oracle still binds many functions by
+direct `require`, and one installed lint-format tracer does not prove every
+runtime module or behavior is wired through a shipping caller.
 [fresh review](../reasoning/2026-08-22-mvp-release-review.md) ·
 [Status](../status.md#what-exists-in-the-code-today)
+
+The structural half of that limit is now guarded: a production caller-graph
+test scans every runtime library module and fails if one is imported only by
+tests. Behavioral shipping-path cases separately exercise installed
+lint-format, managed graft apply, commit validation, MCP enforcement, and the
+release-review wrapper. This does not make direct-require oracle cases redundant;
+it ensures their modules cannot silently become library-only again.
 
 A third mechanism of the same family showed up 2026-08-27 in RIG-115's
 per-AT-LF-case branches: each branch's acceptance test passes for a slice of

@@ -33,7 +33,7 @@
  *   RIG_DETECT_NO_CACHE=1 — bypass the 60s local-status cache.
  */
 
-import { execFileSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { existsSync, readFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
@@ -63,11 +63,13 @@ function userHome(): string {
 
 function tryExec(cmd: string, args: string[], timeoutMs = 5_000): string | null {
   try {
-    return execFileSync(cmd, args, {
+    const result = spawnGuardedSync(cmd, args, {
       encoding: "utf-8",
       timeout: timeoutMs,
       stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
+    });
+    if (result.status !== 0) return null;
+    return (result.stdout || "").trim();
   } catch {
     return null;
   }

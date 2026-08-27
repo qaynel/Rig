@@ -14,8 +14,9 @@ provides_commands:
   - rig-help
 provides_skills:
   - rig
-  - rig-review
   - rig-audit
   - rig-debt
+  - rig-enforcement
   - rig-gain
   - rig-help
+  - rig-review

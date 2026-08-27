@@ -1,11 +1,18 @@
 ---
-status: active
+status: historical
 checked: 2026-08-21
 owner: rig-grilling
 phase: acceptance-authoring
 ---
 
 # Lint-format leaf — consolidated production intent
+
+> **HISTORICAL SNAPSHOT.** This was the pre-freeze synthesis used while
+> grilling the first production leaf. The intent it captured has since landed
+> in the signed oracle itself — [`gate1/business-spec.md`](../gate1/business-spec.md)
+> and [`gate1/acceptance.md`](../gate1/acceptance.md) — and current build state
+> lives in [the delivery plan](../topics/delivery-plan.md) and
+> [status](../status.md). Kept as source context, not a live document.
 
 This is the single-place synthesis of the frozen intent for the first
 production leaf, `development.code-quality.lint-format`. It is **synthesis, not

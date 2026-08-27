@@ -3,13 +3,14 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { spawnGuardedSync } = require('./spawn-guarded');
+// spawnSync-shaped results preserve the existing command-runner contract.
 const { writeReport } = require('./reports');
 const { loadCatalog, servicesOf } = require('./catalog');
 const { containedPath } = require('./path-safety');
 
 function runArgv(command, argv, cwd, timeoutMs = 10 * 60 * 1000) {
-  return spawnSync(command, argv, {
+  return spawnGuardedSync(command, argv, {
     cwd,
     encoding: 'utf8',
     shell: false,
@@ -304,7 +305,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     }
   }
 
-  return failure || { status: 0, stdout: '', stderr: '' };
+  return failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
 }
 
 module.exports = {

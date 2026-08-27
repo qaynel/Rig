@@ -56,12 +56,14 @@ distinct consent and trust boundaries. [Rejected approaches](../index/rejected.m
 
 ## What is still open
 
-The round-3 rollback/resume contradiction between §6.6 and §7.6 is resolved:
-apply now has one partial-failure behavior, preserving completed writes for
-manifest-backed resume instead of rolling them back. Gate 2 still cannot freeze
-until the remaining three round-3 findings are resolved and a fresh review
-passes. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
-[Status](../status.md#ordered-next-steps)
+**Resolved.** The round-3 rollback/resume contradiction between §6.6 and §7.6
+is resolved: apply now has one partial-failure behavior, preserving completed
+writes for manifest-backed resume instead of rolling them back. The one-gate
+model (2026-08-21) has since replaced the two-freeze model this section
+originally described — the technical design is checked for presence, not
+separately frozen — and the flow below is implemented and green.
+[Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+[the two gates](the-two-gates.md) · [Status](../status.md)
 
 For lint-format, inspection may not stop at a fixed ecosystem allow-list. It
 must identify what is relevant in the repository and use that reality to build
@@ -108,6 +110,20 @@ exists to prevent: imposing tools the repository did not ask for. Family
 auto-selection is deferred until there is real signal about which mapping is
 correct, which is one of the things beta feedback is for.
 
+**Implemented 2026-08-25 (RIG-126).** A runtime install now prints a complete
+staged command sequence: inspect with mechanical host detection, host-review
+to a verdict-bearing review, recommend, explicit select into `rig.json`, plan,
+apply after a real host-native or external approval, and check. Check prints a
+positive confirmation on success. The staged path renders the same Antigravity
+manual MCP entry it later verifies. A source-checkout `rig/bin/rig` shim still
+resolves only after install (126.5, deferred).
+
+For detected Antigravity installs with selected MCP servers, onboarding also
+owns a first-class manual boundary: `.rig/mcp-setup.md` contains the exact
+stdio JSON to merge into the user-global Antigravity config and the installed
+verification command. Rig does not write that global file; the check makes the
+manual step observable instead of leaving it as an unverified template note.
+
 **Implemented 2026-08-23.** The released bootstrap uses the registry's bounded
 marker table whenever no host list is supplied. An explicit list replaces auto
 detection rather than adding to it. The payload writer journals each mutation
@@ -117,3 +133,11 @@ explicit-only because a shared root instruction file is ambiguous.
 [roadmap](../specs/mvp-roadmap.md) ·
 [ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
 [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md)
+
+**Installed entrypoint implemented 2026-08-24.** Active-runtime installs now
+journal an executable `.rig/bin/rig` command and print the complete
+`inspect → recommend → plan → apply → check` command sequence after bootstrap.
+The default markdown-only bootstrap still installs neither the command nor the
+runtime. A shipping-path regression installs the runtime, selects lint-format,
+plans and applies it through the installed command, then executes its installed
+check successfully.

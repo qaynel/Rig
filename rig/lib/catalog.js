@@ -144,6 +144,29 @@ function isReviewAccepted(review) {
   return validated.verdict === 'ALLOW' || validated.verdict === 'ALLOW_WITH_RESTRICTIONS';
 }
 
+function selectFromMenu(menu, pairs) {
+  if (!menu || typeof menu !== 'object' || Array.isArray(menu)) {
+    throw new Error('select: menu must be an object');
+  }
+  const rows = Array.isArray(menu.services) ? menu.services : menu.menu;
+  if (!Array.isArray(rows)) throw new Error('select: menu services must be an array');
+  const allowed = new Set(rows.map((row) => row && row.service_id).filter(Boolean));
+  if (!Array.isArray(pairs) || pairs.length === 0) {
+    throw new Error('select: at least one --service id=grade is required');
+  }
+  const services = {};
+  for (const pair of pairs) {
+    const idx = String(pair).lastIndexOf('=');
+    if (idx <= 0) throw new Error(`select: invalid service selection "${pair}"`);
+    const id = pair.slice(0, idx);
+    const grade = pair.slice(idx + 1);
+    if (!allowed.has(id)) throw new Error(`select: unknown service "${id}"`);
+    if (!GRADES.includes(grade)) throw new Error(`select: invalid grade "${grade}" for ${id}`);
+    services[id] = grade;
+  }
+  return { schema_version: 1, services };
+}
+
 const POLICY_GRADE = /Policy(?:-| )grade/i;
 const PLACEHOLDER = /TODO|TBD|Concrete convention|describes the .* service\. This authoring|enforces the Policy-grade checks declared in the catalogue|carries the shared invariant the parent service depends on/i;
 const GENERIC_CHECK = /-(?:core|extended|thorough)$/;
@@ -263,5 +286,6 @@ module.exports = {
   validateRigJson,
   validateReview,
   isReviewAccepted,
+  selectFromMenu,
   authorshipReport,
 };

@@ -32,7 +32,7 @@ function unquote(value) {
 }
 
 function loadLocalEnv(root, env = process.env) {
-  const local = path.join(root, '.context', 'gate1.env');
+  const local = path.join(root, '.credentials', 'gate1.env');
   if (!fs.existsSync(local) || env[ENV_NAME]) return env[ENV_NAME];
   for (const line of fs.readFileSync(local, 'utf8').split('\n')) {
     const match = line.match(/^(?:export\s+)?RIG_GATE1_SIGNING_KEY=(.*)$/);
@@ -85,7 +85,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   const env = { ...process.env, ...(options.env || {}) };
   defaultSecretiveAgent(env);
   const configured = loadLocalEnv(root, env);
-  assert.ok(configured, `set ${ENV_NAME} or copy scripts/gate1.env.example to .context/gate1.env`);
+  assert.ok(configured, `set ${ENV_NAME} or copy .credentials/gate1.env.example to .credentials/gate1.env`);
 
   const signingKey = path.resolve(root, expandPath(configured));
   assert.ok(fs.existsSync(signingKey), `${ENV_NAME} does not exist: ${signingKey}`);

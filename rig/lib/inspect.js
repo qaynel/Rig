@@ -87,10 +87,15 @@ function collectHarnessFiles(target) {
   return out;
 }
 
+function explicitHosts(host, hosts) {
+  const ids = host ? [host] : Array.isArray(hosts) ? hosts : [];
+  return ids.filter((id) => id && id !== 'auto');
+}
+
 function inspectTarget(target, { host, hosts } = {}) {
   const root = realpathOrNull(target);
   if (!root || !fs.existsSync(root)) throw new Error('inspect: target must exist');
-  const explicit = host ? [host] : Array.isArray(hosts) ? hosts : [];
+  const explicit = explicitHosts(host, hosts);
   const detectedHosts = discoverHosts(root, { explicit });
 
   const findings = [];
@@ -145,12 +150,35 @@ function inspectTarget(target, { host, hosts } = {}) {
 
   return {
     schema_version: 1,
-    ...(host ? { host } : {}),
+    ...(host && host !== 'auto' ? { host } : {}),
     hosts: detectedHosts,
     harness_digest: hash.digest('hex'),
     inputs,
     findings,
     redaction: 'secret-shaped evidence redacted',
+  };
+}
+
+function hostReview(inspection) {
+  if (!inspection || typeof inspection !== 'object' || inspection.schema_version !== 1) {
+    throw new Error('host-review: malformed inspection');
+  }
+  if (typeof inspection.harness_digest !== 'string' || !inspection.harness_digest) {
+    throw new Error('host-review: stale or malformed inspection');
+  }
+  const verdict = adoptionVerdict({
+    findings: inspection.findings || [],
+    unverifiable: inspection.unverifiable || [],
+  });
+  const detected = Array.isArray(inspection.hosts) && inspection.hosts[0] && inspection.hosts[0].id;
+  return {
+    schema_version: 1,
+    host: inspection.host || detected || 'generic',
+    harness_digest: inspection.harness_digest,
+    verdict: verdict.verdict,
+    findings: inspection.findings || [],
+    restrictions: inspection.restrictions || [],
+    unverifiable: inspection.unverifiable || [],
   };
 }
 
@@ -161,13 +189,50 @@ function adoptionVerdict({ findings = [], unverifiable = [] } = {}) {
   return { verdict: 'ALLOW', findings, unverifiable };
 }
 
+function hostReview(inspection) {
+  if (!inspection || typeof inspection !== 'object' || Array.isArray(inspection)) {
+    throw new Error('host-review: inspection must be an object');
+  }
+  if (inspection.schema_version !== 1) throw new Error('host-review: malformed inspection');
+  if (typeof inspection.harness_digest !== 'string' || !inspection.harness_digest) {
+    throw new Error('host-review: inspection harness_digest required');
+  }
+  if (inspection.findings !== undefined && !Array.isArray(inspection.findings)) {
+    throw new Error('host-review: findings must be an array');
+  }
+  if (inspection.unverifiable !== undefined && !Array.isArray(inspection.unverifiable)) {
+    throw new Error('host-review: unverifiable must be an array');
+  }
+  const findings = Array.isArray(inspection.findings) ? inspection.findings : [];
+  const unverifiable = Array.isArray(inspection.unverifiable) ? inspection.unverifiable : [];
+  const restrictions = Array.isArray(inspection.restrictions) ? inspection.restrictions : [];
+  const decided = adoptionVerdict({ findings, unverifiable });
+  const host = inspection.host || (Array.isArray(inspection.hosts) && inspection.hosts[0] && inspection.hosts[0].id) || undefined;
+  const review = {
+    schema_version: 1,
+    harness_digest: inspection.harness_digest,
+    ...(host ? { host } : {}),
+    verdict: decided.verdict,
+    findings,
+    restrictions,
+    unverifiable,
+    reviewer: { kind: 'host-agent', host: host || 'generic' },
+  };
+  if (inspection.manualEntries && typeof inspection.manualEntries === 'object') {
+    review.manualEntries = inspection.manualEntries;
+  }
+  return review;
+}
+
 module.exports = {
   MAX_BYTES,
   inspectTarget,
+  hostReview,
   redact,
   validateReview,
   validateVerdict: validateReview,
   VERDICTS,
   KNOWN_RESTRICTIONS,
   adoptionVerdict,
+  hostReview,
 };

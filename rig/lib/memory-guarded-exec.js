@@ -17,7 +17,8 @@
 // only -- see runCommand in lint-format.js) fires on this wrapper instead.
 
 const fs = require('node:fs');
-const { spawn, spawnSync } = require('node:child_process');
+const { spawnSync } = require('node:child_process');
+const { spawnGuarded } = require('./spawn-guarded');
 
 const POLL_MS = 15;
 
@@ -34,7 +35,7 @@ function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
 
   let child;
   try {
-    child = spawn(argv[0], argv.slice(1), { shell: false, stdio: ['ignore', 'inherit', 'inherit'] });
+    child = spawnGuarded(argv[0], argv.slice(1), { shell: false, stdio: ['ignore', 'inherit', 'inherit'] });
   } catch {
     report({ killed_for: 'command_not_found', code: 1, signal: null });
     return;
@@ -44,11 +45,11 @@ function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
   const memTimer = memoryLimitBytes ? setInterval(() => {
     if (!child.pid || rssBytes(child.pid) <= memoryLimitBytes) return;
     killedFor = 'memory_exceeded';
-    child.kill('SIGKILL');
+    child.cancel('SIGKILL');
   }, POLL_MS) : null;
   const timeoutTimer = timeoutMs ? setTimeout(() => {
     killedFor = killedFor || 'timeout';
-    child.kill('SIGKILL');
+    child.cancel('SIGKILL');
   }, timeoutMs) : null;
 
   const stopTimers = () => {
@@ -71,4 +72,4 @@ if (require.main === module) {
   run(process.argv.slice(2));
 }
 
-module.exports = { run };
+module.exports = { run, scriptPath: __filename };

@@ -24,7 +24,8 @@
  * process share one sidecar.
  */
 
-import { ChildProcessByStdio, spawn } from "child_process";
+import { ChildProcessByStdio } from "child_process";
+import { spawnGuarded } from "../../../../lib/spawn-guarded";
 import { Readable, Writable } from "stream";
 import { findSecuritySidecar } from "./find-security-sidecar";
 
@@ -40,7 +41,7 @@ interface PendingRequest {
 }
 
 interface SidecarState {
-  child: ChildProcessByStdio<Writable, Readable, Readable> | null;
+  child: (ChildProcessByStdio<Writable, Readable, Readable> & { cancel?: (signal?: string) => Promise<void> }) | null;
   pending: Map<string, PendingRequest>;
   buffer: string;
   failures: number[]; // timestamps of recent failures
@@ -114,7 +115,7 @@ function shutdownChild(): void {
   const s = getState();
   if (!s.child) return;
   try {
-    s.child.kill("SIGTERM");
+    void s.child.cancel?.("SIGTERM");
   } catch {
     // Already dead.
   }
@@ -135,9 +136,8 @@ function spawnSidecar(): boolean {
     return false;
   }
   try {
-    const child = spawn(location.node, [location.entry], {
+    const child = spawnGuarded(location.node, [location.entry], {
       stdio: ["pipe", "pipe", "pipe"],
-      detached: false,
     });
     child.stdout.on("data", (chunk: Buffer) => {
       s.buffer += chunk.toString("utf-8");

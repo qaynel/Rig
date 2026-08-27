@@ -237,6 +237,78 @@ test('Tier 1 --with-runtime restores plumbing and per-skill code', () => {
   }
 });
 
+test('Tier 1 --with-runtime installs and surfaces a working catalogue entrypoint', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-entrypoint-'));
+  const rig = path.join(target, '.rig', 'bin', 'rig');
+  const service = 'development.code-quality.lint-format';
+
+  try {
+    execFileSync('git', ['init'], { cwd: target, stdio: 'pipe' });
+    fs.writeFileSync(path.join(target, 'package.json'), `${JSON.stringify({
+      name: 'rig-entrypoint-fixture',
+      version: '1.0.0',
+      private: true,
+      scripts: { 'format:check': 'git diff --check' },
+    }, null, 2)}\n`);
+    fs.writeFileSync(path.join(target, 'index.js'), 'const answer = 42;\n');
+
+    const output = execFileSync('sh', [
+      path.join(root, 'rig', 'bootstrap.sh'),
+      '--tier', '1',
+      '--target', target,
+      '--hosts', 'codex',
+      '--with-runtime',
+    ], { encoding: 'utf8' });
+    assert.ok(output.includes(`cd "${target}"`), 'onboarding must enter a non-current target before using the relative command');
+    assert.match(output, /\.rig\/bin\/rig inspect[\s\S]*recommend[\s\S]*plan[\s\S]*apply[\s\S]*check/);
+    assert.ok(fs.statSync(rig).mode & 0o111, 'installed entrypoint must be executable');
+
+    const reviewPath = path.join(target, 'review.json');
+    const selectionPath = path.join(target, 'rig.json');
+    const planPath = path.join(target, 'plan.json');
+    const approvalPath = path.join(target, 'approval.json');
+    fs.writeFileSync(reviewPath, `${JSON.stringify({
+      schema_version: 1,
+      harness_digest: 'shipping-entrypoint-fixture',
+      host: 'codex',
+      verdict: 'ALLOW',
+      findings: [],
+      restrictions: [],
+      unverifiable: [],
+      reviewer: { kind: 'host-agent', host: 'codex' },
+    }, null, 2)}\n`);
+    fs.writeFileSync(selectionPath, `${JSON.stringify({
+      schema_version: 1,
+      services: { [service]: 'minimal' },
+    }, null, 2)}\n`);
+
+    execFileSync(rig, [
+      'plan', '--target', target, '--manifest', selectionPath,
+      '--review', reviewPath, '--out', planPath,
+    ], { stdio: 'pipe' });
+    const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+    fs.writeFileSync(approvalPath, `${JSON.stringify({
+      schema_version: 1,
+      kind: 'plan-approval',
+      plan_digest: plan.plan_digest,
+      approval: { method: 'external-sshsig', verified: true },
+    }, null, 2)}\n`);
+    execFileSync(rig, [
+      'apply', '--target', target, '--manifest', selectionPath,
+      '--review', reviewPath, '--plan', planPath, '--approval', approvalPath,
+    ], { stdio: 'pipe' });
+    execFileSync(rig, ['check', '--target', target, '--service', service], { stdio: 'pipe' });
+
+    const bindings = JSON.parse(read(target, '.rig/service-bindings.json'));
+    assert.equal(bindings[service].engine, 'component-lint-format-v1');
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'bin', 'check.js')));
+    const journal = read(target, '.rig/install-manifest.jsonl');
+    assert.match(journal, /"path":"\.rig\/bin\/rig"/);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
 test('Tier 1 default bootstrap stays in sync with the canonical payload manifest', () => {
   const viaShell = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-shell-'));
   const viaPayload = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-payload-'));

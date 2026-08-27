@@ -12,17 +12,18 @@ Remediation is separate and requires an explicit proposal digest approval.
 ## CLI
 
 From a source checkout use `node rig/materialize.js`; from a tagged release
-install use `node .rig/runtime/rig/materialize.js` with the same arguments.
+install use `.rig/bin/rig` with the same arguments. The installed command is
+present only for active-runtime installs (`--with-runtime`).
 
 ```sh
-node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
-# host agent writes review.json from inspection + sanitation-review skill
+node rig/materialize.js inspect --target <repo> --hosts auto --out inspection.json
+node rig/materialize.js host-review --target <repo> --inspection inspection.json --out review.json
 node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
-# write leaf selections to <repo>/rig.json
+node rig/materialize.js select --menu menu.json --out <repo>/rig.json --service id=grade
 node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
-node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
-node .rig/bin/check.js --scope diff    # local/dev
-node .rig/bin/check.js --scope repo    # CI
+# Approve the exact plan through a host-native attestation or an external signature.
+node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json --approval approval.json
+.rig/bin/rig check --target <repo>
 ```
 
 Model-assisted secret triage is enabled only through a disclosed policy plan:
@@ -64,7 +65,18 @@ artifacts. The user-owned `.rig/network-policy.json` is preserved.
 
 Release review uses `scripts/review-receipt.js`. Claude is the default reviewer;
 `--reviewer codex` uses a fresh ephemeral read-only Codex process with the same
-prompt and receipt validator when the default driver is unavailable.
+prompt and receipt validator when the default driver is unavailable. It is a
+release-only gate — never a mid-development inner loop; use `rig-tdd`'s
+`npm run test:rig` / single-test-file loop for that instead.
+
+A `fail` verdict is real signal: fix it, then re-review once. The wrapper
+enforces the cap itself — a third consecutive fail for the same
+`--author-context` refuses to spawn another reviewer (`--force-rereview`
+overrides it, as an explicit, visible step, not silent retry). Pass `--interim`
+for a cheap sanity-check pass with a cheap `--model`: it prints the verdict and
+findings but never writes the binding receipt. Only a run without `--interim`
+produces the receipt the gate relies on, and it should use the model the
+release designates.
 
 Legacy Basic path is unchanged:
 
