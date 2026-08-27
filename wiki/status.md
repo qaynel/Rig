@@ -1,6 +1,6 @@
 # Status - checked 2026-08-27 (updated 2026-08-27)
 
-## RIG-141 and RIG-142 oracle written; awaiting owner sign-off (2026-08-27)
+## RIG-141 and RIG-142 implemented (2026-08-27)
 
 Four acceptance tests added to `tests/advanced-oracle.test.js`:
 
@@ -18,13 +18,13 @@ Four acceptance tests added to `tests/advanced-oracle.test.js`:
   verifies a secret env var absent from `TASK_ENV_ALLOWLIST` is invisible to
   the child even if a caller passes `env: process.env`.
 
-RIG-142 tests require `spawnTask` to be added to `module.exports` on the
-implementation branch (`rig-115-task-isolation`); confirmed by owner (2026-08-27).
-Both ticket files updated with finalized (not draft) acceptance criteria.
+The implementation now checks the network grant per command, locks the shell
+and environment safety options after caller options are spread, and exports
+`spawnTask` for the direct safety checks. The focused oracle is green; the full
+CI-equivalent suite ran with 493 passing tests and one pre-existing
+`AT-LF-24` failure on this base branch.
 
-**Gate position:** testing infrastructure is present; the owner signs the oracle
-to freeze it. Implementation (fixing the spread order and the early-return) happens
-after the freeze on `rig-115-at-lf-22-network-denial` and `rig-115-task-isolation`.
+The frozen oracle and its acceptance artifacts were preserved unchanged.
 
 ## RIG-141 and RIG-142 filed: two structural gaps in AT-LF-21/22 enforcement (2026-08-27)
 
