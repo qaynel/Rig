@@ -1001,3 +1001,81 @@ test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
     assert.equal(planned.commands[0].source_snapshot, null);
   });
 });
+
+// RIG-141: runReadOnly over-blocks when sandbox absent.
+// AT-LF-22 requires denying ungranted tasks but permits granted ones;
+// the early-return must not fire for cmd.network === true.
+// PATH is emptied to force networkIsolationPrefix() → null without platform dependency.
+test('RIG-141 granted-network task runs when no sandbox tool is present', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+    const savedPath = process.env.PATH;
+    try {
+      process.env.PATH = emptyBin;
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, '-e', ''], network: true },
+      ]);
+      assert.equal(result.status, 'clean',
+        'granted task must run (not be refused) when sandbox tools are absent');
+    } finally {
+      process.env.PATH = savedPath;
+      fs.rmdirSync(emptyBin);
+    }
+  });
+});
+
+test('RIG-141 ungranted task still refuses when no sandbox tool is present', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+    const savedPath = process.env.PATH;
+    try {
+      process.env.PATH = emptyBin;
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, '-e', ''] },
+      ]);
+      assert.equal(result.status, 'network_isolation_unavailable',
+        'ungranted task must still be refused when sandbox tools are absent');
+    } finally {
+      process.env.PATH = savedPath;
+      fs.rmdirSync(emptyBin);
+    }
+  });
+});
+
+// RIG-142: spawnTask safety defaults must be structurally locked.
+// shell:false and env:isolatedTaskEnv() must hold even when a caller passes
+// overrides in options. Requires spawnTask to be exported from lint-format.js.
+test('RIG-142 spawnTask shell is false even when caller passes shell: true', () => {
+  const spawnTask = api('lint-format.js', 'spawnTask');
+  // If shell were honoured, the semicolon would split commands and 'touch' would run.
+  // With shell:false the whole string is treated as the binary name (ENOENT).
+  const marker = path.join(os.tmpdir(), `rig-shell-test-${process.pid}`);
+  try {
+    spawnTask([`${process.execPath}; touch ${marker}`, '-e', ''], { shell: true });
+  } catch { /* ENOENT expected when shell is correctly disabled */ }
+  assert.equal(fs.existsSync(marker), false,
+    'shell injection must not execute when caller passes shell:true');
+});
+
+test('RIG-142 spawnTask env isolation holds even when caller passes env: process.env', () => {
+  const spawnTask = api('lint-format.js', 'spawnTask');
+  h.withRepo((target) => {
+    const leakMarker = path.join(os.tmpdir(), `rig-env-test-${process.pid}`);
+    process.env.RIG_TEST_SECRET_142 = 'leaked';
+    try {
+      const probe = path.join(target, 'env-check.js');
+      fs.writeFileSync(probe,
+        `if (process.env.RIG_TEST_SECRET_142) require('fs').writeFileSync(${JSON.stringify(leakMarker)}, 'x')`
+      );
+      spawnTask([process.execPath, probe], { env: process.env });
+      assert.equal(fs.existsSync(leakMarker), false,
+        'child must not see secrets from a caller-supplied env replacement');
+    } finally {
+      delete process.env.RIG_TEST_SECRET_142;
+      if (fs.existsSync(leakMarker)) fs.unlinkSync(leakMarker);
+    }
+  });
+});
+
