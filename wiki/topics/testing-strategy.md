@@ -80,3 +80,11 @@ Instances: [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93),
 [RIG-139 / #94](https://github.com/qaynel/Rig/issues/94),
 [RIG-140 / #95](https://github.com/qaynel/Rig/issues/95).
 [reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md)
+
+The prevention side is `AT-PROC-1`, a workflow-doctrine acceptance criterion
+(not a Gate 1 case — no owner signature, no set-equality gate) requiring the
+union of a split guarantee's sibling-branch tests to cover every enumerated
+call site and conjunct. `tests/guarantee-coverage.test.js` is its executable
+target: red by design until RIG-138/139/140 landed, green since
+[2026-08-27](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md). Full
+text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).

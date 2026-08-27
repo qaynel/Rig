@@ -102,10 +102,84 @@ call-site/conjunct list before being split into tickets) and `rig-execution`
 (the seam check belongs at the point independent work is verified before a
 completion claim), not a one-time fix to these three branches.
 
+## Acceptance criteria (AT-PROC-1)
+
+A workflow-doctrine acceptance criterion, not a Gate 1 product case — it does
+not touch the frozen 68-case oracle or its set-equality gate
+([`index/acceptance-cases.md`](../index/acceptance-cases.md)), and needs no
+owner signature to exist or change. It governs how a guarantee may be split
+into branches, the same way `rig-grilling`/`rig-execution` govern process
+rather than product behavior.
+
+**Given** a guarantee stated in acceptance text spans more than one call site
+and/or more than one logical conjunct (every "and"/"or" in the text), **and**
+implementation of that guarantee is split across more than one branch or PR:
+**pass** requires the union of every sibling branch's passing tests to
+exercise each enumerated call site and each conjunct independently — there
+must exist at least one test that fails if that site or conjunct alone
+regresses. **Fail** is any call site or conjunct with zero test that would
+catch it regressing alone, checked both when the guarantee is first split
+(`rig-grilling`) and again at merge time against the landed bytes, not the
+plan-time snapshot (`rig-execution`).
+
+Executable target: [`tests/guarantee-coverage.test.js`](../../tests/guarantee-coverage.test.js)
+turns the three worked examples above into real, non-tautological regression
+tests against `rig/lib/lint-format.js`:
+
+| Sub-case | Proves | Status on this branch (2026-08-27) |
+|---|---|---|
+| `AT-PROC-1a` | AT-LF-20 survives an independently-constructed approval object for the same `plan_digest`, not just the object the caller happened to mutate. | **Green.** `executePlan` now durably consumes the approval under `target/.rig/lint-format/executions/<digest>.json` via an atomic exclusive create, keyed by `plan_digest` rather than object identity. |
+| `AT-PROC-1b` | `runGrade` refuses a `cwd` that escapes the repository via a symlink, at parity with `runReadOnly`. | **Green.** `runGrade` now takes a `target` parameter and both functions route through a shared `taskCwd()` wrapping `containedPath`. |
+| `AT-PROC-1c` | A command exceeding a declared `memory_limit_mb` is killed and reported as `memory_exceeded`, distinct from `timeout`. | **Green.** See the enforcement-design note below. |
+
+These were deliberately red by design as TDD specs for what RIG-138/139/140
+had to turn green, not assertions that the fix already existed — the fix
+landed on this branch (commit implementing this section) rather than by
+merging any of the five sibling `rig-115-at-lf-*` branches as-is, since those
+branches' own tests were the narrow slices this page is about. A skipped or
+vacuously-passing version of any of the three would have repeated the exact
+mistake this page is named for.
+
+**Enforcement design for AT-LF-23.** `spawnSync` (what `runGrade` and
+`runReadOnly` use, and what the frozen `tests/advanced-oracle.test.js`
+requires them to keep using — see below) blocks the caller's event loop until
+the child exits, so nothing in that call can observe an intermediate RSS
+sample. A hard kernel cap (`RLIMIT_AS`) avoids that problem but is only
+reliably enforced on Linux, not macOS, and there is no POSIX-rlimit
+equivalent on Windows. The chosen design is a polling watchdog delegated to a
+separate process, [`rig/lib/memory-guarded-exec.js`](../../rig/lib/memory-guarded-exec.js):
+it spawns the real command asynchronously, samples RSS via `ps -o rss=` every
+15ms, and `SIGKILL`s on crossing `memory_limit_mb`, reporting the outcome
+through a result file. The caller (`runCommand` in `lint-format.js`) stays a
+plain, synchronous `spawnSync` on this wrapper — enforcement moved to a
+different process, not to a different (async) calling convention. This is
+still a best-effort cap, not a kernel guarantee: a single allocation fast
+enough to complete inside one poll interval can still land before the kill
+signal does. `AT-PROC-1c`'s fixture allocates in twenty 10MB chunks with a
+short pause between each rather than one instant burst, both because that is
+closer to how a real runaway process actually grows and because the first
+version of this fixture (one instant 200MB `Buffer.alloc`) was flaky —
+roughly 1-in-8 local runs raced past the watchdog before the first poll fired.
+
+**Constraint discovered during implementation, not before.** The first
+implementation attempt made `runGrade`/`runReadOnly` `async` (needed for live
+RSS polling with a plain in-process `setInterval`), which broke four tests in
+`tests/advanced-oracle.test.js` — `AT-LF-7`, `AT-LF-8`, `AT-LF-9`, `AT-LF-11`
+— because that file is a frozen Gate 1 testing-infrastructure file
+(`wiki/gate1/testing-infrastructure.manifest`, digest-checked by
+`scripts/check-advanced-spec.js`) that calls both functions synchronously and
+cannot be edited by an implementer. The separate-process watchdog design
+above was adopted specifically to keep both functions synchronous and avoid
+touching frozen files. Add "does the fix change a frozen call site's sync/async
+contract" to the call-site/conjunct enumeration this page's check already
+asks for — this branch's own attempt is a fourth instance of the same family
+of oversight, caught by `npm test` before landing rather than after.
+
 It also binds [RIG-120 / #68](https://github.com/qaynel/Rig/issues/68): the
 release ceremony must not treat RIG-115 as Done — or the five `AT-LF-20`–
 `AT-LF-24` slices as proving the shell-trust guarantee — until this check
 passes against the landed bytes. [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93),
 [RIG-139 / #94](https://github.com/qaynel/Rig/issues/94), and
-[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95) are instances of this
-pattern, not three independent follow-ups.
+[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95) are closed by this
+fix landing with `tests/guarantee-coverage.test.js` green and the full gate
+passing.
