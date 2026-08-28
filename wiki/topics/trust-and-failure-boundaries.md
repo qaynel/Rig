@@ -86,9 +86,10 @@ task exceeding a configured memory ceiling or wall-clock timeout is killed
 and reported as its own distinct non-passing state (`GA-33`); a
 repository-supplied symlink resolving outside the repository is refused like
 any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases.
-`AT-LF-20` is implemented (`executePlan` consumes the approval on a
-successful run and refuses replay). `AT-LF-21` is now enforced at task
-spawn. `AT-LF-22`–`AT-LF-24` still wait on their own runtime changes.
+`AT-LF-20`–`AT-LF-24` are implemented: durable one-use consumption, isolated
+task env and cwd containment (both `runGrade` and `runReadOnly`), network
+isolation, timeout plus memory ceiling, and refused symlink escapes. The
+remaining shard gaps are closed in the same file — see below.
 [reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
 
 A check approved as read-only that changes the working tree is a failure, not a
@@ -108,3 +109,27 @@ resolve to a distinct reported result rather than collapsing into "pass" or a
 generic "failed" that loses the actionable cause. Treating an inconclusive end
 as non-blocking is rejected as reintroducing false green.
 [reasoning trace](../reasoning/2026-08-21-lint-format-failure-semantics.md)
+
+RIG-115's per-AT-LF-case branches sharded this section's guarantees rather
+than proving them whole: the symlink-containment check (AT-LF-21/24) was
+wired into `runReadOnly` only, leaving `runGrade` — the path that actually
+executes lint/format commands — reading `cmd.cwd` unguarded
+([RIG-139 / #94](https://github.com/qaynel/Rig/issues/94)); AT-LF-23's
+"memory ceiling or wall-clock timeout" had only the timeout half implemented
+anywhere ([RIG-140 / #95](https://github.com/qaynel/Rig/issues/95)). Each
+branch's own test passed; neither proved the boundary this page states. See
+[guarantee sharding](../mistakes/guarantee-sharding.md) and
+[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).
+
+Both are now fixed directly in `rig/lib/lint-format.js`
+([reasoning trace](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md)):
+a shared `taskCwd()` (wrapping `containedPath`) is called from both
+`runGrade` and `runReadOnly`, and a configured `memory_limit_mb` is enforced
+by a separate watcher process (`rig/lib/memory-guarded-exec.js`) polling RSS,
+alongside the existing wall-clock timeout — both report their own distinct
+non-passing state (`boundary_violation`, `memory_exceeded`) per `GA-33`. The
+memory cap is a polling watchdog, not a kernel guarantee: see the enforcement
+design note in [guarantee sharding](../mistakes/guarantee-sharding.md) for
+why (a hard `RLIMIT_AS` cap is not reliably enforced cross-platform) and its
+known race window (a single allocation fast enough to complete inside one
+poll interval can still land before the kill signal does).

@@ -18,7 +18,7 @@ update it as part of your change — never as an afterthought.
 
 ---
 
-## The four kinds of page
+## The five kinds of page
 
 | Kind | Where | What it is |
 |---|---|---|
@@ -26,6 +26,7 @@ update it as part of your change — never as an afterthought.
 | **Indexes** | [`index/`](index/) | Flat lookups across everything: every decision, every acceptance case, every rejected idea, every trap. |
 | **Authorities** | [`gate1/`](gate1/), [`gate2/`](gate2/) | The documents that actually decide things. Frozen or candidate. Nothing here is rewritten by the wiki. |
 | **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written — see the [sources index](index/sources.md) for a linked way in. |
+| **Mistakes** | [`mistakes/`](mistakes/) | One file per named anti-pattern, each anchored to the concrete example that proves it happened, with a check to run before repeating its shape. Not a narrative log — see [`index/traps.md`](index/traps.md) for that. **Synthesis**, checked directly. |
 
 Plus [`reasoning/`](reasoning/) — where new thinking lands, verbatim and dated, and
 [`specs/`](specs/) — subordinate scope and status documents.
@@ -86,6 +87,7 @@ topic is wrong.
 - [**Acceptance cases**](index/acceptance-cases.md) — the 68 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
+- [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
 - [**Invariants**](index/invariants.md) — propositions that must always hold; seeded from traps and the six merged tickets, filled in by every ticket close.
 - [**Timeline**](index/timeline.md) — how the design moved, by date.
 - [**Path map**](index/path-map.md) — old `project-dev-docs/` paths to their wiki homes.
