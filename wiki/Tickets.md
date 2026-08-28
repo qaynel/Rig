@@ -51,6 +51,9 @@ kanban-plugin: board
 - [ ] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
 	**Status:** OPEN, decided (2026-08-28) — GitHub #91 — owner chose Option A, scoped to `AT-LF-22` only (`withTempDir` generalization explicitly deferred); blocked on key-holder re-sign, then implementation · [Solution](tickets/RIG-137.md)
 	**Class:** CODE QUALITY / TRUST BOUNDARY. `rig/lib/lint-format.js` lines 11-22 globally monkey-patch `net.Server.prototype.listen` to work around a frozen test's timing issue. The patch silently changes any production caller's `listen(0, '127.0.0.1')` (loopback-only) to wildcard binding, contradicting AT-LF-22's "default-deny network reachability" guarantee. Recommended fix: unfreeze the test and rewrite it to handle Node 24's async host lookup; observable behavior (network isolation) does not change. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
+- [x] **RIG-143 — runGrade runs approved commands with no network isolation**
+	**Status:** COMPLETE (2026-08-28) — implementation and AT-PROC-1d acceptance test green; GitHub issue not filed · [Solution](tickets/RIG-143.md)
+	**Class:** CORRECTNESS / SHELL TRUST. `runGrade` now applies the same per-command isolation and grant/refusal contract as `runReadOnly`.
 - [x] **RIG-142 — spawnTask safety defaults (shell:false, env allowlist) are caller-overridable with no guard or test**
 	**Status:** COMPLETE (2026-08-27) — GitHub #97 — safety options are now locked after caller options and the helper is exported; focused oracle is green · [Solution](tickets/RIG-142.md)
 	**Class:** CORRECTNESS / SHELL TRUST.

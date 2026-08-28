@@ -576,6 +576,7 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
   const gradeOrder = ['Policy', 'Context', 'Evidence'];
   const map = { minimal: 1, mid: 2, maximal: 3 };
   const gradeLevel = map[grade] || 1;
+  const isolation = networkIsolationPrefix();
   const executed = (commands || []).map((cmd) => {
     if (!cmd.argv) return cmd.result ? { ...cmd, result: { ...cmd.result, source: 'legacy-result' } } : {
       ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null },
@@ -589,7 +590,10 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
     } catch {
       return { ...cmd, result: { exit_code: 1, status: 'boundary_violation', output_digest: null } };
     }
-    const result = runCommand(cmd.argv, {
+    if (!isolation && cmd.network !== true) {
+      return { ...cmd, result: { exit_code: 1, status: 'network_isolation_unavailable', output_digest: null } };
+    }
+    const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
       cwd,
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
