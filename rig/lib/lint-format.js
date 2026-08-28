@@ -700,7 +700,7 @@ function runReadOnly(target, commands) {
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
     });
-    if (result.status === 'timeout' || result.status === 'memory_exceeded') {
+    if (result.status === 'timeout' || result.status === 'memory_exceeded' || result.status === 'memory_ceiling_unavailable') {
       return { status: result.status, changed_paths };
     }
     const postState = snapshotDir(target);

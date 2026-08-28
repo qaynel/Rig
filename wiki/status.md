@@ -1,5 +1,38 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## rig-120 code blocker: runReadOnly maps memory_ceiling_unavailable to clean (2026-08-28, latest)
+
+Code review raised a correctness defect that blocks the rig-120 release: a
+memory-limited read-only command killed because `ps` is unavailable returns
+`{ status: 'clean' }` instead of `{ status: 'memory_ceiling_unavailable' }`.
+
+**Root cause:** `runReadOnly` (`rig/lib/lint-format.js:703`) only intercepts
+`'timeout'` and `'memory_exceeded'` before falling through to the snapshot-diff
+check. When `ps` is absent, `memory-guarded-exec.js` correctly kills the command
+and writes `killed_for: 'memory_ceiling_unavailable'` to the result file, and
+`runCommand` faithfully returns that status — but `runReadOnly` never matches
+it, finds no working-tree mutation (the command was killed), and returns `clean`.
+This violates the fail-closed resource-limit guarantee.
+
+**Test gap:** AT-PROC-1f only calls `rssBytesTree` directly; it never exercises
+the full `runReadOnly` → `runCommand` → result-file path. A test that strips `ps`
+from PATH and calls `runReadOnly` with `memory_limit_mb` would have caught this.
+
+**Fix (red-before / green-after, both on current HEAD):**
+
+- `rig/lib/lint-format.js:703`: added `|| result.status === 'memory_ceiling_unavailable'`
+  to the early-return condition in `runReadOnly`.
+- `tests/guarantee-coverage.test.js`: added AT-PROC-1i — strips `ps` from PATH,
+  calls `runReadOnly` with `memory_limit_mb: 64`, asserts the result is
+  `memory_ceiling_unavailable` not `clean`. Confirmed red against the pre-fix
+  code, green with the fix.
+
+No frozen oracle file was edited; no re-sign is required. Full AT-PROC-1a–1i
+focused suite: 9/9 passed. Full `npm test` gate: 501/504 root tests pass, 1
+expected Linux-only skip, 2 pre-existing failures (AT-B3 git-hooks workspace
+leak, AT-HOME-1 rig-mcp node_modules not installed) — identical to the
+pre-fix baseline. Reasoning trace: [[reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean]].
+
 ## Linux CI regression isolated and fixed locally (2026-08-28, latest)
 
 The red hosted runs were caused by the Python executable path resolver added to

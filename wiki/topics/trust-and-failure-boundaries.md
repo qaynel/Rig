@@ -155,6 +155,18 @@ why (a hard `RLIMIT_AS` cap is not reliably enforced cross-platform) and its
 known race window (a single allocation fast enough to complete inside one
 poll interval can still land before the kill signal does).
 
+A secondary defect was found and fixed during the rig-120 code review: when
+`ps` itself is absent, `memory-guarded-exec.js` correctly kills the command
+and reports `memory_ceiling_unavailable` — but `runReadOnly` was not checking
+for that status, so the killed command fell through to the snapshot-diff check
+and returned `clean`. Fixed by adding `memory_ceiling_unavailable` to
+`runReadOnly`'s early-return condition alongside `timeout` and `memory_exceeded`.
+AT-PROC-1i proves the full path end-to-end (strips `ps` from PATH, calls
+`runReadOnly` with `memory_limit_mb`, asserts the result is
+`memory_ceiling_unavailable`). `runGrade` was unaffected: its `anyFail`
+check propagates the non-zero exit code and `'fail'` verdict correctly.
+[reasoning trace](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md)
+
 `AT-LF-22`'s guarantee **used to** ship alongside a production defect
 ([[RIG-137]] / #91, now closed): `rig/lib/lint-format.js` globally
 monkey-patched `net.Server.prototype.listen` to make the frozen test's

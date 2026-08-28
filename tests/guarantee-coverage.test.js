@@ -17,7 +17,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { withRepo, writeJson } = require('./helpers/advanced');
-const { executePlan, planExecution, runGrade } = require('../rig/lib/lint-format');
+const { executePlan, planExecution, runGrade, runReadOnly } = require('../rig/lib/lint-format');
 const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
 const { rssBytesTree } = require('../rig/lib/memory-guarded-exec');
 
@@ -273,5 +273,35 @@ test('AT-PROC-1h (uninstall cleanup): uninstall removes durable plan-approval re
       false,
       'uninstall left a stale one-use plan-approval record behind -- it would silently block re-execution of that plan_digest after a reinstall',
     );
+  });
+});
+
+test('AT-PROC-1i (memory ceiling / fail-closed): runReadOnly reports memory_ceiling_unavailable when ps is absent, not clean', () => {
+  withRepo((target) => {
+    const saved = process.env.PATH;
+    try {
+      // Empty PATH: ps cannot be found by the memory watchdog, triggering the
+      // fail-closed kill path. The command itself uses an absolute execPath so
+      // it still starts, but it runs long enough for at least one poll interval
+      // (15ms) to fire before it exits naturally.
+      process.env.PATH = '';
+      const result = runReadOnly(target, [{
+        argv: [
+          process.execPath,
+          '-e',
+          'function sleep(ms){const end=Date.now()+ms;while(Date.now()<end){}}sleep(500);',
+        ],
+        network: true,
+        memory_limit_mb: 64,
+        timeout_ms: 5000,
+      }]);
+      assert.equal(
+        result.status,
+        'memory_ceiling_unavailable',
+        `runReadOnly returned "${result.status}" instead of "memory_ceiling_unavailable" when ps is absent -- a killed command was reported as clean`,
+      );
+    } finally {
+      process.env.PATH = saved;
+    }
   });
 });
