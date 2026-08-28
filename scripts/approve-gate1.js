@@ -31,12 +31,25 @@ function unquote(value) {
   return trimmed;
 }
 
-function loadLocalEnv(root, env = process.env) {
-  const local = path.join(root, '.credentials', 'gate1.env');
-  if (!fs.existsSync(local) || env[ENV_NAME]) return env[ENV_NAME];
-  for (const line of fs.readFileSync(local, 'utf8').split('\n')) {
+function readSigningKeyFromFile(file) {
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
     const match = line.match(/^(?:export\s+)?RIG_GATE1_SIGNING_KEY=(.*)$/);
     if (match) return unquote(match[1]);
+  }
+  return undefined;
+}
+
+function loadLocalEnv(root, env = process.env) {
+  if (env[ENV_NAME]) return env[ENV_NAME];
+  // .context/ is in .git/info/exclude (not .gitignore) so gate1.env survives branch switches.
+  const candidates = [
+    path.join(root, '.context', 'gate1.env'),
+    path.join(root, '.credentials', 'gate1.env'),
+  ];
+  for (const local of candidates) {
+    if (!fs.existsSync(local)) continue;
+    const key = readSigningKeyFromFile(local);
+    if (key) return key;
   }
   return undefined;
 }
@@ -85,7 +98,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   const env = { ...process.env, ...(options.env || {}) };
   defaultSecretiveAgent(env);
   const configured = loadLocalEnv(root, env);
-  assert.ok(configured, `set ${ENV_NAME} or copy .credentials/gate1.env.example to .credentials/gate1.env`);
+  assert.ok(configured, `set ${ENV_NAME} or copy .credentials/gate1.env.example to .context/gate1.env`);
 
   const signingKey = path.resolve(root, expandPath(configured));
   assert.ok(fs.existsSync(signingKey), `${ENV_NAME} does not exist: ${signingKey}`);

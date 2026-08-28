@@ -1,5 +1,24 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## RIG-143 complete; runGrade network contract now matches runReadOnly (2026-08-28)
+
+- `runGrade` now verifies the host isolation mechanism once, applies it to
+  every ungranted command, and reports `network_isolation_unavailable` as a
+  non-passing command result when the host cannot provide isolation.
+- Commands with `network: true` bypass the isolation prefix and still run,
+  including when the sandbox executable is absent. The gate is per command,
+  so a granted command is not blocked by an unavailable sandbox needed by a
+  different command.
+- `tests/guarantee-coverage.test.js` adds AT-PROC-1d for the grade path and
+  marks AT-PROC-1c's memory fixture explicitly network-granted. The focused
+  guarantee suite is green: 4 passed.
+- No frozen oracle file was edited and no re-sign is required. The ticket,
+  reasoning trace, decision index, topic hubs, and board are synchronized.
+- Full `npm test` gate with isolated global Git config and installed ignored
+  `rig-mcp` dependencies: 497 passed, 1 expected Linux-only skip, 1
+  pre-existing failure in `tests/gate1-approval-script.test.js` caused by the
+  local credentials-example edit. All RIG-143 tests pass.
+
 ## PR #83 preconditions now green; independent review in flight (2026-08-28)
 
 Supersedes the "CI is RED on head 8450ee1" entry below — that head is stale.
@@ -31,18 +50,11 @@ Supersedes the "CI is RED on head 8450ee1" entry below — that head is stale.
     AT-LF-22 guarantee it weakens; loopback-only `listen(0,'127.0.0.1')`
     silently becomes wildcard/`::`. RIG-137 is OPEN / owner-undecided. Needs
     Option B (patch → test setup) or a recorded owner waiver on [[RIG-120]].
-  - **G2 — `runGrade` has no network isolation.** `runReadOnly` wraps argv via
-    `argvWithNetworkIsolation` (`unshare`/`sandbox-exec`) and refuses when
-    unavailable; `runGrade` (`lint-format.js:588-611`) calls `runCommand` with
-    raw argv — approved repo-owned lint/format/`make` commands run with full
-    outbound network. AT-LF-22 acceptance text says "an approved command",
-    not "a read-only command". `tests/guarantee-coverage.test.js` added
-    runGrade parity for the cwd (AT-PROC-1b) and memory (AT-PROC-1c)
-    conjuncts but **not** the network conjunct — the exact merge-time
-    sharding gap AT-PROC-1 exists to catch. Latent today (`runGrade` has no
-    production caller yet) but blocks signing AT-LF-22 as implemented. Needs
-    isolation added to `runGrade` + an AT-PROC-1d parity test, OR an
-    owner-signed Gate-1 re-scope of AT-LF-22 to the read-only path.
+  - **G2 — `runGrade` network isolation: RESOLVED by RIG-143.** `runGrade`
+    now mirrors `runReadOnly`'s per-command `argvWithNetworkIsolation` and
+    `network_isolation_unavailable` refusal contract. AT-PROC-1d covers the
+    ungranted, unavailable-host, and explicitly granted paths. The frozen
+    oracle was not edited and no re-sign is required.
   - Non-gating, triage before RIG-115 is marked Done: approval record burned
     on a drift-abort (`lint-format.js:453-483`); approval records never
     cleaned up by `uninstall()`; memory ceiling fails open where `ps` is

@@ -86,11 +86,12 @@ task exceeding a configured memory ceiling or wall-clock timeout is killed
 and reported as its own distinct non-passing state (`GA-33`); a
 repository-supplied symlink resolving outside the repository is refused like
 any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases,
-and all five are implemented as of 2026-08-27: `AT-LF-20` in `executePlan`
+and all five are implemented as of 2026-08-28: `AT-LF-20` in `executePlan`
 (consumes the approval on a successful run and refuses replay), `AT-LF-21` at
 task spawn (cwd/path containment plus an explicit env allowlist, both
-`runGrade` and `runReadOnly`), `AT-LF-22` in `runReadOnly` (default-deny
-network), `AT-LF-23` (timeoutMs kill-and-report plus memory ceiling), and
+`runGrade` and `runReadOnly`), `AT-LF-22` in `runGrade` and `runReadOnly`
+(default-deny network with per-command grants), `AT-LF-23` (timeoutMs
+kill-and-report plus memory ceiling), and
 `AT-LF-24` in `planExecution` (refuses a read whose target escapes the
 repository through a symlink). Remaining shard gaps are closed in the same
 file — see below. The shell-trust suite is closed.
@@ -122,6 +123,13 @@ resolve to a distinct reported result rather than collapsing into "pass" or a
 generic "failed" that loses the actionable cause. Treating an inconclusive end
 as non-blocking is rejected as reintroducing false green.
 [reasoning trace](../reasoning/2026-08-21-lint-format-failure-semantics.md)
+
+The network guarantee has the same shape at both approved-command call sites.
+`runGrade` now uses the shared isolation prefix and per-command grant gate:
+ungranted commands are refused when the host cannot provide isolation, while
+explicitly granted commands still run. AT-PROC-1d proves the grade path's
+network conjunct without changing the signed oracle.
+[reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
 
 RIG-115's per-AT-LF-case branches sharded this section's guarantees rather
 than proving them whole: the symlink-containment check (AT-LF-21/24) was

@@ -92,5 +92,8 @@ The prevention side is `AT-PROC-1`, a workflow-doctrine acceptance criterion
 union of a split guarantee's sibling-branch tests to cover every enumerated
 call site and conjunct. `tests/guarantee-coverage.test.js` is its executable
 target: red by design until RIG-138/139/140 landed, green since
-[2026-08-27](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md). Full
-text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
+[2026-08-27](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).
+RIG-143 adds AT-PROC-1d for the network conjunct on `runGrade`: the test
+covers isolation, explicit grants, and refusal when the host cannot provide
+the sandbox. Full text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
+[reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)

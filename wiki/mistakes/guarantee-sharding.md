@@ -123,16 +123,17 @@ catch it regressing alone, checked both when the guarantee is first split
 plan-time snapshot (`rig-execution`).
 
 Executable target: [`tests/guarantee-coverage.test.js`](../../tests/guarantee-coverage.test.js)
-turns the three worked examples above into real, non-tautological regression
+turns the four worked examples above into real, non-tautological regression
 tests against `rig/lib/lint-format.js`:
 
-| Sub-case | Proves | Status on this branch (2026-08-27) |
+| Sub-case | Proves | Status on this branch (2026-08-28) |
 |---|---|---|
 | `AT-PROC-1a` | AT-LF-20 survives an independently-constructed approval object for the same `plan_digest`, not just the object the caller happened to mutate. | **Green.** `executePlan` now durably consumes the approval under `target/.rig/lint-format/executions/<digest>.json` via an atomic exclusive create, keyed by `plan_digest` rather than object identity. |
 | `AT-PROC-1b` | `runGrade` refuses a `cwd` that escapes the repository via a symlink, at parity with `runReadOnly`. | **Green.** `runGrade` now takes a `target` parameter and both functions route through a shared `taskCwd()` wrapping `containedPath`. |
 | `AT-PROC-1c` | A command exceeding a declared `memory_limit_mb` is killed and reported as `memory_exceeded`, distinct from `timeout`. | **Green.** See the enforcement-design note below. |
+| `AT-PROC-1d` | `runGrade` applies AT-LF-22's network isolation to ungranted commands, refuses with `network_isolation_unavailable` when the host cannot provide it, and still runs explicitly granted commands. | **Green (2026-08-28).** `runGrade` now shares `argvWithNetworkIsolation` and its per-command grant gate with `runReadOnly`; the regression test covers isolation and unavailable-tool paths. |
 
-These were deliberately red by design as TDD specs for what RIG-138/139/140
+These were deliberately red by design as TDD specs for what RIG-138/139/140/143
 had to turn green, not assertions that the fix already existed — the fix
 landed on this branch (commit implementing this section) rather than by
 merging any of the five sibling `rig-115-at-lf-*` branches as-is, since those
