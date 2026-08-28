@@ -49,8 +49,11 @@ kanban-plugin: board
 	**Status:** OPEN (2026-08-27) — GitHub #92 — found during the wiki/code sync that closed [[RIG-115]]; not a v5 blocker · [Solution](tickets/RIG-136.md)
 	**Class:** MAINTENANCE. The oracle verifier asserts 73 acceptance IDs then prints a leftover "68 acceptance cases" literal. **Fix is dynamic, not a new literal:** interpolate the number of tests present (same as the file count already next to it). Replacing 68 with 73 is the same bug. Byte-pinned checker, so it rides the next re-sign. Absorbed if [[RIG-133]] rewrites the verifier first.
 - [ ] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
-	**Status:** OPEN (2026-08-27) — GitHub #91 — production code embeds a test-specific workaround globally; contradicts AT-LF-22 guarantee · [Solution](tickets/RIG-137.md)
+	**Status:** IMPLEMENTING (2026-08-28) — GitHub #91 — Option A: production monkey-patch removed; AT-LF-22 test fixed for Node 24 async host lookup · [Solution](tickets/RIG-137.md)
 	**Class:** CODE QUALITY / TRUST BOUNDARY. `rig/lib/lint-format.js` lines 11-22 globally monkey-patch `net.Server.prototype.listen` to work around a frozen test's timing issue. The patch silently changes any production caller's `listen(0, '127.0.0.1')` (loopback-only) to wildcard binding, contradicting AT-LF-22's "default-deny network reachability" guarantee. Recommended fix: unfreeze the test and rewrite it to handle Node 24's async host lookup; observable behavior (network isolation) does not change. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
+- [x] **RIG-143 — runGrade runs approved commands with no network isolation**
+	**Status:** COMPLETE (2026-08-28) — implementation and AT-PROC-1d acceptance test green; GitHub issue not filed · [Solution](tickets/RIG-143.md)
+	**Class:** CORRECTNESS / SHELL TRUST. `runGrade` now applies the same per-command isolation and grant/refusal contract as `runReadOnly`.
 - [x] **RIG-142 — spawnTask safety defaults (shell:false, env allowlist) are caller-overridable with no guard or test**
 	**Status:** COMPLETE (2026-08-27) — GitHub #97 — safety options are now locked after caller options and the helper is exported; focused oracle is green · [Solution](tickets/RIG-142.md)
 	**Class:** CORRECTNESS / SHELL TRUST.

@@ -85,6 +85,7 @@ test('AT-PROC-1c (AT-LF-23): a command exceeding a configured memory ceiling is 
     // test cannot itself exhaust memory even if nothing enforces the cap.
     const cmd = {
       role: 'lint',
+      network: true,
       argv: [
         process.execPath,
         '-e',
@@ -116,5 +117,60 @@ test('AT-PROC-1c (AT-LF-23): a command exceeding a configured memory ceiling is 
       'memory_exceeded',
       `expected a distinct "memory_exceeded" status separate from timeout/completed, got "${executed.result.status}"`,
     );
+  });
+});
+
+test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and preserves granted commands', () => {
+  const net = require('node:net');
+  withRepo((target) => {
+    const server = net.createServer((socket) => socket.end());
+    server.listen(0);
+    const { port } = server.address();
+    const marker = path.join(target, 'connected.marker');
+    const probe = path.join(target, 'network-check.js');
+    fs.writeFileSync(probe, `
+      const net = require('net');
+      const done = () => process.exit(0);
+      setTimeout(done, 800);
+      const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
+        require('fs').writeFileSync(${JSON.stringify(marker)}, 'connected');
+        socket.end();
+        done();
+      });
+      socket.on('error', done);
+    `);
+
+    try {
+      runGrade({
+        grade: 'minimal',
+        changed: [],
+        commands: [{ role: 'lint', argv: [process.execPath, probe] }],
+        target,
+      });
+      assert.equal(fs.existsSync(marker), false, 'an ungranted grade command reached the listener');
+
+      const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+      const savedPath = process.env.PATH;
+      try {
+        process.env.PATH = emptyBin;
+        const mixed = runGrade({
+          grade: 'minimal',
+          changed: [],
+          commands: [
+            { role: 'lint', argv: [process.execPath, '-e', ''] },
+            { role: 'lint', argv: [process.execPath, '-e', ''], network: true },
+          ],
+          target,
+        });
+        assert.equal(mixed.verdict, 'fail');
+        assert.equal(mixed.commands[0].result.status, 'network_isolation_unavailable');
+        assert.equal(mixed.commands[1].result.exit_code, 0);
+      } finally {
+        process.env.PATH = savedPath;
+        fs.rmSync(emptyBin, { recursive: true, force: true });
+      }
+    } finally {
+      server.close();
+    }
   });
 });

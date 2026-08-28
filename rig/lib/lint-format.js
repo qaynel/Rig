@@ -9,19 +9,6 @@ const { spawnGuardedSync } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
 
-// rig: frozen AT-LF-22 does listen(0, '127.0.0.1') then address() immediately.
-// Node 24 looks up the host asynchronously, so address() is null and the case
-// throws before runReadOnly. Dropping the loopback host binds synchronously;
-// IPv6 :: still accepts 127.0.0.1.
-{
-  const net = require('node:net');
-  const listenTcp = net.Server.prototype.listen;
-  net.Server.prototype.listen = function listen(port, host, ...rest) {
-    if (port === 0 && host === '127.0.0.1') return listenTcp.call(this, 0, ...rest);
-    return listenTcp.call(this, port, host, ...rest);
-  };
-}
-
 const ECOSYSTEM_SIGNALS = new Map([
   ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
   ['pyproject.toml', 'python'], ['setup.cfg', 'python'], ['tox.ini', 'python'], ['ruff.toml', 'python'],
@@ -589,6 +576,7 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
   const gradeOrder = ['Policy', 'Context', 'Evidence'];
   const map = { minimal: 1, mid: 2, maximal: 3 };
   const gradeLevel = map[grade] || 1;
+  const isolation = networkIsolationPrefix();
   const executed = (commands || []).map((cmd) => {
     if (!cmd.argv) return cmd.result ? { ...cmd, result: { ...cmd.result, source: 'legacy-result' } } : {
       ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null },
@@ -602,7 +590,10 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
     } catch {
       return { ...cmd, result: { exit_code: 1, status: 'boundary_violation', output_digest: null } };
     }
-    const result = runCommand(cmd.argv, {
+    if (!isolation && cmd.network !== true) {
+      return { ...cmd, result: { exit_code: 1, status: 'network_isolation_unavailable', output_digest: null } };
+    }
+    const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
       cwd,
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,

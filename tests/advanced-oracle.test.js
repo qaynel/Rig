@@ -955,7 +955,9 @@ test('AT-LF-22 a task has no network reachability without an explicit grant', ()
   const runReadOnly = api('lint-format.js', 'runReadOnly');
   h.withRepo((target) => {
     const server = net.createServer((socket) => socket.end());
-    server.listen(0, '127.0.0.1');
+    // Node 24 resolves listen(0, '127.0.0.1') asynchronously, so address() is null
+    // synchronously. Bind without a host so the port is available immediately.
+    server.listen(0);
     const { port } = server.address();
     try {
       const probe = path.join(target, 'net-check.js');
