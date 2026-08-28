@@ -36,6 +36,13 @@ The neutral payload is independent of host detection, so bare repositories get
 the complete neutral product without receiving `.claude`, `.agents`, or other
 fabricated host trees.
 
+The GitHub Actions test job enables Ubuntu 24.04's rootless user-namespace
+setting and probes a working network namespace before running the suite. It
+also installs the bundled `rig-mcp` dependencies before the root oracle runs;
+the OpenClaw fixture copies those installed modules into its fake runtime.
+This is CI setup only: a real host that cannot create the namespace receives
+Rig's explicit `network_isolation_unavailable` result.
+
 Hermes is a first-class host surface, not a candidate to prune: the root
 `plugin.yaml` and `__init__.py` are Rig's Hermes plugin, and its test suite —
 including the `.venv`/pandas-backed benchmark import — is part of the supported

@@ -659,12 +659,20 @@ const NETWORK_SANDBOX_PROFILE = '(version 1)(allow default)(deny network*)';
 
 function networkIsolationPrefix() {
   if (process.platform === 'linux') {
-    const result = spawnSync('unshare', ['--help'], { stdio: 'ignore' });
-    return result.error ? null : ['unshare', '--net', '--'];
+    const prefix = ['unshare', '--user', '--map-root-user', '--net', '--'];
+    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
+      stdio: 'ignore',
+      timeout: 1000,
+    });
+    return result.status === 0 ? prefix : null;
   }
   if (process.platform === 'darwin') {
-    const result = spawnSync('sandbox-exec', ['--help'], { stdio: 'ignore' });
-    return result.error ? null : ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
+    const prefix = ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
+    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
+      stdio: 'ignore',
+      timeout: 1000,
+    });
+    return result.status === 0 ? prefix : null;
   }
   return null;
 }

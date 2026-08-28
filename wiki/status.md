@@ -1,5 +1,70 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## PR #83 Linux CI blockers fixed in the worktree (2026-08-28)
+
+The three Linux-only failures are addressed without changing the signed
+oracle. Ungranted read-only tasks now use a rootless user + network namespace
+only after probing that exact launch path; an unavailable namespace is still
+reported as `network_isolation_unavailable` instead of being treated as clean.
+GitHub Actions enables the Ubuntu runner's restricted user-namespace setting
+and verifies the namespace before testing. The workflow also installs
+`rig-mcp` before the root test suite, because the OpenClaw fixture deliberately
+uses that checkout's bundled dependencies.
+
+Focused verification passes on macOS for AT-LF-11, AT-LF-22, AT-LF-23, and
+AT-HOME-1. The full local gate is green: 497 root tests passed with one
+expected Linux-only skip, plus 15 pi-extension tests and 6 rig-mcp tests. A
+GitHub Actions run is still required for final Linux evidence.
+
+## PR #83 CI is RED on head `8450ee1` — not mergeable, RIG-120 cannot resolve (2026-08-28)
+
+Checked in response to "I resolved the review findings, can I merge?". The
+GitHub `test` job fails on the exact head commit (`8450ee1`), both the push
+and the pull_request run. `prod` CI is green on the same `ubuntu-latest`
+image (2026-08-27, `60c3a33`), so these are regressions this branch
+introduces, not pre-existing infra noise. Local `npm test` on this macOS
+workspace is fully green (497 pass / 1 skip) — the three failures are
+Linux-only, which is the platform the release gate actually runs on.
+
+Failing oracle cases (`tests/advanced-oracle.test.js`, Linux):
+
+- **AT-LF-11** "a read-only check that mutates halts with preserved evidence"
+  — pre-existing case, green on `prod`, now returns `clean` where it must
+  return `mutated`. Regressed by the `runCommand` / `memory-guarded-exec.js`
+  refactor that rerouted `runReadOnly`.
+- **AT-LF-23** "a task exceeding its resource or time cap is killed and
+  reported" — one of the five newly frozen shell-trust cases. Returns `clean`
+  where it must return `timeout`. Root cause: `runReadOnly` calls
+  `runCommand` with no `memoryLimitMb`, so it takes the plain `spawnTask`
+  branch (`lint-format.js:555-562`), which only maps to `timeout` when
+  `result.error?.code === 'ETIMEDOUT'`. `spawnGuardedSync`'s timeout kill does
+  not surface `ETIMEDOUT` on Linux, so the status falls through to
+  `completed` and `runReadOnly` reports `clean`. The memory-ceiling path
+  (`AT-PROC-1c`) enforces its own timeout and passes — only the no-limit
+  path is broken.
+- **AT-HOME-1** — `npm ci failed for bundled rig-mcp runtime: cp: cannot stat
+  '.../rig-mcp/node_modules'`. The root suite runs before the `rig-mcp`
+  sub-project's `pretest` installs its deps; `.github/workflows/test.yml`
+  never runs `npm ci` at the root or in `rig-mcp/`. Green on `prod`, so
+  either ordering or timing shifted here too.
+
+Still open in code, not just on the board:
+
+- The global `net.Server.prototype.listen` monkey-patch is still live at
+  `rig/lib/lint-format.js:16-23` (review blocker #3). It was filed as
+  [[RIG-137]] (#91), not removed — any module that requires `lint-format.js`
+  rebinds `listen(0, '127.0.0.1')` process-wide.
+- Frozen Gate-1 artifacts (`wiki/gate1/acceptance.md`, `gate1.sig`,
+  `testing-infrastructure.manifest`) still differ from merge-base `298a8d1`.
+  The branch's position ([[guarantee-sharding]]) is that this was a
+  legitimate owner re-grill + re-sign (`5650e49`); the signature's
+  authenticity is an owner-ceremony question, not verifiable from the diff.
+
+RIG-120's own ceremony inputs (§"Owner-controlled release inputs" below) —
+fresh independent review receipt bound to the exact PR worktree, signer-class
+attestation, explicit `v5.0.0` tag+publish after a green gate — are all still
+outstanding.
+
 ## Merged origin/rig-120-release-ceremony (2026-08-28)
 
 Took guarantee-sharding (#101: durable one-use, shared `taskCwd` on `runGrade`,

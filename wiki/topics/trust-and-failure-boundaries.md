@@ -96,6 +96,15 @@ repository through a symlink). Remaining shard gaps are closed in the same
 file — see below. The shell-trust suite is closed.
 [reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
 
+On Linux, the default-deny path uses `unshare --user --map-root-user --net`
+and probes that exact prefix by launching Node before wrapping a task. This
+avoids treating an installed-but-unusable sandbox tool as enforcement. If the
+host refuses rootless namespaces, Rig returns
+`network_isolation_unavailable`, which is a blocking non-pass rather than a
+false clean result. GitHub Actions explicitly enables the runner setting that
+Ubuntu 24.04 restricts and verifies the namespace before the test suite.
+[reasoning trace](../reasoning/2026-08-28-linux-network-isolation-ci.md)
+
 A check approved as read-only that changes the working tree is a failure, not a
 tolerated side effect (`GA-27`). Rig detects the mutation, stops before any
 further planned command runs, fails the check, and reports the exact changed
