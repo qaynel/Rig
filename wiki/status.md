@@ -1,5 +1,20 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## Linux CI regression isolated and fixed locally (2026-08-28, latest)
+
+The red hosted runs were caused by the Python executable path resolver added to
+`rig/lib/spawn-guarded.js`. On Linux it selected the project virtualenv's
+interpreter for the process wrapper, so the network-isolation probe and guarded
+commands returned non-zero with no useful output. The resolver now selects a
+host interpreter instead, while preserving the absolute lookup needed when a
+guarded task deliberately empties PATH. The existing rootless namespace probe
+and per-command refusal behavior remain unchanged. The local full gate is green:
+502 root tests passed, one expected Linux-only skip, plus 15 pi-extension and
+6 rig-mcp tests. The hermetic fixture helper is intentionally not part of this
+fix because it is a frozen oracle file and the hosted failure is independent
+of the local machine's global Git hook. Hosted Linux CI is green on commit
+`4729360` (run `33180105316`).
+
 ## PR #83 non-gating triage: 3 of 4 items fixed with regression tests; gate1.sig double-resign explained; 4th item filed as RIG-144 (2026-08-28, latest)
 
 Picked up the "non-gating, triage before RIG-115 is marked Done" list below.
