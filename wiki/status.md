@@ -1,4 +1,12 @@
-# Status - checked 2026-08-27 (updated 2026-08-27)
+# Status - checked 2026-08-28 (updated 2026-08-28)
+
+## Merged origin/rig-120-release-ceremony (2026-08-28)
+
+Took guarantee-sharding (#101: durable one-use, shared `taskCwd` on `runGrade`,
+memory ceiling via `runCommand`) and AT-LF-24 (#90) on top of this branch's
+AT-LF-22 / RIG-141/142 work. `runReadOnly` keeps the per-command network grant
+check (RIG-141) and now routes execution through `runCommand` so the memory
+ceiling holds on the read-only path too.
 
 ## RIG-141 and RIG-142 implemented (2026-08-27)
 
@@ -44,6 +52,15 @@ defaults are placed before `...options` in the options object, so any caller
 can pass `shell: true` or a replacement env and silently win. No assertion,
 type guard, or test prevents this. Fix: move the safety properties after the
 spread (or validate and reject overrides), and add tests for each invariant.
+
+## Merged origin/rig-120-release-ceremony into guarantee-sharding (2026-08-27)
+
+Conflicts in `rig/lib/lint-format.js` and four wiki hubs are resolved: durable
+one-use / shared `taskCwd` / memory-ceiling from this branch sit on top of
+isolated task env, `spawnGuardedSync`, and AT-LF-22 network isolation from
+the ceremony branch. AT-LF-20–24, AT-PROC-1a/b/c, spawn-guard ratchet, and
+the lint-format suites are green. Next: finish the merge commit so PR #101
+is no longer conflicting.
 
 ## AT-LF-22 network denial lands in runReadOnly (2026-08-26)
 
@@ -557,3 +574,14 @@ oracle's 55-skill reading is unaffected and no re-sign was required
   signer file through an owner-authorized re-signing ceremony.
 - Confirm the final `v5.0.0` tag and publication operation after the full gate
   is green.
+
+## RIG-115 shell-trust guarantee (branch-local, not yet part of the v5.0.0 gate above)
+
+`rig/lib/lint-format.js`'s durable one-use plan approval, `runGrade`/
+`runReadOnly` symlink-and-cwd containment, and memory-ceiling enforcement
+(AT-LF-20/21/23/24) are implemented and green on this branch, closing
+RIG-138/139/140. This does not touch the 68-case oracle above and needed no
+re-sign — the acceptance text for these cases was already correctly scoped
+where it exists; the gap was in tests and implementation written against it
+on sibling branches. [Guarantee sharding](mistakes/guarantee-sharding.md) and
+[reasoning trace](reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).

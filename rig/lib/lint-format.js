@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { spawnGuardedSync } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
+const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
 
 // rig: frozen AT-LF-22 does listen(0, '127.0.0.1') then address() immediately.
 // Node 24 looks up the host asynchronously, so address() is null and the case
@@ -413,11 +414,15 @@ function planExecution(input) {
       const abs = path.join(target, file);
       if (fs.existsSync(abs)) {
         try {
-          const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-          const parts = ref.split('.');
-          let node = doc;
-          for (const part of parts) node = node && node[part];
-          source_snapshot = node;
+          const root = fs.realpathSync(target);
+          const resolved = fs.realpathSync(abs);
+          if (resolved === root || resolved.startsWith(`${root}${path.sep}`)) {
+            const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
+            const parts = ref.split('.');
+            let node = doc;
+            for (const part of parts) node = node && node[part];
+            source_snapshot = node;
+          }
         } catch { /* ignore */ }
       }
     }
@@ -428,11 +433,32 @@ function planExecution(input) {
   return { ...snapshot, plan_digest, authorized: false };
 }
 
+// Durable, clone-local one-use consumption: a JS-object `.used` flag only
+// lives for the calling process's lifetime, but plan/execute normally spans
+// two agent turns in two processes. State keyed by plan_digest on disk under
+// the target repo survives that boundary, and the exclusive ('wx') create is
+// atomic against two processes racing the same approval.
+function consumePlanApproval(target, plan) {
+  const recordPath = containedPath(target, path.join('.rig/lint-format/executions', `${digest(plan.plan_digest)}.json`));
+  fs.mkdirSync(path.dirname(recordPath), { recursive: true });
+  try {
+    fs.writeFileSync(recordPath, `${JSON.stringify({ plan_digest: plan.plan_digest, executed_at: new Date().toISOString() }, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+    return true;
+  } catch (error) {
+    if (error.code === 'EEXIST') return false;
+    throw error;
+  }
+}
+
 function executePlan(plan, approval) {
   if (!approval || approval.plan_digest !== plan.plan_digest) {
     throw new Error('executePlan: approval digest mismatch');
   }
   if (approval.used) {
+    return { status: 'not_authorized' };
+  }
+  if (!plan.target) throw new Error('executePlan: plan target required for durable one-use consumption');
+  if (!consumePlanApproval(plan.target, plan)) {
     return { status: 'not_authorized' };
   }
   for (const cmd of plan.commands || []) {
@@ -477,6 +503,15 @@ function applyCoverage(target, plan, approval) {
   return { unprotected: excluded.map((entry) => entry.component), manifest_records };
 }
 
+// A working directory is safe only when it resolves inside the repository
+// even through symlinks (AT-LF-21/24) -- the same guard runReadOnly already
+// used, now shared so runGrade cannot be the one execution path that skips
+// it (the lint/format executor is the guarantee's most central path).
+function taskCwd(target, rel) {
+  if (!rel || rel === '.') return fs.realpathSync(target);
+  return containedPath(target, rel);
+}
+
 // rig: PATH/HOME/tmp/locale plus Windows process vars; secrets and injection
 // vectors (NODE_OPTIONS, LD_PRELOAD, AWS_*) stay off. Expand the list when a
 // real tool needs a named non-secret, not by copying process.env.
@@ -495,11 +530,6 @@ function isolatedTaskEnv() {
   return env;
 }
 
-function taskCwd(target, rel) {
-  if (!rel || rel === '.') return fs.realpathSync(target);
-  return containedPath(target, rel);
-}
-
 function spawnTask(argv, options) {
   return spawnGuardedSync(argv[0], argv.slice(1), {
     encoding: 'utf8',
@@ -509,10 +539,56 @@ function spawnTask(argv, options) {
   });
 }
 
-function runGrade({ grade, changed, commands, context, ci }) {
+// Shared synchronous command runner for runGrade and runReadOnly. Stays
+// spawnSync-based (not async) because both frozen Gate 1 oracle tests
+// (tests/advanced-oracle.test.js, wiki/gate1/testing-infrastructure.manifest)
+// call these functions synchronously and cannot be edited. A memory ceiling
+// needs to poll RSS while the command runs, which spawnSync's own blocking
+// wait cannot do -- that path delegates to memory-guarded-exec.js, a
+// separate process free to poll asynchronously, and reports back through a
+// result file so this call can stay a plain, synchronous spawnSync. Every
+// spawn still goes through spawnTask so env isolation (AT-LF-21) and
+// process-group cleanup (RIG-135) hold on both the no-limit path and the
+// watchdog wrapper.
+function runCommand(argv, { cwd, timeoutMs, memoryLimitMb } = {}) {
+  const effectiveTimeout = timeoutMs || 10 * 60 * 1000;
+  if (!memoryLimitMb) {
+    const result = spawnTask(argv, { cwd, timeout: effectiveTimeout });
+    const output = `${result.stdout || ''}\n${result.stderr || ''}`;
+    return {
+      exit_code: result.status == null ? 1 : result.status,
+      status: result.error?.code === 'ETIMEDOUT' ? 'timeout' : result.signal ? 'signalled' : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed',
+      output_digest: digest(output),
+    };
+  }
+  const resultFile = path.join(os.tmpdir(), `rig-mem-guard-${process.pid}-${crypto.randomBytes(6).toString('hex')}.json`);
+  // The watcher enforces the real timeout itself so it can also kill its own
+  // child on expiry; this outer timeout is only a safety net against the
+  // watcher itself hanging.
+  const outer = spawnTask(
+    [process.execPath, MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout), ...argv],
+    { cwd, timeout: effectiveTimeout + 5000 },
+  );
+  let meta;
+  try {
+    meta = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
+  } catch {
+    meta = { killed_for: outer.error?.code === 'ETIMEDOUT' ? 'timeout' : null, code: 1, signal: outer.signal || null };
+  } finally {
+    fs.rmSync(resultFile, { force: true });
+  }
+  const output = `${outer.stdout || ''}\n${outer.stderr || ''}`;
+  return {
+    exit_code: meta.code == null ? 1 : meta.code,
+    status: meta.killed_for || (meta.signal ? 'signalled' : 'completed'),
+    output_digest: digest(output),
+  };
+}
+
+function runGrade({ target, grade, changed, commands, context, ci }) {
   const gradeOrder = ['Policy', 'Context', 'Evidence'];
   const map = { minimal: 1, mid: 2, maximal: 3 };
-  const target = map[grade] || 1;
+  const gradeLevel = map[grade] || 1;
   const executed = (commands || []).map((cmd) => {
     if (!cmd.argv) return cmd.result ? { ...cmd, result: { ...cmd.result, source: 'legacy-result' } } : {
       ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null },
@@ -520,34 +596,34 @@ function runGrade({ grade, changed, commands, context, ci }) {
     if (!Array.isArray(cmd.argv) || !cmd.argv.length) {
       return { ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null } };
     }
-    const result = spawnTask(cmd.argv, {
-      cwd: cmd.cwd || process.cwd(), timeout: cmd.timeout_ms || 10 * 60 * 1000,
+    let cwd;
+    try {
+      cwd = target ? taskCwd(target, cmd.cwd) : (cmd.cwd || process.cwd());
+    } catch {
+      return { ...cmd, result: { exit_code: 1, status: 'boundary_violation', output_digest: null } };
+    }
+    const result = runCommand(cmd.argv, {
+      cwd,
+      timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
+      memoryLimitMb: cmd.memory_limit_mb,
     });
-    const output = `${result.stdout || ''}\n${result.stderr || ''}`;
-    return {
-      ...cmd,
-      result: {
-        exit_code: result.status == null ? 1 : result.status,
-        status: result.error?.code === 'ETIMEDOUT' ? 'timeout' : result.signal ? 'signalled' : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed',
-        output_digest: digest(output),
-      },
-    };
+    return { ...cmd, result };
   });
   const anyFail = executed.some((cmd) => cmd.result.exit_code !== 0);
   // Report the highest grade actually completed. Round-4's blocker correction
   // requires cumulative-superset semantics: a mid/maximal run that failed at
   // Policy reports 'Policy'; a clean run at maximal reports 'Evidence'.
-  const highestClean = anyFail ? 1 : target;
+  const highestClean = anyFail ? 1 : gradeLevel;
   const completed_grades = gradeOrder.slice(0, highestClean);
   const steps = ['policy_checks'];
-  if (target >= 2) steps.push('context_understanding');
-  if (target >= 3) steps.push('evidence_capture');
+  if (gradeLevel >= 2) steps.push('context_understanding');
+  if (gradeLevel >= 3) steps.push('evidence_capture');
   const output_digest = executed
     .map((cmd) => cmd.result && cmd.result.output_digest)
     .filter(Boolean)[0] || null;
   const evidence = {
     output_digest,
-    input_digest: target >= 3 ? digest({ changed: changed || [], commands: executed.map(({ role, argv, cwd }) => ({ role, argv, cwd })) }) : null,
+    input_digest: gradeLevel >= 3 ? digest({ changed: changed || [], commands: executed.map(({ role, argv, cwd }) => ({ role, argv, cwd })) }) : null,
   };
   const result = {
     grade: gradeOrder[highestClean - 1],
@@ -614,8 +690,14 @@ function runReadOnly(target, commands) {
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    const result = spawnTask(argvWithNetworkIsolation(cmd, isolation), { cwd, timeout: cmd.timeoutMs });
-    if (result.error?.code === 'ETIMEDOUT') return { status: 'timeout' };
+    const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
+      cwd,
+      timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
+      memoryLimitMb: cmd.memory_limit_mb,
+    });
+    if (result.status === 'timeout' || result.status === 'memory_exceeded') {
+      return { status: result.status, changed_paths };
+    }
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
