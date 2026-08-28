@@ -276,6 +276,15 @@ test('AT-PROC-1h (uninstall cleanup): uninstall removes durable plan-approval re
   });
 });
 
+test('AT-PROC-1j (memory ceiling / fail-closed): rssBytesTree treats a missing root pid in ps output as unavailable', () => {
+  const result = rssBytesTree(99999999);
+  assert.equal(
+    result.available,
+    false,
+    'rssBytesTree reported RSS available when the root pid was absent from ps output -- partial listing was treated as zero usage',
+  );
+});
+
 test('AT-PROC-1i (memory ceiling / fail-closed): runReadOnly reports memory_ceiling_unavailable when ps is absent, not clean', () => {
   withRepo((target) => {
     const saved = process.env.PATH;

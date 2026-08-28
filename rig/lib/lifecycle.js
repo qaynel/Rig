@@ -10,6 +10,28 @@ const { removeOpenClawMcp } = require('./openclaw-mcp');
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
 const PRUNE_TOP = new Set(['.rig', '.claude', '.agents', '.github']);
+const INSTALL_TOP_LEVEL = new Set([
+  ...PRUNE_TOP,
+  '.cursor', '.codex', '.openclaw', '.opencode', '.devin', '.kiro', '.gemini',
+  '.windsurf', '.swival', '.codewhale', '.pi', '.clinerules', '.vscode',
+]);
+const INSTALL_GRAFT_FILES = new Set([
+  'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md',
+]);
+const INSTALL_HOOK_PATHS = new Set([
+  '.git/hooks/pre-commit',
+  '.git/hooks/pre-commit.rig-chained',
+]);
+
+function isRigInstallPath(rel, record = {}) {
+  if (typeof rel !== 'string' || !rel || path.isAbsolute(rel)) return false;
+  if (INSTALL_HOOK_PATHS.has(rel)) return true;
+  const top = rel.split(/[/\\]/)[0];
+  if (INSTALL_GRAFT_FILES.has(rel)) {
+    return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed');
+  }
+  return INSTALL_TOP_LEVEL.has(top);
+}
 
 function parseJournalRecords(text) {
   const lines = String(text).split('\n');
@@ -250,6 +272,10 @@ function uninstall(target, opts = {}) {
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
+    if (!isRigInstallPath(record.path, record)) {
+      bestEffort.push(record.path);
+      continue;
+    }
     if (preservePrefixes.some((prefix) => record.path === prefix || record.path.startsWith(`${prefix}/`))) {
       bestEffort.push(record.path);
       continue;
@@ -370,4 +396,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval };
+module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };

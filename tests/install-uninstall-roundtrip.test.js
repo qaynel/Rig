@@ -101,12 +101,12 @@ test('uninstall removes preimages empty instruction files and empty Rig director
 }));
 
 test('missing OpenClaw tooling does not stop unrelated local removal', () => withTarget((target) => {
-  const local = path.join(target, 'local-rig-file');
-  fs.writeFileSync(local, 'remove me\n');
+  const local = path.join(target, '.rig', 'local-rig-file');
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(local, 'remove me\n');
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
     seq: 1,
-    path: 'local-rig-file',
+    path: '.rig/local-rig-file',
     state: 'applied',
     transaction_kind: 'install',
     digest: digest('remove me\n'),

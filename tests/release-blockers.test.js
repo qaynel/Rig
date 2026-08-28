@@ -215,6 +215,68 @@ test('the shipping CLI restores chained hooks and removes only attributed global
   });
 });
 
+test('forged journal record cannot delete unrelated in-repository file with matching digest', () => {
+  withTarget((target) => {
+    const victim = path.join(target, 'package.json');
+    const content = '{"name":"victim-repo","private":true}\n';
+    fs.writeFileSync(victim, content);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: 'package.json',
+      state: 'applied',
+      transaction_kind: 'install',
+      digest: sha256(content),
+    })}\n`);
+    const result = uninstall(target);
+    assert.equal(fs.readFileSync(victim, 'utf8'), content);
+    assert.ok(result.best_effort.includes('package.json'));
+  });
+});
+
+test('forged OpenClaw ledger entry cannot unregister unrelated user-global MCP server', () => {
+  withTarget((target, outside) => {
+    const bin = path.join(outside, 'bin');
+    const config = path.join(outside, 'openclaw.json');
+    const installId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const victimValue = { command: 'node', args: ['/tmp/victim.js'] };
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/install-id'), `${installId}\n`);
+    fs.writeFileSync(config, `${JSON.stringify({ 'user-owned-server': victimValue })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: config,
+      server_key: 'user-owned-server',
+      install_id: installId,
+      value: victimValue,
+      state: 'applied',
+    }] })}\n`);
+    const unsetLog = path.join(outside, 'unset.log');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), [
+      '#!/bin/sh',
+      'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then',
+      '  printf \'{"user-owned-server":{"command":"node","args":["/tmp/victim.js"]}}\';',
+      '  exit 0',
+      'fi',
+      `if [ "$1" = "mcp" ] && [ "$2" = "unset" ]; then echo "$3" >> "${unsetLog}"; exit 0; fi`,
+      'exit 2',
+      '',
+    ].join('\n'), { mode: 0o755 });
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${bin}${path.delimiter}${oldPath}`;
+    try {
+      const result = uninstall(target);
+      assert.equal(result.status, 'best_effort');
+      assert.match(fs.readFileSync(config, 'utf8'), /user-owned-server/);
+      assert.equal(fs.existsSync(unsetLog), false, 'must not call openclaw mcp unset on an unrelated server name');
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  });
+});
+
 test('OpenClaw global unregister failure preserves retry state through the shipping CLI', () => {
   withTarget((target, outside) => {
     const runtime = path.join(target, '.rig/runtime/rig-mcp');

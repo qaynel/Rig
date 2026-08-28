@@ -1,5 +1,27 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## rig-120 safety defects fixed for independent re-review (2026-08-28, latest)
+
+Fresh review receipt blocked release on three safety defects plus documentation
+drift. All three code defects now have red-before/green-after regression tests,
+and the stale release notes were corrected:
+
+- **Journal path trust:** uninstall refuses to delete paths outside Rig's own
+  install area, so a forged manifest record cannot aim removal at an unrelated
+  in-repository file even when the digest matches.
+- **OpenClaw ledger trust:** uninstall only unregisters the server name derived
+  from this repository's install id (`rig-<install-id>`), not whatever name a
+  forged ledger entry supplies.
+- **Memory watchdog partial listing:** `rssBytesTree` treats a missing root pid,
+  non-zero `ps` exit, or empty process list as unavailable and fails closed
+  instead of reading zero bytes and letting a capped command continue.
+- **Documentation drift:** `scripts/check-advanced-spec.js` now prints the live
+  acceptance-case count it just verified (73 today, not a stale "68" literal);
+  [[review-receipts]] no longer lists RIG-124.1 as open.
+
+No frozen oracle acceptance document was edited. The checker log-line change
+invalidates `gate1.sig` until the owner re-signs during the RIG-120 ceremony.
+
 ## rig-120 code blocker: runReadOnly maps memory_ceiling_unavailable to clean (2026-08-28, latest)
 
 Code review raised a correctness defect that blocks the rig-120 release: a

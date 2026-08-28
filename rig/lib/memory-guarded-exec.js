@@ -30,13 +30,13 @@ const POLL_MS = 15;
 // "0 bytes used", or the ceiling silently enforces nothing on that host.
 function rssBytesTree(rootPid) {
   const probe = spawnSync('ps', ['-eo', 'pid,ppid,rss'], { encoding: 'utf8' });
-  if (probe.error) return { bytes: 0, available: false };
+  if (probe.error || probe.status !== 0) return { bytes: 0, available: false };
   const byPid = new Map();
   for (const line of (probe.stdout || '').trim().split('\n').slice(1)) {
     const [pid, ppid, rss] = line.trim().split(/\s+/).map(Number);
     if (Number.isFinite(pid)) byPid.set(pid, { ppid, rss: Number.isFinite(rss) ? rss : 0 });
   }
-  if (byPid.size === 0) return { bytes: 0, available: false };
+  if (byPid.size === 0 || !byPid.has(rootPid)) return { bytes: 0, available: false };
   let bytes = 0;
   const stack = [rootPid];
   const seen = new Set();

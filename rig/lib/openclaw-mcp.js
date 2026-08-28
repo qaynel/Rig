@@ -187,7 +187,7 @@ function registerOpenClawMcp(target, opts = {}) {
   if (set.status !== 0) {
     const rollback = owned
       ? spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0
-      : removeOpenClawMcp(target, { server_key: name, value: server }).removed;
+      : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
     if (rollback) restoreLedger();
     throw new Error(`rig: openclaw mcp set failed: ${set.stderr || set.stdout}`);
   }
@@ -205,6 +205,13 @@ function registerOpenClawMcp(target, opts = {}) {
 
 function removeOpenClawMcp(target, entry) {
   if (!have('openclaw')) return { removed: false, tooling_missing: true };
+  const id = installId(target);
+  const ownedName = id ? `rig-${id}` : null;
+  const serverKey = entry.server_key || entry.install_id;
+  if (
+    !ownedName || entry.install_id !== id || serverKey !== ownedName ||
+    !entry.value || typeof entry.value !== 'object' || Array.isArray(entry.value)
+  ) return { removed: false, tooling_missing: false };
   let servers;
   try {
     servers = openClawServers();
