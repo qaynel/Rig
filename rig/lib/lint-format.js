@@ -445,9 +445,12 @@ function executePlan(plan, approval) {
     return { status: 'not_authorized' };
   }
   if (!plan.target) throw new Error('executePlan: plan target required for durable one-use consumption');
-  if (!consumePlanApproval(plan.target, plan)) {
-    return { status: 'not_authorized' };
-  }
+  // Drift is checked before the durable one-use record is written: it's a
+  // read-only precondition, not part of "this plan ran". Writing the record
+  // first meant an aborted, never-executed attempt permanently burned the
+  // approval, and a legitimate re-approval of the identical (post-drift-
+  // reverted) plan_digest could never execute either, since the on-disk
+  // record already existed.
   for (const cmd of plan.commands || []) {
     if (cmd.source && plan.target) {
       const [file, ref] = cmd.source.split('#');
@@ -464,6 +467,9 @@ function executePlan(plan, approval) {
         } catch { /* ignore */ }
       }
     }
+  }
+  if (!consumePlanApproval(plan.target, plan)) {
+    return { status: 'not_authorized' };
   }
   approval.used = true;
   return { status: 'executed' };

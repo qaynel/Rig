@@ -1,5 +1,96 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## PR #83 non-gating triage: 3 of 4 items fixed with regression tests; gate1.sig double-resign explained; 4th item filed as RIG-144 (2026-08-28, latest)
+
+Picked up the "non-gating, triage before RIG-115 is marked Done" list below.
+
+**gate1.sig resigned twice 51s apart (`b58493b`, `3e98993`), same author,
+identical message — resolved, not a conflict.** Both commits touch only
+`wiki/gate1/gate1.sig`, no manifest content, so both signatures cover the
+identical underlying digest — ECDSA-SHA2 is randomized, so signing the same
+bytes twice produces two different-looking but equally valid signatures. Not
+a content dispute; ordinary consequence of running the sign step twice.
+Moot either way now: both were later superseded (`5650e49`, then again by
+`8ad5825`/`59a0c1c` landing RIG-137's actual implementation), and current HEAD
+verifies cleanly (`node scripts/check-advanced-spec.js`: 68 cases, signature
+valid).
+
+**Fixed, with regression tests in `tests/guarantee-coverage.test.js`
+(non-frozen — outside `wiki/gate1/testing-infrastructure.manifest`), all
+confirmed red-before/green-after against the pre-fix code:**
+
+- **Drift-abort burned the one-use approval.** `executePlan`
+  (`rig/lib/lint-format.js`) wrote the durable one-use approval record
+  *before* checking for source drift, so an aborted (never-executed) attempt
+  permanently consumed the approval — a later re-approval of the identical,
+  drift-reverted `plan_digest` could never execute. Fixed by moving the
+  drift check (read-only) before `consumePlanApproval`. Test: `AT-PROC-1e`.
+- **Approval records never cleaned up on uninstall.** `.rig/lint-format/`
+  (durable one-use plan-approval records) isn't journal-tracked — it's
+  runtime state, not an install artifact — so `cleanupReceiptArtifacts`
+  (`rig/lib/uninstall.js`) never removed it, and it also blocked the
+  `.rig` empty-dir cleanup from ever firing. Fixed: unconditional
+  `rm -rf .rig/lint-format` added to uninstall. Test: `AT-PROC-1h`.
+- **Memory ceiling silently no-ops when `ps` is absent; only sampled the
+  direct child.** `memory-guarded-exec.js`'s `rssBytes` treated a `ps`
+  spawn failure (ENOENT) identically to "process using 0 bytes" —
+  `0 <= memoryLimitBytes` is always true, so the ceiling never fired on a
+  host without `ps`. It also only ever queried the one directly-spawned
+  pid, so a command that forks (shell wrapper, test runner spawning
+  workers) could blow the ceiling entirely inside an unsampled descendant.
+  Fixed: `rssBytesTree` walks the full `ps -eo pid,ppid,rss` process tree
+  rooted at the spawned pid and reports `available: false` on a `ps`
+  failure; the caller now kills and reports a distinct
+  `memory_ceiling_unavailable` status (same fail-closed pattern as
+  AT-LF-22's `network_isolation_unavailable`), instead of silently
+  enforcing nothing. Tests: `AT-PROC-1f`, `AT-PROC-1g`.
+
+**Filed, not implemented — [[RIG-144]] ([ticket](tickets/RIG-144.md)):** the
+installed `rig/catalog/baseline/check.js` (materialized as `.rig/bin/check.js`
+in target repos) carries none of `lint-format.js`'s AT-LF-20..24 hardening
+(no plan/approval, string-prefix not realpath cwd containment, no network
+isolation, no memory ceiling). Not a drop-in port: this runner executes CI/
+git-floor checks that legitimately need network and can legitimately run
+long/heavy for a real repo's test suite, so AT-LF-22's default-deny network
+stance or a fixed memory ceiling could break ordinary CI rather than protect
+anything — needs owner scoping on which of the five guarantees actually
+apply here, same as RIG-135.1/.2/.3 needed owner input on the Bun group-kill
+gap. The realpath-containment gap looks unambiguous and worth fixing
+regardless of the other four.
+
+Full `npm test` gate run on this HEAD with the three fixes: 483/503 root
+tests pass. All 20 remaining failures are pre-existing and reproduce
+identically with the three fixes stashed out — traced to this workspace's
+global `core.hooksPath` (`~/.config/git/hooks`) leaking into every test's
+temp git repos and breaking their pre-commit-hook assertions/secret-guard
+scans; unrelated to this change and outside this triage's scope.
+
+## Board/GitHub reconciliation: RIG-137/138/139/140 corrected to COMPLETE; RIG-144 filed (2026-08-28, latest)
+
+Follow-up to the "separately noticed" flag above, per explicit request.
+`wiki/index/decisions.md` already recorded (2026-08-27) that RIG-138/139/140
+closed via the consolidated `lint-format.js` fix and linked GitHub #93/#94/#95
+as closed — but `wiki/Tickets.md`'s board and the actual GitHub issues were
+never updated to match, and RIG-137 (#91) was still marked OPEN/blocked
+despite its own re-sign and implementation having landed. Re-verified before
+touching anything: `AT-LF-20`–`24` (named oracle cases) and
+`AT-PROC-1a`/`1b`/`1c` (guarantee-coverage cross-cutting tests) are all green
+on current HEAD.
+
+- `wiki/Tickets.md` and `wiki/tickets/RIG-137.md`/`138.md`/`139.md`/`140.md`
+  updated to COMPLETE with the verifying test names.
+- `wiki/topics/trust-and-failure-boundaries.md`'s RIG-137 paragraph rewritten
+  from present-tense "the patch is global, still ships" to past-tense
+  resolved — it was describing removed code as still in production.
+- GitHub #91, #93, #94, #95 closed with the same evidence.
+- [[RIG-144]] (the installed-baseline-runner gap, previously drafted only in
+  the wiki) filed as GitHub #104.
+- Confirmed one apparent inconsistency was not a mistake: `git remote`
+  here points at `qaynel/Rig-v0.1.git`, but that name 302s to the actual
+  repo, `qaynel/Rig` — every `gh issue` call in this pass landed in the same
+  single repo regardless of which name was used to reach it.
+
+
 ## Merged origin/rig-120-release-ceremony (2026-08-28, later)
 
 Took RIG-143 (`runGrade` network isolation matching `runReadOnly`) while

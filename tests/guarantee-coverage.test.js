@@ -16,8 +16,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { withRepo } = require('./helpers/advanced');
-const { executePlan, runGrade } = require('../rig/lib/lint-format');
+const { withRepo, writeJson } = require('./helpers/advanced');
+const { executePlan, planExecution, runGrade } = require('../rig/lib/lint-format');
+const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
+const { rssBytesTree } = require('../rig/lib/memory-guarded-exec');
 
 test('AT-PROC-1a (AT-LF-20): one-use approval survives an independent approval object for the same plan, not just object identity', () => {
   withRepo((target) => {
@@ -172,5 +174,104 @@ test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and preser
     } finally {
       server.close();
     }
+  });
+});
+
+test('AT-PROC-1e (AT-LF-20/AT-LF-14 cleanup): a drift-aborted plan does not permanently burn its one-use approval', () => {
+  withRepo((target) => {
+    writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
+    const planned = planExecution({
+      target,
+      commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'], source: 'package.json#scripts.lint' }],
+    });
+
+    // Source drifts after planning (e.g. a concurrent edit) -- execution must
+    // abort without ever running anything.
+    writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(1)"' } });
+    const aborted = executePlan(planned, { plan_digest: planned.plan_digest });
+    assert.equal(aborted.status, 'command_drift');
+
+    // Source reverts to exactly what was originally approved (the drift was
+    // transient, or the human re-approves the identical plan). A fresh
+    // approval object for the same plan_digest must be able to execute --
+    // the earlier aborted attempt must not have durably consumed it.
+    writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
+    const retried = executePlan(planned, { plan_digest: planned.plan_digest });
+    assert.equal(
+      retried.status,
+      'executed',
+      'a plan aborted for command drift, then re-approved after the drift resolved, could not execute -- the aborted attempt permanently burned the one-use approval',
+    );
+  });
+});
+
+test('AT-PROC-1f (memory ceiling / RIG-137 cleanup): reports "unavailable" instead of silently permitting growth when ps cannot be run', () => {
+  const saved = process.env.PATH;
+  try {
+    process.env.PATH = '';
+    const { available } = rssBytesTree(process.pid);
+    assert.equal(available, false, 'rssBytesTree reported RSS available with no ps binary reachable on PATH');
+  } finally {
+    process.env.PATH = saved;
+  }
+  const normal = rssBytesTree(process.pid);
+  assert.equal(normal.available, true);
+  assert.ok(normal.bytes > 0);
+});
+
+test('AT-PROC-1g (memory ceiling / RIG-137 cleanup): a memory ceiling catches a descendant process\'s growth, not only the directly-spawned process', () => {
+  withRepo((target) => {
+    const marker = path.join(target, 'grandchild-allocated.marker');
+    const allocScript = `
+      function sleep(ms) { const end = Date.now() + ms; while (Date.now() < end) {} }
+      for (let i = 0; i < 20; i += 1) {
+        const chunk = Buffer.alloc(10 * 1024 * 1024);
+        chunk.fill(1);
+        global.__keepAlive = global.__keepAlive || [];
+        global.__keepAlive.push(chunk);
+        sleep(10);
+      }
+      require('fs').writeFileSync(${JSON.stringify(marker)}, 'completed');
+    `;
+    const cmd = {
+      role: 'lint',
+      network: true,
+      argv: [
+        process.execPath,
+        '-e',
+        `
+          const { spawn } = require('child_process');
+          const child = spawn(${JSON.stringify(process.execPath)}, ['-e', ${JSON.stringify(allocScript)}], { stdio: 'inherit' });
+          child.on('exit', (code) => process.exit(code == null ? 1 : code));
+        `,
+      ],
+      memory_limit_mb: 32,
+      timeout_ms: 10000,
+    };
+    const result = runGrade({ grade: 'minimal', changed: [], commands: [cmd], target });
+    const executed = result.commands[0];
+
+    assert.equal(
+      fs.existsSync(marker),
+      false,
+      'a descendant (grandchild) process completed a 200MB allocation under a declared 32MB memory_limit_mb -- the ceiling only sampled the directly-spawned process, not its process tree',
+    );
+    assert.equal(executed.result.status, 'memory_exceeded');
+  });
+});
+
+test('AT-PROC-1h (uninstall cleanup): uninstall removes durable plan-approval records left by lint-format executions', () => {
+  withRepo((target) => {
+    const recordPath = path.join(target, '.rig', 'lint-format', 'executions', 'some-plan-digest.json');
+    fs.mkdirSync(path.dirname(recordPath), { recursive: true });
+    fs.writeFileSync(recordPath, '{}');
+
+    cleanupReceiptArtifacts(target, {});
+
+    assert.equal(
+      fs.existsSync(path.join(target, '.rig', 'lint-format')),
+      false,
+      'uninstall left a stale one-use plan-approval record behind -- it would silently block re-execution of that plan_digest after a reinstall',
+    );
   });
 });

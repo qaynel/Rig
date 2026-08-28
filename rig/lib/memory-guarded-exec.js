@@ -22,10 +22,36 @@ const { spawnGuarded } = require('./spawn-guarded');
 
 const POLL_MS = 15;
 
-function rssBytes(pid) {
-  const probe = spawnSync('ps', ['-o', 'rss=', '-p', String(pid)], { encoding: 'utf8' });
-  const kb = parseInt((probe.stdout || '').trim(), 10);
-  return Number.isFinite(kb) ? kb * 1024 : 0;
+// Sums RSS across the whole descendant tree, not just the direct child: a
+// command that forks (a shell wrapper, a test runner spawning workers) can
+// blow the ceiling entirely inside processes this function would otherwise
+// never sample. `available: false` means `ps` itself could not be run (e.g.
+// absent from PATH) -- the caller must treat that as a hard failure, not as
+// "0 bytes used", or the ceiling silently enforces nothing on that host.
+function rssBytesTree(rootPid) {
+  const probe = spawnSync('ps', ['-eo', 'pid,ppid,rss'], { encoding: 'utf8' });
+  if (probe.error) return { bytes: 0, available: false };
+  const byPid = new Map();
+  for (const line of (probe.stdout || '').trim().split('\n').slice(1)) {
+    const [pid, ppid, rss] = line.trim().split(/\s+/).map(Number);
+    if (Number.isFinite(pid)) byPid.set(pid, { ppid, rss: Number.isFinite(rss) ? rss : 0 });
+  }
+  if (byPid.size === 0) return { bytes: 0, available: false };
+  let bytes = 0;
+  const stack = [rootPid];
+  const seen = new Set();
+  while (stack.length) {
+    const pid = stack.pop();
+    if (seen.has(pid)) continue;
+    seen.add(pid);
+    const entry = byPid.get(pid);
+    if (!entry) continue;
+    bytes += entry.rss * 1024;
+    for (const [candidate, info] of byPid) {
+      if (info.ppid === pid) stack.push(candidate);
+    }
+  }
+  return { bytes, available: true };
 }
 
 function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
@@ -43,7 +69,14 @@ function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
 
   let killedFor = null;
   const memTimer = memoryLimitBytes ? setInterval(() => {
-    if (!child.pid || rssBytes(child.pid) <= memoryLimitBytes) return;
+    if (!child.pid) return;
+    const { bytes, available } = rssBytesTree(child.pid);
+    if (!available) {
+      killedFor = 'memory_ceiling_unavailable';
+      child.cancel('SIGKILL');
+      return;
+    }
+    if (bytes <= memoryLimitBytes) return;
     killedFor = 'memory_exceeded';
     child.cancel('SIGKILL');
   }, POLL_MS) : null;
@@ -72,4 +105,4 @@ if (require.main === module) {
   run(process.argv.slice(2));
 }
 
-module.exports = { run, scriptPath: __filename };
+module.exports = { run, rssBytesTree, scriptPath: __filename };

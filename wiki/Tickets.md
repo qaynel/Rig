@@ -36,24 +36,27 @@ kanban-plugin: board
 - [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
 	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
-- [ ] **RIG-140 — AT-LF-23 only implements wall-clock timeout; memory ceiling is absent**
-	**Status:** OPEN (2026-08-27) — GitHub #95 — AT-LF-23 acceptance requires both a memory ceiling and a wall-clock timeout; only timeout is implemented or tested · [Solution](tickets/RIG-140.md)
-	**Class:** CORRECTNESS / SHELL TRUST. No memory cap enforcement exists; a task can OOM the host with no kill signal and no distinct non-passing state from the runner.
-- [ ] **RIG-139 — AT-LF-24 symlink containment only wired in `runReadOnly`; `runGrade` uses `cmd.cwd` unguarded**
-	**Status:** OPEN (2026-08-27) — GitHub #94 — `runGrade` (the main lint/format execution path) passes `cmd.cwd` directly without `taskCwd`/`containedPath`; the same symlink-escape `AT-LF-24` closed on the read-only path is open on the grade path · [Solution](tickets/RIG-139.md)
-	**Class:** CORRECTNESS / SHELL TRUST.
-- [ ] **RIG-138 — AT-LF-20 approval `.used` flag is in-memory only; evaporates across process boundaries**
-	**Status:** OPEN (2026-08-27) — GitHub #93 — `executePlan` sets `approval.used = true` on the in-memory object only; a real plan/execute flow runs in separate processes, so the one-use guarantee is not durable · [Solution](tickets/RIG-138.md)
-	**Class:** CORRECTNESS / SHELL TRUST.
+- [x] **RIG-140 — AT-LF-23 only implements wall-clock timeout; memory ceiling is absent**
+	**Status:** COMPLETE (2026-08-28) — GitHub #95 — `memory-guarded-exec.js` polls RSS and reports a distinct `memory_exceeded` status, independent of timeout; `AT-LF-23`/`AT-PROC-1c` green · [Solution](tickets/RIG-140.md)
+	**Class:** CORRECTNESS / SHELL TRUST. Board was left OPEN after landing; corrected 2026-08-28 triage.
+- [x] **RIG-139 — AT-LF-24 symlink containment only wired in `runReadOnly`; `runGrade` uses `cmd.cwd` unguarded**
+	**Status:** COMPLETE (2026-08-28) — GitHub #94 — `runGrade` now resolves `cwd` through `taskCwd`/`containedPath` at parity with `runReadOnly`; `AT-LF-24`/`AT-PROC-1b` green · [Solution](tickets/RIG-139.md)
+	**Class:** CORRECTNESS / SHELL TRUST. Board was left OPEN after landing; corrected 2026-08-28 triage.
+- [x] **RIG-138 — AT-LF-20 approval `.used` flag is in-memory only; evaporates across process boundaries**
+	**Status:** COMPLETE (2026-08-28) — GitHub #93 — `consumePlanApproval` durably records execution on disk, keyed by `plan_digest`, checked before any in-memory flag; `AT-LF-20`/`AT-PROC-1a` green · [Solution](tickets/RIG-138.md)
+	**Class:** CORRECTNESS / SHELL TRUST. Board was left OPEN after landing; corrected 2026-08-28 triage.
 - [ ] **RIG-136 — Oracle success log hardcodes the case count; print the verified count**
 	**Status:** OPEN (2026-08-27) — GitHub #92 — found during the wiki/code sync that closed [[RIG-115]]; not a v5 blocker · [Solution](tickets/RIG-136.md)
 	**Class:** MAINTENANCE. The oracle verifier asserts 73 acceptance IDs then prints a leftover "68 acceptance cases" literal. **Fix is dynamic, not a new literal:** interpolate the number of tests present (same as the file count already next to it). Replacing 68 with 73 is the same bug. Byte-pinned checker, so it rides the next re-sign. Absorbed if [[RIG-133]] rewrites the verifier first.
-- [ ] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
-	**Status:** OPEN, decided (2026-08-28) — GitHub #91 — owner chose Option A, scoped to `AT-LF-22` only (`withTempDir` generalization explicitly deferred); blocked on key-holder re-sign, then implementation · [Solution](tickets/RIG-137.md)
-	**Class:** CODE QUALITY / TRUST BOUNDARY. `rig/lib/lint-format.js` lines 11-22 globally monkey-patch `net.Server.prototype.listen` to work around a frozen test's timing issue. The patch silently changes any production caller's `listen(0, '127.0.0.1')` (loopback-only) to wildcard binding, contradicting AT-LF-22's "default-deny network reachability" guarantee. Recommended fix: unfreeze the test and rewrite it to handle Node 24's async host lookup; observable behavior (network isolation) does not change. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
+- [x] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
+	**Status:** COMPLETE (2026-08-28) — GitHub #91 — Option A landed: monkey-patch deleted, `AT-LF-22` rewritten async, oracle re-signed and verifies on HEAD · [Solution](tickets/RIG-137.md)
+	**Class:** CODE QUALITY / TRUST BOUNDARY. Board was left OPEN/blocked after the re-sign and implementation actually landed; corrected 2026-08-28 triage. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
 - [x] **RIG-143 — runGrade runs approved commands with no network isolation**
 	**Status:** COMPLETE (2026-08-28) — implementation and AT-PROC-1d acceptance test green; GitHub issue not filed · [Solution](tickets/RIG-143.md)
 	**Class:** CORRECTNESS / SHELL TRUST. `runGrade` now applies the same per-command isolation and grant/refusal contract as `runReadOnly`.
+- [ ] **RIG-144 — Installed `rig/catalog/baseline/check.js` carries none of the AT-LF-20..24 hardening**
+	**Status:** OPEN (2026-08-28) — GitHub #104 — filed from the PR #83 non-gating triage list · [Solution](tickets/RIG-144.md)
+	**Class:** CORRECTNESS / SHELL TRUST, target-repo-facing. No plan/approval concept, string-prefix (not realpath) cwd containment, no network isolation, no memory ceiling. Needs owner scoping first — this runner's execution model (CI/git-floor checks) may legitimately need network/memory headroom `lint-format.js`'s runners default-deny, unlike RIG-135.1/.2/.3's pure implementation gaps.
 - [x] **RIG-142 — spawnTask safety defaults (shell:false, env allowlist) are caller-overridable with no guard or test**
 	**Status:** COMPLETE (2026-08-27) — GitHub #97 — safety options are now locked after caller options and the helper is exported; focused oracle is green · [Solution](tickets/RIG-142.md)
 	**Class:** CORRECTNESS / SHELL TRUST.
