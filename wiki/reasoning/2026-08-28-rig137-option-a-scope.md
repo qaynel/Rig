@@ -130,3 +130,40 @@ manifest hash updated and re-signed.
 Not this agent's call to make: per the gate contract, an agent may draft the
 oracle change but the frozen test file can only be edited by the key holder's
 re-sign. This trace is the draft handed over; it is not itself the edit.
+
+## Addendum: canonical-branch decision (2026-08-28, later same day)
+
+A parallel, uncoordinated fix for RIG-137 was discovered on a sibling
+Conductor workspace (`mogadishu`, branch `rig-137-monkey-patch`, commit
+`69db079`): same production-patch deletion, but `AT-LF-22` fixed by dropping
+the `'127.0.0.1'` host argument (`server.listen(0)`), which resolves
+synchronously on current Node — verified empirically:
+
+```
+$ node -e "server.listen(0); console.log(server.address())"
+{ address: '::', family: 'IPv6', port: ... }   # synchronous, no host given
+```
+
+That's a genuinely smaller diff (no `async`, no bypassing `h.withRepo`) and
+was surfaced as an option this trace's investigation missed (it only tested
+an *explicit* loopback host, not omitting the host). It was **rejected as
+canonical** by the owner: `listen()`'s async behavior and the `'listening'`
+event as the synchronization point are Node's documented contract; a bare
+`listen(0)` returning a populated `address()` synchronously is incidental
+runtime behavior, not a guarantee, and not something to anchor a frozen
+oracle test to. It also drops the fixture's loopback-only bind for no
+compensating benefit — semantic drift with no upside once the production
+patch (the actual RIG-137 harm) is already deleted either way.
+
+**Canonical:** this trace's async `AT-LF-22` rewrite (kept `'127.0.0.1'`,
+awaits `'listening'`, awaits `server.close()`), on branch
+`rig-137-option-a-scope`. `mogadishu`'s `rig-137-monkey-patch` branch is
+superseded — notified via cross-session message; do not sign or merge its
+manifest change.
+
+Gate1 signing was attempted from this workspace and correctly refused: no
+`RIG_GATE1_SIGNING_KEY` / `.credentials/gate1.env` here, so the actual
+cryptographic re-sign has to happen on the key holder's own machine (the
+existing `gate1.allowed-signers` principal is a Secretive-backed key, not
+something this session can hold). `node scripts/approve-gate1.js status`
+correctly reports the manifest as changed pending that re-sign.

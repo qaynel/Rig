@@ -1,5 +1,30 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## RIG-137: canonical branch decided, gate1 re-sign is the only remaining blocker (2026-08-28, later)
+
+Implementation of the owner-approved async `AT-LF-22` fix landed on this
+branch (`rig-137-option-a-scope`): production monkey-patch deleted from
+`rig/lib/lint-format.js`, `AT-LF-22` rewritten async (keeps
+`listen(0, '127.0.0.1')`, awaits `'listening'` and `server.close()`, manages
+its own temp dir). `node --test tests/advanced-oracle.test.js` passes
+`AT-LF-22` and shows no regression (two pre-existing, unrelated failures —
+`AT-B3`, `AT-HOME-1 OpenClaw` — reproduce identically on unmodified HEAD).
+
+A parallel, uncoordinated RIG-137 fix was found on sibling workspace
+`mogadishu` (branch `rig-137-monkey-patch`, commit `69db079`): same patch
+deletion, but `AT-LF-22` fixed via `listen(0)` with no host (synchronous on
+current Node, but undocumented behavior, and drops the loopback-only
+fixture). Owner ruled this workspace's async version canonical;
+`mogadishu` notified via cross-session message and asked not to sign/merge.
+
+**Blocked on:** key-holder re-sign of
+`wiki/gate1/testing-infrastructure.manifest`'s `tests/advanced-oracle.test.js`
+hash — `node scripts/approve-gate1.js` correctly refuses here (no
+`RIG_GATE1_SIGNING_KEY` in this session). Once signed: full `npm test`, then
+this closes RIG-137/#91 and clears PR #83's G1 gating item. Record:
+[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+
+
 ## RIG-137 (G1 blocker) decided: Option A, scoped to AT-LF-22 (2026-08-28)
 
 Grilled with the owner. Chose Option A over Option B — investigation found B

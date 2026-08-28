@@ -9,19 +9,6 @@ const { spawnGuardedSync } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
 
-// rig: frozen AT-LF-22 does listen(0, '127.0.0.1') then address() immediately.
-// Node 24 looks up the host asynchronously, so address() is null and the case
-// throws before runReadOnly. Dropping the loopback host binds synchronously;
-// IPv6 :: still accepts 127.0.0.1.
-{
-  const net = require('node:net');
-  const listenTcp = net.Server.prototype.listen;
-  net.Server.prototype.listen = function listen(port, host, ...rest) {
-    if (port === 0 && host === '127.0.0.1') return listenTcp.call(this, 0, ...rest);
-    return listenTcp.call(this, port, host, ...rest);
-  };
-}
-
 const ECOSYSTEM_SIGNALS = new Map([
   ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
   ['pyproject.toml', 'python'], ['setup.cfg', 'python'], ['tox.ini', 'python'], ['ruff.toml', 'python'],

@@ -950,12 +950,20 @@ test('AT-LF-21 task filesystem and environment stay isolated', () => {
   });
 });
 
-test('AT-LF-22 a task has no network reachability without an explicit grant', () => {
+test('AT-LF-22 a task has no network reachability without an explicit grant', async () => {
   const net = require('node:net');
   const runReadOnly = api('lint-format.js', 'runReadOnly');
-  h.withRepo((target) => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-advanced-'));
+  try {
+    h.initGitRepo(target);
     const server = net.createServer((socket) => socket.end());
-    server.listen(0, '127.0.0.1');
+    // Node's host lookup for listen() completes on an event-loop tick even for
+    // a literal IP; address() right after listen() is unreliable. Await the
+    // listening callback instead of polling or reading address() synchronously.
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', resolve);
+    });
     const { port } = server.address();
     try {
       const probe = path.join(target, 'net-check.js');
@@ -973,9 +981,13 @@ test('AT-LF-22 a task has no network reachability without an explicit grant', ()
       runReadOnly(target, [{ argv: [process.execPath, probe] }]);
       assert.equal(fs.existsSync(path.join(target, 'connected')), false);
     } finally {
-      server.close();
+      await new Promise((resolve, reject) => {
+        server.close((err) => (err ? reject(err) : resolve()));
+      });
     }
-  });
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
 });
 
 test('AT-LF-23 a task exceeding its resource or time cap is killed and reported', () => {
