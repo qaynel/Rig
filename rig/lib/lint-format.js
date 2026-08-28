@@ -533,9 +533,9 @@ function isolatedTaskEnv() {
 function spawnTask(argv, options) {
   return spawnGuardedSync(argv[0], argv.slice(1), {
     encoding: 'utf8',
+    ...options,
     shell: false,
     env: isolatedTaskEnv(),
-    ...options,
   });
 }
 
@@ -677,13 +677,13 @@ function argvWithNetworkIsolation(cmd, prefix) {
 
 function runReadOnly(target, commands) {
   const isolation = networkIsolationPrefix();
-  if (!isolation) {
-    console.warn('runReadOnly: network isolation unavailable; skipping read-only tasks');
-    return { status: 'network_isolation_unavailable' };
-  }
   const preState = snapshotDir(target);
   const changed_paths = [];
   for (const cmd of commands) {
+    if (!isolation && cmd.network !== true) {
+      console.warn('runReadOnly: network isolation unavailable; skipping read-only tasks');
+      return { status: 'network_isolation_unavailable' };
+    }
     let cwd;
     try {
       cwd = taskCwd(target, cmd.cwd);
@@ -868,6 +868,7 @@ module.exports = {
   applyCoverage,
   runGrade,
   resolveScope,
+  spawnTask,
   runReadOnly,
   runAutofix,
   planCi,
