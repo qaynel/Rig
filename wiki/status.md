@@ -1,5 +1,58 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## PR #83 preconditions now green; independent review in flight (2026-08-28)
+
+Supersedes the "CI is RED on head 8450ee1" entry below — that head is stale.
+
+- Re-signed oracle is committed and pushed: `b58493b` + `3e98993` (both
+  "Update gate1 signature for release ceremony verification.", Cursor
+  co-author) on top of `bf1871b` (Linux CI fix). `HEAD` == `3e98993` ==
+  `origin/rig-120-release-ceremony` == PR #83 head, base `qa-prod-finishing-up`.
+- `node scripts/check-advanced-spec.js`: **Oracle verified**, signature valid,
+  `check-advanced-spec.js:133` enforces exactly 73 accepted IDs. The
+  "68 acceptance cases" print is still the [[RIG-136]] cosmetic literal
+  (`check-advanced-spec.js:166`), not a coverage regression.
+- GitHub Actions `test` job is **green** on `3e98993` (push + pull_request
+  runs, 2026-08-28T07:09Z). The earlier RED runs were `8450ee1`, fixed by
+  `bf1871b`.
+- Local `npm test` full gate **green** on this HEAD: root 497 pass / 1
+  expected Linux-only skip, pi-extension 15/15, rig-mcp 6/6, plus
+  rule-copies / versions / secrets / oracle checks.
+- One open code concern carried into the review: the
+  `net.Server.prototype.listen` monkey-patch at `rig/lib/lint-format.js:16-23`
+  ([[RIG-137]] / #91) is still live and unfixed.
+- Independent report-only review (four axes, fresh context) against PR #83's
+  diff vs merge-base `298a8d1` is **complete. Verdict: does NOT merge to
+  `qa-prod-finishing-up` as-is.** No `scripts/review-receipt.js` receipt
+  written (the wrapper refuses a failing verdict, and none should be forced).
+  Two gating items:
+  - **G1 — [[RIG-137]] monkey-patch.** `net.Server.prototype.listen` global
+    rewrite at `rig/lib/lint-format.js:16-23` ships in the same module as the
+    AT-LF-22 guarantee it weakens; loopback-only `listen(0,'127.0.0.1')`
+    silently becomes wildcard/`::`. RIG-137 is OPEN / owner-undecided. Needs
+    Option B (patch → test setup) or a recorded owner waiver on [[RIG-120]].
+  - **G2 — `runGrade` has no network isolation.** `runReadOnly` wraps argv via
+    `argvWithNetworkIsolation` (`unshare`/`sandbox-exec`) and refuses when
+    unavailable; `runGrade` (`lint-format.js:588-611`) calls `runCommand` with
+    raw argv — approved repo-owned lint/format/`make` commands run with full
+    outbound network. AT-LF-22 acceptance text says "an approved command",
+    not "a read-only command". `tests/guarantee-coverage.test.js` added
+    runGrade parity for the cwd (AT-PROC-1b) and memory (AT-PROC-1c)
+    conjuncts but **not** the network conjunct — the exact merge-time
+    sharding gap AT-PROC-1 exists to catch. Latent today (`runGrade` has no
+    production caller yet) but blocks signing AT-LF-22 as implemented. Needs
+    isolation added to `runGrade` + an AT-PROC-1d parity test, OR an
+    owner-signed Gate-1 re-scope of AT-LF-22 to the read-only path.
+  - Non-gating, triage before RIG-115 is marked Done: approval record burned
+    on a drift-abort (`lint-format.js:453-483`); approval records never
+    cleaned up by `uninstall()`; memory ceiling fails open where `ps` is
+    absent and only samples the direct child; installed
+    `rig/catalog/baseline/check.js` carries none of the AT-LF-20..24
+    hardening. [[RIG-136]] cosmetic "68" print rides the next re-sign.
+  - Open owner question: `gate1.sig` was rewritten twice 51s apart
+    (`b58493b`, `3e98993`), same author, identical message — confirm which
+    is authoritative and why the redo.
+
 ## PR #83 Linux CI blockers fixed in the worktree (2026-08-28)
 
 The three Linux-only failures are addressed without changing the signed
