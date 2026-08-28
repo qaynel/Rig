@@ -1,5 +1,23 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## RIG-137 (G1 blocker) decided: Option A, scoped to AT-LF-22 (2026-08-28)
+
+Grilled with the owner. Chose Option A over Option B — investigation found B
+wasn't actually lighter (both options' only landing spots sit inside the
+signed oracle manifest, so both need a key-holder re-sign). Root cause
+(Node 24 async bind, even for a literal IP) verified empirically. Owner
+explicitly scoped the fix to `AT-LF-22` only; `tests/helpers/advanced.js`'s
+`withTempDir`/`withRepo` stays synchronous, generalizing it deferred to a
+later ticket. Draft test rewrite is written and owner-approved (async
+`AT-LF-22`, inline temp-dir management, awaited `server.close()`).
+
+**Next:** get the key-holder re-sign on
+`wiki/gate1/testing-infrastructure.manifest`'s `tests/advanced-oracle.test.js`
+hash, then implement — delete the `net.Server.prototype.listen` patch from
+`rig/lib/lint-format.js`, land the drafted test, run the full gate. This
+closes PR #83's G1 gating item. Full record:
+[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+
 ## PR #83 preconditions now green; independent review in flight (2026-08-28)
 
 Supersedes the "CI is RED on head 8450ee1" entry below — that head is stale.
