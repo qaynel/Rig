@@ -1,8 +1,33 @@
 'use strict';
 
 const { spawn, spawnSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const TERM_GRACE_MS = 100;
+
+// Resolved once against the real PATH at module load, before any caller
+// narrows process.env.PATH to sandbox a task (e.g. emptying it to simulate
+// "no network-isolation tool present"). The prctl shim below is our own
+// plumbing, not part of the task being sandboxed, so it must not go missing
+// just because the task's PATH was deliberately restricted.
+let resolvedPython3;
+function resolvePython3() {
+  if (resolvedPython3 !== undefined) return resolvedPython3;
+  resolvedPython3 = null;
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    if (!dir) continue;
+    const candidate = path.join(dir, 'python3');
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      resolvedPython3 = candidate;
+      break;
+    } catch {
+      // not in this PATH entry, keep looking
+    }
+  }
+  return resolvedPython3;
+}
 
 function groupSignal(pid, signal) {
   if (!pid) return;
@@ -34,7 +59,7 @@ function once(fn) {
 function linuxPdeathCommand(command, args) {
   if (process.platform !== 'linux') return { command, args };
   return {
-    command: 'python3',
+    command: resolvePython3() || 'python3',
     args: [
       '-c',
       'import ctypes,os,signal; ctypes.CDLL(None).prctl(1, signal.SIGTERM); os.execvpe(os.sys.argv[1], os.sys.argv[1:], os.environ)',

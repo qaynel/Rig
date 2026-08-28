@@ -35,7 +35,7 @@ test('local Gate 1 env config is parsed without shell evaluation', () => {
 
 test('tracked example env names the one local key variable', () => {
   const example = fs.readFileSync(path.join(__dirname, '..', '.credentials/gate1.env.example'), 'utf8');
-  assert.match(example, /^RIG_GATE1_SIGNING_KEY=/);
+  assert.match(example, /^RIG_GATE1_SIGNING_KEY=/m);
   assert.doesNotMatch(example, /PRIVATE|SECRET|TOKEN/);
 });
 
