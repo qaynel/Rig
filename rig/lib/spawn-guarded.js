@@ -6,16 +6,16 @@ const path = require('node:path');
 
 const TERM_GRACE_MS = 100;
 
-// Resolved once against the real PATH at module load, before any caller
-// narrows process.env.PATH to sandbox a task (e.g. emptying it to simulate
-// "no network-isolation tool present"). The prctl shim below is our own
-// plumbing, not part of the task being sandboxed, so it must not go missing
-// just because the task's PATH was deliberately restricted.
+// Resolve the wrapper before task commands can narrow PATH. Prefer the host
+// Python over a project virtualenv: the latter may rely on environment values
+// intentionally removed from guarded tasks.
 let resolvedPython3;
 function resolvePython3() {
   if (resolvedPython3 !== undefined) return resolvedPython3;
   resolvedPython3 = null;
-  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+  const dirs = ['/usr/bin', '/usr/local/bin', ...(process.env.PATH || '').split(path.delimiter)]
+    .filter((dir) => !dir.includes(`${path.sep}.venv${path.sep}`));
+  for (const dir of dirs) {
     if (!dir) continue;
     const candidate = path.join(dir, 'python3');
     try {
@@ -23,7 +23,7 @@ function resolvePython3() {
       resolvedPython3 = candidate;
       break;
     } catch {
-      // not in this PATH entry, keep looking
+      // Keep looking for a host interpreter.
     }
   }
   return resolvedPython3;
