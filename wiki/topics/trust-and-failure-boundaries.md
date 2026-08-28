@@ -154,3 +154,22 @@ design note in [guarantee sharding](../mistakes/guarantee-sharding.md) for
 why (a hard `RLIMIT_AS` cap is not reliably enforced cross-platform) and its
 known race window (a single allocation fast enough to complete inside one
 poll interval can still land before the kill signal does).
+
+`AT-LF-22`'s guarantee currently ships alongside a production defect
+([[RIG-137]] / #91): `rig/lib/lint-format.js` globally monkey-patches
+`net.Server.prototype.listen` to make the frozen test's `listen()` →
+`address()` sequence synchronous again on Node 24, where host-lookup/bind now
+completes on an event-loop tick even for a literal IP. The patch is global —
+any real caller asking for loopback-only `listen(0, '127.0.0.1')` silently
+gets wildcard binding instead. Owner-approved fix is to delete the patch and
+make `AT-LF-22` itself `async`, awaiting the `'listening'` callback rather
+than reading `server.address()` synchronously; a fixed-port workaround was
+considered and rejected because it removes the synchronization guarantee
+`address()` provides, not just the async requirement. Scoped deliberately to
+that one test — `tests/helpers/advanced.js`'s `withTempDir`/`withRepo` stays
+synchronous and unmodified even though it can't safely wrap an async
+callback (its `finally` deletes the temp dir when the promise is *returned*,
+not when it *settles*); generalizing it is deferred to whenever a second test
+actually needs an async fixture lifetime. Landing this requires a key-holder
+re-sign, since both plausible homes for any patch relocation sit inside the
+byte-pinned oracle manifest. [reasoning trace](../reasoning/2026-08-28-rig137-option-a-scope.md)

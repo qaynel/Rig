@@ -1,5 +1,57 @@
 # Status - checked 2026-08-28 (updated 2026-08-28)
 
+## Merged origin/rig-120-release-ceremony (2026-08-28, later)
+
+Took RIG-143 (`runGrade` network isolation matching `runReadOnly`) while
+keeping this branch's owner-canonical RIG-137 Option A: async `AT-LF-22`
+with `listen(0, '127.0.0.1')` awaiting `'listening'`, not the incoming
+`listen(0)` no-host rewrite. Gate-1 signature and oracle hash stay on this
+branch's test bytes. Still blocked on key-holder re-sign of
+`wiki/gate1/testing-infrastructure.manifest`.
+
+## RIG-137: canonical branch decided, gate1 re-sign is the only remaining blocker (2026-08-28, later)
+
+Implementation of the owner-approved async `AT-LF-22` fix landed on this
+branch (`rig-137-option-a-scope`): production monkey-patch deleted from
+`rig/lib/lint-format.js`, `AT-LF-22` rewritten async (keeps
+`listen(0, '127.0.0.1')`, awaits `'listening'` and `server.close()`, manages
+its own temp dir). `node --test tests/advanced-oracle.test.js` passes
+`AT-LF-22` and shows no regression (two pre-existing, unrelated failures —
+`AT-B3`, `AT-HOME-1 OpenClaw` — reproduce identically on unmodified HEAD).
+
+A parallel, uncoordinated RIG-137 fix was found on sibling workspace
+`mogadishu` (branch `rig-137-monkey-patch`, commit `69db079`): same patch
+deletion, but `AT-LF-22` fixed via `listen(0)` with no host (synchronous on
+current Node, but undocumented behavior, and drops the loopback-only
+fixture). Owner ruled this workspace's async version canonical;
+`mogadishu` notified via cross-session message and asked not to sign/merge.
+
+**Blocked on:** key-holder re-sign of
+`wiki/gate1/testing-infrastructure.manifest`'s `tests/advanced-oracle.test.js`
+hash — `node scripts/approve-gate1.js` correctly refuses here (no
+`RIG_GATE1_SIGNING_KEY` in this session). Once signed: full `npm test`, then
+this closes RIG-137/#91 and clears PR #83's G1 gating item. Record:
+[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+
+
+## RIG-137 (G1 blocker) decided: Option A, scoped to AT-LF-22 (2026-08-28)
+
+Grilled with the owner. Chose Option A over Option B — investigation found B
+wasn't actually lighter (both options' only landing spots sit inside the
+signed oracle manifest, so both need a key-holder re-sign). Root cause
+(Node 24 async bind, even for a literal IP) verified empirically. Owner
+explicitly scoped the fix to `AT-LF-22` only; `tests/helpers/advanced.js`'s
+`withTempDir`/`withRepo` stays synchronous, generalizing it deferred to a
+later ticket. Draft test rewrite is written and owner-approved (async
+`AT-LF-22`, inline temp-dir management, awaited `server.close()`).
+
+**Next:** get the key-holder re-sign on
+`wiki/gate1/testing-infrastructure.manifest`'s `tests/advanced-oracle.test.js`
+hash, then implement — delete the `net.Server.prototype.listen` patch from
+`rig/lib/lint-format.js`, land the drafted test, run the full gate. This
+closes PR #83's G1 gating item. Full record:
+[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+
 ## RIG-143 complete; runGrade network contract now matches runReadOnly (2026-08-28)
 
 - `runGrade` now verifies the host isolation mechanism once, applies it to
