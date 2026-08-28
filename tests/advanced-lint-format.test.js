@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+require('./helpers/hermetic-git-env');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

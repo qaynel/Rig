@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Secret floor + first-enable history scan (impl-design §7.4, AT-B3, Slice 7).
+require('./helpers/hermetic-git-env');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
