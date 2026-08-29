@@ -38,9 +38,14 @@ false green result. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approa
 
 ## What is still open
 
-The verifier, stable five-file manifest, `npm run test:code` split, 68 static
-targets, and owner signature are live. D24 retires D23: the complete-catalogue
-targets evaluate all 115 leaves. On 2026-08-23 the unmodified signed gate passed
-after the authorship function inspected every declared fragment and reported no
-defects. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
+The verifier, stable five-file manifest, `npm run test:code` split, 73 static
+targets (68 under D24 + 5 under D28), and owner signature are live. D24 retires
+D23: the complete-catalogue targets evaluate all 115 leaves. On 2026-08-23 the
+unmodified signed gate passed after the authorship function inspected every
+declared fragment and reported no defects. [v0.12 retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) ·
 [Status](../status.md#what-exists-in-the-code-today)
+
+D23's original ruling — why a permanently-red 114-leaf check would have defeated
+the point of the gate, and why filling those leaves with placeholder content was
+rejected rather than scoping the check — is recorded in the
+[originating trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md).

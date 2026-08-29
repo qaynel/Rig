@@ -14,12 +14,18 @@
 // non-interactive reviewer and binds its receipt to the reviewed bytes.
 
 const { createHash, randomUUID } = require('node:crypto');
-const { readFileSync, writeFileSync } = require('node:fs');
+const { readFileSync, writeFileSync, existsSync, unlinkSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
 
-const WRAPPER_VERSION = 3;
-const TIMEOUT_MS = 30 * 60 * 1000;
+const WRAPPER_VERSION = 4;
+// Test-only override so a regression test can force the reviewer spawn to
+// hit its timeout without waiting 30 minutes; unset in production.
+const TIMEOUT_MS = Number(process.env.RIG_REVIEW_RECEIPT_TIMEOUT_MS) || 30 * 60 * 1000;
+// RIG-124: a `fail` verdict is real signal. Cap automatic fix-and-re-review
+// cycles for one author-context at one re-review (two attempts total); a
+// second consecutive fail must stop and be surfaced, not retried again.
+const MAX_RE_REVIEWS = 1;
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
@@ -41,6 +47,30 @@ const cataloguePath = arg('catalogue') || 'rig/catalog.json';
 const implementationRoot = arg('implementation-root') || fail('--implementation-root is required');
 const implementationBase = arg('base') || fail('--base is required');
 const gate1Paths = (arg('gate1') || '').split(',').filter(Boolean);
+const interim = process.argv.includes('--interim');
+const forceRereview = process.argv.includes('--force-rereview');
+
+// RIG-124: interim passes are a cheap sanity check during a release attempt
+// (use a cheap --model) and never write the binding receipt. Only a run
+// without --interim produces the receipt AT-GATE-3 evidence relies on, so
+// the receipt is never generated mid-development.
+const attemptsPath = `${outPath}.attempts.json`;
+let priorFailures = 0;
+if (existsSync(attemptsPath)) {
+  try {
+    const state = JSON.parse(readFileSync(attemptsPath, 'utf8'));
+    if (state.authorContext === authorContext) priorFailures = state.failures || 0;
+  } catch {
+    priorFailures = 0;
+  }
+}
+if (priorFailures > MAX_RE_REVIEWS && !forceRereview) {
+  fail(
+    `re-review cap reached for author-context "${authorContext}" (${priorFailures} failing reviews). ` +
+    'A failing release review is real signal: stop and report it to the user rather than retrying ' +
+    'automatically. Pass --force-rereview only after explicit user/owner approval to continue.'
+  );
+}
 
 const targetBytes = readFileSync(targetPath);
 const targetDigest = createHash('sha256').update(targetBytes).digest('hex');
@@ -131,13 +161,34 @@ const reviewerCommand = reviewerDriver === 'codex' ? 'codex' : 'claude';
 const reviewerArgs = reviewerDriver === 'codex'
   ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
   : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob,Bash'];
+
+// RIG-124.1: write the failure optimistically, before the spawn, and only
+// clear it on a confirmed pass below. A spawn killed by its own timeout (or
+// any other signal) exits this process before it could reach a write placed
+// after the spawn, which silently dropped that attempt from the cap. Writing
+// first means every non-clean return is already counted.
+writeFileSync(attemptsPath, `${JSON.stringify({ authorContext, failures: priorFailures + 1 })}\n`);
+
+// RIG-124.1: run the reviewer in its own process group (detached) so that
+// after this call returns — however it returns — any descendant it forked
+// and left behind can be reaped too. spawnSync's own timeout only signals
+// the one process it tracks, not children that process had already forked;
+// those were being orphaned, reparented to init, and left running forever.
 const run = spawnSync(reviewerCommand, reviewerArgs, {
   input: prompt,
   cwd: implementationRoot,
   encoding: 'utf8',
   timeout: TIMEOUT_MS,
   maxBuffer: 64 * 1024 * 1024,
+  detached: true,
 });
+if (run.pid) {
+  try {
+    process.kill(-run.pid, 'SIGKILL');
+  } catch {
+    // process group already gone
+  }
+}
 
 if (run.error) fail(`reviewer failed to launch: ${run.error.message}`);
 if (run.status !== 0) fail(`reviewer exited ${run.status}: ${(`${run.stderr || ''}\n${run.stdout || ''}`).trim().slice(0, 2000)}`);
@@ -151,6 +202,27 @@ try {
   reported = JSON.parse(reportedJson);
 } catch (e) {
   fail(`reviewer json did not parse: ${e.message}`);
+}
+
+// The optimistic write above already recorded this attempt as a failure.
+// Only a confirmed pass clears the cap; a fail (or anything short of pass)
+// leaves the count in place.
+if (reported.verdict !== 'fail' && existsSync(attemptsPath)) {
+  unlinkSync(attemptsPath);
+}
+
+if (interim) {
+  const findings = reported.findings || [];
+  const blockers = findings.filter((f) => f.severity === 'blocker').length;
+  console.log(
+    `review-receipt: interim pass — no receipt written\n` +
+      `  target   ${targetPath} (${targetDigest.slice(0, 12)})\n` +
+      `  reviewer ${model}\n` +
+      `  verdict  ${reported.verdict} — ${findings.length} finding(s), ${blockers} blocker(s), ` +
+      `${(reported.unresolved || []).length} unresolved`
+  );
+  if (findings.length) console.log(JSON.stringify(findings, null, 2));
+  process.exit(reported.verdict === 'fail' ? 1 : 0);
 }
 
 const receipt = {

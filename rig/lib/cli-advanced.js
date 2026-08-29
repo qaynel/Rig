@@ -2,21 +2,37 @@
 'use strict';
 
 const fs = require('node:fs');
-const { inspectTarget } = require('./inspect');
+const { inspectTarget, hostReview } = require('./inspect');
 const { recommend } = require('./profile');
 const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
-const { loadCatalog, validateReview } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy } = require('./policy');
-const { uninstall } = require('./lifecycle');
+const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
+const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
+const { uninstall } = require('./uninstall');
+const { runPreCommit } = require('./git-dispatch');
+const { verifyManualMcp } = require('./credentials');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
   if (idx === -1) return null;
   return argv[idx + 1] || null;
+}
+
+function parseFlags(argv, name) {
+  const values = [];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === name) values.push(argv[++i] || '');
+  }
+  return values;
+}
+
+function parseHostsOption(hosts) {
+  if (!hosts || hosts === 'auto') return undefined;
+  const ids = hosts.split(',').map((h) => h.trim()).filter((h) => h && h !== 'auto');
+  return ids.length ? ids : undefined;
 }
 
 function writeOut(outPath, value) {
@@ -29,7 +45,21 @@ function readJson(file) {
 }
 
 function runAdvanced(subcommand, argv) {
-  const target = parseFlag(argv, '--target');
+  if (subcommand === 'select') {
+    const menuPath = parseFlag(argv, '--menu');
+    const out = parseFlag(argv, '--out');
+    if (!menuPath || !fs.existsSync(menuPath)) throw new Error('rig: --menu <menu.json> is required');
+    if (!out) throw new Error('rig: --out is required for select');
+    const target = parseFlag(argv, '--target');
+    if (target && !fs.existsSync(target)) {
+      throw new Error('rig: --target <dir> is required and must exist');
+    }
+    writeOut(out, selectFromMenu(readJson(menuPath), parseFlags(argv, '--service')));
+    return;
+  }
+
+  const hostCheck = subcommand === 'check' && parseFlag(argv, '--host');
+  const target = parseFlag(argv, '--target') || (hostCheck ? process.cwd() : null);
   if (!target || !fs.existsSync(target)) {
     throw new Error('rig: --target <dir> is required and must exist');
   }
@@ -40,6 +70,7 @@ function runAdvanced(subcommand, argv) {
       beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
     });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    if (result.status === 'best_effort') process.exitCode = 1;
     return;
   }
 
@@ -90,7 +121,16 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
       return;
     }
-    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, or recover');
+    if (action === 'grant-approval') {
+      const actionPath = parseFlag(argv, '--action');
+      const out = parseFlag(argv, '--out');
+      if (!actionPath || !fs.existsSync(actionPath) || !out) {
+        throw new Error('rig: policy grant-approval requires --action <action.json> and --out');
+      }
+      writeOut(out, grantApproval(target, readJson(actionPath)));
+      return;
+    }
+    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, recover, or grant-approval');
   }
 
   if (subcommand === 'inspect') {
@@ -100,8 +140,19 @@ function runAdvanced(subcommand, argv) {
     if (!out) throw new Error('rig: --out is required for inspect');
     writeOut(out, inspectTarget(target, {
       host,
-      hosts: hosts ? hosts.split(',').filter(Boolean) : undefined,
+      hosts: parseHostsOption(hosts),
     }));
+    return;
+  }
+
+  if (subcommand === 'host-review') {
+    const inspectionPath = parseFlag(argv, '--inspection');
+    const out = parseFlag(argv, '--out');
+    if (!inspectionPath || !fs.existsSync(inspectionPath)) {
+      throw new Error('rig: --inspection <inspection.json> is required');
+    }
+    if (!out) throw new Error('rig: --out is required for host-review');
+    writeOut(out, hostReview(readJson(inspectionPath)));
     return;
   }
 
@@ -150,13 +201,37 @@ function runAdvanced(subcommand, argv) {
   }
 
   if (subcommand === 'check') {
+    const host = parseFlag(argv, '--host');
+    if (host) {
+      const result = verifyManualMcp(target, host);
+      const output = `${JSON.stringify(result, null, 2)}\n`;
+      if (result.status !== 0) {
+        process.stderr.write(output);
+        process.exit(result.status || 1);
+      }
+      process.stdout.write(output);
+      return;
+    }
     const scope = parseFlag(argv, '--scope') || 'repo';
     const service = parseFlag(argv, '--service');
     const result = runChecks(target, { scope, service });
     if (result.status !== 0) {
       if (result.stderr) process.stderr.write(result.stderr);
+      if (result.stdout) process.stdout.write(result.stdout);
       process.exit(result.status || 1);
     }
+    process.stdout.write('check passed\n');
+  }
+
+  if (subcommand === 'validate-commit') {
+    const policyPath = parseFlag(argv, '--policy');
+    const policy = policyPath && fs.existsSync(policyPath) ? readJson(policyPath) : null;
+    const result = runPreCommit(target, policy);
+    if (!result.allowed) {
+      process.stderr.write(`${JSON.stringify(result, null, 2)}\n`);
+      process.exit(1);
+    }
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   }
 }
 

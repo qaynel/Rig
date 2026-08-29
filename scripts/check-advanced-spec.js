@@ -130,7 +130,7 @@ function verifyCoverage(root, entries) {
   const titled = testTitleIds(root, entries.map(({ file }) => file));
   const targets = traceTargets(technicalSpec);
   const manifested = new Set(entries.map(({ file }) => file));
-  assert.equal(accepted.length, 68, 'Gate 1 must contain exactly 68 active acceptance IDs');
+  assert.equal(accepted.length, 73, 'Gate 1 must contain exactly 73 active acceptance IDs');
   assert.deepEqual(traced, accepted, 'technical-spec trace IDs must exactly match Gate 1');
   assert.deepEqual(titled, accepted, 'manifested test titles must exactly match Gate 1');
   assert.deepEqual(targets.map(({ id }) => id).sort(), accepted, 'every trace row must name one test target');
@@ -140,6 +140,7 @@ function verifyCoverage(root, entries) {
     const source = read(root, file).toString('utf8');
     assert.match(source, new RegExp(`\\btest\\(\\s*['\"\\x60]${title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}['\"\\x60]`));
   }
+  return titled.length;
 }
 
 function verifyPackageScripts(root) {
@@ -162,8 +163,8 @@ function check(root = ROOT) {
   const entries = verifyManifest(root);
   verifyPackageScripts(root);
   verifyTechnicalApproach(root);
-  verifyCoverage(root, entries);
-  process.stdout.write(`Oracle verified: ${entries.length} files, 68 acceptance cases\n`);
+  const caseCount = verifyCoverage(root, entries);
+  process.stdout.write(`Oracle verified: ${entries.length} files, ${caseCount} acceptance cases\n`);
   return signature;
 }
 

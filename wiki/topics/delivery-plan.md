@@ -59,13 +59,12 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-D24 and the one-gate contract are now owner-approved and landed in both Gate 1
-files. Before implementation, the complete 68-case deterministic testing
-infrastructure must be built and manifested, and the owner must sign that
-manifest together with intent and acceptance. Gate 2 is a present working
-technical approach, not a second freeze; it must be retraced to D24 before the
-oracle is presented for signature.
-[Status](../status.md#ordered-next-steps)
+D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
+and signed: the 73-case (D24 + D28) deterministic testing infrastructure is
+built, manifested, and covered by the oracle signature. See "Where the eight steps
+actually stand" below for the current per-step status — as of the last check,
+steps 1–7 are done: `v5.0.0` is tagged and published. Step 8 remains
+post-beta promotion. [Status](../status.md)
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 
 The former lint-format-only path is historical. D24 supersedes D21's release
@@ -102,7 +101,7 @@ the Policy rung, authored in one pass at agent discretion.
 The MVP order, each step with one verifiable outcome:
 
 1. Repair the record (done 2026-08-21).
-2. Build all 68 deterministic targets, the first-running oracle verifier, and
+2. Build all 73 deterministic targets, the first-running oracle verifier, and
    `npm run test:code`; manifest the test bytes and obtain the owner signature.
    Product-behavior failures are expected before implementation.
 3. Wire all 55 swallowed skills and ship a real install path (`install.sh`,
@@ -128,12 +127,12 @@ Full detail, verify commands, and traps: [the MVP roadmap](../specs/mvp-roadmap.
 | Step | Standing |
 |---|---|
 | 1. Repair the record | Done. |
-| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 68 cases. |
+| 2. Freeze the completed oracle | **Done.** Signed, verifier green, 73 cases (D24 + D28). |
 | 3. Wire the 55 skills, ship `install.sh` and `5.0.0` | **Done.** The payload installs all 55 skills and plumbing; the macOS-safe installer resolves named releases. Tag cutting stays in release step 7. |
 | 4. Context-aware onboarding | **Done.** The shipped bootstrap calls the registry, auto-selects only existing unambiguous host markers, keeps explicit overrides exact, and journals every payload write. `generic` is deliberately explicit-only. |
 | 5. Author all 115 leaves at Policy grade | **Done.** 805 files, zero placeholders, grade and untailored-baseline declared on every fragment. |
 | 6. Prove the all-115 target green without changing the oracle | **Done.** The now-honest authorship function inspected all declared fragments and returned zero failures; the signed gate and full suite passed unchanged. |
-| 7. Release: fresh review, evidence, `v5.0.0` | **Review done, verdict blocked.** Four blockers; the tag was not cut. |
+| 7. Release: fresh review, evidence, `v5.0.0` | **Done (2026-08-29).** Passing receipt bound to `9d1ea45`; annotated tag and GitHub latest release published. |
 | 8. Post-beta promotion | Unchanged, still after beta. |
 
 The earlier catalogue green was not proof because its authorship function could

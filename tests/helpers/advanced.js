@@ -1,6 +1,10 @@
 // Shared Advanced acceptance/harness helpers (Gate 1 §7 + SOW §3.1 +
 // impl-design §10/§13 Slice 1). Black-box seams only — domain logic lives under
 // rig/lib/. Subcommands are expected missing until Phase 3 (RED → GREEN).
+'use strict';
+
+require('./hermetic-git-env');
+
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');

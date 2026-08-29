@@ -568,6 +568,21 @@ function recoverPolicy(target, challenge, approval) {
   return { trust: next, receipt };
 }
 
+function grantApproval(target, action) {
+  const { actionDigest } = require('./enforcement');
+  const approvalsDir = path.join(target, '.rig/approvals');
+  fs.mkdirSync(approvalsDir, { recursive: true });
+  const approval = {
+    action_digest: actionDigest(action),
+    action,
+    used: false,
+    created_at: new Date().toISOString(),
+  };
+  const approvalPath = path.join(approvalsDir, `${approval.action_digest}.json`);
+  fs.writeFileSync(approvalPath, `${JSON.stringify(approval, null, 2)}\n`, { mode: 0o600 });
+  return { approval, path: approvalPath };
+}
+
 module.exports = {
   onboardingOrder,
   policyStatus,
@@ -585,4 +600,5 @@ module.exports = {
   recoveryMessage,
   verifySshsig,
   parsePolicyBytes,
+  grantApproval,
 };

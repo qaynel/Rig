@@ -68,13 +68,19 @@ const REGISTRY = {
   openclaw: {
     instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: 'AGENTS.md', skills: 'native + bundles', hooks: 'HOOK.md + handler', mcp: 'openclaw.json', mcp_key: 'mcpServers' },
+    // mcp path/key corrected to the shipped, tested shape (RIG-104): the
+    // config lives at .openclaw/openclaw.json, not bare openclaw.json, and
+    // servers nest under mcp.servers (dotted-path), not a top-level
+    // mcpServers. See rig/lib/renderers.js renderOpenclaw + credentials.js
+    // OPENCLAW_CONFIG_PATH wiring, both pre-dating this fix.
+    surfaces: { instruction: 'AGENTS.md', skills: 'native + bundles', hooks: 'HOOK.md + handler', mcp: '.openclaw/openclaw.json', mcp_key: 'mcp.servers' },
     evidence: { citation: 'https://docs.openclaw.ai/plugins/bundles' },
   },
   antigravity: {
     instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    // rig: CLI variant ignores project-local MCP (issue #60); .agents/ is the reliable IDE/SDK path.
+    // rig: CLI issue #60 ignores `.antigravitycli/mcp_config.json`; IDE still
+    // reads `.agents/mcp_config.json`. Shipped MCP setup is manual → HOME.
     surfaces: { instruction: '.agents/rules/', skills: '.agents/skills/', hooks: '.agents/hooks.json', mcp: '.agents/mcp_config.json', mcp_key: 'mcpServers' },
     evidence: { citation: 'https://antigravity.google/docs/hooks; https://antigravity.google/docs/mcp' },
   },
@@ -126,11 +132,13 @@ const REGISTRY = {
     evidence: { citation: 'https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp' },
   },
   pi: {
-    // Skills use .agents/skills/. No hook file (extensions only). MCP is refused by design.
+    // Skills use .agents/skills/. No hook file (extensions only). MCP is
+    // available via the first-party pi-mcp-extension; Rig has no mergeable
+    // first-party config file, so it does not auto-write.
     instruction: 'emitted', native_skill: 'emitted', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
     mcp_config: { emission: 'unsupported', scope: 'unsupported' },
     surfaces: { instruction: 'AGENTS.md / .pi/settings.json', skills: '.agents/skills/', hooks: 'extensions (.ts) only', mcp: null },
-    evidence: { citation: 'https://pi.dev/docs/latest/skills' },
+    evidence: { citation: 'https://pi.dev/packages/pi-mcp-extension' },
   },
   generic: {
     instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
@@ -157,7 +165,7 @@ function materializeHostAdapters(target, host, writeFile = null) {
   }
   const contract = contractFor(host, caps);
   for (const [axis, axisContract] of Object.entries(contract.axes)) {
-    if (axisContract.emission === 'unsupported') continue;
+    if (axisContract.emission === 'unsupported' && axis !== 'mcp_config') continue;
     const rel = `.rig/host-contracts/${host}/${axis}.json`;
     const contents = `${JSON.stringify(axisContract, null, 2)}\n`;
     if (writeFile) {
@@ -167,7 +175,7 @@ function materializeHostAdapters(target, host, writeFile = null) {
       fs.mkdirSync(path.dirname(marker), { recursive: true });
       fs.writeFileSync(marker, contents);
     }
-    emittedAxes.push(rel);
+    if (axisContract.emission === 'emitted') emittedAxes.push(rel);
   }
   return { capabilities: caps, emitted_axes: emittedAxes, emitted_live_hooks: [], pointers };
 }
@@ -215,15 +223,20 @@ function discoverHosts(target, options = {}) {
   return detected;
 }
 
+function interpretedMcp(id) {
+  return require('./mcp-hosts').MCP_HOSTS[id];
+}
+
 function contractFor(id, caps) {
   const surfaces = caps.surfaces || {};
+  const mcp = interpretedMcp(id) || {};
   const statuses = {
     instruction: caps.instruction,
     native_skill: caps.native_skill,
     shell_hook: caps.shell_hook,
     web_hook: caps.web_hook,
     mcp_hook: caps.mcp_hook,
-    mcp_config: caps.mcp_config.emission,
+    mcp_config: mcp.emission || caps.mcp_config.emission,
   };
   const axisPath = {
     instruction: surfaces.instruction ?? null,
@@ -231,7 +244,7 @@ function contractFor(id, caps) {
     shell_hook: surfaces.hooks ?? null,
     web_hook: surfaces.hooks ?? null,
     mcp_hook: surfaces.hooks ?? null,
-    mcp_config: surfaces.mcp ?? null,
+    mcp_config: mcp.file ?? surfaces.mcp ?? null,
   };
   const events = {
     instruction: 'session-context-load', native_skill: 'native-skill-discovery',
@@ -243,6 +256,7 @@ function contractFor(id, caps) {
     if (statuses[axis] === 'unsupported') {
       axes[axis] = {
         host: id, axis, emission: 'unsupported',
+        ...(axis === 'mcp_config' ? { auto_write: false } : {}),
         evidence: { vendor: id, researched_on: RESEARCHED_ON, official_citation: caps.evidence?.citation || 'product-defined generic fallback' },
       };
       continue;
@@ -252,9 +266,11 @@ function contractFor(id, caps) {
       host: id,
       axis,
       emission: 'emitted',
-      config_scope: axis === 'mcp_config' ? caps.mcp_config.scope : 'repo',
+      config_scope: axis === 'mcp_config' ? (mcp.config_scope || caps.mcp_config.scope) : 'repo',
+      ...(axis === 'mcp_config' ? { auto_write: Boolean(mcp.autoWrite) } : {}),
       output: {
         path: axisPath[axis], format, owned_namespace: `rig.${id}.${axis}`,
+        ...(axis === 'mcp_config' && mcp.key ? { key: mcp.key } : {}),
         first_apply: 'additive_merge', repeat_apply: 'idempotent_replace_owned_namespace',
         preserve: 'all bytes and values outside the owned namespace',
       },
@@ -277,6 +293,7 @@ function contractFor(id, caps) {
         },
       },
     };
+    if (axis === 'mcp_config') axes[axis].output.key = surfaces.mcp_key || 'mcpServers';
     axes[axis].evidence.adapter_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].output)).digest('hex');
     axes[axis].evidence.fixture_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].input)).digest('hex');
   }
@@ -336,7 +353,8 @@ function materializeSelectedHosts(target, hostIds) {
         guidance: 'MCP is unsupported for this host; preserving user files unchanged.',
       };
     } else {
-      entry.mcp = { status: mcpStatus.scope, path: caps.surfaces && caps.surfaces.mcp };
+      const surfaces = caps.surfaces || {};
+      entry.mcp = { status: mcpStatus.scope, path: surfaces.mcp, key: surfaces.mcp_key || 'mcpServers' };
     }
     results[id] = entry;
   }

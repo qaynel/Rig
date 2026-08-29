@@ -35,5 +35,8 @@ user authority or mix capability selection with authorization. [Rejected approac
 
 ## What is still open
 
-The policy and control mechanisms are candidate design only. Gate 2's round-3
-findings must be resolved before implementation slices 3–7 begin. [Status](../status.md)
+**Resolved.** The policy and control mechanisms are implemented and covered by
+the green full test suite; default-on enablement, disablement, and honest-gap
+reporting are exercised by the `AT-BASE-*` cases. Release is blocked on
+unrelated ceremony steps (owner signer attestation, a fresh review, and the
+tag), not on this mechanism. [Status](../status.md)

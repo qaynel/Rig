@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Apply: lock, CAS, manifest-and-resume, idempotence (impl-design §6.6/§7.6, Slice 6, AT-INSTALL-1).
+require('./helpers/hermetic-git-env');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

@@ -15,7 +15,7 @@ function tempRoot() {
   fs.mkdirSync(path.join(root, 'wiki/gate1'), { recursive: true });
   fs.writeFileSync(path.join(root, 'wiki/gate1/business-spec.md'), '# intent\n');
   fs.writeFileSync(path.join(root, 'wiki/gate1/acceptance.md'), '# acceptance\n');
-  fs.writeFileSync(path.join(root, 'wiki/gate1/testing-infrastructure.manifest'), '\n');
+  fs.writeFileSync(path.join(root, 'wiki/gate1/testing-infrastructure.manifest'), '');
   return root;
 }
 
@@ -28,14 +28,14 @@ function makeKey(root) {
 
 test('local Gate 1 env config is parsed without shell evaluation', () => {
   const root = tempRoot();
-  fs.mkdirSync(path.join(root, '.context'), { recursive: true });
-  fs.writeFileSync(path.join(root, '.context/gate1.env'), 'RIG_GATE1_SIGNING_KEY="$HOME/.ssh/gate1.pub"\n');
+  fs.mkdirSync(path.join(root, '.credentials'), { recursive: true });
+  fs.writeFileSync(path.join(root, '.credentials/gate1.env'), 'RIG_GATE1_SIGNING_KEY="$HOME/.ssh/gate1.pub"\n');
   assert.equal(approve.loadLocalEnv(root, {}), '$HOME/.ssh/gate1.pub');
 });
 
 test('tracked example env names the one local key variable', () => {
-  const example = fs.readFileSync(path.join(__dirname, '..', 'scripts/gate1.env.example'), 'utf8');
-  assert.match(example, /^RIG_GATE1_SIGNING_KEY=/);
+  const example = fs.readFileSync(path.join(__dirname, '..', '.credentials/gate1.env.example'), 'utf8');
+  assert.match(example, /^RIG_GATE1_SIGNING_KEY=/m);
   assert.doesNotMatch(example, /PRIVATE|SECRET|TOKEN/);
 });
 
@@ -53,18 +53,38 @@ test('Gate 1 approval signs the canonical oracle message', () => {
   assert.match(verified.fingerprint, /^SHA256:/);
 });
 
-test('lock refreshes manifested file digests before signing', () => {
+test('lock requires explicit confirmation of the exact oracle digest before signing changed bytes', () => {
   const root = tempRoot();
   const key = makeKey(root);
   const listed = path.join(root, 'listed.txt');
   fs.writeFileSync(listed, 'v1\n');
+  const staleManifest = `${'0'.repeat(64)}  listed.txt\n`;
   fs.writeFileSync(
     path.join(root, 'wiki/gate1/testing-infrastructure.manifest'),
-    `${'0'.repeat(64)}  listed.txt\n`,
+    staleManifest,
   );
 
+  let refusal;
+  try {
+    approve.approveGate1(root, {
+      check: false,
+      env: { RIG_GATE1_SIGNING_KEY: key },
+    });
+  } catch (error) {
+    refusal = error;
+  }
+  assert.match(refusal?.message || '', /--confirm-digest-delta ([0-9a-f]{64})/);
+  assert.equal(
+    fs.readFileSync(path.join(root, 'wiki/gate1/testing-infrastructure.manifest'), 'utf8'),
+    staleManifest,
+    'a refused ceremony changed the frozen manifest before owner confirmation',
+  );
+  assert.equal(fs.existsSync(path.join(root, 'wiki/gate1/gate1.sig')), false);
+
+  const confirmation = refusal.message.match(/--confirm-digest-delta ([0-9a-f]{64})/)[1];
   approve.approveGate1(root, {
     check: false,
+    confirmDigestDelta: confirmation,
     env: { RIG_GATE1_SIGNING_KEY: key },
   });
 

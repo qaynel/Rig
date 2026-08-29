@@ -7,7 +7,14 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+// runArgv/runBinding are the canonical implementation, shared with the
+// interactive `rig check` command (rig/lib/checks.js) — see GA-38. This file
+// must not carry its own copy of that logic: a hand-duplicated copy is
+// exactly the defect RIG-144 found (a containment fix landed in one copy and
+// silently missed the other). `apply.js` materializes `check-runner.js`
+// alongside this file's other `../lib/*` requires so the installed
+// `.rig/bin/check.js` resolves the same module.
+const { runArgv, runBinding } = require('../lib/check-runner');
 
 function parseArgs(argv) {
   const args = { scope: 'repo', service: null };
@@ -26,69 +33,6 @@ function loadJson(rel) {
   const file = path.join(__dirname, '..', '..', rel);
   if (!fs.existsSync(file)) return null;
   return JSON.parse(fs.readFileSync(file, 'utf8'));
-}
-
-function runArgv(command, argv, cwd) {
-  return spawnSync(command, argv, {
-    cwd,
-    encoding: 'utf8',
-    shell: false,
-    timeout: 10 * 60 * 1000,
-  });
-}
-
-function runBinding(serviceId, binding, scope, repoRoot) {
-  const checks = binding.checks && Object.entries(binding.checks);
-  if (!checks) {
-    const argv = binding[scope] || binding.repo;
-    if (!argv || !Array.isArray(argv) || argv.length === 0) {
-      return { status: 1, message: `${serviceId}: missing ${scope} binding\n` };
-    }
-    const [command, ...rest] = argv;
-    return runArgv(command, rest, repoRoot);
-  }
-
-  for (const [checkId, check] of checks) {
-    if (check.coverage_gap) {
-      return { status: 1, message: `${checkId}: coverage gap: ${check.coverage_gap}\n` };
-    }
-    for (const rel of check.required_paths || []) {
-      const abs = typeof rel === 'string' ? path.resolve(repoRoot, rel) : '';
-      if (!abs || (!abs.startsWith(repoRoot + path.sep) && abs !== repoRoot)) {
-        return { status: 1, message: `${checkId}: required installed path is invalid\n` };
-      }
-      if (!fs.existsSync(abs)) {
-        return { status: 1, message: `${checkId}: required installed path is missing: ${rel}\n` };
-      }
-    }
-    if (check.fix && (!Array.isArray(check.fix) || check.fix.length === 0)) {
-      return { status: 1, message: `${checkId}: explicit fix binding is malformed\n` };
-    }
-    if (check.commands) {
-      for (const commandBinding of check.commands) {
-        if (!Array.isArray(commandBinding.argv) || commandBinding.argv.length === 0) {
-          return { status: 1, message: `${checkId}: component command is malformed\n` };
-        }
-        const cwd = path.resolve(repoRoot, commandBinding.cwd || '.');
-        if (cwd !== repoRoot && !cwd.startsWith(repoRoot + path.sep)) {
-          return { status: 1, message: `${checkId}: component cwd escapes repository\n` };
-        }
-        const [command, ...rest] = commandBinding.argv;
-        const result = runArgv(command, rest, cwd);
-        if (result.error || result.status !== 0) return result;
-      }
-      continue;
-    }
-    const argv = check[scope] || check.repo;
-    if (!argv) continue;
-    if (!Array.isArray(argv) || argv.length === 0) {
-      return { status: 1, message: `${checkId}: ${scope} binding is malformed\n` };
-    }
-    const [command, ...rest] = argv;
-    const result = runArgv(command, rest, repoRoot);
-    if (result.error || result.status !== 0) return result;
-  }
-  return { status: 0, stdout: '', stderr: '' };
 }
 
 function main() {
@@ -118,7 +62,8 @@ function main() {
     }
     const result = runBinding(serviceId, binding, args.scope, repoRoot);
     if (result.error || result.status !== 0) {
-      process.stderr.write(result.message || result.stderr || result.stdout || `${serviceId} failed\n`);
+      const message = result.reason || result.stderr || result.stdout || `${serviceId} failed`;
+      process.stderr.write(message.endsWith('\n') ? message : `${message}\n`);
       process.exit(result.status || 1);
     }
   }

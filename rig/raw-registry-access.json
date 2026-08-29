@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "readers": [
+    {
+      "file": "lib/mcp-hosts.js",
+      "fields": ["mcp_config", "surfaces"]
+    }
+  ],
+  "expected_count": 1
+}

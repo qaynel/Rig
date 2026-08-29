@@ -59,6 +59,25 @@ infrastructure form the oracle that is signed once before implementation.
 > *(The 45-case instruction here is historical: superseded by the 2026-07-28
 > note below, which moves the set to 52.)*
 
+> **Revision note (2026-08-24) - D25, OpenClaw global MCP opt-in.** Re-grilled
+> after the intent owner asked Rig to offer an explicit installation choice for
+> OpenClaw's global MCP registry. Current vendor documentation establishes that
+> OpenClaw reads `~/.openclaw/openclaw.json` as JSON5 and manages
+> `mcp.servers` through its own `openclaw mcp` CLI; a repository-local config is
+> not a supported delivery surface.
+>
+> D25 is a narrow exception to the no-host-specific-option rule: the default
+> installer remains non-interactive and writes no OpenClaw configuration, while
+> an explicit `--openclaw-mcp` selection authorizes one disclosed global write.
+> The entry must be uniquely attributable to its installing repository, use the
+> native CLI rather than a JSON5 rewriter, point at an installed and runnable
+> Rig MCP runtime, and be removed before that runtime during uninstall. The
+> selection is not a claim about enforcement and does not add a tier.
+>
+> No acceptance ID is added. `AT-HOME-1`, `AT-HOME-2`, and `AT-DIST-1` are
+> revised; the ID set remains **68**. Production implementation remains
+> prohibited until the owner signs the amended oracle and its executable test.
+
 > **Revision note (2026-07-26, later the same day) — D10, Gate 1 integrity.**
 > Re-grilled once more by the intent owner after Gate 2 design work surfaced
 > that the D5 mechanism did not fit how this repository is actually used. D5
@@ -320,6 +339,45 @@ infrastructure form the oracle that is signed once before implementation.
 > endorsement. Approval source:
 > [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
 
+> **Revision note (2026-08-26) — D28, shell-trust guarantees for lint-format's
+> untrusted-task execution.** Re-grilled with [`acceptance.md`](acceptance.md)
+> after [[RIG-115]]'s reconciliation found that `GA-26`'s untrusted-task
+> principle — "enforce Rig policy, least privilege, secret isolation, network
+> restrictions, and resource/time limits" — had never been pinned to concrete,
+> testable guarantees. The existing acceptance set discloses the
+> untrusted-task boundary (`AT-LF-5`) but does not verify it holds; session
+> lifetime, filesystem/environment isolation, memory limits, and symlink
+> handling were labeled assumptions, and network denial was requested but the
+> process runner does not enforce it. The intent owner approved five concrete
+> guarantees for every repository-owned task Rig executes, even under
+> `shell: false`:
+>
+> 1. **Approval lifetime.** A plan approval authorizes exactly one execution
+>    of that exact plan digest; it does not carry over to a later run.
+> 2. **Filesystem/environment isolation.** A task's working directory, and
+>    every path it touches, must resolve inside the repository even through a
+>    symlink; it receives no ambient environment variables beyond an explicit
+>    allowlist.
+> 3. **Network denial.** A task has no outbound network reachability by
+>    default; nothing is reachable unless the plan explicitly allows it.
+> 4. **Resource/time caps.** A task that exceeds a configured memory ceiling
+>    or wall-clock timeout is killed and reported as its own distinct
+>    non-passing state (`GA-33`).
+> 5. **Symlink handling.** A repository-supplied symlink resolving outside the
+>    repository is refused the same as any other escape attempt, never
+>    followed.
+>
+> Five cases are added — `AT-LF-20` through `AT-LF-24`, drafted by the agent
+> per the two-stage acceptance handoff and approved by the intent owner on
+> 2026-08-26 — closing [[RIG-115]]'s shell-trust suite. The ID set grows from
+> **68** to **73**. None of the five guarantees is implemented yet: the new
+> cases and their tests in `tests/advanced-oracle.test.js` are expected to
+> fail until `rig/lib/lint-format.js` actually enforces them — the oracle
+> freezes the target behavior first, deliberately, per the order the intent
+> owner chose for this release round. Gate 2 must be rewritten and re-frozen
+> against this file and [`acceptance.md`](acceptance.md) at their current
+> 73-case set, under a re-signed combined digest (§8).
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -440,6 +498,17 @@ Host-agnostic; config-only (B1).
     the first installation onward, so that uninstalling one repository leaves
     every other repository's configuration intact and reinstalling replaces
     rather than accumulates.
+  - **OpenClaw's global MCP registry is explicit-only (D25).** The default
+    installer neither prompts for nor writes OpenClaw configuration. The
+    explicit `--openclaw-mcp` installer selection is the sole consent to add
+    Rig's bundled MCP server to the user's global OpenClaw configuration. Before
+    the native OpenClaw CLI is invoked, output names the global file and states
+    that the entry affects every OpenClaw workspace. The entry is keyed by the
+    installing repository's stable local identity, so another repository and
+    unrelated user entries remain untouched; uninstall removes that exact entry
+    before deleting the local runtime it invokes. A missing or failing native
+    CLI never falls back to rewriting JSON5 and never leaves a global entry
+    pointing at a removed runtime.
   - **Removal is part of the product (D11).** Rig can be taken out of a
     repository as completely as it was put in. Every write Rig makes to a file
     it does not exclusively own is delimited by managed-block markers and
@@ -725,10 +794,12 @@ mistake them for oversights.
   No host's enforcement has been observed firing, and Rig makes no claim that it
   has. The honest statement of this lives in the host registry header, not in
   user-facing output; a user who wants it reads it there.
-- **A user-global write has global blast radius (D9).** Installing in one
+- **A user-global write has global blast radius (D9/D25).** Installing in one
   repository changes behavior in every project that host opens. This is
   disclosed at install time in the user's own output, naming the file written
-  outside the repository (AT-HOME-1); there is no separate prompt.
+  outside the repository (AT-HOME-1). OpenClaw is the sole explicit installer
+  opt-in: its selection is the consent because its effect is global; the
+  default installer remains non-interactive and does not write it.
 - **Gate 1 integrity depends on a key the intent owner must hold (D10).** If
   that key is lost, or was never obtained, nothing protects Gate 1 from an agent
   that can write the repository. The honest fallback is a visible multi-file

@@ -36,7 +36,21 @@ paths without improving authority. [Gate 2 §2.1](../gate2/technical-spec.md#21-
 
 ## What is still open
 
-The schema and activation implementation do not exist. The round-3 request for
-clearer language separating control evidence status from the removed host-tier
-vocabulary is **resolved** in Gate 2 v0.6 (§1/§11.1 record the three senses of
-`verified`; `AD-26` amended). [Status](../status.md)
+**Resolved.** The schema and activation path are implemented and pass the
+green full test suite. The round-3 request for clearer language separating
+control evidence status from the removed host-tier vocabulary is also resolved,
+in Gate 2 v0.6 (§1/§11.1 record the three senses of `verified`; `AD-26`
+amended). [Status](../status.md)
+
+The check runner's exceptional execution authority is deliberately separate
+from both activated safety policy and generated service bindings: a committed,
+target-owned `.rig/execution-policy.json` grants only a named service's raised
+resource ceiling or required network access. Its strict v1 shape and refusal
+semantics are recorded in AD-39; it is not an activation path and cannot grant
+itself authority. [Design trace](../reasoning/2026-08-29-rig144-execution-policy-design.md)
+
+That capability policy is now implemented: only a clean committed file grants
+the matching service an elevated ceiling or required network state, while
+missing, malformed, dirty, and insufficient authority stops execution. The
+same evaluator is retained as the future interactive-grant seam.
+[Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)

@@ -42,3 +42,10 @@ record-before-mutate path for the writes apply performs. Remaining lifecycle
 work is the full preimage/removal side of Slice 12, not the rollback/resume
 boundary. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
 [Status](../status.md)
+
+**Managed-block caller resolved 2026-08-24.** Catalogue apply now routes its
+user-owned `AGENTS.md` pointer through the shared managed-block helper instead
+of a local bare-line append. Existing bare pointers migrate to one named block,
+reapply updates that block idempotently, and the append-only journal records the
+managed-block identity. A caller-graph regression fails if any runtime library
+module is left with no production importer.

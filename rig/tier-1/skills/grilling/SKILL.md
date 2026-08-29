@@ -31,6 +31,18 @@ why** and produces the oracle the gate freezes; it never writes implementation.
    checked for presence, not frozen — then freeze the oracle (intent, acceptance,
    and tests) under one signature. That single freeze is the gate.
 
+## Executable-Spec Progression
+
+When the user asks to "spec this out" or otherwise requests a spec-driven flow,
+use the existing owners through five checkpoints: **Why** establishes the user,
+problem, current behavior, desired outcome, and measure of success; **Scope**
+fixes boundaries, non-goals, failure modes, and the smallest valuable version;
+**Technical interrogation** hands the agreed oracle to `rig-product-design`,
+which reads the current system before resolving how; **Draft review** presents
+the observable examples and working design for correction; **Gate** freezes
+only after the owner agrees and the tests plus technical specification exist.
+Do not create or route to a separate spec skill.
+
 ## Gate Contract
 
 The gate protects one property: an agent cannot move its own goalpost. It is

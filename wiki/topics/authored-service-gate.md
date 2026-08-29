@@ -39,6 +39,7 @@ repository coverage.
 - Working authored-service contract: [technical specification](../gate2/technical-spec.md#56-authored-service-gate)
 - D24 ruling: [intent-owner trace](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
+- D23, the one-release exception D24 later retired: [intent-owner trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md)
 
 ## Remaining work
 

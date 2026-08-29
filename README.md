@@ -104,19 +104,27 @@ extensions, commands, hooks, or statusline integrations. Tier 1 stays the
 markdown bootstrap above; use the full distribution when you want the host's
 native install surface.
 
-| Host | Install / load path |
-|---|---|
-| Claude Code | local plugin bundle in `.claude-plugin/` with commands, hooks, and statusline support |
-| Codex | local plugin bundle in `.codex-plugin/` with bundled skills and lifecycle hooks |
-| OpenCode | load `.opencode/plugins/rig.mjs`; commands live in `.opencode/command/` |
-| pi | package extension in `pi-extension/` |
-| Gemini CLI | extension manifest in `gemini-extension.json`; commands live in `commands/` |
-| GitHub Copilot CLI | `copilot plugin marketplace add qaynel/Rig`, then `copilot plugin install rig@rig` |
-| Swival | `swival skills add https://github.com/qaynel/Rig` |
-| OpenClaw | `clawhub install rig` |
-| Devin | `devin plugins install qaynel/Rig` |
+Capability legend: **full-hook** = the host runs Rig's lifecycle hooks
+(session/subagent/prompt) for real tool-boundary behavior; **pointer-only** =
+the host loads the instruction set but cannot run hooks, so the workflow is
+advisory.
 
-See `docs/agent-portability.md` for the adapter matrix and fallback
+| Host | Install / load path | Capability |
+|---|---|---|
+| Claude Code | local plugin bundle in `.claude-plugin/` with commands, hooks, and statusline support | full-hook |
+| Codex | local plugin bundle in `.codex-plugin/` with bundled skills and lifecycle hooks | full-hook |
+| GitHub Copilot CLI | `copilot plugin marketplace add qaynel/Rig`, then `copilot plugin install rig@rig` | full-hook (session/prompt) |
+| Hermes Agent | native plugin (`plugin.yaml`) — see below | full-hook |
+| pi | package extension in `pi-extension/` | full-hook |
+| OpenCode | load `.opencode/plugins/rig.mjs`; commands live in `.opencode/command/` | pointer-only + commands |
+| Gemini CLI | extension manifest in `gemini-extension.json`; commands live in `commands/` | pointer-only + commands |
+| Swival | `swival skills add https://github.com/qaynel/Rig` | pointer-only |
+| OpenClaw | `clawhub install rig` | pointer-only |
+| Devin | `devin plugins install qaynel/Rig` | pointer-only |
+
+Hosts whose only injection point is a prompt menu can serve Rig through the
+standalone MCP server in `rig-mcp/` (the `rig` prompt / `rig_instructions`
+tool). See `docs/agent-portability.md` for the full adapter matrix and fallback
 instruction-mode paths.
 
 ### Hermes Agent
@@ -137,15 +145,18 @@ inspect → host review → recommend → select (rig.json) → plan → apply �
 ```
 
 ```sh
-node rig/materialize.js inspect --target <repo> --host <host-id> --out inspection.json
+node rig/materialize.js inspect --target <repo> --hosts auto --out inspection.json
+node rig/materialize.js host-review --target <repo> --inspection inspection.json --out review.json
 node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
+node rig/materialize.js select --menu menu.json --out <repo>/rig.json --service id=grade
 node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
-node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json
-node .rig/bin/check.js --scope repo
+node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json --approval approval.json
+node .rig/bin/rig check --target <repo>
 ```
 
 For a tagged install, replace `node rig/materialize.js` with
-`node .rig/runtime/rig/materialize.js`.
+`.rig/bin/rig`. The installed command is available only when the active runtime
+is selected; tagged installs select it automatically.
 
 Operator details: [`docs/advanced/operator.md`](docs/advanced/operator.md).
 Design sources and reasoning: [`wiki/`](wiki/).

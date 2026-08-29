@@ -22,7 +22,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, statSync, unlinkSync, readdirSync, openSync, closeSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir, hostname } from 'os';
-import { spawnSync } from 'child_process';
+import { spawnGuardedSync } from '../../../lib/spawn-guarded';
 import { execbrainJson, spawnbrain } from '../lib/brain-exec';
 import {
   BRAIN_CACHE_ENTITIES,
@@ -544,7 +544,7 @@ export function getSalienceAllowlist(): ReadonlyArray<string> {
     const skillRoot = join(homedir(), '.claude', 'skills', 'rig');
     const bin = join(skillRoot, 'bin', 'rig-config');
     if (!existsSync(bin)) return SALIENCE_DEFAULT_ALLOWLIST;
-    const result = spawnSync(bin, ['get', 'salience_allowlist'], { timeout: 2000, encoding: 'utf-8' });
+    const result = spawnGuardedSync(bin, ['get', 'salience_allowlist'], { timeout: 2000, encoding: 'utf-8' });
     if (result.status !== 0 || !result.stdout) return SALIENCE_DEFAULT_ALLOWLIST;
     const trimmed = result.stdout.trim();
     if (!trimmed) return SALIENCE_DEFAULT_ALLOWLIST;

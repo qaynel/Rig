@@ -54,7 +54,9 @@ import {
   rmSync,
 } from "fs";
 import { join, basename, dirname } from "path";
-import { execFileSync, spawnSync, spawn, type ChildProcess } from "child_process";
+import { spawnSync, type ChildProcess } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
+import { spawnGuarded } from "../../../lib/spawn-guarded";
 import { homedir } from "os";
 import { createHash } from "crypto";
 
@@ -64,7 +66,7 @@ import {
   detectEngineTier,
   withErrorContext,
 } from "../lib/rig-memory-helpers";
-import { execbrainText, spawnbrainAsync } from "../lib/brain-exec";
+import { execbrainText } from "../lib/brain-exec";
 import { checkOwnedStagingDir, STAGING_MARKER } from "../lib/staging-guard";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -672,12 +674,13 @@ function resolveGitRemote(cwd: string): string {
     // into a `/bin/sh -c` context, since JSON quoting does not escape `$`
     // or backticks). Mirrors the execFileSync pattern this module already
     // uses for `brainAvailable()` (line 762) and `brainPutPage()` (line 816).
-    const out = execFileSync("git", ["-C", cwd, "remote", "get-url", "origin"], {
+    const result = spawnGuardedSync("git", ["-C", cwd, "remote", "get-url", "origin"], {
       encoding: "utf-8",
       timeout: 2000,
       stdio: ["ignore", "pipe", "ignore"],
     });
-    return canonicalizeRemote(out.trim());
+    if (result.status !== 0) return null;
+    return canonicalizeRemote((result.stdout || "").trim());
   } catch {
     return "";
   }
@@ -1317,7 +1320,7 @@ function cleanupStagingDir(dir: string): void {
  * up the staging dir on SIGTERM, so the brain checkpoint always pointed at
  * a missing dir and the next run had to restage from scratch.
  */
-let _activeImportChild: ChildProcess | null = null;
+let _activeImportChild: (ChildProcess & { cancel?: (signal?: string) => Promise<void> }) | null = null;
 let _activeStagingDir: string | null = null;
 let _signalHandlersInstalled = false;
 
@@ -1346,7 +1349,7 @@ function installSignalForwarder(): void {
   const forward = (signal: NodeJS.Signals) => () => {
     if (_activeImportChild && _activeImportChild.pid && !_activeImportChild.killed) {
       try {
-        process.kill(_activeImportChild.pid, signal);
+        void _activeImportChild.cancel?.(signal);
       } catch {
         // child may have already exited between the alive-check and the kill
       }
@@ -1416,7 +1419,10 @@ function runbrainImport(
     // inside Next.js / Prisma / Rails projects with their own
     // .env.local (codex review #7 — defense in depth on top of the
     // parent rig-brain-sync seeding the bun grandchild's env).
-    const child = spawnbrainAsync(["import", stagingDir, "--no-embed", "--json"]);
+    const child = spawnGuarded("brain", ["import", stagingDir, "--no-embed", "--json"], {
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     _activeImportChild = child;
     let stdout = "";
     let stderr = "";
@@ -1424,7 +1430,7 @@ function runbrainImport(
     const timer = setTimeout(() => {
       timedOut = true;
       try {
-        if (child.pid) process.kill(child.pid, "SIGTERM");
+        void child.cancel("SIGTERM");
       } catch {
         // already gone
       }
