@@ -1,0 +1,55 @@
+{
+  "note": "Wrapper refused to write the binding receipt because verdict is fail. Reviewer report pasted directly by the owner (author-context rig-120-v5.0.0-ceremony-2026-08-29); no --force-rereview .failed.review.json was auto-written this round, so this file is transcribed from the pasted output to keep it citable like every prior round.",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "architecture",
+      "anchor": "scripts/approve-gate1.js refreshManifest()/approveGate1(); AT-GATE-2 \"finds that the recorded signature or file digest no longer verifies, and fails — so a context cannot reach the approved mark by moving it\"",
+      "detail": "The sanctioned re-arm command rewrites `wiki/gate1/testing-infrastructure.manifest` from whatever bytes are currently on disk and then signs the new message in one non-interactive step, taking the signing key path from a repository-local `.credentials/gate1.env` or `.context/gate1.env`. Any change to a manifested acceptance test is absorbed into the new signature instead of failing the gate, which is precisely the move AT-GATE-2 exists to block. It is not hypothetical: `tests/advanced-oracle.test.js` is manifest line 2, it grew 320 lines on this branch, and commits 5b5cfb6 and 0d59371 refreshed the manifest and re-signed within the implementation branch. Re-arming should require the owner to review the digest delta, not regenerate it."
+    },
+    {
+      "severity": "blocker",
+      "category": "coverage",
+      "anchor": "rig/lib/lint-format.js planExecution/executePlan/runReadOnly/runGrade/runAutofix vs rig/lib/checks.js -> rig/lib/check-runner.js runBinding",
+      "detail": "The shell-trust and plan-bound execution guarantees are implemented in library functions that no shipping entry point calls. A grep across rig/ finds no caller of planExecution, executePlan, runReadOnly, runGrade, or runAutofix outside lint-format.js itself; `rig check` and the materialized `.rig/bin/check.js` both execute service bindings through check-runner.runBinding. AT-LF-5 (nothing runs without an approved plan), AT-LF-11 (halt on mutation), AT-LF-14 (halt on command drift), and AT-LF-20 (one execution per approval) therefore have no enforcement on the path a user actually runs, and the manifested tests for them exercise the library API rather than the shipping entry point. Technical-spec §9.4's claim that \"All five guarantees are now implemented; the shell-trust suite is closed\" overstates what the product enforces."
+    },
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/check-runner.js:219-223 (`network === 'undeclared'`) and runArgv (no `env` option); business-spec §2 \"Network access is default-deny\"; AT-LF-21, AT-LF-22",
+      "detail": "In the canonical runner, a binding that does not declare `network` runs with full outbound reachability behind a `console.warn`, and tests/guarantee-coverage.test.js AT-CAP-3 pins that pass. No shipped binding declares `network` — buildBinding emits only argv/cwd per component — so the effective default on the installed path is allow, not deny. Separately, runArgv spawns without an `env` option, so every repository task inherits the parent's full environment. The TASK_ENV_ALLOWLIST isolation exists only in lint-format.spawnTask, which the shipping path does not use. Two of D28's five approved guarantees are unenforced exactly where untrusted repository code actually executes."
+    },
+    {
+      "severity": "major",
+      "category": "testability",
+      "anchor": "rig/lib/lint-format.js:829 classifyEnding; tests/advanced-oracle.test.js:872 'AT-LF-16 every abnormal ending is distinct and non-passing'",
+      "detail": "`classifyEnding({kind})` returns `{status: kind, passing: false, blocking: true}` and the manifested test feeds it the six ending names and asserts the status equals what it passed in. The test cannot fail for the right reason — it duplicates the function's one line. Meanwhile the real runner (runCommand) can only yield timeout, signalled, command_not_found, or completed; `cancelled`, `missing_dependency`, and `partial_output` are produced by nothing in production. AT-LF-16's requirement that each ending be its own reported state is met by a lookup table, not by the execution path."
+    },
+    {
+      "severity": "major",
+      "category": "placeholder",
+      "anchor": "rig/lib/lint-format.js:833-863 install()/uninstall(); traceability rows for AT-LF-17 and AT-LF-18",
+      "detail": "The named evidence for the lint-format install/removal lifecycle writes three files whose entire content is `{}\\n` (.rig/lint-format/plan.json, binding.json, receipt.json) and derives `supported` from how many of the three landed; uninstall deletes those same three files. Nothing here touches generated CI, configuration, or managed blocks — the artifacts AT-LF-18 names — and nothing resumes from the §7.6 manifest, which is what AT-LF-17 requires. The real lifecycle exists in rig/lib/lifecycle.js; these two cases are bound to a stub instead."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/spawn-guarded.js linuxPdeathCommand + rig/lib/lint-format.js:559 status classification",
+      "detail": "On Linux every guarded spawn is rewritten to `python3 -c '... os.execvpe(...)'`. A missing target binary then fails inside python's execvpe and surfaces as a nonzero exit, not as ENOENT on the spawn, so runCommand's `result.error?.code === 'ENOENT' ? 'command_not_found' : ...` branch is dead on that platform and a missing dependency collapses into a generic failure — the exact collapse AT-LF-16 forbids. The behavior differs by platform, and the tests only observe the darwin path."
+    },
+    {
+      "severity": "minor",
+      "category": "contradiction",
+      "anchor": "wiki/gate2/technical-spec.md §12.3 item 2, §13 (\"currently **68 IDs**\"), §17.1 item 1 vs scripts/check-advanced-spec.js:133 (`accepted.length, 73`)",
+      "detail": "D28 moved the set to 73 and the traceability table now carries AT-LF-20 through AT-LF-24, but the surrounding prose in three places still states 68 as the release condition and the traceability size. The gate asserts against Gate 1 as read from disk, so nothing breaks mechanically, but a reader reconciling the release blockers against this document gets the wrong count."
+    },
+    {
+      "severity": "minor",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-format.js:779 runAutofix approval check",
+      "detail": "The autofix gate accepts any object with a truthy `verified` field; it is not bound to a digest of the fix argv the way plan and remediation approvals are (§8.7, §9.4). An approval issued for one fix command authorizes any other mutating command passed to the same call. AT-LF-12's separate-approval requirement is met in shape but not in binding strength."
+    }
+  ],
+  "unresolved": []
+}

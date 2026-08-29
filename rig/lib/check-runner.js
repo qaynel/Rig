@@ -20,13 +20,12 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnGuardedSync } = require('./spawn-guarded');
+const { spawnGuardedSync, isolatedTaskEnv, networkIsolationPrefix } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 const { scriptPath: memoryGuardScript } = require('./memory-guarded-exec');
 
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_MEMORY_LIMIT_MB = 2 * 1024;
-const NETWORK_SANDBOX_PROFILE = '(version 1)(allow default)(deny network*)';
 
 // spawnSync-shaped results preserve the existing command-runner contract.
 function runArgv(command, argv, cwd, { timeoutMs = DEFAULT_TIMEOUT_MS, memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB } = {}) {
@@ -42,6 +41,7 @@ function runArgv(command, argv, cwd, { timeoutMs = DEFAULT_TIMEOUT_MS, memoryLim
     cwd,
     encoding: 'utf8',
     shell: false,
+    env: isolatedTaskEnv(),
     // The watchdog kills the command and its descendants at the requested
     // deadline; this is only a guard against a stuck watchdog process.
     timeout: timeoutMs + 5000,
@@ -79,29 +79,6 @@ function executionLimits(...sources) {
     if (!timeoutMs || !memoryLimitMb) return null;
   }
   return { timeoutMs, memoryLimitMb };
-}
-
-// Reuses lint-format's owner-approved platform isolation probe. A present
-// binary is not enough: only a successful no-network child proves the host can
-// enforce the promise this runner is about to make.
-function networkIsolationPrefix() {
-  if (process.platform === 'linux') {
-    const prefix = ['unshare', '--user', '--map-root-user', '--net', '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  if (process.platform === 'darwin') {
-    const prefix = ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  return null;
 }
 
 function networkState(...sources) {

@@ -18,10 +18,11 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { withRepo, writeJson } = require('./helpers/advanced');
-const { executePlan, planExecution, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
+const { executePlan, planExecution, runCommand, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
 const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
 const { rssBytesTree, isChildRunning } = require('../rig/lib/memory-guarded-exec');
 const { runBinding, semanticDrift } = require('../rig/lib/checks');
+const { runArgv } = require('../rig/lib/check-runner');
 
 // The materialized target-repo runner (`.rig/bin/check.js`/`check-copies.js`)
 // used to be a hand-maintained duplicate of `rig/lib/checks.js` -- fixing
@@ -305,6 +306,144 @@ test('AT-PROC-1s (2026-08-29 review): runAutofix kills and reports a fix command
       `expected the fix command's memory-ceiling breach to halt autofix before verification, got status "${result.status}"`,
     );
     assert.notEqual(result.verification, 'pass', 'autofix reported the verify step as passing after the fix command was killed for exceeding memory');
+  });
+});
+
+test('AT-PROC-1t (2026-08-29 review): installed and interactive check runners do not inherit ambient environment secrets', () => {
+  withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-env-outside-'));
+    const marker = path.join(outside, 'leaked.marker');
+    const probe = path.join(target, 'env-probe.js');
+    fs.writeFileSync(probe, `if (process.env.RIG_TEST_SECRET_PROC_1T) require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'leaked')`);
+    process.env.RIG_TEST_SECRET_PROC_1T = 'must-not-cross-boundary';
+    try {
+      for (const runner of [runArgv, catalogCheck.runArgv]) {
+        const result = runner(process.execPath, [probe], target);
+        assert.equal(result.status, 0, `runner failed while checking environment isolation: ${result.reason || result.stderr || result.status}`);
+      }
+      assert.equal(fs.existsSync(marker), false, 'a check runner inherited a secret from the agent process environment');
+    } finally {
+      delete process.env.RIG_TEST_SECRET_PROC_1T;
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+test('AT-PROC-1u (2026-08-29 review): the undeclared network compatibility state is returned as a diagnostic', () => {
+  withRepo((target) => {
+    for (const runner of [runBinding, catalogCheck.runBinding]) {
+      const result = runner('undeclared-network-service', {
+        repo: [process.execPath, '-e', ''],
+      }, 'repo', target);
+      assert.equal(result.status, 0);
+      assert.equal(result.network_state, 'undeclared');
+      assert.match(result.diagnostic, /network capability undeclared/);
+    }
+  });
+});
+
+test('AT-PROC-1v (2026-08-29 review): ending classification consumes real command outcomes', () => {
+  const classifyEnding = require('../rig/lib/lint-format').classifyEnding;
+  withRepo((target) => {
+    const timeout = runCommand([process.execPath, '-e', 'setTimeout(() => {}, 2000)'], {
+      cwd: target, timeoutMs: 50, memoryLimitMb: null,
+    });
+    const signalled = runCommand([process.execPath, '-e', 'process.kill(process.pid, "SIGTERM")'], {
+      cwd: target, memoryLimitMb: null,
+    });
+    const missing = runCommand(['rig-command-that-does-not-exist-1v'], {
+      cwd: target, memoryLimitMb: null,
+    });
+    assert.deepEqual(
+      [timeout, signalled, missing].map(classifyEnding).map((entry) => entry.status),
+      ['timeout', 'signalled', 'command_not_found'],
+    );
+    assert.ok([timeout, signalled, missing].map(classifyEnding)
+      .every((entry) => entry.passing === false && entry.blocking === true));
+  });
+});
+
+test('AT-PROC-1ab (AT-LF-16): every declared abnormal ending has a runner producer', () => {
+  const classifyEnding = require('../rig/lib/lint-format').classifyEnding;
+  withRepo((target) => {
+    const cancelled = runCommand([process.execPath, '-e', ''], {
+      cwd: target, memoryLimitMb: null, cancelled: true,
+    });
+    const missingDependency = runCommand([process.execPath, '-e', ''], {
+      cwd: target, memoryLimitMb: null, dependencies: ['rig-dependency-that-does-not-exist-1ab'],
+    });
+    const partialOutput = runCommand([process.execPath, '-e', 'process.stdout.write("too much")'], {
+      cwd: target, memoryLimitMb: null, maxOutputBytes: 1,
+    });
+    assert.deepEqual(
+      [cancelled, missingDependency, partialOutput].map(classifyEnding).map((entry) => entry.status),
+      ['cancelled', 'missing_dependency', 'partial_output'],
+    );
+    assert.ok([cancelled, missingDependency, partialOutput]
+      .every((entry) => entry.exit_code !== 0));
+  });
+});
+
+test('AT-PROC-1w (2026-08-29 review): lint-format install and uninstall use the lifecycle journal', () => {
+  const install = require('../rig/lib/lint-format').install;
+  const remove = require('../rig/lib/lint-format').uninstall;
+  withRepo((target) => {
+    const state = install(target);
+    const journal = path.join(target, '.rig', 'install-manifest.jsonl');
+    assert.equal(fs.existsSync(journal), true, 'lint-format install did not create the lifecycle journal');
+    assert.match(fs.readFileSync(journal, 'utf8'), /"transaction_kind":"install"/);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(target, '.rig', 'lint-format', 'plan.json'), 'utf8')).kind, 'lint-format-install-plan');
+    assert.equal(JSON.parse(fs.readFileSync(path.join(target, '.rig', 'lint-format', 'binding.json'), 'utf8')).engine, 'component-lint-format-v1');
+    const result = remove(target, state.manifest);
+    assert.equal(result.status, 'removed');
+    assert.equal(fs.existsSync(journal), false, 'lifecycle uninstall did not remove the install journal');
+  });
+});
+
+test('AT-PROC-1y (2026-08-29 review): the guarded Linux wrapper preserves missing-command classification', () => {
+  const { spawnGuardedSync, linuxPdeathCommand } = require('../rig/lib/spawn-guarded');
+  const spec = linuxPdeathCommand('rig-command-that-does-not-exist-1y', [], true);
+  assert.equal(spec.command, 'rig-command-that-does-not-exist-1y');
+  const result = spawnGuardedSync('rig-command-that-does-not-exist-1y', [], { forceLinuxWrapper: true });
+  assert.equal(result.error?.code, 'ENOENT');
+});
+
+test('AT-PROC-1z (2026-08-29 review): a materialized CI runner enforces the same capability floor', () => {
+  withRepo((target) => {
+    const binding = {
+      repo: [process.execPath, '-e', ''],
+      timeout_ms: 10 * 60 * 1000 + 1,
+    };
+    const result = catalogCheck.runBinding('ci-floor-service', binding, 'repo', target);
+    assert.equal(result.status, 1);
+    assert.equal(result.kind, 'capability_not_authorized');
+  });
+});
+
+test('AT-PROC-1aa (AT-LF-24): a source symlink escape is refused before approval consumption', () => {
+  withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
+    try {
+      fs.writeFileSync(path.join(outside, 'secret.json'), JSON.stringify({ scripts: { lint: 'node -e "process.exit(0)"' } }));
+      fs.symlinkSync(path.join(outside, 'secret.json'), path.join(target, 'linked.json'));
+
+      const planned = planExecution({
+        target,
+        commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'linked.json#scripts.lint' }],
+      });
+      assert.equal(planned.commands[0].source_snapshot, null);
+      assert.equal(planned.commands[0].source_boundary_violation, true);
+
+      const result = executePlan(planned, { plan_digest: planned.plan_digest });
+      assert.equal(result.status, 'boundary_violation');
+      assert.equal(
+        fs.existsSync(path.join(target, '.rig', 'lint-format', 'executions')),
+        false,
+        'a source-boundary refusal consumed the one-use approval before execution',
+      );
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
   });
 });
 

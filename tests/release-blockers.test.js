@@ -54,9 +54,19 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
     unresolved: [],
   });
   const fake = path.join(bin, 'claude');
+  const response = `${'```json'}\n${reported}\n${'```'}\n`;
   fs.writeFileSync(
     fake,
-    stub || `#!/bin/sh\ncat >/dev/null\nprintf 'x' >> '${invocationMarker}'\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`,
+    stub || [
+      '#!/usr/bin/env node',
+      "'use strict';",
+      'process.stdin.resume();',
+      'process.stdin.on(\'end\', () => {',
+      `  require('node:fs').appendFileSync(${JSON.stringify(invocationMarker)}, 'x');`,
+      `  process.stdout.write(${JSON.stringify(response)});`,
+      '});',
+      '',
+    ].join('\n'),
     { mode: 0o755 },
   );
   const run = spawnSync(process.execPath, [
@@ -1111,7 +1121,16 @@ test('review wrapper output validates without schema translation', () => {
       unresolved: [],
     });
     const fake = path.join(bin, 'claude');
-    fs.writeFileSync(fake, `#!/bin/sh\ncat >/dev/null\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`, { mode: 0o755 });
+    const response = `${'```json'}\n${reported}\n${'```'}\n`;
+    fs.writeFileSync(fake, [
+      '#!/usr/bin/env node',
+      "'use strict';",
+      'process.stdin.resume();',
+      'process.stdin.on(\'end\', () => {',
+      `  process.stdout.write(${JSON.stringify(response)});`,
+      '});',
+      '',
+    ].join('\n'), { mode: 0o755 });
 
     const run = spawnSync(process.execPath, [
       path.join(root, 'scripts/review-receipt.js'),

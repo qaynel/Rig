@@ -1,6 +1,61 @@
 # Status - checked 2026-08-29 (updated 2026-08-29)
 
-## RIG-120 autofix isolation/caps gap closed (2026-08-29, latest)
+## RIG-120 fresh independent review passes (2026-08-29, latest)
+
+The owner authorized another local force re-review and iteration to a passing
+receipt. The eight prior runtime/design findings remain remediated in the
+working tree. The strict autofix-command digest experiment was removed because
+it contradicted the signed acceptance test; exact argv binding is now stated
+honestly as a non-frozen hardening gap, while the signed separate-approval and
+re-verification behavior stays intact. The historical re-sign blocker is fixed
+at its reusable cause: the ceremony helper now refuses a changed manifest or
+any re-sign until the owner returns the digest of the exact proposed combined
+oracle, and it changes no frozen byte before that confirmation. Its focused
+test was observed red before implementation and is green after. The combined
+focused suite is green (112/112). The requested Opus force re-review launched
+but the local Claude account exited before reviewing because its session limit
+is exhausted until 22:10 IST; no receipt or findings were produced. The fresh
+fallback Codex review completed but failed on five findings that require
+reopening the frozen-vs-CI authority split: it treats every CI check as needing
+a one-use human plan approval, while the owner-approved CI design explicitly
+requires committed policy or refusal and forbids fake approval. It also asks
+for whole-child filesystem sandboxing beyond the narrower executable case.
+That non-binding fallback report is saved under sources/reviews; no frozen
+artifact is being rewritten to satisfy it. The full `npm test` gate is now
+green: the signed oracle verifies, the root suite reports 544 pass / 1
+platform skip, the pi-extension suite passes 15/15, and rig-mcp passes 6/6.
+The earlier aggregate review-test hang was reproduced and removed by replacing
+its forked shell/stdin fake with a single-process Node fake; its focused suite
+passes 40/40 and the full parallel gate now terminates. The owner switched the
+unavailable Opus reviewer to Claude Sonnet 4.6. That fresh review passes with
+zero blockers and zero unresolved cases. Its two non-blocking notes are
+accepted follow-up: add explicit coverage for an unchanged-manifest re-sign
+confirmation, and strengthen shipping disclosure coverage for
+repository-owned task execution without editing the frozen test. The receipt
+is refreshed after this tracked status reconciliation so its implementation
+digest binds the final bytes. Nothing has been committed or pushed.
+
+## RIG-120 fresh review FAIL again, 8 findings — handoff written, not yet fixed (2026-08-29, latest)
+
+A newer fresh review (author-context `...ceremony-2026-08-29`, run after
+the capability-policy close-out below) came back `fail` with 8 findings (3
+blockers, 3 majors, 2 minors) — deeper than the prior force-rereview: the
+canonical `check-runner.js` unification is real but still defaults network
+open on undeclared bindings, leaks the full parent environment, and the
+plan/one-shot guarantees still have no shipping caller; separately, the
+gate1 re-sign mechanism itself (`approve-gate1.js`) blindly absorbs any
+oracle edit into a fresh signature, which is what commits `5b5cfb6` and
+`0d59371` did on this branch. Raw report saved:
+[[sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.failed.review.json]].
+Owner made three scoping decisions (keep CI-path plan/approval out per
+GA-38, revert the on-branch oracle re-sign rather than justify it, iterate
+locally via `--interim` before spending the real capped review) and asked
+for an execution handoff. Full brief, all 8 findings mapped to fixes, and
+the local-iteration-loop mechanics:
+[[reasoning/2026-08-29-rig120-fresh-review-v2-handoff]]. Not started yet —
+next session/agent should pick up there.
+
+## RIG-120 autofix isolation/caps gap closed (2026-08-29)
 
 Fixed the "major" finding from the 2026-08-29 force-rereview
 ([[reasoning/2026-08-29-rig120-force-rereview-fail]]): `runAutofix`
@@ -1316,7 +1371,7 @@ oracle's 55-skill reading is unaffected and no re-sign was required
 `rig/lib/lint-format.js`'s durable one-use plan approval, `runGrade`/
 `runReadOnly` symlink-and-cwd containment, and memory-ceiling enforcement
 (AT-LF-20/21/23/24) are implemented and green on this branch, closing
-RIG-138/139/140. This does not touch the 68-case oracle above and needed no
+RIG-138/139/140. This does not touch the 73-case oracle above and needed no
 re-sign — the acceptance text for these cases was already correctly scoped
 where it exists; the gap was in tests and implementation written against it
 on sibling branches. [Guarantee sharding](mistakes/guarantee-sharding.md) and

@@ -38,6 +38,9 @@ and a source disagree, the source wins and the topic is what's wrong.
   Gate 2 rounds and the à-la-carte implementation pass, each bound to the
   digest it reviewed. Held as data, not prose; cited from the topic hub the
   round affected.
+- [`rig-120-v5.0.0-2026-08-29-fresh.codex.failed.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.codex.failed.review.json)
+  — non-binding fresh Codex fallback review after the requested Opus backend
+  hit its local session limit; failed on the frozen-vs-CI authority split.
 
 ## Superseded — designs this project moved past
 

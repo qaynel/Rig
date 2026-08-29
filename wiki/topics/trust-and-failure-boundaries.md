@@ -93,8 +93,12 @@ task spawn (cwd/path containment plus an explicit env allowlist, both
 (default-deny network with per-command grants), `AT-LF-23` (timeoutMs
 kill-and-report plus memory ceiling), and
 `AT-LF-24` in `planExecution` (refuses a read whose target escapes the
-repository through a symlink). Remaining shard gaps are closed in the same
-file — see below. The shell-trust suite is closed.
+repository through a symlink). The five guarantees are complete on the
+interactive lint-format plan/grade path. The installed CI floor intentionally
+has no plan/approval seam under GA-38; its shared runner enforces containment,
+resource ceilings, three-state network handling, and committed-policy
+capability authority. Remaining shard gaps are closed in the same file — see
+below.
 [reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
 
 On Linux, the default-deny path uses `unshare --user --map-root-user --net`

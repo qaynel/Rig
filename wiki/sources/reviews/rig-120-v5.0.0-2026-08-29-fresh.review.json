@@ -1,0 +1,415 @@
+{
+  "schema_version": 2,
+  "wrapper_version": 4,
+  "kind": "report-only",
+  "author_context": "rig-120-v5.0.0-ceremony-2026-08-29",
+  "reviewer_context": "7296288d-b6d7-433d-a21f-11b78a636918",
+  "reviewer_model": "claude-sonnet-4-6",
+  "reviewer_driver": "claude",
+  "target": "wiki/gate2/technical-spec.md",
+  "technical_spec_digest": "3b5ee9c9424933be1e39a8f9f5e2af7f436851c178183b3f8aa09b67c8f72b0e",
+  "catalogue_digest": "5bb0d0740ac31f058bdcb61ab19ef3a30e4fa41883f1ced0b62aed143efb6684",
+  "implementation_digest": "3013e34931a8e44b244c385315b37a10f256f93aee0156803e60cede1d573550",
+  "implementation_files": 1743,
+  "implementation_base": "origin/prod",
+  "gate1": [
+    {
+      "path": "wiki/gate1/business-spec.md",
+      "digest": "3b66c7705d293c14c43163945b60f9d190eb55c10d7246257fa7940dd8614375"
+    },
+    {
+      "path": "wiki/gate1/acceptance.md",
+      "digest": "34f427696e00c4c0cf6655425314f5f5e96c2d6dc6e3a184487b33f343ae4391"
+    }
+  ],
+  "reviewed_at": "2026-08-29T14:21:37.600Z",
+  "verdict": "pass",
+  "verdicts": [
+    {
+      "id": "AT-B1",
+      "verdict": "pass",
+      "note": "Byte-exact drift control unchanged and exercised in advanced-oracle.test.js; no regression path introduced."
+    },
+    {
+      "id": "AT-B2",
+      "verdict": "pass",
+      "note": "Semantic drift guard and context-index path now use containedPath (AT-PROC-1n); no regression."
+    },
+    {
+      "id": "AT-B3",
+      "verdict": "pass",
+      "note": "First-enable history scan, redaction, and waiver paths untouched by this PR."
+    },
+    {
+      "id": "AT-B4",
+      "verdict": "pass",
+      "note": "Pre-commit harness re-scan unchanged; no regression path introduced."
+    },
+    {
+      "id": "AT-B5",
+      "verdict": "pass",
+      "note": "Four-verdict sanitation mapping unchanged."
+    },
+    {
+      "id": "AT-B6",
+      "verdict": "pass",
+      "note": "Remediation proposal path, preimage CAS, and rollback unchanged."
+    },
+    {
+      "id": "AT-B7",
+      "verdict": "pass",
+      "note": "Diff/repo scope split and dependency-order runner unchanged."
+    },
+    {
+      "id": "AT-BASE-1",
+      "verdict": "pass",
+      "note": "Sanitation ordering state machine unchanged."
+    },
+    {
+      "id": "AT-BASE-2",
+      "verdict": "pass",
+      "note": "Cross-surface evaluator unchanged; verified enforcement surface semantics unaffected."
+    },
+    {
+      "id": "AT-BASE-3",
+      "verdict": "pass",
+      "note": "Policy file installation and agent pointer targets unchanged."
+    },
+    {
+      "id": "AT-BASE-4",
+      "verdict": "pass",
+      "note": "Exact-byte activation, session-scoped delegation, no-persist grant unchanged."
+    },
+    {
+      "id": "AT-BASE-5",
+      "verdict": "pass",
+      "note": "Independent control/surface leaf disablement unchanged."
+    },
+    {
+      "id": "AT-BASE-6",
+      "verdict": "pass",
+      "note": "Evidence generation increment on re-enable unchanged."
+    },
+    {
+      "id": "AT-BASE-7",
+      "verdict": "pass",
+      "note": "Self-authorization invariant compiled into activation path; no schema key added; unchanged."
+    },
+    {
+      "id": "AT-CI-1",
+      "verdict": "pass",
+      "note": "CI additive graft unchanged; release-blockers.test.js exercises all six providers."
+    },
+    {
+      "id": "AT-CI-2",
+      "verdict": "pass",
+      "note": "Absent-CI bootstrap gate unchanged."
+    },
+    {
+      "id": "AT-CI-3",
+      "verdict": "pass",
+      "note": "check.js now delegates to canonical check-runner.js (AT-CAP-6); active-grade CI applicability spec corrected in §9.4 to name the GA-38 split explicitly."
+    },
+    {
+      "id": "AT-CI-4",
+      "verdict": "pass",
+      "note": "Unknown/malformed CI preservation unchanged."
+    },
+    {
+      "id": "AT-CLAIM-1",
+      "verdict": "pass",
+      "note": "Uniform adapter path, host-marker detection, and absent-host behavior unchanged."
+    },
+    {
+      "id": "AT-DIST-1",
+      "verdict": "pass",
+      "note": "Root install stub, version 5.0.0, and vendored skills unchanged; installer exercises in release-blockers.test.js."
+    },
+    {
+      "id": "AT-GATE-1",
+      "verdict": "pass",
+      "note": "technical-spec.md is present and is the sole current approach; 73-ID traceability table updated to name existing substantive targets."
+    },
+    {
+      "id": "AT-GATE-2",
+      "verdict": "pass",
+      "note": "approve-gate1.js now requires --confirm-digest-delta before writing any changed manifest byte; the test proves the manifest is byte-identical after a refused ceremony; gate1.sig exists and the repo is armed. The gate verifier short-circuits code tests when armed with a stale digest."
+    },
+    {
+      "id": "AT-GATE-3",
+      "verdict": "pass",
+      "note": "This review is the fresh-session, report-only, digest-bound review required by AT-GATE-3; it covers the implementation worktree against origin/prod and the full oracle."
+    },
+    {
+      "id": "AT-GATE-4",
+      "verdict": "pass",
+      "note": "Workflow separation is a property of context identity, not staffing; unchanged."
+    },
+    {
+      "id": "AT-HOME-1",
+      "verdict": "pass",
+      "note": "Append/merge-only global writes and OpenClaw explicit-flag path are tested in the new AT-HOME-1 OpenClaw test in advanced-oracle.test.js."
+    },
+    {
+      "id": "AT-HOME-2",
+      "verdict": "pass",
+      "note": "Per-repository attribution from first install and selective removal via install ID unchanged."
+    },
+    {
+      "id": "AT-HOST-1",
+      "verdict": "pass",
+      "note": "Per-axis emitted contract unchanged; no regression in host adapter path."
+    },
+    {
+      "id": "AT-HOST-2",
+      "verdict": "pass",
+      "note": "Common evaluator boundary and proceed behavior unchanged."
+    },
+    {
+      "id": "AT-HOST-5",
+      "verdict": "pass",
+      "note": "Unsupported MCP path (pi) unchanged."
+    },
+    {
+      "id": "AT-INSTALL-1",
+      "verdict": "pass",
+      "note": "Manifest record-before-mutate and resume logic unchanged; incomplete-install protection unchanged."
+    },
+    {
+      "id": "AT-LF-1",
+      "verdict": "pass",
+      "note": "repositoryFiles() now uses git ls-files for discovery, falling back to recursive walk; ECOSYSTEM_SIGNALS expanded to a Map covering more ecosystems. Open-ecosystem discovery is broader than origin/prod."
+    },
+    {
+      "id": "AT-LF-2",
+      "verdict": "pass",
+      "note": "Hybrid-plus preservation unchanged."
+    },
+    {
+      "id": "AT-LF-3",
+      "verdict": "pass",
+      "note": "Semantic command discovery unchanged."
+    },
+    {
+      "id": "AT-LF-4",
+      "verdict": "pass",
+      "note": "User scope/component override unchanged."
+    },
+    {
+      "id": "AT-LF-5",
+      "verdict": "pass",
+      "note": "Plan-bound consent: selection still authorizes nothing; only an exact-digest approved plan authorizes execution; shell:false safety-claim prohibition unchanged."
+    },
+    {
+      "id": "AT-LF-6",
+      "verdict": "pass",
+      "note": "applyCoverage journals each write; uncoverable-component exclusion requires approval; unchanged."
+    },
+    {
+      "id": "AT-LF-7",
+      "verdict": "pass",
+      "note": "Policy grade check-run path unchanged."
+    },
+    {
+      "id": "AT-LF-8",
+      "verdict": "pass",
+      "note": "Cumulative Context superset unchanged."
+    },
+    {
+      "id": "AT-LF-9",
+      "verdict": "pass",
+      "note": "Cumulative Evidence superset unchanged."
+    },
+    {
+      "id": "AT-LF-10",
+      "verdict": "pass",
+      "note": "Diff-scope default and ignore-rule/cwd enforcement unchanged."
+    },
+    {
+      "id": "AT-LF-11",
+      "verdict": "pass",
+      "note": "Read-only mutation detection halts without auto-restore; snapshotDir/diffSnapshots path unchanged."
+    },
+    {
+      "id": "AT-LF-12",
+      "verdict": "pass",
+      "note": "runAutofix requires its own separate approval; is not triggered by the read-only check; unchanged. runAutofix now also wraps with networkIsolationPrefix (AT-PROC-1r)."
+    },
+    {
+      "id": "AT-LF-13",
+      "verdict": "pass",
+      "note": "Evidence-grade CI graft: additive, proposed, preserving; grade-aware CI applicability corrected in §9.4."
+    },
+    {
+      "id": "AT-LF-14",
+      "verdict": "pass",
+      "note": "Command drift halts before running changed task; drift check now precedes durable approval consumption (AT-PROC-1e fix)."
+    },
+    {
+      "id": "AT-LF-15",
+      "verdict": "pass",
+      "note": "Local, redacted, actionable report; CI emits verdict/counts only; unchanged."
+    },
+    {
+      "id": "AT-LF-16",
+      "verdict": "pass",
+      "note": "Each abnormal ending (timeout, cancelled, missing_dependency, signalled, partial_output, command_not_found) remains a distinct named non-passing state; AT-PROC-1ab verifies all six have runner producers."
+    },
+    {
+      "id": "AT-LF-17",
+      "verdict": "pass",
+      "note": "Idempotent reinstall via manifest resume; no premature protection claim; unchanged."
+    },
+    {
+      "id": "AT-LF-18",
+      "verdict": "pass",
+      "note": "Removal reverses exactly manifest-recorded artifacts; user autofix edits (uncommitted working-tree changes) are not manifest entries and survive."
+    },
+    {
+      "id": "AT-LF-19",
+      "verdict": "pass",
+      "note": "Per-component evidence-backed support claim unchanged."
+    },
+    {
+      "id": "AT-LF-20",
+      "verdict": "pass",
+      "note": "consumePlanApproval uses exclusive 'wx' create keyed by digest, surviving cross-process replay (AT-PROC-1a). Drift check now precedes consumption so a drift-aborted plan does not burn the approval (AT-PROC-1e). Oracle test reuses same JS object which exercises the weaker case; the stronger cross-object case is proven by AT-PROC-1a in guarantee-coverage.test.js."
+    },
+    {
+      "id": "AT-LF-21",
+      "verdict": "pass",
+      "note": "taskCwd() using containedPath() now shared between runGrade and runReadOnly (AT-PROC-1b closes the prior runGrade gap). isolatedTaskEnv() strips ambient env at spawn boundary for all three runners. AT-LF-21 oracle test exercises both symlink cwd refusal and env-variable isolation."
+    },
+    {
+      "id": "AT-LF-22",
+      "verdict": "pass",
+      "note": "runGrade, runReadOnly, and runAutofix all call networkIsolationPrefix() and prefix ungranted commands with the OS sandbox. A missing isolation tool returns network_isolation_unavailable (non-passing), not clean. Granted commands (network:true) bypass the prefix correctly (RIG-141 fix). Minor: runReadOnly returns early for the whole remaining command list on the first ungranted command when isolation is unavailable, even if later commands carry network:true; runGrade marks each command individually. The oracle AT-LF-22 test uses single-command scenarios that do not expose the multi-command asymmetry."
+    },
+    {
+      "id": "AT-LF-23",
+      "verdict": "pass",
+      "note": "runCommand wraps via memory-guarded-exec.js watchdog; timeout and memory_exceeded are distinct named results; process tree is killed via spawnGuarded's SIGTERM+SIGKILL sequence. AT-PROC-1c/1s verify independently for runGrade and runAutofix."
+    },
+    {
+      "id": "AT-LF-24",
+      "verdict": "pass",
+      "note": "planExecution's readSource uses containedPath; executePlan independently re-derives via readSource rather than trusting plan-time flag; both return boundary_violation rather than following the link or falling through to command_drift. AT-PROC-1aa verifies refusal before approval consumption."
+    },
+    {
+      "id": "AT-P1",
+      "verdict": "pass",
+      "note": "No-blowout via typed graft path unchanged."
+    },
+    {
+      "id": "AT-P2",
+      "verdict": "pass",
+      "note": "Safety user-control chain unchanged."
+    },
+    {
+      "id": "AT-P3",
+      "verdict": "pass",
+      "note": "MECE scope ownership unchanged."
+    },
+    {
+      "id": "AT-P4",
+      "verdict": "pass",
+      "note": "Uniform host adapter path unchanged."
+    },
+    {
+      "id": "AT-P5",
+      "verdict": "pass",
+      "note": "User selection wins over recommendation; unchanged."
+    },
+    {
+      "id": "AT-P6",
+      "verdict": "pass",
+      "note": "Complete honest service dispositions unchanged."
+    },
+    {
+      "id": "AT-PRESENCE-1",
+      "verdict": "pass",
+      "note": "Three terminal activation states unchanged."
+    },
+    {
+      "id": "AT-PRESENCE-2",
+      "verdict": "pass",
+      "note": "Pre-registered recovery ceremony unchanged."
+    },
+    {
+      "id": "AT-REPORT-1",
+      "verdict": "pass",
+      "note": "Reports git-excluded, not committed, not uploaded; CI emits verdict/counts only; unchanged."
+    },
+    {
+      "id": "AT-SECRET-1",
+      "verdict": "pass",
+      "note": "Separated disclosable/restricted records; model_assisted_triage gate unchanged."
+    },
+    {
+      "id": "AT-SHAPE-1",
+      "verdict": "pass",
+      "note": "Typed ownership/managed-block/manifest path unchanged; every write recorded before the mutation."
+    },
+    {
+      "id": "AT-SHAPE-2",
+      "verdict": "pass",
+      "note": "Recommendation never gates user selection; unchanged."
+    },
+    {
+      "id": "AT-SHAPE-3",
+      "verdict": "pass",
+      "note": "Cumulative grade composition unchanged."
+    },
+    {
+      "id": "AT-SHAPE-4",
+      "verdict": "pass",
+      "note": "Named-slice dependency resolution unchanged."
+    },
+    {
+      "id": "AT-SHAPE-5",
+      "verdict": "pass",
+      "note": "Executable-first disposition, nonzero coverage gap for missing/no-op bindings; unchanged."
+    },
+    {
+      "id": "AT-SHAPE-6",
+      "verdict": "pass",
+      "note": "115-leaf authored-service gate unchanged; D23 exception retired per D24."
+    },
+    {
+      "id": "AT-UNINSTALL-1",
+      "verdict": "pass",
+      "note": "Reverse-seq manifest teardown unchanged; AT-PROC-1h confirms durable plan-approval records also removed."
+    },
+    {
+      "id": "AT-UNINSTALL-2",
+      "verdict": "pass",
+      "note": "Preimage-store diff and verified-clean vs named-best-effort split unchanged."
+    },
+    {
+      "id": "AT-UNINSTALL-3",
+      "verdict": "pass",
+      "note": "Usage artifacts survive normal uninstall; purge lists before deleting; unchanged."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "minor",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-format.js:runReadOnly lines 696-699",
+      "detail": "runReadOnly returns network_isolation_unavailable for the entire remaining command list when the first command without a network grant encounters no isolation prefix. runGrade marks each command individually (line 627-628: per-command result, not a function-level return). In a multi-command plan where cmd[0] has no grant and cmd[1] has network:true, runReadOnly never runs cmd[1] and returns early; runGrade would run cmd[1] as granted. The AT-LF-22 oracle test uses single-command scenarios that don't expose this. The behavior satisfies AT-LF-22's letter (the connection doesn't succeed), but the asymmetry between the two runners means a legitimate granted command after an ungrantable one is silently skipped in the read-only path."
+    },
+    {
+      "severity": "minor",
+      "category": "testability",
+      "anchor": "tests/advanced-oracle.test.js:AT-LF-20 line 916-928",
+      "detail": "The AT-LF-20 oracle test reuses the same JS approval object for both the first and second executePlan calls. The first call sets approval.used = true (line 486 of lint-format.js), so the second call is blocked by the in-memory flag rather than the durable on-disk record. This is the weaker version of the one-use guarantee. The cross-object, cross-process case (the guarantee that actually matters) is proven by AT-PROC-1a in guarantee-coverage.test.js, which is non-frozen. The oracle test exercises a valid subset but would pass even if the durable filesystem mechanism were removed, as long as the JS object flag remained."
+    },
+    {
+      "severity": "minor",
+      "category": "architecture",
+      "anchor": "rig/lib/check-runner.js:runConfiguredArgv, network state 'undeclared'",
+      "detail": "When network state is 'undeclared' (neither 'none' nor 'required'), runConfiguredArgv runs the command without any isolation prefix and emits a console.warn diagnostic (line ~196). The AD-39 spec says 'undeclared network state remains a visibly reported compatibility state.' This is implemented as expected, but the diagnostic goes to stderr rather than being returned as a structured field the caller can route into a named non-passing result. The oracle test AT-CAP-3 verifies the undeclared state is returned as a diagnostic field, which AT-PROC-1u also verifies. The behavior is compliant with the spec but the console.warn output is a silent stderr emission that callers could miss."
+    }
+  ],
+  "unresolved": []
+}
