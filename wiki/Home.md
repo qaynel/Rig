@@ -18,14 +18,15 @@ update it as part of your change — never as an afterthought.
 
 ---
 
-## The four kinds of page
+## The five kinds of page
 
 | Kind | Where | What it is |
 |---|---|---|
-| **Topics** | [`topics/`](topics/) | 27 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
+| **Topics** | [`topics/`](topics/) | 28 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
 | **Indexes** | [`index/`](index/) | Flat lookups across everything: every decision, every acceptance case, every rejected idea, every trap. |
 | **Authorities** | [`gate1/`](gate1/), [`gate2/`](gate2/) | The documents that actually decide things. Frozen or candidate. Nothing here is rewritten by the wiki. |
 | **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written — see the [sources index](index/sources.md) for a linked way in. |
+| **Mistakes** | [`mistakes/`](mistakes/) | One file per named anti-pattern, each anchored to the concrete example that proves it happened, with a check to run before repeating its shape. Not a narrative log — see [`index/traps.md`](index/traps.md) for that. **Synthesis**, checked directly. |
 
 Plus [`reasoning/`](reasoning/) — where new thinking lands, verbatim and dated, and
 [`specs/`](specs/) — subordinate scope and status documents.
@@ -58,6 +59,7 @@ topic is wrong.
 [policy-signer recovery](topics/policy-signer-recovery.md) ·
 [one-use approvals](topics/one-use-approvals.md) ·
 [the action evaluator](topics/action-evaluator.md) ·
+[enforcement and git-dispatch wiring](topics/enforcement-and-git-dispatch-wiring.md) ·
 [drift and secret controls](topics/drift-and-secret-controls.md)
 
 **Getting in and out of a repository**
@@ -82,9 +84,10 @@ topic is wrong.
 ## Indexes
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
-- [**Acceptance cases**](index/acceptance-cases.md) — the 68 frozen cases and where each is traced.
+- [**Acceptance cases**](index/acceptance-cases.md) — the 73 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
+- [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
 - [**Invariants**](index/invariants.md) — propositions that must always hold; seeded from traps and the six merged tickets, filled in by every ticket close.
 - [**Timeline**](index/timeline.md) — how the design moved, by date.
 - [**Path map**](index/path-map.md) — old `project-dev-docs/` paths to their wiki homes.
@@ -100,11 +103,11 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves. The completed test manifest is covered by the owner signature with both documents. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves; D28 extends the set to 73 with RIG-115's shell-trust guarantees. The completed test manifest is covered by the owner signature with both documents. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 
-See [status](status.md) for what is currently blocking the freeze.
+See [status](status.md) for current work. `v5.0.0` is published.
 
 ---
 

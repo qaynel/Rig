@@ -1,0 +1,37 @@
+{
+  "note": "Wrapper refused to write the binding receipt because verdict is fail. This is the reviewer's report from the 2026-08-29 --force-rereview run (author-context rig-120-v5.0.0-ceremony-2026-08-28, model claude-opus-5, base origin/prod).",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "testability",
+      "anchor": "wiki/gate1/testing-infrastructure.manifest, wiki/gate1/gate1.sig, tests/advanced-oracle.test.js (AT-GATE-2)",
+      "detail": "The worktree modifies the manifested file tests/advanced-oracle.test.js (new AT-LF-24 executePlan assertions) but leaves its manifest line `6997a0be…  tests/advanced-oracle.test.js` untouched, while the manifest lines for scripts/check-advanced-spec.js and tests/helpers/advanced.js were regenerated and gate1.sig was re-signed in this same worktree. Under AD-28 the verifier recomputes every manifested digest before any code test, so on these exact bytes the armed gate either fails closed (npm test cannot be green, and §12.3 blocker 6 is unmet) or the manifest+signature were regenerated after the oracle bytes moved — which is the implementation context moving its own bar, the precise scenario AT-GATE-2 exists to refuse. Release requires the key holder re-signing the final bytes and a recorded gate run; I could not execute the verifier in this session to distinguish the two cases."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-format.js:777 runAutofix; technical-spec §9.4 \"All five guarantees are now implemented; the shell-trust suite is closed\"",
+      "detail": "runAutofix executes the repository's own fix command and its verify command via bare `spawnTask(cmd.argv, { cwd: target })`. Unlike runGrade and runReadOnly it applies no networkIsolationPrefix (so an approved fix command has unconditional outbound reachability, contrary to AT-LF-22/D28 guarantee 3, which is scoped to 'every repository-owned task Rig executes') and passes no timeoutMs/memoryLimitMb (so AT-LF-23/D28 guarantee 4 produces no distinct killed-and-reported state — a runaway autofix simply hangs). It is also a mutating action, i.e. the highest-consequence of the three execution seams. No test exercises isolation or caps on this path; the only autofix coverage is the approval/verification assertion in tests/advanced-oracle.test.js:828. The technical specification's claim that the shell-trust suite is closed is contradicted by this seam."
+    },
+    {
+      "severity": "minor",
+      "category": "architecture",
+      "anchor": "rig/lib/check-runner.js runConfiguredArgv, `network === 'undeclared'` branch; rig/catalog/services/**",
+      "detail": "No shipped service binding declares a `network` field (grep for '\"network\"' under rig/catalog/services returns nothing), so every check command the installed .rig/bin/check.js runs today takes the 'undeclared' branch: no isolation, plus a console.warn on every CI run. AD-39 sanctions this as a temporary compatibility state, so it is not a contract violation, but it means the default-deny isolation code in the shipping CI path is exercised only by synthetic bindings in tests/guarantee-coverage.test.js AT-CAP-3 and is dead for real users, while the CI log gains a warning line per check. Worth naming as an explicit debt rather than leaving it to read as enforced."
+    },
+    {
+      "severity": "minor",
+      "category": "correctness",
+      "anchor": "rig/lib/lifecycle.js:253 (resolvedRecordPaths map) and classifiedRel",
+      "detail": "resolveRecordPath/containedPath now run over every journal record up front, and classifiedRel throws `repository path escapes target` on an escaping record. A journal containing one such record therefore aborts uninstall with an exception instead of naming that file best-effort and removing everything else, which is the reporting shape AT-UNINSTALL-2 asks for. It is fail-closed and happens before any mutation, so nothing is damaged, but a user with one bad record gets a stack trace rather than a removal report naming the offending path."
+    },
+    {
+      "severity": "minor",
+      "category": "contradiction",
+      "anchor": "wiki/gate2/technical-spec.md §12.3, §13, §17.1 (\"currently 68 IDs\", \"the 68-ID traceability table\", \"all 68 current acceptance IDs\")",
+      "detail": "Gate 1 is at 73 cases after D28 and the §13 table does carry rows for AT-LF-20 through AT-LF-24, but the surrounding prose still states 68 in three places. §13 says the file wins over the number, so this is documentation drift rather than a gate defect, but a reader checking release readiness against §17.1 is told to verify a stale count."
+    }
+  ],
+  "unresolved": []
+}

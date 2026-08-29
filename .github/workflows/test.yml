@@ -24,6 +24,19 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Ubuntu 24.04 restricts rootless user namespaces through AppArmor.
+      # Rig's ungranted-task network boundary uses a rootless network namespace,
+      # so enable the native runner capability and verify it before the suite.
+      - name: Enable rootless network namespaces
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+
+      # The root oracle exercises the bundled MCP runtime before the runtime
+      # project's own pretest hook runs, so install it explicitly first.
+      - name: Install bundled MCP runtime dependencies
+        run: npm ci --prefix rig-mcp --no-audit --no-fund
+
       # Runs on its own, before everything else. `npm test` chains with `&&`, so
       # a failure in an unrelated check would otherwise stop the secret guard
       # from ever executing. A leaked credential is the one failure here that

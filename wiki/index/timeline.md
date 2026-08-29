@@ -286,6 +286,13 @@ verified/unverified tier as registry data: every host instead carries six
 axis-specific vendor contracts. Every Policy leaf now carries a distinct
 acceptance target and pass/fail evidence contract.
 
+## 2026-08-29 — v5.0.0 published
+
+The annotated tag `v5.0.0` and the GitHub latest release are published on
+`9d1ea45ea4876b300fbfe964d46319188ff2f09d`, the bytes bound by the passing
+independent review receipt. [[RIG-120]] is Done.
+[Ceremony cut](../reasoning/2026-08-29-v5.0.0-tag.md)
+
 ---
 
 ## Reading a document by its date
@@ -300,3 +307,4 @@ acceptance target and pass/fail evidence contract.
 | 2026-08-19 | The case count is 48 or 52, and review requires a different model. |
 | 2026-08-21 | There are two gates, lint-format ships alone as the one release-blocking leaf, and the catalogue holds only the 115 service leaves. |
 | 2026-08-23 | The policy/control mechanisms, the action evaluator, one-use approvals, sanitation/remediation, and the service runner are still candidate design, not implemented — and the oracle signature is pending rather than already armed. |
+| 2026-08-29 | `v5.0.0` has not been tagged; the release ceremony is still open. |

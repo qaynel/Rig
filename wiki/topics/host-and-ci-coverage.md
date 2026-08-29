@@ -15,6 +15,25 @@ repeat apply is byte-stable, and every mutation is journaled for teardown. The
 job runs `.rig/bin/check.js --scope repo`, requests no repository secrets, and
 does not upload local finding detail.
 
+That installed runner now enforces its per-binding resource ceilings and
+declared network state through the same canonical implementation as local
+checks. Raised ceilings and required network access require a committed
+per-service execution-policy grant; legacy undeclared network use remains
+visible during the additive rollout. [Capability close-out](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
+
+Teardown derives the exact provider artifact paths from this same registry, but
+does not treat the editable install journal as proof that a pipeline file or an
+arbitrary line inside it belongs exclusively to Rig. The dedicated Rig-named
+GitHub workflow is removed as a whole file. An existing GitHub workflow keeps
+its user bytes; uninstall removes only the exact pointer line the adapter
+appended. Common GitLab, CircleCI, Jenkins, Buildkite, and Azure pipeline files,
+and other files inside provider directories, are retained as best-effort.
+[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
+[Intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
+[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
+[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
+[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+
 Provider evidence is a first-wire matrix that seeds compatible user config,
 plans with separate approval, applies twice, preserves the sentinel, and checks
 the repository command at the provider path. Unknown CI markers remain
@@ -35,6 +54,13 @@ marker provenance; an explicit host remains a compatibility override.
 The neutral payload is independent of host detection, so bare repositories get
 the complete neutral product without receiving `.claude`, `.agents`, or other
 fabricated host trees.
+
+The GitHub Actions test job enables Ubuntu 24.04's rootless user-namespace
+setting and probes a working network namespace before running the suite. It
+also installs the bundled `rig-mcp` dependencies before the root oracle runs;
+the OpenClaw fixture copies those installed modules into its fake runtime.
+This is CI setup only: a real host that cannot create the namespace receives
+Rig's explicit `network_isolation_unavailable` result.
 
 Hermes is a first-class host surface, not a candidate to prune: the root
 `plugin.yaml` and `__init__.py` are Rig's Hermes plugin, and its test suite —

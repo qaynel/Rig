@@ -41,9 +41,9 @@ as pass were rejected. [Rejected approaches](../index/rejected.md)
 
 The executable specification gate now exists and runs first:
 `node scripts/check-advanced-spec.js` verifies the owner signature over the
-five-file manifest before any code test, and the 68 cases report 68 pass /
-0 fail. That closes the gap this section used to describe and opens a different
-one.
+five-file manifest before any code test, and the 73 cases (D24 + D28) report
+73 pass / 0 fail. That closes the gap this section used to describe and opens
+a different one.
 
 **A green oracle alone is not evidence that the product works.** The 2026-08-22
 fresh review found that the oracle bound behavior only by direct
@@ -74,3 +74,26 @@ tests. Behavioral shipping-path cases separately exercise installed
 lint-format, managed graft apply, commit validation, MCP enforcement, and the
 release-review wrapper. This does not make direct-require oracle cases redundant;
 it ensures their modules cannot silently become library-only again.
+
+A third mechanism of the same family showed up 2026-08-27 in RIG-115's
+per-AT-LF-case branches: each branch's acceptance test passes for a slice of
+its guarantee narrower than the acceptance text states, and nothing checks
+whether the union of sibling branches' passing tests reconstructs the whole
+guarantee. Named as [guarantee sharding](../mistakes/guarantee-sharding.md) —
+see [`mistakes/`](../mistakes/) for this family of anti-patterns going
+forward, kept separate from this page's own two instances above.
+Instances: [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93),
+[RIG-139 / #94](https://github.com/qaynel/Rig/issues/94),
+[RIG-140 / #95](https://github.com/qaynel/Rig/issues/95).
+[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md)
+
+The prevention side is `AT-PROC-1`, a workflow-doctrine acceptance criterion
+(not a Gate 1 case — no owner signature, no set-equality gate) requiring the
+union of a split guarantee's sibling-branch tests to cover every enumerated
+call site and conjunct. `tests/guarantee-coverage.test.js` is its executable
+target: red by design until RIG-138/139/140 landed, green since
+[2026-08-27](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).
+RIG-143 adds AT-PROC-1d for the network conjunct on `runGrade`: the test
+covers isolation, explicit grants, and refusal when the host cannot provide
+the sandbox. Full text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
+[reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)

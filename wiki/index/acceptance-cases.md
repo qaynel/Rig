@@ -1,6 +1,6 @@
 # Acceptance case index
 
-The 68 owner-approved Gate-1 cases. Their deterministic executable targets join
+The 73 owner-approved Gate-1 cases. Their deterministic executable targets join
 them in the signed oracle: each must fail before its behavior exists and pass
 only when the product intent is met.
 
@@ -14,8 +14,12 @@ without changing the 68-ID set. It restores `AT-SHAPE-6` to all 115 leaves,
 makes the broad Policy catalogue release-blocking, moves the executable
 targets into the signed oracle, requires detected-host-only onboarding, and
 extends distribution to all 55 named skills plus MIT notice/provenance. The
-technical design has since been retraced against these meanings through v0.16,
+technical design has since been retraced against these meanings through v0.17,
 and the full suite is green on the current bytes. See [status](../status.md).
+
+**Amended 2026-08-26/27, D28/GA-37:** RIG-115's shell-trust suite adds five
+cases, `AT-LF-20`–`AT-LF-24`, taking the set to **73**. All five are now
+implemented and green — see [status](../status.md).
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -127,7 +131,7 @@ Tautological assertions are not — see [testing strategy](../topics/testing-str
 **resolved** as of 2026-08-20 — see [status](../status.md). Three other
 round-3 findings remain open.
 
-## H. Lint-format production leaf (19, added 2026-08-21 by D21)
+## H. Lint-format production leaf (24, added 2026-08-21 by D21; extended 2026-08-26 by D28/GA-37)
 
 The acceptance for the first production catalogue leaf,
 `development.code-quality.lint-format`. Full text:
@@ -155,6 +159,11 @@ traces: [`specs/lint-format-intent.md`](../specs/lint-format-intent.md).
 | `AT-LF-17` | Reinstall is an idempotent resume; no duplicates, no premature protection claim. |
 | `AT-LF-18` | Removal reverses exactly the manifest; the user's own fixes survive. |
 | `AT-LF-19` | Support is claimed per component, only on real evidence; exclusions suppress the whole-repository claim. |
+| `AT-LF-20` | A plan approval authorizes exactly one execution of its exact plan digest; a second presentation of the same approval is refused, not re-authorized. |
+| `AT-LF-21` | A task's working directory and every path it touches resolve inside the repository even through a symlink; it receives no ambient environment variable beyond an explicit allowlist. |
+| `AT-LF-22` | A task not explicitly granted network access by the plan has no outbound reachability; a task explicitly granted it may connect. |
+| `AT-LF-23` | A task exceeding a configured memory ceiling or wall-clock timeout is killed and reported as its own distinct non-passing state, never a hang or silent truncation. |
+| `AT-LF-24` | A repository-supplied symlink whose real target resolves outside the repository is refused for read, write, or working-directory use, never followed because its lexical path looks contained. |
 
 ---
 
@@ -171,10 +180,10 @@ distinction the product never implemented.
 | `AT-CLAIM-2` | The out-of-repository write disclosure, framed as a claim. | `AT-HOME-1`, as a transparency requirement rather than a claim. |
 | `AT-CLAIM-3` | Per-host claim strings in output. | Nothing — the concept was withdrawn outright. |
 
-If you grep the acceptance file for `AT-` you will find 72 distinct strings.
-Four of them are these, mentioned only in prose. Gate 2's table traces the 68
-that are actually defined — re-traced 2026-08-21 to exact equality, see the note
-above.
+If you grep the acceptance file for `AT-` you will find 77 distinct strings.
+Four of them are these, mentioned only in prose. Gate 2's table traces the 73
+that are actually defined — re-traced 2026-08-21, then extended 2026-08-26 by
+D28/GA-37, to exact equality, see the note above.
 
 ---
 
@@ -189,6 +198,7 @@ above.
 | 2026-08-17 | 48 | The host-tier amendment deleted four. |
 | 2026-08-19 | 49 | D20 added `AT-PRESENCE-2`. |
 | 2026-08-21 | **68** | D21 added `AT-LF-1`–`AT-LF-19`, the lint-format vertical release boundary. |
+| 2026-08-26 | **73** | D28/GA-37 added `AT-LF-20`–`AT-LF-24`, RIG-115's shell-trust guarantees. |
 
 Mechanism-only revisions (D10, D19, GA-13) changed how a case is satisfied
 without changing the count.

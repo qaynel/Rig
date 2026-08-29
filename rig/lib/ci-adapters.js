@@ -7,6 +7,7 @@ const { containedPath } = require('./path-safety');
 const { journalWriter } = require('./payload');
 
 const CHECK = 'node .rig/bin/check.js --scope repo';
+const GITHUB_WORKFLOW_POINTER = '# rig-check: additive job installed at .github/workflows/rig.yml';
 const PROVIDERS = Object.fromEntries([
   ['github-actions', '.github/workflows/rig.yml'],
   ['gitlab_ci', '.gitlab-ci.yml'],
@@ -198,8 +199,9 @@ function applyCiPlan(target, plan) {
         const abs = containedPath(target, rel);
         if (!fs.statSync(abs).isFile()) continue;
         const body = fs.readFileSync(abs, 'utf8');
-        const line = '# rig-check: additive job installed at .github/workflows/rig.yml';
-        if (!body.split('\n').includes(line)) write(target, rel, `${body}${body.endsWith('\n') ? '' : '\n'}${line}\n`, undefined, 'append_managed', { managed_line: line });
+        if (!body.split('\n').includes(GITHUB_WORKFLOW_POINTER)) {
+          write(target, rel, `${body}${body.endsWith('\n') ? '' : '\n'}${GITHUB_WORKFLOW_POINTER}\n`, undefined, 'append_managed', { managed_line: GITHUB_WORKFLOW_POINTER });
+        }
       }
     }
   }
@@ -213,7 +215,7 @@ function renderPipeline(providerId, spec) {
 }
 
 module.exports = {
-  PROVIDERS, REPORTS_UPLOAD, detectProvider, detectUnknownCi, resolveAdapter,
-  planCiIntegration, applyCiPlan, renderPipeline, githubActionsStandalone,
+  PROVIDERS, REPORTS_UPLOAD, GITHUB_WORKFLOW_POINTER, detectProvider, detectUnknownCi,
+  resolveAdapter, planCiIntegration, applyCiPlan, renderPipeline, githubActionsStandalone,
   resolveProviderPath,
 };

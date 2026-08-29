@@ -6,10 +6,67 @@ const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
 const { removeOpenClawMcp } = require('./openclaw-mcp');
+const { PROVIDERS: CI_PROVIDERS, GITHUB_WORKFLOW_POINTER } = require('./ci-adapters');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
 const PRUNE_TOP = new Set(['.rig', '.claude', '.agents', '.github']);
+const INSTALL_TOP_LEVEL = new Set([
+  '.rig', '.claude', '.agents',
+  '.cursor', '.codex', '.openclaw', '.opencode', '.devin', '.kiro', '.gemini',
+  '.windsurf', '.swival', '.codewhale', '.pi', '.clinerules', '.vscode',
+]);
+const INSTALL_GRAFT_FILES = new Set([
+  'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md',
+]);
+const INSTALL_UNIQUE_CI_FILES = new Set([CI_PROVIDERS['github-actions'].file]);
+const INSTALL_HOOK_PATHS = new Set([
+  '.git/hooks/pre-commit',
+  '.git/hooks/pre-commit.rig-chained',
+]);
+
+function isManagedAddition(record) {
+  return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed');
+}
+
+function isGitResolvedPath(rel) {
+  return INSTALL_HOOK_PATHS.has(rel) || rel === '.rig/install-id';
+}
+
+function classifiedRel(target, record, abs) {
+  if (isGitResolvedPath(record.path)) return record.path;
+  const root = fs.realpathSync(target);
+  let resolved = abs;
+  try {
+    if (fs.existsSync(abs)) resolved = fs.realpathSync(abs);
+  } catch {
+    resolved = abs;
+  }
+  const rel = path.relative(root, resolved);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`repository path escapes target: ${record.path}`);
+  }
+  return rel.split(path.sep).join('/');
+}
+
+function isRigInstallPath(rel, record = {}) {
+  if (typeof rel !== 'string' || !rel || path.isAbsolute(rel)) return false;
+  if (rel.split(/[/\\]/).some((part) => part === '..' || part === '.' || part === '')) return false;
+  if (INSTALL_HOOK_PATHS.has(rel)) return true;
+  const top = rel.split(/[/\\]/)[0];
+  if (INSTALL_GRAFT_FILES.has(rel)) return isManagedAddition(record);
+  if (INSTALL_UNIQUE_CI_FILES.has(rel) || rel.startsWith('.github/workflows/')) {
+    // rig: journal fields are editable. CI removal is two positive attributions
+    // only: the dedicated Rig workflow as a whole file, or the exact pointer
+    // line ci-adapters appends. A second managed CI line needs its own marker
+    // here, not a generic managed_line / managed_block / ownership claim.
+    return (rel.startsWith('.github/workflows/')
+      && record.ownership === 'append_managed'
+      && record.managed_line === GITHUB_WORKFLOW_POINTER)
+      || (INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned');
+  }
+  return INSTALL_TOP_LEVEL.has(top);
+}
 
 function parseJournalRecords(text) {
   const lines = String(text).split('\n');
@@ -191,6 +248,10 @@ function uninstall(target, opts = {}) {
     if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
   }
   const records = [...latestByPath.values()].sort((a, b) => b.seq - a.seq);
+  const resolvedRecordPaths = new Map(records.map((record) => [
+    record,
+    resolveRecordPath(target, record.path),
+  ]));
   const bestEffort = [];
   const bestEffortDetails = [];
   const removed = [];
@@ -250,11 +311,16 @@ function uninstall(target, opts = {}) {
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
-    if (preservePrefixes.some((prefix) => record.path === prefix || record.path.startsWith(`${prefix}/`))) {
+    const abs = resolvedRecordPaths.get(record);
+    const rel = classifiedRel(target, record, abs);
+    if (preservePrefixes.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) {
       bestEffort.push(record.path);
       continue;
     }
-    const abs = resolveRecordPath(target, record.path);
+    if (!isRigInstallPath(rel, record)) {
+      bestEffort.push(record.path);
+      continue;
+    }
     if (record.path === '.git/hooks/pre-commit') {
       const chained = resolveRecordPath(target, '.git/hooks/pre-commit.rig-chained');
       const expected = record.digest || record.desired_digest || null;
@@ -271,8 +337,38 @@ function uninstall(target, opts = {}) {
       if (!fs.existsSync(abs)) continue;
     } else if (!fs.existsSync(abs)) {
       continue;
+    } else {
+      const st = fs.lstatSync(abs);
+      if (st.isSymbolicLink() || (st.isFile() && st.nlink > 1)) {
+        // rig: never write through an in-repo symlink or extra hard link;
+        // journal path and mutation target must be the same file name.
+        bestEffort.push(record.path);
+        continue;
+      }
     }
-    if (record.managed_line) {
+    const uniqueCi = INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned';
+    const pointerStrip = rel.startsWith('.github/workflows/')
+      && record.ownership === 'append_managed'
+      && record.managed_line === GITHUB_WORKFLOW_POINTER;
+    if (pointerStrip) {
+      const body = fs.readFileSync(abs, 'utf8');
+      if (!body.split('\n').includes(GITHUB_WORKFLOW_POINTER)) {
+        bestEffort.push(record.path);
+        continue;
+      }
+      const stripped = body.split('\n').filter((line) => line !== GITHUB_WORKFLOW_POINTER).join('\n');
+      if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(rel);
+      removed.push(record.path);
+    } else if (uniqueCi) {
+      const expected = record.digest || record.desired_digest || null;
+      if (!expected || currentDigest(abs) !== expected) {
+        bestEffort.push(record.path);
+        continue;
+      }
+      fs.rmSync(abs, { recursive: true, force: true });
+      removed.push(record.path);
+      deletedRels.push(rel);
+    } else if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
       const stripped = body.split('\n').filter((line) => line !== record.managed_line).join('\n');
       if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
@@ -305,7 +401,7 @@ function uninstall(target, opts = {}) {
     const chainedRel = '.git/hooks/pre-commit.rig-chained';
     const chainedRecord = records.find((record) => record.path === chainedRel);
     if (chainedRecord) {
-      const chainedAbs = resolveRecordPath(target, chainedRel);
+      const chainedAbs = resolvedRecordPaths.get(chainedRecord);
       if (fs.existsSync(chainedAbs)) {
         const expected = chainedRecord.digest || chainedRecord.desired_digest || null;
         if (expected && currentDigest(chainedAbs) !== expected) {
@@ -370,4 +466,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval };
+module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };

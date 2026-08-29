@@ -40,6 +40,14 @@ function cleanupReceiptArtifacts(target, journalResult = {}) {
     }
   }
 
+  // Durable one-use plan-approval records (rig/lib/lint-format.js's
+  // consumePlanApproval) are internal execution state, not user-owned and
+  // not journal-tracked -- they're written at run time, outside install.
+  // Left behind, they silently block re-execution of a plan_digest that
+  // happens to recur after a reinstall.
+  const lintFormatDir = path.join(target, '.rig', 'lint-format');
+  if (fs.existsSync(lintFormatDir)) fs.rmSync(lintFormatDir, { recursive: true, force: true });
+
   for (const rel of ['.rig/hooks', '.rig']) {
     const dir = path.join(target, rel);
     if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);

@@ -53,4 +53,8 @@ read fails, and retains the runtime when native rollback or removal cannot be
 proven. Before a reinstall or uninstall, the current native registry value must
 exactly match the clone-local recorded server, so a later user replacement is
 preserved. The bootstrap also names the exact configured path that is passed to
-the native CLI before registration. [Intent record](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md)
+the native CLI before registration. Uninstall accepts only the server name
+derived from the repository's persisted install identity, never the ledger's
+name by itself, and reads that identity without creating one during teardown.
+[Intent record](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md)
+[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
