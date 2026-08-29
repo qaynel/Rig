@@ -54,6 +54,15 @@ function rssBytesTree(rootPid) {
   return { bytes, available: true };
 }
 
+// True until the child's 'exit' event has set one of these, which happens
+// synchronously before 'close' -- lets a poll that lands in the gap between
+// the child exiting and the 'close' handler clearing memTimer skip itself
+// instead of reading its own already-reaped pid out of `ps` as "unavailable"
+// and killing/misreporting a command that actually finished on its own.
+function isChildRunning(child) {
+  return Boolean(child.pid) && child.exitCode === null && child.signalCode === null;
+}
+
 function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
   const memoryLimitBytes = Number(memoryLimitMbRaw) > 0 ? Number(memoryLimitMbRaw) * 1024 * 1024 : null;
   const timeoutMs = Number(timeoutMsRaw) > 0 ? Number(timeoutMsRaw) : null;
@@ -69,7 +78,7 @@ function run([resultFile, memoryLimitMbRaw, timeoutMsRaw, ...argv]) {
 
   let killedFor = null;
   const memTimer = memoryLimitBytes ? setInterval(() => {
-    if (!child.pid) return;
+    if (!isChildRunning(child)) return;
     const { bytes, available } = rssBytesTree(child.pid);
     if (!available) {
       killedFor = 'memory_ceiling_unavailable';
@@ -105,4 +114,4 @@ if (require.main === module) {
   run(process.argv.slice(2));
 }
 
-module.exports = { run, rssBytesTree, scriptPath: __filename };
+module.exports = { run, rssBytesTree, isChildRunning, scriptPath: __filename };

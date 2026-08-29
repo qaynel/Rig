@@ -147,6 +147,45 @@ test('all repository mutation paths refuse ancestor symlinks that leave the targ
   }
 });
 
+test('OpenClaw runtime preservation cannot bypass journal path containment', () => {
+  withTarget((target, outside) => {
+    const runtime = 'escape/runtime';
+    const victim = path.join(outside, 'runtime', 'victim');
+    fs.mkdirSync(path.dirname(victim), { recursive: true });
+    fs.writeFileSync(victim, 'outside\n');
+    fs.symlinkSync(outside, path.join(target, 'escape'));
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: `${runtime}/victim`,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: 'create_owned',
+      digest: sha256('outside\n'),
+    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: path.join(outside, 'openclaw.json'),
+      server_key: 'rig-forged',
+      install_id: 'forged',
+      runtime,
+      value: { command: 'node', args: [victim] },
+    }] })}\n`);
+    const bin = path.join(outside, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 2\n', { mode: 0o755 });
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = bin;
+    try {
+      assert.throws(() => uninstall(target), /outside|escape|symlink|unsafe/i);
+      assert.equal(fs.readFileSync(victim, 'utf8'), 'outside\n');
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  });
+});
+
 test('the lifecycle uninstaller consumes the shipping JSONL journal', () => {
   withTarget((target) => {
     runPayload(target, []);
@@ -271,6 +310,31 @@ test('forged OpenClaw ledger entry cannot unregister unrelated user-global MCP s
       assert.equal(result.status, 'best_effort');
       assert.match(fs.readFileSync(config, 'utf8'), /user-owned-server/);
       assert.equal(fs.existsSync(unsetLog), false, 'must not call openclaw mcp unset on an unrelated server name');
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  });
+});
+
+test('OpenClaw removal does not create an install identity when one is missing', () => {
+  withTarget((target, outside) => {
+    const bin = path.join(outside, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 2\n', { mode: 0o755 });
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: path.join(outside, 'openclaw.json'),
+      server_key: 'rig-forged',
+      install_id: 'forged',
+      value: { command: 'node', args: ['/tmp/forged.js'] },
+    }] })}\n`);
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${bin}${path.delimiter}${oldPath}`;
+    try {
+      uninstall(target);
+      assert.equal(fs.existsSync(path.join(target, '.rig/install-id')), false);
     } finally {
       process.env.PATH = oldPath;
     }

@@ -17,8 +17,15 @@ test('check.js skeleton exists with --scope repo contract', () => {
   assert.ok(fs.existsSync(checkPath));
   const source = fs.readFileSync(checkPath, 'utf8');
   assert.match(source, /--scope/);
-  assert.match(source, /shell:\s*false/);
   assert.match(source, /service-bindings\.json/);
+  // `shell: false` itself lives in the canonical runner (GA-38) that this
+  // file requires rather than re-implements -- assert the require, and
+  // check the guarantee at its one real source instead of re-asserting
+  // text that no longer appears in this file by design.
+  assert.match(source, /require\(['"]\.\.\/lib\/check-runner['"]\)/);
+  const runnerPath = path.join(root, 'rig', 'lib', 'check-runner.js');
+  assert.ok(fs.existsSync(runnerPath));
+  assert.match(fs.readFileSync(runnerPath, 'utf8'), /shell:\s*false/);
 });
 
 test('every emitted adapter has doc/first-wire evidence; unverified degrade', () => {

@@ -287,6 +287,7 @@ These are implementation constraints, not suggestions:
 | AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
 | AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. Without it they do not invoke OpenClaw or require npm. With it they print the global-path/blast-radius disclosure, preflight `openclaw`, `node`, and `npm`, copy `rig-mcp/` into the target runtime, run `npm ci --omit=dev --ignore-scripts` against its committed lockfile, and then call `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
+| AD-39 | The non-interactive check runner reads elevated execution authority only from a committed, target-owned `.rig/execution-policy.json`, never from environment or a prompt. It is a separate authority from generated `.rig/service-bindings.json`: bindings request `network: "required"`, `timeout_ms`, or `memory_limit_mb`; policy grants are keyed by the exact service ID and set the maximum permitted raised timeout/memory and network grant. Missing, malformed, uncommitted, or insufficient authority refuses that command. `network: "none"` needs no elevated grant and is isolated; an undeclared network state remains a visibly reported compatibility state. The initial schema is `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
 
 ### 2.1 Rejected approaches
 
@@ -1345,8 +1346,20 @@ reference to it; uninstall walks descending `seq` so a reference is always
 removed before its target. The public uninstall command (`--uninstall` and
 the `uninstall` subcommand) uses this journal as the only removal authority;
 receipt-based cleanup is a compatibility shim for Basic MCP artifacts that
-predate the journal, not a second set of semantics. Files Rig exclusively
-owns are deleted. Files Rig only added to have their managed line or block
+predate the journal, not a second set of semantics. Every recorded path passes
+symlink-aware containment before namespace or preservation decisions, and
+classification uses that contained relative path rather than the journal's
+lexical spelling; uninstall does not write through in-repo symlinks. The
+journal identifies removal candidates but, because it is repository-editable,
+does not independently prove exclusive ownership of a provider-generic CI
+file or of an arbitrary line inside one. Only a dedicated Rig-named CI
+artifact is whole-file removable. The only CI managed-line removal is the
+exact pointer the GitHub adapter appends, and only for that append-managed
+write; a forged `managed_line`, `managed_block`, or `append_managed` record
+cannot strip other CI bytes. Common provider pipeline paths remain named
+best-effort even if a record calls them `create_owned` and its digest matches.
+Other files Rig exclusively owns are
+deleted. Files Rig only added to have their managed line or block
 removed and nothing else; if that strip leaves a file Rig created empty, the
 file is deleted, and empty Rig-created parent directories are removed.
 Chained hooks are restored per §7.1, including when the hooks directory

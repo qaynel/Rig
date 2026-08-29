@@ -131,6 +131,14 @@ explicitly granted commands still run. AT-PROC-1d proves the grade path's
 network conjunct without changing the signed oracle.
 [reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
 
+The CI/git-floor runner now has a matching capability boundary design: all
+commands receive timeout and memory ceilings; explicit network denial is
+isolated, explicit network access and raised ceilings need a committed
+per-service grant, and an undeclared network state remains visibly diagnostic
+during the compatibility rollout. A host that cannot enforce a promised
+control, malformed policy bytes, or policy that is not committed is a named
+refusal rather than a downgrade. [Execution-policy design](../reasoning/2026-08-29-rig144-execution-policy-design.md)
+
 RIG-115's per-AT-LF-case branches sharded this section's guarantees rather
 than proving them whole: the symlink-containment check (AT-LF-21/24) was
 wired into `runReadOnly` only, leaving `runGrade` — the path that actually
@@ -167,6 +175,30 @@ AT-PROC-1i proves the full path end-to-end (strips `ps` from PATH, calls
 check propagates the non-zero exit code and `'fail'` verdict correctly.
 [reasoning trace](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md)
 
+The watchdog now also rejects incomplete process evidence: a non-zero `ps`
+exit, an empty parsed listing, or a listing that no longer contains the guarded
+root process is `memory_ceiling_unavailable`, not a zero-byte reading. A poll
+that lands after the guarded child has already exited but before its `close`
+handler clears the timer skips itself instead of reading that same absence as
+unavailable evidence, so a command that finished cleanly is never
+misreported as killed for a ceiling it never approached. The
+uninstall boundary follows the same fail-closed ordering: symlink-aware
+containment runs before an untrusted journal record is classified as inside or
+outside Rig's removable namespace or retained for a failed OpenClaw removal.
+The repository-local journal is also never sufficient proof of exclusive
+ownership for a common CI pipeline, even when its declared digest matches, nor
+of the right to strip an arbitrary line merely because a record names
+`managed_line`, `managed_block`, or `append_managed`. CI line-strip is limited
+to the exact GitHub workflow pointer Rig wrote. Classification uses the
+contained, realpathed relative path, not a lexical alias or directory-symlink
+trampoline, and unique-file removal is digest-checked whole-file delete that
+does not follow a symlink or extra hard link.
+[safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
+[intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
+[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
+[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
+[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+
 `AT-LF-22`'s guarantee **used to** ship alongside a production defect
 ([[RIG-137]] / #91, now closed): `rig/lib/lint-format.js` globally
 monkey-patched `net.Server.prototype.listen` to make the frozen test's
@@ -187,3 +219,72 @@ fixture lifetime. The key-holder re-sign this required, since both plausible
 homes for any patch relocation sit inside the byte-pinned oracle manifest,
 has landed — the oracle verifies clean on current HEAD.
 [reasoning trace](../reasoning/2026-08-28-rig137-option-a-scope.md)
+
+`AT-LF-24`'s symlink-escape refusal **used to** degrade to a recoverable
+state instead of a hard refusal: `lint-format.js`'s `planExecution` silently
+left `source_snapshot: null` on an escape instead of marking it, and
+`executePlan` re-read the same `cmd.source` file a second time with no
+containment check at all — reading the outside file's real bytes through the
+symlink and surfacing the mismatch as `command_drift`, not a refusal. Fixed:
+both call sites now share one `readSource()` helper built on `containedPath()`;
+execute time independently re-derives from disk rather than trusting the
+plan-time flag (the symlink can appear only after planning), and returns
+`boundary_violation`. The frozen `AT-LF-24` test previously only asserted the
+snapshot was empty — equally true for a missing file — and never exercised
+`executePlan` at all; rewritten to assert the actual refusal and that the
+outside command's side effect never ran. `wiki/gate1/gate1.sig` is stale
+pending owner re-sign, same as every oracle-test edit in this project.
+[reasoning trace](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md)
+
+A 2026-08-29 fresh independent review found a structurally different problem
+from every prior round on this boundary: the five shell-trust guarantees
+above are real and well-tested, but implemented only inside
+`lint-format.js`'s `runReadOnly`/`runGrade`/`executePlan`/`runAutofix` — the
+installed product's actual command runner (`rig/lib/checks.js`, materialized
+as `.rig/bin/check.js`) never calls any of those four functions, and had none
+of the guarantees itself. The file-granularity "does a production file
+require() this module" guard
+([[index/traps|"The oracle is green at a seam the product does not use"]])
+could not see this, because `lint-format.js` genuinely is required by
+`plan.js`/`apply.js` — just for two unrelated exports. `checks.js`'s cwd and
+required-path containment (the one sub-gap [[RIG-144]] already scoped as
+unambiguous, independent of the network/memory policy questions) is now
+realpath-based via the same `containedPath()` helper — closing that one axis
+for the path the shipping product actually runs. The other three axes
+(plan/approval, network isolation, memory ceiling) remain open, deliberately
+not implemented against a guess: [[RIG-144]] already recorded why blindly
+porting `lint-format.js`'s defaults could break legitimate CI (network
+installs, long/heavy real test suites) rather than protect anything.
+[fresh-review reasoning trace](../reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass.md)
+
+The containment fix above initially covered only `rig/lib/checks.js`, missing
+that `rig/catalog/baseline/check.js` — a second, hand-maintained, not
+sync-mapped duplicate materialized to `.rig/bin/check.js`, which every
+generated CI workflow actually invokes — had the identical lexical-containment
+bug, plus a leaf-only (not path-walking) symlink check in its `check-copies.js`
+companion. Both fixed; `apply.js` now also materializes `path-safety.js` so
+`containedPath()` exists at the installed layout. Whether the two runner
+copies should be unified rather than kept in independent hand-sync is an open
+question feeding the [[RIG-144]] capability-policy scoping, not decided yet.
+[reasoning trace](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md)
+
+That question is now decided (`GA-38`): unify, don't just drift-test. The
+owner rejected a parity-test-between-two-copies fix as accepting the defect
+class rather than removing it. `rig/lib/check-runner.js` is now the single
+`runArgv`/`runBinding` implementation; `rig/lib/checks.js` and
+`rig/catalog/baseline/check.js` (materialized to `.rig/bin/check.js`) both
+`require()` it rather than each carrying a copy, and `apply.js` materializes
+it into `.rig/lib/` the same way it already does `path-safety.js`. `AT-CAP-6`
+proves this the strong way — object identity for the two in-repo callers,
+source-text equality for the materialized copy — rather than proving the two
+implementations currently happen to behave alike. The remaining capability
+axes (three-state network declaration with a visible diagnostic for the
+undeclared/legacy state, configurable-not-fixed resource ceilings, and
+committed-policy-only capability authority for the non-interactive CI path)
+are scoped and owner-signed-off but not yet implemented.
+[sign-off reasoning trace](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md)
+
+Those scoped capability controls are now implemented in the one canonical
+runner, with direct and installed-byte evidence for resource ceilings,
+three-state network handling, committed authority, and fail-closed outcomes.
+[Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)

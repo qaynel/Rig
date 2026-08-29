@@ -392,28 +392,37 @@ function finalizeSelection(recommendation, user) {
   };
 }
 
+// AT-LF-24: a `cmd.source` pointing outside the repository through a symlink
+// must be refused, not silently planned with an empty snapshot -- an empty
+// snapshot at plan time and an unguarded re-read at execute time (see
+// executePlan) is exactly how the escape used to slip through as a
+// recoverable "drift" state instead of a hard refusal.
+function readSource(target, cmd) {
+  if (!target || !cmd.source) return { snapshot: null, boundary_violation: false };
+  const [file, ref] = cmd.source.split('#');
+  let abs;
+  try {
+    abs = containedPath(target, file);
+  } catch {
+    return { snapshot: null, boundary_violation: true };
+  }
+  if (!fs.existsSync(abs)) return { snapshot: null, boundary_violation: false };
+  try {
+    const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
+    const parts = ref.split('.');
+    let node = doc;
+    for (const part of parts) node = node && node[part];
+    return { snapshot: node, boundary_violation: false };
+  } catch {
+    return { snapshot: null, boundary_violation: false };
+  }
+}
+
 function planExecution(input) {
   const target = input.target;
   const commands = (input.commands || []).map((cmd) => {
-    let source_snapshot = null;
-    if (target && cmd.source) {
-      const [file, ref] = cmd.source.split('#');
-      const abs = path.join(target, file);
-      if (fs.existsSync(abs)) {
-        try {
-          const root = fs.realpathSync(target);
-          const resolved = fs.realpathSync(abs);
-          if (resolved === root || resolved.startsWith(`${root}${path.sep}`)) {
-            const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-            const parts = ref.split('.');
-            let node = doc;
-            for (const part of parts) node = node && node[part];
-            source_snapshot = node;
-          }
-        } catch { /* ignore */ }
-      }
-    }
-    return { ...cmd, source_snapshot };
+    const { snapshot, boundary_violation } = readSource(target, cmd);
+    return { ...cmd, source_snapshot: snapshot, source_boundary_violation: boundary_violation };
   });
   const snapshot = { target, commands, selected: input.selected === true };
   const plan_digest = digest(snapshot);
@@ -453,18 +462,15 @@ function executePlan(plan, approval) {
   // record already existed.
   for (const cmd of plan.commands || []) {
     if (cmd.source && plan.target) {
-      const [file, ref] = cmd.source.split('#');
-      const abs = path.join(plan.target, file);
-      if (fs.existsSync(abs)) {
-        try {
-          const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-          const parts = ref.split('.');
-          let node = doc;
-          for (const part of parts) node = node && node[part];
-          if (JSON.stringify(node) !== JSON.stringify(cmd.source_snapshot)) {
-            return { status: 'command_drift', drifted: cmd };
-          }
-        } catch { /* ignore */ }
+      // Re-derived from disk, not trusted from the plan object: the target
+      // could have grown an escaping symlink between plan and execute, and
+      // this is the read that actually feeds the command about to run.
+      const { snapshot, boundary_violation } = readSource(plan.target, cmd);
+      if (boundary_violation) {
+        return { status: 'boundary_violation', violated: cmd };
+      }
+      if (JSON.stringify(snapshot) !== JSON.stringify(cmd.source_snapshot)) {
+        return { status: 'command_drift', drifted: cmd };
       }
     }
   }
@@ -768,12 +774,29 @@ function diffSnapshots(a, b) {
   return changed;
 }
 
+const AUTOFIX_HALT_STATUSES = new Set(['timeout', 'memory_exceeded', 'memory_ceiling_unavailable']);
+
 function runAutofix(target, cmd, approval) {
   if (!approval || !approval.verified) throw new Error('runAutofix: approval required');
-  spawnTask(cmd.argv, { cwd: target });
+  const isolation = networkIsolationPrefix();
+  if (!isolation && cmd.network !== true) {
+    return { verification: 'skipped', status: 'network_isolation_unavailable' };
+  }
+  const runOpts = {
+    cwd: target,
+    timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
+    memoryLimitMb: cmd.memory_limit_mb,
+  };
+  const fixResult = runCommand(argvWithNetworkIsolation(cmd, isolation), runOpts);
+  if (AUTOFIX_HALT_STATUSES.has(fixResult.status)) {
+    return { verification: 'skipped', status: fixResult.status };
+  }
   if (cmd.verify) {
-    const check = spawnTask(cmd.verify, { cwd: target });
-    return { verification: check.status === 0 ? 'pass' : 'fail' };
+    const verifyResult = runCommand(argvWithNetworkIsolation({ argv: cmd.verify, network: cmd.network }, isolation), runOpts);
+    if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
+      return { verification: 'skipped', status: verifyResult.status };
+    }
+    return { verification: verifyResult.exit_code === 0 ? 'pass' : 'fail' };
   }
   return { verification: 'skipped' };
 }

@@ -22,13 +22,21 @@ function requireTool(command) {
   if (!have(command)) throw new Error(`rig: --openclaw-mcp requires '${command}' on PATH`);
 }
 
+function installIdFile(target) {
+  return gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
+}
+
+function readInstallId(target) {
+  const file = installIdFile(target);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, 'utf8').trim() || null;
+}
+
 function installId(target) {
-  const file = gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
+  const existing = readInstallId(target);
+  if (existing) return existing;
+  const file = installIdFile(target);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  if (fs.existsSync(file)) {
-    const existing = fs.readFileSync(file, 'utf8').trim();
-    if (existing) return existing;
-  }
   const id = crypto.randomUUID();
   fs.writeFileSync(file, `${id}\n`);
   return id;
@@ -205,7 +213,7 @@ function registerOpenClawMcp(target, opts = {}) {
 
 function removeOpenClawMcp(target, entry) {
   if (!have('openclaw')) return { removed: false, tooling_missing: true };
-  const id = installId(target);
+  const id = readInstallId(target);
   const ownedName = id ? `rig-${id}` : null;
   const serverKey = entry.server_key || entry.install_id;
   if (
