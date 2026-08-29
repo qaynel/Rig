@@ -5,9 +5,15 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { spawnGuardedSync } = require('./spawn-guarded');
+const {
+  spawnGuardedSync,
+  isolatedTaskEnv,
+  networkIsolationPrefix,
+  executableAvailable,
+} = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
+const { resumeInstall, uninstall: uninstallLifecycle } = require('./lifecycle');
 
 const ECOSYSTEM_SIGNALS = new Map([
   ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
@@ -392,28 +398,37 @@ function finalizeSelection(recommendation, user) {
   };
 }
 
+// AT-LF-24: a `cmd.source` pointing outside the repository through a symlink
+// must be refused, not silently planned with an empty snapshot -- an empty
+// snapshot at plan time and an unguarded re-read at execute time (see
+// executePlan) is exactly how the escape used to slip through as a
+// recoverable "drift" state instead of a hard refusal.
+function readSource(target, cmd) {
+  if (!target || !cmd.source) return { snapshot: null, boundary_violation: false };
+  const [file, ref] = cmd.source.split('#');
+  let abs;
+  try {
+    abs = containedPath(target, file);
+  } catch {
+    return { snapshot: null, boundary_violation: true };
+  }
+  if (!fs.existsSync(abs)) return { snapshot: null, boundary_violation: false };
+  try {
+    const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
+    const parts = ref.split('.');
+    let node = doc;
+    for (const part of parts) node = node && node[part];
+    return { snapshot: node, boundary_violation: false };
+  } catch {
+    return { snapshot: null, boundary_violation: false };
+  }
+}
+
 function planExecution(input) {
   const target = input.target;
   const commands = (input.commands || []).map((cmd) => {
-    let source_snapshot = null;
-    if (target && cmd.source) {
-      const [file, ref] = cmd.source.split('#');
-      const abs = path.join(target, file);
-      if (fs.existsSync(abs)) {
-        try {
-          const root = fs.realpathSync(target);
-          const resolved = fs.realpathSync(abs);
-          if (resolved === root || resolved.startsWith(`${root}${path.sep}`)) {
-            const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-            const parts = ref.split('.');
-            let node = doc;
-            for (const part of parts) node = node && node[part];
-            source_snapshot = node;
-          }
-        } catch { /* ignore */ }
-      }
-    }
-    return { ...cmd, source_snapshot };
+    const { snapshot, boundary_violation } = readSource(target, cmd);
+    return { ...cmd, source_snapshot: snapshot, source_boundary_violation: boundary_violation };
   });
   const snapshot = { target, commands, selected: input.selected === true };
   const plan_digest = digest(snapshot);
@@ -453,18 +468,15 @@ function executePlan(plan, approval) {
   // record already existed.
   for (const cmd of plan.commands || []) {
     if (cmd.source && plan.target) {
-      const [file, ref] = cmd.source.split('#');
-      const abs = path.join(plan.target, file);
-      if (fs.existsSync(abs)) {
-        try {
-          const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-          const parts = ref.split('.');
-          let node = doc;
-          for (const part of parts) node = node && node[part];
-          if (JSON.stringify(node) !== JSON.stringify(cmd.source_snapshot)) {
-            return { status: 'command_drift', drifted: cmd };
-          }
-        } catch { /* ignore */ }
+      // Re-derived from disk, not trusted from the plan object: the target
+      // could have grown an escaping symlink between plan and execute, and
+      // this is the read that actually feeds the command about to run.
+      const { snapshot, boundary_violation } = readSource(plan.target, cmd);
+      if (boundary_violation) {
+        return { status: 'boundary_violation', violated: cmd };
+      }
+      if (JSON.stringify(snapshot) !== JSON.stringify(cmd.source_snapshot)) {
+        return { status: 'command_drift', drifted: cmd };
       }
     }
   }
@@ -505,24 +517,6 @@ function taskCwd(target, rel) {
   return containedPath(target, rel);
 }
 
-// rig: PATH/HOME/tmp/locale plus Windows process vars; secrets and injection
-// vectors (NODE_OPTIONS, LD_PRELOAD, AWS_*) stay off. Expand the list when a
-// real tool needs a named non-secret, not by copying process.env.
-const TASK_ENV_ALLOWLIST = [
-  'PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP',
-  'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'TERM',
-  'SystemRoot', 'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR',
-  'COMSPEC', 'PATHEXT', 'USERNAME', 'USER', 'LOGNAME',
-];
-
-function isolatedTaskEnv() {
-  const env = {};
-  for (const key of TASK_ENV_ALLOWLIST) {
-    if (process.env[key] != null) env[key] = process.env[key];
-  }
-  return env;
-}
-
 function spawnTask(argv, options) {
   return spawnGuardedSync(argv[0], argv.slice(1), {
     encoding: 'utf8',
@@ -543,14 +537,38 @@ function spawnTask(argv, options) {
 // spawn still goes through spawnTask so env isolation (AT-LF-21) and
 // process-group cleanup (RIG-135) hold on both the no-limit path and the
 // watchdog wrapper.
-function runCommand(argv, { cwd, timeoutMs, memoryLimitMb } = {}) {
+function runCommand(argv, {
+  cwd,
+  timeoutMs,
+  memoryLimitMb,
+  cancelled = false,
+  dependencies = [],
+  maxOutputBytes,
+} = {}) {
+  if (cancelled) {
+    return { exit_code: 1, status: 'cancelled', output_digest: digest('') };
+  }
+  if (dependencies.some((dependency) => !executableAvailable(dependency, {
+    cwd,
+    env: isolatedTaskEnv(),
+  }))) {
+    return { exit_code: 1, status: 'missing_dependency', output_digest: digest('') };
+  }
   const effectiveTimeout = timeoutMs || 10 * 60 * 1000;
+  const outputLimit = Number.isInteger(maxOutputBytes) && maxOutputBytes > 0 ? maxOutputBytes : undefined;
   if (!memoryLimitMb) {
-    const result = spawnTask(argv, { cwd, timeout: effectiveTimeout });
+    const result = spawnTask(argv, {
+      cwd,
+      timeout: effectiveTimeout,
+      ...(outputLimit ? { maxBuffer: outputLimit } : {}),
+    });
     const output = `${result.stdout || ''}\n${result.stderr || ''}`;
     return {
       exit_code: result.status == null ? 1 : result.status,
-      status: result.error?.code === 'ETIMEDOUT' ? 'timeout' : result.signal ? 'signalled' : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed',
+      status: result.error?.code === 'ETIMEDOUT' ? 'timeout'
+        : outputLimit && (result.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' || result.signal) ? 'partial_output'
+          : result.signal ? 'signalled'
+            : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed',
       output_digest: digest(output),
     };
   }
@@ -560,13 +578,23 @@ function runCommand(argv, { cwd, timeoutMs, memoryLimitMb } = {}) {
   // watcher itself hanging.
   const outer = spawnTask(
     [process.execPath, MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout), ...argv],
-    { cwd, timeout: effectiveTimeout + 5000 },
+    {
+      cwd,
+      timeout: effectiveTimeout + 5000,
+      ...(outputLimit ? { maxBuffer: outputLimit } : {}),
+    },
   );
   let meta;
   try {
     meta = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
   } catch {
-    meta = { killed_for: outer.error?.code === 'ETIMEDOUT' ? 'timeout' : null, code: 1, signal: outer.signal || null };
+    meta = {
+      killed_for: outer.error?.code === 'ETIMEDOUT' ? 'timeout'
+        : outputLimit && (outer.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' || outer.signal) ? 'partial_output'
+          : outer.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' ? 'partial_output' : null,
+      code: 1,
+      signal: outer.signal || null,
+    };
   } finally {
     fs.rmSync(resultFile, { force: true });
   }
@@ -603,6 +631,9 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
       cwd,
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
+      cancelled: cmd.cancelled,
+      dependencies: cmd.dependencies,
+      maxOutputBytes: cmd.max_output_bytes,
     });
     return { ...cmd, result };
   });
@@ -652,28 +683,6 @@ function resolveScope({ root, changed, ignores, requested }) {
 // AT-LF-22: OS-level isolation so an ungranted task cannot open a socket.
 // rig: Seatbelt defaults to deny; `(deny network*)` alone refuses execvp of
 // the task. `allow default` then deny network is the profile that still runs.
-const NETWORK_SANDBOX_PROFILE = '(version 1)(allow default)(deny network*)';
-
-function networkIsolationPrefix() {
-  if (process.platform === 'linux') {
-    const prefix = ['unshare', '--user', '--map-root-user', '--net', '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  if (process.platform === 'darwin') {
-    const prefix = ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  return null;
-}
-
 function argvWithNetworkIsolation(cmd, prefix) {
   const argv = cmd.argv || [];
   if (cmd.network === true) return argv;
@@ -699,6 +708,9 @@ function runReadOnly(target, commands) {
       cwd,
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
+      cancelled: cmd.cancelled,
+      dependencies: cmd.dependencies,
+      maxOutputBytes: cmd.max_output_bytes,
     });
     if (result.status === 'timeout' || result.status === 'memory_exceeded' || result.status === 'memory_ceiling_unavailable') {
       return { status: result.status, changed_paths };
@@ -768,12 +780,32 @@ function diffSnapshots(a, b) {
   return changed;
 }
 
+const AUTOFIX_HALT_STATUSES = new Set(['timeout', 'memory_exceeded', 'memory_ceiling_unavailable']);
+
 function runAutofix(target, cmd, approval) {
   if (!approval || !approval.verified) throw new Error('runAutofix: approval required');
-  spawnTask(cmd.argv, { cwd: target });
+  const isolation = networkIsolationPrefix();
+  if (!isolation && cmd.network !== true) {
+    return { verification: 'skipped', status: 'network_isolation_unavailable' };
+  }
+  const runOpts = {
+    cwd: target,
+    timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
+    memoryLimitMb: cmd.memory_limit_mb,
+    cancelled: cmd.cancelled,
+    dependencies: cmd.dependencies,
+    maxOutputBytes: cmd.max_output_bytes,
+  };
+  const fixResult = runCommand(argvWithNetworkIsolation(cmd, isolation), runOpts);
+  if (AUTOFIX_HALT_STATUSES.has(fixResult.status)) {
+    return { verification: 'skipped', status: fixResult.status };
+  }
   if (cmd.verify) {
-    const check = spawnTask(cmd.verify, { cwd: target });
-    return { verification: check.status === 0 ? 'pass' : 'fail' };
+    const verifyResult = runCommand(argvWithNetworkIsolation({ argv: cmd.verify, network: cmd.network }, isolation), runOpts);
+    if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
+      return { verification: 'skipped', status: verifyResult.status };
+    }
+    return { verification: verifyResult.exit_code === 0 ? 'pass' : 'fail' };
   }
   return { verification: 'skipped' };
 }
@@ -803,40 +835,41 @@ function buildReport({ results }) {
   };
 }
 
-function classifyEnding({ kind }) {
-  return { status: kind, passing: false, blocking: true };
+function classifyEnding(result = {}) {
+  const status = result.kind || result.status;
+  return { status, passing: false, blocking: true };
 }
 
 function install(target, opts = {}) {
-  const records = [];
+  const grade = opts.grade || 'minimal';
+  const binding = opts.binding || buildBinding(target, grade, opts.ci || null);
+  const bindingDigest = digest(binding);
   const operations = [
-    { path: '.rig/lint-format/plan.json', content: '{}\n' },
-    { path: '.rig/lint-format/binding.json', content: '{}\n' },
-    { path: '.rig/lint-format/receipt.json', content: '{}\n' },
+    {
+      path: '.rig/lint-format/plan.json',
+      content: `${JSON.stringify({ kind: 'lint-format-install-plan', grade, binding_digest: bindingDigest }, null, 2)}\n`,
+    },
+    {
+      path: '.rig/lint-format/binding.json',
+      content: `${JSON.stringify(binding, null, 2)}\n`,
+    },
+    {
+      path: '.rig/lint-format/receipt.json',
+      content: `${JSON.stringify({
+        kind: 'lint-format-install-receipt',
+        grade,
+        binding_digest: bindingDigest,
+        support_claim: binding.support_claim,
+      }, null, 2)}\n`,
+    },
   ];
-  const limit = opts.interrupt_after !== undefined ? opts.interrupt_after : operations.length;
-  for (let i = 0; i < Math.min(limit, operations.length); i += 1) {
-    const op = operations[i];
-    const abs = containedPath(target, op.path);
-    fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, op.content);
-    records.push({ seq: i + 1, path: op.path, digest: digest(op.content) });
-  }
-  const complete = records.length === operations.length;
-  return { supported: complete, manifest: { records } };
+  const result = resumeInstall(target, { operations, interrupt_after: opts.interrupt_after });
+  return { supported: result.complete, manifest: { records: result.records } };
 }
 
 function uninstall(target, manifest) {
   if (!manifest || !Array.isArray(manifest.records)) return { removed: false };
-  for (const record of manifest.records) {
-    const abs = containedPath(target, record.path);
-    if (fs.existsSync(abs)) fs.rmSync(abs, { force: true });
-  }
-  const dir = path.join(target, '.rig/lint-format');
-  if (fs.existsSync(dir)) {
-    try { fs.rmdirSync(dir); } catch { /* not empty */ }
-  }
-  return { removed: true };
+  return uninstallLifecycle(target);
 }
 
 function supportStatus(components) {
@@ -872,6 +905,7 @@ module.exports = {
   executePlan,
   applyCoverage,
   runGrade,
+  runCommand,
   resolveScope,
   spawnTask,
   runReadOnly,

@@ -1005,12 +1005,24 @@ test('AT-LF-23 a task exceeding its resource or time cap is killed and reported'
 
 test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
   const planExecution = api('lint-format.js', 'planExecution');
+  const executePlan = api('lint-format.js', 'executePlan');
   h.withRepo((target) => {
     const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
-    fs.writeFileSync(path.join(outside, 'secret.json'), JSON.stringify({ scripts: { lint: 'rm -rf /' } }));
+    fs.writeFileSync(path.join(outside, 'secret.json'), JSON.stringify({ scripts: { lint: 'node -e "require(\'fs\').writeFileSync(\'ran\', \'x\')"' } }));
     fs.symlinkSync(path.join(outside, 'secret.json'), path.join(target, 'linked.json'));
     const planned = planExecution({ target, commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'linked.json#scripts.lint' }] });
+    // Planning must never have read through the escaping symlink.
     assert.equal(planned.commands[0].source_snapshot, null);
+    assert.equal(planned.commands[0].source_boundary_violation, true);
+    // Execution independently refuses too -- it does not trust the plan-time
+    // flag, since the symlink could appear only after planning. A weaker
+    // fix would let this fall through to 'command_drift' (a recoverable
+    // state) after actually reading the outside file's bytes; assert the
+    // hard refusal and that the outside command's side effect never ran.
+    const result = executePlan(planned, { plan_digest: planned.plan_digest });
+    assert.equal(result.status, 'boundary_violation');
+    assert.equal(fs.existsSync(path.join(target, 'ran')), false);
+    assert.equal(fs.existsSync(path.join(outside, 'ran')), false);
   });
 });
 

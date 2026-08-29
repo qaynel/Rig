@@ -11,6 +11,7 @@ const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
 const { runPayload } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
+const { PROVIDERS, applyCiPlan, planCiIntegration, GITHUB_WORKFLOW_POINTER } = require('../rig/lib/ci-adapters');
 const { writePlanApproval } = require('./helpers/advanced');
 
 const root = path.join(__dirname, '..');
@@ -37,6 +38,300 @@ test('public uninstall reverses a default bootstrap install', () => withTarget((
   assert.equal(fs.readFileSync(envExample, 'utf8'), envBefore);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'routing.md')), false);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), false);
+}));
+
+test('uninstall removes only the uniquely attributable CI provider file', () => {
+  for (const provider of Object.keys(PROVIDERS)) withTarget((target) => {
+    applyCiPlan(target, planCiIntegration(target, { provider, approved: true }));
+    const artifact = planCiIntegration(target, { provider, approved: true }).artifact.relativePath;
+    assert.equal(fs.existsSync(path.join(target, artifact)), true, provider);
+
+    const result = uninstall(target);
+
+    const uniquelyAttributed = provider === 'github-actions';
+    assert.equal(result.status, uniquelyAttributed ? 'removed' : 'best_effort', provider);
+    assert.equal(fs.existsSync(path.join(target, artifact)), !uniquelyAttributed, provider);
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), !uniquelyAttributed, provider);
+  });
+});
+
+test('a forged create-owned record cannot delete an existing Jenkins pipeline', () => withTarget((target) => {
+  const body = [
+    'pipeline {', '  agent any', '  stages {', "    stage('Rig check') {", '      steps {',
+    "        sh 'node .rig/bin/check.js --scope repo'", '      }', '    }', '  }', '}', '',
+  ].join('\n');
+  const file = path.join(target, 'Jenkinsfile');
+  fs.writeFileSync(file, body);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: 'Jenkinsfile',
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'create_owned',
+    digest: digest(body),
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(result.status, 'best_effort');
+  assert.equal(fs.readFileSync(file, 'utf8'), body);
+  assert.ok(result.best_effort.includes('Jenkinsfile'));
+}));
+
+test('forged records cannot delete non-Rig CI files inside provider directories', () => {
+  for (const rel of [
+    '.github/workflows/user-ci.yml',
+    '.github/dependabot.yml',
+    '.circleci/deploy.yml',
+    '.buildkite/deploy.yml',
+    'azure-pipelines.yaml',
+  ]) withTarget((target) => {
+    const body = `user pipeline at ${rel}\n`;
+    const file = path.join(target, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: rel,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: 'create_owned',
+      digest: digest(body),
+    })}\n`);
+
+    const result = uninstall(target);
+
+    assert.equal(result.status, 'best_effort', rel);
+    assert.equal(fs.readFileSync(file, 'utf8'), body, rel);
+    assert.ok(result.best_effort.includes(rel), rel);
+  });
+});
+
+test('uninstall preserves a user CI file that Rig merged into', () => withTarget((target) => {
+  const file = path.join(target, 'Jenkinsfile');
+  fs.writeFileSync(file, 'pipeline { stages { /* user stage */ } }\n');
+  applyCiPlan(target, planCiIntegration(target, { provider: 'jenkins', approved: true }));
+
+  const result = uninstall(target);
+
+  assert.equal(result.status, 'best_effort');
+  assert.match(fs.readFileSync(file, 'utf8'), /user stage/);
+}));
+
+test('a forged managed_line record cannot strip lines from a CI file', () => {
+  for (const rel of ['Jenkinsfile', '.circleci/config.yml', '.github/workflows/user-ci.yml']) withTarget((target) => {
+    const body = `line-a\nline-b\nline-c\n`;
+    const file = path.join(target, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: rel,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: 'create_owned',
+      managed_line: 'line-b',
+    })}\n`);
+
+    const result = uninstall(target);
+
+    assert.equal(result.status, 'best_effort', rel);
+    assert.equal(fs.readFileSync(file, 'utf8'), body, rel);
+    assert.ok(result.best_effort.includes(rel), rel);
+  });
+});
+
+test('a forged append_managed record cannot strip arbitrary lines from a CI file', () => {
+  for (const extra of [{}, { managed_block: 'rig' }]) withTarget((target) => {
+    const rel = '.github/workflows/user-ci.yml';
+    const body = 'line-a\nline-b\nline-c\n';
+    const file = path.join(target, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: rel,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: 'append_managed',
+      managed_line: 'line-b',
+      ...extra,
+    })}\n`);
+
+    const result = uninstall(target);
+
+    assert.equal(result.status, 'best_effort');
+    assert.equal(fs.readFileSync(file, 'utf8'), body);
+    assert.ok(result.best_effort.includes(rel));
+  });
+});
+
+test('uninstall removes only the Rig-managed line from an existing GitHub workflow', () => withTarget((target) => {
+  const rel = '.github/workflows/user-ci.yml';
+  const file = path.join(target, rel);
+  const userBody = [
+    'name: user-ci', 'on: push', 'jobs:', '  test:', '    runs-on: ubuntu-latest',
+    '    steps:', '      - run: echo user', '',
+  ].join('\n');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, userBody);
+  applyCiPlan(target, planCiIntegration(target, { provider: 'github-actions', approved: true }));
+  assert.ok(fs.readFileSync(file, 'utf8').includes(GITHUB_WORKFLOW_POINTER));
+  assert.equal(fs.existsSync(path.join(target, '.github/workflows/rig.yml')), true);
+
+  const result = uninstall(target);
+
+  assert.equal(fs.readFileSync(file, 'utf8'), userBody);
+  assert.equal(fs.existsSync(path.join(target, '.github/workflows/rig.yml')), false);
+  assert.ok(result.removed.includes(rel));
+  assert.ok(result.removed.includes('.github/workflows/rig.yml'));
+}));
+
+test('a forged unique create_owned record cannot strip lines from a user-edited Rig workflow', () => withTarget((target) => {
+  const rel = '.github/workflows/rig.yml';
+  const body = [
+    'name: user-ci', 'on: push', 'jobs:', '  test:', '    runs-on: ubuntu-latest',
+    '    steps:', '      - run: echo user', '',
+  ].join('\n');
+  const file = path.join(target, rel);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, body);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: rel,
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'create_owned',
+    managed_line: '      - run: echo user',
+    digest: digest('other bytes\n'),
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(result.status, 'best_effort');
+  assert.equal(fs.readFileSync(file, 'utf8'), body);
+  assert.ok(result.best_effort.includes(rel));
+}));
+
+test('a lexical journal alias cannot delete a user CI file via an install-tree prefix', () => {
+  for (const record of [
+    { path: '.rig/../Jenkinsfile', ownership: 'create_owned', digest: true },
+    {
+      path: '.github/workflows/x/../../../Jenkinsfile',
+      ownership: 'append_managed',
+      managed_line: GITHUB_WORKFLOW_POINTER,
+    },
+  ]) withTarget((target) => {
+    const body = 'pipeline { agent any }\n';
+    const file = path.join(target, 'Jenkinsfile');
+    fs.writeFileSync(file, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: record.path,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: record.ownership,
+      ...(record.digest ? { digest: digest(body) } : {}),
+      ...(record.managed_line ? { managed_line: record.managed_line } : {}),
+    })}\n`);
+
+    const result = uninstall(target);
+
+    assert.equal(fs.readFileSync(file, 'utf8'), body, record.path);
+    assert.equal(result.status, 'best_effort', record.path);
+  });
+});
+
+test('an in-repo symlink at the unique CI path cannot rewrite a user pipeline', () => withTarget((target) => {
+  const body = "pipeline { steps { echo 'user' } }\n";
+  const jenkins = path.join(target, 'Jenkinsfile');
+  fs.writeFileSync(jenkins, body);
+  fs.mkdirSync(path.join(target, '.github/workflows'), { recursive: true });
+  fs.symlinkSync(jenkins, path.join(target, '.github/workflows/rig.yml'));
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: '.github/workflows/rig.yml',
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'create_owned',
+    managed_line: "pipeline { steps { echo 'user' } }",
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(fs.readFileSync(jenkins, 'utf8'), body);
+  assert.equal(result.status, 'best_effort');
+}));
+
+test('a forged pointer record cannot delete an empty GitHub workflow', () => withTarget((target) => {
+  const rel = '.github/workflows/user-ci.yml';
+  const file = path.join(target, rel);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, '');
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: rel,
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'append_managed',
+    managed_line: GITHUB_WORKFLOW_POINTER,
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(fs.readFileSync(file, 'utf8'), '');
+  assert.equal(result.status, 'best_effort');
+  assert.ok(result.best_effort.includes(rel));
+}));
+
+test('an install-tree directory symlink cannot retarget uninstall at a user CI file', () => withTarget((target) => {
+  const body = 'pipeline { agent any }\n';
+  const file = path.join(target, 'Jenkinsfile');
+  fs.writeFileSync(file, body);
+  fs.symlinkSync('.', path.join(target, '.pi'));
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: '.pi/Jenkinsfile',
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'create_owned',
+    digest: digest(body),
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(fs.readFileSync(file, 'utf8'), body);
+  assert.equal(result.status, 'best_effort');
+}));
+
+test('a hard link from an install tree cannot rewrite a user CI file', () => withTarget((target) => {
+  const body = 'line-a\nline-b\nline-c\n';
+  const file = path.join(target, 'Jenkinsfile');
+  fs.writeFileSync(file, body);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.linkSync(file, path.join(target, '.rig', 'owned'));
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: '.rig/owned',
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'create_owned',
+    managed_line: 'line-b',
+  })}\n`);
+
+  const result = uninstall(target);
+
+  assert.equal(fs.readFileSync(file, 'utf8'), body);
+  assert.equal(result.status, 'best_effort');
 }));
 
 test('a retained user-edited file keeps the journal for retry', () => withTarget((target) => {
@@ -101,12 +396,12 @@ test('uninstall removes preimages empty instruction files and empty Rig director
 }));
 
 test('missing OpenClaw tooling does not stop unrelated local removal', () => withTarget((target) => {
-  const local = path.join(target, 'local-rig-file');
-  fs.writeFileSync(local, 'remove me\n');
+  const local = path.join(target, '.rig', 'local-rig-file');
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(local, 'remove me\n');
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
     seq: 1,
-    path: 'local-rig-file',
+    path: '.rig/local-rig-file',
     state: 'applied',
     transaction_kind: 'install',
     digest: digest('remove me\n'),

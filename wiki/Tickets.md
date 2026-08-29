@@ -178,8 +178,8 @@ kanban-plugin: board
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
 	- The §3.1 ❔/🟡 conflicts (codewhale, hermes, swival, antigravity CLI) are each resolved to a decided disposition in the wiki.
 - [ ] **RIG-120 — Finish the release ceremony and cut v5.0.0**
-	**Status:** BLOCKED (2026-08-26) — GitHub #68 — gate green 474/15/6; RIG-126/127/128/129/131/134 Done; round-3 receipt predates those merges; owner must run a fresh receipt · [Solution](tickets/RIG-120.md)
-	**Problem:** status.md: the release is blocked on owner-controlled inputs — a fresh independent review receipt bound to the exact PR worktree, the intent owner's signer-class attestation on the frozen Gate 1 signer file, and the explicit `v5.0.0` tag/publish (never an implicit side effect). Until these land there is no installable release, only a source checkout. Follow-ups [[RIG-127]] 127.11/127.12 (#69/#70) remain open but are not gate-red.
+	**Status:** BLOCKED (2026-08-28) — GitHub #68 — forged CI managed-line attribution is closed; fresh independent review and explicit publish remain · [Solution](tickets/RIG-120.md)
+	**Problem:** cleanup now resolves containment before preservation and refuses to treat an editable journal as proof that a common CI pipeline is tool-owned. The owner-signed oracle and literal full gate are green; a passing fresh review must bind the final bytes before the explicit `v5.0.0` tag/publish.
 	**Acceptance:**
 	- A fresh independent review receipt is produced against the exact PR worktree and passes.
 	- The signer-class attestation is added via an owner-authorized re-signing ceremony.

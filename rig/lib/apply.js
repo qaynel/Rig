@@ -360,6 +360,13 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/bin/check.js', readSource('catalog/baseline/check.js'), 0o755);
     writeOwned('.rig/bin/check-copies.js', readSource('catalog/baseline/check-copies.js'), 0o755);
     writeOwned('.rig/lib/spawn-guarded.js', readSource('lib/spawn-guarded.js'), 0o644);
+    writeOwned('.rig/lib/path-safety.js', readSource('lib/path-safety.js'), 0o644);
+    writeOwned('.rig/lib/memory-guarded-exec.js', readSource('lib/memory-guarded-exec.js'), 0o644);
+    // Canonical runBinding/runArgv implementation (GA-38): the installed
+    // check.js requires this rather than carrying its own copy, so a
+    // containment/execution fix can no longer land in one runner and miss
+    // the other.
+    writeOwned('.rig/lib/check-runner.js', readSource('lib/check-runner.js'), 0o644);
     writeOwned('.rig/bin/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/hooks/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));
@@ -369,6 +376,15 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       writeOwned(
         '.rig/network-policy.json',
         readSource('catalog/baseline/network-policy.json'),
+        undefined,
+        'user_owned',
+        { transaction_kind: 'user_seed' },
+      );
+    }
+    if (!fs.existsSync(containedPath(target, '.rig/execution-policy.json'))) {
+      writeOwned(
+        '.rig/execution-policy.json',
+        readSource('catalog/baseline/execution-policy.json'),
         undefined,
         'user_owned',
         { transaction_kind: 'user_seed' },

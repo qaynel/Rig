@@ -54,9 +54,19 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
     unresolved: [],
   });
   const fake = path.join(bin, 'claude');
+  const response = `${'```json'}\n${reported}\n${'```'}\n`;
   fs.writeFileSync(
     fake,
-    stub || `#!/bin/sh\ncat >/dev/null\nprintf 'x' >> '${invocationMarker}'\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`,
+    stub || [
+      '#!/usr/bin/env node',
+      "'use strict';",
+      'process.stdin.resume();',
+      'process.stdin.on(\'end\', () => {',
+      `  require('node:fs').appendFileSync(${JSON.stringify(invocationMarker)}, 'x');`,
+      `  process.stdout.write(${JSON.stringify(response)});`,
+      '});',
+      '',
+    ].join('\n'),
     { mode: 0o755 },
   );
   const run = spawnSync(process.execPath, [
@@ -147,6 +157,45 @@ test('all repository mutation paths refuse ancestor symlinks that leave the targ
   }
 });
 
+test('OpenClaw runtime preservation cannot bypass journal path containment', () => {
+  withTarget((target, outside) => {
+    const runtime = 'escape/runtime';
+    const victim = path.join(outside, 'runtime', 'victim');
+    fs.mkdirSync(path.dirname(victim), { recursive: true });
+    fs.writeFileSync(victim, 'outside\n');
+    fs.symlinkSync(outside, path.join(target, 'escape'));
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: `${runtime}/victim`,
+      state: 'applied',
+      transaction_kind: 'install',
+      ownership: 'create_owned',
+      digest: sha256('outside\n'),
+    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: path.join(outside, 'openclaw.json'),
+      server_key: 'rig-forged',
+      install_id: 'forged',
+      runtime,
+      value: { command: 'node', args: [victim] },
+    }] })}\n`);
+    const bin = path.join(outside, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 2\n', { mode: 0o755 });
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = bin;
+    try {
+      assert.throws(() => uninstall(target), /outside|escape|symlink|unsafe/i);
+      assert.equal(fs.readFileSync(victim, 'utf8'), 'outside\n');
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  });
+});
+
 test('the lifecycle uninstaller consumes the shipping JSONL journal', () => {
   withTarget((target) => {
     runPayload(target, []);
@@ -212,6 +261,93 @@ test('the shipping CLI restores chained hooks and removes only attributed global
     assert.equal(remaining.user, true);
     assert.equal(remaining.rig['repo-a'], undefined);
     assert.deepEqual(remaining.rig['repo-b'], { enabled: true });
+  });
+});
+
+test('forged journal record cannot delete unrelated in-repository file with matching digest', () => {
+  withTarget((target) => {
+    const victim = path.join(target, 'package.json');
+    const content = '{"name":"victim-repo","private":true}\n';
+    fs.writeFileSync(victim, content);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+      seq: 1,
+      path: 'package.json',
+      state: 'applied',
+      transaction_kind: 'install',
+      digest: sha256(content),
+    })}\n`);
+    const result = uninstall(target);
+    assert.equal(fs.readFileSync(victim, 'utf8'), content);
+    assert.ok(result.best_effort.includes('package.json'));
+  });
+});
+
+test('forged OpenClaw ledger entry cannot unregister unrelated user-global MCP server', () => {
+  withTarget((target, outside) => {
+    const bin = path.join(outside, 'bin');
+    const config = path.join(outside, 'openclaw.json');
+    const installId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const victimValue = { command: 'node', args: ['/tmp/victim.js'] };
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/install-id'), `${installId}\n`);
+    fs.writeFileSync(config, `${JSON.stringify({ 'user-owned-server': victimValue })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: config,
+      server_key: 'user-owned-server',
+      install_id: installId,
+      value: victimValue,
+      state: 'applied',
+    }] })}\n`);
+    const unsetLog = path.join(outside, 'unset.log');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), [
+      '#!/bin/sh',
+      'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then',
+      '  printf \'{"user-owned-server":{"command":"node","args":["/tmp/victim.js"]}}\';',
+      '  exit 0',
+      'fi',
+      `if [ "$1" = "mcp" ] && [ "$2" = "unset" ]; then echo "$3" >> "${unsetLog}"; exit 0; fi`,
+      'exit 2',
+      '',
+    ].join('\n'), { mode: 0o755 });
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${bin}${path.delimiter}${oldPath}`;
+    try {
+      const result = uninstall(target);
+      assert.equal(result.status, 'best_effort');
+      assert.match(fs.readFileSync(config, 'utf8'), /user-owned-server/);
+      assert.equal(fs.existsSync(unsetLog), false, 'must not call openclaw mcp unset on an unrelated server name');
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  });
+});
+
+test('OpenClaw removal does not create an install identity when one is missing', () => {
+  withTarget((target, outside) => {
+    const bin = path.join(outside, 'bin');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 2\n', { mode: 0o755 });
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
+      kind: 'openclaw-mcp',
+      path: path.join(outside, 'openclaw.json'),
+      server_key: 'rig-forged',
+      install_id: 'forged',
+      value: { command: 'node', args: ['/tmp/forged.js'] },
+    }] })}\n`);
+
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${bin}${path.delimiter}${oldPath}`;
+    try {
+      uninstall(target);
+      assert.equal(fs.existsSync(path.join(target, '.rig/install-id')), false);
+    } finally {
+      process.env.PATH = oldPath;
+    }
   });
 });
 
@@ -985,7 +1121,16 @@ test('review wrapper output validates without schema translation', () => {
       unresolved: [],
     });
     const fake = path.join(bin, 'claude');
-    fs.writeFileSync(fake, `#!/bin/sh\ncat >/dev/null\nprintf '%s\\n' '${'```json'}' '${reported}' '${'```'}'\n`, { mode: 0o755 });
+    const response = `${'```json'}\n${reported}\n${'```'}\n`;
+    fs.writeFileSync(fake, [
+      '#!/usr/bin/env node',
+      "'use strict';",
+      'process.stdin.resume();',
+      'process.stdin.on(\'end\', () => {',
+      `  process.stdout.write(${JSON.stringify(response)});`,
+      '});',
+      '',
+    ].join('\n'), { mode: 0o755 });
 
     const run = spawnSync(process.execPath, [
       path.join(root, 'scripts/review-receipt.js'),

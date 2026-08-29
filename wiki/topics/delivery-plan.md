@@ -102,7 +102,7 @@ the Policy rung, authored in one pass at agent discretion.
 The MVP order, each step with one verifiable outcome:
 
 1. Repair the record (done 2026-08-21).
-2. Build all 68 deterministic targets, the first-running oracle verifier, and
+2. Build all 73 deterministic targets, the first-running oracle verifier, and
    `npm run test:code`; manifest the test bytes and obtain the owner signature.
    Product-behavior failures are expected before implementation.
 3. Wire all 55 swallowed skills and ship a real install path (`install.sh`,

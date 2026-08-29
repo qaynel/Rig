@@ -4,23 +4,21 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { containedPath } = require('../lib/path-safety');
 
+// containedPath walks every intermediate path segment, not just the leaf --
+// a leaf-only symlink check (the previous implementation here) misses a
+// symlinked *directory* partway through `rel`, which resolves outside root
+// without the leaf itself ever being a symlink.
 function inspectInside(root, rel, kind) {
-  const abs = path.resolve(root, rel);
-  if (abs !== root && !abs.startsWith(root + path.sep)) {
+  let abs;
+  try {
+    abs = containedPath(root, rel);
+  } catch {
     return { ok: false, reason: `out-of-root ${kind} path: ${rel}` };
   }
-  let stat;
-  try {
-    stat = fs.lstatSync(abs);
-  } catch {
+  if (!fs.existsSync(abs)) {
     return { ok: false, reason: `missing ${kind}: ${rel}` };
-  }
-  if (stat.isSymbolicLink()) {
-    const real = fs.realpathSync(abs);
-    if (real !== root && !real.startsWith(root + path.sep)) {
-      return { ok: false, reason: `escaping symlink: ${rel}` };
-    }
   }
   return { ok: true, abs };
 }
@@ -59,4 +57,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main };
+module.exports = { main, inspectInside };

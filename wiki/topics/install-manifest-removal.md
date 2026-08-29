@@ -38,6 +38,28 @@ user-owned policy files survive ordinary removal; `--purge` lists
 reports/run history before deleting those usage artifacts and still
 preserves the user policy.
 
+Uninstall resolves every ordinary journal path through the symlink-aware
+containment guard before applying its install-namespace allow-list, so an
+escaping path is refused before any preservation decision. Classification and
+mutation use the contained relative path, not the journal's lexical spelling,
+and uninstall never writes through an in-repo symlink. The install journal
+records intended mutation history; it is not independent proof of exclusive
+ownership. An editable `create_owned` record, matching digest, `managed_line`,
+`managed_block`, or `append_managed` label cannot authorize deleting or rewriting
+a provider-generic pipeline file. Of the six provider locations, only the
+dedicated `.github/workflows/rig.yml` path is uniquely attributable and removed
+as a whole file, and only when its digest still matches. The only CI line-strip
+uninstall performs is the exact pointer the GitHub adapter appends onto an
+existing workflow, and only for that append-managed write. Common GitLab,
+CircleCI, Jenkins, Buildkite, and Azure pipeline files, other files inside
+provider directories, lexical path aliases, unique-path symlinks, and forged
+managed-line records are retained as named best-effort cases.
+[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
+[Intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
+[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
+[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
+[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+
 ## Why
 
 Removal is product behavior, not cleanup. Record-before-mutate makes every
@@ -51,8 +73,17 @@ beyond the selected target.
 - Working mechanism: [technical specification](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
 - Original lifecycle ruling: [advanced grilling](../sources/logs/advanced-grilling.md)
 - Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
+- Safety follow-up: [reasoning trace](../reasoning/2026-08-28-rig120-safety-followup.md)
+- Editable-journal ruling: [intent-owner trace](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
+- CI managed-line ruling: [reasoning trace](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
+- CI path-identity ruling: [reasoning trace](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
+- CI realpath ruling: [reasoning trace](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
 
 ## Remaining work
 
-A real install→uninstall roundtrip now gates clean removal. Fresh independent
+A real install→uninstall roundtrip now proves the dedicated Rig workflow is
+removed, the GitHub adapter's pointer line is stripped from existing workflows,
+and common provider files plus forged managed-line records are preserved. Exact
+independently proven reversal of namespaced merges into common CI files remains
+separate work; uninstall currently names those as best-effort. Fresh independent
 review remains the release check on the combined lifecycle.

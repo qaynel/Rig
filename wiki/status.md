@@ -1,4 +1,433 @@
-# Status - checked 2026-08-28 (updated 2026-08-28)
+# Status - checked 2026-08-29 (updated 2026-08-29)
+
+## RIG-120 fresh independent review passes (2026-08-29, latest)
+
+The owner authorized another local force re-review and iteration to a passing
+receipt. The eight prior runtime/design findings remain remediated in the
+working tree. The strict autofix-command digest experiment was removed because
+it contradicted the signed acceptance test; exact argv binding is now stated
+honestly as a non-frozen hardening gap, while the signed separate-approval and
+re-verification behavior stays intact. The historical re-sign blocker is fixed
+at its reusable cause: the ceremony helper now refuses a changed manifest or
+any re-sign until the owner returns the digest of the exact proposed combined
+oracle, and it changes no frozen byte before that confirmation. Its focused
+test was observed red before implementation and is green after. The combined
+focused suite is green (112/112). The requested Opus force re-review launched
+but the local Claude account exited before reviewing because its session limit
+is exhausted until 22:10 IST; no receipt or findings were produced. The fresh
+fallback Codex review completed but failed on five findings that require
+reopening the frozen-vs-CI authority split: it treats every CI check as needing
+a one-use human plan approval, while the owner-approved CI design explicitly
+requires committed policy or refusal and forbids fake approval. It also asks
+for whole-child filesystem sandboxing beyond the narrower executable case.
+That non-binding fallback report is saved under sources/reviews; no frozen
+artifact is being rewritten to satisfy it. The full `npm test` gate is now
+green: the signed oracle verifies, the root suite reports 544 pass / 1
+platform skip, the pi-extension suite passes 15/15, and rig-mcp passes 6/6.
+The earlier aggregate review-test hang was reproduced and removed by replacing
+its forked shell/stdin fake with a single-process Node fake; its focused suite
+passes 40/40 and the full parallel gate now terminates. The owner switched the
+unavailable Opus reviewer to Claude Sonnet 4.6. That fresh review passes with
+zero blockers and zero unresolved cases. Its two non-blocking notes are
+accepted follow-up: add explicit coverage for an unchanged-manifest re-sign
+confirmation, and strengthen shipping disclosure coverage for
+repository-owned task execution without editing the frozen test. The receipt
+is refreshed after this tracked status reconciliation so its implementation
+digest binds the final bytes. Nothing has been committed or pushed.
+
+## RIG-120 fresh review FAIL again, 8 findings — handoff written, not yet fixed (2026-08-29, latest)
+
+A newer fresh review (author-context `...ceremony-2026-08-29`, run after
+the capability-policy close-out below) came back `fail` with 8 findings (3
+blockers, 3 majors, 2 minors) — deeper than the prior force-rereview: the
+canonical `check-runner.js` unification is real but still defaults network
+open on undeclared bindings, leaks the full parent environment, and the
+plan/one-shot guarantees still have no shipping caller; separately, the
+gate1 re-sign mechanism itself (`approve-gate1.js`) blindly absorbs any
+oracle edit into a fresh signature, which is what commits `5b5cfb6` and
+`0d59371` did on this branch. Raw report saved:
+[[sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.failed.review.json]].
+Owner made three scoping decisions (keep CI-path plan/approval out per
+GA-38, revert the on-branch oracle re-sign rather than justify it, iterate
+locally via `--interim` before spending the real capped review) and asked
+for an execution handoff. Full brief, all 8 findings mapped to fixes, and
+the local-iteration-loop mechanics:
+[[reasoning/2026-08-29-rig120-fresh-review-v2-handoff]]. Not started yet —
+next session/agent should pick up there.
+
+## RIG-120 autofix isolation/caps gap closed (2026-08-29)
+
+Fixed the "major" finding from the 2026-08-29 force-rereview
+([[reasoning/2026-08-29-rig120-force-rereview-fail]]): `runAutofix`
+(`rig/lib/lint-format.js:777`) called bare `spawnTask` for both its fix and
+verify commands, with no `networkIsolationPrefix`, `timeoutMs`, or
+`memoryLimitMb` — the only one of the three execution seams (read/grade/fix)
+missing those guarantees, and the mutating one. It now routes both commands
+through `networkIsolationPrefix()` + `runCommand(..., { timeoutMs,
+memoryLimitMb })`, matching `runGrade`/`runReadOnly`: an ungranted command
+refuses with `network_isolation_unavailable` when no OS isolation is
+available, and a `timeout`/`memory_exceeded` result on either the fix or
+verify step halts before reporting `verification: 'pass'`.
+
+Two new regression tests in `tests/guarantee-coverage.test.js`
+(`AT-PROC-1r` network, `AT-PROC-1s` memory ceiling), both confirmed
+red-before (via `git stash` of only the `lint-format.js` change) and
+green-after. Not added to the frozen oracle — same non-frozen pattern used
+for every other single-seam gap fix in this ticket's history, so this does
+not force a second oracle re-sign. The existing frozen `AT-LF-12` case still
+passes unchanged.
+
+**Does not by itself clear the review.** The other blocker from the same
+force-rereview — `tests/advanced-oracle.test.js` hashes to `7efc231c…` but
+`wiki/gate1/testing-infrastructure.manifest` still pins `6997a0be…` — is a
+ceremony step, not a code defect; `npm test` confirms the gate is red on
+exactly this digest mismatch (`scripts/check-advanced-spec.js` output).
+Needs the key holder to re-sign against current bytes; `RIG_GATE1_SIGNING_KEY`
+is not available in this session.
+
+Ran `npm run test:code` (bypassing the gate, same as prior passes in this
+history) to confirm no regressions: 535/537 pass, 1 expected Linux-only skip,
+1 failure (`review-receipt cap is scoped per author-context and clears on a
+passing verdict`, RIG-124) — confirmed pre-existing full-suite flakiness, not
+caused by this fix: it passes standalone (`node --test
+tests/release-blockers.test.js`, 40/40 in ~19s) both with and without the
+`lint-format.js`/`guarantee-coverage.test.js` change stashed out; it only
+fails, and takes ~30 minutes instead of ~1s, inside the full 537-test run —
+cross-test contention/state leakage, tracked separately, not this ticket's
+concern.
+
+## RIG-120 fresh independent review FAIL (2026-08-29, force re-review)
+
+`--force-rereview` completed (~3.6 min, `claude-opus-5`). Wrapper refused
+the binding receipt (`verdict must pass`). Raw report:
+[[sources/reviews/rig-120-v5.0.0-2026-08-29.failed.review.json]]. Independently
+verified: (1) blocker — `tests/advanced-oracle.test.js` is `7efc231c…` while
+the manifest still pins `6997a0be…`; helpers/verifier were re-pinned and
+`gate1.sig` rewritten in this worktree, so this is a partial re-sign over a
+stale oracle pin; verifier red. (2) major — `runAutofix` still uses bare
+`spawnTask` with no network isolation or resource caps. Three minors (undeclared
+catalogue network, uninstall throw on escaping journal path, "68" prose vs 73
+IDs) are not receipt-blocking. Attempts file is at failures: 3. Trace:
+[[reasoning/2026-08-29-rig120-force-rereview-fail]].
+
+## RIG-120 capability close-out in flight (2026-08-29)
+
+The remaining code-level runner work is complete. The canonical shared runner
+now applies per-binding timeout and memory ceilings, three-state network
+handling, committed exact-service authority for raised ceilings or required
+network, and named fail-closed refusals. Direct and materialized-runner tests
+are green, as is the full code suite; only the owner release ceremony remains.
+[[reasoning/2026-08-29-rig120-capability-policy-close-out]].
+
+## rig-120 symlink-escape blocker fixed; shipping-path-bypass blocker still open, needs owner scoping (2026-08-29, latest)
+
+Acting on the 2026-08-29 fresh-review findings below. Two blockers were found;
+one is fixed, one needs an owner decision before implementation (recorded as
+a question in [[RIG-144]]'s terms, not guessed at).
+
+**Fixed — symlink-escape refusal (AT-LF-24), both flagged gaps:**
+`rig/lib/lint-format.js`'s `planExecution` used to swallow a `cmd.source`
+symlink escape silently (leaves `source_snapshot: null`, no refusal), and
+`executePlan` then re-read the same file a second time with *no* containment
+check at all, actually reading the outside file's bytes through the symlink.
+Both call sites now share one `readSource()` helper built on the existing
+`containedPath()` realpath-aware guard (same one `taskCwd` already uses) —
+plan time marks `source_boundary_violation: true` instead of a bare null
+snapshot, and execute time independently re-derives from disk (does not
+trust the plan-time flag, since the symlink could appear only after
+planning) and returns a hard `boundary_violation` instead of falling through
+to the recoverable `command_drift` state. AT-LF-24
+(`tests/advanced-oracle.test.js`, frozen oracle file) rewritten to assert the
+actual refusal and that the outside command's side effect never ran, not just
+that the snapshot was empty — confirmed red against pre-fix code, green after.
+**This edits a file in `wiki/gate1/testing-infrastructure.manifest`; `gate1.sig`
+is now invalid pending owner re-sign, same as every other oracle-touching
+change in this ticket's history.**
+
+**Same-pattern generalization, not requested by name but same lexical-vs-
+realpath bug class:** `rig/lib/checks.js`'s `runBinding` (`required_paths`
+check and `commandBinding.cwd` check) and `semanticDrift` (`doc.path` from
+`.rig/context-index.json`) all used `path.resolve` + `startsWith` string-
+prefix containment — the exact non-realpath check [[RIG-144]] already named
+as "unambiguously worth doing regardless of the other four" open questions.
+All three now use `containedPath()`. Three new regression tests in
+`tests/guarantee-coverage.test.js` (AT-PROC-1l/1m/1n, non-frozen), each
+confirmed red-before/green-after.
+
+**Still open — blocker #1, the shipping-path-bypass finding itself.**
+`checks.js` (materialized as `.rig/bin/check.js`, the runner the installed
+product actually calls) still has no plan/approval concept, no environment
+allowlist (inherits real env), and no network isolation or memory ceiling —
+only the cwd/path containment axis is now realpath-based. [[RIG-144]] already
+lists open owner questions on this (network/memory legitimately needed by
+real CI, no plan/execute seam to hang one-use approval on). Not implementing
+a guess on a security-consequential default for the shipping product;
+asking the owner for scope per the ticket's own "needs owner decision"
+section rather than repeating this ticket's other pattern (patching the
+demonstrated case without generalizing).
+
+Full `npm test` run: `node scripts/check-advanced-spec.js` now fails as
+expected/by design (`tests/advanced-oracle.test.js` digest changed —
+`gate1.sig` needs owner re-sign), so the gate short-circuits before the test
+suite. Ran `npm run test:code` directly to verify the code itself: **525/526
+root tests pass (1 expected Linux-only skip), pi-extension 15/15, rig-mcp
+6/6, 0 failures** — no regressions from either fix. `every runtime library
+module has a production caller` (the file-granularity guard) still passes.
+
+**Same-day follow-up, found starting the next grilling pass:** the
+`checks.js` fix above only covered half the real runner. `rig/catalog/baseline/
+check.js` — a second, hand-maintained, not sync-mapped duplicate materialized
+byte-for-byte to `.rig/bin/check.js`, which is what every generated CI
+workflow actually invokes (`rig/lib/checks.js` backs the separate in-process
+`rig check` subcommand instead) — had the identical lexical-containment bug,
+plus `check-copies.js`'s symlink check only looked at the path's leaf, not
+intermediate directory segments. Fixed both, materialized `path-safety.js`
+into `.rig/lib/` (`apply.js`) so `containedPath()` is available at the
+installed layout, and added four regression tests
+(`tests/guarantee-coverage.test.js` AT-PROC-1o/1p/1q) that `require()` the
+actual catalog files from a temp dir laid out like a real install — not
+`rig/lib/checks.js` — specifically so this exact "fixed the wrong copy" miss
+can't recur silently. All four confirmed red-before/green-after. New trap
+entry recorded (third recurrence of "the oracle is green at a seam the
+product doesn't use," this time: two live shipped copies of one runner,
+independently hand-copied and silently drifting). Full `npm run test:code`
+re-run after this: **528/529 pass (1 expected skip), pi-extension 15/15,
+rig-mcp 6/6, 0 failures.**
+
+Wiki synced this pass: `wiki/tickets/RIG-120.md`, `wiki/tickets/RIG-144.md`,
+`wiki/topics/trust-and-failure-boundaries.md`, `wiki/index/traps.md`, this
+file, and the reasoning trace (updated in place with the follow-up). No new
+decision-index entry yet — these are implementation-gap corrections against
+the already-frozen `GA-37`, not a new ruling. The larger capability-policy
+scope (RIG-144's remaining plan/approval, network, memory axes, now shaped
+by the owner's pasted architecture decision) is a real new ruling and is
+being drafted as acceptance criteria via `rig-grilling` next, including the
+open question this pass surfaced: whether to unify the two runner copies or
+add an explicit drift guard between them.
+
+**Grilling draft delivered, awaiting sign-off (2026-08-29, latest):** six
+acceptance criteria (`AT-CAP-1`..`6`) drafted from the owner's pasted
+document plus RIG-144's existing scoping questions — resource limits and
+fail-closed are unconditional/mandatory, network-declaration reuses
+`lint-format.js`'s proven `cmd.network` mechanism, capability authority for
+v5 is CI-committed-policy only (interactive approval deferred, declared as a
+reversible inference), the two runner copies stay independently fixed plus
+gain a parity test rather than being unified now. One real decision flagged,
+not inferred: whether the new network-deny-by-default should apply
+immediately (breaks any of the ~115 existing catalog service packs that need
+network and don't yet declare it) or additively (opt-in now, audit catalog
+packs over time) — recommended additive. Full draft:
+[[reasoning/2026-08-29-rig144-capability-policy-grilling]]. No testing
+infrastructure or implementation started yet; waiting on the owner's
+acceptance-criteria sign-off and the one decision, per the gate contract
+(an agent may draft the oracle, the human signature is what makes it safe to
+build against).
+
+## rig-120 fresh independent review FAILS: shipping path bypasses the safety guarantees (2026-08-29)
+
+Ran the formal release-review ceremony against the exact worktree (including
+all uncommitted safety-defect fixes below), base `origin/prod`. Verdict:
+**fail** — no receipt written, as designed. Two blocker findings independently
+verified against the code, not just taken on the reviewer's word:
+
+- The five shell-trust guarantees are implemented and tested only inside the
+  functions the guarded read/grade/execute/autofix paths use. Nothing outside
+  that module and its own tests calls those functions. The command runner the
+  installed product actually uses (traced from install through to execution)
+  has none of those guarantees: it inherits the real environment, applies no
+  network isolation, no memory ceiling, and checks working-directory
+  containment by string prefix rather than by real path. This is the same gap
+  [[RIG-144]] already tracks as open — confirmed here to be release-blocking,
+  not just a hardening backlog item.
+- The symlink-escape refusal the technical design promises does not happen: a
+  containment check on the planning step silently swallows an escape instead
+  of refusing, and the execution step re-reads the same file with no
+  containment check at all, so an outside file is actually read through the
+  symlink. The one test covering this only checks for an empty result, which
+  is equally true for an unrelated failure, so it never caught this.
+
+One flagged item was checked and cleared: the uncommitted, resigned oracle
+files verify cleanly against the registered owner signing key. One flagged
+item (non-GitHub CI provider removal downgraded to best-effort) matches a
+scope decision already recorded elsewhere in this log, likely not new
+information. Full trace and unverified minor items:
+[[reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass]].
+
+**Net: RIG-120 does not clear the ceremony on this worktree.** This is a new
+kind of finding for this ticket — every prior review round found and closed
+defects inside the guarded functions themselves; this one found the guarded
+functions aren't on the path the installed product runs. Awaiting an owner
+decision on scope/priority before any further ceremony attempt.
+
+## rig-120 memory-watchdog poll/exit race closed (2026-08-28)
+
+Closed the one item left open below (2.4): a memory-ceiling poll landing in
+the gap between a guarded child exiting and `memory-guarded-exec.js`'s `close`
+handler clearing the interval could read the already-reaped pid out of `ps`,
+see it missing, and report `memory_ceiling_unavailable` (killing/misreporting
+a command that had actually finished clean). Small-radius fix: a new
+`isChildRunning(child)` predicate in `rig/lib/memory-guarded-exec.js` checks
+`child.pid`/`exitCode`/`signalCode` (all set synchronously by the `exit`
+event, which always fires before `close`) and the poll's `setInterval`
+callback now skips itself when the child has already exited or been
+signaled, instead of treating that as "RSS unavailable, kill it." No change
+to `rssBytesTree`, `run`'s control flow, or the reported status shape.
+
+New test: `tests/guarantee-coverage.test.js` `AT-PROC-1k` — spawns a real
+child, asserts `isChildRunning` is `true` immediately after spawn and `false`
+inside the child's own `exit` handler. Confirmed red (`isChildRunning is not
+a function`) against the pre-fix module, green after. Not part of the frozen
+oracle (`guarantee-coverage.test.js` isn't in
+`wiki/gate1/testing-infrastructure.manifest`), so no re-sign is needed for
+this change. Full `npm test` re-run clean: root 522/523 (1 expected
+Linux-only skip), pi-extension 15/15, rig-mcp 6/6.
+
+Still uncommitted, same as the rest of this pass.
+
+## rig-120 clearance checklist verified against the review handoff (2026-08-28)
+
+Checked the working tree against `.context/rig-120-safety-followup-handoff.md`'s
+"Definition of done" (§6), the review that found the ordering regression and
+the CI allow-list gap below. Every mandatory item was already implemented in
+this worktree, uncommitted:
+
+- **2.1 ordering regression:** fixed — `isRigInstallPath` now runs after
+  `resolveRecordPath`'s symlink-aware containment in `rig/lib/lifecycle.js`;
+  `tests/release-blockers.test.js`'s ancestor-symlink case is green.
+- **2.2 CI allow-list gap:** fixed — `INSTALL_UNIQUE_CI_FILES` derives from
+  `ci-adapters.js`'s `PROVIDERS` registry rather than a second hardcoded list;
+  `tests/install-uninstall-roundtrip.test.js` gained a full round-trip case
+  per provider plus forged-record and merge-preservation cases, all green.
+- **2.3 read-only install identity:** fixed — `removeOpenClawMcp` now calls
+  `readInstallId` instead of the allocating `installId`.
+- **2.4 memory-watchdog poll/exit race:** left as-is in this pass — the
+  handoff marks it optional/low-probability (15ms same-tick overlap only)
+  and not gating. Closed in the follow-up entry above.
+- Wiki sync (topics, decisions, ticket, reasoning traces): already done, all
+  five 2026-08-28 reasoning files present and cross-linked.
+- Oracle re-sign: `wiki/gate1/gate1.sig` already carries a fresh signature
+  over the updated `tests/helpers/advanced.js` / `scripts/check-advanced-spec.js`
+  digests; `node scripts/check-advanced-spec.js` verifies (73 acceptance IDs).
+
+Ran the full gate fresh: `npm test` green end to end — oracle verified,
+rule-copies/versions/secrets checks pass, root 521/522 (1 expected Linux-only
+skip), pi-extension 15/15, rig-mcp 6/6, `check-ticket-traceability.js` clean.
+No code changes were needed this pass; the worktree already clears every
+mandatory item. Remaining RIG-120 work is unchanged from the ticket: the
+owner-controlled ceremony (fresh independent review receipt bound to these
+exact bytes, then the explicit `v5.0.0` tag/publish). This local work is still
+uncommitted.
+
+## rig-120 CI journal trust closed locally (2026-08-28, latest)
+
+Uninstall no longer treats editable journal fields as proof of CI ownership.
+Classification uses the real path of the file being changed. Unique GitHub
+workflow removal is digest-checked whole-file delete only. The only CI
+line-strip is the exact GitHub adapter pointer, and only when that line is
+present. Directory-symlink trampolines, hard links, lexical aliases, empty
+forged-pointer workflows, and forged `managed_line` / `append_managed` records
+are named best-effort.
+
+Evidence on these bytes: focused safety suites 63/63; frozen executable suite
+74/74; signed five-file oracle verified (73 acceptance IDs); literal `npm test`
+green — root 521 pass / 1 expected Linux-only skip / 0 fail, pi-extension 15/15,
+rig-mcp 6/6. Independent review of the final CI boundary found no remaining
+forged-journal mutation of user pipeline content. Remaining release work is the
+ceremony: a fresh receipt bound to the exact PR worktree, signer attestation,
+and explicit `v5.0.0` tag/publish.
+
+## rig-120 CI path-identity follow-up (2026-08-28)
+
+Uninstall no longer treats editable journal fields as proof of CI ownership.
+Classification uses the real path of the file being changed. Unique GitHub
+workflow removal is digest-checked whole-file delete only. The only CI
+line-strip is the exact GitHub adapter pointer, and only when that line is
+present. Directory-symlink trampolines, hard links, lexical aliases, empty
+forged-pointer workflows, and forged `managed_line` / `append_managed` records
+are named best-effort. Focused safety suites: 63/63. Frozen executable suite:
+74/74. Signed five-file oracle: verified (73 acceptance IDs). Literal `npm test`
+is the remaining local gate, then ceremony review and publish.
+
+## rig-120 CI path-identity follow-up (2026-08-28)
+
+Independent review of the managed-line gate found two remaining CI grants:
+unique-file `create_owned` still let a forged `managed_line` rewrite bytes
+(including through an in-repo symlink), and lexical `..` aliases under an
+install-tree prefix could delete a resolved user pipeline. Uninstall now
+classifies against the contained relative path, refuses symlink write-through,
+and limits unique-file removal to digest-checked whole-file delete. Focused
+safety suites are 60/60. Frozen oracle, literal `npm test`, and a second
+independent review of these bytes are next.
+
+## rig-120 CI managed-line attribution closed locally (2026-08-28)
+
+Uninstall no longer treats an editable journal `managed_line`, `managed_block`,
+or `append_managed` field as proof that a user CI line belongs to Rig. CI
+line-strip is limited to the exact GitHub workflow pointer the adapter writes,
+under that append-managed ownership class. The dedicated Rig-named workflow
+remains whole-file removable. Forged `create_owned` + `managed_line` and forged
+`append_managed` + an arbitrary user line are named best-effort and leave the
+file unchanged. `.github` directory membership is no longer whole-file
+ownership proof.
+
+The new pair of regressions is green (forged managed-line rejected; legitimate
+pointer-line uninstall restores the user workflow and deletes `rig.yml`).
+Focused safety suites: 57/57. Frozen executable suite: 74/74. Signed five-file
+oracle: verified (73 acceptance IDs). Literal `npm test` is next, then a fresh
+independent review of the final diff.
+
+## rig-120 editable-journal deletion blockers fixed locally (2026-08-28)
+
+Uninstall no longer accepts a `create_owned` journal label and matching digest
+as proof that a common CI pipeline belongs exclusively to Rig. The dedicated
+Rig-named GitHub workflow remains removable; common GitLab, CircleCI, Jenkins,
+Buildkite, and Azure pipeline files now survive as named best-effort cases. A
+forged OpenClaw runtime prefix also cannot bypass containment because every
+journal path resolves through the symlink-aware guard before preservation.
+
+Both regressions were demonstrated red before the shared lifecycle fix. The
+complete focused safety suites are green at 53/53 and the frozen executable
+suite is green at 74/74. The literal `npm test` release gate is also green:
+511 root tests passed with one expected macOS skip, plus pi-extension 15/15 and
+rig-mcp 6/6. The frozen oracle and its five-file signature verify at 73
+acceptance IDs. Fresh independent review of the final diff is in flight.
+
+## npm test fixture-hook leak fixed and re-signed (2026-08-28)
+
+The owner re-signed the corrected checker manifest and the oracle now verifies.
+The next full local run then exposed a real fixture-isolation defect: a temporary
+Git repository inherited this Mac's global pre-commit hook, which referenced a
+deleted temporary file and prevented the history-scanner acceptance case from
+creating its fixture commit. The shared advanced fixture helper now loads the
+existing hermetic Git configuration, so every temporary advanced repository
+ignores machine-global and system Git configuration. The focused frozen suite is
+green: 74/74, including the formerly failing history-scanner case.
+
+That shared helper is one of the signed testing-infrastructure files. Its new
+digest is now present in the owner-signed manifest and the oracle verifies; the
+literal `npm test` rerun remains the next release check.
+
+## rig-120 safety defects fixed for independent re-review (2026-08-28, latest)
+
+Fresh review receipt blocked release on three safety defects plus documentation
+drift. All three code defects now have red-before/green-after regression tests,
+and the stale release notes were corrected:
+
+- **Journal path trust:** uninstall refuses to delete paths outside Rig's own
+  install area, so a forged manifest record cannot aim removal at an unrelated
+  in-repository file even when the digest matches.
+- **OpenClaw ledger trust:** uninstall only unregisters the server name derived
+  from this repository's install id (`rig-<install-id>`), not whatever name a
+  forged ledger entry supplies.
+- **Memory watchdog partial listing:** `rssBytesTree` treats a missing root pid,
+  non-zero `ps` exit, or empty process list as unavailable and fails closed
+  instead of reading zero bytes and letting a capped command continue.
+- **Documentation drift:** `scripts/check-advanced-spec.js` now prints the live
+  acceptance-case count it just verified (73 today, not a stale "68" literal);
+  [[review-receipts]] no longer lists RIG-124.1 as open.
+
+No frozen oracle acceptance document was edited. The checker log-line change
+invalidates `gate1.sig` until the owner re-signs during the RIG-120 ceremony.
 
 ## rig-120 code blocker: runReadOnly maps memory_ceiling_unavailable to clean (2026-08-28, latest)
 
@@ -942,8 +1371,57 @@ oracle's 55-skill reading is unaffected and no re-sign was required
 `rig/lib/lint-format.js`'s durable one-use plan approval, `runGrade`/
 `runReadOnly` symlink-and-cwd containment, and memory-ceiling enforcement
 (AT-LF-20/21/23/24) are implemented and green on this branch, closing
-RIG-138/139/140. This does not touch the 68-case oracle above and needed no
+RIG-138/139/140. This does not touch the 73-case oracle above and needed no
 re-sign — the acceptance text for these cases was already correctly scoped
 where it exists; the gap was in tests and implementation written against it
 on sibling branches. [Guarantee sharding](mistakes/guarantee-sharding.md) and
 [reasoning trace](reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).
+
+**Owner sign-off on the RIG-144 capability-policy plan, with corrections
+(2026-08-29, latest):** owner reviewed the grilling draft and approved it
+with three corrections plus one addition, recorded as `GA-38`: (1) undeclared
+network capability is a temporary, visibly-diagnosed compatibility state, not
+silent equivalence to an explicit grant; (2) **the two runner copies must be
+unified into one canonical implementation, not just drift-tested** — rejected
+my drafted default explicitly ("a drift test changes silent divergence into
+divergence noticed by CI... the defect class still exists"); (3) CI-path
+capability authority is committed-policy-or-refuse only, no ephemeral/implicit
+approval, structured as a shared evaluator an interactive grant path can reuse
+later; (4) resource ceilings are configurable per-binding defaults
+(10min/2GiB), not hard limits.
+
+Item 2 was flagged as the highest-priority correction and done immediately,
+ahead of the rest: extracted the shared `runArgv`/`runBinding` logic
+(previously hand-duplicated between `rig/lib/checks.js` and
+`rig/catalog/baseline/check.js`) into one module, `rig/lib/check-runner.js`.
+Both files now `require()` it; `apply.js` materializes it into `.rig/lib/`
+alongside `path-safety.js`/`spawn-guarded.js`. New test `AT-CAP-6`
+(`tests/guarantee-coverage.test.js`) asserts object identity between the two
+callers' `runBinding`, not just matching behavior. `tests/guarantee-coverage.
+test.js` is 18/18 green (including the rewritten `AT-PROC-1p`, updated to the
+canonical `result.reason` shape). Full `npm run test:code` kicked off to
+confirm no wider regression from the refactor — running in background,
+checking back for the result.
+
+Not yet done: `AT-CAP-1`/`2` (configurable resource ceilings), `AT-CAP-3`
+(three-state network + diagnostic), `AT-CAP-4` (`.rig/execution-policy.json`
++ capability evaluator), `AT-CAP-5` (fail-closed applied to the new
+mechanisms) — these still need their own red-before/green-after pass. Full
+trace: [[reasoning/2026-08-29-rig144-capability-policy-sign-off]]. Tickets:
+[[tickets/RIG-144]]. Decision: [[index/decisions|GA-38]]. Trap update:
+[[index/traps|the oracle is green at a seam the product does not use]] (the
+"add a drift test" instinct itself is now recorded as the wrong default).
+
+Full `npm run test:code` gate confirmed green after the runner-unification
+refactor: 529/530 (one Linux-only PDEATHSIG case skipped on this host, same
+as every prior run), plus the pi-extension and rig-mcp suites both green.
+No regression from moving `runArgv`/`runBinding` into `rig/lib/check-runner.js`.
+
+**Handoff brief written for the remaining RIG-120 code blocker
+(2026-08-29):** [[reasoning/2026-08-29-rig120-close-out-handoff]] compresses
+what's closed, the five remaining `AT-CAP` criteria and exactly which
+existing mechanism each should reuse, the vertical (per-criterion, proven
+against materialized bytes) and horizontal (no new duplication, materialized
+everywhere, both callers surface it) completion rules, explicit non-goals
+(ceremony actions stay owner-only), and a testable definition of done. Not
+yet dispatched to an agent or started.

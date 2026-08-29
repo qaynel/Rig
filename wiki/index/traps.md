@@ -39,6 +39,64 @@ This is the successor to the trap below, not a replacement for it. The old
 version was "the suite asserts inventory, not behavior." This one is "the suite
 asserts behavior, at a seam nothing reaches."
 
+**Recurred at finer grain, 2026-08-29, after the guard above existed.** The
+guard this trap produced (`tests/runtime-caller-graph.test.js`, "every runtime
+library module has a production caller") checks file-level `require()`, not
+function-level use. `lint-format.js` *is* required by `plan.js` and
+`apply.js` — but only for two unrelated exports (`buildBinding`,
+`validateBindingSources`). The four functions carrying the shell-trust
+guarantees (`runReadOnly`, `runGrade`, `executePlan`, `runAutofix`) are still
+never called by shipped code; the file-level check goes green and hides it.
+Same trap, one level down. A file-required check cannot stand in for "this
+specific exported function is on the shipped path" — that needs either a
+named per-function reachability check the same way this file's check does it
+for whole modules, or an integration test that drives the real installed
+entrypoint instead of `require()`-ing the function directly.
+
+**Recurred a third time, same day, one level further down.** Fixing the
+symlink-containment gap above in `rig/lib/checks.js` felt like it closed the
+loop — until checking the existing record for the follow-on grilling pass
+turned up `rig/catalog/baseline/check.js`: a second, hand-maintained,
+*not* sync-mapped duplicate of the same runner, materialized byte-for-byte to
+`.rig/bin/check.js`, which is the file every generated CI workflow actually
+invokes. `rig/lib/checks.js` is real too (the in-process `rig check`
+subcommand), so this isn't "dead code vs. shipped code" — it's **two live
+shipped paths, independently hand-copied, silently drifting**. A test written
+against `rig/lib/checks.js` alone (exactly what the two AT-PROC tests earlier
+in this same session did) proves nothing about `.rig/bin/check.js`. Full
+trace: [[reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment]].
+
+The generalized form of this trap, three recurrences in: **"is this reachable"
+is not one question, it's one question per copy.** A file-required check
+proves reachability of *a* file; a per-function check proves reachability of
+*a* function; neither proves you found *every* file implementing that
+function. When a runner gets materialized/copied/vendored into an installed
+target, assume there is more than one live copy until grep proves otherwise,
+and write the regression test against the actual copied bytes (or a
+temp-directory materialization of them), not the dev-time source module.
+
+**Correction on the fix, 2026-08-29 (same day, owner sign-off on
+[[reasoning/2026-08-29-rig144-capability-policy-grilling]]):** my first
+instinct after finding the duplicate was to keep both hand-maintained copies
+and add a parity/drift test between them. The owner rejected that
+explicitly: "a drift test changes silent divergence into divergence noticed
+by CI... the defect class still exists." A test that detects re-divergence
+is still accepting that divergence is possible; it's a safety net under a
+mistake, not a fix for it. The actual fix, applied the same session
+([[reasoning/2026-08-29-rig144-capability-policy-sign-off]]): extract the
+duplicated logic into one canonical module (`rig/lib/check-runner.js`) both
+callers `require()`, so there is exactly one implementation and "keeping
+them in sync" is no longer a task anyone can forget to do. Write the "two
+copies agree" test as object-identity / source-text equality against the one
+canonical module (proving there's only one implementation), not as
+behavioral parity between two implementations (proving two things you
+already know can diverge currently don't). When you find a second
+hand-copied implementation of something security-relevant, the default
+proposal should be "delete the duplication," not "test the duplication" —
+the test is only the right answer when the two copies genuinely cannot share
+a source (different runtimes, different languages), which was not the case
+here.
+
 ## A validator that returns `failures: []` as a literal
 
 Same review, same day. `catalog.authorshipReport()` and

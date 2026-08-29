@@ -41,14 +41,10 @@ on fail); only a run without `--interim` produces AT-GATE-3 evidence, using
 the model the release designates. Default behavior with neither flag is
 unchanged from before RIG-124.
 
-**Open defect (RIG-124.1, found 2026-08-26):** the failure count is only
-persisted *after* the reviewer subprocess spawn returns cleanly. If that spawn
-is killed by its own `TIMEOUT_MS` (or any other signal) before returning, the
-attempt is never written to `<out>.attempts.json` — the cap silently
-undercounts and grants one extra, uncounted retry instead of enforcing the
-limit. A reviewer timeout is exactly the case RIG-124 exists to bound, so this
-is a fail-open gap in the safety mechanism itself. See
-[[2026-08-26-rig124-cap-lost-update]] for the deterministic repro.
+**RIG-124.1 is now Done (2026-08-26):** the cap-scoping fix and the
+reviewer process-group fix both landed with named regression tests; a killed
+or timed-out reviewer spawn is persisted before the cap is evaluated. See
+[[2026-08-26-rig124-cap-lost-update]].
 
 ## Authorities and sources
 

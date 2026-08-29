@@ -287,6 +287,7 @@ These are implementation constraints, not suggestions:
 | AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
 | AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. Without it they do not invoke OpenClaw or require npm. With it they print the global-path/blast-radius disclosure, preflight `openclaw`, `node`, and `npm`, copy `rig-mcp/` into the target runtime, run `npm ci --omit=dev --ignore-scripts` against its committed lockfile, and then call `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
+| AD-39 | The non-interactive check runner reads elevated execution authority only from a committed, target-owned `.rig/execution-policy.json`, never from environment or a prompt. It is a separate authority from generated `.rig/service-bindings.json`: bindings request `network: "required"`, `timeout_ms`, or `memory_limit_mb`; policy grants are keyed by the exact service ID and set the maximum permitted raised timeout/memory and network grant. Missing, malformed, uncommitted, or insufficient authority refuses that command. `network: "none"` needs no elevated grant and is isolated; an undeclared network state remains a visibly reported compatibility state. The initial schema is `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
 
 ### 2.1 Rejected approaches
 
@@ -1345,8 +1346,20 @@ reference to it; uninstall walks descending `seq` so a reference is always
 removed before its target. The public uninstall command (`--uninstall` and
 the `uninstall` subcommand) uses this journal as the only removal authority;
 receipt-based cleanup is a compatibility shim for Basic MCP artifacts that
-predate the journal, not a second set of semantics. Files Rig exclusively
-owns are deleted. Files Rig only added to have their managed line or block
+predate the journal, not a second set of semantics. Every recorded path passes
+symlink-aware containment before namespace or preservation decisions, and
+classification uses that contained relative path rather than the journal's
+lexical spelling; uninstall does not write through in-repo symlinks. The
+journal identifies removal candidates but, because it is repository-editable,
+does not independently prove exclusive ownership of a provider-generic CI
+file or of an arbitrary line inside one. Only a dedicated Rig-named CI
+artifact is whole-file removable. The only CI managed-line removal is the
+exact pointer the GitHub adapter appends, and only for that append-managed
+write; a forged `managed_line`, `managed_block`, or `append_managed` record
+cannot strip other CI bytes. Common provider pipeline paths remain named
+best-effort even if a record calls them `create_owned` and its digest matches.
+Other files Rig exclusively owns are
+deleted. Files Rig only added to have their managed line or block
 removed and nothing else; if that strip leaves a file Rig created empty, the
 file is deleted, and empty Rig-created parent directories are removed.
 Chained hooks are restored per §7.1, including when the hooks directory
@@ -2018,11 +2031,14 @@ approval on a successful execution and refuses the same approval on replay).
 `AT-LF-21` is now enforced at task spawn: working directories resolve through
 the same containment check as other repository paths, and the child
 environment is an explicit allowlist rather than inherited `process.env`.
-`AT-LF-22` is implemented in `runReadOnly` (network isolation). `AT-LF-23`
-is implemented (timeoutMs kill-and-report). `AT-LF-24` is implemented:
-`planExecution` resolves real paths before snapshotting and refuses a read
-whose target escapes the repository through a symlink. All five guarantees
-are now implemented; the shell-trust suite is closed.
+`AT-LF-22` is implemented in the approved-command paths (network isolation).
+`AT-LF-23` is implemented (timeoutMs kill-and-report). `AT-LF-24` is
+implemented: `planExecution` resolves real paths before snapshotting and
+refuses a read whose target escapes the repository through a symlink. The
+five guarantees are fully implemented on the interactive lint-format
+plan/grade path. The non-interactive CI floor runner deliberately has no
+plan/approval seam under GA-38; it enforces containment, resource ceilings,
+three-state network handling, and committed-policy capability authority.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the
@@ -2042,13 +2058,14 @@ does **not** continue. An auto-restore, a continuation, or a pass fails
 
 **Autofix (`AT-LF-12`, GA-29).** Autofix is a distinct mutating action, never
 folded into or triggered by a read-only check. It runs only when the user
-explicitly invokes a specific fix command under its **own** separate approval —
-a mutating plan approved through the same exact-digest path as remediation
-(§8.7), distinct from the read-only check approval. Rig offers both format fixes
-and safe lint fixes, applies them, re-verifies by re-running the read-only
-check, and leaves the result as uncommitted working-tree edits the user owns —
-never committed, never claimed as Rig's source. Autofix folded into the check,
-auto-committed, or run without its own approval fails `AT-LF-12`.
+explicitly invokes a fix command under its **own** separate verified approval,
+distinct from the read-only check approval. Rig offers both format fixes and
+safe lint fixes, applies them, re-verifies by re-running the read-only check,
+and leaves the result as uncommitted working-tree edits the user owns — never
+committed, never claimed as Rig's source. Binding that approval token to the
+exact fix argv remains an acknowledged hardening gap outside the frozen
+`AT-LF-12` contract. Autofix folded into the check, auto-committed, or run
+without its own approval fails `AT-LF-12`.
 
 **Command drift (`AT-LF-14`, GA-31).** Each approved binding carries the digest
 of the exact command text and target it was approved against — the §8.5
@@ -2355,7 +2372,7 @@ The catalogue path ships only when these checks pass in order:
    both Gate 1 digests and `testing-infrastructure.manifest`, then confirms
    every sorted path/digest entry before any product test runs;
 2. the technical specification is present as the sole current technical
-   approach and the 68-ID traceability table names an existing substantive
+   approach and the 73-ID traceability table names an existing substantive
    executable target for every current Gate 1 case;
 3. every Gate-1-derived executable target passes without modifying the signed
    oracle, including all 115 leaves under `AT-SHAPE-6`;
@@ -2423,7 +2440,7 @@ endorsement claim.
 ## 13. Acceptance Traceability
 
 The oracle coverage check extracts the distinct acceptance IDs from Gate 1 and
-requires exact set equality with the primary rows below, currently **68
+requires exact set equality with the primary rows below, currently **73
 IDs**. Every row must name an existing design anchor and a substantive
 executable test title containing the same ID. Explicit evidence aliases are
 permitted only for Gate-1 properties that point to another case;
@@ -2502,7 +2519,7 @@ results rather than trusting an aggregate exit code.
 | AT-LF-9 | §5.7 Evidence (`maximal`) is a strict superset of Context and rests the verdict on verifiable evidence (re-runnable output/exit/reports bound to input digests), plus the §11.3 CI gate; a clean Context pass never short-circuits the evidence work. | `tests/advanced-oracle.test.js` title `AT-LF-9 Evidence is cumulative and verifiable without requiring a CI graft`: every Context check still runs plus a verifiable Evidence result even when Context passes cleanly; an Evidence pass backed only by an unverifiable agent assertion, or one that short-circuits after a clean Context pass, fails. |
 | AT-LF-10 | §9.4 diff-scoped by default in the component's working directory honoring its ignore rules; never silently widened. | `tests/advanced-oracle.test.js` title `AT-LF-10 checks default to diff scope and honor component ignores and cwd`: clean/ignored files untouched under default scope, only changed files inspected; a whole-repo default, ignored ignore rules, or wrong directory fails. |
 | AT-LF-11 | §9.4 read-only guarantee: pre/post content-digest check; on mutation, stop before the next command, fail, report exact paths with before/after evidence, no auto-restore, no continuation. | `tests/advanced-oracle.test.js` title `AT-LF-11 a read-only check that mutates halts with preserved evidence`: a check whose tool writes the tree is detected, halted, evidenced, tree left as-is; an auto-restore, continuation, or pass fails. |
-| AT-LF-12 | §9.4 autofix is a separately exact-digest-approved mutating action, re-verified by re-running the read-only check, left as uncommitted user-owned edits; never in the check, never auto-committed. | `tests/advanced-oracle.test.js` title `AT-LF-12 autofix is separately approved and rechecked without committing`: no mutation from the check; fixes only under separate approval; a re-run verification; autofix folded into the check, auto-committed, or unapproved fails. |
+| AT-LF-12 | §9.4 autofix is a separately approved mutating action, re-verified by re-running the read-only check, left as uncommitted user-owned edits; never in the check, never auto-committed. | `tests/advanced-oracle.test.js` title `AT-LF-12 autofix is separately approved and rechecked without committing`: no mutation from the check; fixes only under separate approval; a re-run verification; autofix folded into the check, auto-committed, or unapproved fails. |
 | AT-LF-13 | §11.3/§11.2/§8.9/AD-23 Evidence-level CI is additive to `verified_existing`, proposed-and-separately-approved for `absent`/`unsupported`, preserving for `unknown`; never auto-created on grade selection alone; CI applicability is grade-aware, so a Policy/Context-grade leaf stays out of a pre-existing Rig CI job; verdict/counts/rule-identities only. | `tests/advanced-oracle.test.js` title `AT-LF-13 Evidence CI is additive separately approved and grade-aware`: three CI variants produce their stated behavior; a silent edit of an unknown pipeline, an auto-created CI on selection, a Policy- or Context-grade leaf running in a pre-existing Rig CI job, or a clobbered unrelated job fails. |
 | AT-LF-14 | §9.4 command drift: an approved binding carries its command/target digest; a drifted task halts before running, discloses the drift, and requires a freshly approved plan. | `tests/advanced-oracle.test.js` title `AT-LF-14 command drift stops before execution and requires a new plan`: the changed command never runs under the old approval and the drift is disclosed; running the changed task or the stale approved text fails. |
 | AT-LF-15 | §9.4/§9.3/§8.8 report stays local under `reports/rig/`, keeps failure/vacuous/gap and omits routine passes, redacts secrets/PII/host-rooted data on the producing host, is actionable; CI emits verdict/counts/rule-identities only; matched secret content only under the `secrets.model_assisted_triage` opt-in. | `tests/advanced-oracle.test.js` title `AT-LF-15 reports are local redacted actionable and failure-centric`: no report/artifact leaves the host, CI carries only verdict/counts/rule-identities, a seeded secret is absent from agent context by default, findings actionable; any leaked detail, uploaded artifact, or default secret exposure fails. |
@@ -2529,7 +2546,7 @@ The first-running oracle verifier:
    paths, and verifies every listed SHA-256 before loading any product test;
 3. confirms one present technical specification is named as the current
    approach, without requiring a frozen status or signing its bytes;
-4. compares the 68 current Gate-1 IDs, trace rows, and substantive executable
+4. compares the 73 current Gate-1 IDs, trace rows, and substantive executable
    test titles for exact equality, and stats every named target;
 5. runs before all code tests and short-circuits them on any integrity or
    coverage-mapping failure.
@@ -2543,7 +2560,7 @@ commit" anywhere in the gate (GA-11).
 
 ## 14. Ordered Tracer-Bullet Slices
 
-The 68-case oracle-preparation slice runs before production implementation.
+The 73-case oracle-preparation slice runs before production implementation.
 Existing modules and tests are reusable spine, not reusable evidence: stale
 meanings are replaced. Pre-signature product tests are expected to be red for
 behavior that does not exist. After the owner signs the manifest, every
@@ -2559,7 +2576,7 @@ the first post-signature tracer produces an installable artifact.
 ### Slice 1 - Specification authority and complete executable oracle
 
 Implement the §13 oracle verifier first, pin the Gate-1 digests, transcribe all
-**68** IDs into substantive tests, and remove or rewrite obsolete tests that
+**73** IDs into substantive tests, and remove or rewrite obsolete tests that
 assert a non-disableable baseline, withdrawn tiers, or tautological aliases.
 Write the stable sorted testing-infrastructure manifest, add
 `npm run test:code`, and wire the verifier ahead of code tests in `npm test`.
@@ -2979,12 +2996,12 @@ Implementation must not edit `business-spec.md`, `acceptance.md`,
 This working specification is never frozen. Production implementation waits
 only for the one signed oracle. Before the owner performs that ceremony:
 
-1. all 68 current acceptance IDs have substantive executable targets and the
+1. all 73 current acceptance IDs have substantive executable targets and the
    traceability table names their real files/titles;
 2. stale or tautological tests are removed or rewritten, and expected
    pre-implementation failures name missing product behavior;
 3. `scripts/check-advanced-spec.js` runs first, verifies the v2 signature when
-   armed, verifies every manifest digest, checks exact 68-ID equality and one
+   armed, verifies every manifest digest, checks exact 73-ID equality and one
    present technical approach, then short-circuits code tests on failure;
 4. `wiki/gate1/testing-infrastructure.manifest` is stable, sorted, and covers
    the verifier, acceptance tests, fixtures/helpers, and package script bytes;

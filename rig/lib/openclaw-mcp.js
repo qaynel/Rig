@@ -22,13 +22,21 @@ function requireTool(command) {
   if (!have(command)) throw new Error(`rig: --openclaw-mcp requires '${command}' on PATH`);
 }
 
+function installIdFile(target) {
+  return gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
+}
+
+function readInstallId(target) {
+  const file = installIdFile(target);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, 'utf8').trim() || null;
+}
+
 function installId(target) {
-  const file = gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
+  const existing = readInstallId(target);
+  if (existing) return existing;
+  const file = installIdFile(target);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  if (fs.existsSync(file)) {
-    const existing = fs.readFileSync(file, 'utf8').trim();
-    if (existing) return existing;
-  }
   const id = crypto.randomUUID();
   fs.writeFileSync(file, `${id}\n`);
   return id;
@@ -187,7 +195,7 @@ function registerOpenClawMcp(target, opts = {}) {
   if (set.status !== 0) {
     const rollback = owned
       ? spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0
-      : removeOpenClawMcp(target, { server_key: name, value: server }).removed;
+      : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
     if (rollback) restoreLedger();
     throw new Error(`rig: openclaw mcp set failed: ${set.stderr || set.stdout}`);
   }
@@ -205,6 +213,13 @@ function registerOpenClawMcp(target, opts = {}) {
 
 function removeOpenClawMcp(target, entry) {
   if (!have('openclaw')) return { removed: false, tooling_missing: true };
+  const id = readInstallId(target);
+  const ownedName = id ? `rig-${id}` : null;
+  const serverKey = entry.server_key || entry.install_id;
+  if (
+    !ownedName || entry.install_id !== id || serverKey !== ownedName ||
+    !entry.value || typeof entry.value !== 'object' || Array.isArray(entry.value)
+  ) return { removed: false, tooling_missing: false };
   let servers;
   try {
     servers = openClawServers();

@@ -140,6 +140,7 @@ function verifyCoverage(root, entries) {
     const source = read(root, file).toString('utf8');
     assert.match(source, new RegExp(`\\btest\\(\\s*['\"\\x60]${title.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}['\"\\x60]`));
   }
+  return titled.length;
 }
 
 function verifyPackageScripts(root) {
@@ -162,8 +163,8 @@ function check(root = ROOT) {
   const entries = verifyManifest(root);
   verifyPackageScripts(root);
   verifyTechnicalApproach(root);
-  verifyCoverage(root, entries);
-  process.stdout.write(`Oracle verified: ${entries.length} files, 68 acceptance cases\n`);
+  const caseCount = verifyCoverage(root, entries);
+  process.stdout.write(`Oracle verified: ${entries.length} files, ${caseCount} acceptance cases\n`);
   return signature;
 }
 
