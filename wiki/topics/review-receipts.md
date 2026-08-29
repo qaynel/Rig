@@ -58,6 +58,7 @@ or timed-out reviewer spawn is persisted before the cap is evaluated. See
 
 ## Remaining work
 
-Historical receipts remain historical because they bind older bytes. The fresh
-independent receipt must be produced after disclosure implementation and the
-full test gate; the implementation context cannot self-issue it.
+The `v5.0.0` receipt is
+[`rig-120-v5.0.0-2026-08-29-fresh.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.review.json):
+`verdict: pass`, no unresolved cases, bound to the tagged commit. Historical
+receipts remain historical because they bind older bytes.

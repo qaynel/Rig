@@ -1,6 +1,73 @@
 # Status - checked 2026-08-29 (updated 2026-08-29)
 
-## RIG-120 fresh independent review passes (2026-08-29, latest)
+## v5.0.0 tagged and published (2026-08-29, latest)
+
+The annotated tag `v5.0.0` points at `9d1ea45ea4876b300fbfe964d46319188ff2f09d`,
+the same bytes the passing independent review receipt binds
+(`implementation_digest`
+`3013e34931a8e44b244c385315b37a10f256f93aee0156803e60cede1d573550`, 1743 files).
+The GitHub release is latest:
+https://github.com/qaynel/Rig/releases/tag/v5.0.0
+Tag CI on that ref is green. The installer resolves this tag by name or as
+`latest`. [[RIG-120]] is Done. Trace:
+[[reasoning/2026-08-29-v5.0.0-tag]].
+
+The ceremony PR remains open against `qa-prod-finishing-up`; `origin/prod`
+does not yet contain this commit. Named-tag installs do not need that merge.
+
+## RIG-120: the 3 accepted-follow-up minors investigated and confirmed against current HEAD (2026-08-29)
+
+The passing Sonnet-4.6 review
+([[sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.review.json]]) carries **three**
+findings, not two — one `correctness`, one `testability`, one `architecture`, all
+`minor`, `unresolved: []`. Every anchor still lines up with HEAD (`9d1ea45`), so
+they are live follow-ups, not stale notes:
+
+1. **`runReadOnly` batch-aborts where `runGrade` marks per command**
+   (`rig/lib/lint-format.js:696-700` vs `:627-628`). When no OS isolation prefix
+   is available, `runReadOnly` does a function-level `return { status:
+   'network_isolation_unavailable' }` the moment it meets the first command
+   without a network grant, so every later command — including one with
+   `network: true` that `runGrade` *would* run inside its `.map` — is skipped.
+   Not a safety hole (nothing ungranted runs); an availability/parity gap that
+   only bites on a host lacking `unshare`/`sandbox-exec` running a multi-command
+   read-only plan whose first command is ungranted. Secondary nit: that early
+   return omits `changed_paths`, unlike the sibling early returns. Neither
+   `runReadOnly` nor `runGrade` has a non-test caller in `rig/` today, so the
+   exposure is "frozen-guarantee parity is asymmetric," not a shipped bug. Fix
+   touches the batch-status return shape (skip-and-continue with a reconciled
+   final status) — a design call, hence deferred.
+
+2. **AT-LF-20 proves the weak half of one-use** (`tests/advanced-oracle.test.js:916-927`).
+   It reuses one `approval` object across both `executePlan` calls, so the second
+   call is rejected by the in-memory `approval.used` guard
+   (`lint-format.js:459`) *before* it ever reaches the durable
+   `consumePlanApproval` disk check (`:483`). The test would still pass with the
+   entire on-disk mechanism (`:462-485`) deleted. The real cross-process case is
+   covered only by `AT-PROC-1a` in `tests/guarantee-coverage.test.js`, which is
+   **non-frozen**. Strengthening AT-LF-20 (pass a fresh `{ plan_digest }` to the
+   second call) edits a frozen-manifest file (`advanced-oracle.test.js`, pinned
+   `7efc231c…`) so it needs an owner re-sign — that is why it is follow-up, not a
+   quick patch. Behavior is correct; the frozen oracle just under-specifies.
+
+3. **Undeclared-network diagnostic is emitted to stderr as well as returned**
+   (`rig/lib/check-runner.js:196-200`). The `undeclared` branch already returns
+   the structured `network_state: 'undeclared'` and `diagnostic: '…'` fields
+   (AD-39 / GA-38 compliant; `AT-CAP-3` + `AT-PROC-1u` assert this), but also
+   calls `console.warn`. `status` stays whatever the command returned (0 on
+   success) — undeclared is deliberately not a named non-passing result, so
+   packs don't break. Residual: the `console.warn` is a redundant side-channel
+   that CI can bury under the checked command's own output; callers should route
+   `network_state === 'undeclared'` from the return value into a visible
+   annotation and the `console.warn` can go.
+
+No code or oracle change made — these were accepted as non-blocking follow-up and
+two of the three need an owner decision (return-shape change / frozen re-sign).
+The "Two minor testability notes … unchanged-manifest re-sign … shipping
+disclosure" phrasing in the entry below and in `wiki/tickets/RIG-120.md` does not
+match the receipt's actual three findings; corrected in place.
+
+## RIG-120 fresh independent review passes (2026-08-29)
 
 The owner authorized another local force re-review and iteration to a passing
 receipt. The eight prior runtime/design findings remain remediated in the
@@ -28,10 +95,11 @@ The earlier aggregate review-test hang was reproduced and removed by replacing
 its forked shell/stdin fake with a single-process Node fake; its focused suite
 passes 40/40 and the full parallel gate now terminates. The owner switched the
 unavailable Opus reviewer to Claude Sonnet 4.6. That fresh review passes with
-zero blockers and zero unresolved cases. Its two non-blocking notes are
-accepted follow-up: add explicit coverage for an unchanged-manifest re-sign
-confirmation, and strengthen shipping disclosure coverage for
-repository-owned task execution without editing the frozen test. The receipt
+zero blockers and zero unresolved cases. Its **three** non-blocking minor
+findings (`runReadOnly`/`runGrade` network-isolation parity, AT-LF-20 proving
+one-use only via the in-memory flag, undeclared-network `console.warn` side
+channel) are accepted follow-up; none edit the frozen oracle without an owner
+re-sign. See the top entry for the per-finding investigation. The receipt
 is refreshed after this tracked status reconciliation so its implementation
 digest binds the final bytes. Nothing has been committed or pushed.
 

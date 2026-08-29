@@ -41,6 +41,8 @@ and a source disagree, the source wins and the topic is what's wrong.
 - [`rig-120-v5.0.0-2026-08-29-fresh.codex.failed.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.codex.failed.review.json)
   — non-binding fresh Codex fallback review after the requested Opus backend
   hit its local session limit; failed on the frozen-vs-CI authority split.
+- [`rig-120-v5.0.0-2026-08-29-fresh.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.review.json)
+  — passing independent review bound to the `v5.0.0` tagged commit.
 
 ## Superseded — designs this project moved past
 

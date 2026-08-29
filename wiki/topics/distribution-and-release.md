@@ -55,6 +55,7 @@ assertion that never ran the installer.
 
 ## Remaining work
 
-Cutting and publishing `v5.0.0` remains an explicit release operation after the
-fresh independent implementation review receipt passes against the final PR
-bytes.
+None for `v5.0.0`. The annotated tag and GitHub latest release were published
+2026-08-29 on the receipt-bound commit
+`9d1ea45ea4876b300fbfe964d46319188ff2f09d`.
+[Ceremony cut](../reasoning/2026-08-29-v5.0.0-tag.md)

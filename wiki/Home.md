@@ -107,7 +107,7 @@ rather than frozen.
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 
-See [status](status.md) for what is currently blocking the freeze.
+See [status](status.md) for current work. `v5.0.0` is published.
 
 ---
 

@@ -63,9 +63,8 @@ D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
 and signed: the 73-case (D24 + D28) deterministic testing infrastructure is
 built, manifested, and covered by the oracle signature. See "Where the eight steps
 actually stand" below for the current per-step status — as of the last check,
-steps 1–6 are done and step 7 (release) is blocked only on the owner's fresh
-review and signer attestation plus the tag itself, not on any of this plan's
-mechanisms. [Status](../status.md)
+steps 1–7 are done: `v5.0.0` is tagged and published. Step 8 remains
+post-beta promotion. [Status](../status.md)
 [Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
 
 The former lint-format-only path is historical. D24 supersedes D21's release
@@ -133,7 +132,7 @@ Full detail, verify commands, and traps: [the MVP roadmap](../specs/mvp-roadmap.
 | 4. Context-aware onboarding | **Done.** The shipped bootstrap calls the registry, auto-selects only existing unambiguous host markers, keeps explicit overrides exact, and journals every payload write. `generic` is deliberately explicit-only. |
 | 5. Author all 115 leaves at Policy grade | **Done.** 805 files, zero placeholders, grade and untailored-baseline declared on every fragment. |
 | 6. Prove the all-115 target green without changing the oracle | **Done.** The now-honest authorship function inspected all declared fragments and returned zero failures; the signed gate and full suite passed unchanged. |
-| 7. Release: fresh review, evidence, `v5.0.0` | **Review done, verdict blocked.** Four blockers; the tag was not cut. |
+| 7. Release: fresh review, evidence, `v5.0.0` | **Done (2026-08-29).** Passing receipt bound to `9d1ea45`; annotated tag and GitHub latest release published. |
 | 8. Post-beta promotion | Unchanged, still after beta. |
 
 The earlier catalogue green was not proof because its authorship function could

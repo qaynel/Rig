@@ -36,6 +36,9 @@ kanban-plugin: board
 - [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
 	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
+- [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
+	**Status:** OPEN (2026-08-29) — GitHub #62 — approved post-release work; [[RIG-120]] is Done and `v5.0.0` is published · [Solution](tickets/RIG-122.md)
+	**Class:** POST-RELEASE. Optional markdown wiki graft. Unblocked by the published release.
 - [x] **RIG-140 — AT-LF-23 only implements wall-clock timeout; memory ceiling is absent**
 	**Status:** COMPLETE (2026-08-28) — GitHub #95 — `memory-guarded-exec.js` polls RSS and reports a distinct `memory_exceeded` status, independent of timeout; `AT-LF-23`/`AT-PROC-1c` green · [Solution](tickets/RIG-140.md)
 	**Class:** CORRECTNESS / SHELL TRUST. Board was left OPEN after landing; corrected 2026-08-28 triage.
@@ -141,15 +144,9 @@ kanban-plugin: board
 
 ## Blocked
 
-- [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
-	**Status:** BLOCKED (2026-08-24) — GitHub #62 — approved post-release work; RIG-120 and publication are incomplete · [Solution](tickets/RIG-122.md)
-	**Blocker:** The owner approved this only after the core release. [[RIG-120]] still has no passing independent review receipt on the current bytes. Resume after RIG-120 is Done and the release exists.
-	**Acceptance:**
-	- Any shipped form respects the Tier 1 markdown-only constraint (structure + conventions as markdown; no installed runtime, sync engine, or required third-party app).
-	- If it depends on Obsidian/Kanban specifically, that dependency is optional and the structure degrades to plain markdown without it.
 - [ ] **RIG-116 — Promote the non-lint-format leaves Policy → Context → Evidence**
 	**Status:** BLOCKED (2026-08-24) — GitHub #63 — post-beta demand evidence and prerequisite gates do not yet exist · [Solution](tickets/RIG-116.md)
-	**Blocker:** The governing roadmap requires promotion after beta, ranked by observed use under ordinary owner review. No beta selection/receipt evidence or approved demand ranking exists, the release remains blocked, and the reusable lint-format consent template is blocked. Guessing a family would violate the acceptance criterion.
+	**Blocker:** The governing roadmap requires promotion after beta, ranked by observed use under ordinary owner review. No beta selection/receipt evidence or approved demand ranking exists, and the reusable lint-format consent template is blocked. Guessing a family would violate the acceptance criterion.
 	**Acceptance:**
 	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
 	- At least the highest-demand families reach Context/Evidence with real verifiable checks.
@@ -177,17 +174,12 @@ kanban-plugin: board
 	**Acceptance:**
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
 	- The §3.1 ❔/🟡 conflicts (codewhale, hermes, swival, antigravity CLI) are each resolved to a decided disposition in the wiki.
-- [ ] **RIG-120 — Finish the release ceremony and cut v5.0.0**
-	**Status:** BLOCKED (2026-08-28) — GitHub #68 — forged CI managed-line attribution is closed; fresh independent review and explicit publish remain · [Solution](tickets/RIG-120.md)
-	**Problem:** cleanup now resolves containment before preservation and refuses to treat an editable journal as proof that a common CI pipeline is tool-owned. The owner-signed oracle and literal full gate are green; a passing fresh review must bind the final bytes before the explicit `v5.0.0` tag/publish.
-	**Acceptance:**
-	- A fresh independent review receipt is produced against the exact PR worktree and passes.
-	- The signer-class attestation is added via an owner-authorized re-signing ceremony.
-	- The full gate is rerun green on the final bytes and `v5.0.0` is cut and published.
-
 
 ## Done
 
+- [ ] **RIG-120 — Finish the release ceremony and cut v5.0.0**
+	**Status:** DONE (2026-08-29) — GitHub #68; annotated tag and GitHub latest release published · [Solution](tickets/RIG-120.md)
+	**Done:** `tests/release-blockers.test.js::the POSIX installer downloads and executes a named tagged archive`; tag `v5.0.0` on `9d1ea45`.
 - [ ] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
 	**Status:** DONE (2026-08-26) — GitHub #73 closed by PR #74; general process-cleanup helper remains [[RIG-135]] (#75) · [Solution](tickets/RIG-124.md)
 	**Done:** `tests/release-blockers.test.js::review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)`.
