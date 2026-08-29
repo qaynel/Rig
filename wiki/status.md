@@ -1,8 +1,95 @@
 # Status - checked 2026-08-29 (updated 2026-08-29)
 
+## Full per-ticket verification sweep of all open tickets (2026-08-29, latest)
+
+Verified all 17 genuinely open tickets on `wiki/Tickets.md` against HEAD
+`30d6e20` (branch `qa-prod-v2`). Result: **zero stale claims** — every open
+ticket accurately describes the current code or product state.
+
+**Code-claim tickets — all defects confirmed still present:**
+
+- **RIG-145**: `runReadOnly` (`lint-format.js:696-700`) still does a
+  function-level `return { status: 'network_isolation_unavailable' }` on the
+  first ungranted command (inside a `for...of`), while `runGrade` (`:627-628`,
+  inside `.map`) returns per-command. Granted commands silently skipped in
+  `runReadOnly` when isolation is absent. CONFIRMED OPEN.
+- **RIG-146**: `executePlan` (`lint-format.js:459`) still rejects the second
+  call via in-memory `approval.used` before reaching `consumePlanApproval`
+  (`:483`). `AT-LF-20` (`tests/advanced-oracle.test.js:916-927`) reuses one
+  `approval` object, so the on-disk guard is never exercised. CONFIRMED OPEN.
+- **RIG-147**: `check-runner.js:198` still calls `console.warn(diagnostic)` in
+  the `undeclared` branch alongside the structured `network_state`/`diagnostic`
+  return. CONFIRMED OPEN.
+- **RIG-127.11**: `removeGlobalConfig()` (`global-writes.js:200`) calls
+  `readJson()` (`:35`) — raw `JSON.parse(fs.readFileSync(...))` with no
+  try/catch — while sibling `removeGlobalMcp` has a try/catch at `:173`.
+  CONFIRMED OPEN.
+- **RIG-127.12**: Non-string `record.managed_block` (`lifecycle.js:380`) falls
+  back to `'[^\\n]*'` wildcard — regex matches any rig block in the file, not
+  just the owned one. CONFIRMED OPEN.
+- **RIG-135.1**: `cookie-import-browser.ts` CDP path launches Chrome via bare
+  `Bun.spawn` (`:860`, no Job Object), kills with bare `chromeProc.kill()` at
+  lines `:908` and `:927` — child renderer/GPU/network processes not reaped on
+  Windows. CONFIRMED OPEN.
+- **RIG-135.2**: `browser-skill-commands.ts` `spawnSkill` uses `Bun.spawn`
+  (`:266`) with bare `proc.kill()` (`:276`) on timeout — no negative-pid group
+  kill. CONFIRMED OPEN.
+- **RIG-135.3**: `xvfb.ts` comment at `:134` says "Spawn detached" but
+  `Bun.spawn` call at `:136-138` has no `detached: true` option. CONFIRMED OPEN.
+
+**Structural tickets — all accurately described:**
+
+- **RIG-132**: `rig/raw-registry-access.json` exists (pre-v5 ratchet landed);
+  v5.1 semantic-model collapse still undone. CONFIRMED OPEN.
+- **RIG-133**: `tests/advanced-oracle.test.js` is still 73 enumerated named
+  test cases via direct-require `api(file, name)` — not properties + a
+  generator. CONFIRMED OPEN; awaiting owner approve-for-Coding.
+- **RIG-130**: `scripts/review-receipt.js` has no finding-class ledger (only
+  `console.log(findings)` at `:224`; no closed-class feed-in). CONFIRMED OPEN.
+- **RIG-125**: Loop-breaker tests landed (RIG-126/127/128 closed and green);
+  not yet promoted to signed oracle (blocked on RIG-133). CONFIRMED OPEN as
+  described.
+
+**Blocked tickets — blockers still accurate:**
+
+- **RIG-116**: No beta selection/receipt evidence or approved demand ranking.
+  BLOCKED as described.
+- **RIG-113**: Ecosystem preferences + write scopes drafted; not owner-approved
+  policy. BLOCKED as described.
+- **RIG-112**: D27 (`wiki/index/decisions.md`) confirmed: "Nothing locks until
+  solution + acceptance + tests are all in place and the owner agrees." Ceremony
+  deferred. BLOCKED as described.
+- **RIG-110**: No real-wire records; owner beta-roster decision pending.
+  BLOCKED as described.
+
+**Post-release:**
+
+- **RIG-122**: v5.0.0 published; post-release status correctly marked OPEN
+  (unblocked). CONFIRMED.
+
+No wiki or board edits needed — all claims were accurate. Next remaining work:
+choose a ticket to implement, or ask the owner to approve-for-Coding on
+RIG-132/133/130/125 (the structural cluster that gates the others).
+
 ## GitHub issues reconciled with ticket board (2026-08-29, latest)
 
-Synced GitHub issues to match `wiki/Tickets.md`:
+Re-verified all 53 board-linked GitHub issues against `wiki/Tickets.md`:
+
+- **States:** 17 open / 36 closed on both sides — zero mismatches.
+- **Bodies:** five closed issues (#64, #68, #73, #75, #92) still carried
+  stale OPEN/BLOCKED status lines from before the v5.0.0 close-out; bodies
+  updated to match the board's DONE/COMPLETE resolution text and PR links.
+- **PR links on closed issues (2026-08-29, second pass):** all 36 closed
+  issues now carry a `Resolved by #…` line in the issue body. Seventeen
+  pre-v5 close-out tickets (#45–#61, RIG-101–124 batch) were closed during
+  the 2026-08-26 board sync without PR references — linked to #27 (the
+  close-out merge). Seven shell-trust issues (#91, #93–#97, #104) had PR refs
+  only in comments; bodies updated with the resolving PR numbers (#99–#103,
+  #107).
+- **Coverage:** every board card has a GitHub `#` ref; no orphan RIG issues on
+  GitHub; `node scripts/check-ticket-traceability.js` exits 0.
+
+Earlier same-day pass (states + filing):
 
 - **Closed (were open on GitHub, done on board):** #64 RIG-115 (#87/#85/#86/#89/#88/#90), #75 RIG-135 (#77), #92 RIG-136 (#107), #104 RIG-144 (#107).
 - **Filed:** #108 RIG-145, #109 RIG-146, #110 RIG-147 (open follow-ups from v5.0.0 review).
