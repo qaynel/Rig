@@ -1,5 +1,58 @@
 # Status - checked 2026-08-29 (updated 2026-08-29)
 
+## GitHub issues reconciled with ticket board (2026-08-29, latest)
+
+Synced GitHub issues to match `wiki/Tickets.md`:
+
+- **Closed (were open on GitHub, done on board):** #64 RIG-115 (#87/#85/#86/#89/#88/#90), #75 RIG-135 (#77), #92 RIG-136 (#107), #104 RIG-144 (#107).
+- **Filed:** #108 RIG-145, #109 RIG-146, #110 RIG-147 (open follow-ups from v5.0.0 review).
+- **Filed and closed:** #111 RIG-143 (#102/#107).
+- **PR links added** via reconciliation comments on #35–#40, #68, #73, #91, #93–#97 (previously closed manually without PR references).
+
+## Full ticket-board reconciliation against the codebase (2026-08-29, latest)
+
+Swept every ticket on `wiki/Tickets.md` against HEAD `9d1ea45` and the ticket
+files. Changes made to the board:
+
+- **17 stale duplicates pruned.** RIG-101/102/103/104/105/106/107/108/109/111/
+  114/117/118/119/121/123/124 each appeared twice — a current, accurate
+  `DONE (2026-08-26)` card in `## Done` **and** a pre-RIG-131 card in
+  `## Backlog` still reading "RIG-131: no ## Acceptance evidence reference".
+  The Backlog copies were deleted; the `## Done` cards (GitHub issues closed,
+  named test evidence) are unchanged and remain the record.
+- **RIG-115 → DONE.** Was filed under `## Blocked` as "IMPLEMENTING —
+  AT-LF-22 / AT-LF-24 pending". Both landed weeks ago (commits `7010eca`,
+  `dd65b97`); its own ticket file has said DONE since 2026-08-27. Card moved
+  out of Blocked, marked `[x]` DONE. Left in the Backlog lane rather than
+  `## Done` because the RIG-131 traceability gate requires a `## Acceptance`
+  section with `→ test::title` bullets, which this ticket's history predates —
+  its evidence is the signed oracle cases `AT-LF-20..24`.
+- **RIG-135 checkbox corrected** `[ ]` → `[x]` (status was already COMPLETE;
+  the card was just left unchecked).
+- **RIG-133 status line corrected** — it claimed "still 65 enumerated cases";
+  `tests/advanced-oracle.test.js` is now 73 signed acceptance IDs. The
+  structural ask (sign properties + a generator, not a sample list) is
+  genuinely untouched, so the ticket stays OPEN.
+- **RIG-127.11** re-verified against code and left OPEN: `removeGlobalConfig()`
+  → `readJson()` (`global-writes.js:200`/`:35`) is still a bare `JSON.parse`
+  with no try/catch, called unguarded from `uninstall()`.
+
+Board lanes after this pass:
+- `## Backlog` — open work only: RIG-145/146/147 (review follow-ups),
+  RIG-132/133/130/125 (structural, awaiting owner approve-for-Coding),
+  RIG-127.11/127.12, RIG-135.1/135.2/135.3 (browse-skill-owned, need an owner
+  fix-shape decision), RIG-122 (post-release); plus the completed shell-trust
+  cluster (RIG-115/135/136/137/138/139/140/141/142/143/144) marked `[x]` with
+  dated COMPLETE / CODE COMPLETE status lines and verifying test names.
+- `## Blocked` — RIG-116/113/112/110, all genuinely waiting on an owner
+  decision or vendor access; verified still accurate.
+- `## Done` — RIG-120 plus the RIG-125-cluster and pre-v5 tickets, all with
+  `→ test::title` evidence; RIG-131's `check-ticket-traceability.js` gate is
+  green on the reconciled board.
+
+No code changed. `node scripts/check-ticket-traceability.js` and
+`node scripts/check-versions.js` both exit 0 on the new board.
+
 ## v5.0.0 tagged and published (2026-08-29, latest)
 
 The annotated tag `v5.0.0` points at `9d1ea45ea4876b300fbfe964d46319188ff2f09d`,
@@ -66,6 +119,20 @@ two of the three need an owner decision (return-shape change / frozen re-sign).
 The "Two minor testability notes … unchanged-manifest re-sign … shipping
 disclosure" phrasing in the entry below and in `wiki/tickets/RIG-120.md` does not
 match the receipt's actual three findings; corrected in place.
+
+**Filed and board reconciled (2026-08-29):** the three findings are now
+[[RIG-145]] / [[RIG-146]] / [[RIG-147]] (ticket files + `wiki/Tickets.md`
+backlog entries). Same pass, verified against HEAD `9d1ea45` and corrected on
+the board: [[RIG-144]] OPEN → CODE COMPLETE (canonical `rig/lib/check-runner.js`
+shipped, `AT-CAP-1..6` green in both runner layouts); [[RIG-136]] OPEN → DONE
+(`check-advanced-spec.js` already prints a dynamic `caseCount`, no "68"
+literal). [[RIG-127.11]] re-checked and still accurately OPEN (`readJson` at
+`global-writes.js:34` is still an unguarded `JSON.parse`). Not yet done: a
+full per-ticket verification sweep of the remaining ~30 open/structural
+tickets, and the ~17 stale duplicate entries sitting in `## Backlog` for
+tickets already marked DONE in `## Done` (RIG-101/102/103/104/105/106/107/108/
+109/111/114/117/118/119/121/123/124) — needs an owner call on whether to prune
+them.
 
 ## RIG-120 fresh independent review passes (2026-08-29)
 
