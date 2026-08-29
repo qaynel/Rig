@@ -16,6 +16,14 @@
         "powershell": "node \"${PLUGIN_ROOT}\\hooks\\rig-mode-tracker.js\"",
         "timeoutSec": 5
       }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/hooks/rig-subagent.js\"",
+        "powershell": "node \"${PLUGIN_ROOT}\\hooks\\rig-subagent.js\"",
+        "timeoutSec": 5
+      }
     ]
   }
 }

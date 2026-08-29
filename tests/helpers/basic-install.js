@@ -6,6 +6,7 @@
 // The invocation below is the FROZEN Gate-1 install seam: if the build wires a
 // different entry point, change ONLY materialize() here — never the assertions,
 // which pin observable intent, not mechanism.
+require('./hermetic-git-env');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');

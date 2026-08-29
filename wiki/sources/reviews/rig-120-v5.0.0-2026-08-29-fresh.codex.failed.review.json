@@ -1,0 +1,39 @@
+{
+  "note": "Fresh Codex fallback review run after the requested Claude Opus reviewer exited on a local session limit. The wrapper refused to write a binding receipt because the verdict was fail.",
+  "reviewer": "codex",
+  "model": "gpt-5.5",
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "coverage",
+      "anchor": "rig/lib/lint-format.js:455-487 vs rig/lib/checks.js:158-229 and rig/catalog/baseline/check.js:53-69",
+      "detail": "The plan-bound execution guarantees are implemented in planExecution/executePlan/runReadOnly, but the shipping source and materialized check entrypoints run selected services directly through check-runner.runBinding. A grep of rig/ finds no caller of executePlan, runReadOnly, runGrade, or runAutofix outside lint-format.js itself. That means AT-LF-5, AT-LF-11, AT-LF-14, and AT-LF-20 have tests against helper APIs, but no enforcement on the path a user or CI actually runs."
+    },
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/check-runner.js:84-91 and 196-200; rig/lib/lint-format.js:312-350",
+      "detail": "The canonical shipping runner treats a missing network declaration as undeclared, prints a compatibility warning, and then runs the command without a network sandbox. buildBinding emits component command bindings without a network field, so the generated lint-format shipping path defaults to outbound network allowed rather than default-deny. This directly violates AT-LF-22."
+    },
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-format.js:515-526 and 540-606; rig/lib/check-runner.js:173-201",
+      "detail": "Filesystem isolation only checks the command working directory and selected metadata paths before spawning an arbitrary repository command. There is no filesystem sandbox, chroot, path mediation, or wrapper that prevents the child process from reading or writing absolute or parent-directory paths outside the repository. AT-LF-21 requires every path a task touches to resolve inside the repository, including through symlinks, so arbitrary untrusted repo tasks remain outside the stated trust boundary."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-format.js:785-810",
+      "detail": "runAutofix accepts any object with verified true as approval and does not bind that approval to the exact fix argv, target, digest, or verification command. An approval intended for one autofix can authorize a different mutating command passed to the same function, so AT-LF-12's separate approval is present in shape but not enforceable against command substitution."
+    },
+    {
+      "severity": "major",
+      "category": "testability",
+      "anchor": "tests/advanced-oracle.test.js:760-766, 850-859, 916-926, 929-991",
+      "detail": "The primary acceptance tests for plan-bound execution and shell-trust call lint-format helper functions directly instead of the shipping rig check entrypoints. They can pass while .rig/bin/check.js still runs service bindings without plan approval, command-drift checks, one-use approval consumption, or read-only mutation detection, so the tests do not fail for the user-visible failure mode."
+    }
+  ],
+  "unresolved": []
+}

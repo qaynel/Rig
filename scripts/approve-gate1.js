@@ -2,6 +2,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -31,12 +32,25 @@ function unquote(value) {
   return trimmed;
 }
 
-function loadLocalEnv(root, env = process.env) {
-  const local = path.join(root, '.context', 'gate1.env');
-  if (!fs.existsSync(local) || env[ENV_NAME]) return env[ENV_NAME];
-  for (const line of fs.readFileSync(local, 'utf8').split('\n')) {
+function readSigningKeyFromFile(file) {
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
     const match = line.match(/^(?:export\s+)?RIG_GATE1_SIGNING_KEY=(.*)$/);
     if (match) return unquote(match[1]);
+  }
+  return undefined;
+}
+
+function loadLocalEnv(root, env = process.env) {
+  if (env[ENV_NAME]) return env[ENV_NAME];
+  // .context/ is in .git/info/exclude (not .gitignore) so gate1.env survives branch switches.
+  const candidates = [
+    path.join(root, '.context', 'gate1.env'),
+    path.join(root, '.credentials', 'gate1.env'),
+  ];
+  for (const local of candidates) {
+    if (!fs.existsSync(local)) continue;
+    const key = readSigningKeyFromFile(local);
+    if (key) return key;
   }
   return undefined;
 }
@@ -69,15 +83,44 @@ function defaultSecretiveAgent(env = process.env) {
   if (fs.existsSync(socket)) env.SSH_AUTH_SOCK = socket;
 }
 
-function refreshManifest(root) {
+function digest(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function manifestDelta(before, after) {
+  if (before === after) return '  testing-infrastructure.manifest unchanged';
+  const oldLines = before.trimEnd().split('\n').filter(Boolean).map((line) => `- ${line}`);
+  const newLines = after.trimEnd().split('\n').filter(Boolean).map((line) => `+ ${line}`);
+  return [...oldLines, ...newLines].join('\n');
+}
+
+function proposedOracleMessage(root, manifest) {
+  const gateDir = path.join(root, 'wiki', 'gate1');
+  const business = sha256(fs.readFileSync(path.join(gateDir, 'business-spec.md')));
+  const acceptance = sha256(fs.readFileSync(path.join(gateDir, 'acceptance.md')));
+  return `rig-oracle-freeze-v2\nbusiness-spec.md ${business}\nacceptance.md ${acceptance}\ntesting-infrastructure.manifest ${sha256(Buffer.from(manifest))}\n`;
+}
+
+function refreshManifest(root, confirmation) {
   const manifestPath = path.join(root, MANIFEST);
+  const before = fs.readFileSync(manifestPath, 'utf8');
   const entries = parseManifest(fs.readFileSync(manifestPath, 'utf8'));
   const lines = entries.map(({ file }) => {
     const absolute = path.join(root, file);
     assert.ok(fs.existsSync(absolute), `missing oracle file: ${file}`);
     return `${sha256(fs.readFileSync(absolute))}  ${file}`;
   });
-  fs.writeFileSync(manifestPath, lines.length ? `${lines.join('\n')}\n` : '');
+  const after = lines.length ? `${lines.join('\n')}\n` : '';
+  const rearming = fs.existsSync(path.join(root, 'wiki', 'gate1', 'gate1.sig'));
+  if (before !== after || rearming) {
+    const expected = digest(proposedOracleMessage(root, after));
+    assert.equal(
+      confirmation,
+      expected,
+      `oracle digest confirmation required\n${manifestDelta(before, after)}\nrerun with --confirm-digest-delta ${expected}`,
+    );
+  }
+  if (before !== after) fs.writeFileSync(manifestPath, after);
   return entries.length;
 }
 
@@ -85,7 +128,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   const env = { ...process.env, ...(options.env || {}) };
   defaultSecretiveAgent(env);
   const configured = loadLocalEnv(root, env);
-  assert.ok(configured, `set ${ENV_NAME} or copy scripts/gate1.env.example to .context/gate1.env`);
+  assert.ok(configured, `set ${ENV_NAME} or copy .credentials/gate1.env.example to .context/gate1.env`);
 
   const signingKey = path.resolve(root, expandPath(configured));
   assert.ok(fs.existsSync(signingKey), `${ENV_NAME} does not exist: ${signingKey}`);
@@ -94,7 +137,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   const context = path.join(root, '.context');
   fs.mkdirSync(context, { recursive: true });
 
-  if (options.refresh !== false) refreshManifest(root);
+  if (options.refresh !== false) refreshManifest(root, options.confirmDigestDelta);
 
   const messageFile = path.join(context, 'rig-oracle-freeze-v2.txt');
   fs.writeFileSync(messageFile, oracleMessage(root));
@@ -113,7 +156,7 @@ function approveGate1(root = process.cwd(), options = {}) {
 
 function usage() {
   return [
-    'usage: node scripts/approve-gate1.js [lock|status|unlock]',
+    'usage: node scripts/approve-gate1.js [lock|status|unlock] [--confirm-digest-delta <sha256>]',
     '',
     '  lock     refresh manifested test digests and sign (default)',
     '  status   verify the current signature without changing files',
@@ -137,7 +180,12 @@ function main(argv = process.argv.slice(2)) {
   if (command !== 'lock' && command !== 'approve') {
     throw new Error(usage());
   }
-  approveGate1();
+  const confirmationIndex = argv.indexOf('--confirm-digest-delta');
+  const confirmDigestDelta = confirmationIndex === -1 ? undefined : argv[confirmationIndex + 1];
+  if (confirmationIndex !== -1 && !/^[0-9a-f]{64}$/.test(confirmDigestDelta || '')) {
+    throw new Error('--confirm-digest-delta requires the exact 64-character digest printed by the refused ceremony');
+  }
+  approveGate1(process.cwd(), { confirmDigestDelta });
 }
 
 if (require.main === module) {

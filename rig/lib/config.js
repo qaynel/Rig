@@ -8,6 +8,7 @@ const SUPPORTED_HOSTS = [
   'openclaw', 'devin', 'swival', 'vscode-codex', 'generic',
 ];
 const NAME_ONLY = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const RESERVED_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 const VALUE_SHAPED = /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[po]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----/i;
 
 function loadUserConfig(manifestPath) {
@@ -28,7 +29,9 @@ function validate(config) {
 
   for (const server of config.mcp_servers) {
     if (!server || typeof server !== 'object') throw new Error('rig: mcp server must be an object');
-    if (typeof server.name !== 'string' || !server.name) throw new Error('rig: server name is required');
+    if (typeof server.name !== 'string' || !server.name || RESERVED_KEYS.has(server.name)) {
+      throw new Error('rig: server name is required and must not be a prototype-reserved key');
+    }
     if (!Array.isArray(server.variants) || server.variants.length === 0) throw new Error(`rig: server "${server.name}" needs variants`);
     for (const variant of server.variants) validateVariant(server.name, variant);
   }

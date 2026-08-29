@@ -28,11 +28,17 @@ missing, malformed, stale, or non-verifying signatures fail once armed.
 
 `scripts/approve-gate1.js` is the local ceremony helper. It reads one
 machine-local environment variable, `RIG_GATE1_SIGNING_KEY`, from the process or
-from `.context/gate1.env`; writes the canonical oracle message; invokes
-`ssh-keygen -Y sign` in namespace `rig-gate1`; and only after a successful
-signature writes `gate1.allowed-signers` and `gate1.sig`. The tracked
-`scripts/gate1.env.example` shows the expected setting; the ignored local env
-file stores the key path, not private key material.
+from `.credentials/gate1.env`. A changed manifest or any re-sign first refuses,
+prints the old/new manifested digest lines and the digest of the exact proposed
+combined oracle, and requires that value back through
+`--confirm-digest-delta`; no frozen byte or signature is written before that
+confirmation. It then writes the canonical oracle message, invokes
+`ssh-keygen -Y sign` in namespace `rig-gate1`, and only after a successful
+signature writes `gate1.allowed-signers` and `gate1.sig`. `.credentials/` is
+the one directory for local secret/env files; it is gitignored except for
+tracked `*.example` files, so `.credentials/gate1.env.example` shows the
+expected setting and the real `.credentials/gate1.env` (key path, not private
+key material) never leaves the machine.
 
 ## What was rejected
 

@@ -8,7 +8,7 @@
 
 import * as path from 'path';
 import * as os from 'os';
-import { execSync } from 'child_process';
+import { spawnGuardedSync } from '../../../../lib/spawn-guarded';
 
 let cachedSlug: string | null = null;
 
@@ -21,7 +21,7 @@ export function getCurrentProjectSlug(): string {
   }
   try {
     const slugBin = path.join(os.homedir(), '.claude/skills/rig/bin/rig-slug');
-    const out = execSync(slugBin, { encoding: 'utf8', timeout: 2000 }).trim();
+    const out = (spawnGuardedSync(slugBin, [], { encoding: 'utf8', timeout: 2000 }).stdout || '').trim();
     const m = out.match(/SLUG="?([^"\n]+)"?/);
     cachedSlug = m ? m[1]! : (out || 'unknown');
   } catch {

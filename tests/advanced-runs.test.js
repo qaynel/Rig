@@ -20,8 +20,15 @@ test('bindings execute via argv arrays with shell:false', () => {
   const checksPath = path.join(root, 'rig', 'lib', 'checks.js');
   assert.ok(fs.existsSync(checksPath));
   const source = fs.readFileSync(checksPath, 'utf8');
-  assert.match(source, /shell:\s*false/);
   assert.match(source, /spawnSync/);
+  // `shell: false` itself lives in the canonical runner (GA-38,
+  // rig/lib/check-runner.js) that checks.js requires rather than
+  // re-implements -- assert the require, and check the guarantee at its one
+  // real source instead of re-asserting text that no longer appears here.
+  assert.match(source, /require\(['"]\.\/check-runner['"]\)/);
+  const runnerPath = path.join(root, 'rig', 'lib', 'check-runner.js');
+  assert.ok(fs.existsSync(runnerPath));
+  assert.match(fs.readFileSync(runnerPath, 'utf8'), /shell:\s*false/);
 });
 
 test('diff scope vs whole-repo scope are distinct check modes', () => {

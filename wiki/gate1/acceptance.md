@@ -242,6 +242,33 @@
 > Approval source:
 > [`../reasoning/2026-08-21-d24-owner-approval.md`](../reasoning/2026-08-21-d24-owner-approval.md).
 
+> **Revision note (2026-08-24) - D25, OpenClaw global MCP opt-in.** Re-grilled
+> with [`business-spec.md`](business-spec.md) from the intent owner's request
+> for an explicit, warned installer selection that registers `rig-mcp` in
+> OpenClaw's global MCP configuration. The vendor-owned `openclaw mcp` CLI,
+> rather than a JSON5 parser, is the only permitted writer. The default install
+> remains unchanged. `AT-HOME-1`, `AT-HOME-2`, and `AT-DIST-1` now specify the
+> selection, warning, attribution, runtime, removal, and failure boundaries.
+> The ID set remains **68**.
+
+> **Revision note (2026-08-26) — D28, shell-trust guarantees.** Re-grilled
+> with [`business-spec.md`](business-spec.md) after [[RIG-115]]'s
+> reconciliation found `AT-LF-5`'s untrusted-task disclosure (`GA-26`) was
+> never pinned to concrete, testable guarantees. The intent owner approved
+> five: single-use plan-bound approval; filesystem/env isolation including
+> through symlinks; default-deny network reachability; killed-and-reported
+> memory/wall-clock caps (`GA-33`); refused symlink escapes.
+>
+> Five new cases, independently authored against the approved guarantees:
+> `AT-LF-20` through `AT-LF-24`, closing the shell-trust suite. The ID set
+> grows from **68** to **73**, and the Gate-2 traceability table must match
+> that set exactly.
+>
+> **Frozen.** All five guarantees are recorded and no case is left open. None
+> of the five is implemented yet — the cases and their tests are expected to
+> fail until the runtime enforces them. A design or implementation context
+> must not edit this file; a genuine conflict returns to grilling.
+
 ## 7. Acceptance tests (the frozen Gate-1 target)
 
 These are owner-approved observable cases. Their deterministic executable form
@@ -583,14 +610,25 @@ behavior exists and pass only when the product intent is met.
   silently. This case is independent of `AT-GATE-2`: the Gate 1 integrity
   signer (D10/D19) keeps no recovery path of its own, and nothing here creates
   one for it.
-- **AT-HOME-1 (global writes append, never overwrite) [D9].** *Given* a host
+- **AT-HOME-1 (global writes append, never overwrite) [D9, D25].** *Given* a host
   whose only configuration surface is user-global, *when* Rig writes it, *then*
   the write is an append or a namespaced additive merge; every pre-existing
   user value survives byte-for-byte; and the write is disclosed in the user's
   own output, naming the file written outside the repository. A destructive or
   wholesale rewrite of a user-global file fails this case, as does an
   undisclosed one.
-- **AT-HOME-2 (multi-repository attribution) [D9].** *Given* Rig installed from
+
+  *And given* a normal Rig install, *then* it neither invokes OpenClaw nor
+  writes the user's OpenClaw configuration. *Given* the explicit
+  `--openclaw-mcp` installer selection, *when* OpenClaw, Node, and the locked
+  runtime dependencies are available, *then* output first names
+  `~/.openclaw/openclaw.json`, states that the write affects every OpenClaw
+  workspace, installs a runnable bundled MCP runtime, and invokes only
+  `openclaw mcp set` to add one standard-input/output server. Rig must not
+  parse, reformat, or otherwise rewrite OpenClaw's JSON5 file itself. A missing
+  prerequisite or failed dependency install leaves the OpenClaw configuration
+  unchanged and fails visibly.
+- **AT-HOME-2 (multi-repository attribution) [D9, D25].** *Given* Rig installed from
   repository A and repository B, both appending to one user-global
   configuration, *then* each installation's entries carry the identity of the
   repository that wrote them, and:
@@ -609,6 +647,16 @@ behavior exists and pass only when the product intent is met.
   and retrofitting attribution onto entries already in a user's global file is
   a migration this product does not want to owe. A design that attributes
   lazily, on the second install, fails this case.
+
+  *And given* both repositories select `--openclaw-mcp`, *then* each receives
+  one distinct `rig-<install-id>` OpenClaw server name recorded in its local
+  global-write ledger. Reinstalling a repository replaces only its own named
+  server. Uninstall invokes `openclaw mcp unset` for that recorded name before
+  deleting its runtime, preserving the other repository's server and every
+  unrelated OpenClaw server. If the native CLI cannot remove the entry,
+  uninstall stops before deleting the referenced runtime and reports the named
+  global configuration for repair; it never silently leaves a broken global
+  server entry.
 - **AT-DIST-1 (a stranger can install the complete release) [D7, D24].**
   *Given* a stranger with git, curl, and sh and no Rig checkout, *when* they run
   the committed root install stub for a named released tag, *then* the stub
@@ -620,6 +668,12 @@ behavior exists and pass only when the product intent is met.
   inherited npm publish workflow no longer exists, so tagging cannot fail on a
   private package. A build that passes every other case but cannot be installed
   by someone without this checkout is not shipped.
+
+  *And given* that stranger explicitly selects `--openclaw-mcp`, *then* the
+  tagged archive carries the bundled MCP server and a lockfile for its runtime
+  dependencies; the installer preflights `openclaw`, `node`, and `npm`, installs
+  those locked dependencies without lifecycle scripts, and only then registers
+  the global server. The default install still requires no OpenClaw or npm.
 
 ### G. Install lifecycle, removal, and finding disclosure (2026-07-28)
 
@@ -827,6 +881,44 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   claimed; and the whole-repository claim is suppressed because a discovered
   component was excluded. Claiming whole-repository support from install
   success, or from per-run results without a built level, fails this case.
+- **AT-LF-20 (a plan approval authorizes exactly one execution) [GA-37,
+  GA-26].** *Given* a plan approval already consumed by one execution of its
+  exact plan digest, *when* the same approval is presented again for another
+  execution of that plan, *then* Rig refuses it as not-authorized. Only a
+  fresh approval against the plan's current digest authorizes a further run.
+  Accepting a reused approval for a second execution fails this case.
+- **AT-LF-21 (task filesystem and environment stay isolated) [GA-37,
+  GA-26].** *Given* an approved command whose working directory is, or is
+  reached only through, a symlink resolving outside the repository, *then*
+  Rig refuses to run it rather than following the link. *Given* an approved
+  command run inside the repository, *then* it receives no ambient
+  environment variable beyond an explicit allowlist — a secret or credential
+  present only in the parent process's environment is not visible to the
+  task. A followed escaping symlink, or an unallowlisted environment variable
+  reaching the task, fails this case.
+- **AT-LF-22 (a task has no network reachability unless the plan explicitly
+  allows it) [GA-37, GA-26].** *Given* an approved command that is not
+  explicitly granted network access by the plan, *when* it attempts an
+  outbound connection, *then* the connection does not succeed. *Given* a plan
+  that explicitly grants network access for a listed command, *then* that
+  command's outbound connection is permitted. A default-allowed connection
+  from a command without an explicit grant fails this case.
+- **AT-LF-23 (a task exceeding its resource or time cap is killed and
+  reported as its own state) [GA-37, GA-26, GA-33].** *Given* a configured
+  memory ceiling or wall-clock timeout for an approved command, *when* the
+  command exceeds either, *then* Rig terminates it and reports a distinct
+  non-passing state naming which cap was exceeded, never a hang, a silent
+  truncation, or a generic failure. A command left running past its cap, or
+  an exceeded cap collapsed into a generic failed/passed state, fails this
+  case.
+- **AT-LF-24 (a repository symlink escaping the repository is refused like
+  any other escape attempt) [GA-37, GA-26].** *Given* a repository-supplied
+  symlink whose real target resolves outside the repository, *when* Rig
+  would read, write, or set a working directory through it, *then* Rig
+  refuses the operation and reports it as a boundary violation rather than
+  following the link. Silently following an escaping symlink, or treating it
+  as a same-repository path because its lexical form looks contained, fails
+  this case.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product

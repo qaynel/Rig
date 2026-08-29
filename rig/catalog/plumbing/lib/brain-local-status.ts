@@ -27,7 +27,7 @@
  * Ok → DB reachable, sources list returned valid JSON.
  */
 
-import { execFileSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import {
   createHash,
 } from "crypto";
@@ -146,7 +146,7 @@ export function resolvebrainBin(env?: NodeJS.ProcessEnv): string | null {
   if (_brainBinCache.has(key)) return _brainBinCache.get(key)!;
   let result: string | null = null;
   try {
-    execFileSync("brain", ["--version"], {
+    spawnGuardedSync("brain", ["--version"], {
       encoding: "utf-8",
       timeout: 2_000,
       stdio: ["ignore", "ignore", "ignore"],
@@ -169,14 +169,14 @@ export function readbrainVersion(env?: NodeJS.ProcessEnv): string {
   if (_brainVersionCache.has(key)) return _brainVersionCache.get(key)!;
   let result = "";
   try {
-    const out = execFileSync("brain", ["--version"], {
+    const out = spawnGuardedSync("brain", ["--version"], {
       encoding: "utf-8",
       timeout: 2_000,
       stdio: ["ignore", "pipe", "ignore"],
       env: e,
       shell: NEEDS_SHELL_ON_WINDOWS, // #1731: brain is a .cmd shim on Windows
     });
-    result = out.trim().split("\n")[0] || "";
+    result = (out.stdout || "").trim().split("\n")[0] || "";
   } catch {
     result = "";
   }
@@ -280,7 +280,7 @@ function freshClassify(env?: NodeJS.ProcessEnv): LocalEngineStatus {
   // broken-db. This also makes the result cwd-independent, so the 60s cache
   // can no longer propagate a poisoned negative to clean directories.
   try {
-    execFileSync("brain", ["sources", "list", "--json"], {
+    spawnGuardedSync("brain", ["sources", "list", "--json"], {
       encoding: "utf-8",
       timeout: probeTimeoutMs(env),
       stdio: ["ignore", "pipe", "pipe"],

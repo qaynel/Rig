@@ -49,6 +49,7 @@ function isLitter(srcAbs) {
 
 function copyTree(target, srcAbs, dstRel, writeFile, transform, filter) {
   const stat = fs.statSync(srcAbs);
+  if (path.basename(srcAbs) === 'node_modules') return;
   if (stat.isDirectory()) {
     for (const entry of fs.readdirSync(srcAbs)) {
       copyTree(target, path.join(srcAbs, entry), path.join(dstRel, entry), writeFile, transform, filter);
@@ -169,9 +170,25 @@ function journalWriter(target) {
     } else {
       const preimageDigest = before ? sha256(before) : null;
       if (before) {
-        const preimage = containedPath(target, `.rig/preimages/${preimageDigest}`);
+        const preimageRel = `.rig/preimages/${preimageDigest}`;
+        const preimage = containedPath(target, preimageRel);
         fs.mkdirSync(path.dirname(preimage), { recursive: true });
-        if (!fs.existsSync(preimage)) fs.writeFileSync(preimage, before, { mode: 0o600 });
+        if (!fs.existsSync(preimage)) {
+          fs.writeFileSync(preimage, before, { mode: 0o600 });
+          start();
+          const preimageRecord = {
+            seq: ++seq,
+            path: preimageRel,
+            ownership: 'create_owned',
+            operation: 'create_owned',
+            transaction_kind: 'install',
+            state: 'applied',
+            digest: preimageDigest,
+            desired_digest: preimageDigest,
+          };
+          append(preimageRecord);
+          latestByPath.set(preimageRel, preimageRecord);
+        }
       }
       record = {
         seq: ++seq,
@@ -213,7 +230,7 @@ function hostSelected(entryHost, selected) {
   return hosts.some((host) => selected.includes(host));
 }
 
-function runPayload(target, hosts, { releaseTag, activeDelivery = false } = {}) {
+function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPayload = null } = {}) {
   const hostEntries = hosts === undefined
     ? discoverHosts(target)
     : [...new Set(hosts)].map((id) => {
@@ -238,6 +255,7 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false } = {}) 
   if (releaseTag) {
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag }, null, 2)}\n`);
   }
+  if (afterPayload) afterPayload({ writeFile });
   writeFile.finish();
   return { hosts: hostEntries, writes: writeFile.appliedCount() - writesBefore };
 }

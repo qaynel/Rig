@@ -52,7 +52,7 @@ reach for.
 | Catalogue content | **All 115 authored and gate-proven.** 805 fragments carry declared grade content; the honest authorship check reports zero failures. |
 | Swallowed skills | **55 vendored, all wired (2026-08-23).** `rig/manifest.json` carries three per-host `install_vendored_skills` entries; `rig/lib/payload.js` expands them at install time. New `tests/vendored-skills-install.test.js` binds the installed layout. |
 | Host map | **Researched.** 19 hosts with instruction / skills / hook / MCP paths; seams exist in `host-capabilities.js`, `renderers.js`, `ci-adapters.js`, `config.js`. |
-| Specification gate | **Armed and green.** The signed oracle verifies over the frozen five-file manifest; all 68 acceptance cases pass against `rig/lib` modules and 115 Policy-grade fragments authored under D24. Fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`. |
+| Specification gate | **Armed and green.** The signed oracle verifies over the frozen five-file manifest; all 73 acceptance cases pass against `rig/lib` modules and 115 Policy-grade fragments authored under D24/D28. Fingerprint `SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY`. |
 | Distribution | **`install.sh` and `5.0.0` shipped.** Package is `5.0.0` (private); a released tag is not yet cut. |
 | Oracle signature | **Armed.** The owner signature verifies over the unchanged oracle with the protected `gate1-owner` fingerprint. |
 | Licence position | **Approved.** The swallowed source is MIT-licensed `garrytan/gstack` version `1.60.1.0` at `7c9df1c…`; its notice and local modifications are recorded and must ship with every installed copy, with no endorsement claim. |
@@ -94,7 +94,7 @@ catalogue-content target covers all 115 leaves.
 
 Effort remaining: none for the gate. **Verify:** the gate runs first and
 short-circuits code tests; `npm run test:code` runs code tests alone; every one
-of the 68 cases maps to an executable target; the product oracle is green; and
+of the 73 cases maps to an executable target; the product oracle is green; and
 the owner signature verifies over the exact oracle and testing-infrastructure
 manifest.
 

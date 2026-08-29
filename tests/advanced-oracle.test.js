@@ -457,6 +457,135 @@ test('AT-HOME-1 global writes append and disclose the exact path', () => {
   });
 });
 
+test('AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible', { timeout: 30000 }, () => {
+  h.withTempDir('rig-openclaw-', (fixture) => {
+    const root = path.join(__dirname, '..');
+    const staging = path.join(fixture, 'staging', 'Rig-v5.0.0');
+    const archive = path.join(fixture, 'rig-v5.0.0.tar.gz');
+    const bin = path.join(fixture, 'bin');
+    const home = path.join(fixture, 'home');
+    const target = path.join(fixture, 'repository');
+    const downloadLog = path.join(fixture, 'download.log');
+    const npmLog = path.join(fixture, 'npm.log');
+    const openclawLog = path.join(fixture, 'openclaw.log');
+    const config = path.join(home, '.openclaw', 'openclaw.json');
+
+    fs.mkdirSync(staging, { recursive: true });
+    for (const rel of ['rig', '.agents', '.claude', 'skills']) {
+      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true });
+    }
+    fs.cpSync(path.join(root, 'rig-mcp'), path.join(staging, 'rig-mcp'), {
+      recursive: true,
+      filter(source) { return path.basename(source) !== 'node_modules'; },
+    });
+    fs.mkdirSync(path.dirname(config), { recursive: true });
+    fs.writeFileSync(config, JSON.stringify({ user: true, mcp: { servers: { keep: { command: 'keep' } } } }, null, 2) + '\n');
+    const before = fs.readFileSync(config, 'utf8');
+    fs.mkdirSync(bin);
+    fs.mkdirSync(target);
+
+    const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(staging), path.basename(staging)], { encoding: 'utf8' });
+    assert.equal(packed.status, 0, packed.stderr);
+    fs.writeFileSync(path.join(bin, 'curl'), [
+      '#!/bin/sh',
+      'printf "%s\\n" "$*" >> "$RIG_TEST_DOWNLOAD_LOG"',
+      'while [ "$#" -gt 0 ]; do',
+      '  if [ "$1" = "-o" ]; then cp "$RIG_TEST_ARCHIVE" "$2"; exit 0; fi',
+      '  shift',
+      'done',
+      'exit 1',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), [
+      '#!/bin/sh',
+      'printf "%s\\n" "$*" >> "$RIG_TEST_NPM_LOG"',
+      'dest=$PWD',
+      'while [ "$#" -gt 0 ]; do',
+      '  if [ "$1" = "--prefix" ]; then dest=$2; shift 2; continue; fi',
+      '  shift',
+      'done',
+      'mkdir -p "$dest"',
+      'cp -R "$RIG_TEST_MCP_NODE_MODULES" "$dest/node_modules"',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'openclaw'), [
+      '#!/usr/bin/env node',
+      "const fs = require('node:fs');",
+      "const path = require('node:path');",
+      'const [, , group, action, name, value] = process.argv;',
+      "if (group !== 'mcp' || !['show', 'set', 'unset'].includes(action)) process.exit(2);",
+      "const file = process.env.OPENCLAW_CONFIG_PATH || path.join(process.env.HOME, '.openclaw', 'openclaw.json');",
+      "const config = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};",
+      'config.mcp ??= {}; config.mcp.servers ??= {};',
+      "if (action === 'show' && name === '--json') { process.stdout.write(JSON.stringify(config.mcp.servers)); process.exit(0); }",
+      "if (action === 'set') config.mcp.servers[name] = JSON.parse(value);",
+      "else if (action === 'unset') delete config.mcp.servers[name];",
+      'else process.exit(2);',
+      "fs.mkdirSync(path.dirname(file), { recursive: true });",
+      "fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\\n');",
+      "fs.appendFileSync(process.env.RIG_TEST_OPENCLAW_LOG, JSON.stringify({ action, name }) + '\\n');",
+      '',
+    ].join('\n'), { mode: 0o755 });
+
+    const env = {
+      ...process.env,
+      HOME: home,
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      RIG_TEST_ARCHIVE: archive,
+      RIG_TEST_DOWNLOAD_LOG: downloadLog,
+      RIG_TEST_NPM_LOG: npmLog,
+      RIG_TEST_OPENCLAW_LOG: openclawLog,
+      RIG_TEST_MCP_NODE_MODULES: path.join(root, 'rig-mcp', 'node_modules'),
+    };
+    const installer = path.join(root, 'install.sh');
+    const normal = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target], { encoding: 'utf8', env });
+    assert.equal(normal.status, 0, normal.stderr);
+    assert.equal(fs.readFileSync(config, 'utf8'), before, 'the default install leaves OpenClaw untouched');
+    assert.equal(fs.existsSync(openclawLog), false, 'the default install never invokes OpenClaw');
+    assert.equal(fs.existsSync(npmLog), false, 'the default install does not require npm');
+
+    const optedIn = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target, '--openclaw-mcp'], { encoding: 'utf8', env });
+    assert.equal(optedIn.status, 0, optedIn.stderr);
+    assert.match(optedIn.stdout, /global.*OpenClaw|OpenClaw.*global/i, 'the global blast radius is disclosed');
+    assert.match(optedIn.stdout, /\.openclaw\/openclaw\.json/, 'the global file is named before writing it');
+    assert.match(fs.readFileSync(npmLog, 'utf8'), /\bci\b/, 'the bundled runtime installs from its lockfile');
+    const global = JSON.parse(fs.readFileSync(config, 'utf8'));
+    const names = Object.keys(global.mcp.servers).filter((name) => name.startsWith('rig-'));
+    assert.equal(names.length, 1, 'the installation owns exactly one namespaced OpenClaw server');
+    const server = global.mcp.servers[names[0]];
+    assert.equal(server.command, 'node');
+    assert.deepEqual(server.args, [path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')]);
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')), 'the configured runtime is installed');
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig-mcp', 'package-lock.json')), 'the configured runtime carries its dependency lockfile');
+
+    const client = path.join(target, '.rig', 'runtime', 'rig-mcp', 'probe.mjs');
+    fs.writeFileSync(client, [
+      'import assert from "node:assert/strict";',
+      'import { Client } from "@modelcontextprotocol/sdk/client/index.js";',
+      'import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";',
+      'const transport = new StdioClientTransport({ command: "node", args: [process.argv[2]] });',
+      'const client = new Client({ name: "rig-install-test", version: "0.0.0" });',
+      'await client.connect(transport);',
+      'const result = await client.callTool({ name: "rig_instructions", arguments: { mode: "full" } });',
+      'assert.ok(result.content[0].text.length > 0);',
+      'await client.close();',
+      '',
+    ].join('\n'));
+    const probe = spawnSync(process.execPath, [client, path.join(target, '.rig', 'runtime', 'rig-mcp', 'index.js')], { encoding: 'utf8', env });
+    assert.equal(probe.status, 0, probe.stderr);
+
+    const reinstall = spawnSync('/bin/dash', [installer, '--version', 'v5.0.0', '--target', target, '--openclaw-mcp'], { encoding: 'utf8', env });
+    assert.equal(reinstall.status, 0, reinstall.stderr);
+    assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(config, 'utf8')).mcp.servers).filter((name) => name.startsWith('rig-')), names, 'reinstall replaces in place');
+
+    const uninstall = spawnSync(process.execPath, [path.join(target, '.rig', 'runtime', 'rig', 'materialize.js'), 'uninstall', '--target', target], { encoding: 'utf8', env });
+    assert.equal(uninstall.status, 0, uninstall.stderr);
+    const after = JSON.parse(fs.readFileSync(config, 'utf8'));
+    assert.deepEqual(after.mcp.servers, { keep: { command: 'keep' } }, 'uninstall removes only the owned OpenClaw server');
+    assert.ok(fs.readFileSync(openclawLog, 'utf8').includes('"unset"'), 'uninstall delegates removal to OpenClaw before deleting the runtime');
+  });
+});
+
 test('AT-HOME-2 global entries are attributed per repository', () => {
   const merge = api('global-writes.js', 'mergeGlobalConfig');
   const remove = api('global-writes.js', 'removeGlobalConfig');
@@ -783,3 +912,194 @@ test('AT-LF-19 support is evidence-backed per component and honest in aggregate'
   assert.equal(result.components.legacy, 'excluded_unprotected');
   assert.equal(result.repository, 'not_supported');
 });
+
+test('AT-LF-20 a plan approval authorizes exactly one execution', () => {
+  const planExecution = api('lint-format.js', 'planExecution');
+  const executePlan = api('lint-format.js', 'executePlan');
+  h.withRepo((target) => {
+    const planned = planExecution({ target, commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] }] });
+    const approval = { plan_digest: planned.plan_digest };
+    const first = executePlan(planned, approval);
+    assert.equal(first.status, 'executed');
+    const second = executePlan(planned, approval);
+    assert.notEqual(second.status, 'executed');
+  });
+});
+
+test('AT-LF-21 task filesystem and environment stay isolated', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
+    fs.symlinkSync(outside, path.join(target, 'escape-link'));
+    const escapeResult = runReadOnly(target, [
+      { argv: [process.execPath, '-e', "require('fs').writeFileSync('marker','x')"], cwd: 'escape-link' },
+    ]);
+    assert.notEqual(escapeResult.status, 'clean');
+    assert.equal(fs.existsSync(path.join(outside, 'marker')), false);
+
+    const leakMarker = path.join(outside, 'leaked-env');
+    process.env.RIG_TEST_SECRET_AT_LF_21 = 'leaked';
+    try {
+      const probe = path.join(target, 'env-check.js');
+      fs.writeFileSync(probe, `if (process.env.RIG_TEST_SECRET_AT_LF_21) require('fs').writeFileSync(${JSON.stringify(leakMarker)}, 'x')`);
+      runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      assert.equal(fs.existsSync(leakMarker), false);
+    } finally {
+      delete process.env.RIG_TEST_SECRET_AT_LF_21;
+    }
+  });
+});
+
+test('AT-LF-22 a task has no network reachability without an explicit grant', async () => {
+  const net = require('node:net');
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-advanced-'));
+  try {
+    h.initGitRepo(target);
+    const server = net.createServer((socket) => socket.end());
+    // Node's host lookup for listen() completes on an event-loop tick even for
+    // a literal IP; address() right after listen() is unreliable. Await the
+    // listening callback instead of polling or reading address() synchronously.
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', resolve);
+    });
+    const { port } = server.address();
+    try {
+      const probe = path.join(target, 'net-check.js');
+      fs.writeFileSync(probe, `
+        const net = require('net');
+        const done = () => process.exit(0);
+        setTimeout(done, 800);
+        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
+          require('fs').writeFileSync('connected', 'x');
+          sock.end();
+          done();
+        });
+        sock.on('error', done);
+      `);
+      runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      assert.equal(fs.existsSync(path.join(target, 'connected')), false);
+    } finally {
+      await new Promise((resolve, reject) => {
+        server.close((err) => (err ? reject(err) : resolve()));
+      });
+    }
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('AT-LF-23 a task exceeding its resource or time cap is killed and reported', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const start = Date.now();
+    const result = runReadOnly(target, [
+      { argv: [process.execPath, '-e', 'setTimeout(() => {}, 2000)'], cwd: '.', timeoutMs: 200 },
+    ]);
+    const elapsed = Date.now() - start;
+    assert.ok(elapsed < 1500, `expected the task to be killed near its cap, took ${elapsed}ms`);
+    assert.equal(result.status, 'timeout');
+  });
+});
+
+test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
+  const planExecution = api('lint-format.js', 'planExecution');
+  const executePlan = api('lint-format.js', 'executePlan');
+  h.withRepo((target) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-outside-'));
+    fs.writeFileSync(path.join(outside, 'secret.json'), JSON.stringify({ scripts: { lint: 'node -e "require(\'fs\').writeFileSync(\'ran\', \'x\')"' } }));
+    fs.symlinkSync(path.join(outside, 'secret.json'), path.join(target, 'linked.json'));
+    const planned = planExecution({ target, commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'linked.json#scripts.lint' }] });
+    // Planning must never have read through the escaping symlink.
+    assert.equal(planned.commands[0].source_snapshot, null);
+    assert.equal(planned.commands[0].source_boundary_violation, true);
+    // Execution independently refuses too -- it does not trust the plan-time
+    // flag, since the symlink could appear only after planning. A weaker
+    // fix would let this fall through to 'command_drift' (a recoverable
+    // state) after actually reading the outside file's bytes; assert the
+    // hard refusal and that the outside command's side effect never ran.
+    const result = executePlan(planned, { plan_digest: planned.plan_digest });
+    assert.equal(result.status, 'boundary_violation');
+    assert.equal(fs.existsSync(path.join(target, 'ran')), false);
+    assert.equal(fs.existsSync(path.join(outside, 'ran')), false);
+  });
+});
+
+// RIG-141: runReadOnly over-blocks when sandbox absent.
+// AT-LF-22 requires denying ungranted tasks but permits granted ones;
+// the early-return must not fire for cmd.network === true.
+// PATH is emptied to force networkIsolationPrefix() → null without platform dependency.
+test('RIG-141 granted-network task runs when no sandbox tool is present', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+    const savedPath = process.env.PATH;
+    try {
+      process.env.PATH = emptyBin;
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, '-e', ''], network: true },
+      ]);
+      assert.equal(result.status, 'clean',
+        'granted task must run (not be refused) when sandbox tools are absent');
+    } finally {
+      process.env.PATH = savedPath;
+      fs.rmdirSync(emptyBin);
+    }
+  });
+});
+
+test('RIG-141 ungranted task still refuses when no sandbox tool is present', () => {
+  const runReadOnly = api('lint-format.js', 'runReadOnly');
+  h.withRepo((target) => {
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+    const savedPath = process.env.PATH;
+    try {
+      process.env.PATH = emptyBin;
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, '-e', ''] },
+      ]);
+      assert.equal(result.status, 'network_isolation_unavailable',
+        'ungranted task must still be refused when sandbox tools are absent');
+    } finally {
+      process.env.PATH = savedPath;
+      fs.rmdirSync(emptyBin);
+    }
+  });
+});
+
+// RIG-142: spawnTask safety defaults must be structurally locked.
+// shell:false and env:isolatedTaskEnv() must hold even when a caller passes
+// overrides in options. Requires spawnTask to be exported from lint-format.js.
+test('RIG-142 spawnTask shell is false even when caller passes shell: true', () => {
+  const spawnTask = api('lint-format.js', 'spawnTask');
+  // If shell were honoured, the semicolon would split commands and 'touch' would run.
+  // With shell:false the whole string is treated as the binary name (ENOENT).
+  const marker = path.join(os.tmpdir(), `rig-shell-test-${process.pid}`);
+  try {
+    spawnTask([`${process.execPath}; touch ${marker}`, '-e', ''], { shell: true });
+  } catch { /* ENOENT expected when shell is correctly disabled */ }
+  assert.equal(fs.existsSync(marker), false,
+    'shell injection must not execute when caller passes shell:true');
+});
+
+test('RIG-142 spawnTask env isolation holds even when caller passes env: process.env', () => {
+  const spawnTask = api('lint-format.js', 'spawnTask');
+  h.withRepo((target) => {
+    const leakMarker = path.join(os.tmpdir(), `rig-env-test-${process.pid}`);
+    process.env.RIG_TEST_SECRET_142 = 'leaked';
+    try {
+      const probe = path.join(target, 'env-check.js');
+      fs.writeFileSync(probe,
+        `if (process.env.RIG_TEST_SECRET_142) require('fs').writeFileSync(${JSON.stringify(leakMarker)}, 'x')`
+      );
+      spawnTask([process.execPath, probe], { env: process.env });
+      assert.equal(fs.existsSync(leakMarker), false,
+        'child must not see secrets from a caller-supplied env replacement');
+    } finally {
+      delete process.env.RIG_TEST_SECRET_142;
+      if (fs.existsSync(leakMarker)) fs.unlinkSync(leakMarker);
+    }
+  });
+});
+

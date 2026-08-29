@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Repo-level guard: fake secret fixtures must be split at source so GitHub Push
 // Protection is not the first place we learn about a literal secret-shaped value.
+require('./helpers/hermetic-git-env');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

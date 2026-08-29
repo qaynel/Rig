@@ -1,4 +1,6 @@
-Before acting, read `rig/tier-1/routing.md` and route this task through its skill table.
+Before acting, read `rig/tier-1/routing.md` and route this task through its
+skill table — its "Task weight" section sets a lighter path for single-step
+tasks; everything else uses the full cadence below.
 
 # Rig Development
 
@@ -23,6 +25,19 @@ change, following `wiki/reasoning/README.md`: file new thinking verbatim under
 `reasoning/`, then update the topic hubs it touches and the decision index. A
 wiki that has drifted from the branch is a defect, not stale documentation.
 Reference it, update it, maintain it; it is part of the deliverable.
+
+On a task that runs long or has several steps, do not hold everything for a
+finish-line summary — that loses the work if the session is cut off partway
+through. Check the time and update `wiki/status.md` with what was just done,
+what is in flight, and what is next at least every three minutes of active
+work, not only when a step or the task completes. Record a new understanding
+or an approach that just failed the moment it happens — as its own reasoning
+trace, or in `index/rejected.md` / `index/traps.md` if that is what it is —
+rather than batching it for later. A session picking up cold should be able to
+resume from what is written, not from re-deriving it or reading the lost
+conversation. A single-step task on the lightweight path (`rig/tier-1/routing.md`
+§Task weight) skips this cadence; it applies once the task is multi-step or
+changes what's true in the wiki.
 
 ## Talking to the user
 
@@ -66,6 +81,8 @@ must still emit only markdown/instruction files into the target repository.
 the same commands `.github/workflows/test.yml` runs. Run it locally and confirm
 it is green before pushing; do not push on a red or unrun suite. `npm run
 test:rig` is a fast subset (the bootstrap test only) and is not a substitute.
+Inner-loop red/green uses `npm run test:rig` or the single relevant test file,
+never the full gate — see `rig-tdd`; run the full gate once, right before push.
 
 ```sh
 npm test        # full CI gate — must pass before push

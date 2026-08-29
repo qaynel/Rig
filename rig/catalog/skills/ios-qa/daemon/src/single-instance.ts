@@ -9,7 +9,7 @@ import { readFile, mkdir, unlink } from 'fs/promises';
 import { existsSync, openSync, writeSync, closeSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
-import { spawn } from 'child_process';
+import { spawnGuarded } from '../../../../lib/spawn-guarded';
 
 export interface PidfileContents {
   pid: number;
@@ -137,7 +137,7 @@ export async function spawnAndWaitReady(opts: {
   env?: NodeJS.ProcessEnv;
 }): Promise<{ pid: number; port: number }> {
   const timeoutMs = opts.timeoutMs ?? 5000;
-  const child = spawn(opts.cmd, opts.args, {
+  const child = spawnGuarded(opts.cmd, opts.args, {
     stdio: ['ignore', 'pipe', 'inherit'],
     detached: true,
     env: opts.env ?? process.env,
@@ -146,7 +146,7 @@ export async function spawnAndWaitReady(opts: {
   return new Promise((resolve, reject) => {
     let buffer = '';
     const onTimeout = setTimeout(() => {
-      child.kill('SIGTERM');
+      void child.cancel('SIGTERM');
       reject(new Error(`daemon spawn timeout after ${timeoutMs}ms`));
     }, timeoutMs);
 

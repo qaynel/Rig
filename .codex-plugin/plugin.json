@@ -6,12 +6,18 @@
     "name": "Vaibhav Kodiyan",
     "url": "https://github.com/vaibhav-kodiyan"
   },
-  "homepage": "https://github.com/vaibhav-kodiyan/agentic-harness-demo",
-  "repository": "https://github.com/vaibhav-kodiyan/agentic-harness-demo",
+  "homepage": "https://github.com/qaynel/Rig",
+  "repository": "https://github.com/qaynel/Rig",
   "license": "MIT",
   "keywords": ["yagni", "minimalism", "code-review", "productivity"],
   "skills": "./skills/",
   "hooks": "./hooks/claude-codex-hooks.json",
+  "mcpServers": {
+    "rig": {
+      "command": "node",
+      "args": ["./rig-mcp/index.js"]
+    }
+  },
   "interface": {
     "displayName": "Rig",
     "shortDescription": "Lazy senior developer mode",
@@ -19,7 +25,7 @@
     "developerName": "Vaibhav Kodiyan",
     "category": "Productivity",
     "capabilities": ["Instructions", "Lifecycle hooks"],
-    "websiteURL": "https://github.com/vaibhav-kodiyan/agentic-harness-demo",
+    "websiteURL": "https://github.com/qaynel/Rig",
     "defaultPrompt": [
       "Use Rig mode for this task.",
       "Review this diff for over-engineering.",

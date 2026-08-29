@@ -77,3 +77,58 @@ instructions, keep its copied rule text aligned with `AGENTS.md`.
 - `skills/rig-gain/SKILL.md`: measured-impact scoreboard from the benchmark
 - `skills/rig-help/SKILL.md`: quick reference
 - `AGENTS.md`: compact always-on instruction set for agents without skill support
+
+### MCP Server (`rig-mcp`)
+
+`rig-mcp/` is a stdio MCP server serving the ruleset as a `rig` prompt and a
+`rig_instructions` tool (modes: `lite`, `full`, `ultra`) — the option for hosts
+whose only injection point is the prompt/tool menu rather than an always-on
+context file (see `rig-mcp/index.js`). It needs no credentials, so every config
+below is copy-paste complete: `command: "node"`, `args: ["rig-mcp/index.js"]`.
+
+Eleven hosts are wired directly into this repo's own adapter manifests, each
+using that host's real inline-MCP schema (cross-checked against both official
+vendor docs and this repo's own `rig/lib/host-capabilities.js` REGISTRY —
+[[RIG-104]]'s single source of truth for MCP disposition), verified by
+`tests/rig-mcp-adapters.test.js`:
+
+| Host | File | Config |
+|---|---|---|
+| OpenCode | `opencode.json` | `{"mcp":{"rig":{"type":"local","command":["node","rig-mcp/index.js"],"enabled":true}}}` |
+| Claude Code | `.claude-plugin/plugin.json` | `{"mcpServers":{"rig":{"command":"node","args":["${CLAUDE_PLUGIN_ROOT}/rig-mcp/index.js"]}}}` |
+| Codex plugin | `.codex-plugin/plugin.json` | `{"mcpServers":{"rig":{"command":"node","args":["./rig-mcp/index.js"]}}}` |
+| Gemini CLI | `gemini-extension.json` | `{"mcpServers":{"rig":{"command":"node","args":["${extensionPath}/rig-mcp/index.js"],"cwd":"${extensionPath}"}}}` |
+| Cursor | `.cursor/mcp.json` | `{"mcpServers":{"rig":{"type":"stdio","command":"node","args":["rig-mcp/index.js"]}}}` |
+| Kiro | `.kiro/settings/mcp.json` | `{"mcpServers":{"rig":{"command":"node","args":["rig-mcp/index.js"],"disabled":false}}}` |
+| Devin CLI | `.devin/config.json` | `{"mcpServers":{"rig":{"command":"node","args":["rig-mcp/index.js"]}}}` |
+| Swival | `.swival/mcp.json` | `{"mcpServers":{"rig":{"command":"node","args":["rig-mcp/index.js"]}}}` |
+| GitHub Copilot (VS Code) | `.vscode/mcp.json` | `{"servers":{"rig":{"type":"stdio","command":"node","args":["rig-mcp/index.js"]}}}` |
+| GitHub Copilot CLI | `.github/mcp.json` | `{"mcpServers":{"rig":{"type":"local","command":"node","args":["rig-mcp/index.js"]}}}` |
+| Codex CLI + VS Code extension | `.codex/config.toml` | `[mcp_servers.rig]`<br>`command = "node"`<br>`args = ["rig-mcp/index.js"]` |
+
+Claude plugin MCP servers resolve paths through `${CLAUDE_PLUGIN_ROOT}`, Gemini
+extensions through `${extensionPath}` (plus an explicit `cwd`); every other
+host resolves relative to the plugin/project root directly. Copilot CLI's
+`.github/mcp.json` is a distinct surface from the VS Code extension's
+`.vscode/mcp.json` — vendor docs state explicitly that the CLI does not read
+the VS Code file. The Codex IDE extension shares `.codex/config.toml` with the
+CLI (same file, same schema) but only loads it in trusted projects.
+
+`antigravity` is `mcp: 'repo'`-eligible but deliberately excluded: `rig` stays
+Tier B there by owner decision (RIG-105/PD-open-4), so `rig-mcp` is a
+hand-copy step into `antigravity-plugin/mcp_config.json`'s template, never an
+auto-written entry. `pi` and `generic` refuse MCP entirely
+(`host-coverage-spec §3.1`), so no path emits a `rig-mcp` config for them.
+`windsurf`, `cline`, `hermes`, and `codewhale` accept only **user-global** MCP
+files, so `rig-mcp` there is a manual per-user opt-in — point the host's
+global MCP config at the same `command`/`args` above — not a file this repo
+commits.
+
+`openclaw` is **not wired** pending a scope conflict: `rig/lib/host-capabilities.js`
+REGISTRY records it as `mcp: 'repo'` at `.openclaw/openclaw.json` (tested,
+shipped shape — [[RIG-104]]), but a fresh official-docs pass
+(docs.openclaw.ai/gateway/configuration-reference) describes OpenClaw as a
+single-user personal Gateway assistant with **one global config file**
+(`~/.openclaw/openclaw.json`) and no per-repo committed concept at all. Both
+can't be right; resolving which is current vendor behavior is unstarted work,
+not a silent gap — see `host-coverage-spec §3.2.1`.

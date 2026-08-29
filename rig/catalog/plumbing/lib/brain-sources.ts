@@ -9,7 +9,7 @@
  * Per /plan-eng-review D3 (DRY extraction).
  */
 
-import { execFileSync, spawnSync } from "child_process";
+import { spawnGuardedSync } from "../../../lib/spawn-guarded";
 import { withErrorContext } from "./rig-memory-helpers";
 import { execbrainJson, NEEDS_SHELL_ON_WINDOWS } from "./brain-exec";
 
@@ -83,13 +83,13 @@ export interface EnsureOptions {
 export function probeSource(id: string, env?: NodeJS.ProcessEnv): SourceState {
   let stdout: string;
   try {
-    stdout = execFileSync("brain", ["sources", "list", "--json"], {
+    stdout = spawnGuardedSync("brain", ["sources", "list", "--json"], {
       encoding: "utf-8",
       timeout: 30_000,
       stdio: ["ignore", "pipe", "pipe"],
       env,
       shell: NEEDS_SHELL_ON_WINDOWS, // #1731: brain is a .cmd shim on Windows
-    });
+    }).stdout || "";
   } catch (err) {
     const e = err as NodeJS.ErrnoException & { stderr?: Buffer };
     const stderr = e.stderr?.toString() || "";
@@ -158,7 +158,7 @@ export async function ensureSourceRegistered(
 
     // For drift, remove first.
     if (state.status === "drift") {
-      const rm = spawnSync("brain", ["sources", "remove", id, "--yes"], {
+      const rm = spawnGuardedSync("brain", ["sources", "remove", id, "--yes"], {
         encoding: "utf-8",
         timeout: 30_000,
         env,
@@ -172,7 +172,7 @@ export async function ensureSourceRegistered(
     // Add.
     const addArgs = ["sources", "add", id, "--path", path];
     if (federated) addArgs.push("--federated");
-    const add = spawnSync("brain", addArgs, {
+    const add = spawnGuardedSync("brain", addArgs, {
       encoding: "utf-8",
       timeout: 30_000,
       env,
@@ -197,13 +197,13 @@ export async function ensureSourceRegistered(
 export function sourcePageCount(id: string, env?: NodeJS.ProcessEnv): number | null {
   let stdout: string;
   try {
-    stdout = execFileSync("brain", ["sources", "list", "--json"], {
+    stdout = spawnGuardedSync("brain", ["sources", "list", "--json"], {
       encoding: "utf-8",
       timeout: 30_000,
       stdio: ["ignore", "pipe", "pipe"],
       env,
       shell: NEEDS_SHELL_ON_WINDOWS, // #1731: brain is a .cmd shim on Windows
-    });
+    }).stdout || "";
   } catch {
     return null;
   }

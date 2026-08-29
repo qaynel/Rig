@@ -107,7 +107,7 @@ def child_run(args, log):
                     pass
                 time.sleep(5)
                 try:
-                    proc.kill()
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
                 except Exception:
                     pass
                 code = "timeout"

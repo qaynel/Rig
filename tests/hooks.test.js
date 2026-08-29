@@ -209,4 +209,26 @@ assert.equal(output.systemMessage, 'RIG:FULL');
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
 assert.match(output.hookSpecificOutput.additionalContext, /RIG MODE ACTIVE — level: full/);
 
+// Copilot's subagentStart hook (RIG-106): copilot-hooks.json now wires
+// rig-subagent.js the same way claude-codex-hooks.json does. GitHub's docs
+// give subagentStart the identical top-level additionalContext shape as
+// sessionStart (docs.github.com/en/copilot/reference/hooks-reference,
+// verified 2026-08-24), so no Claude hookSpecificOutput wrapper or Codex
+// systemMessage badge should appear in the Copilot branch.
+const subCopilotData = path.join(temp, 'sub-copilot-data');
+fs.mkdirSync(subCopilotData, { recursive: true });
+fs.writeFileSync(path.join(subCopilotData, '.rig-active'), 'full');
+result = run('rig-subagent.js', { HOME: subHome, USERPROFILE: subHome, COPILOT_PLUGIN_DATA: subCopilotData });
+assert.equal(result.status, 0, result.stderr);
+output = JSON.parse(result.stdout);
+assert.match(output.additionalContext, /RIG MODE ACTIVE — level: full/);
+assert.equal(output.systemMessage, undefined, 'Copilot output must not carry the Codex systemMessage badge');
+assert.equal(output.hookSpecificOutput, undefined, 'Copilot output must not carry the Claude hookSpecificOutput wrapper');
+
+// No flag -> rig off -> stays silent under Copilot too.
+fs.unlinkSync(path.join(subCopilotData, '.rig-active'));
+result = run('rig-subagent.js', { HOME: subHome, USERPROFILE: subHome, COPILOT_PLUGIN_DATA: subCopilotData });
+assert.equal(result.status, 0, result.stderr);
+assert.equal(result.stdout, '', 'Copilot SubagentStart must stay silent when rig is off');
+
 console.log('hook compatibility checks passed');

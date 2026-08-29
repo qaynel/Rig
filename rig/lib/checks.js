@@ -3,80 +3,19 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+// spawnSync-shaped results preserve the existing command-runner contract.
 const { writeReport } = require('./reports');
 const { loadCatalog, servicesOf } = require('./catalog');
 const { containedPath } = require('./path-safety');
-
-function runArgv(command, argv, cwd, timeoutMs = 10 * 60 * 1000) {
-  return spawnSync(command, argv, {
-    cwd,
-    encoding: 'utf8',
-    shell: false,
-    timeout: timeoutMs,
-  });
-}
+// runArgv/runBinding are the canonical implementation shared with the
+// installed CI/git-floor runner (rig/catalog/baseline/check.js) — see
+// GA-38. Do not re-implement containment or argv-execution logic here; a
+// hand-duplicated copy is exactly the defect class RIG-144 found and fixed.
+const { runArgv, runBinding } = require('./check-runner');
 
 function loadBindings(target) {
   const file = path.join(target, '.rig', 'service-bindings.json');
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
-}
-
-function runBinding(serviceId, binding, scope, target) {
-  const checks = binding.checks && Object.entries(binding.checks);
-  if (!checks) {
-    const argv = binding[scope] || binding.repo;
-    if (!argv || !Array.isArray(argv) || !argv.length) {
-      return { status: 1, kind: 'coverage_gap', reason: `No argv binding for scope ${scope}` };
-    }
-    const [command, ...rest] = argv;
-    return runArgv(command, rest, target);
-  }
-
-  for (const [checkId, check] of checks) {
-    if (!check || typeof check !== 'object') {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` };
-    }
-    if (check.coverage_gap) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${check.coverage_gap}` };
-    }
-    for (const rel of check.required_paths || []) {
-      const abs = typeof rel === 'string' ? path.resolve(target, rel) : '';
-      if (!abs || (!abs.startsWith(path.resolve(target) + path.sep) && abs !== path.resolve(target))) {
-        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required path` };
-      }
-      if (!fs.existsSync(abs)) {
-        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing ${rel}` };
-      }
-    }
-    if (check.fix && (!Array.isArray(check.fix) || !check.fix.length)) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` };
-    }
-    if (check.commands) {
-      for (const commandBinding of check.commands) {
-        if (!Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
-          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` };
-        }
-        const cwd = path.resolve(target, commandBinding.cwd || '.');
-        if (cwd !== path.resolve(target) && !cwd.startsWith(path.resolve(target) + path.sep)) {
-          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: component cwd escapes repository` };
-        }
-        const [command, ...rest] = commandBinding.argv;
-        const result = runArgv(command, rest, cwd);
-        if (result.error || result.status !== 0) return { ...result, checkId };
-      }
-      continue;
-    }
-    const argv = check[scope] || check.repo;
-    if (!argv) continue;
-    if (!Array.isArray(argv) || !argv.length) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` };
-    }
-    const [command, ...rest] = argv;
-    const result = runArgv(command, rest, target);
-    if (result.error || result.status !== 0) return { ...result, checkId };
-  }
-  return { status: 0, stdout: '', stderr: '' };
 }
 
 function checkCopies(target) {
@@ -116,8 +55,10 @@ function semanticDrift(target) {
         findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_document_entry' });
         continue;
       }
-      const abs = path.resolve(target, doc.path);
-      if (abs !== path.resolve(target) && !abs.startsWith(path.resolve(target) + path.sep)) {
+      let abs;
+      try {
+        abs = containedPath(target, doc.path);
+      } catch {
         findings.push({ path: doc.path, status: 'coverage_gap', reason: 'escaping_context_path' });
         continue;
       }
@@ -304,7 +245,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     }
   }
 
-  return failure || { status: 0, stdout: '', stderr: '' };
+  return failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
 }
 
 module.exports = {

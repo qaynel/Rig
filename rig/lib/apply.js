@@ -12,15 +12,30 @@ const { planCiIntegration } = require('./ci-adapters');
 const { GUARD_SCRIPT, SHIM } = require('./guard');
 const { writeReport } = require('./reports');
 const { containedPath, gitPath } = require('./path-safety');
+const { parseJournalRecords } = require('./lifecycle');
 const { scanBeforeActivation } = require('./secret-history');
 const { validateBindingSources } = require('./lint-format');
+const { ensureManagedBlock } = require('./graft');
+const { writeCredentialOutputs } = require('./credentials');
+const { readReceipt, writeReceipt } = require('./receipt');
 
 const ROOT = path.join(__dirname, '..', '..');
 const POINTER_LINE =
   'Before acting, read `.rig/catalog-routing.md` and route selected Rig catalogue services through it.';
+const POINTER_GRAFT = 'catalog-routing';
 const LEAK_SCANNER_SERVICE = 'product-security.secrets.precommit-leak-scanner';
 const LINT_FORMAT_SERVICE = 'development.code-quality.lint-format';
 const TEST_CASE_GENERATION_SERVICE = 'testing.unit.test-case-generation';
+
+function resolveInstallIdAbs(target) {
+  return gitPath(target, path.join('rig', 'install-id')) || containedPath(target, '.rig/install-id');
+}
+
+function readOrAllocateInstallId(target) {
+  const abs = resolveInstallIdAbs(target);
+  if (fs.existsSync(abs)) return { id: fs.readFileSync(abs, 'utf8').trim(), abs };
+  return { id: crypto.randomUUID(), abs };
+}
 
 function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -28,31 +43,13 @@ function sha256File(file) {
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 
-function getInstallId(target) {
-  // Non-git targets have no `.git` to scope an identity to; a repo-local file
-  // is a fine fallback since there is no shared global config to leak into.
-  const idPath = gitPath(target, path.join('rig', 'install-id')) || path.join(target, '.rig', 'install-id');
-  fs.mkdirSync(path.dirname(idPath), { recursive: true });
-  if (fs.existsSync(idPath)) return fs.readFileSync(idPath, 'utf8').trim();
-  const id = crypto.randomUUID();
-  fs.writeFileSync(idPath, `${id}\n`);
-  return id;
-}
-
 // Append-only journal, one record per line (§7.6). A crash mid-write
 // truncates only the final line, which fails to parse and is discarded.
+// A malformed non-final line is a broken ledger and is refused.
 function readManifest(target) {
   const file = path.join(target, MANIFEST_REL);
   if (!fs.existsSync(file)) return [];
-  const records = [];
-  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-    if (!line.trim()) continue;
-    try {
-      records.push(JSON.parse(line));
-    } catch {
-      /* damaged final line; discard */
-    }
-  }
+  const records = parseJournalRecords(fs.readFileSync(file, 'utf8'));
   const bySeq = new Map();
   for (const record of records) bySeq.set(record.seq, record); // last write per seq wins
   return [...bySeq.values()];
@@ -89,6 +86,22 @@ function planDigest(plan) {
   delete snapshot.plan_digest;
   delete snapshot.summary;
   return crypto.createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
+}
+
+function stagedMcpReceipt(review) {
+  const manualEntries = review.manualEntries && typeof review.manualEntries === 'object' && !Array.isArray(review.manualEntries)
+    ? review.manualEntries
+    : {};
+  const noteHosts = [];
+  if (review.host === 'antigravity' || (manualEntries.antigravity && Object.keys(manualEntries.antigravity).length)) {
+    noteHosts.push('antigravity');
+  }
+  return {
+    noteHosts,
+    credentialNames: [],
+    tierC: [],
+    manualEntries,
+  };
 }
 
 function validatePlanSnapshot(plan, manifest, review, catalog) {
@@ -156,12 +169,15 @@ function acquireLock(target) {
   return lockPath;
 }
 
-function ensureLine(file, line) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const body = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  if (body.split('\n').includes(line)) return;
-  const sep = body && !body.endsWith('\n') ? '\n' : '';
-  fs.writeFileSync(file, `${body}${sep}${line}\n`);
+function pointerGraft(source) {
+  const start = `<!-- rig:${POINTER_GRAFT}:start -->`;
+  if (!source.includes(start)) {
+    const lines = source.split('\n');
+    const legacy = lines.indexOf(POINTER_LINE);
+    if (legacy !== -1) lines.splice(legacy, 1);
+    source = lines.join('\n');
+  }
+  return ensureManagedBlock(source, POINTER_GRAFT, POINTER_LINE);
 }
 
 function testCaseGenerationBinding(target, service, grade) {
@@ -219,10 +235,12 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         normalize(existingServices) === normalize(desiredServices) &&
         existing.harness_digest === validated.harness_digest
       ) {
-        // Still ensure pointer line once (no-op if present).
-        ensureLine(path.join(target, 'AGENTS.md'), POINTER_LINE);
-        const historyScanNote = existing.history_scan ? 'history scan already verified' : '';
-        return { ok: true, receipt: existing, historyScanNote, idempotent: true };
+        const agents = path.join(target, 'AGENTS.md');
+        const body = fs.existsSync(agents) ? fs.readFileSync(agents, 'utf8') : '';
+        if (pointerGraft(body) === body) {
+          const historyScanNote = existing.history_scan ? 'history scan already verified' : '';
+          return { ok: true, receipt: existing, historyScanNote, idempotent: true };
+        }
       }
     } catch {
       /* fall through to full apply */
@@ -252,7 +270,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
   let historyScanNote = '';
 
   try {
-    const installId = getInstallId(target);
+    const { id: installId, abs: installIdAbs } = readOrAllocateInstallId(target);
     const existingRecords = readManifest(target);
     const latestByPath = new Map();
     let seq = 0;
@@ -270,7 +288,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // unrecorded write. Resuming skips any path whose applied digest already
     // matches what's on disk, so applied work is never redone or duplicated.
     const writeOwned = (rel, contents, mode, ownershipOverride, details = {}) => {
-      const abs = containedPath(target, rel);
+      const { abs: absOverride, ...recordDetails } = details;
+      const abs = absOverride || containedPath(target, rel);
       const desired = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
       const desiredDigest = crypto.createHash('sha256').update(desired).digest('hex');
       const already = latestByPath.get(rel);
@@ -303,7 +322,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         preimage_digest: fs.existsSync(abs) ? sha256File(abs) : null,
         desired_digest: desiredDigest,
         ...(ownership === 'append_managed' ? { managed_block: 'rig-graft' } : {}),
-        ...details,
+        ...recordDetails,
       };
       if (already?.state !== 'pending') appendManifestRecord(target, pending);
       fs.mkdirSync(path.dirname(abs), { recursive: true });
@@ -317,12 +336,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       latestByPath.set(rel, applied);
     };
 
-    const ensureLineOwned = (rel, line) => {
+    writeOwned('.rig/install-id', `${installId}\n`, undefined, undefined, { abs: installIdAbs });
+
+    const ensurePointerOwned = (rel) => {
       const abs = containedPath(target, rel);
       const body = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
-      if (body.split('\n').includes(line)) return;
-      const sep = body && !body.endsWith('\n') ? '\n' : '';
-      writeOwned(rel, `${body}${sep}${line}\n`, undefined, 'append_managed');
+      const desired = pointerGraft(body);
+      if (desired === body) return;
+      writeOwned(rel, desired, undefined, 'append_managed', { managed_block: POINTER_GRAFT });
     };
 
     // Baseline phase
@@ -338,6 +359,14 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     writeOwned('.rig/sync-map.json', `${JSON.stringify({ groups: [] }, null, 2)}\n`);
     writeOwned('.rig/bin/check.js', readSource('catalog/baseline/check.js'), 0o755);
     writeOwned('.rig/bin/check-copies.js', readSource('catalog/baseline/check-copies.js'), 0o755);
+    writeOwned('.rig/lib/spawn-guarded.js', readSource('lib/spawn-guarded.js'), 0o644);
+    writeOwned('.rig/lib/path-safety.js', readSource('lib/path-safety.js'), 0o644);
+    writeOwned('.rig/lib/memory-guarded-exec.js', readSource('lib/memory-guarded-exec.js'), 0o644);
+    // Canonical runBinding/runArgv implementation (GA-38): the installed
+    // check.js requires this rather than carrying its own copy, so a
+    // containment/execution fix can no longer land in one runner and miss
+    // the other.
+    writeOwned('.rig/lib/check-runner.js', readSource('lib/check-runner.js'), 0o644);
     writeOwned('.rig/bin/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/hooks/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));
@@ -352,9 +381,18 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         { transaction_kind: 'user_seed' },
       );
     }
+    if (!fs.existsSync(containedPath(target, '.rig/execution-policy.json'))) {
+      writeOwned(
+        '.rig/execution-policy.json',
+        readSource('catalog/baseline/execution-policy.json'),
+        undefined,
+        'user_owned',
+        { transaction_kind: 'user_seed' },
+      );
+    }
 
     // Pointer graft
-    ensureLineOwned('AGENTS.md', POINTER_LINE);
+    ensurePointerOwned('AGENTS.md');
 
     // AT-CI-2: creation of a CI artifact needs both a real trigger (a plan
     // entry that actually asks for the maximal CI gate) and a verified
@@ -443,36 +481,18 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // worktree, so a hardcoded `.git/hooks` join throws ENOTDIR there.
     // Resolving through git itself gives the real hooks directory — shared
     // across worktrees — and returns null cleanly for a non-git target.
+    // Journal canonical `.git/hooks/...` paths so uninstall can restore via
+    // the same git-path resolution, including when the hooks dir is outside
+    // this worktree.
     const hooksDirAbs = gitPath(target, 'hooks');
     if (hooksDirAbs) {
-      const hooksDirRel = path.relative(target, hooksDirAbs);
-      const insideTarget = !path.isAbsolute(hooksDirRel) && !hooksDirRel.startsWith('..');
-      if (insideTarget) {
-        const hooksDir = containedPath(target, hooksDirRel);
-        fs.mkdirSync(hooksDir, { recursive: true });
-        const hook = path.join(hooksDir, 'pre-commit');
-        if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
-          writeOwned(path.join(hooksDirRel, 'pre-commit.rig-chained'), fs.readFileSync(hook), 0o755);
-        }
-        writeOwned(path.join(hooksDirRel, 'pre-commit'), SHIM, 0o755);
-      } else {
-        // A linked worktree's hooks directory lives outside `target`, in the
-        // main clone's shared git-common dir — `writeOwned`/`containedPath`
-        // assume target-relative bookkeeping and don't apply here, and the
-        // hook isn't owned by any single worktree's install anyway: every
-        // worktree of this repo shares and re-resolves the same shim (via
-        // `git rev-parse --show-toplevel` at commit time, see guard.js).
-        // Writing it directly, untracked by this install's manifest, is the
-        // same idempotent backup-then-shim behavior `writeOwned` gives the
-        // common case, applied to a path outside this install's ownership.
-        fs.mkdirSync(hooksDirAbs, { recursive: true });
-        const hook = path.join(hooksDirAbs, 'pre-commit');
-        const chained = path.join(hooksDirAbs, 'pre-commit.rig-chained');
-        if (fs.existsSync(hook) && !fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) {
-          fs.renameSync(hook, chained);
-        }
-        fs.writeFileSync(hook, SHIM, { mode: 0o755 });
+      fs.mkdirSync(hooksDirAbs, { recursive: true });
+      const hookAbs = path.join(hooksDirAbs, 'pre-commit');
+      const chainedAbs = path.join(hooksDirAbs, 'pre-commit.rig-chained');
+      if (fs.existsSync(hookAbs) && !fs.readFileSync(hookAbs, 'utf8').includes('Rig secret guard shim')) {
+        writeOwned('.git/hooks/pre-commit.rig-chained', fs.readFileSync(hookAbs), 0o755, undefined, { abs: chainedAbs });
       }
+      writeOwned('.git/hooks/pre-commit', SHIM, 0o755, undefined, { abs: hookAbs });
     }
 
     let historyScan = null;
@@ -504,8 +524,12 @@ function applyPlan(target, manifest, review, plan, options = {}) {
       installed,
       history_scan: historyScan || null,
       ci: { status: ci.status, provider: ci.provider || null },
+      manualEntries: validated.manualEntries || {},
     };
+    const staged = stagedMcpReceipt(validated);
     writeOwned('.rig/catalog-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
+    writeCredentialOutputs(target, { hosts: staged.noteHosts, mcp_servers: [] }, staged);
+    writeReceipt(target, { ...(readReceipt(target) || {}), ...staged });
 
     const jsonRecords = readManifest(target)
       .filter((record) => record.state === 'applied')
