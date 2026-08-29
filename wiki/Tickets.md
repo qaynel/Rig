@@ -206,8 +206,11 @@ kanban-plugin: board
 	**Status:** DONE (2026-08-26) — GitHub #61 closed · [Solution](tickets/RIG-121.md)
 	**Done:** `manual: documentation-only refresh of wiki specs; no named test pins those prose rows`.
 
+
+
+
 %% kanban:settings
 ```
-{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false,"list-collapse":[false,false,false,false,false,false,false,false]}
+{"kanban-plugin":"board","new-line-trigger":"shift-enter","show-checkboxes":false,"hide-card-count":false,"list-collapse":[false,true,true,true,true,false,false,true]}
 ```
 %%
