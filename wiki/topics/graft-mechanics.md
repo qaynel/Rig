@@ -49,3 +49,14 @@ of a local bare-line append. Existing bare pointers migrate to one named block,
 reapply updates that block idempotently, and the append-only journal records the
 managed-block identity. A caller-graph regression fails if any runtime library
 module is left with no production importer.
+
+**Open (2026-08-30): the payload's own ownership classes have no `.gitignore`
+answer.** A default install writes Rig-owned files (`.rig/`, host-specific
+`.claude/skills/rig-*` / `.agents/skills/rig-*`) into the target working tree
+with no `.gitignore` entry — measured at 209 files / 8.3 MB, 100% untracked
+and unignored, for a Claude-only install with no `--with-runtime`. This is a
+design call the ownership-class model above doesn't yet make: gitignore
+Rig-owned output (tool-cache model — regenerable, never reviewed, re-synced
+by rerunning bootstrap) versus commit it (vendored-config model — reviewed
+and diffed like any other checked-in convention). Recommendation and full
+evidence: [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md).

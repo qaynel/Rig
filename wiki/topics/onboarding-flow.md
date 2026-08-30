@@ -163,11 +163,28 @@ source dumped into `.claude/skills/`" — but the code shows that dump is a
 `--with-runtime` artifact, not the default. `rig/lib/payload.js:95-99` filters
 the vendored-skills copy to `.md` only unless `activeDelivery` (set by
 `--with-runtime`/`--openclaw-mcp`) is on; the eval that surfaced the 5.8 MB was a
-runtime install. The still-true default-install trap is smaller: even
-markdown-only, the installer writes ~64 `SKILL.md` skill dirs plus the whole
-`.rig/` tree into the target and writes no `.gitignore`, so payload lands
-uncommitted-but-unignored (kilobytes of markdown, not megabytes of code). The
-second trap stands as recorded: an emitted instruction to "regenerate
-`wiki/status.md` every three minutes per CLAUDE.md" (`rig/tier-1/routing.md`
-~lines 22-25) in a target repo that has no wiki and no such convention.
+runtime install. **Measured, not estimated (2026-08-30):** a default
+Claude-only install is 209 files / 8.3 MB, 100% unignored — megabytes, not
+kilobytes, driven by the vendored skill catalog landing twice (once
+unprefixed at `.rig/skills/*`, once renamed at `.claude/skills/rig-*`), not
+by any non-markdown content. The gitignore-vs-commit design call this trap
+implies is recorded at [[graft-mechanics]]. The second trap stands as
+recorded: an emitted instruction to "regenerate `wiki/status.md` every three
+minutes per CLAUDE.md" (`rig/tier-1/routing.md` ~lines 22-25) in a target
+repo that has no wiki and no such convention.
+
+Two further correctness bugs were found the same pass, by running
+`bootstrap.sh` against disposable targets rather than reading source alone:
+`rig/tier-1/rules/rig.md` (installed unconditionally) hardcodes
+`.rig/skills/implementation/SKILL.md` as its one concrete instruction, but
+that path is gated (`instruction_only_selected`) and is never written for a
+Claude-only or Codex-only install — confirmed missing by direct repro. And
+the vendored `rig` switchboard (`rig/catalog/skills/_core`, `name: rig`)
+installs as `rig-rig` for Claude/Codex/Antigravity because the per-host
+`rig-` prefix rewrite (`rig/lib/payload.js:94`) isn't exempted for the one
+skill whose own name is the prefix — so `routing.md`'s "invoke the vendored
+`rig` router" fallback (~lines 100-102) names a skill that doesn't exist
+under that name for native-dispatch hosts. Full evidence, exact line numbers,
+and a ranked fix list for all of the above:
+[Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) ·
 [Path A/B scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)
