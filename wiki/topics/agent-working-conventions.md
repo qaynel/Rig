@@ -47,6 +47,16 @@ technical-interrogation step. One executable acceptance case checks the route,
 the absence of a `rig-spec` row, the five checkpoints, and byte-identical
 Claude/Codex skill copies.
 
+The router's full-cadence delivery path is a ten-step human-in-the-loop SOP:
+grill intent, design the approach, have the human sign the key, drive test-first
+work, implement the smallest correct diff, coordinate parallel work when it
+exists, review independently, run the full gate, name the branch, and open the
+PR. Between every step, the user chooses to execute it, receive a paste-ready
+handoff, or let the session proceed. "go ahead" waives those prompts except the
+human key-signing step; lightweight single-step tasks remain outside this
+protocol.
+[routing SOP implementation](../reasoning/2026-08-30-routing-sop.md)
+
 A single-step task — a one-line fix, a factual question, or a single-file edit
 with no cross-file coordination and no wiki-truth change — takes a lightweight
 path (RIG-124): `rig/tier-1/routing.md`'s "Task weight" section skips the

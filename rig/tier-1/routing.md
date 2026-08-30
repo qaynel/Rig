@@ -40,38 +40,33 @@ wiki and the diff, and are reproduced on request.
 
 ## Pipeline
 
-For a new feature or behavioral change, use the phases in order. There is **one
-freeze** — the gate — not two:
+For a new feature or behavioral change, use these steps in order:
 
-Spec-driven requests route through `rig-grilling` and then `rig-product-design`; they do not create a separate `rig-spec` phase or skill.
+Spec-driven requests route through `rig-grilling` and then `rig-product-design`.
 
-1. `rig-grilling` establishes the oracle: business intent, acceptance criteria,
-   and the testing infrastructure that deterministically checks them. It derives
-   as much as possible from the existing record before spending the developer's
-   time, and declares anything it inferred so the sign-off is never blind.
-2. `rig-product-design` produces the technical specification the code will adapt
-   to.
-3. **The gate — one freeze.** It verifies all four artifacts are present
-   (business intent, technical specification, acceptance criteria, testing
-   infrastructure) and the intent owner signs the oracle — intent, acceptance,
-   and tests — with one key. The technical specification is checked for
-   presence, never locked; the code adapts to it.
-4. `rig-implementation` writes the smallest correct diff that fits inside the
-   frozen shell. The implementer MUST NOT edit the frozen oracle.
-5. `rig-execution` coordinates independent work and verifies evidence before any
-   completion claim.
-6. `rig-code-review` reviews from fresh context and reports only.
+1. Grill the intent — `rig-grilling`
+2. Design the approach — `rig-product-design`
+3. Sign the key — `node scripts/approve-gate1.js` ([Gate 1 signing](../../wiki/topics/gate1-signing.md))
+4. Drive code test-first — `rig-tdd`
+5. Implement to the smallest correct diff — `rig-implementation`
+6. Coordinate independent work + verify evidence — `rig-execution` (only when parallel work)
+7. Independent review — `rig-code-review`
+8. Run the full gate — `npm test` green before push
+9. Name the branch — `<ticket-id>-<slug>` (e.g. `RIG-150-routing-sop`); rename if needed
+10. Open the PR — `gh pr create --base prod`; CI green check must appear on the PR
 
-The gate protects exactly one property: **an agent cannot move its own
-goalpost.** That is what Rig guards — the human from the agent, not the human
-from the human; the developer owns the code. The property is enforced by the
-human signature taken before any code exists plus the immutability of the signed
-oracle after. A locked test that turns out wrong is corrected only by the key
-holder, as a quick re-sign; an agent may propose the change but can never make
-it. The technical approach, by contrast, may change freely during implementation
-as long as the frozen tests stay green. Prose cannot physically prevent an edit:
-this Tier 1 markdown-only guard is best-effort on both supported hosts, backed by
-the signature over the artifact digest.
+## Between steps
+
+On the full-cadence path, pause between every step and ask the user to choose:
+
+(A) I'll do it myself — agent stops; user executes the step
+(B) Give me the handoff context — agent produces a paste-ready brief and stops
+(C) Proceed with this session — agent continues
+
+Override contract: "go ahead" waives all remaining A/B/C prompts except step 3 (sign the key), which always requires human action. The user may also scope with
+"until step N" or "from step N" and may interrupt at any time to hand off. This
+between-step protocol does not apply to single-step lightweight tasks; the
+`## Task weight` section defines those.
 
 ## Decision Questions
 
@@ -86,9 +81,9 @@ than two viable paths.
 |---|---|
 | `rig-grilling` | Requirements are new, ambiguous, risky, need acceptance tests, or ask for a specification-driven/executable-spec flow. |
 | `rig-product-design` | The oracle is being established and a technical specification, tradeoff decision, or implementation approach is needed. The spec is checked for presence at the gate, not frozen. |
-| `rig-implementation` | Any code will be written, changed, refactored, or removed. Always active for implementation. |
-| `rig-execution` | A plan has multiple independent tasks, parallel work is requested, or completion needs verification. |
 | `rig-tdd` | Implementing behavior or fixing a defect through a red-green-refactor loop. |
+| `rig-implementation` | Any code will be written, changed, refactored, or removed. Always active for implementation. |
+| `rig-execution` | Independent work is parallelized and its evidence needs coordination and verification. |
 | `rig-debugging` | Investigating a failure, flaky behavior, performance regression, or unknown root cause. |
 | `rig-code-review` | Reviewing a diff, PR, branch, or proposed change. Report only. |
 
