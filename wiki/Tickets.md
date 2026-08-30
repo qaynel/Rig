@@ -6,6 +6,27 @@ kanban-plugin: board
 
 ## Backlog
 
+- [ ] **RIG-148 — Default install lands unignored: 209 files / 8.3 MB with no .gitignore**
+	**Status:** OPEN (2026-08-30) — GitHub #125 — found during Path A install-bug investigation · [Solution](tickets/RIG-148.md)
+	**Class:** DELIVERABILITY / ONBOARDING HYGIENE. `rig/lib/payload.js`/`rig/bootstrap.sh` write no `.gitignore`. Measured: a default `--hosts claude` install is 209 files / 8.3 MB, 100% untracked-and-unignored. Needs an owner design call: gitignore (tool-cache) vs commit (vendored-config) — recommendation is gitignore.
+- [ ] **RIG-149 — Vendored `rig` switchboard installs as `rig-rig`, breaking routing.md's own fallback instruction**
+	**Status:** OPEN (2026-08-30) — GitHub #126 — found during Path A install-bug investigation · [Solution](tickets/RIG-149.md)
+	**Class:** CORRECTNESS, installer-code. `payload.js:94`'s blanket `rig-` prefix rewrite doubles the vendored `_core` skill's own `name: rig` to `rig-rig` for Claude/Codex/Antigravity; `routing.md`'s "invoke the vendored `rig` router" fallback names a skill that doesn't exist under that name. Verified by direct repro.
+- [ ] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
+	**Status:** OPEN (2026-08-30) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)
+	**Class:** CORRECTNESS, mixed. The "always active" implementation rule hardcodes `.rig/skills/implementation/SKILL.md`, gated behind `instruction_only_selected` — never written for a Claude-only or Codex-only install (the majority-shape install). Same dangling reference in this repo's own dev-checkout reading of the file. Verified by direct repro.
+- [ ] **RIG-151 — routing.md's full-cadence branch asserts a wiki/status.md convention the target repo doesn't have**
+	**Status:** OPEN (2026-08-30) — GitHub #128 — found during Path A install-bug investigation · [Solution](tickets/RIG-151.md)
+	**Class:** POLISH, pure-markdown. `routing.md:22-25` unconditionally asserts a `wiki/`, a `status.md` cadence, and "per CLAUDE.md" — none of which exist in a target repo. `rig-grilling`'s own hedge pattern (`SKILL.md:15`) shows the fix shape already exists elsewhere in this payload.
+- [ ] **RIG-152 — "In this source checkout" conditionals in routing.md are always-false once installed**
+	**Status:** OPEN (2026-08-30) — GitHub #129 — found during Path A install-bug investigation · [Solution](tickets/RIG-152.md)
+	**Class:** POLISH, pure-markdown. `routing.md:5-8,29-31`'s "in this source checkout, use `rig/tier-1/...` instead" is dead prose in every installed copy — verified byte-identical via diff, and the named alternative path never exists in a target repo.
+- [ ] **RIG-153 — No frozen instrument exists to measure adaptation quality**
+	**Status:** OPEN (2026-08-30) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
+	**Class:** PROCESS / TOOLING GAP, no code yet. No rubric, fixed axes/weights, pinned model, or clean-checkout procedure exists; the one eval on record scored a `--with-runtime` install by mistake. Blocks Path A's stated re-baseline step.
+- [ ] **RIG-124.2 — `(RIG-124)` test-title citation convention leaks into installed payload text**
+	**Status:** OPEN (2026-08-30) — GitHub #131 — found during Path A install-bug investigation, unrelated to RIG-124.1 · [Solution](tickets/RIG-124.md)
+	**Class:** POLISH, pure-markdown. `routing.md:25` and `tdd/SKILL.md:31` both ship a bare `(RIG-124)` citation into stranger repos with no `wiki/Tickets.md` to resolve it against — noise, not a functional defect; smaller than and independent of [[RIG-151]].
 - [ ] **RIG-145 — runReadOnly batch-aborts the command list on isolation-unavailable where runGrade marks per command**
 	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking; latent (no non-test caller yet) · [Solution](tickets/RIG-145.md)
 	**Class:** CORRECTNESS / SHELL TRUST (parity). `runReadOnly` (`lint-format.js:696-700`) does a function-level return of `network_isolation_unavailable` on the first ungranted command when no OS isolation is present, skipping every later command — including a `network: true` one that `runGrade`'s per-command check (`:627-628`, inside `.map`) would still run. Same guarantee-sharding pattern as [[RIG-139]]/[[RIG-143]]. Not a safety hole (nothing ungranted runs); a granted command is silently skipped. Neither runner has a non-test caller yet, so latent. Fix touches `runReadOnly`'s single-status return shape — owner call. Secondary nit: that early return omits `changed_paths`.
