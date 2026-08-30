@@ -17,7 +17,7 @@ record immutable and the synthesis mutable gets both.
 ## Filing a trace
 
 One file per trace, at `reasoning/YYYY-MM-DD-<slug>.md`. Two traces on the same
-day get different slugs. The header is four lines:
+day get different slugs. The header includes these fields:
 
 ```markdown
 ---
@@ -25,6 +25,10 @@ date: 2026-08-19
 source: intent owner | agent | review
 topics: gate1-signing, policy-model
 decisions: D20, GA-14a
+status: current | superseded | historical
+supersedes: trace or decision id
+tags: rejected, trap, interdependency
+summary: one-line current-state summary
 ---
 ```
 
@@ -35,6 +39,14 @@ decisions: D20, GA-14a
   subject rather than only from its date.
 - **`decisions`** — any decision IDs it creates, changes, or argues about. Leave
   empty if it creates none; a trace does not have to decide anything.
+- **`status`** — `current` when this trace belongs on the generated current-state
+  page; `superseded` when a later trace replaces it; otherwise `historical`.
+- **`supersedes`** — the replaced trace or decision, if any. Leave empty when
+  this trace does not replace anything.
+- **`tags`** — comma-separated cross-cutting labels such as `rejected`, `trap`,
+  or `interdependency`.
+- **`summary`** — a one-line description for current traces. It is rendered on
+  the generated current-state page; leave it empty for historical records.
 
 Then the trace itself, verbatim. Do not summarise it on the way in. Summarising
 is what the hub does, and doing it twice means the second version is the only one
@@ -52,6 +64,10 @@ Two follow-ups, both in the same change as the trace:
 A trace filed without those follow-ups is invisible to anyone who arrives by
 subject, which is how most people arrive.
 
+Then run `node scripts/build-wiki-index.js`. It deterministically rebuilds
+`wiki/status.md` and `wiki/index/reasoning.md`; do not edit either generated
+file by hand. `npm test` rejects a stale generated summary.
+
 ## What does not go here
 
 - **Gate 1 or Gate 2 edits.** Those are gate documents with their own revision
@@ -59,5 +75,6 @@ subject, which is how most people arrive.
 - **Anything the repository already records.** Commit history, code structure,
   test output. If it can be recovered by reading the repo, it does not need a
   trace.
-- **Status.** Current state lives in [`../status.md`](../status.md) and is
-  rewritten as it changes. A trace is dated and permanent; status is neither.
+- **Hand-written status.** Current state is generated from current traces. A
+  trace is dated and permanent; the generated summary is neither hand-written
+  nor independently authoritative.

@@ -25,8 +25,13 @@ a completion claim needs coordinated verification.
 ## Boundaries
 
 Parallelism does not weaken the two gates. No worker may edit Gate 1. A worker
-that discovers a contradiction stops and reports it. Completion means current
-evidence demonstrates the requested behavior and no required work remains.
+that discovers a contradiction stops and reports it. A frozen test changes only
+after a filled unfreeze request records the evidence and the human key holder
+re-runs `node scripts/approve-gate1.js`; the evidence is necessary and the human
+signature is authoritative. Completion means current evidence demonstrates the
+requested behavior and no required work remains. The change uses the least new
+mechanism necessary, reuses existing semantic authorities where possible, and
+removes superseded paths rather than leaving parallel implementations behind.
 
 ## Decision Questions
 

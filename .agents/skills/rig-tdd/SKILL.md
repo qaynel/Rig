@@ -10,7 +10,9 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 
 - `[mattpocock]` Read `CONTEXT.md`, ADRs, and nearby tests for domain vocabulary.
 - `[mattpocock]` Agree the test seam and public behavior with the user before
-  writing a test. Gate 1 acceptance artifacts remain frozen.
+  writing a test. Gate 1 acceptance artifacts remain frozen. Never edit a
+  frozen test directly: first open a filled unfreeze request with evidence,
+  then have the human key holder re-run `node scripts/approve-gate1.js`.
 - `[mattpocock]` Choose a tracer-bullet slice that crosses the real stack while
   proving one behavior.
 
@@ -44,7 +46,9 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 
 `[superpowers]` Show the final test command failing before the implementation
 and passing after it, all relevant tests green, and no debug-only test artifacts
-left behind.
+left behind. The change uses the least new mechanism necessary, reuses existing
+semantic authorities where possible, and removes superseded paths rather than
+leaving parallel implementations behind.
 
 ## Decision Questions
 

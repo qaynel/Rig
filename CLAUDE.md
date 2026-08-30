@@ -28,9 +28,10 @@ Reference it, update it, maintain it; it is part of the deliverable.
 
 On a task that runs long or has several steps, do not hold everything for a
 finish-line summary — that loses the work if the session is cut off partway
-through. Check the time and update `wiki/status.md` with what was just done,
-what is in flight, and what is next at least every three minutes of active
-work, not only when a step or the task completes. Record a new understanding
+through. Check the time and file a dated reasoning trace with what was just
+done, what is in flight, and what is next at least every three minutes of
+active work; run `node scripts/build-wiki-index.js` rather than hand-editing
+the generated `wiki/status.md`. Record a new understanding
 or an approach that just failed the moment it happens — as its own reasoning
 trace, or in `index/rejected.md` / `index/traps.md` if that is what it is —
 rather than batching it for later. A session picking up cold should be able to

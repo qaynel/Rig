@@ -84,6 +84,7 @@ topic is wrong.
 ## Indexes
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
+- [**Reasoning trace index**](index/reasoning.md) — generated current and historical trace lookup.
 - [**Acceptance cases**](index/acceptance-cases.md) — the 73 frozen cases and where each is traced.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.

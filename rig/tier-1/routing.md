@@ -20,8 +20,9 @@ need coordination across files, span multiple turns, or move what's true in
 the wiki, switch to the full cadence below for the rest of it.
 
 Everything else uses the full cadence: read this file, read the wiki, read
-each chosen skill completely, and update `wiki/status.md` at least every three
-minutes of active work, per `CLAUDE.md`. `(RIG-124)`
+each chosen skill completely, and file a dated reasoning trace then regenerate
+`wiki/status.md` at least every three minutes of active work, per `CLAUDE.md`.
+`(RIG-124)`
 
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`;

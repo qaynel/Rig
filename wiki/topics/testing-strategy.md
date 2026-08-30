@@ -29,6 +29,12 @@ Implementation-authored acceptance, trusting exit status alone, file-presence
 tests, no-op bindings, parallel template authoring, and a missing target counting
 as pass were rejected. [Rejected approaches](../index/rejected.md)
 
+An implementer never edits a frozen test directly. If the test is wrong or the
+intended behavior has changed, a filled evidence request records the exact
+test and reason before the human key holder re-signs the changed oracle. This
+also leaves a first-class path for a human working without agent tokens.
+[2026-08-30 handoff](../reasoning/2026-08-30-development-process-handoff.md)
+
 ## Authorities and sources
 
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)
