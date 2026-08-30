@@ -7,41 +7,33 @@ kanban-plugin: board
 ## Backlog
 
 - [ ] **RIG-145 — runReadOnly batch-aborts the command list on isolation-unavailable where runGrade marks per command**
-	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking · [Solution](tickets/RIG-145.md)
+	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking; latent (no non-test caller yet) · [Solution](tickets/RIG-145.md)
 	**Class:** CORRECTNESS / SHELL TRUST (parity). `runReadOnly` (`lint-format.js:696-700`) does a function-level return of `network_isolation_unavailable` on the first ungranted command when no OS isolation is present, skipping every later command — including a `network: true` one that `runGrade`'s per-command check (`:627-628`, inside `.map`) would still run. Same guarantee-sharding pattern as [[RIG-139]]/[[RIG-143]]. Not a safety hole (nothing ungranted runs); a granted command is silently skipped. Neither runner has a non-test caller yet, so latent. Fix touches `runReadOnly`'s single-status return shape — owner call. Secondary nit: that early return omits `changed_paths`.
-- [ ] **RIG-146 — Frozen AT-LF-20 proves one-use only via the in-memory flag, never the durable on-disk record**
-	**Status:** OPEN (2026-08-29) — GitHub #109 — accepted follow-up from the passing v5.0.0 review; non-blocking; needs an owner re-sign · [Solution](tickets/RIG-146.md)
-	**Class:** TEST QUALITY / SHELL TRUST. [[RIG-138]] landed the durable `consumePlanApproval` on-disk record, but `AT-LF-20` (`tests/advanced-oracle.test.js:916-927`) reuses one `approval` object, so the second `executePlan` is rejected by the in-memory `approval.used` guard (`lint-format.js:459`) before the on-disk check (`:483`). `AT-LF-20` would still pass with the whole durable block deleted; the real cross-process case is covered only by non-frozen `AT-PROC-1a`. Fixing `AT-LF-20` edits a byte-pinned oracle file (`7efc231c…`) so it needs a key-holder re-sign — batch with [[RIG-133]]/[[RIG-136]].
 - [ ] **RIG-147 — Undeclared-network diagnostic is written to stderr via console.warn on top of the structured result field**
 	**Status:** OPEN (2026-08-29) — GitHub #110 — accepted follow-up from the passing v5.0.0 review; non-blocking · [Solution](tickets/RIG-147.md)
 	**Class:** ARCHITECTURE / DIAGNOSTIC HYGIENE (minor). `runConfiguredArgv` (`check-runner.js:196-200`) already returns `network_state: 'undeclared'` + `diagnostic` (AD-39 / `GA-38`; `AT-CAP-3` + `AT-PROC-1u` assert it) but also calls `console.warn` — a redundant stderr side channel CI can bury under the checked command's output. Drop the `console.warn`; have the installed CI path route `network_state === 'undeclared'` from the return value into a visible annotation. No spec or oracle change.
-- [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
-	**Status:** OPEN (2026-08-25, re-investigated 2026-08-26) — GitHub #41 — pre-v5 ratchet slice (`rig/raw-registry-access.json` + checker + 5/5 tests) landed alongside RIG-134; v5.1 migration untouched; awaiting owner approve-for-Coding · [Solution](tickets/RIG-132.md)
-	**Class:** STRUCTURAL (the exponent). Every finding ever received is pairwise ("§X says A, §Y says B"). The spec has ~124 claim anchors → **~7,600 pairs**; a pass reports 2–8, so six rounds covered ~0.4%. Receipt anchors prove it: §8.4 recurs in rounds 3 and 5, §5.7/§8.9/§11.3 in 4 and 5, §13 four times in round 5 and again in 6 — same section, different partner each time. 60 tracked files have a byte-identical twin; the project's answer to duplication has always been "add a guard" (O(1) per pair) against an O(N²) pool. Fix: one home per fact, generated everywhere else; new duplication ships with its generator or doesn't ship. **Do before [[RIG-125]]** — property tests over a collapsed N are near-exhaustive; over today's N they're another sample. Analysis: [why each pass finds new issues](reasoning/2026-08-25-why-each-pass-finds-new-issues.md). **Goal re-stated 2026-08-25 after the outside analysis:** "one home per fact" is *not* sufficient — `REGISTRY` already is a single source of truth and `materializeSelectedHosts` still diverged from `mcp-hosts.js` by re-interpreting the raw rows. The goal is one authority for the **meaning**, with runtime/docs/tests as generated projections through one narrow contract (semantic model + narrow waist + fitness functions — established terms, see [assessment](reasoning/2026-08-25-semantic-model-assessment.md)). Takes **two** fitness functions, not seven, and does not name the architecture. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
-- [ ] **RIG-133 — The signature freezes 68 samples; it should freeze the properties and a case generator**
-	**Status:** OPEN (2026-08-25, re-confirmed 2026-08-26; count re-checked 2026-08-29) — GitHub #42 — no progress on the structural fix. `tests/advanced-oracle.test.js` is now **73** signed acceptance IDs (68 at filing) but is still an enumerated sample list bound through `api(file, name)` direct-require, not properties + a generator; every coverage increase still costs a re-sign ceremony. Blocks RIG-125's last step; awaiting owner approve-for-Coding · [Solution](tickets/RIG-133.md)
-	**Class:** STRUCTURAL (coverage cap). `wiki/gate1/testing-infrastructure.manifest` byte-pins `tests/advanced-oracle.test.js` — an **enumerated list of 68 samples**, 63 at the direct-require seam. Pinning an enumeration caps the checked surface at sign time while `rig/lib` grows, charges a re-sign ceremony for every coverage increase (3 in 20 commits), and is why round 2 recorded *"I cannot edit that test file without invalidating the owner's signature."* Fix: sign the **properties + the case generator** (cases derived from `REGISTRY`), so adding a host extends coverage with no signed byte changed. Costs **one** re-sign — share [[RIG-120]]'s. Analysis: [escaping the quadratic](reasoning/2026-08-25-escaping-the-quadratic.md). **Moves ahead of RIG-125:** collapse the space (132), make signed coverage grow *with* it (133), then write composition properties into a signing scheme that can hold them. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
-- [ ] **RIG-130 — The review loop has no memory, so convergence is unmeasurable**
-	**Status:** OPEN (2026-08-25, re-confirmed 2026-08-26) — GitHub #43 — no progress; no finding-ledger exists; awaiting owner approve-for-Coding · [Solution](tickets/RIG-130.md)
-	**Class:** STRUCTURAL (loop generator). Every review round is an independent draw: `review-receipt.js` carries no record of what prior rounds found or which classes are closed. Seven receipts, all `fail`, counts never fall (round 5 is the worst, after four rounds of correct fixes). Fix: append-only finding-class ledger, closed-class feed-in to the next reviewer prompt, and a findings-in-closed-classes convergence metric that becomes the release stopping rule. Cheap; do with [[RIG-131]] alongside [[RIG-132]] and **before** RIG-125, so RIG-125's result is measurable. Analysis: [root cause](reasoning/2026-08-25-structural-nondeterminism-root-cause.md). **Relabelled 2026-08-25:** this measures a *confidence criterion*, not the definition of done — completion is the conjunction of the structural conditions; two clean rounds is corroboration on top. **Order (2026-08-25, third investigation):** RIG-131 → RIG-132 → RIG-133 → RIG-125 → 126/127/128, RIG-130 alongside, RIG-129 parallel.
-- [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
-	**Status:** OPEN, implementation substantially landed (2026-08-25, re-investigated 2026-08-26) — GitHub #44 — all 3 loop-breaker tests + uninstall-authority collapse landed with RIG-126/127/128 and are green; not yet promoted into signed oracle (blocked on RIG-133); awaiting owner approve-for-Coding · [Solution](tickets/RIG-125.md)
-	**Class:** STRUCTURAL (loop generator). Receipt re-confirmed: split MCP tables, two uninstallers, no inspect→apply→uninstall roundtrip. Loop-breaker: one MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip; printed bootstrap sequence to a green check — landed **inside the signed oracle** under RIG-120's re-sign, not beside it. Do [[RIG-132]] (collapse N) + [[RIG-130]]/[[RIG-131]] first, then this, then 126/127. Map: [round-3 finding map](reasoning/2026-08-25-rig120-round3-finding-map.md).
 - [ ] **RIG-127.11 — Uninstall hard-crashes on a corrupted legacy global config**
 	**Status:** OPEN (2026-08-26, re-verified 2026-08-29) — GitHub #69 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
 	**Class:** DELIVERABILITY / v5-observable. `removeGlobalConfig()` (`global-writes.js:200`) calls `readJson()` (`:35`) — raw `JSON.parse`, no try/catch — unguarded from `lifecycle.js` `uninstall()`; a corrupted global file throws uncaught mid-uninstall. Sibling `removeGlobalMcp` already catches this; no test exercises the path. Confirmed still present on HEAD `9d1ea45`.
 - [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
-- [ ] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
-	**Status:** OPEN (2026-08-26) — GitHub #78 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; highest-priority of the three · [Solution](tickets/RIG-135.md)
-	**Class:** DELIVERABILITY, browse-skill owned. `cookie-import-browser.ts`'s Windows-only CDP cookie import launches headless Chromium directly against the user's real installed Chrome/Edge profile (required — v20 ABE keys are path-bound) and kills it with a bare leader-pid `chromeProc.kill()`. An orphan holds a lock on the user's actual browser, not a scratch profile. Needs a Windows Job Object design; this repo has no Windows CI to verify one.
-- [ ] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
-	**Status:** OPEN (2026-08-26) — GitHub #79 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites · [Solution](tickets/RIG-135.md)
-	**Class:** DELIVERABILITY, browse-skill owned. `browser-skill-commands.ts`'s `spawnSkill` runs caller-authored skill scripts via `Bun.spawn` with a bare `proc.kill()` on timeout — same orphan risk as RIG-135's already-debt runtime sites, but Bun's `Subprocess#kill()` has no negative-pid group-kill ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791)), so the Node-shaped helper can't be dropped in unchanged. Owner must choose: shim through `node:child_process`, or build a Bun-native group-kill.
-- [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
-	**Status:** OPEN (2026-08-26) — GitHub #80 — follow-up to [[RIG-135]] (#75); found triaging pending-triage sites; lowest priority of the three · [Solution](tickets/RIG-135.md)
-	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` spawns the Xvfb daemon via `Bun.spawn` without `detached: true`, despite an adjacent comment claiming "spawn detached" — Bun only isolates a process group when `detached: true` is passed. Cleanup also only signals the direct pid. Same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
+- [ ] **RIG-146 — Frozen AT-LF-20 proves one-use only via the in-memory flag, never the durable on-disk record**
+	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #109 — accepted follow-up from the passing v5.0.0 review; non-blocking; needs owner re-sign; dev-process/oracle workstream · [Solution](tickets/RIG-146.md)
+	**Class:** TEST QUALITY / SHELL TRUST. [[RIG-138]] landed the durable `consumePlanApproval` on-disk record, but `AT-LF-20` (`tests/advanced-oracle.test.js:916-927`) reuses one `approval` object, so the second `executePlan` is rejected by the in-memory `approval.used` guard before the on-disk check. `AT-LF-20` would still pass with the whole durable block deleted; the real cross-process case is covered only by non-frozen `AT-PROC-1a`. **Re-evaluation 2026-08-30:** reclassified from Bucket 1 (install bugs) to dev-process/oracle workstream — fixing `AT-LF-20` edits a byte-pinned oracle file so it needs a key-holder re-sign and rides [[RIG-133]]/[[RIG-136]]'s ceremony, not Path A tester-observable fixes.
+- [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
+	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #62 — approved post-release work; [[RIG-120]] is Done and `v5.0.0` is published; unblocked but gated on product vision (à-la-carte/prune) · [Solution](tickets/RIG-122.md)
+	**Class:** POST-RELEASE. Optional markdown wiki graft. **Re-evaluation 2026-08-30:** the blocker (RIG-120 Done, v5.0.0 published) is satisfied, so this is unblocked. However, building another installable family graft is exactly the "does the vision want everything installed" question the adaptation eval put in question — hold for Path B grilling gate decision on à-la-carte/prune vision.
+- [x] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
+	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #78 — browse-skill-owned, runtime-only (--with-runtime only), no Windows CI · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY, browse-skill owned (AD-37). Windows-only CDP cookie import; `--with-runtime` only. Do not build: shared cleanup helper (RIG-135) makes the design constraint explicit in code, and runtime-only debt respects the rejected-approaches decision.
+- [x] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
+	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #79 — browse-skill-owned, runtime-only, Bun upstream limitation · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY, browse-skill owned. `browser-skill-commands.ts`'s `spawnSkill` via `Bun.spawn`; Bun's `Subprocess#kill()` has no negative-pid group-kill ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791)). Owner chooses: shim through `node:child_process`, or build Bun-native group-kill (do not build in Tier 1).
+- [x] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
+	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #80 — browse-skill-owned, runtime-only, low priority · [Solution](tickets/RIG-135.md)
+	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` missing `detached: true`; runtime-only, minor. Do not build: same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
+
 - [x] **RIG-115 — Author lint-format acceptance for applicability, execution consent, and shell trust**
 	**Status:** DONE (2026-08-27; board corrected 2026-08-29) — GitHub #64 closed (#87/#85/#86/#89/#88/#90) — oracle re-signed; all five shell-trust guarantees `AT-LF-20`–`AT-LF-24` are authored in `wiki/gate1/acceptance.md` and implemented in `rig/lib/lint-format.js` (73-case signed set). Was still filed under `## Blocked` reading "IMPLEMENTING / AT-LF-22 / 24 pending" after the work landed (commits `7010eca` AT-LF-22, `dd65b97` AT-LF-24); status corrected. Kept in this lane (not `## Done`) because the RIG-131 traceability gate requires a `## Acceptance` section with `→ test::title` evidence bullets, which this ticket's history predates — its evidence is the signed oracle cases. · [Solution](tickets/RIG-115.md)
 	**Verified by:** `tests/advanced-oracle.test.js` cases `AT-LF-20`–`AT-LF-24`, all green on HEAD `9d1ea45`.
@@ -102,30 +94,54 @@ kanban-plugin: board
 
 ## Blocked
 
-- [ ] **RIG-116 — Promote the non-lint-format leaves Policy → Context → Evidence**
-	**Status:** BLOCKED (2026-08-24) — GitHub #63 — post-beta demand evidence and prerequisite gates do not yet exist · [Solution](tickets/RIG-116.md)
-	**Blocker:** The governing roadmap requires promotion after beta, ranked by observed use under ordinary owner review. No beta selection/receipt evidence or approved demand ranking exists, and the reusable lint-format consent template is blocked. Guessing a family would violate the acceptance criterion.
+- [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #41 — awaiting owner approve-for-Coding; do before RIG-133 then RIG-125 · [Solution](tickets/RIG-132.md)
+	**Blocker:** Blocked on owner decision to approve implementation strategy. Pre-v5 ratchet slice (`rig/raw-registry-access.json` + checker + 5/5 tests) landed alongside RIG-134; v5.1 migration untouched.
 	**Acceptance:**
-	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
-	- At least the highest-demand families reach Context/Evidence with real verifiable checks.
-- [ ] **RIG-113 — Bound the lint-format setup/replacement (hybrid-plus) contract**
-	**Status:** BLOCKED (2026-08-24) — GitHub #65 — owner must approve the drafted ecosystem preferences and choose replacement backup semantics · [Solution](tickets/RIG-113.md)
-	**Blocker:** The ranked lists, EOL/coverage signals, proposal rule, and write scopes are drafted, but remain owner product policy; `<file>.rig-backup` is explicitly marked assumed. Acceptance tests and implementation must wait for those choices and the owner re-sign.
+	- One home per fact with generated projections; new duplication ships with its generator or doesn't ship.
+	- Property tests over a collapsed registry are near-exhaustive; runtime/docs/tests are projections through one semantic model + narrow waist.
+- [ ] **RIG-133 — The signature freezes 68 samples; it should freeze the properties and a case generator**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #42 — awaiting owner approve-for-Coding; do after RIG-132, before RIG-125 · [Solution](tickets/RIG-133.md)
+	**Blocker:** Blocked on owner decision to approve implementation strategy. Tests now **73** signed acceptance IDs but still enumerated sample list; requires key-holder re-sign to fix.
 	**Acceptance:**
-	- "Better alternative" has a defined, testable decision rule; a proposed setup/replacement never lands without an explicit user decision.
-	- The generated-setup contract (files, scope, approval) is specified and covered by acceptance cases.
-- [ ] **RIG-112 — Freeze and implement the catalogue contract + authored-service gate**
-	**Status:** BLOCKED (2026-08-24) — GitHub #66 — 115-leaf mechanical gate is green; D27 defers the owner-only freeze ceremony · [Solution](tickets/RIG-112.md)
-	**Blocker:** The signed CI gate already rejects mechanically valid but generic/unbound leaves across exactly 115 services. The remaining acceptance criterion is the catalogue freeze itself, which the owner's D27 ruling explicitly defers until the owner agrees the final solution, acceptance, and tests are sound and re-signs the oracle.
+	- Sign the **properties + case generator** instead of enumerated samples; adding a host extends coverage with no signed byte changed.
+- [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #44 — awaiting owner approve-for-Coding; do after RIG-132/RIG-133 · [Solution](tickets/RIG-125.md)
+	**Blocker:** Blocked on owner decision to approve implementation strategy. Loop-breaker implementation substantially landed (all 3 tests green) but not promoted into signed oracle (blocked on RIG-133).
 	**Acceptance:**
-	- The catalogue contract is frozen and enforced in code; a leaf that is mechanically valid but generic (no repository binding / no service-specific check) fails the authored-service gate as a coverage gap.
-	- The gate runs in CI over all 115 leaves.
+	- One MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip inside signed oracle.
+	- Printed bootstrap sequence to a green check.
+- [ ] **RIG-130 — The review loop has no memory, so convergence is unmeasurable**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #43 — awaiting owner approve-for-Coding; do alongside RIG-132 · [Solution](tickets/RIG-130.md)
+	**Blocker:** Blocked on owner decision to approve implementation strategy. No finding-ledger exists; review convergence metric is unmeasurable.
+	**Acceptance:**
+	- Append-only finding-class ledger; closed-class feed-in to next reviewer; convergence metric becomes release stopping rule.
+	- Two clean rounds is corroboration (confidence criterion).
+
 - [ ] **RIG-110 — Prove first-wire + live-hook contracts for every supported host**
-	**Status:** BLOCKED (2026-08-24) — GitHub #67 — needs owner beta-roster decision and access/results for real host/CI wires · [Solution](tickets/RIG-110.md)
-	**Blocker:** The governing spec still marks every executable host/CI first wire pending, and no real-wire records exist. Fixture and byte-landing tests cannot satisfy that frozen criterion. Owner must decide which candidates remain executable versus pointer-only/unsupported, then provide access to or dated results from those vendor environments.
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #67 — Path B gate; corpus-first tension (GA-36) may reshape "prove all 19 wires" · [Solution](tickets/RIG-110.md)
+	**Blocker:** **Re-evaluated 2026-08-30.** Old blocker (owner host-roster + vendor access) still holds, but **GA-36** ("one analysis emitted per host") may shrink or reshape the model. Route to Path B gate, not a stale owner-access wait.
 	**Acceptance:**
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
 	- The §3.1 ❔/🟡 conflicts (codewhale, hermes, swival, antigravity CLI) are each resolved to a decided disposition in the wiki.
+- [ ] **RIG-112 — Freeze and implement the catalogue contract + authored-service gate**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #66 — Path B gate; D27 defers freeze, vision may reshape catalogue · [Solution](tickets/RIG-112.md)
+	**Blocker:** **Re-evaluated 2026-08-30.** D27 legitimately defers the freeze; the vision now adds a second reason — freezing the 115-leaf catalogue before the à-la-carte/prune direction settles would freeze the wrong artifact. Hold for B-gate. **Do not close** (mechanical gate is real and green).
+	**Acceptance:**
+	- The catalogue contract is frozen and enforced in code; a leaf that is mechanically valid but generic (no repository binding / no service-specific check) fails the authored-service gate as a coverage gap.
+	- The gate runs in CI over all 115 leaves.
+- [ ] **RIG-113 — Bound the lint-format setup/replacement (hybrid-plus) contract**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #65 — Path B gate; owner must approve ranked lists + backup semantics · [Solution](tickets/RIG-113.md)
+	**Blocker:** **Re-evaluated 2026-08-30.** Genuinely pending an owner product-policy decision (ranked lists + backup semantics). Move to B-gate so the decision is actually scheduled rather than aging in Blocked.
+	**Acceptance:**
+	- "Better alternative" has a defined, testable decision rule; a proposed setup/replacement never lands without an explicit user decision.
+	- The generated-setup contract (files, scope, approval) is specified and covered by acceptance cases.
+- [ ] **RIG-116 — Promote the non-lint-format leaves Policy → Context → Evidence**
+	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #63 — Path B gate; Path C supplies demand signal, but prune-all vs universal is a B-gate call · [Solution](tickets/RIG-116.md)
+	**Blocker:** **Re-evaluated 2026-08-30.** Path C is exactly the demand-evidence stream it waited on, so old blocker is on its way to being answered — but the vision reframes the question from "promote which family first" to "does promote-all survive prune-to-stack." Hold for B-gate. **Do not close:** GA-23 freezes Policy→Context→Evidence as the universal model.
+	**Acceptance:**
+	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
+	- At least the highest-demand families reach Context/Evidence with real verifiable checks.
 
 ## Done
 
