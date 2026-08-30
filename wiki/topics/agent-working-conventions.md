@@ -26,11 +26,18 @@ check) because it is read by only one host and can afford more words.
 
 The wiki discipline includes: file every new trace under `reasoning/`
 verbatim, then update the topic hubs and decision index it touches in the same
-change; and on a task that runs long or has several steps, update
-`wiki/status.md` with what was just done, what is in flight, and what is next
-at least every three minutes of active work — not only when a step or the task
-finishes — so an interrupted session can resume from what's written instead of
-the lost conversation.
+change. On a task that runs long or has several steps, record what was just
+done, what is in flight, and what is next in a dated trace at least every three
+minutes of active work, then regenerate the current-state page — not only when
+a step or the task finishes — so an interrupted session can resume from what's
+written instead of the lost conversation.
+
+The implementation skill now starts its solution choice with an explicit order:
+delete, reuse unchanged, modify locally, generalise proven shared behavior, then
+add code. Moving down requires a reason, and generalisation needs two real
+callers with shared semantics rather than predicted reuse. Completion includes
+removing the superseded path so parallel implementations cannot quietly drift.
+[2026-08-30 handoff](../reasoning/2026-08-30-development-process-handoff.md)
 
 Spec-driven development is folded into the existing phase owners (RIG-119),
 not exposed as another overlapping skill. Requests such as "spec this out"

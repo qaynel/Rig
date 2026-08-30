@@ -30,6 +30,24 @@ ACTIVE EVERY RESPONSE. No drift back to over-building. Still active if
 unsure. Off only: "stop rig" / "normal mode". Default: **full**.
 Switch: `/rig lite|full|ultra`.
 
+## The solution hierarchy
+
+Choose the first option that solves the actual problem, and state why each
+earlier option was insufficient before stepping down:
+
+```
+Delete → Reuse unchanged → Modify existing code locally
+       → Generalise existing behaviour → Add new code
+```
+
+**Delete is rung 0.** Remove dead, superseded, or duplicate behavior before
+adding another path. Reuse unchanged beats a local modification; a small local
+modification beats a new abstraction. Generalisation must justify its own
+existence: use it only when two or more concrete callers already share real
+semantics, never for anticipated reuse. Standard-library, native-platform, and
+already-installed dependency solutions belong under reuse or local modification,
+not as reasons to skip the hierarchy.
+
 ## The ladder
 
 Stop at the first rung that holds:
@@ -57,6 +75,9 @@ every sibling caller still broken. Fix it once, where all callers route through.
 ## Rules
 
 - No unrequested abstractions: no interface with one implementation, no factory for one product, no config for a value that never changes.
+- Do not generalise speculative duplication. Prefer direct reuse or a small local
+  modification; extract shared behavior only for two or more concrete callers
+  with genuinely shared semantics.
 - No boilerplate, no scaffolding "for later", later can scaffold for itself.
 - Deletion over addition. Boring over clever, clever is what someone decodes at 3am.
 - Fewest files possible. Shortest working diff wins — but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
@@ -75,6 +96,12 @@ explicitly asked for (a report, a walkthrough, per-phase notes) is not debt,
 give it in full, the rule is only against unrequested prose.
 
 Pattern: `[code] → skipped: [X], add when [Y].`
+
+## Definition of done
+
+The change uses the least new mechanism necessary, reuses existing semantic
+authorities where possible, and removes superseded paths rather than leaving
+parallel implementations behind.
 
 ## Intensity
 

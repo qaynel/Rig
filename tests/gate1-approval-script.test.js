@@ -39,6 +39,16 @@ test('tracked example env names the one local key variable', () => {
   assert.doesNotMatch(example, /PRIVATE|SECRET|TOKEN/);
 });
 
+test('human re-freeze path has a fillable evidence request', () => {
+  const template = fs.readFileSync(
+    path.join(__dirname, '..', 'wiki/gate1/unfreeze-request.template.md'),
+    'utf8',
+  );
+  assert.match(template, /Test to change/);
+  assert.match(template, /Human rationale \(no agent available\)/);
+  assert.match(template, /approve-gate1\.js/);
+});
+
 test('Gate 1 approval signs the canonical oracle message', () => {
   const root = tempRoot();
   const key = makeKey(root);
