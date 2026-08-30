@@ -59,3 +59,11 @@ None for `v5.0.0`. The annotated tag and GitHub latest release were published
 2026-08-29 on the receipt-bound commit
 `9d1ea45ea4876b300fbfe964d46319188ff2f09d`.
 [Ceremony cut](../reasoning/2026-08-29-v5.0.0-tag.md)
+
+Beyond `v5.0.0`, the intent owner's recorded end-product expectation implies a
+release strategy this section does not yet own: a phased, per-host controlled
+rollout (Claude Code first, then Cursor, then the rest of the 19 hosts, ideally
+batching similar hosts) feeding a tiered, interactive, adaptive install. That
+target is captured as intent, not a committed release plan, and is in tension
+with the current default lean install.
+[Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)

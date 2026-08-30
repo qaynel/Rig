@@ -7,8 +7,11 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
 | 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
+| 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
+| 2026-08-30 | current | [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md) | onboarding-flow, distribution-and-release, what-rig-is | — | trap, interdependency |
 | 2026-08-30 | current → wiki/status.md | [2026-08-30-generated-wiki-summary-design](../reasoning/2026-08-30-generated-wiki-summary-design.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-development-process-handoff](../reasoning/2026-08-30-development-process-handoff.md) | gate1-signing, agent-working-conventions, testing-strategy | — | interdependency |
+| 2026-08-30 | current | [2026-08-30-adaptation-eval-claude-task-master](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) | what-rig-is, onboarding-flow, the-catalogue | GA-36 | interdependency, trap |
 | 2026-08-29 | historical | [2026-08-29-v5.0.0-tag](../reasoning/2026-08-29-v5.0.0-tag.md) | distribution-and-release, delivery-plan, review-receipts | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig144-execution-policy-design](../reasoning/2026-08-29-rig144-execution-policy-design.md) | policy-model, trust-and-failure-boundaries | AD-39, GA-38 | — |
 | 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-sign-off](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md) | — | — | — |

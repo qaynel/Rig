@@ -51,3 +51,12 @@ service has actually been proven.
 The current packs meet the Policy authorship contract. Beta use determines
 which leaves earn repository-specific Context and rerunnable Evidence next; the
 grade must never advance from prose alone.
+
+The first real adaptation run (2026-08-30, `inspo/claude-task-master-main/`,
++12/100) put a number on the à-la-carte model's failure mode: installing the
+full catalogue onto a Node/TS CLI monorepo scored signal-vs-noise as *poor —
+~85% dead weight by skill count* (ios-qa, make-pdf, design-shotgun, office-hours,
+scrape … on a repo that needs ~7 of 65 skills). This is the concrete case for
+pruning the installed set to what the repo's stack implies rather than shipping
+everything, and it stands against the "Rig has everything" framing.
+[Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md)
