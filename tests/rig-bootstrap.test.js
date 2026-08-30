@@ -200,8 +200,8 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       || file.includes(`${path.sep}.rig${path.sep}preimages${path.sep}`)
       || file.endsWith(`${path.sep}.rig${path.sep}install-manifest.jsonl`)
       || /[/\\]\.rig[/\\]skills[/\\][^/\\]+[/\\]/.test(file)
-      || /[/\\]\.claude[/\\]skills[/\\]rig-[^/\\]+[/\\]/.test(file)
-      || /[/\\]\.agents[/\\]skills[/\\]rig-[^/\\]+[/\\]/.test(file);
+      || /[/\\]\.claude[/\\]skills[/\\][^/\\]+[/\\]/.test(file)
+      || /[/\\]\.agents[/\\]skills[/\\][^/\\]+[/\\]/.test(file);
     const tier1Body = installed.filter((f) => !isVendoredFile(f)).map((file) => fs.readFileSync(file, 'utf8')).join('\n');
     for (const relativePath of backtickedRigPaths(tier1Body)) {
       assert.equal(fs.existsSync(path.join(target, relativePath)), true, `${relativePath} should exist after install`);
@@ -345,6 +345,55 @@ test('Tier 1 bootstrap --hosts antigravity installs the co-read tree via payload
     assert.equal(fs.existsSync(path.join(target, '.cursor/rules/rig.mdc')), false);
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test("vendored rig router installs addressable as 'rig' on native hosts, matching routing.md fallback (RIG-149)", () => {
+  // routing.md's "Fallback to the router" section instructs the agent to invoke a named skill.
+  // That name must match an actual installed skill on every native-dispatch host. The bug:
+  // payload.js's blanket `rig-` prefix doubles _core's declared `name: rig` to `rig-rig`.
+  const routerName = read(root, 'rig/tier-1/routing.md')
+    .match(/invoke the vendored `([^`]+)` router/)?.[1];
+  assert.ok(routerName, "routing.md must name the vendored router skill in its fallback section");
+
+  for (const [host, skillsDir] of [['claude', '.claude'], ['codex', '.agents']]) {
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), `rig-rig149-${host}-`));
+    try {
+      execFileSync('sh', [
+        path.join(root, 'rig', 'bootstrap.sh'),
+        '--tier', '1',
+        '--target', target,
+        '--hosts', host,
+      ]);
+
+      const skillPath = path.join(target, skillsDir, 'skills', routerName, 'SKILL.md');
+      assert.ok(
+        fs.existsSync(skillPath),
+        `${skillsDir}/skills/${routerName}/SKILL.md must exist after --hosts ${host} install (routing.md fallback names '${routerName}')`,
+      );
+
+      const skillMd = fs.readFileSync(skillPath, 'utf8');
+      const nameMatch = skillMd.match(/^name:\s*(\S+)\s*$/m);
+      assert.ok(nameMatch, `${skillsDir}/skills/${routerName}/SKILL.md must declare a frontmatter name`);
+      assert.equal(nameMatch[1], routerName, `installed frontmatter name must equal routing.md's cited name`);
+
+      // The doubled form must not exist — this is the exact regression this test guards.
+      assert.equal(
+        fs.existsSync(path.join(target, skillsDir, 'skills', `rig-${routerName}`, 'SKILL.md')),
+        false,
+        `rig-${routerName} is the doubled-prefix form; it must not be installed`,
+      );
+
+      // All other shared skills must still land with the rig- prefix (no collateral damage).
+      for (const [skill] of sharedSkills) {
+        assert.ok(
+          fs.existsSync(path.join(target, skillsDir, 'skills', `rig-${skill}`, 'SKILL.md')),
+          `rig-${skill} must still install correctly on --hosts ${host}`,
+        );
+      }
+    } finally {
+      fs.rmSync(target, { recursive: true, force: true });
+    }
   }
 });
 

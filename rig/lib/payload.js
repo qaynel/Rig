@@ -99,7 +99,8 @@ function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeD
   };
   for (const skill of skills) {
     const src = path.join(ROOT, 'rig', 'catalog', 'skills', skill.dir);
-    const finalName = `${prefix}${skill.name}`;
+    const effectivePrefix = (prefix && skill.name === prefix.replace(/-$/, '')) ? '' : prefix;
+    const finalName = `${effectivePrefix}${skill.name}`;
     const rel = destPattern.replace('{name}', finalName);
     const skillMd = path.join(src, 'SKILL.md');
     copyTree(target, src, rel, writeFile, (sourcePath, contents) => {
@@ -107,7 +108,7 @@ function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeD
       // SKILL.md may declare a name that lost the tie-break in
       // listVendoredSkills, and a mismatch is invisible-broken on native hosts.
       if (sourcePath !== skillMd) return contents;
-      return rewriteSkillName(contents.toString('utf8'), prefix, skill.name);
+      return rewriteSkillName(contents.toString('utf8'), effectivePrefix, skill.name);
     }, filter);
   }
 }
