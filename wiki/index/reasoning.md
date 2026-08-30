@@ -7,6 +7,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
 | 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
+| 2026-08-30 | current | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-path-a-bug-investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) | onboarding-flow, graft-mechanics | — | trap, interdependency |
 | 2026-08-30 | current | [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md) | onboarding-flow, distribution-and-release, what-rig-is | — | trap, interdependency |
