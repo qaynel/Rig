@@ -16,28 +16,35 @@ function withTempTarget(fn) {
 
 const vendored = listVendoredSkills();
 
-test('vendored skills install under .claude/skills/rig-<name>/ with rewritten frontmatter and notice', () => {
+function installedName(skillName, prefix) {
+  const stem = prefix.replace(/-$/, '');
+  return (prefix && skillName === stem) ? skillName : `${prefix}${skillName}`;
+}
+
+test('vendored skills install under .claude/skills/<installed-name>/ with rewritten frontmatter and notice', () => {
   withTempTarget((target) => {
     runPayload(target, ['claude']);
     for (const skill of vendored) {
-      const skillMd = path.join(target, '.claude', 'skills', `rig-${skill.name}`, 'SKILL.md');
+      const name = installedName(skill.name, 'rig-');
+      const skillMd = path.join(target, '.claude', 'skills', name, 'SKILL.md');
       assert.ok(fs.existsSync(skillMd), `missing ${skillMd}`);
       const body = fs.readFileSync(skillMd, 'utf8');
-      assert.match(body, new RegExp(`^name: rig-${skill.name}\\s*$`, 'm'), `frontmatter name should be rig-${skill.name}`);
+      assert.match(body, new RegExp(`^name: ${name}\\s*$`, 'm'), `frontmatter name should be ${name}`);
     }
     assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'LICENSE.upstream')));
     assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'UPSTREAM.md')));
   });
 });
 
-test('vendored skills install under .agents/skills/rig-<name>/ for codex hosts', () => {
+test('vendored skills install under .agents/skills/<installed-name>/ for codex hosts', () => {
   withTempTarget((target) => {
     runPayload(target, ['codex']);
     for (const skill of vendored) {
-      const skillMd = path.join(target, '.agents', 'skills', `rig-${skill.name}`, 'SKILL.md');
+      const name = installedName(skill.name, 'rig-');
+      const skillMd = path.join(target, '.agents', 'skills', name, 'SKILL.md');
       assert.ok(fs.existsSync(skillMd), `missing ${skillMd}`);
       const body = fs.readFileSync(skillMd, 'utf8');
-      assert.match(body, new RegExp(`^name: rig-${skill.name}\\s*$`, 'm'));
+      assert.match(body, new RegExp(`^name: ${name}\\s*$`, 'm'));
     }
     assert.ok(fs.existsSync(path.join(target, '.agents', 'skills', 'LICENSE.upstream')));
     assert.ok(fs.existsSync(path.join(target, '.agents', 'skills', 'UPSTREAM.md')));
