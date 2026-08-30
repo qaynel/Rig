@@ -6,5 +6,8 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-08-30 — [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)**: Intent owner's full end-product expectation — RIG as a portable "ultimate toolbox" that installs (not onboards) into any repo, rides the host to graft itself onto whatever is already there, and serves a spectrum from no-host beginners to superusers via a tiered, interactive, adaptive install.
+- **2026-08-30 — [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)**: Office-hours scoping of the post-eval work — order fixed as A (concrete install bugs + a frozen rubric) then B (adaptive integration, gated by grilling), with C (real-user testing) running async. Code confirms the eval's 5.8 MB dump was a --with-runtime artifact, not the default install. Carries the two report-only investigation prompts for A and B.
 - **2026-08-30 — [2026-08-30-generated-wiki-summary-design](../reasoning/2026-08-30-generated-wiki-summary-design.md)**: The current-state page and reasoning-trace index are generated from immutable trace frontmatter; update a trace and run the generator instead of hand-editing either summary.
 - **2026-08-30 — [2026-08-30-development-process-handoff](../reasoning/2026-08-30-development-process-handoff.md)**: Current trace from intent owner.
+- **2026-08-30 — [2026-08-30-adaptation-eval-claude-task-master](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md)**: First real adaptation run — RIG installed onto inspo/claude-task-master-main scored +12/100; merge-not-overwrite works, adaptive integration is not built.

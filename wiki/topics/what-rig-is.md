@@ -87,6 +87,25 @@ is proof, not architecture — whether Rig's merge-not-overwrite pass on a real
 repository actually produces a better result, and whether anyone wants to
 install it.
 
+That proof now has a first data point, and it is split. The first real
+adaptation run — Rig installed onto `inspo/claude-task-master-main/`, a dense
+Claude+Cursor+Kiro+plugin repo — scored **+12/100**: the merge-not-overwrite
+core is real and working (a non-destructive `append_managed` onto `CLAUDE.md`
+with a stored preimage, 100% of original guidance preserved), but *adaptive
+integration is not built*. Rig ignored 27 Cursor rules, 5 Kiro steering docs,
+the Claude plugin, and `.taskmaster/CLAUDE.md`, stacked generic parallel files
+across three ecosystems, and shipped ~85% stack-irrelevant skills. Merge works;
+adapt does not yet. [Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md)
+
+The intent owner's full end-product expectation is now recorded as durable
+intent: Rig as a portable "ultimate toolbox" that *installs* (not onboards) into
+any repo, rides the host to graft itself onto whatever is already there, and
+serves a spectrum from no-host beginners through skill-hoarding workflow users
+to superusers — via a tiered, interactive, adaptive install. Parts of this
+target are in tension with the à-la-carte model and with D24's mechanical-only
+detection, and that tension is the honest open state, not a settled plan.
+[Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+
 Rig's universal service-depth method is Policy → Context → Evidence: govern,
 understand, then prove the change, while using the lowest level that can reach a
 definitive answer. All 115 leaves carry Policy contracts; lint-format retains

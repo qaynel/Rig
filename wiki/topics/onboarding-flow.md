@@ -141,3 +141,33 @@ The default markdown-only bootstrap still installs neither the command nor the
 runtime. A shipping-path regression installs the runtime, selects lint-format,
 plans and applies it through the installed command, then executes its installed
 check successfully.
+
+**Open direction (2026-08-30): adaptive integration is the unbuilt core.** The
+first real adaptation run onto a dense multi-host repo
+(`inspo/claude-task-master-main/`) scored **+12/100**: the merge-not-overwrite
+core works, but onboarding "treated a repo with one of the richest multi-tool
+agent configs you'll find as if it were empty" — it ignored 27 Cursor rules, 5
+Kiro steering docs, the Claude plugin, and `.taskmaster/CLAUDE.md`, stacked
+generic parallel files across three ecosystems, and pruned nothing to the
+stack. The eval's single highest-value fix is to make install *parse the
+pre-existing config and reconcile with it* (reference existing Cursor/Kiro rules
+from `routing.md`, prune the skill set to the stack, and stop emitting
+conventions the target lacks). This points against D24's current mechanical-only
+detection and would need its own grilling, not a silent edit.
+[Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) ·
+[Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+
+Two live install traps that run surfaced, to fix regardless of direction. The
+first was originally recorded as "a 5.8 MB unignored copy of vendored skill
+source dumped into `.claude/skills/`" — but the code shows that dump is a
+`--with-runtime` artifact, not the default. `rig/lib/payload.js:95-99` filters
+the vendored-skills copy to `.md` only unless `activeDelivery` (set by
+`--with-runtime`/`--openclaw-mcp`) is on; the eval that surfaced the 5.8 MB was a
+runtime install. The still-true default-install trap is smaller: even
+markdown-only, the installer writes ~64 `SKILL.md` skill dirs plus the whole
+`.rig/` tree into the target and writes no `.gitignore`, so payload lands
+uncommitted-but-unignored (kilobytes of markdown, not megabytes of code). The
+second trap stands as recorded: an emitted instruction to "regenerate
+`wiki/status.md` every three minutes per CLAUDE.md" (`rig/tier-1/routing.md`
+~lines 22-25) in a target repo that has no wiki and no such convention.
+[Path A/B scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)
