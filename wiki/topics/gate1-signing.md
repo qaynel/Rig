@@ -40,6 +40,15 @@ tracked `*.example` files, so `.credentials/gate1.env.example` shows the
 expected setting and the real `.credentials/gate1.env` (key path, not private
 key material) never leaves the machine.
 
+Changing a frozen test is a rare exception, not an ordinary edit. Before any
+oracle byte changes, the requester copies and fills
+[`unfreeze-request.template.md`](../gate1/unfreeze-request.template.md): the
+test, proposed change, and proof that the assertion was wrong, the specification
+changed, or a human is recording their rationale without an agent. The request
+records evidence; the refreshed SSH signature is the key holder's authorization.
+A tokenless human follows the same template and local-key command rather than
+needing an agent or a separate recovery path. [2026-08-30 handoff](../reasoning/2026-08-30-development-process-handoff.md)
+
 ## What was rejected
 
 Branch protection, upstream comparison, a repository-stored private key, TTY

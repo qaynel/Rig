@@ -51,10 +51,14 @@ immutability of the signed oracle after — not by independent authorship. An
 agent may draft the oracle, because the informed human signature is the
 safeguard.
 
-The implementation agent must not edit the frozen oracle. A wrong locked test is
-corrected only by the key holder, as a quick re-sign — never a full return to
-grilling; an agent may propose the change but can never make it. The test
-verdict outranks an implementer's claim.
+The implementation agent must not edit the frozen oracle. A wrong locked test
+requires a filled unfreeze request that identifies the test, the change, and
+evidence that the assertion is wrong, the specification changed, or a human is
+recording their rationale without an agent. Only then may the human key holder
+edit the oracle and re-run `node scripts/approve-gate1.js`; the evidence is
+necessary and the human signature is authoritative. It is a quick re-sign, never
+a full return to grilling; an agent may propose the change but can never make
+it. The test verdict outranks an implementer's claim.
 
 ## Output
 
