@@ -101,6 +101,18 @@ template. No API-key-wired model script; the judge is human-operated.
 [instrument spec](../reasoning/2026-08-31-rig-153-instrument-spec.md) ·
 [rubric](../specs/adaptation-measurement-rubric.md)
 
+RIG-153 closed 2026-08-31 with option A (the instrument) delivered and frozen
+(`592f4eed`). The re-baseline *run* against the +12/100 baseline is measurement
+work, not instrument work: it is carved out as [[RIG-156]], deferred and low
+priority. Rationale — the six hygiene tests already prove the RIG-148..152
+defect shapes are fixed, so a re-baseline now would mostly flip the G2 gate
+UNMET→MET; the run worth doing is after adaptive integration (prune-to-stack,
+reconcile-with-existing-config) is built, which is a Path B question. Five
+readiness blockers (no clean in-workspace target copy, unpinned Rig SHA,
+human-operated judge, model pin string source, a malformed handoff
+blocker-check) are recorded on RIG-156.
+[close-out ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md)
+
 Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads
 declared host-contract fields instead of inventing them. The signed cases still
