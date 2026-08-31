@@ -157,6 +157,17 @@ detection and would need its own grilling, not a silent edit.
 [Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) ·
 [Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
 
+**Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
+After Rig is installed, the user could invoke a single host-native command that
+reads the repo as it actually exists, onboards everything that fits, and removes
+or skips what does not — a single slash-command wrapper over the staged flow,
+with adaptive reconciliation built in. Connection to the +12/100 adaptation eval
+is direct: this would be the vehicle for the "parse the pre-existing config and
+reconcile" fix the eval called out. Open questions (consent model for pruning,
+one-shot vs re-runnable, markdown-only compatibility) are filed in the trace
+pending office-hours discussion.
+[Post-install onboarding skill idea](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md)
+
 Two live install traps that run surfaced, to fix regardless of direction. The
 first was originally recorded as "a 5.8 MB unignored copy of vendored skill
 source dumped into `.claude/skills/`" — but the code shows that dump is a
@@ -168,10 +179,17 @@ Claude-only install is 209 files / 8.3 MB, 100% unignored — megabytes, not
 kilobytes, driven by the vendored skill catalog landing twice (once
 unprefixed at `.rig/skills/*`, once renamed at `.claude/skills/rig-*`), not
 by any non-markdown content. The gitignore-vs-commit design call this trap
-implies is recorded at [[graft-mechanics]]. The second trap stands as
-recorded: an emitted instruction to "regenerate `wiki/status.md` every three
-minutes per CLAUDE.md" (`rig/tier-1/routing.md` ~lines 22-25) in a target
-repo that has no wiki and no such convention.
+implies is recorded at [[graft-mechanics]]. The second trap — an emitted
+instruction to "regenerate `wiki/status.md` every three minutes per
+CLAUDE.md" plus the "In this source checkout, use `rig/tier-1/...`"
+conditionals and the bare `(RIG-124)` citation (RIG-151/RIG-152/RIG-124.2)
+— **fixed 2026-08-31.** The phantom-convention passages were rewritten as
+explicit instructions to the onboarding host agent (map onto this repo's
+convention at install, or drop it) — markdown-only, not a `payload.js`
+transform and not bare deletion. Consistent with B1/`GA-1`; does not touch
+D24. Oracle: `tests/installed-router-hygiene.test.js` (3/3 green).
+[reframe-vs-transform trace](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md)
+· [close-out trace](../reasoning/2026-08-31-routing-hygiene-close-out.md)
 
 Two further correctness bugs were found the same pass, by running
 `bootstrap.sh` against disposable targets rather than reading source alone:

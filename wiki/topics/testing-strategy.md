@@ -64,6 +64,16 @@ page. The previous version was "the suite asserts inventory, not behavior." This
 one is "the suite asserts behavior, at a seam the product does not use." Both
 produce a green suite that means less than it looks like it means.
 
+**Installed-payload hygiene lint (2026-08-31).**
+`tests/installed-router-hygiene.test.js` greps the installed instruction text
+(`routing.md`, `tdd/SKILL.md` + mirrors) for the phantom-convention and
+dangling-citation defect shapes behind RIG-151 / RIG-152 / RIG-124.2 — no model
+call, negative assertions plus a positive pincer so bare deletion does not
+pass. Red by design until those three land. It is the first concrete instance
+of the mechanical breakage-count check [[RIG-153]] specifies for the
+RIG-149…152 defect classes.
+[reasoning trace](../reasoning/2026-08-31-routing-hygiene-oracle.md)
+
 Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads
 declared host-contract fields instead of inventing them. The signed cases still

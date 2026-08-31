@@ -28,7 +28,7 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 5. `[superpowers]` Run the test and relevant nearby suite; inspect the output.
    The inner loop is `npm run test:rig` or the single test file for the
    behavior under test — never the full `npm test` gate, which runs once,
-   right before push. `(RIG-124)`
+   right before push.
 6. `[superpowers]` Refactor production and local test artifacts now while all
    tests stay green. Do not defer local cleanup to review.
 7. Repeat for the next behavior.
