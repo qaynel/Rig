@@ -1,6 +1,6 @@
 # Rig Implementation Rule
 
-For every coding task, read and follow `.rig/skills/implementation/SKILL.md`. Rig
+For every coding task, read and follow the `rig-implementation` skill. Rig
 owns implementation in Rig: understand the real flow, then stop at the first
 YAGNI, reuse, standard-library, native-platform, installed-dependency, or
 one-line rung that solves the task safely.

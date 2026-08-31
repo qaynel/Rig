@@ -12,9 +12,6 @@ kanban-plugin: board
 - [ ] **RIG-149 — Vendored `rig` switchboard installs as `rig-rig`, breaking routing.md's own fallback instruction**
 	**Status:** OPEN (2026-08-30) — GitHub #126 — found during Path A install-bug investigation · [Solution](tickets/RIG-149.md)
 	**Class:** CORRECTNESS, installer-code. `payload.js:94`'s blanket `rig-` prefix rewrite doubles the vendored `_core` skill's own `name: rig` to `rig-rig` for Claude/Codex/Antigravity; `routing.md`'s "invoke the vendored `rig` router" fallback names a skill that doesn't exist under that name. Verified by direct repro.
-- [ ] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
-	**Status:** OPEN (2026-08-30) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)
-	**Class:** CORRECTNESS, mixed. The "always active" implementation rule hardcodes `.rig/skills/implementation/SKILL.md`, gated behind `instruction_only_selected` — never written for a Claude-only or Codex-only install (the majority-shape install). Same dangling reference in this repo's own dev-checkout reading of the file. Verified by direct repro.
 - [ ] **RIG-153 — No frozen instrument exists to measure adaptation quality**
 	**Status:** OPEN (2026-08-30) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
 	**Class:** PROCESS / TOOLING GAP, no code yet. No rubric, fixed axes/weights, pinned model, or clean-checkout procedure exists; the one eval on record scored a `--with-runtime` install by mistake. Blocks Path A's stated re-baseline step.
@@ -157,6 +154,9 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
+	**Status:** DONE (2026-08-31) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)
+	**Done:** `tests/installed-router-hygiene.test.js::RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path`; `tests/basic-payload-gating.test.js::RIG-150 — rig.md reference resolves after claude-only install`.
 - [ ] **RIG-151 — routing.md's full-cadence branch asserts a wiki/status.md convention the target repo doesn't have**
 	**Status:** DONE (2026-08-31) — GitHub #128 — found during Path A install-bug investigation · [Solution](tickets/RIG-151.md)
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-151 — router asserts no wiki/status.md cadence the target repo does not have`.

@@ -40,6 +40,15 @@ test('TP-C2.1 selected hosts prune unselected payload adapters', () => {
   });
 });
 
+test('RIG-150 — rig.md reference resolves after claude-only install', () => {
+  withRepo((target) => {
+    materialize(target, { hosts: ['claude'], mcp_servers: [] });
+    const rigRule = fs.readFileSync(path.join(target, '.rig/rules/rig.md'), 'utf8');
+    assert.doesNotMatch(rigRule, /\.rig\/skills\/implementation\/SKILL\.md/);
+    assert.ok(exists(target, '.claude/skills/rig-implementation/SKILL.md'));
+  });
+});
+
 test('TP-C2.2 native-skill-only hosts do not install .rig/skills fallback copies', () => {
   withRepo((target) => {
     materialize(target, { hosts: ['claude', 'codex'], mcp_servers: [] });
