@@ -34,6 +34,7 @@
     { "op": "ensure_line", "to": "AGENTS.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": ["codex", "antigravity", "codewhale"] },
     { "op": "ensure_line", "to": "GEMINI.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": ["gemini", "antigravity"] },
     { "op": "ensure_line", "to": ".github/copilot-instructions.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "copilot" },
+    { "op": "ensure_gitignore_block", "lines": [".rig/", ".claude/skills/rig-*", ".agents/skills/rig-*"], "host": "neutral" },
     { "op": "copy", "from": ".agents/workflows/rig.md", "to": ".agents/workflows/rig.md", "host": "antigravity" },
     { "op": "copy", "from": ".agents/workflows/rig-review.md", "to": ".agents/workflows/rig-review.md", "host": "antigravity" },
     { "op": "copy", "from": ".agents/workflows/rig-audit.md", "to": ".agents/workflows/rig-audit.md", "host": "antigravity" },
