@@ -6,7 +6,7 @@
   "keywords": ["rig", "agent", "skills", "claude", "cursor"],
   "license": "MIT",
   "scripts": {
-    "pretest": "PATH=.venv/bin:$PATH python3 -c \"import pandas\" 2>/dev/null || npm run setup:dev",
+    "pretest": "{ PATH=.venv/bin:$PATH python3 -c \"import pandas\" 2>/dev/null || npm run setup:dev; } && { [ -d rig-mcp/node_modules ] || npm ci --prefix rig-mcp --no-audit --no-fund; }",
     "pretest:code": "npm run pretest",
     "setup:dev": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt",
     "test": "node scripts/check-advanced-spec.js && npm run test:code",

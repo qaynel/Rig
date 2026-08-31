@@ -6,6 +6,9 @@ kanban-plugin: board
 
 ## Backlog
 
+- [ ] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
+	**Status:** OPEN (2026-08-31) — pipeline step 2 (product-design) done; awaiting Gate-1 re-sign + implementation · [Solution](tickets/RIG-154.md)
+	**Class:** TEST INFRASTRUCTURE / NON-HERMETIC FIXTURE. `tests/advanced-oracle.test.js` `AT-HOME-1`'s fake `npm` does `cp -R <root>/rig-mcp/node_modules <dest>`; nothing in `node --test tests/*.test.js` creates that tree before the file runs, and CI only passes via a standalone `npm ci --prefix rig-mcp` step (`.github/workflows/test.yml:37-38`) invisible to the test. Fix (designed, [[reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md]]): D1 append a `[ -d rig-mcp/node_modules ] || npm ci --prefix rig-mcp` guard to `package.json` `pretest`; D2 lock it with a non-frozen `tests/rig-mcp-bootstrap.test.js`; delete the redundant CI step. Forces a Gate-1 re-sign — `wiki/gate1/package-scripts.json` is in the signed manifest.
 - [ ] **RIG-148 — Default install lands unignored: 209 files / 8.3 MB with no .gitignore**
 	**Status:** OPEN (2026-08-30) — GitHub #125 — found during Path A install-bug investigation · [Solution](tickets/RIG-148.md)
 	**Class:** DELIVERABILITY / ONBOARDING HYGIENE. `rig/lib/payload.js`/`rig/bootstrap.sh` write no `.gitignore`. Measured: a default `--hosts claude` install is 209 files / 8.3 MB, 100% untracked-and-unignored. Needs an owner design call: gitignore (tool-cache) vs commit (vendored-config) — recommendation is gitignore.

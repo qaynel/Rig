@@ -35,6 +35,16 @@ test and reason before the human key holder re-signs the changed oracle. This
 also leaves a first-class path for a human working without agent tokens.
 [2026-08-30 handoff](../reasoning/2026-08-30-development-process-handoff.md)
 
+A frozen test can still carry an unstated fixture prerequisite. `AT-HOME-1`'s
+fake `npm` copies a `rig-mcp/node_modules` tree that only CI's standalone
+`npm ci --prefix rig-mcp` step created, so `npm test` passed in CI and failed on
+a fresh clone. The fix is a canonical bootstrap guard on the root `pretest` plus
+a non-frozen structural lock — the frozen assertions are untouched, the change
+only supplies the prerequisite they always assumed. Because
+`wiki/gate1/package-scripts.json` is in the signed manifest, even that hook edit
+needs a Gate-1 re-sign.
+[RIG-154 design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md)
+
 ## Authorities and sources
 
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)
