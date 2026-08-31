@@ -41,6 +41,7 @@ frozen business oracle or claiming a new numbered architecture decision.
 |---|---|---|
 | 2026-08-24 | **Antigravity MCP is first-class manual setup for beta.** Onboarding emits exact selected-server JSON plus a verification command; Rig does not write the user-global file while upstream CLI issue #60 remains open. | [RIG-105](../tickets/RIG-105.md), [host contract](../specs/host-coverage-spec.md#321-rig-mcp-server-coverage-rig-101) |
 | 2026-08-24 | **Spec-driven development folds into the existing phase owners.** Requests route through grilling's five executable-spec checkpoints and product design's code-grounded technical interrogation; no separate skill or graft is added. | [RIG-119](../tickets/RIG-119.md), [working conventions](../topics/agent-working-conventions.md) |
+| 2026-08-31 | **RIG-153 closes on the instrument alone; the re-baseline run is deferred as RIG-156.** RIG-153 was scoped to build the adaptation-measurement instrument, not to run it. Option A (six hygiene tests + frozen rubric) is delivered; the re-baseline against the +12/100 baseline is measurement work, is low-value until adaptive integration is built (a Path B question), and is held on RIG-156 until Path A and Path B are fully decided. | [RIG-153](../tickets/RIG-153.md), [RIG-156](../tickets/RIG-156.md), [close-out ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) |
 
 ---
 
