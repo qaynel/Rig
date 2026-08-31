@@ -95,6 +95,7 @@ than two viable paths.
 | `rig-execution` | Independent work is parallelized and its evidence needs coordination and verification. |
 | `rig-debugging` | Investigating a failure, flaky behavior, performance regression, or unknown root cause. |
 | `rig-code-review` | Reviewing a diff, PR, branch, or proposed change. Report only. |
+| `rig-onboarding` | Rig is installed but not yet adapted to this repository, or the adaptation must be revisited. |
 
 Do not substitute a nearby skill for the named owner. Debugging discovers why;
 TDD drives a known behavior change; review judges an existing diff.

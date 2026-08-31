@@ -2,6 +2,16 @@
 name: rig-product-design
 status: ready
 description: Turn business intent into a thorough, bounded technical specification the code adapts to. Checked for presence at the gate, never frozen.
+family: specification-and-planning
+tool: host-agent
+capability: specification-and-planning.executable-specification
+guarantees:
+  - Turns approved business intent into a bounded technical specification.
+  - Leaves implementation freedom inside a stated boundary.
+overlap_tags:
+  - product-design
+  - specification
+  - technical-design
 ---
 
 # Product And Technical Design

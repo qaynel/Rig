@@ -1,0 +1,1402 @@
+{
+  "schema_version": 1,
+  "catalog_kind": "skill-shelf",
+  "release": {
+    "version": "v5.0.0",
+    "skills_digest": "2bd7d8ec6483b49a7c0eed232e12771ee2ad2468c712903ab08b8849dcbcb360"
+  },
+  "taxonomy": {
+    "id": "skill-shelf-v1",
+    "families": [
+      {
+        "id": "browser-and-research",
+        "title": "Browser and research",
+        "description": "Browser operation, authenticated sessions, extraction, and remote pairing."
+      },
+      {
+        "id": "debugging",
+        "title": "Debugging",
+        "description": "Root-cause diagnosis and bounded repair."
+      },
+      {
+        "id": "delivery-and-operations",
+        "title": "Delivery and operations",
+        "description": "Shipping, deployment, post-deploy observation, upgrades, and platform maintenance."
+      },
+      {
+        "id": "design-and-experience",
+        "title": "Design and experience",
+        "description": "Product and interface design generation and visual evaluation."
+      },
+      {
+        "id": "implementation-and-orchestration",
+        "title": "Implementation and orchestration",
+        "description": "Minimal implementation, routing, delegation, and coordinated execution."
+      },
+      {
+        "id": "knowledge-and-documentation",
+        "title": "Knowledge and documentation",
+        "description": "Context handoff, project memory, documentation, and retrospectives."
+      },
+      {
+        "id": "requirements",
+        "title": "Requirements",
+        "description": "Intent discovery, grilling, and question calibration."
+      },
+      {
+        "id": "review",
+        "title": "Review",
+        "description": "Independent code, pull-request, health, and developer-experience review."
+      },
+      {
+        "id": "safety-and-security",
+        "title": "Safety and security",
+        "description": "Destructive-action controls, edit boundaries, and security review."
+      },
+      {
+        "id": "specification-and-planning",
+        "title": "Specification and planning",
+        "description": "Executable specifications and plan interrogation."
+      },
+      {
+        "id": "testing",
+        "title": "Testing",
+        "description": "TDD, QA, evaluation, and performance regression testing."
+      }
+    ]
+  },
+  "skills": [
+    {
+      "id": "setup-browser-cookies",
+      "name": "setup-browser-cookies",
+      "description": "Import cookies from your real Chromium browser into the headless browse session. (rig)",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.authenticated-session",
+      "guarantees": [
+        "Imports existing browser cookies into the headless session.",
+        "Keeps imported credentials out of the repository."
+      ],
+      "overlap_tags": [
+        "authentication",
+        "cookies",
+        "session"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/authenticated-session/setup-browser-cookies/SKILL.md"
+    },
+    {
+      "id": "browse",
+      "name": "browse",
+      "description": "Fast headless browser for QA testing and site dogfooding. (rig)",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.browser-automation",
+      "guarantees": [
+        "Drives a headless browser session without installing a browser into the repository.",
+        "Returns page state the caller can verify."
+      ],
+      "overlap_tags": [
+        "browser",
+        "browser-automation",
+        "headless-browser",
+        "screenshot"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/browser-automation/browse/SKILL.md"
+    },
+    {
+      "id": "connect-chrome",
+      "name": "connect-chrome",
+      "description": "Launch Rig Browser — AI-controlled Chromium with the sidebar extension baked in.",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.browser-session",
+      "guarantees": [
+        "Launches an AI-controlled Chromium session with the sidebar extension attached.",
+        "Leaves the developer default browser profile untouched."
+      ],
+      "overlap_tags": [
+        "browser-session",
+        "chromium",
+        "sidebar"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/browser-session/connect-chrome/SKILL.md"
+    },
+    {
+      "id": "open-rig-browser",
+      "name": "open-rig-browser",
+      "description": "Launch Rig Browser — AI-controlled Chromium with the sidebar extension baked in.",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.browser-session",
+      "guarantees": [
+        "Opens the managed Chromium session that the browser skills share.",
+        "Reuses one session instead of launching a browser for each task."
+      ],
+      "overlap_tags": [
+        "browser-session",
+        "chromium",
+        "sidebar"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/browser-session/open-rig-browser/SKILL.md"
+    },
+    {
+      "id": "pair-agent",
+      "name": "pair-agent",
+      "description": "Pair a remote AI agent with your browser. (rig)",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.remote-pairing",
+      "guarantees": [
+        "Connects a remote agent to the local browser session.",
+        "Requires an explicit pairing step before anything is shared."
+      ],
+      "overlap_tags": [
+        "browser-session",
+        "pairing",
+        "remote-agent"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/remote-pairing/pair-agent/SKILL.md"
+    },
+    {
+      "id": "scrape",
+      "name": "scrape",
+      "description": "Pull data from a web page. (rig)",
+      "family": "browser-and-research",
+      "tool": "rig-browser",
+      "capability": "browser-and-research.web-extraction",
+      "guarantees": [
+        "Extracts structured data from the page the user named.",
+        "Returns the extracted data with the page it came from."
+      ],
+      "overlap_tags": [
+        "data-extraction",
+        "scraping",
+        "web-extraction"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/browser-and-research/web-extraction/scrape/SKILL.md"
+    },
+    {
+      "id": "ios-fix",
+      "name": "ios-fix",
+      "description": "Autonomous iOS bug fixer. (rig)",
+      "family": "debugging",
+      "tool": "ios-debug-bridge",
+      "capability": "debugging.ios-repair",
+      "guarantees": [
+        "Reproduces an iOS defect on a device before changing code.",
+        "Keeps each repair scoped to the reported defect."
+      ],
+      "overlap_tags": [
+        "bug",
+        "ios",
+        "repair"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/debugging/ios-repair/ios-fix/SKILL.md"
+    },
+    {
+      "id": "investigate",
+      "name": "investigate",
+      "description": "Systematic debugging with root cause investigation. (rig)",
+      "family": "debugging",
+      "tool": "host-agent",
+      "capability": "debugging.root-cause-analysis",
+      "guarantees": [
+        "Reproduces the failure before proposing a cause.",
+        "Names the evidence that rules each hypothesis in or out."
+      ],
+      "overlap_tags": [
+        "bug",
+        "debugging",
+        "root-cause"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/debugging/root-cause-analysis/investigate/SKILL.md"
+    },
+    {
+      "id": "rig-debugging",
+      "name": "rig-debugging",
+      "description": "Find root causes through a tight reproduction loop, ranked hypotheses, boundary evidence, and defense in depth.",
+      "family": "debugging",
+      "tool": "host-agent",
+      "capability": "debugging.root-cause-analysis",
+      "guarantees": [
+        "Finds the root cause through a reproduction loop before changing code.",
+        "Ranks hypotheses against boundary evidence."
+      ],
+      "overlap_tags": [
+        "debugging",
+        "defect",
+        "root-cause"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/debugging/SKILL.md"
+    },
+    {
+      "id": "setup-deploy",
+      "name": "setup-deploy",
+      "description": "Configure deployment settings for /land-and-deploy.",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.deploy-configuration",
+      "guarantees": [
+        "Captures deployment configuration once for later deploy runs.",
+        "Deploys nothing while configuring."
+      ],
+      "overlap_tags": [
+        "configuration",
+        "deployment",
+        "setup"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/deploy-configuration/setup-deploy/SKILL.md"
+    },
+    {
+      "id": "ios-clean",
+      "name": "ios-clean",
+      "description": "Remove the DebugBridge SPM package and all #if DEBUG wiring from an iOS app. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "ios-debug-bridge",
+      "capability": "delivery-and-operations.ios-debug-instrumentation",
+      "guarantees": [
+        "Removes the debug bridge package and its conditional wiring from an iOS app.",
+        "Leaves release code paths unchanged."
+      ],
+      "overlap_tags": [
+        "debug-bridge",
+        "instrumentation",
+        "ios"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/ios-debug-instrumentation/ios-clean/SKILL.md"
+    },
+    {
+      "id": "ios-sync",
+      "name": "ios-sync",
+      "description": "Regenerate the iOS debug bridge against the latest upstream rig templates. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "ios-debug-bridge",
+      "capability": "delivery-and-operations.ios-debug-instrumentation",
+      "guarantees": [
+        "Regenerates the iOS debug bridge against the current upstream templates.",
+        "Preserves application code outside the generated bridge."
+      ],
+      "overlap_tags": [
+        "debug-bridge",
+        "instrumentation",
+        "ios"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/ios-debug-instrumentation/ios-sync/SKILL.md"
+    },
+    {
+      "id": "land-and-deploy",
+      "name": "land-and-deploy",
+      "description": "Land and deploy workflow. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.land-and-deploy",
+      "guarantees": [
+        "Merges an approved change and deploys it in one recorded sequence.",
+        "Stops at the first failing gate instead of continuing."
+      ],
+      "overlap_tags": [
+        "deployment",
+        "land",
+        "merge"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/land-and-deploy/land-and-deploy/SKILL.md"
+    },
+    {
+      "id": "canary",
+      "name": "canary",
+      "description": "Post-deploy canary monitoring. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.post-deploy-canary",
+      "guarantees": [
+        "Watches a deployment window and reports error-rate movement.",
+        "Never rolls a deployment back without an explicit instruction."
+      ],
+      "overlap_tags": [
+        "canary",
+        "deployment",
+        "monitoring",
+        "post-deploy"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/post-deploy-canary/canary/SKILL.md"
+    },
+    {
+      "id": "landing-report",
+      "name": "landing-report",
+      "description": "Read-only queue dashboard for workspace-aware ship. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.release-queue",
+      "guarantees": [
+        "Reports the current release queue without changing it.",
+        "Reads only; it never lands or ships anything."
+      ],
+      "overlap_tags": [
+        "dashboard",
+        "release-queue",
+        "ship-queue"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/release-queue/landing-report/SKILL.md"
+    },
+    {
+      "id": "ship",
+      "name": "ship",
+      "description": "Ship workflow: detect + merge base branch, run tests, review diff, bump VERSION, update CHANGELOG, commit, push, create PR. (rig)",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.release-shipping",
+      "guarantees": [
+        "Runs tests, version bump, changelog, and pull request in one recorded sequence.",
+        "Stops before pushing when a gate fails."
+      ],
+      "overlap_tags": [
+        "pull-request",
+        "release",
+        "ship"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/release-shipping/ship/SKILL.md"
+    },
+    {
+      "id": "rig-upgrade",
+      "name": "rig-upgrade",
+      "description": "Upgrade rig to the latest version.",
+      "family": "delivery-and-operations",
+      "tool": "release-tooling",
+      "capability": "delivery-and-operations.rig-upgrade",
+      "guarantees": [
+        "Upgrades the installed Rig payload to a named release.",
+        "Refuses to overwrite a user-edited managed file."
+      ],
+      "overlap_tags": [
+        "installation",
+        "upgrade",
+        "version"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/delivery-and-operations/rig-upgrade/rig-upgrade/SKILL.md"
+    },
+    {
+      "id": "design-consultation",
+      "name": "design-consultation",
+      "description": "Design consultation: understands your product, researches the landscape, proposes a complete design system (aesthetic, typography, color, layout, spacing, motion), and generates font+color preview... (rig)",
+      "family": "design-and-experience",
+      "tool": "host-agent",
+      "capability": "design-and-experience.design-consultation",
+      "guarantees": [
+        "Produces a design system covering aesthetic, typography, colour, layout, spacing, and motion.",
+        "Grounds each design choice in the product it is designing for."
+      ],
+      "overlap_tags": [
+        "design-system",
+        "typography",
+        "visual-design"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/design-and-experience/design-consultation/design-consultation/SKILL.md"
+    },
+    {
+      "id": "design-shotgun",
+      "name": "design-shotgun",
+      "description": "Design shotgun: generate multiple AI design variants, open a comparison board, collect structured feedback, and iterate. (rig)",
+      "family": "design-and-experience",
+      "tool": "host-agent",
+      "capability": "design-and-experience.design-exploration",
+      "guarantees": [
+        "Generates several distinct design variants for one brief.",
+        "Collects structured feedback on each variant before iterating."
+      ],
+      "overlap_tags": [
+        "design-exploration",
+        "design-variants",
+        "visual-design"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/design-and-experience/design-exploration/design-shotgun/SKILL.md"
+    },
+    {
+      "id": "design-html",
+      "name": "design-html",
+      "description": "Design finalization: generates production-quality Pretext-native HTML/CSS. (rig)",
+      "family": "design-and-experience",
+      "tool": "host-agent",
+      "capability": "design-and-experience.interface-production",
+      "guarantees": [
+        "Emits production-quality HTML and CSS from an approved design.",
+        "Keeps the generated markup semantic."
+      ],
+      "overlap_tags": [
+        "css",
+        "html",
+        "interface-production"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/design-and-experience/interface-production/design-html/SKILL.md"
+    },
+    {
+      "id": "ios-design-review",
+      "name": "ios-design-review",
+      "description": "Visual design audit for iOS apps on real hardware. (rig)",
+      "family": "design-and-experience",
+      "tool": "ios-debug-bridge",
+      "capability": "design-and-experience.ios-visual-review",
+      "guarantees": [
+        "Audits an iOS interface on real hardware rather than a static mockup.",
+        "Reports each finding against the screen it came from."
+      ],
+      "overlap_tags": [
+        "ios",
+        "mobile-design",
+        "visual-review"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/design-and-experience/ios-visual-review/ios-design-review/SKILL.md"
+    },
+    {
+      "id": "design-review",
+      "name": "design-review",
+      "description": "Designer's eye QA: finds visual inconsistency, spacing issues, hierarchy problems, AI slop patterns, and slow interactions — then fixes them. (rig)",
+      "family": "design-and-experience",
+      "tool": "host-agent",
+      "capability": "design-and-experience.visual-review",
+      "guarantees": [
+        "Finds spacing, hierarchy, and consistency defects in a rendered interface.",
+        "Names a concrete fix for every defect it reports."
+      ],
+      "overlap_tags": [
+        "design-qa",
+        "visual-design",
+        "visual-review"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/design-and-experience/visual-review/design-review/SKILL.md"
+    },
+    {
+      "id": "rig-onboarding",
+      "name": "rig-onboarding",
+      "description": "Adapt Rig to this repository as it already is — inspect, propose the smallest useful capability delta, and change nothing until the summary is approved.",
+      "family": "implementation-and-orchestration",
+      "tool": "host-agent",
+      "capability": "implementation-and-orchestration.adaptive-onboarding",
+      "guarantees": [
+        "Proposes the smallest useful capability delta for the repository as it already is.",
+        "Changes nothing until the user approves the onboarding summary."
+      ],
+      "overlap_tags": [
+        "adaptive-onboarding",
+        "graft",
+        "onboarding"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/onboarding/SKILL.md"
+    },
+    {
+      "id": "rig-execution",
+      "name": "rig-execution",
+      "description": "Execute an approved plan with independent task ownership and evidence-based completion.",
+      "family": "implementation-and-orchestration",
+      "tool": "host-agent",
+      "capability": "implementation-and-orchestration.coordinated-execution",
+      "guarantees": [
+        "Executes an approved plan task by task with independent ownership.",
+        "Requires evidence before a task is called complete."
+      ],
+      "overlap_tags": [
+        "coordinated-execution",
+        "execution",
+        "task-ownership"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/execution/SKILL.md"
+    },
+    {
+      "id": "codex",
+      "name": "codex",
+      "description": "OpenAI Codex CLI wrapper — three modes. (rig)",
+      "family": "implementation-and-orchestration",
+      "tool": "codex-cli",
+      "capability": "implementation-and-orchestration.delegated-coding",
+      "guarantees": [
+        "Delegates a bounded coding task to the Codex CLI and returns its output.",
+        "Keeps the delegated changes reviewable before adoption."
+      ],
+      "overlap_tags": [
+        "delegation",
+        "external-agent",
+        "second-opinion"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/implementation-and-orchestration/delegated-coding/codex/SKILL.md"
+    },
+    {
+      "id": "rig-implementation",
+      "name": "rig-implementation",
+      "description": "Forces the laziest solution that actually works, simplest, shortest, most minimal. Channels a senior dev who has seen everything: question whether the task needs to exist at all (YAGNI), reach for the standard library before custom code, native platform features before dependencies, one line before fifty. Supports intensity levels: lite, full (default), ultra. Use on ANY coding task: writing, adding, refactoring, fixing, reviewing, or designing code, and choosing libraries or dependencies. Also use whenever the user says \"rig\", \"be lazy\", \"lazy mode\", \"simplest solution\", \"minimal solution\", \"yagni\", \"do less\", or \"shortest path\", or complains about over-engineering, bloat, boilerplate, or unnecessary dependencies. Do NOT use for non-coding requests (general knowledge, prose, translation, summaries, recipes).",
+      "family": "implementation-and-orchestration",
+      "tool": "host-agent",
+      "capability": "implementation-and-orchestration.minimal-change",
+      "guarantees": [
+        "Chooses the smallest change that actually satisfies the requirement.",
+        "Prefers the standard library over a new dependency."
+      ],
+      "overlap_tags": [
+        "minimal-change",
+        "refactoring",
+        "yagni"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "skills/rig/SKILL.md"
+    },
+    {
+      "id": "skillify",
+      "name": "skillify",
+      "description": "Codify the most recent successful /scrape flow into a permanent browser-skill on disk. (rig)",
+      "family": "implementation-and-orchestration",
+      "tool": "host-agent",
+      "capability": "implementation-and-orchestration.skill-authoring",
+      "guarantees": [
+        "Turns a working ad-hoc flow into a durable skill file on disk.",
+        "Records only a flow that already succeeded."
+      ],
+      "overlap_tags": [
+        "authoring",
+        "automation",
+        "skill-authoring"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/implementation-and-orchestration/skill-authoring/skillify/SKILL.md"
+    },
+    {
+      "id": "rig",
+      "name": "rig",
+      "description": "Router for the rig skill suite. (rig)",
+      "family": "implementation-and-orchestration",
+      "tool": "host-agent",
+      "capability": "implementation-and-orchestration.workflow-routing",
+      "guarantees": [
+        "Routes a task to one named skill on the shelf before work begins.",
+        "Never invents a skill that the shelf does not contain."
+      ],
+      "overlap_tags": [
+        "routing",
+        "skill-router",
+        "task-routing",
+        "workflow-routing"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/implementation-and-orchestration/workflow-routing/_core/SKILL.md"
+    },
+    {
+      "id": "context-restore",
+      "name": "context-restore",
+      "description": "Restore working context saved earlier by /context-save. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.context-handoff",
+      "guarantees": [
+        "Restores only context that a previous save actually recorded.",
+        "Reports what could not be restored instead of inventing it."
+      ],
+      "overlap_tags": [
+        "context-handoff",
+        "resume",
+        "session-context"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/context-handoff/context-restore/SKILL.md"
+    },
+    {
+      "id": "context-save",
+      "name": "context-save",
+      "description": "Save working context. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.context-handoff",
+      "guarantees": [
+        "Writes the current working context to a durable file.",
+        "Records what was in flight and what comes next."
+      ],
+      "overlap_tags": [
+        "checkpoint",
+        "context-handoff",
+        "session-context"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/context-handoff/context-save/SKILL.md"
+    },
+    {
+      "id": "make-pdf",
+      "name": "make-pdf",
+      "description": "Turn any markdown file into a publication-quality PDF. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.document-publishing",
+      "guarantees": [
+        "Renders a Markdown file to a publication-quality PDF.",
+        "Leaves the source Markdown unchanged."
+      ],
+      "overlap_tags": [
+        "document-publishing",
+        "markdown",
+        "pdf"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/document-publishing/make-pdf/SKILL.md"
+    },
+    {
+      "id": "document-generate",
+      "name": "document-generate",
+      "description": "Generate missing documentation from scratch for a feature, module, or entire project. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.documentation",
+      "guarantees": [
+        "Writes missing documentation from the code that exists.",
+        "Does not document behaviour the code does not have."
+      ],
+      "overlap_tags": [
+        "docs",
+        "documentation",
+        "technical-writing"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/documentation/document-generate/SKILL.md"
+    },
+    {
+      "id": "document-release",
+      "name": "document-release",
+      "description": "Post-ship documentation update. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.documentation",
+      "guarantees": [
+        "Updates documentation to match what a release actually changed.",
+        "Touches only the documents that the change affects."
+      ],
+      "overlap_tags": [
+        "changelog",
+        "documentation",
+        "release-notes"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/documentation/document-release/SKILL.md"
+    },
+    {
+      "id": "learn",
+      "name": "learn",
+      "description": "Manage project learnings.",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.project-memory",
+      "guarantees": [
+        "Records durable project learnings in one reviewable place.",
+        "Keeps each learning attributable to the work that produced it."
+      ],
+      "overlap_tags": [
+        "learnings",
+        "project-memory",
+        "retention"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/project-memory/learn/SKILL.md"
+    },
+    {
+      "id": "setup-brain",
+      "name": "setup-brain",
+      "description": "Set up brain for this coding agent: install the CLI, initialize a local PGLite or Supabase brain, register MCP, capture per-remote trust policy. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "brain",
+      "capability": "knowledge-and-documentation.project-memory",
+      "guarantees": [
+        "Installs and initialises the project memory store.",
+        "Captures a per-remote trust policy before anything is synchronised."
+      ],
+      "overlap_tags": [
+        "memory",
+        "project-memory",
+        "setup"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/project-memory/setup-brain/SKILL.md"
+    },
+    {
+      "id": "sync-brain",
+      "name": "sync-brain",
+      "description": "Keep brain current with this repo's code and refresh agent search guidance in CLAUDE.md. Wraps the rig-brain-sync orchestrator with state (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "brain",
+      "capability": "knowledge-and-documentation.project-memory",
+      "guarantees": [
+        "Keeps the project memory store current with the repository.",
+        "Refreshes agent search guidance in the same pass."
+      ],
+      "overlap_tags": [
+        "indexing",
+        "memory",
+        "project-memory"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/project-memory/sync-brain/SKILL.md"
+    },
+    {
+      "id": "retro",
+      "name": "retro",
+      "description": "Weekly engineering retrospective. (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.retrospective",
+      "guarantees": [
+        "Summarises what actually shipped in a period from the repository record.",
+        "Separates observation from recommendation."
+      ],
+      "overlap_tags": [
+        "retrospective",
+        "review",
+        "team-process"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/retrospective/retro/SKILL.md"
+    },
+    {
+      "id": "diagram",
+      "name": "diagram",
+      "description": "Turn an English description (or mermaid source) into a diagram triplet: the source, an editable .excalidraw file you can open (rig)",
+      "family": "knowledge-and-documentation",
+      "tool": "host-agent",
+      "capability": "knowledge-and-documentation.technical-diagrams",
+      "guarantees": [
+        "Turns a described flow into an editable diagram source plus a rendered image.",
+        "Keeps the diagram source in the repository."
+      ],
+      "overlap_tags": [
+        "architecture-diagram",
+        "diagram",
+        "flowchart"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/knowledge-and-documentation/technical-diagrams/diagram/SKILL.md"
+    },
+    {
+      "id": "office-hours",
+      "name": "office-hours",
+      "description": "YC Office Hours — two modes. (rig)",
+      "family": "requirements",
+      "tool": "host-agent",
+      "capability": "requirements.intent-discovery",
+      "guarantees": [
+        "Interrogates whether the thing is worth building before how to build it.",
+        "Ends with the stated intent of the user, not the agent."
+      ],
+      "overlap_tags": [
+        "brainstorming",
+        "intent-discovery",
+        "product-strategy"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/requirements/intent-discovery/office-hours/SKILL.md"
+    },
+    {
+      "id": "rig-grilling",
+      "name": "rig-grilling",
+      "description": "Establish business intent, acceptance criteria, and the testing infrastructure that checks them, then freeze that oracle under one signature before implementation.",
+      "family": "requirements",
+      "tool": "host-agent",
+      "capability": "requirements.intent-discovery",
+      "guarantees": [
+        "Establishes business intent and acceptance criteria before any code is written.",
+        "Freezes the agreed oracle under one signature."
+      ],
+      "overlap_tags": [
+        "acceptance-criteria",
+        "grilling",
+        "intent-discovery"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/grilling/SKILL.md"
+    },
+    {
+      "id": "plan-tune",
+      "name": "plan-tune",
+      "description": "Self-tuning question sensitivity + developer psychographic for rig (v1: observational). (rig)",
+      "family": "requirements",
+      "tool": "host-agent",
+      "capability": "requirements.question-calibration",
+      "guarantees": [
+        "Calibrates how often the agent asks the user a question.",
+        "Changes questioning behaviour only when the user asks it to."
+      ],
+      "overlap_tags": [
+        "preferences",
+        "question-calibration",
+        "user-profile"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/requirements/question-calibration/plan-tune/SKILL.md"
+    },
+    {
+      "id": "review",
+      "name": "review",
+      "description": "Pre-landing PR review. (rig)",
+      "family": "review",
+      "tool": "host-agent",
+      "capability": "review.code-and-pull-request",
+      "guarantees": [
+        "Reviews a change before it lands and reports blocking issues first.",
+        "Reads the diff rather than the description of the diff."
+      ],
+      "overlap_tags": [
+        "code-review",
+        "pull-request",
+        "review"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/review/code-and-pull-request/review/SKILL.md"
+    },
+    {
+      "id": "rig-code-review",
+      "name": "rig-code-review",
+      "description": "Produce an independent, report-only review across spec, correctness, architecture, and test coverage.",
+      "family": "review",
+      "tool": "host-agent",
+      "capability": "review.code-and-pull-request",
+      "guarantees": [
+        "Produces an independent, report-only review across spec, correctness, architecture, and tests.",
+        "Changes no code while reviewing."
+      ],
+      "overlap_tags": [
+        "code-review",
+        "pull-request",
+        "review"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/code-review/SKILL.md"
+    },
+    {
+      "id": "health",
+      "name": "health",
+      "description": "Code quality dashboard. (rig)",
+      "family": "review",
+      "tool": "host-agent",
+      "capability": "review.code-health",
+      "guarantees": [
+        "Reports code-quality metrics with the files that produced them.",
+        "Changes no code while reporting."
+      ],
+      "overlap_tags": [
+        "code-health",
+        "code-quality",
+        "metrics"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/review/code-health/health/SKILL.md"
+    },
+    {
+      "id": "devex-review",
+      "name": "devex-review",
+      "description": "Live developer experience audit. (rig)",
+      "family": "review",
+      "tool": "host-agent",
+      "capability": "review.developer-experience",
+      "guarantees": [
+        "Measures the real setup path a new developer walks.",
+        "Reports each friction point with the step that caused it."
+      ],
+      "overlap_tags": [
+        "developer-experience",
+        "devex",
+        "onboarding-friction"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/review/developer-experience/devex-review/SKILL.md"
+    },
+    {
+      "id": "careful",
+      "name": "careful",
+      "description": "Safety guardrails for destructive commands. (rig)",
+      "family": "safety-and-security",
+      "tool": "host-agent",
+      "capability": "safety-and-security.destructive-action-guard",
+      "guarantees": [
+        "Warns before a destructive shell command runs.",
+        "Leaves the decision to proceed with the user."
+      ],
+      "overlap_tags": [
+        "destructive-command",
+        "guardrail",
+        "safety"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/safety-and-security/destructive-action-guard/careful/SKILL.md"
+    },
+    {
+      "id": "freeze",
+      "name": "freeze",
+      "description": "Restrict file edits to a specific directory for the session. (rig)",
+      "family": "safety-and-security",
+      "tool": "host-agent",
+      "capability": "safety-and-security.edit-scope-control",
+      "guarantees": [
+        "Restricts edits to one declared directory for the session.",
+        "Blocks a write outside the boundary rather than reporting it afterwards."
+      ],
+      "overlap_tags": [
+        "edit-scope",
+        "freeze",
+        "guardrail"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/safety-and-security/edit-scope-control/freeze/SKILL.md"
+    },
+    {
+      "id": "guard",
+      "name": "guard",
+      "description": "Full safety mode: destructive command warnings + directory-scoped edits. (rig)",
+      "family": "safety-and-security",
+      "tool": "host-agent",
+      "capability": "safety-and-security.edit-scope-control",
+      "guarantees": [
+        "Combines destructive-command warnings with a directory edit boundary.",
+        "Applies both controls for the whole session."
+      ],
+      "overlap_tags": [
+        "edit-scope",
+        "guardrail",
+        "safety"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/safety-and-security/edit-scope-control/guard/SKILL.md"
+    },
+    {
+      "id": "unfreeze",
+      "name": "unfreeze",
+      "description": "Clear the freeze boundary set by /freeze, allowing edits to all directories again. (rig)",
+      "family": "safety-and-security",
+      "tool": "host-agent",
+      "capability": "safety-and-security.edit-scope-control",
+      "guarantees": [
+        "Clears the edit boundary that freeze established.",
+        "Restores editing to the whole repository only when asked."
+      ],
+      "overlap_tags": [
+        "edit-scope",
+        "freeze",
+        "guardrail"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/safety-and-security/edit-scope-control/unfreeze/SKILL.md"
+    },
+    {
+      "id": "cso",
+      "name": "cso",
+      "description": "Chief Security Officer mode. (rig)",
+      "family": "safety-and-security",
+      "tool": "host-agent",
+      "capability": "safety-and-security.security-review",
+      "guarantees": [
+        "Reviews the codebase against a named security checklist.",
+        "Reports each finding with the evidence that produced it."
+      ],
+      "overlap_tags": [
+        "security",
+        "security-review",
+        "vulnerability"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/safety-and-security/security-review/cso/SKILL.md"
+    },
+    {
+      "id": "rig-product-design",
+      "name": "rig-product-design",
+      "description": "Turn business intent into a thorough, bounded technical specification the code adapts to. Checked for presence at the gate, never frozen.",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.executable-specification",
+      "guarantees": [
+        "Turns approved business intent into a bounded technical specification.",
+        "Leaves implementation freedom inside a stated boundary."
+      ],
+      "overlap_tags": [
+        "product-design",
+        "specification",
+        "technical-design"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/product-design/SKILL.md"
+    },
+    {
+      "id": "spec",
+      "name": "spec",
+      "description": "Turn vague intent into a precise, executable spec in five phases. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.executable-specification",
+      "guarantees": [
+        "Turns vague intent into a bounded, executable specification.",
+        "Leaves no phase of the specification implicit."
+      ],
+      "overlap_tags": [
+        "issue",
+        "requirements",
+        "specification"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/executable-specification/spec/SKILL.md"
+    },
+    {
+      "id": "autoplan",
+      "name": "autoplan",
+      "description": "Auto-review pipeline — reads the full CEO, design, eng, and DX review skills from disk and runs them sequentially with auto-decisions using 6 decision principles. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.multi-perspective-plan-review",
+      "guarantees": [
+        "Runs the CEO, design, engineering, and developer-experience plan reviews in one pass.",
+        "Records an explicit decision for every review finding."
+      ],
+      "overlap_tags": [
+        "auto-review",
+        "plan-review",
+        "review-pipeline"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/multi-perspective-plan-review/autoplan/SKILL.md"
+    },
+    {
+      "id": "plan-ceo-review",
+      "name": "plan-ceo-review",
+      "description": "CEO/founder-mode plan review. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.multi-perspective-plan-review",
+      "guarantees": [
+        "Reviews a plan for business value and scope before implementation starts.",
+        "Raises one decision at a time."
+      ],
+      "overlap_tags": [
+        "plan-review",
+        "scope",
+        "strategy"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/multi-perspective-plan-review/plan-ceo-review/SKILL.md"
+    },
+    {
+      "id": "plan-design-review",
+      "name": "plan-design-review",
+      "description": "Designer's eye plan review — interactive, like CEO and Eng review. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.multi-perspective-plan-review",
+      "guarantees": [
+        "Reviews a plan for its user-experience and design consequences.",
+        "Raises design risk while the plan is still cheap to change."
+      ],
+      "overlap_tags": [
+        "design-review",
+        "plan-review",
+        "user-experience"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/multi-perspective-plan-review/plan-design-review/SKILL.md"
+    },
+    {
+      "id": "plan-devex-review",
+      "name": "plan-devex-review",
+      "description": "Interactive developer experience plan review. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.multi-perspective-plan-review",
+      "guarantees": [
+        "Reviews a plan for its effect on developer experience.",
+        "Names the friction a plan would introduce."
+      ],
+      "overlap_tags": [
+        "developer-experience",
+        "devex",
+        "plan-review"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/multi-perspective-plan-review/plan-devex-review/SKILL.md"
+    },
+    {
+      "id": "plan-eng-review",
+      "name": "plan-eng-review",
+      "description": "Eng manager-mode plan review. (rig)",
+      "family": "specification-and-planning",
+      "tool": "host-agent",
+      "capability": "specification-and-planning.multi-perspective-plan-review",
+      "guarantees": [
+        "Reviews a plan for architecture, sequencing, and delivery risk.",
+        "Names the engineering trade-off behind each concern."
+      ],
+      "overlap_tags": [
+        "architecture",
+        "engineering-review",
+        "plan-review"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/specification-and-planning/multi-perspective-plan-review/plan-eng-review/SKILL.md"
+    },
+    {
+      "id": "benchmark-models",
+      "name": "benchmark-models",
+      "description": "Cross-model benchmark for rig skills. (rig)",
+      "family": "testing",
+      "tool": "host-agent",
+      "capability": "testing.agent-evaluation",
+      "guarantees": [
+        "Runs the same skill prompt across several models and reports scored output.",
+        "Keeps each model run isolated from the others."
+      ],
+      "overlap_tags": [
+        "agent-evaluation",
+        "benchmark",
+        "model-comparison"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/testing/agent-evaluation/benchmark-models/SKILL.md"
+    },
+    {
+      "id": "ios-qa",
+      "name": "ios-qa",
+      "description": "Live-device iOS QA for SwiftUI apps. (rig)",
+      "family": "testing",
+      "tool": "ios-debug-bridge",
+      "capability": "testing.ios-quality-assurance",
+      "guarantees": [
+        "Exercises a SwiftUI app on a live device and records what failed.",
+        "Reports device evidence for every defect it raises."
+      ],
+      "overlap_tags": [
+        "ios",
+        "quality-assurance",
+        "swiftui"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/testing/ios-quality-assurance/ios-qa/SKILL.md"
+    },
+    {
+      "id": "benchmark",
+      "name": "benchmark",
+      "description": "Performance regression detection using the browse daemon. (rig)",
+      "family": "testing",
+      "tool": "rig-browser",
+      "capability": "testing.performance-regression",
+      "guarantees": [
+        "Compares measured page timings against a stored baseline before reporting a regression.",
+        "Reports measured numbers rather than an opinion about speed."
+      ],
+      "overlap_tags": [
+        "benchmark",
+        "page-speed",
+        "performance",
+        "performance-regression"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/testing/performance-regression/benchmark/SKILL.md"
+    },
+    {
+      "id": "rig-tdd",
+      "name": "rig-tdd",
+      "description": "Drive one behavior at a time through a strict red-green-refactor loop using agreed seams and non-tautological tests.",
+      "family": "testing",
+      "tool": "host-agent",
+      "capability": "testing.test-driven-development",
+      "guarantees": [
+        "Drives one observable behaviour through red, green, and refactor.",
+        "Does not weaken the approved oracle."
+      ],
+      "overlap_tags": [
+        "tdd",
+        "test-driven-development",
+        "testing"
+      ],
+      "aliases": [],
+      "source_kind": "core",
+      "required": true,
+      "source_rel": "rig/tier-1/skills/tdd/SKILL.md"
+    },
+    {
+      "id": "qa",
+      "name": "qa",
+      "description": "Systematically QA test a web application and fix bugs found. (rig)",
+      "family": "testing",
+      "tool": "rig-browser",
+      "capability": "testing.web-quality-assurance",
+      "guarantees": [
+        "Exercises a running web application and fixes the defects it finds.",
+        "Re-tests every defect it claims to have fixed."
+      ],
+      "overlap_tags": [
+        "quality-assurance",
+        "testing",
+        "web-testing"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/testing/web-quality-assurance/qa/SKILL.md"
+    },
+    {
+      "id": "qa-only",
+      "name": "qa-only",
+      "description": "Report-only QA testing. (rig)",
+      "family": "testing",
+      "tool": "rig-browser",
+      "capability": "testing.web-quality-assurance",
+      "guarantees": [
+        "Exercises a running web application and reports defects without changing code.",
+        "Records reproduction steps for every reported defect."
+      ],
+      "overlap_tags": [
+        "quality-assurance",
+        "report-only",
+        "web-testing"
+      ],
+      "aliases": [],
+      "source_kind": "optional",
+      "required": false,
+      "source_rel": "rig/catalog/skills/testing/web-quality-assurance/qa-only/SKILL.md"
+    }
+  ],
+  "soft_budget": {
+    "basis": "previous-release",
+    "files": 0,
+    "bytes": 0
+  }
+}

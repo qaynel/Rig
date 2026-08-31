@@ -2,6 +2,16 @@
 name: rig-code-review
 status: ready
 description: Produce an independent, report-only review across spec, correctness, architecture, and test coverage.
+family: review
+tool: host-agent
+capability: review.code-and-pull-request
+guarantees:
+  - Produces an independent, report-only review across spec, correctness, architecture, and tests.
+  - Changes no code while reviewing.
+overlap_tags:
+  - code-review
+  - pull-request
+  - review
 ---
 
 # Code Review

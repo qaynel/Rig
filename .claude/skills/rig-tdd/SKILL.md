@@ -2,6 +2,16 @@
 name: rig-tdd
 status: ready
 description: Drive one behavior at a time through a strict red-green-refactor loop using agreed seams and non-tautological tests.
+family: testing
+tool: host-agent
+capability: testing.test-driven-development
+guarantees:
+  - Drives one observable behaviour through red, green, and refactor.
+  - Does not weaken the approved oracle.
+overlap_tags:
+  - tdd
+  - test-driven-development
+  - testing
 ---
 
 # TDD
