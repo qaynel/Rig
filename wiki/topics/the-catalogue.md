@@ -12,6 +12,24 @@ The separate 55-skill shelf is vendored operating method. It is installed by
 Rig name with upstream notice/provenance, but it does not replace the 115-leaf
 selection and evidence model.
 
+## The skill shelf is its own taxonomy
+
+Since Path B slice 1 the shelf is a second, entirely separate catalogue. Its
+source lives at `rig/catalog/skills/<family>/<capability-leaf>/<source-dir>/SKILL.md`
+under eleven doctrine families declared as data in
+`rig/catalog/skills/families.json`. Each `SKILL.md` self-declares `family`,
+`tool`, `capability`, `guarantees`, and `overlap_tags`; nothing is inferred
+from a directory name or a vendor prefix.
+
+`scripts/build-skill-catalog.js` generates `rig/catalog/skills/catalog.json`
+(63 skills: 55 optional + 7 core workflow + `rig-onboarding`), and
+`--check` runs inside the `npm test` gate so the committed artefact cannot
+drift from its sources. The adaptive install pins those exact bytes at
+`.rig/catalog.json` and refuses to overwrite a user-edited copy. This shelf
+never imports, rewrites, or reads a 115-service selection — `rig/catalog.json`
+and `rig/catalog/services/**` stay byte-identical.
+[Slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md)
+
 ## Current release shape
 
 D24 makes the beta broad and shallow: all 115 leaves ship at Policy grade and

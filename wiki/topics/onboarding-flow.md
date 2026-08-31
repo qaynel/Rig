@@ -22,6 +22,22 @@ It also keeps the product promise concrete: Rig first understands the current
 project context, then proposes the smallest harness setup that complements that
 context instead of assuming a clean-slate install.
 
+## What the adaptive install lays down
+
+Path B's install is deliberately inert. It pins the release skill catalogue at
+`.rig/catalog.json`, stages the complete 55-skill optional shelf under
+`.rig/runtime/rig/catalog/skills/` where no host discovers it, and projects
+only the eight mandatory skills — `rig-code-review`, `rig-debugging`,
+`rig-execution`, `rig-grilling`, `rig-implementation`, `rig-onboarding`,
+`rig-product-design`, `rig-tdd` — into host discovery. Everything else waits
+for an approved onboarding proposal. Install never runs `prepare`, never reads
+semantic repository content, and never chooses an optional skill.
+
+The legacy markdown-only Tier 1 install is unchanged and still fans the whole
+shelf into native discovery; the two paths are separated by the
+`default_delivery` / `active_delivery` manifest gates until slice 6 retires the
+legacy operator path. [Slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md)
+
 ## What binds it
 
 `AD-6` fixes the stages, `AD-7` constrains inspection, `AD-8` separates
