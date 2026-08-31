@@ -1,52 +1,36 @@
 // Shared onboarding domain handler (Path B F-4/F-5).
-//
-// Slice 1 scope: the catalogue-facing halves of `prepare` and `propose` — the
-// installed `.rig/catalog.json` is validated and pinned to the state before any
-// proposal is accepted. The remaining actions (`apply`, `check`), the full
-// inventory writer, and the Markdown renderers land with their own frozen
-// tests; this module is the single place they attach to.
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
-
-const { collectHarnessFiles } = require('./inspect');
-const { canonical, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
+const { inventoryHarness } = require('./inspect');
+const { buildOverlaps } = require('./adapt-overlap');
+const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
+const {
+  atomicWrite, canonicalProposal, readState, renderAdoptedConfig, renderOverlaps,
+  validateSummary, writeState,
+} = require('./onboarding-state');
 
 const ACTIONS = new Set(['prepare', 'propose', 'apply', 'check']);
 const CATALOG_REL = '.rig/catalog.json';
-const STATE_REL = '.rig/state.json';
+const PLAYBOOK_REL = '.rig/skills/onboarding/SKILL.md';
 
 function fail(message) {
   throw new Error(`rig: ${message}`);
 }
 
 function readJson(file, label) {
-  let text;
   try {
-    text = fs.readFileSync(file, 'utf8');
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch {
     fail(`${label} is missing or unreadable`);
   }
-  try {
-    return JSON.parse(text);
-  } catch {
-    fail(`${label} is not valid JSON`);
-  }
-  return null;
-}
-
-function writeJson(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(tmp, file);
 }
 
 // Load and fully validate the installed catalogue. A malformed row, an alias
-// that no migration produced, or a `release.skills_digest` that does not match
-// the rows it claims to cover is a hard failure — never a silent refresh.
+// that no migration produced, or a stale digest is a hard failure — never a
+// silent refresh.
 function loadInstalledCatalog(target) {
   const file = containedPath(target, CATALOG_REL);
   const catalog = validateSkillCatalog(readJson(file, 'the installed skill catalog (.rig/catalog.json)'));
@@ -57,97 +41,171 @@ function loadInstalledCatalog(target) {
   return { catalog, digest: sha256(fs.readFileSync(file)) };
 }
 
-// Bounded structural inventory digest. The full S-1 entry schema lands with
-// `inventoryHarness`; this records only what the state machine needs today.
-function inventorySummary(target) {
-  const entries = collectHarnessFiles(target)
-    .map((file) => ({
-      path: path.relative(target, file).split(path.sep).join('/'),
-      bytes: fs.statSync(file).size,
-      sha256: sha256(fs.readFileSync(file)),
-    }))
-    .sort((a, b) => a.path.localeCompare(b.path));
-  return { digest: sha256(canonical({ entries, warnings: [] })), entries: entries.length, warnings: 0 };
-}
-
 function releaseVersion(target, catalog) {
   const file = containedPath(target, '.rig/release.json');
   if (fs.existsSync(file)) {
     const release = readJson(file, 'the installed release marker (.rig/release.json)');
-    if (release && typeof release.tag === 'string') return release.tag;
+    if (typeof release?.tag === 'string') return release.tag;
   }
   return catalog.release.version;
 }
 
-function readState(target) {
-  const file = containedPath(target, STATE_REL);
-  return fs.existsSync(file) ? readJson(file, 'the onboarding state (.rig/state.json)') : null;
+function withOnboardingLock(target, operation) {
+  const lock = containedPath(target, '.rig/onboarding.lock');
+  fs.mkdirSync(path.dirname(lock), { recursive: true });
+  let descriptor;
+  try {
+    descriptor = fs.openSync(lock, 'wx', 0o600);
+  } catch (error) {
+    if (error.code === 'EEXIST') fail('onboarding lock exists; refuse to break it');
+    throw error;
+  }
+  try {
+    fs.writeFileSync(descriptor, `${process.pid} ${new Date().toISOString()}\n`);
+    return operation();
+  } finally {
+    fs.closeSync(descriptor);
+    fs.rmSync(lock, { force: true });
+  }
 }
 
-function envelope(action, state, extra = {}) {
+function artifact(target, rel) {
+  const file = containedPath(target, rel);
+  return { path: rel, sha256: fs.existsSync(file) ? sha256(fs.readFileSync(file)) : null };
+}
+
+function artifacts(target) {
+  return {
+    catalog: artifact(target, CATALOG_REL),
+    adopted_config: artifact(target, '.rig/adopted-config.md'),
+    overlaps: artifact(target, '.rig/overlaps.md'),
+    grafts: artifact(target, '.rig/grafts.md'),
+    summary: artifact(target, '.rig/onboarding-summary.md'),
+    state: artifact(target, '.rig/state.json'),
+  };
+}
+
+function response(action, target, state, extra = {}) {
+  const decisions = state.proposal?.critical_decisions || [];
+  const nextAction = action === 'prepare' ? 'inspect-repository'
+    : state.phase === 'needs-decision' ? 'resolve-critical-decisions'
+      : state.phase === 'proposed' ? 'obtain-approval'
+        : 'inspect-repository';
   return {
     schema_version: 1,
     action,
     phase: state.phase,
     revision: state.revision,
-    proposal_digest: state.proposal ? state.proposal.digest : null,
-    critical_decisions: [],
+    proposal_digest: state.proposal?.digest || null,
+    artifacts: artifacts(target),
+    critical_decisions: decisions,
     hard_failures: [],
-    warnings: [],
-    next_action: 'inspect-repository',
-    ...extra,
+    warnings: extra.warnings || [],
+    next_action: nextAction,
+    ...(extra.context ? { context: extra.context } : {}),
+  };
+}
+
+function prepareContext(target, catalog) {
+  const playbook = containedPath(target, PLAYBOOK_REL);
+  return {
+    playbook: fs.existsSync(playbook) ? fs.readFileSync(playbook, 'utf8') : '',
+    catalog,
+    adopted_config: fs.readFileSync(containedPath(target, '.rig/adopted-config.md'), 'utf8'),
+    overlaps: fs.readFileSync(containedPath(target, '.rig/overlaps.md'), 'utf8'),
   };
 }
 
 function prepare(target) {
-  const { catalog, digest } = loadInstalledCatalog(target);
-  const inventory = inventorySummary(target);
-  const previous = readState(target);
-  const unchanged = previous
-    && previous.inventory
-    && previous.inventory.digest === inventory.digest
-    && previous.release
-    && previous.release.catalog_digest === digest;
-  if (unchanged) return envelope('prepare', previous, { context: { catalog } });
+  return withOnboardingLock(target, () => {
+    const { catalog, digest } = loadInstalledCatalog(target);
+    const inventory = inventoryHarness(target);
+    const previous = readState(target);
+    const inventoryState = {
+      digest: inventory.digest,
+      entries: inventory.entries.length,
+      warnings: inventory.warnings.length,
+    };
+    const unchanged = previous
+      && previous.inventory?.digest === inventory.digest
+      && previous.release?.catalog_digest === digest;
+    if (unchanged) {
+      return response('prepare', target, previous, {
+        warnings: inventory.warnings,
+        context: prepareContext(target, catalog),
+      });
+    }
 
-  const state = {
-    schema_version: 1,
-    revision: previous ? previous.revision + 1 : 1,
-    phase: 'prepared',
-    release: { version: releaseVersion(target, catalog), catalog_digest: digest },
-    inventory,
-    proposal: null,
-    approval: null,
-    applied: previous ? previous.applied : { proposal_digest: null, skills: [], grafts: [], owned_files: [] },
-    checks: null,
-    last_error: null,
-  };
-  writeJson(containedPath(target, STATE_REL), state);
-  return envelope('prepare', state, { context: { catalog } });
+    const overlaps = buildOverlaps(inventory, catalog, readMigrations());
+    atomicWrite(target, '.rig/adopted-config.md', renderAdoptedConfig(inventory));
+    atomicWrite(target, '.rig/overlaps.md', renderOverlaps(overlaps));
+    const state = {
+      schema_version: 1,
+      revision: previous ? previous.revision + 1 : 1,
+      phase: 'prepared',
+      release: { version: releaseVersion(target, catalog), catalog_digest: digest },
+      inventory: inventoryState,
+      proposal: null,
+      approval: null,
+      applied: previous?.applied || { proposal_digest: null, skills: [], grafts: [], owned_files: [] },
+      checks: null,
+      last_error: null,
+    };
+    writeState(target, state);
+    return response('prepare', target, state, {
+      warnings: inventory.warnings,
+      context: prepareContext(target, catalog),
+    });
+  });
 }
 
 function propose(request) {
-  const state = readState(request.target);
-  if (!state) fail('no prepared onboarding state: run prepare before propose');
-  if (state.revision !== request.expected_revision) {
-    fail(`stale revision: expected ${state.revision}, received ${request.expected_revision}`);
-  }
-  const { digest } = loadInstalledCatalog(request.target);
-  if (digest !== state.release.catalog_digest) {
-    fail('the skill catalog changed since prepare: this proposal is stale and must be rebuilt');
-  }
-  fail('propose is not implemented yet in this slice');
-  return null;
+  return withOnboardingLock(request.target, () => {
+    const state = readState(request.target);
+    if (!state) fail('no prepared onboarding state: run prepare before propose');
+    if (!['prepared', 'proposed', 'needs-decision'].includes(state.phase)) {
+      fail(`propose action is invalid from phase "${state.phase}"`);
+    }
+    if (state.revision !== request.expected_revision) {
+      fail(`stale revision: expected ${state.revision}, received ${request.expected_revision}`);
+    }
+    const { digest } = loadInstalledCatalog(request.target);
+    if (digest !== state.release.catalog_digest) {
+      fail('the skill catalog changed since prepare: this proposal is stale and must be rebuilt');
+    }
+    const summary = validateSummary(request.summary_markdown);
+    const stored = canonicalProposal(request.proposal, state, sha256(Buffer.from(summary)));
+    const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
+    const identical = state.proposal && state.proposal.digest === stored.digest
+      && fs.existsSync(summaryFile) && fs.readFileSync(summaryFile, 'utf8') === summary;
+    if (identical) return response('propose', request.target, state);
+
+    const unresolved = stored.critical_decisions.some((decision) => decision.status !== 'resolved');
+    const next = {
+      ...state,
+      revision: state.revision + 1,
+      phase: unresolved ? 'needs-decision' : 'proposed',
+      proposal: stored,
+      approval: null,
+      checks: null,
+      last_error: null,
+    };
+    atomicWrite(request.target, '.rig/onboarding-summary.md', summary);
+    writeState(request.target, next);
+    return response('propose', request.target, next);
+  });
 }
 
 function handleOnboarding(request) {
-  if (!request || typeof request !== 'object') fail('onboarding request must be an object');
+  if (!request || typeof request !== 'object' || Array.isArray(request)) fail('onboarding request must be an object');
   if (request.schema_version !== 1) fail(`unsupported onboarding schema version: ${request.schema_version}`);
   if (!ACTIONS.has(request.action)) fail(`unknown onboarding action: ${request.action}`);
   if (typeof request.target !== 'string' || !request.target) fail('onboarding request needs a target');
   if (request.action === 'prepare') return prepare(request.target);
   if (request.action === 'propose') return propose(request);
-  return fail(`onboarding action "${request.action}" is not available from phase "${(readState(request.target) || {}).phase}"`);
+  const phase = (readState(request.target) || {}).phase;
+  if (request.action === 'apply') fail(`onboarding apply requires a current proposal and approval; phase is "${phase}"`);
+  fail(`onboarding action "${request.action}" is not available from phase "${phase}"`);
 }
 
 module.exports = { handleOnboarding, loadInstalledCatalog };

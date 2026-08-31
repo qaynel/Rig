@@ -148,8 +148,18 @@ function inventoryFrontmatter(text) {
     const match = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
     if (!match) throw new Error('malformed frontmatter');
     const [, key, rest] = match;
-    if (rest.trim()) {
-      fields[key] = unquote(rest);
+    const inline = rest.trim();
+    if (inline === '>' || inline === '|') {
+      const parts = [];
+      while (index + 1 < closing && /^\s/.test(lines[index + 1])) {
+        index += 1;
+        parts.push(lines[index].trim());
+      }
+      fields[key] = inline === '>' ? parts.join(' ').trim() : parts.join('\n').trim();
+      continue;
+    }
+    if (inline) {
+      fields[key] = unquote(inline);
       continue;
     }
     const values = [];
@@ -193,6 +203,25 @@ function inventoryMetadata(text, fallback) {
   };
 }
 
+function inventoryOwnedPaths(root) {
+  const manifest = path.join(root, '.rig', 'install-manifest.jsonl');
+  if (!fs.existsSync(manifest)) return new Set();
+  const latest = new Map();
+  for (const line of fs.readFileSync(manifest, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const record = JSON.parse(line);
+      if (record.path && record.state === 'applied') latest.set(record.path, record);
+    } catch {
+      // A malformed journal cannot make untrusted repository content disappear
+      // from inventory; it simply contributes no ownership claim.
+    }
+  }
+  return new Set([...latest.values()]
+    .filter((record) => record.ownership === 'create_owned' || record.ownership === 'replace_owned')
+    .map((record) => record.path));
+}
+
 // Structural only: reads known harness locations, returns declared metadata,
 // and never interprets prose as an agent's desired capability.
 function inventoryHarness(target) {
@@ -201,6 +230,7 @@ function inventoryHarness(target) {
   const entries = [];
   const warnings = [];
   const seenRealPaths = new Map();
+  const ownedPaths = inventoryOwnedPaths(root);
   for (const file of collectHarnessFiles(root)) {
     const rawRel = toPosix(path.relative(root, file));
     let real;
@@ -214,6 +244,7 @@ function inventoryHarness(target) {
     const prior = seenRealPaths.get(real);
     if (prior && prior !== rawRel) throw new Error(`inventory: duplicate real path alias ${prior} and ${rawRel}`);
     seenRealPaths.set(real, rawRel);
+    if (ownedPaths.has(rawRel)) continue;
     let stat;
     try {
       stat = fs.statSync(file);

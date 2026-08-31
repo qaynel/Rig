@@ -335,6 +335,7 @@ module.exports = {
   canonical,
   loadOptionalSkills,
   parseFrontmatter,
+  readMigrations,
   sha256,
   skillsDigest,
   validateSkillCatalog,

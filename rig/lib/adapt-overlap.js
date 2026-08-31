@@ -24,7 +24,6 @@ function signalsForEntry(entry, targets) {
   const signals = new Set(strings(entry.capability_tags));
   for (const skill of targets.get(entry.name) || []) {
     signals.add(skill.capability);
-    for (const tag of skill.overlap_tags || []) signals.add(tag);
   }
   return signals;
 }
