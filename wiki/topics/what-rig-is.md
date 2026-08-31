@@ -33,6 +33,13 @@ The same posture now explicitly frames Rig as a packaged forward-deployed
 harness: it lands in the repository, evaluates what is already there, and
 complements that setup with delivered Rig tools rather than trying to become a
 parallel infrastructure stack. [Packaged harness clarification](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
+The intent owner reasserted this on 2026-08-31 as the frame for fixing
+install-time defects: the adaptation is the user's own host agent's job at
+install time — reference the existing config, keep what fits the stack, drop
+what doesn't — so phantom-convention text in installed files
+(`rig/tier-1/routing.md`, RIG-151/RIG-152) is rewritten as instructions *to
+that onboarding agent*, not resolved by an installer-code transform.
+[reframe-vs-transform trace](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md)
 
 A later office-hours session tested this identity against a candidate fork
 (DeepSeek Harness, "DSH") — a full agent-runtime host, the opposite category

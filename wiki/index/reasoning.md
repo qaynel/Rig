@@ -6,6 +6,13 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-08-31 | current | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
+| 2026-08-31 | current | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
+| 2026-08-31 | current | [2026-08-31-routing-hygiene-oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md) | onboarding-flow, testing-strategy | — | — |
+| 2026-08-31 | superseded | [2026-08-31-routing-hygiene-implementation](../reasoning/2026-08-31-routing-hygiene-implementation.md) | onboarding-flow, testing-strategy | — | — |
+| 2026-08-31 | current | [2026-08-31-routing-hygiene-design](../reasoning/2026-08-31-routing-hygiene-design.md) | onboarding-flow, testing-strategy | — | interdependency |
+| 2026-08-31 | current → 2026-08-31-routing-hygiene-implementation | [2026-08-31-routing-hygiene-close-out](../reasoning/2026-08-31-routing-hygiene-close-out.md) | onboarding-flow, testing-strategy | — | — |
+| 2026-08-31 | historical | [2026-08-31-post-install-rig-onboarding-skill](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md) | onboarding-flow | — | — |
 | 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |

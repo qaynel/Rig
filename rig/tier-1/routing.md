@@ -2,10 +2,11 @@
 
 Read this file before acting. Apply `.rig/rules/rig.md` to every coding task
 and `.rig/rules/communication.md` to every message you send the user, then
-choose the smallest set of skills whose trigger matches the work. In this
-source checkout, use `rig/tier-1/rules/rig.md` and
-`rig/tier-1/rules/communication.md` instead. Read each chosen skill completely
-before proceeding, except on the lightweight path below.
+choose the smallest set of skills whose trigger matches the work. (Working in
+the Rig source repo, before an install has created `.rig/`? Read the originals
+at `rig/tier-1/rules/rig.md` and `rig/tier-1/rules/communication.md`.) Read
+each chosen skill completely before proceeding, except on the lightweight path
+below.
 
 ## Task weight
 
@@ -15,20 +16,28 @@ what's true in the wiki (no new decision, spec, status, or rejected approach)
 — takes the lightweight path: skim this table for the matching skill instead
 of re-reading this whole file on every resume, skim only the skill's relevant
 section instead of reading it end to end, and skip the wiki-read-before-
-grepping step and the 3-minute `status.md` cadence. If the task turns out to
-need coordination across files, span multiple turns, or move what's true in
-the wiki, switch to the full cadence below for the rest of it.
+grepping step and the reasoning-trace cadence described below. If the task
+turns out to need coordination across files, span multiple turns, or move
+what's true in the wiki, switch to the full cadence below for the rest of it.
 
-Everything else uses the full cadence: read this file, read the wiki, read
-each chosen skill completely, and file a dated reasoning trace then regenerate
-`wiki/status.md` at least every three minutes of active work, per `CLAUDE.md`.
-`(RIG-124)`
+Everything else uses the full cadence: read this file, read the wiki or
+whatever standing record the repo keeps, read each chosen skill completely,
+and keep a running reasoning trace — on a long or multi-step task, write down
+what you just did, what's in flight, and what's next as you go rather than
+saving it all for a final summary.
+
+Onboarding note: in Rig's own development repo that trace is a dated file
+under `wiki/reasoning/` rolled into a status index on a short cycle of active
+work, per `CLAUDE.md`. When installing Rig into another repo, map that
+practice onto whatever progress-tracking convention the project already has,
+or drop it if the project has none — do not stand up a `wiki/` the repo never
+asked for.
 
 Native skill hosts discover the names below automatically. On instruction-only
-hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`;
-`rig-implementation` maps to `.rig/skills/implementation/SKILL.md`. In this
-source checkout, those sources live at `rig/tier-1/skills/<name>/SKILL.md` and
-`skills/rig/SKILL.md`.
+hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`, and
+`rig-implementation` maps to `.rig/skills/implementation/SKILL.md`. (Working in
+the Rig source repo, those payloads live at `rig/tier-1/skills/<name>/SKILL.md`
+and `skills/rig/SKILL.md` until an install lays down `.rig/`.)
 
 ## Communication Policy
 
