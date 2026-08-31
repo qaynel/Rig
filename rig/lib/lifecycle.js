@@ -17,7 +17,7 @@ const INSTALL_TOP_LEVEL = new Set([
   '.windsurf', '.swival', '.codewhale', '.pi', '.clinerules', '.vscode',
 ]);
 const INSTALL_GRAFT_FILES = new Set([
-  'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md',
+  'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', '.gitignore',
 ]);
 const INSTALL_UNIQUE_CI_FILES = new Set([CI_PROVIDERS['github-actions'].file]);
 const INSTALL_HOOK_PATHS = new Set([
@@ -379,10 +379,16 @@ function uninstall(target, opts = {}) {
         ? escapeRegExp(record.managed_block)
         : '[^\\n]*';
       const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
-      const stripped = body.replace(
+      let stripped = body.replace(
         new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
         '',
       );
+      if (stripped === body) {
+        stripped = body.replace(
+          new RegExp(`# ${marker}:start\\n[\\s\\S]*?# ${marker}:end\\n?`, 'g'),
+          '',
+        );
+      }
       if (stripped === body) bestEffort.push(record.path);
       else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       if (stripped !== body) removed.push(record.path);

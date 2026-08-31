@@ -66,6 +66,15 @@ function copyTreeOp(target, from, to, writeFile = directWrite) {
   copyTree(target, path.join(ROOT, from), to, writeFile);
 }
 
+function ensureGitignoreBlock(target, lines, writeFile = directWrite) {
+  const file = containedPath(target, '.gitignore');
+  const body = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  if (body.includes('# rig:gitignore:start')) return;
+  const block = `# rig:gitignore:start\n${lines.join('\n')}\n# rig:gitignore:end\n`;
+  const separator = body && !body.endsWith('\n') ? '\n' : '';
+  writeFile(target, '.gitignore', `${body}${separator}${block}`, undefined, 'append_managed', { managed_block: 'gitignore' });
+}
+
 function ensureLine(target, to, line, writeFile = directWrite) {
   const file = containedPath(target, to);
   const body = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
@@ -252,6 +261,7 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
     else if (entry.op === 'copy_tree') copyTreeOp(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'install_vendored_skills') installVendoredSkillsOp(target, entry, writeFile, activeDelivery);
     else if (entry.op === 'ensure_line') ensureLine(target, entry.to, entry.line, writeFile);
+    else if (entry.op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);
   }
   if (releaseTag) {
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag }, null, 2)}\n`);
@@ -263,5 +273,5 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 
 module.exports = {
   ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
-  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureLine, hostSelected, journalWriter, runPayload,
+  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, runPayload,
 };
