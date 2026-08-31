@@ -26,7 +26,7 @@ const INSTALL_HOOK_PATHS = new Set([
 ]);
 
 function isManagedAddition(record) {
-  return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed');
+  return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed' || record.ownership === 'graft_managed');
 }
 
 function isGitResolvedPath(rel) {
@@ -319,6 +319,34 @@ function uninstall(target, opts = {}) {
     }
     if (!isRigInstallPath(rel, record)) {
       bestEffort.push(record.path);
+      continue;
+    }
+    if (record.ownership === 'graft_managed') {
+      const capabilities = Array.isArray(record.managed_grafts)
+        ? record.managed_grafts.map(({ capability }) => capability).filter(Boolean).sort()
+        : [];
+      if (!capabilities.length) {
+        bestEffort.push(record.path);
+        continue;
+      }
+      const { journalWriter, removeGraftSection } = require('./payload');
+      const writer = journalWriter(target);
+      try {
+        for (const capability of capabilities) {
+          if (!fs.existsSync(abs)) break;
+          const result = removeGraftSection(target, {
+            path: record.path,
+            capability,
+            expected_file_digest: currentDigest(abs),
+          }, writer);
+          if (!result.changed) throw new Error(`missing managed graft ${capability}`);
+        }
+        writer.finish();
+        removed.push(record.path);
+      } catch {
+        writer.finish();
+        bestEffort.push(record.path);
+      }
       continue;
     }
     if (record.path === '.git/hooks/pre-commit') {

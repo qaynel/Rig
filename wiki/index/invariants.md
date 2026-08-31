@@ -277,6 +277,22 @@ and assert the following same-context call is still capped.
 
 ---
 
+## I-17. A graft owns only its named, digest-matching section
+
+A `graft_managed` journal record can alter or remove only its versioned
+capability section in an eligible Markdown instruction file. The graft parser
+fails closed on malformed markers, stale preimages, unsafe links, and unsafe
+paths; bytes outside a valid recorded section are preserved exactly.
+
+**Protects against:** onboarding replacing an existing repository instruction
+file or uninstall deleting user-authored content adjacent to a Rig section.
+
+**How to check:** `tests/path-b-graft.test.js` covers creation, update, no-op,
+removal, malformed/stale refusal, symlink/hard-link refusal, CRLF/no-final-
+newline preservation, journaling, and lifecycle removal.
+
+---
+
 ## Adding a new invariant
 
 Every ticket close either:

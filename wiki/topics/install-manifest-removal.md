@@ -22,6 +22,12 @@ outside the target are refused before reading, writing, or deleting. Static
 regressions cover resume, uninstall, coverage application, remediation,
 payload, and CI mutations.
 
+Path B's `graft_managed` ownership records the named capability sections inside
+one existing Markdown instruction file, including each section's canonical
+content digest. Reversal removes only a digest-matching recorded section;
+unmanaged bytes and an edited managed body survive as best-effort preservation.
+[Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
+
 Removal walks the last record for each sequence in reverse. It deletes only
 unchanged Rig-owned output, removes recorded managed lines/blocks, deletes a
 file that becomes empty after a managed strip, removes empty Rig-created

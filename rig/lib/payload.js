@@ -144,6 +144,182 @@ function sha256(contents) {
   return crypto.createHash('sha256').update(contents).digest('hex');
 }
 
+const GRAFT_CAPABILITY = '[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)+';
+const GRAFT_OPEN = new RegExp(`^<!-- rig:graft capability="(${GRAFT_CAPABILITY})" version="([0-9]+)" begin -->$`);
+const GRAFT_CLOSE = new RegExp(`^<!-- rig:graft capability="(${GRAFT_CAPABILITY})" end -->$`);
+
+function graftFail(message) {
+  throw new Error(`rig: graft ${message}`);
+}
+
+function utf8(source) {
+  const bytes = Buffer.isBuffer(source) ? source : Buffer.from(source);
+  try {
+    return { bytes, text: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
+  } catch {
+    graftFail('source is not valid UTF-8');
+  }
+}
+
+function graftLines(text) {
+  const lines = [];
+  let charStart = 0;
+  let byteStart = 0;
+  while (charStart < text.length) {
+    const newlineAt = text.indexOf('\n', charStart);
+    const hasNewline = newlineAt !== -1;
+    const charEnd = hasNewline ? newlineAt : text.length;
+    const crlf = hasNewline && newlineAt > charStart && text[newlineAt - 1] === '\r';
+    const bodyEnd = crlf ? newlineAt - 1 : charEnd;
+    const line = text.slice(charStart, bodyEnd);
+    const eol = hasNewline ? (crlf ? '\r\n' : '\n') : '';
+    const end = byteStart + Buffer.byteLength(`${line}${eol}`);
+    lines.push({ line, start: byteStart, end, eol });
+    byteStart = end;
+    charStart = hasNewline ? newlineAt + 1 : text.length;
+  }
+  return lines;
+}
+
+function canonicalGraftContent(content) {
+  const lines = String(content).replace(/\r\n/g, '\n').split('\n');
+  while (lines.length && !lines[0].trim()) lines.shift();
+  while (lines.length && !lines.at(-1).trim()) lines.pop();
+  return lines.join('\n');
+}
+
+function parseGraftSections(source) {
+  const { bytes, text } = utf8(source);
+  const lines = graftLines(text);
+  const newline = lines.find(({ eol }) => eol)?.eol || '\n';
+  const sections = [];
+  const seen = new Set();
+  let active = null;
+  for (const row of lines) {
+    if (!row.line.includes('<!-- rig:graft')) continue;
+    const open = row.line.match(GRAFT_OPEN);
+    const close = row.line.match(GRAFT_CLOSE);
+    if (!open && !close) graftFail('has malformed marker');
+    if (open) {
+      if (active) graftFail('has nested marker');
+      const [, capability, versionText] = open;
+      if (versionText !== '1') graftFail(`has unsupported version "${versionText}"`);
+      if (seen.has(capability)) graftFail(`duplicates capability "${capability}"`);
+      active = { capability, version: 1, start: row.start, contentStart: row.end };
+      continue;
+    }
+    if (!active) graftFail('has orphan close marker');
+    if (close[1] !== active.capability) graftFail('has mismatched marker capability');
+    const content = canonicalGraftContent(utf8(bytes.subarray(active.contentStart, row.start)).text);
+    sections.push({
+      capability: active.capability,
+      version: active.version,
+      start: active.start,
+      end: row.end,
+      content,
+      content_digest: sha256(content),
+    });
+    seen.add(active.capability);
+    active = null;
+  }
+  if (active) graftFail('has unterminated marker');
+  return { newline, sections };
+}
+
+function isGraftMarkdownPath(rel) {
+  const extension = path.extname(rel).toLowerCase();
+  if (['.md', '.mdx', '.mdc'].includes(extension)) return true;
+  return !extension && new Set(['AGENTS', 'CLAUDE', 'GEMINI', 'INSTRUCTIONS']).has(path.basename(rel));
+}
+
+function assertGraftTarget(target, rel) {
+  if (typeof rel !== 'string' || !isGraftMarkdownPath(rel)) {
+    graftFail('target has an unsupported Markdown file type');
+  }
+  const file = containedPath(target, rel);
+  if (!fs.existsSync(file)) return file;
+  const stat = fs.lstatSync(file);
+  if (stat.isSymbolicLink()) graftFail('target is a symlink');
+  if (stat.isFile() && stat.nlink > 1) graftFail('target has a hard link');
+  return file;
+}
+
+function assertGraftArgs(args) {
+  if (!args || typeof args !== 'object' || typeof args.capability !== 'string'
+    || !new RegExp(`^${GRAFT_CAPABILITY}$`).test(args.capability) || args.version !== 1
+    || typeof args.content !== 'string' || (args.expected_file_digest !== null && typeof args.expected_file_digest !== 'string')) {
+    graftFail('arguments are invalid');
+  }
+  if (args.content.includes('<!-- rig:graft')) graftFail('content contains a graft marker');
+}
+
+function managedGraftDetails(sections, previous, separatorCaps) {
+  return {
+    managed_grafts: sections.map(({ capability, version, content_digest }) => ({ capability, version, content_digest }))
+      .sort((a, b) => a.capability.localeCompare(b.capability)),
+    graft_separators: [...separatorCaps].sort(),
+    // The separator ledger is intentionally separate: managed_grafts is the
+    // stable ownership contract; this only restores a no-final-newline file.
+  };
+}
+
+function upsertGraftSection(target, args, writeFile) {
+  assertGraftArgs(args);
+  if (typeof writeFile !== 'function') graftFail('writer is required');
+  const file = assertGraftTarget(target, args.path);
+  const current = fs.existsSync(file) ? fs.readFileSync(file) : Buffer.alloc(0);
+  const currentDigest = current.length ? sha256(current) : null;
+  if (currentDigest !== args.expected_file_digest) graftFail('has stale file digest or preimage');
+  const parsed = parseGraftSections(current);
+  const desiredContent = canonicalGraftContent(args.content);
+  const existing = parsed.sections.find(({ capability }) => capability === args.capability);
+  if (existing && existing.content === desiredContent) {
+    return { changed: false, action: 'noop', file_digest: sha256(current) };
+  }
+  const content = desiredContent.split('\n').join(parsed.newline);
+  const open = `<!-- rig:graft capability="${args.capability}" version="1" begin -->`;
+  const close = `<!-- rig:graft capability="${args.capability}" end -->`;
+  const block = Buffer.from(`${open}${parsed.newline}${content}${parsed.newline}${close}${parsed.newline}`);
+  const separatorAdded = current.length > 0 && !current.toString('utf8').endsWith('\n');
+  const next = existing
+    ? Buffer.concat([current.subarray(0, existing.start), block, current.subarray(existing.end)])
+    : Buffer.concat([current, ...(separatorAdded ? [Buffer.from(parsed.newline)] : []), block]);
+  const nextParsed = parseGraftSections(next);
+  const separatorCaps = new Set(writeFile.latest?.(args.path)?.graft_separators || []);
+  if (!existing && separatorAdded) separatorCaps.add(args.capability);
+  writeFile(target, args.path, next, undefined, 'graft_managed', managedGraftDetails(nextParsed.sections, writeFile.latest?.(args.path), separatorCaps));
+  return { changed: true, action: existing ? 'update' : 'create', file_digest: sha256(next) };
+}
+
+function removeGraftSection(target, args, writeFile) {
+  if (!args || typeof args !== 'object' || typeof args.capability !== 'string'
+    || !new RegExp(`^${GRAFT_CAPABILITY}$`).test(args.capability)
+    || (args.expected_file_digest !== null && typeof args.expected_file_digest !== 'string')) {
+    graftFail('arguments are invalid');
+  }
+  if (typeof writeFile !== 'function') graftFail('writer is required');
+  const file = assertGraftTarget(target, args.path);
+  if (!fs.existsSync(file)) return { changed: false, action: 'noop', file_digest: null };
+  const current = fs.readFileSync(file);
+  if (sha256(current) !== args.expected_file_digest) graftFail('has stale file digest or preimage');
+  const parsed = parseGraftSections(current);
+  const existing = parsed.sections.find(({ capability }) => capability === args.capability);
+  if (!existing) return { changed: false, action: 'noop', file_digest: sha256(current) };
+  const previous = writeFile.latest?.(args.path);
+  const separatorCaps = new Set(previous?.graft_separators || []);
+  const separator = Buffer.from(parsed.newline);
+  const separatorStart = separatorCaps.has(args.capability)
+    && existing.start >= separator.length
+    && current.subarray(existing.start - separator.length, existing.start).equals(separator)
+    ? existing.start - separator.length
+    : existing.start;
+  const next = Buffer.concat([current.subarray(0, separatorStart), current.subarray(existing.end)]);
+  const nextParsed = parseGraftSections(next);
+  separatorCaps.delete(args.capability);
+  writeFile(target, args.path, next, undefined, 'graft_managed', managedGraftDetails(nextParsed.sections, previous, separatorCaps));
+  return { changed: true, action: 'remove', file_digest: next.length ? sha256(next) : null };
+}
+
 function journalWriter(target) {
   const manifest = containedPath(target, MANIFEST_REL);
   const records = fs.existsSync(manifest)
@@ -297,5 +473,5 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 
 module.exports = {
   ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
-  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, runPayload,
+  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload,
 };

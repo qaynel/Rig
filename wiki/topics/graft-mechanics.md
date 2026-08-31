@@ -50,6 +50,14 @@ reapply updates that block idempotently, and the append-only journal records the
 managed-block identity. A caller-graph regression fails if any runtime library
 module is left with no production importer.
 
+**Path B named graft sections landed 2026-09-01.** The shared payload layer can
+now add, update, and remove a versioned capability section in a Markdown
+instruction file while preserving byte-identical unmanaged content and its
+line-ending convention. It rejects malformed markers, stale preimages,
+symlinks, hard links, unsafe paths, and unsupported targets before mutation;
+the install journal records only the managed section(s), and lifecycle removal
+keeps edited user content as a named best-effort case. [Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
+
 **Open (2026-08-30): the payload's own ownership classes have no `.gitignore`
 answer.** A default install writes Rig-owned files (`.rig/`, host-specific
 `.claude/skills/rig-*` / `.agents/skills/rig-*`) into the target working tree
