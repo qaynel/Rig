@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { PAYLOAD_HOSTS, runPayload } = require('../rig/lib/payload');
+const { uninstall } = require('../rig/lib/lifecycle');
 
 const root = path.join(__dirname, '..');
 const pointer = 'Before acting, read `.rig/routing.md` and route this task through its skill table.';
@@ -423,5 +424,53 @@ test('Tier 1 --hosts exits with a clear node message instead of stranding the us
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
     fs.rmSync(bin, { recursive: true, force: true });
+  }
+});
+
+// RIG-148 — Default install lands unignored: no .gitignore anywhere
+test('RIG-148 — default Claude install writes a .gitignore block covering Rig-owned paths', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-148-'));
+  try {
+    runPayload(target, ['claude']);
+    const gitignore = fs.readFileSync(path.join(target, '.gitignore'), 'utf8');
+    assert.match(gitignore, /\.rig\//, '.gitignore must cover .rig/');
+    assert.match(gitignore, /\.claude\/skills\/rig-/, '.gitignore must cover .claude/skills/rig-*');
+    assert.match(gitignore, /\.agents\/skills\/rig-/, '.gitignore must cover .agents/skills/rig-*');
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('RIG-148 — gitignore block is idempotent: re-running bootstrap does not duplicate it', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-148-idem-'));
+  try {
+    runPayload(target, ['claude']);
+    runPayload(target, ['claude']);
+    const gitignore = fs.readFileSync(path.join(target, '.gitignore'), 'utf8');
+    assert.equal(
+      (gitignore.match(/\.rig\//g) || []).length,
+      1,
+      '.gitignore must contain .rig/ entry exactly once after two installs',
+    );
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('RIG-148 — uninstall removes the gitignore block and preserves pre-existing user content', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-148-uninstall-'));
+  try {
+    fs.writeFileSync(path.join(target, '.gitignore'), 'node_modules/\n');
+    runPayload(target, ['claude']);
+    const afterInstall = fs.readFileSync(path.join(target, '.gitignore'), 'utf8');
+    assert.match(afterInstall, /\.rig\//, 'install must write .rig/ block before uninstall can remove it');
+    uninstall(target);
+    const remaining = fs.existsSync(path.join(target, '.gitignore'))
+      ? fs.readFileSync(path.join(target, '.gitignore'), 'utf8')
+      : '';
+    assert.match(remaining, /node_modules\//, 'pre-existing user content must survive uninstall');
+    assert.doesNotMatch(remaining, /\.rig\//, 'Rig gitignore entry must be removed on uninstall');
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
   }
 });
