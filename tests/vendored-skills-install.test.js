@@ -88,16 +88,26 @@ test('vendored skill count and unique names match listVendoredSkills', () => {
   assert.equal(new Set(vendored.map((s) => s.name)).size, 55);
 });
 
-test('default install lands vendored skills as markdown only; --with-runtime restores code', () => {
+test('default install lands vendored skills as markdown only; --with-runtime stages the shelf with its code', () => {
   withTempTarget((target) => {
     runPayload(target, ['claude']);
     const browseSrc = path.join(target, '.claude', 'skills', 'rig-browse', 'src');
     assert.equal(fs.existsSync(browseSrc), false, 'default install must not land skill source code');
   });
   withTempTarget((target) => {
+    // The adaptive install keeps host discovery to the mandatory skills and
+    // stages the complete shelf — code included — under .rig/runtime instead.
     runPayload(target, ['claude'], { activeDelivery: true });
-    const browseSrc = path.join(target, '.claude', 'skills', 'rig-browse', 'src');
-    assert.ok(fs.existsSync(browseSrc), '--with-runtime must restore skill source code');
+    assert.equal(
+      fs.existsSync(path.join(target, '.claude', 'skills', 'rig-browse')),
+      false,
+      'adaptive install must not project optional skills before approval',
+    );
+    const staged = path.join(
+      target, '.rig', 'runtime', 'rig', 'catalog', 'skills',
+      'browser-and-research', 'browser-automation', 'browse', 'src',
+    );
+    assert.ok(fs.existsSync(staged), '--with-runtime must stage the shelf with its source code');
   });
 });
 

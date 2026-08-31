@@ -225,6 +225,9 @@ function hostReview(inspection) {
 }
 
 module.exports = {
+  HARNESS_DIRS,
+  HARNESS_NAMES,
+  collectHarnessFiles,
   MAX_BYTES,
   inspectTarget,
   hostReview,

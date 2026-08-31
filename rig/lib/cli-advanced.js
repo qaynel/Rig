@@ -12,8 +12,9 @@ const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPol
 const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
+const { handleOnboarding } = require('./onboarding');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit', 'onboarding']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -221,6 +222,17 @@ function runAdvanced(subcommand, argv) {
       process.exit(result.status || 1);
     }
     process.stdout.write('check passed\n');
+  }
+
+  // Thin JSON adapter over the shared onboarding domain handler: read the
+  // request, hand it to handleOnboarding, print the response. No decision logic.
+  if (subcommand === 'onboarding') {
+    const inputPath = parseFlag(argv, '--input');
+    if (!inputPath || !fs.existsSync(inputPath)) throw new Error('rig: --input <request.json> is required');
+    const response = handleOnboarding(readJson(inputPath));
+    process.stdout.write(`${JSON.stringify(response)}\n`);
+    if (response.phase === 'failed') process.exit(1);
+    return;
   }
 
   if (subcommand === 'validate-commit') {

@@ -60,6 +60,7 @@ test('the router defines the signed human-in-the-loop ten-step SOP', () => {
     'rig-execution',
     'rig-debugging',
     'rig-code-review',
+    'rig-onboarding',
   ]);
   for (const name of routing.match(/rig-[a-z]+(?:-[a-z]+)*/g) ?? []) {
     assert.ok(knownSkills.has(name), `routing.md must not introduce unknown skill ${name}`);

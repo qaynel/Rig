@@ -63,7 +63,25 @@ function copyTree(target, srcAbs, dstRel, writeFile, transform, filter) {
 }
 
 function copyTreeOp(target, from, to, writeFile = directWrite) {
-  copyTree(target, path.join(ROOT, from), to, writeFile);
+  copyTree(target, path.join(ROOT, from), to, writeFile, undefined, (srcAbs) => !isLitter(srcAbs));
+}
+
+// The release-pinned skill catalogue. Rig owns `.rig/catalog.json`, so a copy
+// that no longer matches its own journal receipt was edited by the user: that
+// conflicts rather than being silently overwritten (F-3 §5.2).
+function installPinnedCatalogOp(target, from, to, writeFile = directWrite) {
+  const pinned = fs.readFileSync(path.join(ROOT, from));
+  const dst = containedPath(target, to);
+  if (fs.existsSync(dst)) {
+    const current = fs.readFileSync(dst);
+    if (!current.equals(pinned)) {
+      const receipt = writeFile.latest ? writeFile.latest(to) : null;
+      if (!receipt || receipt.digest !== sha256(current)) {
+        throw new Error(`rig: ${to} was edited after install; the pinned catalog conflicts with it (no clean receipt)`);
+      }
+    }
+  }
+  writeFile(target, to, pinned, 0o644);
 }
 
 function ensureGitignoreBlock(target, lines, writeFile = directWrite) {
@@ -107,7 +125,7 @@ function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeD
     return srcAbs.endsWith('.md'); // default install = markdown only
   };
   for (const skill of skills) {
-    const src = path.join(ROOT, 'rig', 'catalog', 'skills', skill.dir);
+    const src = path.join(ROOT, path.dirname(skill.source_rel));
     const effectivePrefix = (prefix && skill.name === prefix.replace(/-$/, '')) ? '' : prefix;
     const finalName = `${effectivePrefix}${skill.name}`;
     const rel = destPattern.replace('{name}', finalName);
@@ -226,6 +244,7 @@ function journalWriter(target) {
     latestByPath.set(rel, applied);
   };
   write.begin = () => {};
+  write.latest = (rel) => latestByPath.get(rel) || null;
   write.finish = () => {
     if (transactionStarted) append({ kind: 'install_state', complete: true });
   };
@@ -256,9 +275,14 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
     if (!hostSelected(entry.host, selected)) continue;
     if (entry.gate === 'instruction_only_selected' && !instructionOnly) continue;
     if (entry.gate === 'active_delivery' && !activeDelivery) continue;
+    // The adaptive (Path B) install projects only the mandatory skills into
+    // host discovery and stages the rest under .rig/runtime for an approved
+    // selective projection. The legacy markdown-only install keeps its fan-out.
+    if (entry.gate === 'default_delivery' && activeDelivery) continue;
     if (entry.op === 'copy') copyOp(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'seed_user_file') seedUserFile(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'copy_tree') copyTreeOp(target, entry.from, entry.to, writeFile);
+    else if (entry.op === 'install_pinned_catalog') installPinnedCatalogOp(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'install_vendored_skills') installVendoredSkillsOp(target, entry, writeFile, activeDelivery);
     else if (entry.op === 'ensure_line') ensureLine(target, entry.to, entry.line, writeFile);
     else if (entry.op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);

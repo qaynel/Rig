@@ -11,6 +11,7 @@
     { "op": "copy", "from": "rig/tier-1/skills/tdd/SKILL.md", "to": ".rig/skills/tdd/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/tier-1/skills/debugging/SKILL.md", "to": ".rig/skills/debugging/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/tier-1/skills/code-review/SKILL.md", "to": ".rig/skills/code-review/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
+    { "op": "copy", "from": "rig/tier-1/skills/onboarding/SKILL.md", "to": ".rig/skills/onboarding/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": ".claude/skills/rig-grilling/SKILL.md", "to": ".claude/skills/rig-grilling/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-product-design/SKILL.md", "to": ".claude/skills/rig-product-design/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-implementation/SKILL.md", "to": ".claude/skills/rig-implementation/SKILL.md", "host": "claude" },
@@ -18,6 +19,7 @@
     { "op": "copy", "from": ".claude/skills/rig-tdd/SKILL.md", "to": ".claude/skills/rig-tdd/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-debugging/SKILL.md", "to": ".claude/skills/rig-debugging/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-code-review/SKILL.md", "to": ".claude/skills/rig-code-review/SKILL.md", "host": "claude" },
+    { "op": "copy", "from": ".claude/skills/rig-onboarding/SKILL.md", "to": ".claude/skills/rig-onboarding/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".agents/skills/rig-grilling/SKILL.md", "to": ".agents/skills/rig-grilling/SKILL.md", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": ".agents/skills/rig-product-design/SKILL.md", "to": ".agents/skills/rig-product-design/SKILL.md", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": ".agents/skills/rig-implementation/SKILL.md", "to": ".agents/skills/rig-implementation/SKILL.md", "host": ["codex", "antigravity"] },
@@ -25,6 +27,7 @@
     { "op": "copy", "from": ".agents/skills/rig-tdd/SKILL.md", "to": ".agents/skills/rig-tdd/SKILL.md", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": ".agents/skills/rig-debugging/SKILL.md", "to": ".agents/skills/rig-debugging/SKILL.md", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": ".agents/skills/rig-code-review/SKILL.md", "to": ".agents/skills/rig-code-review/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-onboarding/SKILL.md", "to": ".agents/skills/rig-onboarding/SKILL.md", "host": ["codex", "antigravity"] },
     { "op": "ensure_line", "to": "CLAUDE.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "claude" },
     { "op": "copy", "from": "rig/tier-1/adapters/cursor.mdc", "to": ".cursor/rules/rig.mdc", "host": "cursor" },
     { "op": "copy", "from": "rig/tier-1/adapters/windsurf.md", "to": ".windsurf/rules/rig.md", "host": "windsurf" },
@@ -43,8 +46,8 @@
     { "op": "copy", "from": ".agents/workflows/rig-help.md", "to": ".agents/workflows/rig-help.md", "host": "antigravity" },
 
     { "op": "install_vendored_skills", "host": "neutral", "destination": ".rig/skills/{name}" },
-    { "op": "install_vendored_skills", "host": "claude", "destination": ".claude/skills/{name}", "rewrite_name_prefix": "rig-" },
-    { "op": "install_vendored_skills", "host": ["codex", "antigravity"], "destination": ".agents/skills/{name}", "rewrite_name_prefix": "rig-" },
+    { "op": "install_vendored_skills", "host": "claude", "destination": ".claude/skills/{name}", "rewrite_name_prefix": "rig-", "gate": "default_delivery" },
+    { "op": "install_vendored_skills", "host": ["codex", "antigravity"], "destination": ".agents/skills/{name}", "rewrite_name_prefix": "rig-", "gate": "default_delivery" },
 
     { "op": "copy", "from": "rig/catalog/skills/LICENSE.upstream", "to": ".rig/skills/LICENSE.upstream", "host": "neutral" },
     { "op": "copy", "from": "rig/catalog/skills/UPSTREAM.md", "to": ".rig/skills/UPSTREAM.md", "host": "neutral" },
@@ -70,6 +73,8 @@
     { "op": "copy", "from": "skills/rig/SKILL.md", "to": ".rig/runtime/skills/rig/SKILL.md", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy_tree", "from": "rig/mcp-runtime", "to": ".rig/runtime/rig-mcp", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy_tree", "from": "rig/catalog/baseline", "to": ".rig/runtime/rig/catalog/baseline", "host": "neutral", "gate": "active_delivery" },
-    { "op": "copy_tree", "from": "rig/catalog/services", "to": ".rig/runtime/rig/catalog/services", "host": "neutral", "gate": "active_delivery" }
+    { "op": "copy_tree", "from": "rig/catalog/services", "to": ".rig/runtime/rig/catalog/services", "host": "neutral", "gate": "active_delivery" },
+    { "op": "copy_tree", "from": "rig/catalog/skills", "to": ".rig/runtime/rig/catalog/skills", "host": "neutral", "gate": "active_delivery" },
+    { "op": "install_pinned_catalog", "from": "rig/catalog/skills/catalog.json", "to": ".rig/catalog.json", "host": "neutral", "gate": "active_delivery" }
   ]
 }
