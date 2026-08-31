@@ -244,6 +244,14 @@ already green without changing the governed 115-service catalogue.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
 · [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
+**Structural inventory is now available to the onboarding flow.** It enumerates
+only known harness locations, reports paths, declared metadata, hashes, and
+bounded warnings, and rejects escaping or aliased symlinks. Exact-match overlap
+calculation is likewise mechanical: it uses only declared capability tags and
+explicit aliases, leaving relevance and the resulting change to the host agent.
+State-owned Markdown reports consume these facts in the next slice.
+[Inventory slice](../reasoning/2026-09-01-path-b-slice2-inventory.md)
+
 **Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
 After Rig is installed, the user could invoke a single host-native command that
 reads the repo as it actually exists, onboards everything that fits, and removes

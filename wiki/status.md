@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-09-01 — [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md)**: Path B now has a bounded structural inventory and pure exact-match overlap surface; state-owned reports are the next integration step.
 - **2026-09-01 — [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md)**: Path B slice 1 landed the skill-shelf capability hierarchy, the generated pinned catalogue, and the eight-skill pre-approval projection.
 - **2026-09-01 — [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)**: Path B implementation resumed from the completed catalogue slice with the signed 83-case oracle verified and the structural inventory slice next.
 - **2026-08-31 — [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md)**: RIG-151/RIG-152 are fixed by reframing routing.md's dev-doctrine passages as explicit adaptation instructions to the onboarding host agent (markdown-only) — not by a static install-time transform (rejected) and not by bare deletion. RIG-124.2's (RIG-124) tag removal folds into the same change. Consistent with B1/GA-1; does not touch D24's mechanical-only detection.

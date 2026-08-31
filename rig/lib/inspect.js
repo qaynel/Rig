@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
 const { discoverHosts } = require('./host-capabilities');
+const { canonical } = require('./skill-catalog');
 
 const MAX_BYTES = 256 * 1024;
 const HARNESS_NAMES = new Set([
@@ -85,6 +86,186 @@ function collectHarnessFiles(target) {
     walk(abs);
   }
   return out;
+}
+
+function toPosix(value) {
+  return value.split(path.sep).join('/');
+}
+
+function inside(root, candidate) {
+  return candidate === root || candidate.startsWith(`${root}${path.sep}`);
+}
+
+function inventoryHost(rel) {
+  if (rel === 'CLAUDE.md' || rel.startsWith('.claude/')) return 'claude';
+  if (rel === 'GEMINI.md' || rel.startsWith('.gemini/')) return 'gemini';
+  if (rel === '.cursorrules' || rel.startsWith('.cursor/')) return 'cursor';
+  if (rel.startsWith('.windsurf/')) return 'windsurf';
+  if (rel === '.clinerules' || rel.startsWith('.clinerules/')) return 'cline';
+  if (rel.startsWith('.kiro/')) return 'kiro';
+  if (rel === '.github/copilot-instructions.md' || rel === 'copilot-instructions.md') return 'copilot';
+  if (rel === 'AGENTS.md' || rel.startsWith('.agents/')) return 'codex';
+  return 'generic';
+}
+
+function inventoryKind(rel) {
+  if (
+    HARNESS_NAMES.has(rel)
+    || rel === '.github/copilot-instructions.md'
+  ) return 'instruction';
+  if (rel.startsWith('.cursor/rules/') || rel.startsWith('.windsurf/rules/')
+    || rel.startsWith('.clinerules/') || rel.startsWith('.agents/rules/')) return 'rule';
+  if (rel.startsWith('.kiro/steering/')) return 'steering';
+  if (rel.startsWith('.agents/skills/') || rel.startsWith('.claude/skills/')) {
+    return path.posix.basename(rel) === 'SKILL.md' ? 'skill' : 'skill-asset';
+  }
+  if (rel.startsWith('hooks/')) return 'hook';
+  return 'other';
+}
+
+function inventoryString(value) {
+  return redact(String(value)).replace(/\s+/g, ' ').trim();
+}
+
+function unquote(value) {
+  const text = value.trim();
+  if (text.length >= 2 && ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'")))) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+
+function inventoryFrontmatter(text) {
+  if (!text.startsWith('---\n')) return {};
+  const lines = text.split('\n');
+  const closingAt = lines.slice(1).findIndex((line) => line === '---');
+  if (closingAt === -1) throw new Error('malformed frontmatter');
+  const closing = closingAt + 1;
+  const fields = {};
+  for (let index = 1; index < closing; index += 1) {
+    const line = lines[index];
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const match = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
+    if (!match) throw new Error('malformed frontmatter');
+    const [, key, rest] = match;
+    if (rest.trim()) {
+      fields[key] = unquote(rest);
+      continue;
+    }
+    const values = [];
+    let validSequence = true;
+    while (index + 1 <= closing && /^\s/.test(lines[index + 1])) {
+      index += 1;
+      const child = lines[index].trim();
+      if (!child) continue;
+      if (!child.startsWith('- ')) validSequence = false;
+      else values.push(unquote(child.slice(2)));
+    }
+    fields[key] = validSequence ? values : null;
+  }
+  return fields;
+}
+
+function inventoryMetadata(text, fallback) {
+  const fields = inventoryFrontmatter(text);
+  if (fields.name !== undefined && typeof fields.name !== 'string') throw new Error('malformed frontmatter name');
+  if (fields.title !== undefined && typeof fields.title !== 'string') throw new Error('malformed frontmatter title');
+  if (fields.capability !== undefined && (typeof fields.capability !== 'string' || !/^[a-z0-9-]+\.[a-z0-9-]+$/.test(fields.capability))) {
+    throw new Error('malformed frontmatter capability');
+  }
+  if (fields.overlap_tags !== undefined && (!Array.isArray(fields.overlap_tags)
+    || fields.overlap_tags.some((tag) => !/^[a-z0-9-]+$/.test(tag)))) {
+    throw new Error('malformed frontmatter overlap tags');
+  }
+  const headings = text.split('\n').flatMap((line) => {
+    const match = line.match(/^#{1,6}\s+(.+?)(?:\s+#+)?\s*$/);
+    return match ? [inventoryString(match[1])] : [];
+  }).filter(Boolean);
+  const capabilityTags = [
+    ...(fields.capability ? [fields.capability] : []),
+    ...(fields.overlap_tags || []),
+  ].map(inventoryString).filter(Boolean).sort();
+  return {
+    name: inventoryString(fields.name || fallback),
+    title: inventoryString(fields.title || fields.name || headings[0] || fallback),
+    headings,
+    capability_tags: [...new Set(capabilityTags)],
+  };
+}
+
+// Structural only: reads known harness locations, returns declared metadata,
+// and never interprets prose as an agent's desired capability.
+function inventoryHarness(target) {
+  const root = realpathOrNull(target);
+  if (!root) throw new Error('inventory: target must exist');
+  const entries = [];
+  const warnings = [];
+  const seenRealPaths = new Map();
+  for (const file of collectHarnessFiles(root)) {
+    const rawRel = toPosix(path.relative(root, file));
+    let real;
+    try {
+      real = fs.realpathSync(file);
+    } catch (error) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: inventoryString(error.code || 'unreadable') });
+      continue;
+    }
+    if (!inside(root, real)) throw new Error(`inventory: escaping symlink rejected at ${rawRel}`);
+    const prior = seenRealPaths.get(real);
+    if (prior && prior !== rawRel) throw new Error(`inventory: duplicate real path alias ${prior} and ${rawRel}`);
+    seenRealPaths.set(real, rawRel);
+    let stat;
+    try {
+      stat = fs.statSync(file);
+    } catch (error) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: inventoryString(error.code || 'unreadable') });
+      continue;
+    }
+    if (!stat.isFile()) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: 'not a regular file' });
+      continue;
+    }
+    if (stat.size > MAX_BYTES) {
+      warnings.push({ path: inventoryString(rawRel), code: 'oversized', detail: `exceeds ${MAX_BYTES} byte limit` });
+      continue;
+    }
+    let bytes;
+    let text;
+    try {
+      bytes = fs.readFileSync(file);
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      warnings.push({ path: inventoryString(rawRel), code: 'non-utf8', detail: 'not valid UTF-8' });
+      continue;
+    }
+    const kind = inventoryKind(rawRel);
+    let metadata;
+    try {
+      metadata = inventoryMetadata(text, path.posix.basename(rawRel, '.md'));
+    } catch {
+      warnings.push({ path: inventoryString(rawRel), code: 'malformed-frontmatter', detail: 'declared metadata is malformed' });
+      continue;
+    }
+    entries.push({
+      path: inventoryString(rawRel),
+      host: inventoryHost(rawRel),
+      kind,
+      name: metadata.name,
+      title: metadata.title,
+      headings: metadata.headings,
+      capability_tags: metadata.capability_tags,
+      bytes: stat.size,
+      sha256: sha256(bytes),
+    });
+  }
+  entries.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  warnings.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+  return {
+    schema_version: 1,
+    digest: sha256(canonical({ entries, warnings })),
+    entries,
+    warnings,
+  };
 }
 
 function explicitHosts(host, hosts) {
@@ -228,6 +409,7 @@ module.exports = {
   HARNESS_DIRS,
   HARNESS_NAMES,
   collectHarnessFiles,
+  inventoryHarness,
   MAX_BYTES,
   inspectTarget,
   hostReview,
