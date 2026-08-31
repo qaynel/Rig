@@ -78,3 +78,13 @@ test('RIG-152 — router hands the onboarding agent no never-true "source checko
     'the Rig-source path guidance must be retained (scoped for contributors), not removed',
   );
 });
+
+test('RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path', () => {
+  const rigRule = read('rig/tier-1/rules/rig.md');
+  assert.doesNotMatch(
+    rigRule,
+    /\.rig\/skills\/implementation\/SKILL\.md/,
+    'hardcoded path is dead for claude/codex installs; use skill name instead',
+  );
+  assert.match(rigRule, /rig-implementation/, 'must reference the skill by name');
+});
