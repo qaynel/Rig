@@ -42,8 +42,11 @@ a fresh clone. The fix is a canonical bootstrap guard on the root `pretest` plus
 a non-frozen structural lock — the frozen assertions are untouched, the change
 only supplies the prerequisite they always assumed. Because
 `wiki/gate1/package-scripts.json` is in the signed manifest, even that hook edit
-needs a Gate-1 re-sign.
-[RIG-154 design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md)
+needs a Gate-1 re-sign. Landed in PR #140 with the re-sign in the same commit;
+a fresh-clone `npm test` (no `.venv`, no `rig-mcp/node_modules`) now exits 0
+with AT-HOME-1 green.
+[RIG-154 design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md),
+[RIG-154 close-out](../reasoning/2026-08-31-rig-154-close-out.md)
 
 ## Authorities and sources
 

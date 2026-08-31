@@ -6,9 +6,9 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
-	**Status:** OPEN (2026-08-31) — pipeline step 2 (product-design) done; awaiting Gate-1 re-sign + implementation · [Solution](tickets/RIG-154.md)
-	**Class:** TEST INFRASTRUCTURE / NON-HERMETIC FIXTURE. `tests/advanced-oracle.test.js` `AT-HOME-1`'s fake `npm` does `cp -R <root>/rig-mcp/node_modules <dest>`; nothing in `node --test tests/*.test.js` creates that tree before the file runs, and CI only passes via a standalone `npm ci --prefix rig-mcp` step (`.github/workflows/test.yml:37-38`) invisible to the test. Fix (designed, [[reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md]]): D1 append a `[ -d rig-mcp/node_modules ] || npm ci --prefix rig-mcp` guard to `package.json` `pretest`; D2 lock it with a non-frozen `tests/rig-mcp-bootstrap.test.js`; delete the redundant CI step. Forces a Gate-1 re-sign — `wiki/gate1/package-scripts.json` is in the signed manifest.
+- [ ] **RIG-155 — Real-`npm` clean-container E2E of the customer install path**
+	**Status:** OPEN (proposed 2026-08-31) — follow-up from [[RIG-154]]; explicit non-goal of that ticket · [Solution](tickets/RIG-155.md)
+	**Class:** TEST INFRASTRUCTURE / COVERAGE GAP. `AT-HOME-1` proves the installed `rig-mcp` server works but only through a fake `npm` shim that `cp`s a pre-built `node_modules`. Nothing exercises the real customer path — real `install.sh` → real `npm ci` from `rig-mcp/package-lock.json` → MCP server boots → tool call — in a clean container with a live registry. RIG-154 deliberately kept the fake-`npm` fixture; this ticket tracks the missing real-network E2E so the customer guarantee is tested, not assumed.
 - [ ] **RIG-148 — Default install lands unignored: 209 files / 8.3 MB with no .gitignore**
 	**Status:** OPEN (2026-08-30) — GitHub #125 — found during Path A install-bug investigation · [Solution](tickets/RIG-148.md)
 	**Class:** DELIVERABILITY / ONBOARDING HYGIENE. `rig/lib/payload.js`/`rig/bootstrap.sh` write no `.gitignore`. Measured: a default `--hosts claude` install is 209 files / 8.3 MB, 100% untracked-and-unignored. Needs an owner design call: gitignore (tool-cache) vs commit (vendored-config) — recommendation is gitignore.
@@ -157,6 +157,9 @@ kanban-plugin: board
 
 ## Done
 
+- [ ] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
+	**Status:** CLOSED (2026-08-31) — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
+	**Done:** `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent`; `tests/rig-mcp-bootstrap.test.js::CI relies on the root pretest bootstrap instead of a duplicate install step`; `manual: fresh-clone npm test exit 0 with AT-HOME-1 green, recorded in [[reasoning/2026-08-31-rig-154-close-out.md]]`. Follow-up [[RIG-155]] (real-`npm` clean-container E2E).
 - [ ] **RIG-153 — No frozen instrument exists to measure adaptation quality**
 	**Status:** DONE (2026-08-31) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
 	**Done:** option A delivered and frozen (`592f4eed`). `tests/installed-router-hygiene.test.js` — all six RIG-148→152 defect-shape blocks green (`RIG-124.2 …`, `RIG-151 …`, `RIG-152 …`, `RIG-150 …`, `RIG-149 — prefix self-collision guard is present for the rig router skill`, `RIG-148 — manifest writes a gitignore block for Rig-owned install paths`); `wiki/specs/adaptation-measurement-rubric.md` frozen (2 gates, 3 equal-weight axes, per-axis profile, clean-checkout procedure, pinned dated model). The re-baseline run (option B) is carved out as [[RIG-156]], deferred. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
