@@ -64,15 +64,14 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 
 ## Standing
 
-The gate is armed. `wiki/gate1/gate1.sig` and
-`wiki/gate1/gate1.allowed-signers` both exist. Running
-`node scripts/check-advanced-spec.js` prints
-`Gate 1 protected: principal=gate1-owner
-fingerprint=SHA256:0Ok+jnRuyWIZdLUPt3ZtN4StHaDIsVtVM24A12zajRY` over the
-unchanged five-file oracle. The signature covers business intent, acceptance,
-and the manifest — a change to any of the manifested files invalidates it.
-Owner key comment is `rig-gate-key@secretive.Manoj's-MacBook-Pro.local`;
-class is owner-attested Secretive / Secure Enclave (D19: the artifact cannot
-prove this; the owner did).
-[Approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
-[Status](../status.md#gate-standing)
+The Path B amendment is **not signed**. Its business spec, 83-case acceptance
+set, verifier, and expanded testing manifest intentionally invalidate the prior
+73-case signature. The new tests are red before implementation, so no protected
+or green claim applies to the amended oracle yet. The existing signature and
+allowed-signers files remain untouched as historical inputs; only the human key
+holder may complete the local ceremony after reviewing the exact proposal.
+
+No agent may run or simulate the approval helper. Path B implementation remains
+blocked until that human act succeeds.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[Status](../status.md)

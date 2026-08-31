@@ -152,10 +152,83 @@ generic parallel files across three ecosystems, and pruned nothing to the
 stack. The eval's single highest-value fix is to make install *parse the
 pre-existing config and reconcile with it* (reference existing Cursor/Kiro rules
 from `routing.md`, prune the skill set to the stack, and stop emitting
-conventions the target lacks). This points against D24's current mechanical-only
-detection and would need its own grilling, not a silent edit.
+conventions the target lacks). That looked like a D24 conflict until grilling
+split the work: Rig *code* stays mechanical; the onboarding *host agent* does
+the judgment. The grilling is now answered — see the lock below.
 [Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) ·
 [Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+
+**Scoped 2026-08-31 as "deterministic acceleration" — D24 stays intact for Rig
+code.** Path B is not a mechanical reconcile-pipeline and not left wholly to
+prose: Rig ships **deterministic tools the onboarding host agent invokes**
+(inventory the repo's existing config, reference it by path, install a selected
+skill set). The code decides nothing about what a repo "wants." Two eval
+premises are withdrawn: no deletion in either direction (the fix is *selective
+install*, not install-all-then-prune), and the install should trend
+context-weight neutral-or-negative. The work-item map (B-1 inventory, B-2
+reference-by-path, B-3 selective install, B-4 overlap surface, B-5 canonical
+entrypoint, B-6 weight budget) remains the code-side split; G-class inference
+*in Rig installer code* stays out of beta.
+[Path B adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md)
+
+**Locked 2026-08-31: agent-led graft, not a skill picker.** The intent owner
+answered the Path B grilling. The onboarding host agent receives full repository
+context, the full Rig capability catalogue (organised into families for the
+agent, not as a user picker), grafting instructions, and the Rig development
+pipeline. It decides how Rig fits, makes routine choices itself, and escalates
+only consequential decisions (destructive replacement, security/trust,
+irreversible or product-shaping forks). The user reviews a summary of the
+**resulting repository improvement** — existing state, relevant families,
+reuse, grafts, new capabilities, important decisions, resulting pipeline —
+not a configuration wizard. Repo-specific onboarding state lives under
+`.rig/`; existing repo config is not unnecessarily polluted. When capabilities
+overlap, the agent calculates the delta and grafts missing Rig behaviour onto
+existing infrastructure rather than picking a winner or stacking a parallel
+copy. Payload size (files and bytes) is a warning; duplicate-write and
+correctness regressions are hard failures. A router-only re-eval is deferred
+and does not block this work. Intelligence lives in the host agent plus the
+context Rig supplies, not in a "React → install A, B, C" rule engine.
+D24's mechanical-only detection boundary is unchanged. What shifts is the
+consent UX: D24's "default-full, user trims families" is replaced by
+agent-proposed graft plus summary approval.
+[Path B product direction](../reasoning/2026-08-31-path-b-product-direction.md)
+
+**Follow-up locks 2026-08-31.** The last two Path B design questions closed.
+(1) Grafts into repo-owned files are permitted, but every graft lives inside an
+explicit, machine-detectable begin/end Rig-managed section
+(`<!-- rig:graft capability="..." begin --> ... <!-- rig:graft end -->`) so
+removal is a clean string operation and the ownership boundary is obvious in
+source control. (2) The flat vendored skill shelf is reorganised into a
+`family → tool/capability → skill` hierarchy, taxonomy derived from the actual
+inventory and grouped by capability rather than by vendor origin/prefix; the
+existing `family → group → service → grade` service catalogue is untouched,
+and unification of the two taxonomies is deferred until product evidence
+justifies it. Operator shape confirmed in the same exchange: one install
+command (`install rig [--host <host>]`), `rig-onboarding` delivered as a Rig
+skill and/or a rig-mcp tool the host agent invokes explicitly after install,
+no auto-trigger; installation documentation directs the user to initiate
+onboarding from their host agent as the explicit next step.
+[Path B follow-up decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md)
+
+**Technical design filed 2026-08-31.** Path B now has implementation-ready
+contracts for the capability-family shelf and generated catalogue, versioned
+graft sections, repository-local onboarding state, structural inventory and
+overlap reports, the shared skill/CLI/MCP onboarding interface, selective host
+projections, the one-command install handoff, and warning-only weight checks
+with correctness hard failures. The design keeps semantic relevance and delta
+judgment in the host agent, binds apply to the exact summary and proposal, and
+leaves the governed service catalogue unchanged. Implementation remains
+test-first after the acceptance oracle and human signature.
+[Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
+
+**Acceptance oracle authored 2026-08-31; human signature pending.** Grilling
+added one observable case for each Path B foundational/support contract and 55
+direct source, installed, domain, CLI, and MCP checks. The pre-implementation
+run is deliberately red: 54 product failures cover all ten cases, while one
+green guard proves the governed 115-service catalogue remains byte-identical.
+No implementation is authorized until the human owner reviews and signs the
+exact amended oracle.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
 
 **Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
 After Rig is installed, the user could invoke a single host-native command that

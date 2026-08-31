@@ -378,6 +378,32 @@ infrastructure form the oracle that is signed once before implementation.
 > against this file and [`acceptance.md`](acceptance.md) at their current
 > 73-case set, under a re-signed combined digest (§8).
 
+> **Revision note (2026-08-31) — Path B agent-led adaptive onboarding.**
+> Re-grilled from the intent owner's locked Path B product direction and
+> follow-up decisions after the technical design made every external contract
+> concrete. Rig's installer code remains mechanical: it inventories bounded
+> repository structure, renders context, validates exact bytes, journals, and
+> checks. The host agent receives that context and owns semantic relevance,
+> reuse, delta, and graft judgment. The user reviews the resulting repository
+> improvement and any consequential decisions, then approves the exact proposal
+> and onboarding summary before a repository-owned byte changes.
+>
+> This amendment adds ten observable cases, `AT-PB-1` through `AT-PB-10`, one
+> for each foundational (`F-1`–`F-6`) and support (`S-1`–`S-4`) Path B
+> contract. The ID set grows from **73** to **83**. The new deterministic tests
+> are deliberately red before implementation. The governed 115-service
+> `family → group → service → grade` catalogue is unchanged; Path B's separate
+> skill-shelf taxonomy neither selects nor rewrites it. Context compression,
+> unmarked repository-file edits, router re-evaluation, taxonomy unification,
+> auto-triggering, agent-created approval, and hard file/byte ceilings remain
+> outside this amendment.
+>
+> These criteria are an explicit transcription of the owner-locked direction
+> plus the completed technical design. Where the design supplied an exact
+> externally visible schema, marker, failure code, or command shape, the oracle
+> adopts it so implementation cannot silently weaken the boundary. The intent
+> owner's signature is still required before any Path B implementation begins.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -395,6 +421,17 @@ per-repo/per-host transition **automated by Rig**. The user retains explicit
 control over every safety control. When a control is disabled, Rig remains
 usable but never claims that the disabled protection or its checks ran.
 Host-agnostic; config-only (B1).
+
+**Path B onboarding outcome.** Installation supplies one release-pinned Rig
+capability context and an explicit `rig-onboarding` handoff. The host agent
+first understands the repository, compares relevant Rig guarantees with what
+already exists, and proposes the smallest improvement in the order reuse →
+generalise → marked graft → genuinely missing capability. Routine semantic
+choices stay with the host agent; consequential product, workflow, trust,
+security, destructive, irreversible, paid, user-global, or materially
+ambiguous choices return to the user. Rig code never derives desired
+capabilities from repository shape. No proposal is applied until verified
+human presence approves its exact bytes and exact summary.
 
 ## 2. Users & business rules
 
@@ -434,6 +471,36 @@ Host-agnostic; config-only (B1).
     selectable **Product-Security** family protects the *user's codebase*.
   - The **scan recommends, the user overrides freely** — including installing non-recommended
     services (configurability > paternalism).
+  - **The governed service menu and the adaptive skill shelf are separate.**
+    The frozen 115-service `family → group → service → grade` catalogue and its
+    user choices remain authoritative for governed services. Path B organises
+    the 55 vendored and eight mandatory workflow/onboarding skills into eleven
+    capability families for host-agent context; that index never rewrites,
+    imports, or infers a service selection.
+  - **Path B intelligence belongs to the host agent, not Rig code.** Rig code
+    may enumerate known paths, parse bounded self-declared structure, hash,
+    redact, validate, render, journal, apply approved bytes, and check. Only the
+    host agent decides relevance, semantic overlap, reuse, delta, graft, add,
+    or omit. Exact declared tags and aliases are hints, never install authority.
+  - **Path B approval binds the result the user reviewed.** Approval covers the
+    exact catalogue and inventory snapshots, dispositions, selected skills,
+    graft/owned-file bytes and preimages, resolved critical decisions, and the
+    eight-part onboarding summary. A changed summary or proposal is a new
+    proposal and requires new approval. Rig never signs, fabricates, or treats
+    the agent's own statement as approval.
+  - **Repository-owned bytes remain authoritative.** A Path B write to a
+    pre-existing Markdown instruction file is confined to a versioned,
+    machine-detectable Rig graft section. Outside bytes are not normalised,
+    replaced, or restored from a snapshot. Unsupported formats, malformed or
+    ambiguous ownership, stale preimages, symlinks/hard links at mutation
+    targets, and unapproved writes fail unchanged.
+  - **Onboarding is explicit and correctness-blocking.** Installation does not
+    run `prepare`, inspect semantic repository content, choose optional skills,
+    produce a proposal, or apply a graft. It tells the user to invoke
+    `rig-onboarding`. File and byte growth are reported as warnings only;
+    duplicate destinations/projections/grafts, malformed grafts, dangling
+    references, skill-name/self-prefix defects, incomplete state, and
+    unapproved writes are hard failures.
   - **Dependencies auto-pull, razor-scoped** to the dependent's exact need — never warn-and-stop,
     never downgrade the dependent, never drag in unrelated general-purpose machinery.
   - **Graft, never overwrite** — install onto the repo's existing `AGENTS.md`/framework.
@@ -576,6 +643,16 @@ before execution, and the release version is `5.0.0`. The upstream MIT notice
 and provenance record for the modified partial vendored suite ship in every
 installed copy, without an upstream-endorsement claim.
 
+**Also in scope (Path B) — agent-led adaptive onboarding.** The released
+payload carries the complete skill source shelf once outside host discovery, a
+deterministic compact capability catalogue, bounded structural inventory and
+overlap reports, repository-local onboarding state/reports, versioned graft
+mechanics, a shared `prepare` / `propose` / `apply` / `check` domain used by CLI
+and MCP, selective approved skill projections, one canonical router and
+onboarding playbook, the `install rig [--host <host>]` operator path, and the
+warning/correctness check. The public flow has no install tiers and no
+auto-trigger.
+
 **Lint-format remains the evidenced vertical.** Its whole-repository discovery,
 semantic command binding, cumulative Policy → Context → Evidence behavior,
 plan-bound execution, read-only guarantee, diff scope, separately approved
@@ -625,6 +702,12 @@ dashboard. **Done 2026-07-24:** deprecated-tier-vocabulary archive under
   or record sanitation not run → present the **scan-recommended menu** → user
   selects/overrides → **auto-pull** razor-scoped dependencies →
   **transition-install** by grafting onto the existing framework.
+- **Adaptive host-agent handoff (Path B):** install → explicit
+  `rig-onboarding` invocation → mechanical prepare → host-agent repository and
+  catalogue review → exact proposal and eight-part summary → critical decisions
+  resolved one at a time → verified content-bound approval → apply → check.
+  Optional skills enter native discovery only after approval; a failed check
+  never becomes a success claim.
 - **Lifecycle:** when enabled, the drift-prevention rule + layered drift guard
   (byte-exact sync check + agent semantic guard) keep every tool's context
   coherent as the repo evolves — statelessly (the repo's own docs are the
@@ -700,6 +783,12 @@ profiling; Infrastructure keeps capacity load); runtime secret *injection* → *
 6. **Complete and honest service behavior** — all 115 service packs are
    specific and reviewable, and every selected service produces one observable
    outcome without no-op or silent passes.
+7. **Adaptive without installer inference** — the host agent receives complete,
+   bounded Rig and repository context and proposes the smallest useful delta;
+   deterministic code cannot turn repository shape, undeclared prose, or an
+   unknown vendor prefix into a capability choice. Existing bytes and
+   infrastructure remain authoritative unless the exact marked change is
+   approved, and success requires complete state plus mechanical post-checks.
 
 ## 8. The gate and technical handoff
 

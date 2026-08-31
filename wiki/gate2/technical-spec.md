@@ -1,8 +1,8 @@
 # Tier 2 Advanced - Working Implementation Design v0.17
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
-> version is retraced to the owner-approved D24/one-gate oracle, now at 73
-> cases after D28's shell-trust amendment.
+> version is retraced to the D24/D28 one-gate oracle plus the Path B amendment,
+> now at 83 cases pending the Path B human signature.
 > It supersedes v0.11's lint-format-only D21/D23 release boundary: all 115
 > catalogue leaves are release-blocking at declared Policy grade; all 55
 > vendored skills are wired by Rig name; onboarding activates only detected
@@ -2372,7 +2372,7 @@ The catalogue path ships only when these checks pass in order:
    both Gate 1 digests and `testing-infrastructure.manifest`, then confirms
    every sorted path/digest entry before any product test runs;
 2. the technical specification is present as the sole current technical
-   approach and the 73-ID traceability table names an existing substantive
+   approach and the 83-ID traceability table names an existing substantive
    executable target for every current Gate 1 case;
 3. every Gate-1-derived executable target passes without modifying the signed
    oracle, including all 115 leaves under `AT-SHAPE-6`;
@@ -2440,7 +2440,7 @@ endorsement claim.
 ## 13. Acceptance Traceability
 
 The oracle coverage check extracts the distinct acceptance IDs from Gate 1 and
-requires exact set equality with the primary rows below, currently **73
+requires exact set equality with the primary rows below, currently **83
 IDs**. Every row must name an existing design anchor and a substantive
 executable test title containing the same ID. Explicit evidence aliases are
 permitted only for Gate-1 properties that point to another case;
@@ -2532,6 +2532,16 @@ results rather than trusting an aggregate exit code.
 | AT-LF-22 | §9.4 a task not explicitly granted network access by the plan has no outbound network reachability; a task explicitly granted it may connect. | `tests/advanced-oracle.test.js` title `AT-LF-22 a task has no network reachability without an explicit grant`: a command with no network grant fails to reach a local listener; a command with an explicit grant reaches it; a default-allowed connection without a grant fails. |
 | AT-LF-23 | §9.4 a task exceeding a configured memory ceiling or wall-clock timeout is killed and reported as its own distinct non-passing state (`GA-33`), never a hang or silent truncation. | `tests/advanced-oracle.test.js` title `AT-LF-23 a task exceeding its resource or time cap is killed and reported`: a command exceeding a configured timeout is terminated and reported with a named timeout state rather than left running or reported as a generic failure. |
 | AT-LF-24 | §9.4 a repository-supplied symlink whose real target resolves outside the repository is refused for read, write, or working-directory use, never followed because its lexical path looks contained. | `tests/advanced-oracle.test.js` title `AT-LF-24 a repository symlink escaping the repository is refused`: a command targeting a path reached only through an escaping symlink is refused and reported as a boundary violation rather than executed against the real outside path. |
+| AT-PB-1 | [Path B F-1](../reasoning/2026-08-31-path-b-technical-spec.md#3-f-1--skill-shelf-family-reorganisation) defines the eleven-family 63-skill membership, bounded metadata, recursive source layout, explicit aliases, unique canonical names, flat native projections, and the untouched governed-service boundary. | `tests/path-b-catalog.test.js` title `AT-PB-1 capability families index all 63 skills with exact membership`: snapshot the full membership and names; sibling `AT-PB-1` tests exercise recursive metadata, invalid aliases/metadata, collision handling, and the byte-frozen 115-service tree. |
+| AT-PB-2 | [Path B F-2](../reasoning/2026-08-31-path-b-technical-spec.md#4-f-2--graft-section-marker-convention) defines the exact version-1 grammar, ownership classes, CAS/preimage rule, whole-current-section journal record, and section-only update/removal. | `tests/path-b-graft.test.js` title `AT-PB-2 create update and reapply own only a versioned graft section`: exercise create/no-op/update; sibling `AT-PB-2` tests cover one-of-many removal, CRLF/no-final-newline identity, malformed/stale/unsupported/link refusal, full-section journalling, and uninstall preservation. |
+| AT-PB-3 | [Path B F-3](../reasoning/2026-08-31-path-b-technical-spec.md#5-f-3--capability-catalog-context-surface) defines the deterministic installed catalogue, release-pinned non-discoverable source shelf, compact context, drift invalidation, and no-network refresh policy. | `tests/path-b-catalog.test.js` title `AT-PB-3 generated catalogue bytes are deterministic and content-addressed`: independently check ordering and the content digest; sibling `AT-PB-3` tests install the shelf once, keep optional skills out of discovery, require eight core/onboarding projections, prove offline prepare, reject stale catalogue proposals, and preserve a conflicting user-edited installed catalogue. |
+| AT-PB-4 | [Path B F-4](../reasoning/2026-08-31-path-b-technical-spec.md#6-f-4--rig-onboarding-state) defines the five repository-local artifacts, strict state/proposal schemas, eight summary headings, CAS revisions, transitions, invalidation, resume, and derived Markdown. | `tests/path-b-state.test.js` title `AT-PB-4 prepare creates the complete machine state and deterministic reports under .rig`: assert initial schema and idempotent bytes; sibling `AT-PB-4` tests cover canonical summary/proposal binding, rejected partial writes, stale revisions/consent, and disk/state/report reconciliation. |
+| AT-PB-5 | [Path B F-5](../reasoning/2026-08-31-path-b-technical-spec.md#7-f-5--rig-onboarding-skill-and-rig-mcp-tool) defines the semantic playbook and critical predicate plus one `handleOnboarding` prepare/propose/apply/check union used by CLI and MCP, with exact-summary approval and no self-approval. | `tests/path-b-onboarding.test.js` title `AT-PB-5 prepare supplies bounded context without making semantic choices or repo writes`: prove mechanical preparation; sibling tests cover proposal immutability, unresolved decisions, summary-bound consent, selective marked apply, resume/idempotency, JSON CLI parity, MCP schema/annotations/parity, explicit invocation, and terminal truthfulness. |
+| AT-PB-6 | [Path B F-6](../reasoning/2026-08-31-path-b-technical-spec.md#8-f-6--one-installation-command) defines `install rig`, repeatable registry host mapping, always-on runtime delivery, explicit onboarding handoff, subordinate legacy paths, and no auto-trigger. | `tests/path-b-install.test.js` title `AT-PB-6 public grammar is install rig with repeatable host and no tiers`: assert the public surface; sibling `AT-PB-6` archive-install tests cover omitted/one/many host mapping, order/de-duplication, unknown-host pre-write refusal, runtime/catalog presence, preserved repo bytes, absent onboarding state, and exact next-step output. |
+| AT-PB-7 | [Path B S-1](../reasoning/2026-08-31-path-b-technical-spec.md#9-s-1--config-inventory-writer) defines bounded known-root enumeration, structural-only extraction, declared tags, stable digest/report rendering, redaction/warnings, and realpath uniqueness. | `tests/path-b-inventory.test.js` title `AT-PB-7 inventory covers every known harness root with stable structural rows`: exercise every kind/host and deterministic digest; sibling `AT-PB-7` tests prove no body/secret leakage, bounded warning taxonomy, contained-symlink handling, escaping/alias refusal, and repeated Markdown identity. |
+| AT-PB-8 | [Path B S-2](../reasoning/2026-08-31-path-b-technical-spec.md#10-s-2--overlap-surface-writer) defines exact tag/capability/alias intersection, deterministic grouping/set difference, and the no-selection/no-mutation boundary. | `tests/path-b-inventory.test.js` title `AT-PB-8 overlap uses only exact declared tags and explicit aliases`: a pinned catalogue fixture distinguishes declared matches from unknown-prefix/prose non-matches and groups sibling skills; the companion `AT-PB-8` prepare test proves deterministic hint wording with empty proposal/applied state and byte-identical repo files. |
+| AT-PB-9 | [Path B S-3](../reasoning/2026-08-31-path-b-technical-spec.md#11-s-3--single-canonical-entrypoint) makes `.rig/routing.md` the sole mandate and the canonical onboarding skill the sole playbook; every native/MCP adapter must resolve to them without copying doctrine. | `tests/path-b-mcp.test.js` title `AT-PB-9 every installed adapter resolves to one router and one onboarding playbook`: install multiple hosts, reject duplicated mandate/playbook phrases and dangling pointers; the companion `AT-PB-9` test compares domain and installed-MCP playbook bytes. |
+| AT-PB-10 | [Path B S-4](../reasoning/2026-08-31-path-b-technical-spec.md#12-s-4--weight-budget-and-correctness-check) defines attributable weight, warning-only growth, the nine-code hard-failure set, and legitimate staging/multi-host exceptions. | `tests/path-b-weight.test.js` title `AT-PB-10 file and byte growth warn but never block a checked result`: prove both warning codes with successful domain/CLI status; nine sibling `AT-PB-10` corruption tests independently require each hard code and non-success, and the final sibling rejects false duplicate findings for staged source plus approved host projections. |
 
 The first-running oracle verifier:
 
@@ -2546,7 +2556,7 @@ The first-running oracle verifier:
    paths, and verifies every listed SHA-256 before loading any product test;
 3. confirms one present technical specification is named as the current
    approach, without requiring a frozen status or signing its bytes;
-4. compares the 73 current Gate-1 IDs, trace rows, and substantive executable
+4. compares the 83 current Gate-1 IDs, trace rows, and substantive executable
    test titles for exact equality, and stats every named target;
 5. runs before all code tests and short-circuits them on any integrity or
    coverage-mapping failure.
@@ -2560,7 +2570,7 @@ commit" anywhere in the gate (GA-11).
 
 ## 14. Ordered Tracer-Bullet Slices
 
-The 73-case oracle-preparation slice runs before production implementation.
+The 83-case oracle-preparation slice runs before production implementation.
 Existing modules and tests are reusable spine, not reusable evidence: stale
 meanings are replaced. Pre-signature product tests are expected to be red for
 behavior that does not exist. After the owner signs the manifest, every
@@ -2576,7 +2586,7 @@ the first post-signature tracer produces an installable artifact.
 ### Slice 1 - Specification authority and complete executable oracle
 
 Implement the §13 oracle verifier first, pin the Gate-1 digests, transcribe all
-**73** IDs into substantive tests, and remove or rewrite obsolete tests that
+**83** IDs into substantive tests, and remove or rewrite obsolete tests that
 assert a non-disableable baseline, withdrawn tiers, or tautological aliases.
 Write the stable sorted testing-infrastructure manifest, add
 `npm run test:code`, and wire the verifier ahead of code tests in `npm test`.
@@ -2996,12 +3006,12 @@ Implementation must not edit `business-spec.md`, `acceptance.md`,
 This working specification is never frozen. Production implementation waits
 only for the one signed oracle. Before the owner performs that ceremony:
 
-1. all 73 current acceptance IDs have substantive executable targets and the
+1. all 83 current acceptance IDs have substantive executable targets and the
    traceability table names their real files/titles;
 2. stale or tautological tests are removed or rewritten, and expected
    pre-implementation failures name missing product behavior;
 3. `scripts/check-advanced-spec.js` runs first, verifies the v2 signature when
-   armed, verifies every manifest digest, checks exact 73-ID equality and one
+   armed, verifies every manifest digest, checks exact 83-ID equality and one
    present technical approach, then short-circuits code tests on failure;
 4. `wiki/gate1/testing-infrastructure.manifest` is stable, sorted, and covers
    the verifier, acceptance tests, fixtures/helpers, and package script bytes;

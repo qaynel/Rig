@@ -59,13 +59,13 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
-and signed: the 73-case (D24 + D28) deterministic testing infrastructure is
-built, manifested, and covered by the oracle signature. See "Where the eight steps
-actually stand" below for the current per-step status — as of the last check,
-steps 1–7 are done: `v5.0.0` is tagged and published. Step 8 remains
-post-beta promotion. [Status](../status.md)
-[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+The D24/D28 73-case oracle remains the signed historical baseline and the MVP
+steps below remain completed. Path B is a new delivery round: its ten-case,
+55-check acceptance amendment is authored and deliberately red, with a
+14-file manifest, but is not authorized until the human signature. Only then
+may the technical design's ordered Path B implementation slices begin.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[Status](../status.md)
 
 The former lint-format-only path is historical. D24 supersedes D21's release
 boundary and retires D23: all 115 Policy leaves are now release-blocking, while

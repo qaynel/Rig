@@ -130,7 +130,7 @@ function verifyCoverage(root, entries) {
   const titled = testTitleIds(root, entries.map(({ file }) => file));
   const targets = traceTargets(technicalSpec);
   const manifested = new Set(entries.map(({ file }) => file));
-  assert.equal(accepted.length, 73, 'Gate 1 must contain exactly 73 active acceptance IDs');
+  assert.equal(accepted.length, 83, 'Gate 1 must contain exactly 83 active acceptance IDs');
   assert.deepEqual(traced, accepted, 'technical-spec trace IDs must exactly match Gate 1');
   assert.deepEqual(titled, accepted, 'manifested test titles must exactly match Gate 1');
   assert.deepEqual(targets.map(({ id }) => id).sort(), accepted, 'every trace row must name one test target');

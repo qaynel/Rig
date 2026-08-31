@@ -58,11 +58,12 @@ with AT-HOME-1 green.
 
 ## What is still open
 
-The executable specification gate now exists and runs first:
-`node scripts/check-advanced-spec.js` verifies the owner signature over the
-five-file manifest before any code test, and the 73 cases (D24 + D28) report
-73 pass / 0 fail. That closes the gap this section used to describe and opens
-a different one.
+The prior executable specification gate ran first and proved the signed
+73-case D24/D28 oracle green. Path B now proposes an amended 83-case oracle and
+expands the exact testing manifest from five to 14 files. Its 55 direct Path B
+checks deliberately report 54 product failures and one green
+service-catalogue-preservation guard. The prior signature is therefore stale;
+the amended verifier must not report a protected oracle until the human signs.
 
 **A green oracle alone is not evidence that the product works.** The 2026-08-22
 fresh review found that the oracle bound behavior only by direct
@@ -112,6 +113,15 @@ readiness blockers (no clean in-workspace target copy, unpinned Rig SHA,
 human-operated judge, model pin string source, a malformed handoff
 blocker-check) are recorded on RIG-156.
 [close-out ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md)
+
+**Path B oracle authored (2026-08-31).** Ten independently visible cases cover
+the six foundational and four support contracts at the real catalogue,
+inventory, state, graft, shared-domain, CLI/MCP, installer, router, and checker
+seams. Exact ID/title/trace equality is 83/83/83 and all 14 manifest hashes
+match. The agent-derived criteria are explicitly presented for owner review;
+they are not frozen until the human signature, and implementation remains
+blocked.
+[acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
 
 Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads

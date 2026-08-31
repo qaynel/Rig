@@ -18,6 +18,12 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-31 | current | [2026-08-31-rig-153-close-option-b-deferred](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) | testing-strategy, onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-rig-148-gitignore-oracle](../reasoning/2026-08-31-rig-148-gitignore-oracle.md) | graft-mechanics, install-manifest-removal | — | oracle, rig-148 |
 | 2026-08-31 | historical | [2026-08-31-post-install-rig-onboarding-skill](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md) | onboarding-flow | — | — |
+| 2026-08-31 | current | [2026-08-31-path-b-technical-spec](../reasoning/2026-08-31-path-b-technical-spec.md) | onboarding-flow, what-rig-is | — | interdependency |
+| 2026-08-31 | current | [2026-08-31-path-b-product-direction](../reasoning/2026-08-31-path-b-product-direction.md) | onboarding-flow, what-rig-is | — | interdependency |
+| 2026-08-31 | superseded | [2026-08-31-path-b-oracle-checkpoint](../reasoning/2026-08-31-path-b-oracle-checkpoint.md) | onboarding-flow, what-rig-is, testing-strategy | — | interdependency |
+| 2026-08-31 | current | [2026-08-31-path-b-follow-up-decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md) | onboarding-flow, what-rig-is | — | interdependency |
+| 2026-08-31 | current | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
+| 2026-08-31 | current → 2026-08-31-path-b-oracle-checkpoint | [2026-08-31-path-b-acceptance-oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) | onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan | — | interdependency, trap |
 | 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
