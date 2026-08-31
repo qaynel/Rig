@@ -39,13 +39,12 @@ false green result. [Gate 2 §2.1](../gate2/technical-spec.md#21-rejected-approa
 ## What is still open
 
 The prior five-file, 73-case oracle remains historical green evidence. Path B
-has amended it to 83 exact IDs and a 14-file manifest, so the old signature is
-intentionally stale. Manifest digests, test-title IDs, trace IDs, and named
-targets already match; the 55 direct Path B checks are correctly red before
-implementation. The gate must continue to block until the human reviews and
-signs the amended bytes.
+amended it to 83 exact IDs and a 14-file manifest. The owner has signed those
+amended bytes, and the verifier now confirms the signature and every manifested
+digest before code tests run. The frozen Path B tests therefore authorize and
+bound implementation; they are never implementation-editable.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
-[Status](../status.md)
+[implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 D23's original ruling — why a permanently-red 114-leaf check would have defeated
 the point of the gate, and why filling those leaves with placeholder content was

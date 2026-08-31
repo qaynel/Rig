@@ -73,13 +73,13 @@ warnings; duplicate projections, dangling references, malformed ownership, and
 state drift fail.
 [Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
 
-Grilling has now authored the executable oracle without reopening product
-direction: ten cases cover all six foundational and four support contracts,
-and 55 direct checks are red before implementation except for the intentional
-green guard proving the governed service catalogue is unchanged. This is an
-agent-authored proposal, not owner approval; implementation remains prohibited
-until the human signs its exact bytes.
-[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+Grilling authored the executable oracle without reopening product direction:
+ten cases cover all six foundational and four support contracts, with the
+governed service-catalogue guard intentionally green from the start. The owner
+has signed the exact 14-file, 83-case oracle, so implementation can now turn
+the remaining product failures green without moving the contract.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 A later office-hours session tested this identity against a candidate fork
 (DeepSeek Harness, "DSH") — a full agent-runtime host, the opposite category

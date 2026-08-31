@@ -237,14 +237,12 @@ leaves the governed service catalogue unchanged. Implementation remains
 test-first after the acceptance oracle and human signature.
 [Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
 
-**Acceptance oracle authored 2026-08-31; human signature pending.** Grilling
-added one observable case for each Path B foundational/support contract and 55
-direct source, installed, domain, CLI, and MCP checks. The pre-implementation
-run is deliberately red: 54 product failures cover all ten cases, while one
-green guard proves the governed 115-service catalogue remains byte-identical.
-No implementation is authorized until the human owner reviews and signs the
-exact amended oracle.
+**Path B oracle signed; implementation underway.** The verified 14-file,
+83-case oracle protects the adaptive-onboarding work. Its initial red run
+identified the implementation slices, and the completed catalogue slice is
+already green without changing the governed 115-service catalogue.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+· [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 **Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
 After Rig is installed, the user could invoke a single host-native command that

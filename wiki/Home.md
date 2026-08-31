@@ -85,7 +85,7 @@ topic is wrong.
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
 - [**Reasoning trace index**](index/reasoning.md) — generated current and historical trace lookup.
-- [**Acceptance cases**](index/acceptance-cases.md) — all 83 cases and where each is traced; the ten Path B additions await human signature.
+- [**Acceptance cases**](index/acceptance-cases.md) — all 83 cases and where each is traced; the ten Path B additions are signed and under implementation.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
@@ -104,7 +104,7 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Path B amendment authored and deliberately red; owner signature pending.** The prior 73-case oracle remains historical evidence, but its signature does not authorize the amended 83-case bytes. Ten Path B cases and their manifested tests now await the human signing ceremony before implementation. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Path B amendment signed; implementation underway.** The verified 14-file oracle protects all 83 cases. The prior 73-case oracle remains historical evidence only. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 

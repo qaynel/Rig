@@ -59,11 +59,12 @@ with AT-HOME-1 green.
 ## What is still open
 
 The prior executable specification gate ran first and proved the signed
-73-case D24/D28 oracle green. Path B now proposes an amended 83-case oracle and
-expands the exact testing manifest from five to 14 files. Its 55 direct Path B
-checks deliberately report 54 product failures and one green
-service-catalogue-preservation guard. The prior signature is therefore stale;
-the amended verifier must not report a protected oracle until the human signs.
+73-case D24/D28 oracle green. Path B expanded the exact testing manifest from
+five to 14 files and the oracle to 83 cases. The amended oracle is now signed
+and verified before every implementation run; its frozen tests remain the
+contract while the adaptive-onboarding slices turn the original red product
+failures green.
+[Implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 **A green oracle alone is not evidence that the product works.** The 2026-08-22
 fresh review found that the oracle bound behavior only by direct

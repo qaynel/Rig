@@ -92,9 +92,8 @@ make the change — is [Option A](../reasoning/2026-08-21-one-gate-escape-hatch-
 
 The doctrine and both Gate 1 files now describe one gate. The intent owner
 approved D24 and the one-gate amendment on 2026-08-21; the approval is filed
-[verbatim](../reasoning/2026-08-21-d24-owner-approval.md). Two concrete steps
-remain before implementation: the complete deterministic test infrastructure
-must be built and manifested, then the owner must perform the live-human
-signature over both Gate 1 files and that manifest. The technical spec is no
-longer a blocking second freeze.
-[Status](../status.md)
+[verbatim](../reasoning/2026-08-21-d24-owner-approval.md). Path B's complete
+deterministic testing infrastructure is manifested and its amended 83-case
+oracle has received the live-human signature, so the protected implementation
+work is now underway. The technical spec remains a non-blocking design record.
+[Implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)

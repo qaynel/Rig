@@ -7,6 +7,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
 | 2026-09-01 | current | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
+| 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md) | onboarding-flow, testing-strategy | — | — |
