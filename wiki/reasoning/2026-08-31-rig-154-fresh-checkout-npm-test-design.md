@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: testing-strategy
 decisions:
-status: current
+status: superseded
 supersedes:
 tags: interdependency, trap
 summary: Technical design for RIG-154 — fresh-checkout `npm test` fails because AT-HOME-1's fake npm copies a rig-mcp/node_modules tree nothing in the root run creates. Fix is a canonical bootstrap guard appended to the existing `pretest` (D1), locked by a structural non-frozen test asserting the guard is present and CI carries no masking `npm ci --prefix rig-mcp` step (D2). Both changes force a Gate-1 re-sign because `wiki/gate1/package-scripts.json` is in the signed manifest.
