@@ -12,6 +12,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-31 | superseded | [2026-08-31-routing-hygiene-implementation](../reasoning/2026-08-31-routing-hygiene-implementation.md) | onboarding-flow, testing-strategy | — | — |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-design](../reasoning/2026-08-31-routing-hygiene-design.md) | onboarding-flow, testing-strategy | — | interdependency |
 | 2026-08-31 | current → 2026-08-31-routing-hygiene-implementation | [2026-08-31-routing-hygiene-close-out](../reasoning/2026-08-31-routing-hygiene-close-out.md) | onboarding-flow, testing-strategy | — | — |
+| 2026-08-31 | current | [2026-08-31-rig-154-fresh-checkout-npm-test-design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md) | testing-strategy | — | interdependency, trap |
 | 2026-08-31 | current | [2026-08-31-rig-153-instrument-spec](../reasoning/2026-08-31-rig-153-instrument-spec.md) | testing-strategy, onboarding-flow, what-rig-is | — | — |
 | 2026-08-31 | current | [2026-08-31-rig-148-gitignore-oracle](../reasoning/2026-08-31-rig-148-gitignore-oracle.md) | graft-mechanics, install-manifest-removal | — | oracle, rig-148 |
 | 2026-08-31 | historical | [2026-08-31-post-install-rig-onboarding-skill](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md) | onboarding-flow | — | — |
