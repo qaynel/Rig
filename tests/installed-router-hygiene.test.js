@@ -88,3 +88,24 @@ test('RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ pa
   );
   assert.match(rigRule, /rig-implementation/, 'must reference the skill by name');
 });
+
+test('RIG-149 — prefix self-collision guard is present for the rig router skill', () => {
+  const payloadSrc = read('rig/lib/payload.js');
+  assert.match(
+    payloadSrc,
+    /skill\.name\s*===\s*prefix\.replace/,
+    'payload.js must carry the self-collision guard so _core installs as "rig" not "rig-rig"',
+  );
+});
+
+test('RIG-148 — manifest writes a gitignore block for Rig-owned install paths', () => {
+  const manifest = JSON.parse(read('rig/manifest.json'));
+  // manifest shape is { pointer, payload: [...] }
+  const ops = manifest.payload ?? [];
+  const gitignoreOp = ops.find((e) => e.op === 'ensure_gitignore_block');
+  assert.ok(gitignoreOp, 'manifest must have an ensure_gitignore_block entry');
+  const lines = gitignoreOp.lines ?? [];
+  assert.ok(lines.includes('.rig/'), 'must ignore .rig/');
+  assert.ok(lines.some((l) => /\.claude\/skills\/rig-\*/.test(l)), 'must ignore .claude/skills/rig-*');
+  assert.ok(lines.some((l) => /\.agents\/skills\/rig-\*/.test(l)), 'must ignore .agents/skills/rig-*');
+});

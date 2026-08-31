@@ -72,7 +72,21 @@ call, negative assertions plus a positive pincer so bare deletion does not
 pass. Red by design until those three land. It is the first concrete instance
 of the mechanical breakage-count check [[RIG-153]] specifies for the
 RIG-149…152 defect classes.
-[reasoning trace](../reasoning/2026-08-31-routing-hygiene-oracle.md)
+[routing-hygiene oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md)
+
+**Adaptation measurement instrument spec (RIG-153, 2026-08-31).**
+The technical spec extends `tests/installed-router-hygiene.test.js` with two
+further test blocks: RIG-149 (`rig`→`rig-rig` self-collision guard in
+`payload.js`) and RIG-148 (`ensure_gitignore_block` in `manifest.json`). This
+completes the full six-defect-shape coverage of the RIG-148→152 inventory —
+the mechanical half of the adaptation-measurement instrument. The model-judged
+half lives in `wiki/specs/adaptation-measurement-rubric.md`: 2 hard gates
+(G1 Config Preserved, G2 Zero Breakages — MET/UNMET), 3 graded axes (A1
+Signal-vs-Noise, A2 Net Capability Added, A3 Reversibility — fail/partial/pass,
+equal weight), per-axis profile format, clean-checkout procedure, and prompt
+template. No API-key-wired model script; the judge is human-operated.
+[instrument spec](../reasoning/2026-08-31-rig-153-instrument-spec.md) ·
+[rubric](../specs/adaptation-measurement-rubric.md)
 
 Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads
