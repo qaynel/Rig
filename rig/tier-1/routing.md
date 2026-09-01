@@ -26,12 +26,13 @@ and keep a running reasoning trace — on a long or multi-step task, write down
 what you just did, what's in flight, and what's next as you go rather than
 saving it all for a final summary.
 
-Onboarding note: in Rig's own development repo that trace is a dated file
-under `wiki/reasoning/` rolled into a status index on a short cycle of active
-work, per `CLAUDE.md`. When installing Rig into another repo, map that
-practice onto whatever progress-tracking convention the project already has,
-or drop it if the project has none — do not stand up a `wiki/` the repo never
-asked for.
+Onboarding note: in Rig's own development repo, the read-before-grep step is
+one page — `wiki/agent-primer.md` — and the trace is a dated file under
+`wiki/reasoning/` rolled into a generated status index on a short cycle of
+active work, per `CLAUDE.md` and `wiki/reasoning/README.md`. When installing
+Rig into another repo, map that practice onto whatever primer-or-equivalent
+and progress-tracking convention the project already has, or drop it if the
+project has none — do not stand up a `wiki/` the repo never asked for.
 
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`, and

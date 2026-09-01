@@ -4,6 +4,11 @@ Where new thinking lands. This is the intake for everything the project reasons
 out from here on: grilling answers, design arguments, review responses, decisions
 made in chat, notes written on the way to a decision.
 
+Before you file one, you have already read `wiki/agent-primer.md` — that page
+is the single mandated read that points at `Home.md`, `status.md`, and the
+hubs and indexes the task's routing decision needs, in the order to read
+them.
+
 ## The rule
 
 **A trace is written once and never edited.** It records what was thought at a

@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-02 | current | [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md) | agent-working-conventions | — | interdependency |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step4-archive](../reasoning/2026-09-02-wiki-maintenance-step4-archive.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step3-disposition](../reasoning/2026-09-02-wiki-maintenance-step3-disposition.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step2-hub-sync](../reasoning/2026-09-02-wiki-maintenance-step2-hub-sync.md) | agent-working-conventions | — | — |

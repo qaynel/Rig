@@ -22,12 +22,12 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Active delivery beyond the bootstrap is **mandatory agent-tech-safety
   baseline + à-la-carte catalogue** (`family → group → service → grade`).
   Fixed Basic / mid / Advanced install packages are deprecated (GA-9g).
-- Project knowledge starts at `wiki/Home.md`; current authorities live under
-  `wiki/gate1/` and `wiki/gate2/`, with live state in `wiki/status.md`.
-  The operator guide remains at `docs/advanced/operator.md`.
+- Project knowledge starts at `wiki/agent-primer.md`; that page routes you to
+  `wiki/Home.md`, `wiki/status.md`, and the hubs and indexes the task's
+  decision needs. Current authorities live under `wiki/gate1/` and
+  `wiki/gate2/`. The operator guide remains at `docs/advanced/operator.md`.
 - The legacy MCP-configurator CLI remains as a compatibility path; its
-  historical design is archived under
-  `wiki/sources/superseded/deprecated-tier-taxonomy/`.
+  historical design is archived under `wiki/archive/deprecated-tier-taxonomy/`.
 
 ## Working Rules
 
@@ -36,12 +36,12 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Preserve Gate 1 acceptance artifacts unless the task is explicitly routed back
   to grilling.
 - For design work, update the relevant decision log and companion spec together.
-- Treat `wiki/Home.md` as the first source of truth. Read the wiki — status,
-  topic hubs, indexes — before grepping the code, asking questions, making
-  suggestions, or sketching a solution, and keep it in sync with the branch:
-  any change that moves what is true updates the wiki in the same change. A
-  wiki that has drifted from the branch is a defect. Reference it, maintain it,
-  update it.
+- Treat `wiki/agent-primer.md` as the first source of truth. Read it — and
+  follow only the links it lists as far as the task requires — before grepping
+  the code, asking questions, making suggestions, or sketching a solution,
+  and keep the wiki in sync with the branch: any change that moves what is
+  true updates the wiki in the same change. A wiki that has drifted from the
+  branch is a defect. Reference it, maintain it, update it.
 - On a task that runs long or has several steps, do not hold everything for a
   finish-line summary. Check the time and file a dated reasoning trace with what
   was just done, what is in flight, and what is next at least every three
