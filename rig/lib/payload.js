@@ -392,9 +392,21 @@ function journalWriter(target) {
     : [];
   let seq = records.reduce((max, record) => Math.max(max, record.seq || 0), 0);
   const latestByPath = new Map();
+  // Ownership of a path is decided by the record that first put bytes there,
+  // not the newest one: every write after the first carries a preimage, so the
+  // latest record cannot distinguish "Rig created this" from "Rig replaced it".
+  // An applied delete ends that lineage — the path is free again, and whatever
+  // writes it next is its new origin.
+  const originByPath = new Map();
+  const trackOrigin = (record) => {
+    if (record.operation === 'delete_owned' && record.state === 'applied') originByPath.delete(record.path);
+    else if (!originByPath.has(record.path)) originByPath.set(record.path, record);
+  };
   let transactionStarted = false;
   for (const record of records) {
-    if (Number.isInteger(record.seq) && record.path) latestByPath.set(record.path, record);
+    if (!Number.isInteger(record.seq) || !record.path) continue;
+    latestByPath.set(record.path, record);
+    trackOrigin(record);
   }
 
   const append = (record) => {
@@ -408,8 +420,31 @@ function journalWriter(target) {
     transactionStarted = true;
   };
 
+  // An interrupted journalled delete leaves a pending delete_owned record as the
+  // path's newest entry. Both halves are recoverable without guessing: absence
+  // means the unlink landed and only the applied record was lost, and an
+  // untouched preimage means the unlink never ran. Any other bytes are a real
+  // conflict — someone else owns the path now — so refuse instead of deleting.
+  const resolvePendingDelete = (rel, abs) => {
+    const prior = latestByPath.get(rel);
+    if (!prior || prior.operation !== 'delete_owned' || prior.state !== 'pending') return false;
+    start();
+    if (fs.existsSync(abs)) {
+      if (sha256(fs.readFileSync(abs)) !== (prior.preimage_digest || null)) {
+        throw new Error(`rig: conflicting pending payload delete: ${rel}`);
+      }
+      fs.unlinkSync(abs);
+    }
+    const applied = { ...prior, state: 'applied', digest: null };
+    append(applied);
+    latestByPath.set(rel, applied);
+    trackOrigin(applied);
+    return true;
+  };
+
   const write = (ignoredTarget, rel, contents, mode, ownershipOverride, details = {}) => {
     const abs = containedPath(target, rel);
+    resolvePendingDelete(rel, abs);
     const desired = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
     const before = fs.existsSync(abs) ? fs.readFileSync(abs) : null;
     const currentMode = fs.existsSync(abs) ? fs.statSync(abs).mode & 0o777 : null;
@@ -427,6 +462,7 @@ function journalWriter(target) {
         const applied = { ...prior, state: 'applied', digest: desiredDigest };
         append(applied);
         latestByPath.set(rel, applied);
+        trackOrigin(applied);
         return;
       }
       if (currentDigest !== (prior.preimage_digest || null)) {
@@ -454,6 +490,7 @@ function journalWriter(target) {
           };
           append(preimageRecord);
           latestByPath.set(preimageRel, preimageRecord);
+          trackOrigin(preimageRecord);
         }
       }
       record = {
@@ -480,24 +517,27 @@ function journalWriter(target) {
     };
     append(applied);
     latestByPath.set(rel, applied);
+    trackOrigin(applied);
   };
   // Journalled delete. Absence is a state Rig can only restore for a path it
-  // created: if the file existed before Rig touched it, unlinking would destroy
-  // repository-owned bytes, so the caller keeps the (possibly empty) file and
-  // reports that honestly instead. Both halves of the delete are journalled —
-  // pending before the unlink, applied after — so an interrupted transaction is
-  // recoverable exactly like a write.
+  // created — read from the path's origin record, since every graft after the
+  // first leaves a preimage on the newest one. If the file existed before Rig
+  // touched it, unlinking would destroy repository-owned bytes, so the caller
+  // keeps the (possibly empty) file and reports that honestly instead. Both
+  // halves of the delete are journalled — pending before the unlink, applied
+  // after — and `resolvePendingDelete` recovers either interruption.
   const remove = (ignoredTarget, rel, expectedDigest) => {
     const abs = containedPath(target, rel);
+    if (resolvePendingDelete(rel, abs)) return { removed: true };
     const prior = latestByPath.get(rel);
-    if (!prior || prior.preimage_digest !== null) return { removed: false, reason: 'preexisting' };
-    if (!fs.existsSync(abs)) {
-      if (prior.state === 'applied' && prior.digest === null) return { removed: true };
-    } else {
-      const liveDigest = sha256(fs.readFileSync(abs));
-      if (expectedDigest && liveDigest !== expectedDigest && liveDigest !== prior.desired_digest) {
-        throw new Error(`rig: refusing to delete ${rel}: live bytes do not match expected`);
-      }
+    if (prior?.operation === 'delete_owned' && prior.state === 'applied' && !fs.existsSync(abs)) {
+      return { removed: true };
+    }
+    const origin = originByPath.get(rel);
+    if (!origin || origin.preimage_digest !== null) return { removed: false, reason: 'preexisting' };
+    const liveDigest = fs.existsSync(abs) ? sha256(fs.readFileSync(abs)) : null;
+    if (liveDigest !== null && expectedDigest && liveDigest !== expectedDigest && liveDigest !== prior?.desired_digest) {
+      throw new Error(`rig: refusing to delete ${rel}: live bytes do not match expected`);
     }
     start();
     const pending = {
@@ -507,14 +547,17 @@ function journalWriter(target) {
       operation: 'delete_owned',
       transaction_kind: 'install',
       state: 'pending',
-      preimage_digest: prior.desired_digest ?? null,
+      // The bytes being removed, so a recovering writer can prove the unlink
+      // never ran rather than guessing at a path someone else has since taken.
+      preimage_digest: liveDigest,
       desired_digest: null,
     };
     append(pending);
-    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+    if (liveDigest !== null) fs.unlinkSync(abs);
     const applied = { ...pending, state: 'applied', digest: null };
     append(applied);
     latestByPath.set(rel, applied);
+    trackOrigin(applied);
     return { removed: true };
   };
 

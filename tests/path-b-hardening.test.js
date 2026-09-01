@@ -527,6 +527,7 @@ describe('Task 5 (Issue 6) — journaled delete restores absence', () => {
   const { journalWriter, upsertGraftSection, removeGraftSection } = require(
     path.join(__dirname, '..', 'rig', 'lib', 'payload.js'),
   );
+  const { uninstall } = require(path.join(__dirname, '..', 'rig', 'lib', 'lifecycle.js'));
   const CAPABILITY = 'demo.only';
   const MANIFEST_REL = '.rig/install-manifest.jsonl';
 
@@ -632,6 +633,175 @@ describe('Task 5 (Issue 6) — journaled delete restores absence', () => {
         journal(target).filter((r) => r.path === 'PRE.md' && r.operation === 'delete_owned').length,
         0,
         'no delete may be journalled for a file Rig did not create',
+      );
+    });
+  });
+
+  it('AT-PB-hard delete — ownership survives several grafts stacked on one Rig-created file', async () => {
+    await h.withRepo((target) => {
+      // Every graft after the first writes a record with a non-null preimage.
+      // Ownership must be read from the record that created the path, or the
+      // common uninstall shape (stack grafts, then drop them) loses the delete.
+      const rel = '.rig/foo.md';
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: 'demo.a', version: 1,
+        content: 'First body.', expected_file_digest: null,
+      });
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: 'demo.b', version: 1,
+        content: 'Second body.', expected_file_digest: digestOf(target, rel),
+      });
+      mutate(target, removeGraftSection, {
+        path: rel, capability: 'demo.a', expected_file_digest: digestOf(target, rel),
+      });
+      const removed = mutate(target, removeGraftSection, {
+        path: rel, capability: 'demo.b', expected_file_digest: digestOf(target, rel),
+      });
+      assert.equal(removed.file_digest, null, 'a deleted file has no digest');
+      assert.equal(
+        fs.existsSync(path.join(target, rel)),
+        false,
+        'a Rig-created file must be unlinked however many grafts were stacked on it',
+      );
+    });
+  });
+
+  it('AT-PB-hard delete — the repository reclaims a path Rig deleted, and Rig stops owning it', async () => {
+    await h.withRepo((target) => {
+      const rel = '.rig/foo.md';
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: null,
+      });
+      mutate(target, removeGraftSection, {
+        path: rel, capability: CAPABILITY, expected_file_digest: digestOf(target, rel),
+      });
+      // The repository writes its own file at the freed path, then asks Rig to
+      // graft into it. Rig created the *old* file, not this one.
+      fs.writeFileSync(path.join(target, rel), 'repository bytes\n');
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: h.sha256('repository bytes\n'),
+      });
+      const removed = mutate(target, removeGraftSection, {
+        path: rel, capability: CAPABILITY, expected_file_digest: digestOf(target, rel),
+      });
+      assert.equal(removed.changed, true);
+      assert.equal(
+        fs.readFileSync(path.join(target, rel), 'utf8').trim(),
+        'repository bytes',
+        'a delete before the repository reclaimed the path must not license deleting its bytes',
+      );
+    });
+  });
+
+  it('AT-PB-hard delete — an interrupted delete whose unlink never ran is completed, not wedged', async () => {
+    await h.withRepo((target) => {
+      const rel = '.rig/foo.md';
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: null,
+      });
+      // Crash between the pending record and the unlink.
+      const live = digestOf(target, rel);
+      fs.appendFileSync(path.join(target, MANIFEST_REL), `${JSON.stringify({
+        seq: 900, path: rel, ownership: 'delete_owned', operation: 'delete_owned',
+        transaction_kind: 'install', state: 'pending', preimage_digest: live, desired_digest: null,
+      })}\n`);
+
+      const writer = journalWriter(target);
+      const result = writer.remove(target, rel);
+      writer.finish();
+      assert.equal(result.removed, true);
+      assert.equal(fs.existsSync(path.join(target, rel)), false, 'recovery must finish the unlink');
+      assert.ok(
+        journal(target).some((r) => r.path === rel && r.operation === 'delete_owned' && r.state === 'applied'),
+        'recovery must journal the delete as applied',
+      );
+    });
+  });
+
+  it('AT-PB-hard delete — an interrupted delete does not block a later write to the same path', async () => {
+    await h.withRepo((target) => {
+      const rel = '.rig/foo.md';
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: null,
+      });
+      // Crash after the unlink but before the applied record was journalled.
+      const live = digestOf(target, rel);
+      fs.appendFileSync(path.join(target, MANIFEST_REL), `${JSON.stringify({
+        seq: 900, path: rel, ownership: 'delete_owned', operation: 'delete_owned',
+        transaction_kind: 'install', state: 'pending', preimage_digest: live, desired_digest: null,
+      })}\n`);
+      fs.unlinkSync(path.join(target, rel));
+
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body again.', expected_file_digest: null,
+      });
+      assert.ok(fs.existsSync(path.join(target, rel)), 'the path must not be wedged by the lost delete');
+      const records = journal(target).filter((r) => r.path === rel);
+      assert.ok(
+        records.some((r) => r.operation === 'delete_owned' && r.state === 'applied'),
+        'the interrupted delete must be resolved before the path is written again',
+      );
+      assert.equal(records.at(-1).state, 'applied');
+      assert.equal(records.at(-1).ownership, 'graft_managed');
+    });
+  });
+
+  // The production caller. `tests/path-b-graft.test.js` is frozen under the
+  // gate-1 signature, so uninstall coverage for the delete lives here.
+  it('AT-PB-hard delete — uninstall unlinks a file Rig created under several stacked grafts', async () => {
+    await h.withRepo((target) => {
+      // CLAUDE.md is absent from the fixture: it exists only because Rig grafts
+      // into it. Uninstall strips the capabilities one at a time, so the last
+      // removal decides ownership from a journal that already holds a preimage.
+      const file = path.join(target, 'CLAUDE.md');
+      mutate(target, upsertGraftSection, {
+        path: 'CLAUDE.md', capability: 'demo.a', version: 1,
+        content: 'First body.', expected_file_digest: null,
+      });
+      mutate(target, upsertGraftSection, {
+        path: 'CLAUDE.md', capability: 'demo.b', version: 1,
+        content: 'Second body.', expected_file_digest: digestOf(target, 'CLAUDE.md'),
+      });
+
+      const result = uninstall(target);
+      assert.deepEqual(result.best_effort, []);
+      assert.equal(result.status, 'removed');
+      assert.equal(
+        fs.existsSync(file),
+        false,
+        'uninstall must restore absence for a file Rig created, not leave a zero-byte husk',
+      );
+    });
+  });
+
+  it('AT-PB-hard delete — a journalled delete leaves nothing for uninstall to reclaim', async () => {
+    await h.withRepo((target) => {
+      const file = path.join(target, 'CLAUDE.md');
+      mutate(target, upsertGraftSection, {
+        path: 'CLAUDE.md', capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: null,
+      });
+      mutate(target, removeGraftSection, {
+        path: 'CLAUDE.md', capability: CAPABILITY,
+        expected_file_digest: digestOf(target, 'CLAUDE.md'),
+      });
+      assert.equal(fs.existsSync(file), false, 'precondition: the journalled delete restored absence');
+
+      // The newest record for the path is a delete: absence is already the end
+      // state, so uninstall has nothing to reclaim and must not report the path
+      // as unattributable — that would wedge uninstall in best_effort forever.
+      const result = uninstall(target);
+      assert.deepEqual(result.best_effort, []);
+      assert.equal(result.status, 'removed');
+      assert.equal(
+        fs.existsSync(path.join(target, MANIFEST_REL)),
+        false,
+        'a fully reclaimed install drops its journal',
       );
     });
   });

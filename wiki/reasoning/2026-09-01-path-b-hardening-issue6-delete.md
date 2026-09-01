@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: graft-mechanics, install-manifest-removal, trust-and-failure-boundaries
 decisions:
-status: current
+status: superseded
 supersedes:
 tags: trap
 summary: The journal writer gained `remove()`, a journalled delete that restores absence for a file Rig created; `removeGraftSection` calls it when the last managed section leaves, and reports a preserved-but-empty repository file as an empty file rather than as absence.

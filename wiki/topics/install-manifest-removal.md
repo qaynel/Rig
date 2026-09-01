@@ -85,6 +85,17 @@ beyond the selected target.
 - CI path-identity ruling: [reasoning trace](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
 - CI realpath ruling: [reasoning trace](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
 
+## A recorded absence is not something to reclaim
+
+The journal now carries `delete_owned` records whose desired end state is
+absence (`desired_digest: null`). Uninstall skips them before path attribution:
+there is nothing left on disk to reclaim, and running one through the ownership
+rules files a clean path as best-effort, which keeps the journal alive and makes
+every later uninstall report best-effort again. `onboarding-check` excludes them
+from its allowed-projection set for the mirror-image reason — an applied record
+licenses the file it asked for, and a delete asked for no file.
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
 ## Remaining work
 
 A real install→uninstall roundtrip now proves the dedicated Rig workflow is

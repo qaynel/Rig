@@ -292,3 +292,13 @@ Those scoped capability controls are now implemented in the one canonical
 runner, with direct and installed-byte evidence for resource ceilings,
 three-state network handling, committed authority, and fail-closed outcomes.
 [Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
+
+An interrupted journalled delete is now recovered rather than left as a wedge.
+The pending `delete_owned` record states both ends of the operation, so a later
+`write()` or `remove()` can prove which half landed — an absent file means the
+unlink ran and only the applied record was lost; a file holding exactly the
+recorded preimage means the unlink never ran. Any other bytes are a genuine
+conflict and refuse. Before this, a crash between the two halves left the path
+neither writable (the pending delete's `desired_digest: null` matched no
+intended write) nor deletable (its non-null preimage read as pre-existing).
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)

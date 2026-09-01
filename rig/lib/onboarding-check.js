@@ -155,8 +155,12 @@ function projectionFailures(target, state, journal) {
     }
   }
 
+  // An applied record licenses the file it asked for. A journalled delete asks
+  // for absence (`desired_digest: null`), so it licenses nothing — a projection
+  // standing where Rig recorded a deletion is an unapproved write, not an
+  // approved one.
   const allowed = new Set([...journal.latest.values()]
-    .filter((record) => record.state === 'applied')
+    .filter((record) => record.state === 'applied' && record.desired_digest !== null)
     .map((record) => record.path));
   for (const relativeRoot of PROJECTION_ROOTS) {
     const root = containedPath(target, relativeRoot);

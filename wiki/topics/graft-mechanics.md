@@ -58,6 +58,20 @@ symlinks, hard links, unsafe paths, and unsupported targets before mutation;
 the install journal records only the managed section(s), and lifecycle removal
 keeps edited user content as a named best-effort case. [Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
 
+**Removing the last graft restores absence, landed 2026-09-01.** When the last
+managed section leaves a file that exists only because Rig grafted it, the
+journal writer unlinks the file through a two-phase `delete_owned` record rather
+than leaving a zero-byte husk; a file that predates Rig is kept and reported as
+the empty file it is, never as absence. Ownership is read from the record that
+*first* wrote the path, not the newest one — every write after the first carries
+a preimage, so the latest record cannot tell "Rig created this" from "Rig
+replaced it", and reading it there made the delete refuse in exactly the
+stacked-graft shape uninstall produces. An applied delete ends the lineage, so a
+path the repository reclaims afterwards is no longer Rig's to delete, and an
+interrupted delete is recovered by `write()` or `remove()` instead of wedging
+the path in both directions. [Delete trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete.md) ·
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
 **Open (2026-08-30): the payload's own ownership classes have no `.gitignore`
 answer.** A default install writes Rig-owned files (`.rig/`, host-specific
 `.claude/skills/rig-*` / `.agents/skills/rig-*`) into the target working tree
