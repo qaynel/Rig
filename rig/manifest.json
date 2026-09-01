@@ -46,7 +46,7 @@
     { "op": "copy", "from": ".agents/workflows/rig-gain.md", "to": ".agents/workflows/rig-gain.md", "host": "antigravity" },
     { "op": "copy", "from": ".agents/workflows/rig-help.md", "to": ".agents/workflows/rig-help.md", "host": "antigravity" },
 
-    { "op": "install_vendored_skills", "host": "neutral", "destination": ".rig/skills/{name}" },
+    { "op": "install_vendored_skills", "host": "neutral", "destination": ".rig/skills/{name}", "gate": "suppress_on_instruction_only_adaptive" },
     { "op": "install_vendored_skills", "host": "claude", "destination": ".claude/skills/{name}", "rewrite_name_prefix": "rig-", "gate": "default_delivery" },
     { "op": "install_vendored_skills", "host": ["codex", "antigravity"], "destination": ".agents/skills/{name}", "rewrite_name_prefix": "rig-", "gate": "default_delivery" },
 

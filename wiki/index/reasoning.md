@@ -12,6 +12,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | current | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-remediation-t3-install-gate](../reasoning/2026-09-01-path-b-remediation-t3-install-gate.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t2-playbook](../reasoning/2026-09-01-path-b-remediation-t2-playbook.md) | — | — | — |
 | 2026-09-01 | current | [2026-09-01-path-b-remediation-docfix-consistency](../reasoning/2026-09-01-path-b-remediation-docfix-consistency.md) | specification-gate, documentation-consistency | — | — |
 | 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |

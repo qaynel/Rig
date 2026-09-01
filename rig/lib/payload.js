@@ -2,15 +2,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { listVendoredSkills } = require('./skills');
-const { discoverHosts, REGISTRY } = require('./host-capabilities');
+const { discoverHosts, REGISTRY, INSTRUCTION_ONLY_HOSTS } = require('./host-capabilities');
 const { containedPath } = require('./path-safety');
 
 const ROOT = path.join(__dirname, '..', '..');
+// Instruction-only hosts: rely on `.rig/skills/` as their Rig-managed skill-discovery
+// path. Sourced from the host registry so the list is maintained in one place.
 // Antigravity co-reads `.agents/skills` natively and also gets `.rig/skills` as
 // the instruction-only fallback (same gate as cursor/gemini/etc.).
-const INSTRUCTION_ONLY = [
-  'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot', 'antigravity',
-];
+const INSTRUCTION_ONLY = [...INSTRUCTION_ONLY_HOSTS];
 const PAYLOAD_HOSTS = [
   'claude', 'codex', 'antigravity', 'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot',
 ];
@@ -455,6 +455,12 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
     // host discovery and stages the rest under .rig/runtime for an approved
     // selective projection. The legacy markdown-only install keeps its fan-out.
     if (entry.gate === 'default_delivery' && activeDelivery) continue;
+    // The neutral optional-skill fan-out is suppressed for instruction-only
+    // hosts in adaptive mode: they must see only the 8 mandatory skills before
+    // approval (AC-T3).  Bare installs (no hosts) and legacy installs are
+    // unaffected: instructionOnly is false when no hosts are selected, and
+    // activeDelivery is false in legacy mode.
+    if (entry.gate === 'suppress_on_instruction_only_adaptive' && instructionOnly && activeDelivery) continue;
     if (entry.op === 'copy') copyOp(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'seed_user_file') seedUserFile(target, entry.from, entry.to, writeFile);
     else if (entry.op === 'copy_tree') copyTreeOp(target, entry.from, entry.to, writeFile);

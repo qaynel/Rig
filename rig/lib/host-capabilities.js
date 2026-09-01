@@ -361,11 +361,24 @@ function materializeSelectedHosts(target, hostIds) {
   return results;
 }
 
+// Hosts that rely on `.rig/skills/` as their Rig-managed skill-discovery path.
+// This includes hosts where Rig has no native skill-directory manifest entry,
+// so the instruction-only fallback is the only way skills surface to the agent.
+// cursor/windsurf/cline/kiro/gemini/copilot/antigravity: no native Rig skill
+//   projection exists for their skill surface.
+// opencode/devin: have a vendor native_skill surface but Rig does not write
+//   to it; they depend on .rig/skills/ for discovery.
+const INSTRUCTION_ONLY_HOSTS = new Set([
+  'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot', 'antigravity',
+  'opencode', 'devin',
+]);
+
 module.exports = {
   REGISTRY,
   DEFAULT_CAPABILITIES,
   RESEARCHED_ON,
   HOST_DETECTION,
+  INSTRUCTION_ONLY_HOSTS,
   getCapabilities,
   materializeHostAdapters,
   discoverHosts,

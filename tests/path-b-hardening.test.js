@@ -90,3 +90,72 @@ describe('Task 2 — single playbook write per install mode', () => {
     });
   });
 });
+
+describe('Task 3 — instruction-only hosts see only 8 mandatory skills after adaptive install', () => {
+  const h = require('./helpers/path-b');
+  const path = require('path');
+
+  // The 8 mandatory skills installed to .rig/skills/ for instruction-only hosts.
+  // 7 are tier-1 phase skills gated by instruction_only_selected; 1 is the
+  // adaptive-mode onboarding playbook gated by active_delivery.
+  const MANDATORY_SKILLS = [
+    'grilling', 'product-design', 'implementation', 'execution',
+    'tdd', 'debugging', 'code-review', 'onboarding',
+  ];
+
+  // Instruction-only hosts: rely on .rig/skills/ as their Rig-managed discovery
+  // path. opencode and devin have native skill surfaces but Rig does not write
+  // to those paths, so they fall back to .rig/skills/ too.
+  const INSTRUCTION_ONLY_HOSTS = ['cursor', 'copilot', 'opencode', 'devin'];
+
+  function skillDirs(target) {
+    const skillsRoot = path.join(target, '.rig', 'skills');
+    if (!fs.existsSync(skillsRoot)) return [];
+    return fs.readdirSync(skillsRoot, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+  }
+
+  for (const host of INSTRUCTION_ONLY_HOSTS) {
+    it(`${host}: adaptive install exposes exactly 8 mandatory skills (not 63)`, async () => {
+      await h.withRepo(async (target) => {
+        const { runPayload } = require(path.join(h.root, 'rig', 'lib', 'payload.js'));
+        runPayload(target, [host], { activeDelivery: true });
+        const discoverable = skillDirs(target);
+        assert.equal(
+          discoverable.length,
+          8,
+          `Expected exactly 8 discoverable skills for ${host}, got ${discoverable.length}: ${discoverable.sort().join(', ')}`,
+        );
+        for (const skill of MANDATORY_SKILLS) {
+          assert.ok(
+            discoverable.includes(skill),
+            `${host}: mandatory skill "${skill}" must be in .rig/skills/`,
+          );
+        }
+      });
+    });
+  }
+
+  it('55-skill staged shelf is NOT inside .rig/skills/ after adaptive install', async () => {
+    await h.withRepo(async (target) => {
+      const { runPayload } = require(path.join(h.root, 'rig', 'lib', 'payload.js'));
+      const { listVendoredSkills } = require(path.join(h.root, 'rig', 'lib', 'skills'));
+      runPayload(target, ['cursor'], { activeDelivery: true });
+      const discoverable = skillDirs(target);
+      const vendored = listVendoredSkills();
+      for (const skill of vendored) {
+        assert.ok(
+          !discoverable.includes(skill.name),
+          `Optional vendored skill "${skill.name}" must not appear in .rig/skills/ before approval`,
+        );
+      }
+      // The 55-skill shelf is staged under .rig/runtime for post-approval projection.
+      const staged = path.join(target, '.rig', 'runtime', 'rig', 'catalog', 'skills');
+      assert.ok(
+        fs.existsSync(staged),
+        'Staged shelf must be present at .rig/runtime/rig/catalog/skills/ for post-approval use',
+      );
+    });
+  });
+});
