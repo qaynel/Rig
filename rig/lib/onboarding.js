@@ -337,8 +337,20 @@ function skillBindings(target, catalog, selected) {
 // that reaches a skill nobody approved — makes the approval stale, not stale
 // data to refresh silently.
 function verifySkillBindings(proposal, catalog, projection) {
-  const bindings = proposal.skill_bindings || [];
-  const bound = new Set(bindings.map(({ id }) => id));
+  const bindings = proposal.skill_bindings;
+  if (!Array.isArray(bindings)) fail('approved skill bindings are invalid');
+  const selected = new Set(proposal.selected_skills);
+  const bound = new Set();
+  for (const binding of bindings) {
+    if (!binding || typeof binding !== 'object' || typeof binding.id !== 'string'
+      || typeof binding.tree_digest !== 'string' || typeof binding.projected_digest !== 'string') {
+      fail('approved skill binding is invalid');
+    }
+    if (bound.has(binding.id)) fail(`approved skill bindings contain duplicate skill "${binding.id}"`);
+    if (!selected.has(binding.id)) fail(`approved skill binding names unselected skill "${binding.id}"`);
+    bound.add(binding.id);
+  }
+  if (bindings.length !== selected.size) fail('approved skill bindings do not match selected skills');
   for (const id of projection.digests.keys()) {
     if (!bound.has(id)) fail(`stale proposal: projection produced skill "${id}" outside the approved selection`);
   }

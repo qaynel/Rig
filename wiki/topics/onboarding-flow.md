@@ -22,6 +22,13 @@ It also keeps the product promise concrete: Rig first understands the current
 project context, then proposes the smallest harness setup that complements that
 context instead of assuming a clean-slate install.
 
+Approved optional skills are bound to the bytes selected: the proposal carries
+the source-tree and projected-bytes digests, and apply/check re-derive them.
+Binding rows are engine-computed and must be complete, unique, and limited to
+the selected skills; malformed persisted approval state fails closed.
+[Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+[Binding-validation trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
+
 ## What the adaptive install lays down
 
 Path B's install is deliberately inert. It pins the release skill catalogue at
@@ -69,6 +76,8 @@ distinct consent and trust boundaries. [Rejected approaches](../index/rejected.m
 - Untrusted repository-task execution: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
 - Diff-scoped lint-format check-scope default: [reasoning trace](../reasoning/2026-08-21-lint-format-check-scope.md)
 - Stale/tampered command-drift ruling: [reasoning trace](../reasoning/2026-08-21-lint-format-command-drift.md)
+- Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+- Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
 
 ## What is still open
 

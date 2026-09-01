@@ -27,8 +27,9 @@ presence, global-write, and report cases make the failures observable.
 ## What was rejected
 
 Path traversal, escaping symlinks, unknown keys, shell execution during scans,
-stale/replayed approval, silent fallback, user-file replacement, artifact
-uploads, and unowned global deletion are refusals, not degraded success.
+stale/replayed approval, silent fallback, duplicate approval bindings,
+user-file replacement, artifact uploads, and unowned global deletion are
+refusals, not degraded success.
 [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 
 ## Authorities and sources
@@ -38,6 +39,8 @@ uploads, and unowned global deletion are refusals, not degraded success.
 - Security sources: [`sources/reference/`](../sources/reference/)
 - Lint-format execution-consent ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-plan-bound-execution.md)
 - Untrusted repository-task ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
+- Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+- Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
 
 ## What is still open
 

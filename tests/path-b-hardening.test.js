@@ -1265,4 +1265,25 @@ describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () =>
       );
     }, { install: true });
   });
+
+  it('AT-PB-hard binding — duplicate approved binding rows are rejected', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const statePath = path.join(target, '.rig/state.json');
+      const persisted = h.readJson(statePath);
+      persisted.proposal.skill_bindings.push({ ...persisted.proposal.skill_bindings[0] });
+      h.writeJson(statePath, persisted);
+
+      assert.throws(
+        () => h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: signApproval(target, proposed.proposal_digest),
+        }),
+        /duplicate.*binding|binding.*duplicate/i,
+      );
+    }, { install: true });
+  });
 });
