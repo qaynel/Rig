@@ -54,4 +54,4 @@ gate says otherwise.
 CLI. They are not current install packages; GA-9g replaced them with one
 catalogue plus per-service grades. `Advanced` in gate filenames names the
 historical workstream, not a selectable package. See the [timeline](index/timeline.md)
-and [superseded taxonomy](sources/superseded/deprecated-tier-taxonomy/README.md).
+and [superseded taxonomy](archive/deprecated-tier-taxonomy/README.md).

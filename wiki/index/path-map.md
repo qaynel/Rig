@@ -22,7 +22,7 @@
 | `project-dev-docs/archive/grilling/*` | [`wiki/sources/logs/`](../sources/logs/) |
 | `project-dev-docs/archive/foundational/` | [`wiki/sources/superseded/foundational/`](../sources/superseded/foundational/) |
 | `project-dev-docs/archive/tier-1-design-docs/` | [`wiki/sources/superseded/tier-1-design-docs/`](../sources/superseded/tier-1-design-docs/) |
-| `project-dev-docs/archive/deprecated-tier-taxonomy/` | [`wiki/sources/superseded/deprecated-tier-taxonomy/`](../sources/superseded/deprecated-tier-taxonomy/) |
+| `project-dev-docs/archive/deprecated-tier-taxonomy/` | [`wiki/archive/deprecated-tier-taxonomy/`](../archive/deprecated-tier-taxonomy/) |
 
 ## Why some links inside the documents are broken
 

@@ -51,19 +51,19 @@ and a source disagree, the source wins and the topic is what's wrong.
   before the product had the name Rig.
 - [`tier-1-mvp-design.md`](../sources/superseded/tier-1-design-docs/tier-1-mvp-design.md)
   — the 2026-07-16 Tier 1 MVP design exported from that grill session.
-- [`deprecated-tier-taxonomy/README.md`](../sources/superseded/deprecated-tier-taxonomy/README.md)
+- [`deprecated-tier-taxonomy/README.md`](../archive/deprecated-tier-taxonomy/README.md)
   — the retired Basic / mid / Advanced tier packaging (archived 2026-07-24,
   `GA-9g`), replaced by the mandatory safety baseline plus the à-la-carte
   catalogue.
-  - [`tier-2-design.md`](../sources/superseded/deprecated-tier-taxonomy/tier-2-design.md)
+  - [`tier-2-design.md`](../archive/deprecated-tier-taxonomy/tier-2-design.md)
     — the superseded Tier 2 Basic-vs-Advanced package split.
-  - [`basic/basic-design.md`](../sources/superseded/deprecated-tier-taxonomy/basic/basic-design.md)
+  - [`basic/basic-design.md`](../archive/deprecated-tier-taxonomy/basic/basic-design.md)
     — the archived Basic design: the credentialed multi-host MCP configurator.
-  - [`basic/basic-implementation-plan.md`](../sources/superseded/deprecated-tier-taxonomy/basic/basic-implementation-plan.md)
+  - [`basic/basic-implementation-plan.md`](../archive/deprecated-tier-taxonomy/basic/basic-implementation-plan.md)
     — its task-by-task build plan.
-  - [`basic/basic-test-plan.md`](../sources/superseded/deprecated-tier-taxonomy/basic/basic-test-plan.md)
+  - [`basic/basic-test-plan.md`](../archive/deprecated-tier-taxonomy/basic/basic-test-plan.md)
     — the verification plan grounded in the `tests/basic-*.test.js` suite.
-  - [`basic/first-wire-caveats.md`](../sources/superseded/deprecated-tier-taxonomy/basic/first-wire-caveats.md)
+  - [`basic/first-wire-caveats.md`](../archive/deprecated-tier-taxonomy/basic/first-wire-caveats.md)
     — open first-wire questions the Basic design left for OpenClaw and CodeWhale.
 
 Do not treat anything under `superseded/` as current intent — each file there

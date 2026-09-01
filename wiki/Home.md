@@ -31,6 +31,11 @@ update it as part of your change — never as an afterthought.
 Plus [`reasoning/`](reasoning/) — where new thinking lands, verbatim and dated, and
 [`specs/`](specs/) — subordinate scope and status documents.
 
+A sixth location, [`archive/`](archive/), holds relocated pages that are no
+longer part of any live navigation. It is not one of the five kinds and is not
+part of the read-before-grep mandate; go there only when hunting for a
+specific file you already know exists.
+
 **The rule that keeps this honest:** topics are rewritten freely; sources and
 reasoning traces are never edited. When they disagree, the source wins and the
 topic is wrong.
