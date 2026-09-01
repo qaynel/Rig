@@ -21,7 +21,7 @@ Updated `wiki/gate2/technical-spec.md` to reflect the signed oracle state ("pend
 **What was completed:**
 1. Modified `wiki/gate2/technical-spec.md` line 5 to reflect signed oracle state
 2. Created `tests/path-b-hardening.test.js` with consistency check
-3. Created `wiki/reasoning/2026-09-01-path-b-remediation-task-1-doc-consistency.md`
+3. Created `wiki/reasoning/2026-09-01-path-b-remediation-docfix-consistency.md`
 4. Regenerated wiki/status.md and wiki/index/reasoning.md
 
 **Why `wiki/gate1/acceptance.md` was not modified:**
