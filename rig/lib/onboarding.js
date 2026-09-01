@@ -8,7 +8,9 @@ const { buildOverlaps } = require('./adapt-overlap');
 const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
 const { verifySshsig } = require('./policy');
-const { journalWriter, parseGraftSections, upsertGraftSection } = require('./payload');
+const {
+  journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
+} = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
 const {
   atomicWrite, canonicalProposal, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
@@ -401,6 +403,98 @@ function propose(request) {
   });
 }
 
+const HAND_EDITED = 'obsolete Rig-owned artifact was hand-edited; leaving in place';
+const NOT_RIG_CREATED = 'obsolete Rig-owned artifact is not journal-proven Rig-created; leaving in place';
+
+function liveFilesUnder(target, dirRel) {
+  const dir = containedPath(target, dirRel);
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return [];
+  const found = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const rel = `${dirRel}/${entry.name}`;
+    if (entry.isDirectory()) found.push(...liveFilesUnder(target, rel));
+    else if (entry.isFile()) found.push(rel);
+  }
+  return found;
+}
+
+// Core catalogue skills are staged by the installer: planSkillProjections
+// records them without ever writing them, so apply must not delete them when
+// they leave the selection either. Only what apply projected, apply removes.
+function isApplyOwnedSkill(catalog, skillId) {
+  const skill = catalog.skills.find((row) => row.id === skillId || row.name === skillId);
+  return !skill || skill.source_kind !== 'core';
+}
+
+// Remove the directories a projection leaves behind, stopping at the projected
+// skill root so a scope root (".agents/skills") is never pruned away.
+function pruneEmptyDirs(target, rel, stopRel) {
+  let dir = path.posix.dirname(rel);
+  while (dir === stopRel || dir.startsWith(`${stopRel}/`)) {
+    const abs = containedPath(target, dir);
+    if (!fs.existsSync(abs) || fs.readdirSync(abs).length) return;
+    fs.rmdirSync(abs);
+    dir = path.posix.dirname(dir);
+  }
+}
+
+// Reapplication is a three-set problem: what a previous apply put on disk, what
+// the new proposal wants, and what is live right now. Anything in the first set
+// and not the second is obsolete. It is only deleted when disk still holds
+// exactly the bytes Rig wrote; an obsolete artifact a human has since edited is
+// left in place and reported, because silently deleting their work is worse
+// than leaving a stale file behind.
+function planRemovals(target, state, projection, writer, catalog) {
+  const previousProjections = state.applied?.projections || state.applied?.skills || [];
+  const desiredPaths = new Set(projection.projections.map((row) => row.path));
+  const removals = { projections: [], grafts: [], unreconciled: [] };
+  const seen = new Set();
+  for (const row of previousProjections) {
+    if (desiredPaths.has(row.path) || seen.has(row.path)) continue;
+    seen.add(row.path);
+    if (!isApplyOwnedSkill(catalog, row.skill)) continue;
+    // The ledger records one SKILL.md per host, but a projection may have
+    // written a whole tree, so sweep the live skill directory as well as the
+    // recorded path — otherwise siblings survive their own skill.
+    const root = path.posix.dirname(row.path);
+    for (const rel of new Set([row.path, ...liveFilesUnder(target, root)])) {
+      if (desiredPaths.has(rel)) continue;
+      const live = currentDigest(target, rel);
+      const expected = rel === row.path ? row.sha256 : (writer.latest(rel)?.digest ?? null);
+      if (live !== null && live !== expected) {
+        removals.unreconciled.push({ path: rel, detail: HAND_EDITED });
+        continue;
+      }
+      removals.projections.push({ path: rel, digest: live, root });
+    }
+  }
+  const desiredGrafts = new Set(state.proposal.grafts.map((graft) => `${graft.path}\0${graft.capability}`));
+  for (const row of state.applied?.grafts || []) {
+    if (!desiredGrafts.has(`${row.path}\0${row.capability}`)) removals.grafts.push(row);
+  }
+  return removals;
+}
+
+function applyRemovals(target, removals, writer, graftDigests) {
+  for (const row of removals.projections) {
+    const result = typeof writer.remove === 'function'
+      ? writer.remove(target, row.path, row.digest)
+      : { removed: false };
+    if (result.removed) pruneEmptyDirs(target, row.path, row.root);
+    else removals.unreconciled.push({ path: row.path, detail: NOT_RIG_CREATED });
+  }
+  for (const graft of removals.grafts) {
+    const file = containedPath(target, graft.path);
+    const expected = graftDigests.has(graft.path)
+      ? graftDigests.get(graft.path)
+      : (fs.existsSync(file) ? sha256(fs.readFileSync(file)) : null);
+    const result = removeGraftSection(target, {
+      path: graft.path, capability: graft.capability, expected_file_digest: expected,
+    }, writer);
+    graftDigests.set(graft.path, result.file_digest);
+  }
+}
+
 function requireCurrentRevision(request, state, action) {
   if (!state || !state.proposal) fail(`onboarding ${action} requires a current proposal`);
   if (state.revision !== request.expected_revision) {
@@ -436,6 +530,7 @@ function apply(request) {
     const projection = planSkillProjections(request.target, catalog, state.proposal.selected_skills, writer);
     preflightGrafts(request.target, state.proposal.grafts);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
+    const removals = planRemovals(request.target, state, projection, writer, catalog);
 
     const graftDigests = new Map();
     const appliedGrafts = [];
@@ -453,6 +548,9 @@ function apply(request) {
         graftDigests.set(graft.path, result.file_digest);
         appliedGrafts.push({ ...graft, content_digest: sha256(graft.content.trim()), status: 'applied', file_digest: result.file_digest });
       }
+      // Removals run after the graft upserts so each obsolete section is cut
+      // from the digest the upsert just produced, not from a stale preimage.
+      applyRemovals(request.target, removals, writer, graftDigests);
       for (const owned of state.proposal.owned_files) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
@@ -492,14 +590,23 @@ function apply(request) {
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
         inventory_snapshot: inventorySnapshot,
+        // Recorded, not just returned, so every later check keeps naming the
+        // obsolete artifact this apply refused to delete.
+        ...(removals.unreconciled.length ? { unreconciled: removals.unreconciled } : {}),
       },
       checks: null,
       last_error: null,
     };
     writeIfChanged(request.target, '.rig/grafts.md', renderGrafts(next));
     writeState(request.target, next);
-    return response('apply', request.target, next);
+    return response('apply', request.target, next, { warnings: unreconciledWarnings(next) });
   });
+}
+
+function unreconciledWarnings(state) {
+  return (state.applied?.unreconciled || []).map((row) => ({
+    code: 'unreconciled', path: row.path, detail: row.detail,
+  }));
 }
 
 function failure(code, pathValue, detail) {
@@ -575,7 +682,7 @@ function check(request) {
     const checks = {
       status: hardFailures.length ? 'fail' : 'pass',
       hard_failures: hardFailures,
-      warnings: supplemental.warnings,
+      warnings: [...supplemental.warnings, ...unreconciledWarnings(state)],
       weight: supplemental.weight,
     };
     const phase = hardFailures.length ? 'failed' : 'checked';

@@ -82,3 +82,15 @@ Rig-owned output (tool-cache model — regenerable, never reviewed, re-synced
 by rerunning bootstrap) versus commit it (vendored-config model — reviewed
 and diffed like any other checked-in convention). Recommendation and full
 evidence: [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md).
+
+**Onboarding apply now removes graft sections, not only upserts them
+(2026-09-01).** `removeGraftSection` had exactly one production caller —
+uninstall. A graft that left the approved proposal therefore survived every
+subsequent apply. Apply now calls it for each applied graft the new proposal no
+longer names, after its own upsert loop, so the removal is cut from the digest
+the upsert just produced rather than from a stale preimage; the shared
+`graftDigests` map keeps the chain correct when one file both gains and loses a
+section in the same transaction. Repository-owned prose around the markers is
+untouched, and the Task 5 delete only fires when the last managed section leaves
+a file Rig created.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)

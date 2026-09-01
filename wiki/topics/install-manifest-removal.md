@@ -104,3 +104,17 @@ and common provider files plus forged managed-line records are preserved. Exact
 independently proven reversal of namespaced merges into common CI files remains
 separate work; uninstall currently names those as best-effort. Fresh independent
 review remains the release check on the combined lifecycle.
+
+## The delete primitive's first onboarding caller
+
+`writer.remove` is now called by onboarding `apply` to drop projections a
+re-approved proposal no longer selects. Two limits of the journal's ownership
+answer showed up at that call site. It says yes to installer-staged core skills
+— `bootstrap.sh` created those files, so their origin record has a null preimage
+— which is correct about authorship and wrong about authority, so apply filters
+core skills out before asking. And `applied.projections` records only one
+`SKILL.md` per (skill, host) while a projection may have written a whole tree,
+so removal sweeps the live skill directory too and uses `latest(rel).digest` as
+the expected-bytes proof for siblings the ledger never named. A `removed: false`
+answer is surfaced as an `unreconciled` warning rather than swallowed.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)

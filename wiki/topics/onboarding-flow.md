@@ -324,3 +324,20 @@ under that name for native-dispatch hosts. Full evidence, exact line numbers,
 and a ranked fix list for all of the above:
 [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) ·
 [Path A/B scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)
+
+## Reapplication subtracts as well as adds
+
+**Fixed 2026-09-01.** `apply()` was additive only: it never read the previous
+`state.applied` set, so a second approved proposal that dropped a skill or a
+graft left the first one's artifacts on disk while state truthfully reported
+them gone — and `check` could not see them, because `reconcileApplied` only
+walks the *current* `applied.projections`. Apply now reconciles three sets
+(previously applied, newly approved, live on disk) before the write transaction
+and removes the difference inside it. It refuses to delete in three cases: an
+artifact whose live digest has moved since apply wrote it (a human edited it),
+an installer-staged core catalogue skill (`planSkillProjections` records those
+without ever writing them, so apply must not remove them either), and any path
+the journal cannot prove Rig created. Refusals are returned as `unreconciled`
+warnings and persisted at `state.applied.unreconciled`, so every later `check`
+re-emits them rather than the warning being seen once.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)

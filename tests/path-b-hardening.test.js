@@ -975,3 +975,116 @@ describe('Task 1 — authenticated approval receipts', () => {
     });
   });
 });
+
+describe('Task 3 (Issue 3) — reapplication removes obsolete artifacts', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+
+  const SCOPES = ['.agents/skills', '.claude/skills', '.rig/skills'];
+
+  // `qa-only` is the smallest optional catalogue skill (SKILL.md and nothing
+  // else), so a projection of it is exactly one file per host scope.
+  function cycle(target, proposalOverrides) {
+    const { proposed } = h.prepareAndPropose(target, { proposal: proposalOverrides });
+    return h.handle({
+      schema_version: 1,
+      action: 'apply',
+      target,
+      expected_revision: proposed.revision,
+      approval: signApproval(target, proposed.proposal_digest),
+    });
+  }
+
+  function state(target) {
+    return h.readJson(path.join(target, '.rig/state.json'));
+  }
+
+  it('AT-PB-hard reapply — obsolete skill projection is removed', async () => {
+    await h.withRepo(async (target) => {
+      cycle(target, { selected_skills: ['qa-only'] });
+      const projected = state(target).applied.projections
+        .filter((row) => row.skill === 'qa-only');
+      assert.ok(projected.length, 'precondition: qa-only was projected');
+      for (const row of projected) {
+        assert.ok(fs.existsSync(path.join(target, row.path)), `precondition: ${row.path} exists`);
+      }
+
+      cycle(target, { selected_skills: [] });
+
+      assert.equal(state(target).applied.projections.length, 0);
+      for (const scope of SCOPES) {
+        assert.equal(
+          fs.existsSync(path.join(target, scope, 'rig-qa-only')),
+          false,
+          `stale projection remained under ${scope}`,
+        );
+      }
+    }, { install: true });
+  });
+
+  it('AT-PB-hard reapply — user-edited Rig-owned artifact is preserved and reported', async () => {
+    await h.withRepo(async (target) => {
+      cycle(target, { selected_skills: ['qa-only'] });
+      const projPath = state(target).applied.projections
+        .find((row) => row.skill === 'qa-only').path;
+      fs.appendFileSync(path.join(target, projPath), '\n<!-- human edit -->\n');
+
+      const result = cycle(target, { selected_skills: [] });
+
+      assert.ok(
+        fs.existsSync(path.join(target, projPath)),
+        'edited file must be preserved',
+      );
+      assert.ok(
+        result.warnings?.some((w) => /unreconciled|hand-edited/i.test(w.detail)),
+        `expected unreconciled warning, got ${JSON.stringify(result.warnings)}`,
+      );
+      assert.ok(
+        (state(target).applied.unreconciled || []).some((u) => u.path === projPath),
+        'the unreconciled artifact must be recorded in state so check keeps flagging it',
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard reapply — obsolete graft section is removed from the host file', async () => {
+    await h.withRepo(async (target) => {
+      cycle(target, { selected_skills: [] });
+      const instructions = path.join(target, 'AGENTS.md');
+      assert.match(
+        fs.readFileSync(instructions, 'utf8'),
+        /rig:graft capability="testing\.web-quality-assurance"/,
+        'precondition: the graft landed in AGENTS.md',
+      );
+
+      cycle(target, { selected_skills: [], grafts: [], capabilities: [] });
+
+      assert.doesNotMatch(
+        fs.readFileSync(instructions, 'utf8'),
+        /rig:graft capability="testing\.web-quality-assurance"/,
+        'an unproposed graft section must not survive reapplication',
+      );
+      assert.equal(state(target).applied.grafts.length, 0);
+      assert.match(
+        fs.readFileSync(instructions, 'utf8'),
+        /Keep repository-owned guidance/,
+        'repository-owned prose must survive the graft removal',
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard reapply — a core skill projection is never deleted by apply', async () => {
+    await h.withRepo(async (target) => {
+      cycle(target, { selected_skills: ['rig-debugging'] });
+      const row = state(target).applied.projections
+        .find((entry) => entry.skill === 'rig-debugging');
+      assert.ok(row, 'precondition: the core skill was recorded as a projection');
+
+      cycle(target, { selected_skills: [] });
+
+      assert.ok(
+        fs.existsSync(path.join(target, row.path)),
+        `installer-owned core skill ${row.path} must survive deselection`,
+      );
+    }, { install: true });
+  });
+});
