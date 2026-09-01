@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { signApproval } = require('./path-b-approval');
 
 const root = path.join(__dirname, '..', '..');
 
@@ -124,6 +125,9 @@ function prepareAndPropose(target, overrides = {}) {
   return { prepared, proposed };
 }
 
+// An unsigned, self-asserted receipt. `apply` refuses it: it is kept only so
+// negative cases can hand `apply` a structurally plausible fake. Positive paths
+// use signApproval, which produces a real SSHSIG receipt.
 function approval(planDigest, overrides = {}) {
   return {
     schema_version: 1,
@@ -136,12 +140,13 @@ function approval(planDigest, overrides = {}) {
 
 function applyAndCheck(target, overrides = {}) {
   const { prepared, proposed } = prepareAndPropose(target, overrides);
+  const approvalReceipt = signApproval(target, proposed.proposal_digest);
   const applied = handle({
     schema_version: 1,
     action: 'apply',
     target,
     expected_revision: proposed.revision,
-    approval: approval(proposed.proposal_digest),
+    approval: approvalReceipt,
   });
   const checked = handle({
     schema_version: 1,
@@ -149,7 +154,7 @@ function applyAndCheck(target, overrides = {}) {
     target,
     expected_revision: applied.revision,
   });
-  return { prepared, proposed, applied, checked };
+  return { prepared, proposed, approvalReceipt, applied, checked };
 }
 
 function walk(dir, out = []) {

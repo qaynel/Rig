@@ -22,6 +22,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t2-playbook](../reasoning/2026-09-01-path-b-remediation-t2-playbook.md) | — | — | — |
 | 2026-09-01 | current | [2026-09-01-path-b-remediation-docfix-consistency](../reasoning/2026-09-01-path-b-remediation-docfix-consistency.md) | specification-gate, documentation-consistency | — | — |
 | 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
+| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue1-approval](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md) | user-presence-approvals, trust-and-failure-boundaries | — | trap, interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md) | onboarding-flow, testing-strategy | — | — |

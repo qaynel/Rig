@@ -7,6 +7,7 @@ const { inventoryHarness } = require('./inspect');
 const { buildOverlaps } = require('./adapt-overlap');
 const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
+const { verifySshsig } = require('./policy');
 const { journalWriter, parseGraftSections, upsertGraftSection } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
 const {
@@ -17,6 +18,15 @@ const {
 const ACTIONS = new Set(['prepare', 'propose', 'apply', 'check']);
 const CATALOG_REL = '.rig/catalog.json';
 const PLAYBOOK_REL = '.rig/skills/onboarding/SKILL.md';
+const ALLOWED_SIGNERS_REL = '.rig/allowed-signers';
+const APPROVAL_NAMESPACE = 'rig-plan-approval';
+
+// The signed message binds the namespace and the exact proposal digest, so a
+// signature made for policy activation (or for a different proposal) cannot be
+// replayed as a plan approval.
+function approvalMessage(planDigest) {
+  return `rig-plan-approval\ndigest=${planDigest}\n`;
+}
 
 function fail(message) {
   throw new Error(`rig: ${message}`);
@@ -127,18 +137,43 @@ function currentDigest(target, rel) {
   return fs.existsSync(file) ? sha256(fs.readFileSync(file)) : null;
 }
 
-function approvalRecord(receipt, proposalDigest) {
+// A receipt is only evidence of user presence if something outside the caller
+// can be re-checked. `verified: true` was a caller-controlled Boolean: anyone
+// who could hand `apply` a JSON object could assert it. The trust envelope now
+// carries a signature that this process re-verifies against a repository-owned
+// allowed-signers file, so approval means "a listed human key signed exactly
+// this proposal digest under the plan-approval namespace" and nothing weaker.
+function approvalRecord(receipt, proposalDigest, target) {
   if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)
     || receipt.schema_version !== 1 || receipt.kind !== 'plan-approval'
     || receipt.plan_digest !== proposalDigest || !receipt.approval
     || typeof receipt.approval !== 'object' || Array.isArray(receipt.approval)
-    || !['host-native', 'external-sshsig'].includes(receipt.approval.method)
-    || receipt.approval.verified !== true) {
+    || !['host-native', 'external-sshsig'].includes(receipt.approval.method)) {
     fail('approval receipt is invalid or is not bound to the current proposal digest');
   }
+  if (receipt.approval.method === 'host-native') {
+    // Mirrors the policy-activation stance: no host ships an attestation this
+    // process can re-verify, so the path hard-refuses instead of trusting an
+    // opaque blob. It stays in the accepted method list so the refusal names
+    // the real gap rather than reading as a schema typo.
+    fail('host-native approval has no configured verifier for plan approval; use external-sshsig');
+  }
+  const allowedSigners = containedPath(target, ALLOWED_SIGNERS_REL);
+  if (!fs.existsSync(allowedSigners)) {
+    fail(`approval verifier not configured: ${ALLOWED_SIGNERS_REL} is missing`);
+  }
+  const verified = verifySshsig({
+    allowedSigners,
+    identity: receipt.approval.identity,
+    namespace: APPROVAL_NAMESPACE,
+    message: approvalMessage(proposalDigest),
+    signature: receipt.approval.signature,
+  });
   return {
     proposal_digest: proposalDigest,
-    method: receipt.approval.method,
+    method: 'external-sshsig',
+    identity: verified.identity,
+    fingerprint: verified.fingerprint,
     receipt_digest: sha256(JSON.stringify(receipt)),
   };
 }
@@ -380,7 +415,7 @@ function apply(request) {
     // Validate the user-presence receipt first, even when semantic decisions
     // remain unresolved, so a self-made or unbound approval can never be
     // mistaken for a valid attempt.
-    const approval = approvalRecord(request.approval, state.proposal.digest);
+    const approval = approvalRecord(request.approval, state.proposal.digest, request.target);
     if (state.proposal.critical_decisions.some((decision) => decision.status !== 'resolved')) {
       fail('apply is blocked by an unresolved critical decision');
     }
@@ -570,4 +605,6 @@ function handleOnboarding(request) {
   return check(request);
 }
 
-module.exports = { handleOnboarding, loadInstalledCatalog };
+module.exports = {
+  ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
+};

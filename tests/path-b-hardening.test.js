@@ -521,3 +521,137 @@ describe('Task 9 — multi-host projection deduplication', () => {
     });
   });
 });
+
+describe('Task 1 — authenticated approval receipts', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+
+  const applyWith = (target, proposed, approval) => h.handle({
+    schema_version: 1,
+    action: 'apply',
+    target,
+    expected_revision: proposed.revision,
+    approval,
+  });
+
+  it('AT-PB-hard approval — fabricated verified:true is rejected', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const fabricated = {
+        schema_version: 1,
+        kind: 'plan-approval',
+        plan_digest: proposed.proposal_digest,
+        approval: { method: 'external-sshsig', verified: true, identity: 'alice@example' },
+      };
+      assert.throws(
+        () => applyWith(target, proposed, fabricated),
+        /approval|signature|verifier/i,
+      );
+      assert.equal(h.readJson(path.join(target, '.rig/state.json')).phase, 'proposed');
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — a real signature is accepted and recorded with its fingerprint', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const receipt = signApproval(target, proposed.proposal_digest);
+      const applied = applyWith(target, proposed, receipt);
+      assert.equal(applied.phase, 'applied');
+      const { approval } = h.readJson(path.join(target, '.rig/state.json'));
+      assert.equal(approval.method, 'external-sshsig');
+      assert.equal(approval.identity, 'test@rig');
+      assert.match(approval.fingerprint, /^SHA256:/);
+      assert.equal(approval.proposal_digest, proposed.proposal_digest);
+      assert.equal(approval.verified, undefined, 'the trust envelope must not carry a self-asserted boolean');
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — no allowed-signers → apply refuses', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const receipt = signApproval(target, proposed.proposal_digest);
+      fs.rmSync(path.join(target, '.rig/allowed-signers'), { force: true });
+      assert.throws(
+        () => applyWith(target, proposed, receipt),
+        /allowed-signers|verifier/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — signature over wrong digest is rejected', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      // Signed correctly, but over another proposal's digest.
+      const receipt = signApproval(target, `sha256:${'0'.repeat(64)}`);
+      assert.throws(
+        () => applyWith(target, proposed, receipt),
+        /digest|signature/i,
+      );
+      // ...and the same signature relabelled with the live digest still fails,
+      // because the verifier re-derives the message from the digest itself.
+      const relabelled = { ...receipt, plan_digest: proposed.proposal_digest };
+      assert.throws(
+        () => applyWith(target, proposed, relabelled),
+        /digest|signature|SSHSIG verification failed/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — wrong namespace is rejected', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const receipt = signApproval(target, proposed.proposal_digest, { namespace: 'rig-policy-activation' });
+      assert.throws(
+        () => applyWith(target, proposed, receipt),
+        /namespace|SSHSIG verification failed/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — an unlisted signer is rejected', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      // Someone must be listed or there is no allowed-signers file at all.
+      signApproval(target, proposed.proposal_digest, { identity: 'listed@rig' });
+      const receipt = signApproval(target, proposed.proposal_digest, {
+        identity: 'stranger@rig',
+        trustIdentity: false,
+      });
+      assert.throws(
+        () => applyWith(target, proposed, receipt),
+        /not allowed|identity|SSHSIG verification failed/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — host-native without provider is refused', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const receipt = {
+        schema_version: 1,
+        kind: 'plan-approval',
+        plan_digest: proposed.proposal_digest,
+        approval: { method: 'host-native', attestation: 'opaque-blob' },
+      };
+      assert.throws(
+        () => applyWith(target, proposed, receipt),
+        /host-native|no verifier|not configured/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard approval — the installer ships an allowed-signers template and never the live file', async () => {
+    await h.withRepo(async (target) => {
+      h.installRuntime(target, ['codex']);
+      assert.ok(
+        fs.existsSync(path.join(target, '.rig/allowed-signers.example.md')),
+        'installer must ship .rig/allowed-signers.example.md',
+      );
+      assert.equal(
+        fs.existsSync(path.join(target, '.rig/allowed-signers')),
+        false,
+        'installer must never write the live .rig/allowed-signers',
+      );
+    });
+  });
+});

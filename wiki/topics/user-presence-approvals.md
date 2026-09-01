@@ -7,6 +7,16 @@ otherwise a user-configured external SSHSIG signer. If neither is available,
 Rig refuses the action and reports approval unavailable; it never silently
 skips presence. [Gate 1 D6](../gate1/business-spec.md)
 
+This holds for Path B onboarding as well as for policy activation. Onboarding
+`apply` re-verifies an SSHSIG receipt against the repository-owned
+`.rig/allowed-signers` list, over the message
+`rig-plan-approval\ndigest=<proposal digest>\n` under the `rig-plan-approval`
+namespace. A `verified: true` field in the receipt carries no weight, a missing
+allowed-signers file is a refusal rather than a pass, and `host-native` refuses
+outright because no host yet ships an attestation Rig can re-check. The
+installer ships `.rig/allowed-signers.example.md` and never writes the live
+list. [Reasoning](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md)
+
 ## Why it is this way
 
 Chat wording, tool access, urgency, a TTY prompt, or an agent-controlled key can

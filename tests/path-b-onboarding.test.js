@@ -137,7 +137,7 @@ test('AT-PB-5 approved apply selectively projects one skill and writes only a ma
 
 test('AT-PB-5 identical approved apply is idempotent and resumes the same proposal', async () => {
   await h.withRepo((target) => {
-    const { proposed } = h.applyAndCheck(target);
+    const { proposed, approvalReceipt } = h.applyAndCheck(target);
     const before = new Map(h.walk(target).map((file) => [path.relative(target, file), h.sha256(fs.readFileSync(file))]));
     const revision = h.readJson(path.join(target, '.rig/state.json')).revision;
     const repeated = h.handle({
@@ -145,7 +145,7 @@ test('AT-PB-5 identical approved apply is idempotent and resumes the same propos
       action: 'apply',
       target,
       expected_revision: revision,
-      approval: h.approval(proposed.proposal_digest),
+      approval: approvalReceipt,
     });
     assert.ok(['applied', 'checked'].includes(repeated.phase));
     const after = new Map(h.walk(target).map((file) => [path.relative(target, file), h.sha256(fs.readFileSync(file))]));
