@@ -6,6 +6,19 @@ const { canonical, sha256 } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
 
 const STATE_REL = '.rig/state.json';
+
+const ALLOWED_STATE_KEYS = new Set([
+  'applied', 'approval', 'checks', 'inventory', 'last_error',
+  'phase', 'proposal', 'release', 'revision', 'schema_version',
+]);
+
+const VALID_PHASES = new Set([
+  'applied', 'approved', 'applying', 'checked', 'failed',
+  'needs-decision', 'prepared', 'proposed',
+]);
+
+const DIGEST_RE = /^[0-9a-f]{64}$/;
+
 const SUMMARY_HEADINGS = [
   'Existing state', 'Rig interpretation', 'Reuse', 'Grafts and improvements',
   'New capabilities', 'Important decisions', 'Resulting pipeline', 'Expected user experience',
@@ -39,6 +52,48 @@ function stateFile(target) {
   return containedPath(target, STATE_REL);
 }
 
+function assertDigestOrNull(value, label) {
+  if (value !== null && (typeof value !== 'string' || !DIGEST_RE.test(value))) {
+    fail(`${label} is not a valid SHA-256 digest`);
+  }
+}
+
+function strictDecodeState(state) {
+  // 1. Reject unknown top-level keys — only the canonical 10 are allowed.
+  for (const key of Object.keys(state)) {
+    if (!ALLOWED_STATE_KEYS.has(key)) fail(`state has unknown key "${key}"`);
+  }
+
+  // 2. Phase must be a known enum value.
+  if (!VALID_PHASES.has(state.phase)) {
+    fail(`state phase "${state.phase}" is not a valid phase`);
+  }
+
+  // 3. Proposal must be null while in the prepared phase — prepare always
+  // writes null and only propose advances it.
+  if (state.phase === 'prepared' && state.proposal !== null) {
+    fail('state proposal must be null in prepared phase');
+  }
+
+  // 4 & 5. Validate applied.proposal_digest when applied is present.
+  if (state.applied && typeof state.applied === 'object' && !Array.isArray(state.applied)) {
+    const apd = state.applied.proposal_digest;
+
+    // 5. Format — must be null or a lowercase hex SHA-256.
+    if (apd !== null && apd !== undefined) {
+      assertDigestOrNull(apd, 'applied.proposal_digest');
+    }
+
+    // 4. Cross-field invariant: the initial state (revision 1, prepared phase)
+    // has never been through apply, so applied.proposal_digest must be null.
+    if (state.revision === 1 && state.phase === 'prepared' && state.applied.proposal_digest !== null) {
+      fail('state applied.proposal_digest must be null in initial prepared state');
+    }
+  }
+
+  return state;
+}
+
 function readState(target) {
   const file = stateFile(target);
   if (!fs.existsSync(file)) return null;
@@ -46,6 +101,7 @@ function readState(target) {
   const keys = ['applied', 'approval', 'checks', 'inventory', 'last_error', 'phase', 'proposal', 'release', 'revision', 'schema_version'];
   if (!state || state.schema_version !== 1 || !Number.isInteger(state.revision) || state.revision < 1
     || !keys.every((key) => Object.hasOwn(state, key))) fail('state schema is invalid');
+  strictDecodeState(state);
   return state;
 }
 

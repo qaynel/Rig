@@ -3,6 +3,7 @@ const assert = require('node:assert');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 describe('Path B oracle documentation consistency', () => {
   it('wiki files should not contain "awaiting signature" text when oracle is verified green', () => {
@@ -157,5 +158,84 @@ describe('Task 3 — instruction-only hosts see only 8 mandatory skills after ad
         'Staged shelf must be present at .rig/runtime/rig/catalog/skills/ for post-approval use',
       );
     });
+  });
+});
+
+describe('Task 4 — strict state decoder', () => {
+  const h = require('./helpers/path-b');
+
+  function tamperState(target, transform) {
+    const statePath = path.join(target, '.rig/state.json');
+    const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    transform(state);
+    fs.writeFileSync(statePath, `${JSON.stringify(state, null, 2)}\n`);
+  }
+
+  it('unknown top-level key in state causes any onboarding action to throw a validation error', async () => {
+    await h.withRepo(async (target) => {
+      h.handle({ schema_version: 1, action: 'prepare', target });
+      tamperState(target, (state) => { state.injected = 'evil'; });
+      assert.throws(
+        () => h.handle({ schema_version: 1, action: 'prepare', target }),
+        /unknown key|invalid/i,
+        'expected validation error for unknown top-level key',
+      );
+    }, { install: true });
+  });
+
+  it('invalid phase enum in state causes any onboarding action to throw a validation error', async () => {
+    await h.withRepo(async (target) => {
+      h.handle({ schema_version: 1, action: 'prepare', target });
+      tamperState(target, (state) => { state.phase = 'hacked'; });
+      assert.throws(
+        () => h.handle({ schema_version: 1, action: 'prepare', target }),
+        /phase|invalid/i,
+        'expected validation error for invalid phase enum',
+      );
+    }, { install: true });
+  });
+
+  it('proposal present in prepared phase causes any onboarding action to throw a validation error', async () => {
+    await h.withRepo(async (target) => {
+      h.handle({ schema_version: 1, action: 'prepare', target });
+      tamperState(target, (state) => {
+        // Inject a non-null proposal into the prepared phase state
+        state.proposal = { digest: 'a'.repeat(64), injected: true };
+      });
+      assert.throws(
+        () => h.handle({ schema_version: 1, action: 'prepare', target }),
+        /proposal|prepared|invalid/i,
+        'expected validation error for proposal present in prepared phase',
+      );
+    }, { install: true });
+  });
+
+  it('applied proposal_digest present in initial state (revision 1, prepared) causes any action to throw', async () => {
+    await h.withRepo(async (target) => {
+      h.handle({ schema_version: 1, action: 'prepare', target });
+      // Tamper: set applied.proposal_digest to a valid-format hex on the initial prepare (revision=1)
+      tamperState(target, (state) => { state.applied.proposal_digest = 'a'.repeat(64); });
+      assert.throws(
+        () => h.handle({ schema_version: 1, action: 'prepare', target }),
+        /applied|proposal_digest|initial|prepared|invalid/i,
+        'expected validation error for applied.proposal_digest set in initial prepared state',
+      );
+    }, { install: true });
+  });
+
+  it('invalid digest format (uppercase hex) in applied proposal_digest causes any action to throw', async () => {
+    await h.withRepo(async (target) => {
+      // Need a post-apply state so proposal_digest can be non-null but with wrong format
+      h.applyAndCheck(target);
+      tamperState(target, (state) => {
+        // Replace with uppercase hex — valid length but wrong character class
+        state.applied.proposal_digest = 'A'.repeat(64);
+      });
+      assert.throws(
+        () => h.handle({ schema_version: 1, action: 'prepare', target }),
+        /digest|format|invalid|hex/i,
+        'expected validation error for invalid digest format (uppercase hex)',
+      );
+    }, { install: true });
   });
 });
