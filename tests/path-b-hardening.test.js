@@ -30,7 +30,7 @@ describe('Path B oracle documentation consistency', () => {
     // which is not part of the oracle message digest.
     const wikiFileToCheck = 'wiki/gate2/technical-spec.md';
 
-    const divergentPattern = /(awaiting signature|amendment.*red|not yet signed|pending.*sign)/i;
+    const divergentPattern = /(awaiting.*signature|amendment.*red|not yet signed|pending.{0,20}(?:signature|sign|human))/i;
 
     const fullPath = path.join(process.cwd(), wikiFileToCheck);
     const content = fs.readFileSync(fullPath, 'utf-8');
