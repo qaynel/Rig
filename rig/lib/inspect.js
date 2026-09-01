@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
-const { discoverHosts } = require('./host-capabilities');
+const { discoverHosts, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { canonical } = require('./skill-catalog');
 
 const MAX_BYTES = 256 * 1024;
@@ -16,16 +16,8 @@ const HARNESS_NAMES = new Set([
   '.cursorrules',
   'copilot-instructions.md',
 ]);
-const HARNESS_DIRS = [
-  '.cursor/rules',
-  '.windsurf/rules',
-  '.clinerules',
-  '.agents/rules',
-  '.agents/skills',
-  '.claude/skills',
-  '.kiro/steering',
-  'hooks',
-];
+// Derived from the host registry; do not maintain a second hard-coded list.
+const HARNESS_DIRS = SCAN_ROOTS.map((r) => r.root);
 const SECRET_RE =
   /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[po]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----/gi;
 
@@ -96,30 +88,30 @@ function inside(root, candidate) {
   return candidate === root || candidate.startsWith(`${root}${path.sep}`);
 }
 
+// Classify host from registry metadata rather than path-shape conditionals.
 function inventoryHost(rel) {
-  if (rel === 'CLAUDE.md' || rel.startsWith('.claude/')) return 'claude';
-  if (rel === 'GEMINI.md' || rel.startsWith('.gemini/')) return 'gemini';
-  if (rel === '.cursorrules' || rel.startsWith('.cursor/')) return 'cursor';
-  if (rel.startsWith('.windsurf/')) return 'windsurf';
-  if (rel === '.clinerules' || rel.startsWith('.clinerules/')) return 'cline';
-  if (rel.startsWith('.kiro/')) return 'kiro';
-  if (rel === '.github/copilot-instructions.md' || rel === 'copilot-instructions.md') return 'copilot';
-  if (rel === 'AGENTS.md' || rel.startsWith('.agents/')) return 'codex';
+  if (Object.prototype.hasOwnProperty.call(INSTRUCTION_FILE_HOSTS, rel)) {
+    return INSTRUCTION_FILE_HOSTS[rel];
+  }
+  for (const { root, host } of SCAN_ROOTS) {
+    if (rel === root || rel.startsWith(`${root}/`)) return host;
+  }
   return 'generic';
 }
 
+// Classify kind from registry metadata rather than path-shape conditionals.
 function inventoryKind(rel) {
-  if (
-    HARNESS_NAMES.has(rel)
-    || rel === '.github/copilot-instructions.md'
-  ) return 'instruction';
-  if (rel.startsWith('.cursor/rules/') || rel.startsWith('.windsurf/rules/')
-    || rel.startsWith('.clinerules/') || rel.startsWith('.agents/rules/')) return 'rule';
-  if (rel.startsWith('.kiro/steering/')) return 'steering';
-  if (rel.startsWith('.agents/skills/') || rel.startsWith('.claude/skills/')) {
-    return path.posix.basename(rel) === 'SKILL.md' ? 'skill' : 'skill-asset';
+  if (HARNESS_NAMES.has(rel) || Object.prototype.hasOwnProperty.call(INSTRUCTION_FILE_HOSTS, rel)) {
+    return 'instruction';
   }
-  if (rel.startsWith('hooks/')) return 'hook';
+  for (const { root, kind } of SCAN_ROOTS) {
+    if (rel === root || rel.startsWith(`${root}/`)) {
+      if (kind === 'skill-dir') {
+        return path.posix.basename(rel) === 'SKILL.md' ? 'skill' : 'skill-asset';
+      }
+      return kind;
+    }
+  }
   return 'other';
 }
 

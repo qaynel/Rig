@@ -239,3 +239,45 @@ describe('Task 4 — strict state decoder', () => {
     }, { install: true });
   });
 });
+
+describe('Task 5 — host registry scan roots', () => {
+  const h5 = require('./helpers/path-b');
+  const inventoryHarness = h5.api('inspect.js', 'inventoryHarness');
+
+  function write(target, rel, body) {
+    const file = path.join(target, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, typeof body === 'string' ? body : body);
+    return file;
+  }
+
+  function skill(name) {
+    return `---\nname: ${name}\ntitle: ${name} title\n---\n# ${name} heading\n\nExisting behavior.\n`;
+  }
+
+  // Matrix: each supported host with a scan root not covered by the legacy HARNESS_DIRS.
+  // Files placed at these roots must appear in inventoryHarness output once the registry
+  // drives the scan-root list (Task 5 fix). They FAIL until the fix is in place.
+  const MATRIX = [
+    { host: 'cursor',      root: '.cursor/skills',    file: 'cursor-skill/SKILL.md' },
+    { host: 'copilot-cli', root: '.github/agents',    file: 'agent.md' },
+    { host: 'opencode',    root: '.opencode/agents',  file: 'opencode-skill/SKILL.md' },
+    { host: 'devin',       root: '.devin/skills',     file: 'devin-skill/SKILL.md' },
+    { host: 'windsurf',    root: '.windsurf/skills',  file: 'windsurf-skill/SKILL.md' },
+    { host: 'gemini',      root: '.gemini/extensions', file: 'gemini-skill/SKILL.md' },
+    { host: 'swival',      root: '.swival/skills',    file: 'swival-skill/SKILL.md' },
+  ];
+
+  for (const { host, root: root5, file } of MATRIX) {
+    const rel = `${root5}/${file}`;
+    it(`${host}: file at ${rel} appears in inventory with correct host`, async () => {
+      await h5.withRepo((target) => {
+        write(target, rel, skill(host));
+        const result = inventoryHarness(target);
+        const found = result.entries.find((e) => e.path === rel);
+        assert.ok(found, `Expected ${rel} to appear in inventory for host ${host}. Got entries: ${JSON.stringify(result.entries.map((e) => e.path))}`);
+        assert.equal(found.host, host, `Expected host to be '${host}', got '${found.host}'`);
+      });
+    });
+  }
+});

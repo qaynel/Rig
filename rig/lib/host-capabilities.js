@@ -373,12 +373,49 @@ const INSTRUCTION_ONLY_HOSTS = new Set([
   'opencode', 'devin',
 ]);
 
+// Scan roots: repo-relative directories that inventoryHarness walks to discover
+// harness files. Each entry carries the host and kind metadata so classify
+// functions can use the registry rather than path-shape conditionals.
+// kind: 'rule' | 'steering' | 'hook' | 'skill-dir'
+// For 'skill-dir', the per-file kind is 'skill' (SKILL.md) or 'skill-asset'.
+const SCAN_ROOTS = [
+  { root: '.cursor/rules',      host: 'cursor',      kind: 'rule' },
+  { root: '.cursor/skills',     host: 'cursor',      kind: 'skill-dir' },
+  { root: '.windsurf/rules',    host: 'windsurf',    kind: 'rule' },
+  { root: '.windsurf/skills',   host: 'windsurf',    kind: 'skill-dir' },
+  { root: '.clinerules',        host: 'cline',       kind: 'rule' },
+  { root: '.agents/rules',      host: 'codex',       kind: 'rule' },
+  { root: '.agents/skills',     host: 'codex',       kind: 'skill-dir' },
+  { root: '.claude/skills',     host: 'claude',      kind: 'skill-dir' },
+  { root: '.kiro/steering',     host: 'kiro',        kind: 'steering' },
+  { root: 'hooks',              host: 'generic',     kind: 'hook' },
+  { root: '.github/agents',     host: 'copilot-cli', kind: 'skill-dir' },
+  { root: '.opencode/agents',   host: 'opencode',    kind: 'skill-dir' },
+  { root: '.devin/skills',      host: 'devin',       kind: 'skill-dir' },
+  { root: '.gemini/extensions', host: 'gemini',      kind: 'skill-dir' },
+  { root: '.swival/skills',     host: 'swival',      kind: 'skill-dir' },
+];
+
+// Instruction files at repo root (or well-known fixed paths) that are collected
+// via HARNESS_NAMES / special copilot handling in collectHarnessFiles.
+// Maps repo-relative posix path → host id.
+const INSTRUCTION_FILE_HOSTS = {
+  'CLAUDE.md': 'claude',
+  'GEMINI.md': 'gemini',
+  'AGENTS.md': 'codex',
+  '.cursorrules': 'cursor',
+  'copilot-instructions.md': 'copilot',
+  '.github/copilot-instructions.md': 'copilot',
+};
+
 module.exports = {
   REGISTRY,
   DEFAULT_CAPABILITIES,
   RESEARCHED_ON,
   HOST_DETECTION,
   INSTRUCTION_ONLY_HOSTS,
+  SCAN_ROOTS,
+  INSTRUCTION_FILE_HOSTS,
   getCapabilities,
   materializeHostAdapters,
   discoverHosts,
