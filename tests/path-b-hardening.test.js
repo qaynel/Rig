@@ -450,3 +450,74 @@ describe('Task 8 — check re-inventories on every run', () => {
     }, { install: true });
   });
 });
+
+describe('Task 9 — multi-host projection deduplication', () => {
+  const h = require('./helpers/path-b');
+
+  it('two-host install records one projection entry per (skill, host) pair in applied.projections', async () => {
+    await h.withRepo(async (target) => {
+      // Install for both codex and claude so that installedSkillScopes returns two entries.
+      h.installRuntime(target, ['codex', 'claude']);
+
+      // Run the full prepare → propose → apply → check cycle.
+      const { checked } = h.applyAndCheck(target);
+      assert.deepEqual(checked.hard_failures, [], `expected clean check after two-host apply; got: ${JSON.stringify(checked.hard_failures)}`);
+
+      // applied.projections must record one entry per (skill, host_scope, path) triple.
+      // With codex + claude both installed, "qa" must appear twice — once per host.
+      const state = h.readJson(path.join(target, '.rig', 'state.json'));
+      const projections = state.applied.projections || [];
+      const qaRows = projections.filter((r) => r.skill === 'qa');
+      assert.equal(
+        qaRows.length,
+        2,
+        `Expected 2 entries in applied.projections for skill "qa" (one per host), got ${qaRows.length}. ` +
+        `projections: ${JSON.stringify(projections)}`,
+      );
+      const hostScopes = new Set(qaRows.map((r) => r.host_scope));
+      assert.ok(hostScopes.has('codex'), 'expected a projections entry with host_scope "codex"');
+      assert.ok(hostScopes.has('claude'), 'expected a projections entry with host_scope "claude"');
+    });
+  });
+
+  it('deleting the Codex copy of a projected skill is detected by check via applied.projections', async () => {
+    await h.withRepo(async (target) => {
+      // Install for both codex and claude.
+      h.installRuntime(target, ['codex', 'claude']);
+
+      // Complete the full apply+check cycle.
+      const { checked } = h.applyAndCheck(target);
+      assert.deepEqual(checked.hard_failures, [], `expected clean check after two-host apply; got: ${JSON.stringify(checked.hard_failures)}`);
+
+      // Find the Codex projection entry for "qa" in applied.projections.
+      const state = h.readJson(path.join(target, '.rig', 'state.json'));
+      const projections = state.applied.projections || [];
+      const codexRow = projections.find((r) => r.skill === 'qa' && r.host_scope === 'codex');
+      assert.ok(
+        codexRow,
+        `expected a Codex entry in applied.projections for skill "qa"; projections: ${JSON.stringify(projections)}`,
+      );
+
+      // Delete the Codex copy of the projected skill.
+      fs.rmSync(path.join(target, codexRow.path));
+
+      // Re-run check — the missing file must be reported as a failure.
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: checked.revision,
+      });
+      assert.ok(
+        result.hard_failures.length > 0,
+        `expected at least one check failure after deleting Codex copy of "qa"; ` +
+        `got clean result: ${JSON.stringify(result.hard_failures)}`,
+      );
+      assert.ok(
+        result.hard_failures.some((f) => f.path === codexRow.path),
+        `expected a failure naming "${codexRow.path}"; ` +
+        `got: ${JSON.stringify(result.hard_failures)}`,
+      );
+    });
+  });
+});

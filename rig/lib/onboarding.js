@@ -243,11 +243,15 @@ function planSkillProjections(target, catalog, selected, writer) {
       }
     }
   }
-  // The state ledger records one canonical selection per skill. The journal
-  // still records every host projection, so distinct host surfaces remain
-  // attributable without turning one selection into a duplicate.
+  // The legacy `skills` ledger deduplicates by skill ID so external callers
+  // that depend on one-entry-per-skill (e.g. the AT-PB-10 acceptance case)
+  // are not broken.  The `projections` list preserves every (skill, host,
+  // path) triple so that check can verify each host copy independently — a
+  // two-host install therefore produces two projection entries for the same
+  // skill even though `skills` still holds one.
   const uniqueRows = [...new Map(rows.map((row) => [row.skill, row])).values()];
-  return { plans, rows: uniqueRows.sort((a, b) => a.skill.localeCompare(b.skill) || a.host_scope.localeCompare(b.host_scope) || a.path.localeCompare(b.path)) };
+  const sorted = (list) => [...list].sort((a, b) => a.skill.localeCompare(b.skill) || a.host_scope.localeCompare(b.host_scope) || a.path.localeCompare(b.path));
+  return { plans, rows: sorted(uniqueRows), projections: sorted(rows) };
 }
 
 function preflightGrafts(target, grafts) {
@@ -449,6 +453,7 @@ function apply(request) {
       applied: {
         proposal_digest: state.proposal.digest,
         skills: projection.rows,
+        projections: projection.projections,
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
         inventory_snapshot: inventorySnapshot,
@@ -483,7 +488,10 @@ function reconcileApplied(target, state) {
   if (!state.proposal || !fs.existsSync(summary) || sha256(fs.readFileSync(summary)) !== state.proposal.summary_digest) {
     hardFailures.push(failure('state-incomplete', '.rig/onboarding-summary.md', 'the approved summary is missing or differs from the applied proposal'));
   }
-  for (const row of state.applied.skills || []) {
+  // Prefer the full per-host projections list; fall back to the legacy
+  // deduplicated skills list for state written before Task 9.
+  const projectionRows = state.applied.projections || state.applied.skills || [];
+  for (const row of projectionRows) {
     const digestAtPath = currentDigest(target, row.path);
     if (digestAtPath !== row.sha256) {
       hardFailures.push(failure('state-incomplete', row.path, `selected skill "${row.skill}" is missing or has changed`));
