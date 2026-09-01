@@ -2,7 +2,7 @@
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
 > version is retraced to the D24/D28 one-gate oracle plus the Path B amendment,
-> now at 83 cases pending the Path B human signature.
+> now at 83 cases signed by the Path B oracle owner.
 > It supersedes v0.11's lint-format-only D21/D23 release boundary: all 115
 > catalogue leaves are release-blocking at declared Policy grade; all 55
 > vendored skills are wired by Rig name; onboarding activates only detected

@@ -12,6 +12,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | current | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
+| 2026-09-01 | current | [2026-09-01-path-b-remediation-task-1-doc-consistency](../reasoning/2026-09-01-path-b-remediation-task-1-doc-consistency.md) | specification-gate, documentation-consistency | — | — |
 | 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
