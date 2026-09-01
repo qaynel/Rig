@@ -394,3 +394,59 @@ describe('Task 7 — registry-driven dangling-reference scan', () => {
     });
   }
 });
+
+describe('Task 8 — check re-inventories on every run', () => {
+  const h = require('./helpers/path-b');
+
+  it('post-approval edit to a tracked file triggers inventory-drift failure', async () => {
+    await h.withRepo(async (target) => {
+      // Complete the full apply+check cycle.
+      const { checked } = h.applyAndCheck(target);
+      assert.deepEqual(checked.hard_failures, [], `expected clean check after apply; got: ${JSON.stringify(checked.hard_failures)}`);
+
+      // Append repository-owned content to AGENTS.md (a HARNESS_NAMES file tracked
+      // in the inventory but not Rig-owned), simulating a post-approval external edit.
+      const agentsPath = path.join(target, 'AGENTS.md');
+      fs.appendFileSync(agentsPath, '\n## Post-approval edit\n\nThis section was added after approval.\n');
+
+      // Re-run check — it must detect inventory drift.
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: checked.revision,
+      });
+      assert.ok(
+        result.hard_failures.some((f) => /inventory.?drift/i.test(f.code)),
+        `expected a failure with code matching /inventory.?drift/i after external edit; got: ${JSON.stringify(result.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+
+  it("Rig's own approved graft does not create false inventory-drift", async () => {
+    await h.withRepo(async (target) => {
+      // Complete the full apply+check cycle.  The graft written during apply
+      // modifies AGENTS.md; the snapshot is taken post-apply so the graft is
+      // already baked in and must not appear as drift on re-check.
+      const { checked } = h.applyAndCheck(target);
+
+      // The first check must be clean — no drift from the Rig graft.
+      assert.ok(
+        !checked.hard_failures.some((f) => /inventory.?drift/i.test(f.code)),
+        `Rig's approved graft must not cause inventory-drift on first check; got: ${JSON.stringify(checked.hard_failures)}`,
+      );
+
+      // Re-run check without any external modifications — still no drift.
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: checked.revision,
+      });
+      assert.ok(
+        !result.hard_failures.some((f) => /inventory.?drift/i.test(f.code)),
+        `second check after clean apply must have no inventory-drift; got: ${JSON.stringify(result.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+});

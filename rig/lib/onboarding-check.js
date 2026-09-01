@@ -5,6 +5,7 @@ const path = require('node:path');
 const { parseGraftSections, enumerateGraftMarkers } = require('./payload');
 const { containedPath } = require('./path-safety');
 const { SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
+const { inventoryHarness } = require('./inspect');
 
 const PROJECTION_ROOTS = ['.agents/skills', '.claude/skills', '.rig/skills'];
 
@@ -272,12 +273,68 @@ function unapprovedGraftFailures(target, state) {
   return failures;
 }
 
+// Compare the repository's current structural inventory against the per-path
+// snapshot recorded immediately after the last apply.  Any path that was added,
+// removed, or whose content digest changed after approval is reported as drift.
+//
+// The snapshot is taken post-apply so Rig-managed graft sections are already
+// baked into each file's digest — the comparison therefore treats the graft as
+// the approved baseline and only flags external edits.  If no snapshot is
+// present (state predates Task 8), the check is skipped gracefully.
+function inventoryDriftFailures(target, state) {
+  const snapshot = state.applied?.inventory_snapshot;
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return [];
+
+  let fresh;
+  try {
+    fresh = inventoryHarness(target);
+  } catch {
+    return [];
+  }
+
+  const failures = [];
+  const freshMap = new Map(fresh.entries.map((entry) => [entry.path, entry]));
+  const snapshotPaths = new Set(Object.keys(snapshot));
+
+  // Detect removed or changed paths.
+  for (const [snapshotPath, snapshotEntry] of Object.entries(snapshot)) {
+    const freshEntry = freshMap.get(snapshotPath);
+    if (!freshEntry) {
+      failures.push(failure(
+        'inventory-drift',
+        snapshotPath,
+        'file was present at apply time but is now missing; re-run prepare, propose, and apply',
+      ));
+    } else if (freshEntry.sha256 !== snapshotEntry.digest) {
+      failures.push(failure(
+        'inventory-drift',
+        snapshotPath,
+        'file content changed after approval; re-run prepare, propose, and apply',
+      ));
+    }
+  }
+
+  // Detect paths added after approval.
+  for (const [freshPath] of freshMap) {
+    if (!snapshotPaths.has(freshPath)) {
+      failures.push(failure(
+        'inventory-drift',
+        freshPath,
+        'file was added to the repository after approval; re-run prepare, propose, and apply',
+      ));
+    }
+  }
+
+  return failures;
+}
+
 function checkOnboarding(target, state, catalog) {
   const journal = readJournal(target);
   const hardFailures = [
     ...projectionFailures(target, state, journal),
     ...danglingReferences(target, journal),
     ...unapprovedGraftFailures(target, state),
+    ...inventoryDriftFailures(target, state),
   ];
   const weight = calculateWeight(target, catalog, journal);
   return { hardFailures, warnings: budgetWarnings(weight, catalog), weight };

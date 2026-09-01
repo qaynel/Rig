@@ -425,6 +425,22 @@ function apply(request) {
       throw error;
     }
 
+    // Snapshot the repository inventory immediately after all writes are
+    // committed.  The snapshot is taken post-apply so that Rig-managed graft
+    // sections are already baked into each file's digest; re-checking against
+    // this snapshot therefore treats the graft as baseline and only flags
+    // external edits made after approval.
+    const postApplyInventory = inventoryHarness(request.target);
+    const inventorySnapshot = {};
+    for (const entry of postApplyInventory.entries) {
+      inventorySnapshot[entry.path] = {
+        kind: entry.kind,
+        host: entry.host,
+        bytes: entry.bytes,
+        digest: entry.sha256,
+      };
+    }
+
     const next = {
       ...state,
       revision: state.revision + 1,
@@ -435,6 +451,7 @@ function apply(request) {
         skills: projection.rows,
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
+        inventory_snapshot: inventorySnapshot,
       },
       checks: null,
       last_error: null,
