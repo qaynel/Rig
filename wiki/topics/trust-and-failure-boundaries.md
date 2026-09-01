@@ -41,6 +41,8 @@ refusals, not degraded success.
 - Untrusted repository-task ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
 - Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
 - Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
+- Duplicate-name oracle adaptation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md)
+- Final duplicate-name hardening review: [reasoning trace](../reasoning/2026-09-02-path-b-hardening-final-review.md)
 
 ## What is still open
 

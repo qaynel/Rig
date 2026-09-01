@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-02 | current | [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md) | catalogue-contract, trust-and-failure-boundaries | — | review, hardening |
 | 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |
@@ -24,6 +25,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
 | 2026-09-01 | superseded | [2026-09-01-path-b-hardening-issue6-delete](../reasoning/2026-09-01-path-b-hardening-issue6-delete.md) | graft-mechanics, install-manifest-removal, trust-and-failure-boundaries | — | trap |
 | 2026-09-01 | current → 2026-09-01-path-b-hardening-issue6-delete | [2026-09-01-path-b-hardening-issue6-delete-ownership](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md) | graft-mechanics, install-manifest-removal, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue5-test-drift](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md) | catalogue-contract, trust-and-failure-boundaries | — | trap |
 | 2026-09-01 | current | [2026-09-01-path-b-hardening-issue5-dupname](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md) | catalogue-contract, onboarding-flow, trust-and-failure-boundaries | — | trap |
 | 2026-09-01 | current | [2026-09-01-path-b-hardening-issue4-resume](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md) | graft-mechanics, install-manifest-removal, onboarding-flow, trust-and-failure-boundaries | — | trap |
 | 2026-09-01 | current | [2026-09-01-path-b-hardening-issue3-reconcile](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md) | onboarding-flow, graft-mechanics, install-manifest-removal | — | trap |

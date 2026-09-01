@@ -131,9 +131,8 @@ function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeD
     const rel = destPattern.replace('{name}', finalName);
     const skillMd = path.join(src, 'SKILL.md');
     copyTree(target, src, rel, writeFile, (sourcePath, contents) => {
-      // Always align the frontmatter with the installed directory: a source
-      // SKILL.md may declare a name that lost the tie-break in
-      // listVendoredSkills, and a mismatch is invisible-broken on native hosts.
+      // Always align the frontmatter with the installed directory so native
+      // hosts never receive a source/directory name mismatch.
       if (sourcePath !== skillMd) return contents;
       return rewriteSkillName(contents.toString('utf8'), effectivePrefix, skill.name);
     }, filter);

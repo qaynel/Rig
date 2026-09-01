@@ -1287,3 +1287,47 @@ describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () =>
     }, { install: true });
   });
 });
+
+describe('Task 6 (Issue 5) — duplicate declared skill names fail closed', () => {
+  const h = require('./helpers/path-b');
+
+  it('AT-PB-hard dupname — catalogue generation rejects duplicate declared names', () => {
+    const { buildSkillCatalog } = require('../rig/lib/skill-catalog');
+    const shelfRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-duplicate-shelf-'));
+    try {
+      fs.copyFileSync(
+        path.join(h.root, 'rig/catalog/skills/families.json'),
+        path.join(shelfRoot, 'families.json'),
+      );
+      fs.copyFileSync(
+        path.join(h.root, 'rig/catalog/skills/migrations.json'),
+        path.join(shelfRoot, 'migrations.json'),
+      );
+      for (const dir of ['qa-a', 'qa-b']) {
+        const skillDir = path.join(shelfRoot, 'testing', 'functional', dir);
+        fs.mkdirSync(skillDir, { recursive: true });
+        fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `---
+name: qa
+description: Duplicate fixture skill.
+family: testing
+tool: host-agent
+capability: testing.functional
+guarantees:
+  - Runs the fixture check.
+overlap_tags:
+  - test
+---
+
+# Fixture
+`);
+      }
+
+      assert.throws(
+        () => buildSkillCatalog({ shelfRoot }),
+        /duplicate skill name "qa".*qa-a.*qa-b/is,
+      );
+    } finally {
+      fs.rmSync(shelfRoot, { recursive: true, force: true });
+    }
+  });
+});

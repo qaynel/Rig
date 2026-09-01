@@ -118,8 +118,8 @@ function requireSequence(fields, key, label) {
   return value;
 }
 
-function readFamilies() {
-  const file = path.join(SKILL_ROOT, 'families.json');
+function readFamilies(shelfRoot = SKILL_ROOT) {
+  const file = path.join(shelfRoot, 'families.json');
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (value.schema_version !== 1) fail('families.json needs schema_version 1');
   const families = value.families;
@@ -133,8 +133,8 @@ function readFamilies() {
   return families.map(({ id, title, description }) => ({ id, title, description }));
 }
 
-function readMigrations() {
-  const file = path.join(SKILL_ROOT, 'migrations.json');
+function readMigrations(shelfRoot = SKILL_ROOT) {
+  const file = path.join(shelfRoot, 'migrations.json');
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
   if (value.schema_version !== 1) fail('migrations.json needs schema_version 1');
   const aliases = value.aliases;
@@ -143,12 +143,12 @@ function readMigrations() {
 }
 
 // Recursively find `<family>/<capability-leaf>/<source-dir>/SKILL.md`.
-function findOptionalSources() {
-  if (!fs.existsSync(SKILL_ROOT)) return [];
+function findOptionalSources(shelfRoot = SKILL_ROOT) {
+  if (!fs.existsSync(shelfRoot)) return [];
   const out = [];
-  for (const family of fs.readdirSync(SKILL_ROOT, { withFileTypes: true })) {
+  for (const family of fs.readdirSync(shelfRoot, { withFileTypes: true })) {
     if (!family.isDirectory() || RESERVED.has(family.name)) continue;
-    const familyDir = path.join(SKILL_ROOT, family.name);
+    const familyDir = path.join(shelfRoot, family.name);
     for (const leaf of fs.readdirSync(familyDir, { withFileTypes: true })) {
       if (!leaf.isDirectory()) continue;
       const leafDir = path.join(familyDir, leaf.name);
@@ -170,8 +170,15 @@ function findOptionalSources() {
 // proposal binds this value so an edit to any staged file — a reference doc, a
 // sibling playbook — invalidates an approval that was granted for the old
 // bytes. Walk order and mode bits are fixed so the value is reproducible.
-function skillTreeDigest(sourceRel) {
-  const abs = path.dirname(path.join(ROOT, sourceRel));
+function sourceFile(sourceRel, shelfRoot = SKILL_ROOT) {
+  const prefix = `${SKILL_ROOT_REL}/`;
+  return sourceRel.startsWith(prefix)
+    ? path.join(shelfRoot, sourceRel.slice(prefix.length))
+    : path.join(ROOT, sourceRel);
+}
+
+function skillTreeDigest(sourceRel, shelfRoot = SKILL_ROOT) {
+  const abs = path.dirname(sourceFile(sourceRel, shelfRoot));
   const files = [];
   (function walk(rel) {
     const entries = fs.readdirSync(path.join(abs, rel), { withFileTypes: true })
@@ -193,8 +200,8 @@ function skillTreeDigest(sourceRel) {
   return sha256(canonical(files));
 }
 
-function readSkill(sourceRel, dir, familyIds) {
-  const body = fs.readFileSync(path.join(ROOT, sourceRel), 'utf8');
+function readSkill(sourceRel, dir, familyIds, shelfRoot = SKILL_ROOT) {
+  const body = fs.readFileSync(sourceFile(sourceRel, shelfRoot), 'utf8');
   const fields = parseFrontmatter(body, sourceRel);
   const name = requireString(fields, 'name', sourceRel);
   const description = requireString(fields, 'description', sourceRel);
@@ -222,25 +229,18 @@ function readSkill(sourceRel, dir, familyIds) {
   return { name, dir, source_rel: sourceRel, family, tool, capability, guarantees, overlap_tags: overlapTags, description };
 }
 
-// The optional shelf, with the historical name-collision tie-break: a source
-// whose directory matches its declared name keeps the canonical slot.
-function loadOptionalSkills(familyIds = new Set(readFamilies().map(({ id }) => id))) {
-  const entries = findOptionalSources().map(({ dir, source_rel: sourceRel }) => readSkill(sourceRel, dir, familyIds));
-  entries.sort((a, b) => {
-    const ma = a.dir === a.name ? 0 : 1;
-    const mb = b.dir === b.name ? 0 : 1;
-    return ma - mb || a.source_rel.localeCompare(b.source_rel);
-  });
-  const claimed = new Set();
-  const skills = [];
+// Every declared skill name must identify exactly one source directory.
+function loadOptionalSkills(familyIds, shelfRoot = SKILL_ROOT) {
+  const ids = familyIds || new Set(readFamilies(shelfRoot).map(({ id }) => id));
+  const entries = findOptionalSources(shelfRoot)
+    .map(({ dir, source_rel: sourceRel }) => readSkill(sourceRel, dir, ids, shelfRoot));
+  const byName = new Map();
   for (const entry of entries) {
-    let name = entry.name;
-    if (claimed.has(name)) name = entry.dir;
-    if (claimed.has(name)) fail(`duplicate skill name "${entry.name}" at ${entry.source_rel}`);
-    claimed.add(name);
-    skills.push({ ...entry, name });
+    const prior = byName.get(entry.name);
+    if (prior) fail(`duplicate skill name "${entry.name}" declared by ${prior.source_rel} and ${entry.source_rel}`);
+    byName.set(entry.name, entry);
   }
-  return skills;
+  return [...byName.values()].sort((a, b) => a.source_rel.localeCompare(b.source_rel));
 }
 
 function loadCoreSkills(familyIds) {
@@ -248,7 +248,7 @@ function loadCoreSkills(familyIds) {
 }
 
 // Every row the digest covers, in exactly the projected key set.
-function catalogRow(skill, aliasesByName, sourceKind) {
+function catalogRow(skill, aliasesByName, sourceKind, shelfRoot = SKILL_ROOT) {
   return {
     id: skill.name,
     name: skill.name,
@@ -262,19 +262,25 @@ function catalogRow(skill, aliasesByName, sourceKind) {
     source_kind: sourceKind,
     required: sourceKind === 'core',
     source_rel: skill.source_rel,
-    tree_digest: skillTreeDigest(skill.source_rel),
+    tree_digest: skillTreeDigest(skill.source_rel, shelfRoot),
   };
 }
 
-function buildSkillCatalog({ releaseTag = 'v5.0.0', softBudget } = {}) {
-  const families = readFamilies();
+function buildSkillCatalog({ releaseTag = 'v5.0.0', softBudget, shelfRoot = SKILL_ROOT } = {}) {
+  const families = readFamilies(shelfRoot);
   const familyIds = new Set(families.map(({ id }) => id));
-  const aliases = readMigrations();
-  const optional = loadOptionalSkills(familyIds);
+  const aliases = readMigrations(shelfRoot);
+  const optional = loadOptionalSkills(familyIds, shelfRoot);
   const core = loadCoreSkills(familyIds);
 
-  const names = new Set([...optional, ...core].map(({ name }) => name));
-  if (names.size !== optional.length + core.length) fail('two skills declare the same canonical name');
+  const names = new Set();
+  const byName = new Map();
+  for (const skill of [...optional, ...core]) {
+    const prior = byName.get(skill.name);
+    if (prior) fail(`duplicate skill name "${skill.name}" declared by ${prior.source_rel} and ${skill.source_rel}`);
+    names.add(skill.name);
+    byName.set(skill.name, skill);
+  }
 
   const aliasesByName = new Map();
   for (const [legacy, canonicalName] of Object.entries(aliases)) {
@@ -288,7 +294,7 @@ function buildSkillCatalog({ releaseTag = 'v5.0.0', softBudget } = {}) {
 
   const skills = [
     ...core.map((skill) => catalogRow(skill, aliasesByName, 'core')),
-    ...optional.map((skill) => catalogRow(skill, aliasesByName, 'optional')),
+    ...optional.map((skill) => catalogRow(skill, aliasesByName, 'optional', shelfRoot)),
   ].sort((a, b) => a.family.localeCompare(b.family)
     || a.capability.localeCompare(b.capability)
     || a.id.localeCompare(b.id));
