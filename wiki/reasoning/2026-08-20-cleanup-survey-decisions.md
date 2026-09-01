@@ -3,6 +3,7 @@ date: 2026-08-20
 source: intent owner
 topics: testing-strategy, delivery-plan, distribution-and-release, the-catalogue
 decisions:
+status: historical
 ---
 
 Survey of the branch `implement-advanced-a-la-carte-catalogue-refactor-cleanup`

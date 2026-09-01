@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step3-disposition](../reasoning/2026-09-02-wiki-maintenance-step3-disposition.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step2-hub-sync](../reasoning/2026-09-02-wiki-maintenance-step2-hub-sync.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step1-lifecycle-sweep](../reasoning/2026-09-02-wiki-maintenance-step1-lifecycle-sweep.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-skill](../reasoning/2026-09-02-wiki-maintenance-skill.md) | agent-working-conventions | — | — |
@@ -52,7 +53,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-31 | superseded | [2026-08-31-path-b-oracle-checkpoint](../reasoning/2026-08-31-path-b-oracle-checkpoint.md) | onboarding-flow, what-rig-is, testing-strategy | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-follow-up-decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
-| 2026-08-31 | current → 2026-08-31-path-b-oracle-checkpoint | [2026-08-31-path-b-acceptance-oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) | onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan | — | interdependency, trap |
+| 2026-08-31 | historical → 2026-08-31-path-b-oracle-checkpoint | [2026-08-31-path-b-acceptance-oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) | onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan | — | interdependency, trap |
 | 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | historical | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
@@ -63,15 +64,15 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-30 | historical | [2026-08-30-adaptation-eval-claude-task-master](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) | what-rig-is, onboarding-flow, the-catalogue | GA-36 | interdependency, trap |
 | 2026-08-29 | historical | [2026-08-29-v5.0.0-tag](../reasoning/2026-08-29-v5.0.0-tag.md) | distribution-and-release, delivery-plan, review-receipts | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig144-execution-policy-design](../reasoning/2026-08-29-rig144-execution-policy-design.md) | policy-model, trust-and-failure-boundaries | AD-39, GA-38 | — |
-| 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-sign-off](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md) | — | — | — |
+| 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-sign-off](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md) | trust-and-failure-boundaries | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-grilling](../reasoning/2026-08-29-rig144-capability-policy-grilling.md) | — | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-symlink-escape-and-checks-realpath-containment](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md) | — | — | — |
+| 2026-08-29 | historical | [2026-08-29-rig120-symlink-escape-and-checks-realpath-containment](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md) | trust-and-failure-boundaries | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig120-fresh-review-v2-handoff](../reasoning/2026-08-29-rig120-fresh-review-v2-handoff.md) | trust-and-failure-boundaries, host-and-ci-coverage, review-receipts | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-fresh-review-fails-shipping-path-bypass](../reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass.md) | — | — | — |
+| 2026-08-29 | historical | [2026-08-29-rig120-fresh-review-fails-shipping-path-bypass](../reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass.md) | trust-and-failure-boundaries | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig120-force-rereview-fail](../reasoning/2026-08-29-rig120-force-rereview-fail.md) | trust-and-failure-boundaries, host-and-ci-coverage | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig120-close-out-handoff](../reasoning/2026-08-29-rig120-close-out-handoff.md) | — | — | — |
 | 2026-08-29 | historical | [2026-08-29-rig120-capability-policy-close-out](../reasoning/2026-08-29-rig120-capability-policy-close-out.md) | policy-model, trust-and-failure-boundaries, host-and-ci-coverage | AD-39, GA-38 | — |
-| 2026-08-28 | historical | [2026-08-28-runReadOnly-memory-ceiling-unavailable-clean](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md) | — | — | — |
+| 2026-08-28 | historical | [2026-08-28-runReadOnly-memory-ceiling-unavailable-clean](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md) | trust-and-failure-boundaries | — | — |
 | 2026-08-28 | historical | [2026-08-28-runGrade-network-isolation-grilling](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md) | trust-and-failure-boundaries, testing-strategy | — | — |
 | 2026-08-28 | historical | [2026-08-28-rig137-option-a-scope](../reasoning/2026-08-28-rig137-option-a-scope.md) | trust-and-failure-boundaries | — | — |
 | 2026-08-28 | historical | [2026-08-28-rig120-safety-followup](../reasoning/2026-08-28-rig120-safety-followup.md) | install-manifest-removal, trust-and-failure-boundaries, user-global-writes, host-and-ci-coverage | — | — |
@@ -91,13 +92,13 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-26 | historical | [2026-08-26-rig124-cap-lost-update](../reasoning/2026-08-26-rig124-cap-lost-update.md) | review-receipts | — | — |
 | 2026-08-26 | historical | [2026-08-26-rig115-shell-trust-guarantees](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md) | trust-and-failure-boundaries, gate1-signing | GA-37, D28 | — |
 | 2026-08-26 | historical | [2026-08-26-review-round-code-level-findings](../reasoning/2026-08-26-review-round-code-level-findings.md) | enforcement-and-git-dispatch-wiring, host-and-ci-coverage, testing-strategy, distribution-and-release | — | — |
-| 2026-08-25 | historical | [2026-08-25-token-burn-investigation](../reasoning/2026-08-25-token-burn-investigation.md) | — | — | — |
+| 2026-08-25 | historical | [2026-08-25-token-burn-investigation](../reasoning/2026-08-25-token-burn-investigation.md) | agent-working-conventions | — | — |
 | 2026-08-25 | historical | [2026-08-25-rig124-implementation](../reasoning/2026-08-25-rig124-implementation.md) | review-receipts, agent-working-conventions | RIG-124 | — |
 | 2026-08-25 | historical | [2026-08-25-prev5-gate-runbook-and-classification](../reasoning/2026-08-25-prev5-gate-runbook-and-classification.md) | distribution-and-release, host-and-ci-coverage, onboarding-flow, review-receipts, testing-strategy | owner approved RIG-134 Option A (classify all, fix observable, defer debt) | — |
 | 2026-08-24 | historical | [2026-08-24-ticket-burndown](../reasoning/2026-08-24-ticket-burndown.md) | — | — | — |
 | 2026-08-24 | historical | [2026-08-24-subagent-mode-propagation-disposition](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md) | host-and-ci-coverage | — | — |
 | 2026-08-24 | historical | [2026-08-24-subagent-disposition-corrections](../reasoning/2026-08-24-subagent-disposition-corrections.md) | host-and-ci-coverage | — | — |
-| 2026-08-24 | historical | [2026-08-24-rig-104-mcp-unification](../reasoning/2026-08-24-rig-104-mcp-unification.md) | — | — | — |
+| 2026-08-24 | historical | [2026-08-24-rig-104-mcp-unification](../reasoning/2026-08-24-rig-104-mcp-unification.md) | host-and-ci-coverage | — | — |
 | 2026-08-24 | historical | [2026-08-24-rig-101-host-expansion-openclaw-conflict](../reasoning/2026-08-24-rig-101-host-expansion-openclaw-conflict.md) | — | — | — |
 | 2026-08-24 | historical | [2026-08-24-process-doctrine-and-one-lock](../reasoning/2026-08-24-process-doctrine-and-one-lock.md) | the-two-gates, specification-gate, catalogue-contract, testing-strategy, graft-mechanics | D25, D26, D27 | — |
 | 2026-08-24 | historical | [2026-08-24-openclaw-global-mcp-opt-in-request](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md) | user-global-writes, host-and-ci-coverage | — | — |

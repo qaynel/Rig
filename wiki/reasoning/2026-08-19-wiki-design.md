@@ -3,6 +3,7 @@ date: 2026-08-19
 source: agent
 topics: what-rig-is, the-two-gates, delivery-plan
 decisions:
+status: historical
 ---
 
 Design below. I've stopped short of creating anything — nothing is written until you say go.

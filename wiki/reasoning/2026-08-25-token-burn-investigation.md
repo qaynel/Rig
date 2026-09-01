@@ -1,3 +1,11 @@
+---
+date: 2026-08-25
+source: agent
+topics: agent-working-conventions
+decisions:
+status: historical
+---
+
 # Token-burn investigation — why "simple" tasks exhaust the 5h/weekly limit
 
 Checked 2026-08-25. Source: three pasted session transcripts in

@@ -3,6 +3,7 @@ date: 2026-08-21
 source: intent owner
 topics: authored-service-gate, specification-gate
 decisions: D23
+status: historical
 ---
 
 Raised by the intent owner while planning the specification-gate implementation:

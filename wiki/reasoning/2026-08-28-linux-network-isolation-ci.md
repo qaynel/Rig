@@ -3,6 +3,7 @@ date: 2026-08-28
 source: agent
 topics: trust-and-failure-boundaries, host-and-ci-coverage
 decisions:
+status: historical
 ---
 
 # Linux network isolation and CI setup

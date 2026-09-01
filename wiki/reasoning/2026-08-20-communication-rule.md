@@ -3,6 +3,7 @@ date: 2026-08-20
 source: intent owner
 topics:
 decisions:
+status: historical
 ---
 
 Observation from the intent owner: agents kept quoting wiki paths and

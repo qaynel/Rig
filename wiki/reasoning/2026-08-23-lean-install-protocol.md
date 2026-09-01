@@ -3,6 +3,7 @@ date: 2026-08-23
 source: agent
 topics: distribution-and-release, the-catalogue, install-manifest-removal
 decisions: AD-37
+status: historical
 ---
 
 # Lean install — implementation spec

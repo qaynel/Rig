@@ -3,6 +3,7 @@ date: 2026-08-19
 source: intent owner
 topics: what-rig-is, the-catalogue, delivery-plan
 decisions:
+status: historical
 ---
 
 A product-point-of-view review of the whole repository, opened by the intent

@@ -3,6 +3,7 @@ date: 2026-08-23
 source: intent owner
 topics: what-rig-is
 decisions: GA-36
+status: historical
 ---
 
 # DSH is a delivery medium, not the moat

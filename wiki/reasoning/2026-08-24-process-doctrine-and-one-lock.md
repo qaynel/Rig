@@ -3,6 +3,7 @@ date: 2026-08-24
 source: intent owner
 topics: the-two-gates, specification-gate, catalogue-contract, testing-strategy, graft-mechanics
 decisions: D25, D26, D27
+status: historical
 ---
 
 # The pipeline, the single lock, and why the freeze question keeps mis-firing

@@ -3,6 +3,7 @@ date: 2026-08-21
 source: intent owner
 topics: the-two-gates
 decisions:
+status: historical
 ---
 
 # One-gate escape hatch — resolved (Option A)

@@ -3,6 +3,7 @@ date: 2026-08-23
 source: agent
 topics: what-rig-is
 decisions:
+status: historical
 ---
 
 # DSH routes to models, not hosts

@@ -3,6 +3,7 @@ date: 2026-08-23
 source: intent owner
 topics: install-manifest-removal, distribution-and-release, the-catalogue, authored-service-gate, host-and-ci-coverage, review-receipts
 decisions:
+status: historical
 ---
 
 Release-blocking findings:

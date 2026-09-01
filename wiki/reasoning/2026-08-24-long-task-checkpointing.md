@@ -3,6 +3,7 @@ date: 2026-08-24
 source: intent owner
 topics: agent-working-conventions
 decisions:
+status: historical
 ---
 
 Raised by the intent owner: on a long or unattended task, an agent that only

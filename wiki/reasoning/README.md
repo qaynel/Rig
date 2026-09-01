@@ -78,3 +78,14 @@ file by hand. `npm test` rejects a stale generated summary.
 - **Hand-written status.** Current state is generated from current traces. A
   trace is dated and permanent; the generated summary is neither hand-written
   nor independently authoritative.
+
+## Pre-contract traces
+
+The frontmatter contract above was introduced after roughly a quarter of the
+existing reasoning traces had already been filed. Every pre-contract trace
+that is referenced by a live topic hub or ticket has been backfilled to the
+contract. The rest are intentionally left as they were — no synthesised
+`topics:` or `status:` is inserted retroactively. They remain discoverable by
+date and filename through `wiki/index/reasoning.md`, and the generator's
+historical fallback keeps them off the current-state page. Do not sweep them
+in bulk; leave the disposition where it is.

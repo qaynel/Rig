@@ -1,3 +1,11 @@
+---
+date: 2026-08-29
+source: agent
+topics: trust-and-failure-boundaries
+decisions:
+status: historical
+---
+
 # RIG-120 fresh independent review: FAIL — shipping path bypasses the safety guarantees
 
 2026-08-29

@@ -3,6 +3,7 @@ date: 2026-08-21
 source: agent
 topics: the-catalogue, catalogue-contract, delivery-plan, host-and-ci-coverage, policy-signer-recovery, drift-and-secret-controls
 decisions: AD-32, AD-33, AD-34, AD-26, AD-30
+status: historical
 ---
 
 # Gate 2 v0.6 — lint-format re-trace and the three round-3 findings

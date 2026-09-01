@@ -3,6 +3,7 @@ date: 2026-08-27
 source: agent
 topics: trust-and-failure-boundaries, one-use-approvals, testing-strategy
 decisions:
+status: historical
 ---
 
 The user pasted a transcript from a separate session reporting three findings

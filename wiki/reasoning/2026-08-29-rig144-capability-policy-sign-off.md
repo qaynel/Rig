@@ -1,3 +1,11 @@
+---
+date: 2026-08-29
+source: agent
+topics: trust-and-failure-boundaries
+decisions:
+status: historical
+---
+
 # RIG-144 capability-policy layer: owner sign-off with three scope corrections
 
 2026-08-29

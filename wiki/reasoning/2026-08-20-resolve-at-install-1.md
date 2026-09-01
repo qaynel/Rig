@@ -3,6 +3,7 @@ date: 2026-08-20
 source: agent
 topics: install-manifest-removal, delivery-plan, testing-strategy
 decisions: AD-10
+status: historical
 ---
 
 Picked up a handoff from the lint-format vertical-slice session: its

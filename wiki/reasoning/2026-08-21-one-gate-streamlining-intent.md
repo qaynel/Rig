@@ -3,6 +3,7 @@ date: 2026-08-21
 source: intent owner
 topics: the-two-gates, what-rig-is
 decisions:
+status: historical
 ---
 
 # One-gate streamlining — product spirit and intent
