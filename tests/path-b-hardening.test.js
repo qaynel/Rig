@@ -1161,3 +1161,108 @@ describe('Task 4 (Issue 4) — journal-aware preflight resume', () => {
     });
   }
 });
+
+describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+
+  // The shelf copy the projection reads from: the installed runtime mirrors the
+  // repository shelf under `.rig/runtime/rig/...`, so the catalogue row's
+  // `source_rel` locates it without a second hard-coded path table.
+  function stagedSkillPath(target, id) {
+    const catalog = h.readJson(path.join(target, '.rig/catalog.json'));
+    const row = catalog.skills.find((skill) => skill.id === id || skill.name === id);
+    assert.ok(row, `unknown catalogue skill "${id}"`);
+    return path.dirname(path.join(target, '.rig/runtime/rig', row.source_rel.slice('rig/'.length)));
+  }
+
+  function state(target) {
+    return h.readJson(path.join(target, '.rig/state.json'));
+  }
+
+  it('AT-PB-hard binding — the proposal freezes a tree and projected digest per selected skill', async () => {
+    await h.withRepo(async (target) => {
+      h.prepareAndPropose(target);
+      const catalog = h.readJson(path.join(target, '.rig/catalog.json'));
+      const bindings = state(target).proposal.skill_bindings;
+      assert.deepEqual(bindings.map(({ id }) => id), ['qa']);
+      for (const binding of bindings) {
+        const row = catalog.skills.find((skill) => skill.id === binding.id);
+        assert.match(row.tree_digest, /^[0-9a-f]{64}$/, 'catalogue rows must carry a tree digest');
+        assert.equal(binding.tree_digest, row.tree_digest);
+        assert.match(binding.projected_digest, /^[0-9a-f]{64}$/);
+      }
+    }, { install: true });
+  });
+
+  it('AT-PB-hard binding — post-approval edit to staged skill source is rejected at apply', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const receipt = signApproval(target, proposed.proposal_digest);
+      fs.appendFileSync(path.join(stagedSkillPath(target, 'qa'), 'SKILL.md'), '\n<!-- tampered -->\n');
+      assert.throws(
+        () => h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: receipt,
+        }),
+        /projected_digest|tree_digest|stale proposal/i,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard binding — post-apply edit to projected bytes fails check', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const applied = h.handle({
+        schema_version: 1,
+        action: 'apply',
+        target,
+        expected_revision: proposed.revision,
+        approval: signApproval(target, proposed.proposal_digest),
+      });
+      const row = state(target).applied.projections.find((entry) => entry.skill === 'qa');
+      assert.ok(row, 'precondition: qa was projected');
+      fs.appendFileSync(path.join(target, row.path), '\n<!-- external edit -->\n');
+
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: applied.revision,
+      });
+      assert.ok(
+        result.hard_failures?.some((failure) => /projected bytes/i.test(failure.detail)),
+        `expected a projected-digest failure, got ${JSON.stringify(result.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+
+  it('AT-PB-hard binding — a sibling file added to a projected skill fails check', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+      const applied = h.handle({
+        schema_version: 1,
+        action: 'apply',
+        target,
+        expected_revision: proposed.revision,
+        approval: signApproval(target, proposed.proposal_digest),
+      });
+      const row = state(target).applied.projections.find((entry) => entry.skill === 'qa');
+      fs.writeFileSync(path.join(target, path.dirname(row.path), 'SMUGGLED.md'), '# not approved\n');
+
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: applied.revision,
+      });
+      assert.ok(
+        result.hard_failures?.some((failure) => /projected bytes/i.test(failure.detail)),
+        `expected a projected-digest failure, got ${JSON.stringify(result.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+});

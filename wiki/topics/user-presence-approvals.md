@@ -28,7 +28,11 @@ their protocol genuinely establishes a live user act. [Gate 2 §8.4](../gate2/te
 
 `D6` requires refusal instead of bypass. `AD-20` fixes the three outcomes:
 host-native presence, external signature, or refusal, with no fourth path.
-`AT-PRESENCE-*` tests activation and recovery boundaries. [Decision index](../index/decisions.md)
+`AT-PRESENCE-*` tests activation and recovery boundaries. A plan approval also
+binds the bytes it approves, not only the plan's wording: the proposal carries
+a per-skill tree and projected-bytes digest that `apply` and `check` re-derive.
+[Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+[Decision index](../index/decisions.md)
 [Acceptance index](../index/acceptance-cases.md)
 
 ## What was rejected

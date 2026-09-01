@@ -181,9 +181,16 @@ function validateDecision(row) {
   return { ...row };
 }
 
-function canonicalProposal(input, state, summaryDigest) {
+// `bindSkills` receives the canonical selection and returns the per-skill
+// digest rows the proposal freezes. It is a callback, not an argument, because
+// the binding is derived from the sorted selection and must land inside the
+// digested body: what the approver signs has to include the bytes.
+function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
   exactKeys(input, new Set([
     'inventory_digest', 'catalog_digest', 'capabilities', 'selected_skills', 'grafts', 'owned_files', 'critical_decisions',
+    // Accepted so a stored proposal can be resubmitted verbatim, never read:
+    // the binding below is always recomputed from the repository.
+    'skill_bindings',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -191,12 +198,14 @@ function canonicalProposal(input, state, summaryDigest) {
   if (!Array.isArray(input.capabilities) || !Array.isArray(input.grafts) || !Array.isArray(input.owned_files) || !Array.isArray(input.critical_decisions)) {
     fail('proposal is invalid');
   }
+  const selectedSkills = sortedStrings(input.selected_skills, 'proposal selected_skills');
   const body = {
     inventory_digest: input.inventory_digest,
     catalog_digest: input.catalog_digest,
     summary_digest: summaryDigest,
     capabilities: input.capabilities.map(validateCapability).sort((a, b) => a.capability.localeCompare(b.capability)),
-    selected_skills: sortedStrings(input.selected_skills, 'proposal selected_skills'),
+    selected_skills: selectedSkills,
+    skill_bindings: bindSkills(selectedSkills),
     grafts: input.grafts.map(validateGraft).sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
     owned_files: input.owned_files.map(validateOwnedFile).sort((a, b) => a.path.localeCompare(b.path)),
     critical_decisions: input.critical_decisions.map(validateDecision).sort((a, b) => a.id.localeCompare(b.id)),

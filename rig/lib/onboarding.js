@@ -5,7 +5,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { inventoryHarness } = require('./inspect');
 const { buildOverlaps } = require('./adapt-overlap');
-const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
+const {
+  canonical: canonicalJson, readMigrations, sha256, skillsDigest, validateSkillCatalog,
+} = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
 const { verifySshsig } = require('./policy');
 const {
@@ -250,11 +252,31 @@ function cleanProjection(target, writer, rel) {
   fail(`selected skill projection conflicts with repository-owned path "${rel}"`);
 }
 
+// One digest over every file a skill projects, keyed by the path inside the
+// projected skill directory and deduplicated across host scopes (each scope
+// receives identical bytes). `propose` freezes this value into the approved
+// proposal; `apply` and `check` re-derive it, so the approval covers the bytes
+// rather than only the skill's name.
+function projectedDigest(entries) {
+  const unique = [...new Map(entries.map((entry) => [`${entry.path}\0${entry.sha256}`, entry])).values()];
+  unique.sort((a, b) => a.path.localeCompare(b.path) || a.sha256.localeCompare(b.sha256));
+  return sha256(canonicalJson(unique));
+}
+
+// `writer` is optional: propose needs the bytes and their digests, while only
+// apply owns the journal and therefore the repository-ownership conflict check.
 function planSkillProjections(target, catalog, selected, writer) {
-  const scopes = installedSkillScopes(target);
+  const skills = selectedCatalogSkills(catalog, selected);
+  const scopes = skills.length ? installedSkillScopes(target) : [];
   const plans = [];
   const rows = [];
-  for (const skill of selectedCatalogSkills(catalog, selected)) {
+  const projectedFiles = new Map();
+  const record = (skill, rel, digest) => {
+    const entries = projectedFiles.get(skill.id) || [];
+    entries.push({ path: rel, sha256: digest });
+    projectedFiles.set(skill.id, entries);
+  };
+  for (const skill of skills) {
     const name = projectedSkillName(skill);
     if (skill.source_kind === 'core') {
       for (const scope of scopes) {
@@ -262,6 +284,7 @@ function planSkillProjections(target, catalog, selected, writer) {
         const digest = currentDigest(target, rel);
         if (!digest) fail(`required skill "${skill.id}" was not staged for ${scope.host_scope}`);
         rows.push({ skill: skill.id, host_scope: scope.host_scope, path: rel, sha256: digest });
+        record(skill, 'SKILL.md', digest);
       }
       continue;
     }
@@ -273,14 +296,16 @@ function planSkillProjections(target, catalog, selected, writer) {
       for (const source of files) {
         const rel = `${root}/${source.rel}`;
         const bytes = source.rel === 'SKILL.md' ? rewriteProjectedName(source.bytes, name) : source.bytes;
-        cleanProjection(target, writer, rel);
-        plans.push({ rel, bytes, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
+        if (writer) cleanProjection(target, writer, rel);
+        plans.push({ skill: skill.id, rel, bytes, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
+        record(skill, source.rel, sha256(bytes));
         if (source.rel === 'SKILL.md') {
           rows.push({ skill: skill.id, host_scope: scope.host_scope, path: rel, sha256: sha256(bytes) });
         }
       }
     }
   }
+  const digests = new Map([...projectedFiles].map(([id, entries]) => [id, projectedDigest(entries)]));
   // The legacy `skills` ledger deduplicates by skill ID so external callers
   // that depend on one-entry-per-skill (e.g. the AT-PB-10 acceptance case)
   // are not broken.  The `projections` list preserves every (skill, host,
@@ -289,7 +314,43 @@ function planSkillProjections(target, catalog, selected, writer) {
   // skill even though `skills` still holds one.
   const uniqueRows = [...new Map(rows.map((row) => [row.skill, row])).values()];
   const sorted = (list) => [...list].sort((a, b) => a.skill.localeCompare(b.skill) || a.host_scope.localeCompare(b.host_scope) || a.path.localeCompare(b.path));
-  return { plans, rows: sorted(uniqueRows), projections: sorted(rows) };
+  return {
+    plans, rows: sorted(uniqueRows), projections: sorted(rows), digests,
+  };
+}
+
+// The per-skill binding a proposal freezes: the catalogue tree the selection
+// was made from, and the exact bytes that selection will project.
+function skillBindings(target, catalog, selected) {
+  const { digests } = planSkillProjections(target, catalog, selected, null);
+  return selectedCatalogSkills(catalog, selected)
+    .map((skill) => ({
+      id: skill.id,
+      tree_digest: skill.tree_digest,
+      projected_digest: digests.get(skill.id) || null,
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+// Approval was granted for these bytes. Anything that moved between propose and
+// apply — a hand-edited staged source, a swapped catalogue row, a projection
+// that reaches a skill nobody approved — makes the approval stale, not stale
+// data to refresh silently.
+function verifySkillBindings(proposal, catalog, projection) {
+  const bindings = proposal.skill_bindings || [];
+  const bound = new Set(bindings.map(({ id }) => id));
+  for (const id of projection.digests.keys()) {
+    if (!bound.has(id)) fail(`stale proposal: projection produced skill "${id}" outside the approved selection`);
+  }
+  for (const binding of bindings) {
+    if (projection.digests.get(binding.id) !== binding.projected_digest) {
+      fail(`stale proposal: projected bytes for skill "${binding.id}" no longer match the approved projected_digest`);
+    }
+    const row = catalog.skills.find((skill) => skill.id === binding.id);
+    if (!row || row.tree_digest !== binding.tree_digest) {
+      fail(`stale proposal: catalogue tree_digest for skill "${binding.id}" has changed`);
+    }
+  }
 }
 
 function preflightGrafts(target, grafts, writer) {
@@ -386,12 +447,18 @@ function propose(request) {
     if (state.revision !== request.expected_revision) {
       fail(`stale revision: expected ${state.revision}, received ${request.expected_revision}`);
     }
-    const { digest } = loadInstalledCatalog(request.target);
+    const { catalog, digest } = loadInstalledCatalog(request.target);
     if (digest !== state.release.catalog_digest) {
       fail('the skill catalog changed since prepare: this proposal is stale and must be rebuilt');
     }
     const summary = validateSummary(request.summary_markdown);
-    const stored = canonicalProposal(request.proposal, state, sha256(Buffer.from(summary)));
+    // The caller proposes skill names; the engine — not the caller — computes
+    // the digests those names resolve to, so a proposal cannot be approved for
+    // one set of bytes and applied against another.
+    const stored = canonicalProposal(
+      request.proposal, state, sha256(Buffer.from(summary)),
+      (selected) => skillBindings(request.target, catalog, selected),
+    );
     const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
     const identical = state.proposal && state.proposal.digest === stored.digest
       && fs.existsSync(summaryFile) && fs.readFileSync(summaryFile, 'utf8') === summary;
@@ -538,6 +605,7 @@ function apply(request) {
 
     const writer = journalWriter(request.target);
     const projection = planSkillProjections(request.target, catalog, state.proposal.selected_skills, writer);
+    verifySkillBindings(state.proposal, catalog, projection);
     preflightGrafts(request.target, state.proposal.grafts, writer);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
     const removals = planRemovals(request.target, state, projection, writer, catalog);
@@ -647,6 +715,28 @@ function reconcileApplied(target, state) {
     const digestAtPath = currentDigest(target, row.path);
     if (digestAtPath !== row.sha256) {
       hardFailures.push(failure('state-incomplete', row.path, `selected skill "${row.skill}" is missing or has changed`));
+    }
+  }
+  // A ledger row only proves the SKILL.md still holds the bytes the ledger
+  // itself echoed. Re-derive the whole projected tree and compare it to the
+  // digest the approval was granted for, so an edited sibling — or a file
+  // smuggled into a projected skill directory after apply — is caught too.
+  const rootsBySkill = new Map();
+  for (const row of projectionRows) {
+    const roots = rootsBySkill.get(row.skill) || new Set();
+    roots.add(path.posix.dirname(row.path));
+    rootsBySkill.set(row.skill, roots);
+  }
+  for (const binding of state.proposal?.skill_bindings || []) {
+    const roots = [...(rootsBySkill.get(binding.id) || [])].sort();
+    if (!roots.length) {
+      hardFailures.push(failure('state-incomplete', '.rig/state.json', `approved skill "${binding.id}" has no recorded projection`));
+      continue;
+    }
+    const entries = roots.flatMap((root) => liveFilesUnder(target, root)
+      .map((rel) => ({ path: rel.slice(root.length + 1), sha256: currentDigest(target, rel) })));
+    if (projectedDigest(entries) !== binding.projected_digest) {
+      hardFailures.push(failure('state-incomplete', roots[0], `projected bytes for skill "${binding.id}" no longer match the approved projected_digest`));
     }
   }
   for (const row of state.applied.owned_files || []) {

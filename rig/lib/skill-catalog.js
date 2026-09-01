@@ -166,6 +166,33 @@ function findOptionalSources() {
   return out.sort((a, b) => a.source_rel.localeCompare(b.source_rel));
 }
 
+// The digest of the skill's whole source tree, not just its SKILL.md. A
+// proposal binds this value so an edit to any staged file — a reference doc, a
+// sibling playbook — invalidates an approval that was granted for the old
+// bytes. Walk order and mode bits are fixed so the value is reproducible.
+function skillTreeDigest(sourceRel) {
+  const abs = path.dirname(path.join(ROOT, sourceRel));
+  const files = [];
+  (function walk(rel) {
+    const entries = fs.readdirSync(path.join(abs, rel), { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    for (const entry of entries) {
+      if (entry.name === 'node_modules') continue;
+      const next = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(next);
+      else if (entry.isFile()) {
+        const file = path.join(abs, next);
+        files.push({
+          path: next,
+          mode: fs.statSync(file).mode & 0o777,
+          sha256: sha256(fs.readFileSync(file)),
+        });
+      }
+    }
+  }(''));
+  return sha256(canonical(files));
+}
+
 function readSkill(sourceRel, dir, familyIds) {
   const body = fs.readFileSync(path.join(ROOT, sourceRel), 'utf8');
   const fields = parseFrontmatter(body, sourceRel);
@@ -235,6 +262,7 @@ function catalogRow(skill, aliasesByName, sourceKind) {
     source_kind: sourceKind,
     required: sourceKind === 'core',
     source_rel: skill.source_rel,
+    tree_digest: skillTreeDigest(skill.source_rel),
   };
 }
 
@@ -268,7 +296,9 @@ function buildSkillCatalog({ releaseTag = 'v5.0.0', softBudget } = {}) {
   return {
     schema_version: 1,
     catalog_kind: 'skill-shelf',
-    release: { version: releaseTag, skills_digest: sha256(canonical(skills)) },
+    // One formula, shared with `skillsDigest`, so a row key added for local
+    // verification (tree_digest) cannot silently move the published digest.
+    release: { version: releaseTag, skills_digest: skillsDigest({ skills }) },
     taxonomy: { id: TAXONOMY_ID, families },
     skills,
     soft_budget: softBudget || { basis: 'previous-release', files: 0, bytes: 0 },
@@ -312,12 +342,16 @@ function validateSkillCatalog(catalog) {
     if (skill.source_kind !== 'core' && skill.source_kind !== 'optional') fail(`${label} has an invalid source_kind`);
     if (typeof skill.required !== 'boolean') fail(`${label} has an invalid required flag`);
     if (typeof skill.source_rel !== 'string' || !skill.source_rel) fail(`${label} has no source_rel`);
+    if (typeof skill.tree_digest !== 'string' || !/^[0-9a-f]{64}$/.test(skill.tree_digest)) fail(`${label} has no tree_digest`);
   }
   return catalog;
 }
 
 // The digest a proposal is bound to: recompute it from the rows so a tampered
-// `release.skills_digest` is caught rather than trusted.
+// `release.skills_digest` is caught rather than trusted. The projection is the
+// frozen twelve-key identity of a catalogue row (AT-PB-3); `tree_digest` stays
+// outside it and is covered instead by the catalogue file digest that every
+// proposal already binds, so adding it did not move a signed value.
 function skillsDigest(catalog) {
   const rows = catalog.skills.map(({
     id, name, description, family, tool, capability, guarantees, overlap_tags: overlapTags, aliases, source_kind: sourceKind, required, source_rel: sourceRel,
@@ -337,6 +371,7 @@ module.exports = {
   parseFrontmatter,
   readMigrations,
   sha256,
+  skillTreeDigest,
   skillsDigest,
   validateSkillCatalog,
 };
