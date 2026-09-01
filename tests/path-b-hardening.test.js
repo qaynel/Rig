@@ -805,6 +805,41 @@ describe('Task 5 (Issue 6) — journaled delete restores absence', () => {
       );
     });
   });
+
+  it('AT-PB-hard delete — uninstall reclaims a file left behind by an interrupted delete', async () => {
+    await h.withRepo((target) => {
+      const rel = '.rig/foo.md';
+      const file = path.join(target, rel);
+      mutate(target, upsertGraftSection, {
+        path: rel, capability: CAPABILITY, version: 1,
+        content: 'Rig body.', expected_file_digest: null,
+      });
+      // Crash between the pending delete record and the unlink: the newest
+      // record for the path is a *pending* delete_owned, but the bytes are
+      // still on disk. A pending delete looks exactly like an applied one on
+      // desired_digest alone, so uninstall must not treat it as already clean.
+      fs.appendFileSync(path.join(target, MANIFEST_REL), `${JSON.stringify({
+        seq: 900, path: rel, ownership: 'delete_owned', operation: 'delete_owned',
+        transaction_kind: 'install', state: 'pending',
+        preimage_digest: digestOf(target, rel), desired_digest: null,
+      })}\n`);
+      assert.ok(fs.existsSync(file), 'precondition: the interrupted delete left the file on disk');
+
+      const result = uninstall(target);
+      assert.equal(
+        fs.existsSync(file),
+        false,
+        'uninstall must reclaim a file an interrupted delete left behind, not report a clean removal over live bytes',
+      );
+      assert.deepEqual(result.best_effort, []);
+      assert.equal(result.status, 'removed');
+      assert.equal(
+        fs.existsSync(path.join(target, MANIFEST_REL)),
+        false,
+        'a fully reclaimed install drops its journal',
+      );
+    });
+  });
 });
 
 describe('Task 1 — authenticated approval receipts', () => {

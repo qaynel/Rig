@@ -311,11 +311,15 @@ function uninstall(target, opts = {}) {
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
-    // A journalled delete already restored absence for this path. There is
-    // nothing left to reclaim, and routing it through the attribution rules
-    // below would file an already-clean path as best-effort — wedging every
-    // later uninstall in best_effort and never dropping the journal.
-    if (record.operation === 'delete_owned' && record.desired_digest === null) continue;
+    // An *applied* journalled delete already restored absence for this path.
+    // There is nothing left to reclaim, and routing it through the attribution
+    // rules below would file an already-clean path as best-effort — wedging
+    // every later uninstall in best_effort and never dropping the journal.
+    // A pending delete carries the same null desired_digest but its unlink may
+    // never have run, so it must still go through the reclaim path below or
+    // uninstall would report a file still on disk as removed.
+    if (record.operation === 'delete_owned' && record.desired_digest === null
+      && record.state === 'applied') continue;
     const abs = resolvedRecordPaths.get(record);
     const rel = classifiedRel(target, record, abs);
     if (preservePrefixes.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) {

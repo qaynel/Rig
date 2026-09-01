@@ -116,3 +116,57 @@ journalled delete leaves an uninstall nothing to reclaim and its journal is
 dropped). Five were red before this change; the reclamation case was written as
 a guard and was green throughout. `npm test` is green — 663 tests, 662 passing,
 one platform-gated skip (`PR_SET_PDEATHSIG`, Linux-only), exit 0.
+
+## Round 2 — a pending delete is not a clean path
+
+Review found one regression in the round-1 diff. The uninstall skip added at
+`rig/lib/lifecycle.js` read only the operation and the desired digest:
+
+    if (record.operation === 'delete_owned' && record.desired_digest === null) continue;
+
+`desired_digest: null` is the *intent* of a delete, and the pending record
+carries it just as the applied one does — it is written before the unlink runs.
+So an interrupted delete, whose bytes are still on disk, matched the skip.
+Uninstall walked past a live file, filed nothing in `best_effort`, returned
+`status: 'removed'`, and — because the journal is dropped whenever `best_effort`
+is empty — deleted the only record that the file was ever Rig's. A false clean
+that also destroys the evidence needed to clean up later: strictly worse than
+the wedge the skip was written to prevent.
+
+The distinction the skip actually wanted is `state`. An applied delete means the
+unlink landed and absence is already the end state; there is genuinely nothing
+to reclaim. A pending delete means the unlink may never have run, so the record
+must go through the normal reclaim path below, where the existing digest check
+decides whether Rig may still remove the bytes. The fix adds `&& record.state
+=== 'applied'`.
+
+Nothing else needed to change. A pending delete for a path under an install top
+level (`.rig/…`) carries no `digest` and a null `desired_digest`, so the generic
+branch computes no expected digest, unlinks, and reports the path removed — the
+correct completion of the interrupted delete. A pending delete for a graft file
+such as `CLAUDE.md` fails `isManagedAddition` (its ownership is `delete_owned`,
+not `graft_managed`), so it lands in `best_effort` and the journal is retained:
+not a completed removal, but an honest one, and the record survives for the next
+attempt. Both outcomes beat reporting a removal that did not happen.
+
+The tenth case in `tests/path-b-hardening.test.js` mirrors the regression
+directly: graft a Rig-created file into existence, append a pending
+`delete_owned` record with the live preimage and leave the bytes on disk (the
+crash shape the two recovery cases already use), then run the production
+`uninstall`. It asserts the file is gone, `best_effort` is empty, and the
+journal is dropped. Verified red against the round-1 code — it failed on exactly
+the false-clean assertion, "uninstall must reclaim a file an interrupted delete
+left behind" — and green with the fix.
+
+## State at the time of writing
+
+Ten cases for the journalled delete in `tests/path-b-hardening.test.js`; the
+file's suite is green. `npm test` was observed green end to end with this change
+(663 tests, exit 0). Later runs of the full gate on this machine went red on a
+rotating subset of the memory- and wall-clock-ceiling cases in
+`tests/guarantee-coverage.test.js` and `tests/release-blockers.test.js`
+(`AT-CAP-1`, `AT-CAP-2`, `AT-PROC-1c`, `AT-PROC-1s`, and the `release-blockers`
+lint-grade case) — a different pair each run. Reproduced with this change
+stashed, so it is load-sensitive flake in those process-ceiling tests, not a
+regression from the delete fix. Worth its own trap entry if it recurs in CI
+rather than only under local load.
