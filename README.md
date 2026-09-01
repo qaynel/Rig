@@ -20,33 +20,32 @@ delivery surfaces:
 > **Beta note:** The mandatory agent-technology safety baseline is included.
 > Catalogue services beyond their declared Policy assurance remain opt-in.
 
-## Install the markdown bootstrap
+## Install Rig
 
-From this checkout:
-
-```sh
-sh rig/bootstrap.sh --target /path/to/repository
-```
-
-By default the local bootstrap is markdown-only: every skill's `SKILL.md`
-lands, but its code and the `.rig/plumbing` tree are left out. Add
-`--with-runtime` to install those too:
+The public install command is `install rig`; it installs the active runtime,
+catalogue, mandatory workflow skills, and host adapters. From this checkout:
 
 ```sh
-sh rig/bootstrap.sh --target /path/to/repository --with-runtime
+./install rig --version v5.0.0 --target /path/to/repository
 ```
 
-The root `install.sh` resolves a named release, downloads it before execution,
-and always invokes the bootstrap with `--with-runtime`, so the active catalogue
-and safety runtime are included:
+Select one or more hosts explicitly with repeatable `--host`; omitted hosts are
+detected from existing repository markers:
+
+```sh
+./install rig --target /path/to/repository --host codex --host claude
+```
+
+After installation, explicitly invoke `rig-onboarding` in a host agent to
+review the repository adaptation summary. Installation never auto-triggers
+onboarding, and nothing is adapted until that summary is approved.
+
+The lower-level scripts remain available for compatibility and diagnostics.
+`install.sh` resolves a named release and `rig/bootstrap.sh` performs the
+payload install; the public launcher above always enables the active runtime.
 
 ```sh
 sh install.sh --version v5.0.0 --target /path/to/repository
-```
-
-Interactively it prompts for the bootstrap tier; automation can be explicit:
-
-```sh
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 

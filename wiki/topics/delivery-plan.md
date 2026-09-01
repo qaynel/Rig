@@ -67,6 +67,14 @@ oracle remains unchanged as each slice turns its assigned failures green.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
+The Path B operator slice is complete: `install rig` is the public grammar,
+explicit hosts replace detection while omitted hosts preserve it, and every
+successful install ends at the explicit `rig-onboarding` review step. The
+failure/weight closure is also complete: checks warn on payload growth, fail on
+known ownership/reference/state regressions, and keep legitimate runtime
+staging and distinct host projections valid.
+[operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
+
 The former lint-format-only path is historical. D24 supersedes D21's release
 boundary and retires D23: all 115 Policy leaves are now release-blocking, while
 lint-format remains the only currently evidenced higher-grade vertical. The

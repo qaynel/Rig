@@ -61,6 +61,7 @@ catalogue is untouched.
 [Path B adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md)
 [Path B product direction](../reasoning/2026-08-31-path-b-product-direction.md)
 [Path B follow-up decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md)
+[Operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
 
 The working Path B technical design makes that identity executable without
 turning Rig into the brain: one explicit onboarding invocation gives the host

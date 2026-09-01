@@ -14,6 +14,7 @@ catalogue, summary, and journal, then reports a checked pass only when those
 facts agree. Its response keeps the next action and hard failures structured so
 the CLI and MCP adapters cannot turn drift into a false green.
 [Path B vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
+[Path B operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
 
 The report schema also preserves six abnormal non-passing outcomes as distinct
 states: timeout, cancellation, missing dependency, signal termination, partial

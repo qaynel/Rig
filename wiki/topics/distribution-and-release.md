@@ -2,16 +2,19 @@
 
 ## What it is
 
-A stranger with `curl`, `tar`, POSIX `sh`, and Node can install a named Rig
-release without a checkout. The root installer resolves `latest` or accepts a
-specific tag, downloads the archive to disk, extracts exactly one root, and
-executes the bundled bootstrap locally with its active-delivery gate. It never
-pipes network bytes to a shell.
+A stranger with `curl`, `tar`, POSIX `sh`, and Node can run the single public
+command `install rig` to install a named Rig release without a checkout. The
+launcher accepts repeatable explicit hosts, or preserves bounded detection
+when no host is supplied. It resolves `latest` or accepts a specific tag,
+downloads the archive to disk, extracts exactly one root, and executes the
+bundled bootstrap locally with its active-delivery gate. It never pipes network
+bytes to a shell.
 
 ## Shipping payload
 
-Every tagged-release target receives the neutral router, all 55 vendored
-skills, upstream MIT notice and provenance, plumbing, the complete 115-leaf
+Every tagged-release target receives the neutral router, the 55 vendored
+optional skills plus the canonical onboarding skill, upstream MIT notice and
+provenance, plumbing, the complete 115-leaf
 catalogue, baseline assets, and the safety/runtime modules — `install.sh`
 always installs with `--with-runtime`. Detected hosts additionally receive only
 their supported native trees; a bare repository receives no fabricated host
@@ -25,8 +28,11 @@ tree are gated behind the same `active_delivery` flag as the runtime engine.
 
 Active-delivery installs also receive the journal-owned `.rig/bin/rig`
 executable, which delegates to the installed runtime without requiring a global
-package installation. Bootstrap prints the staged workflow using that command;
-the markdown-only default receives neither the command nor runtime bytes.
+package installation. The neutral `.rig/skills/` directory therefore contains
+56 skill directories in active installs; the 55-skill optional shelf remains
+under the runtime catalogue. The public install ends by directing the user to invoke
+`rig-onboarding`; it never runs onboarding automatically, and the markdown-only
+default receives neither the command nor runtime bytes.
 The bundled MCP runtime also carries the canonical Rig rule file beneath its
 runtime tree, so it serves the complete ruleset even for a bare repository that
 has no host-specific instruction install.
@@ -55,7 +61,9 @@ assertion that never ran the installer.
 
 ## Remaining work
 
-None for `v5.0.0`. The annotated tag and GitHub latest release were published
+The public operator path and onboarding weight/correctness check are now closed
+for the active Path B delivery. The annotated tag and GitHub latest release
+were published
 2026-08-29 on the receipt-bound commit
 `9d1ea45ea4876b300fbfe964d46319188ff2f09d`.
 [Ceremony cut](../reasoning/2026-08-29-v5.0.0-tag.md)

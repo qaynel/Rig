@@ -8,6 +8,7 @@ const { buildOverlaps } = require('./adapt-overlap');
 const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
 const { journalWriter, parseGraftSections, upsertGraftSection } = require('./payload');
+const { checkOnboarding } = require('./onboarding-check');
 const {
   atomicWrite, canonicalProposal, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
@@ -242,7 +243,11 @@ function planSkillProjections(target, catalog, selected, writer) {
       }
     }
   }
-  return { plans, rows: rows.sort((a, b) => a.skill.localeCompare(b.skill) || a.host_scope.localeCompare(b.host_scope) || a.path.localeCompare(b.path)) };
+  // The state ledger records one canonical selection per skill. The journal
+  // still records every host projection, so distinct host surfaces remain
+  // attributable without turning one selection into a duplicate.
+  const uniqueRows = [...new Map(rows.map((row) => [row.skill, row])).values()];
+  return { plans, rows: uniqueRows.sort((a, b) => a.skill.localeCompare(b.skill) || a.host_scope.localeCompare(b.host_scope) || a.path.localeCompare(b.path)) };
 }
 
 function preflightGrafts(target, grafts) {
@@ -498,15 +503,20 @@ function check(request) {
   return withOnboardingLock(request.target, () => {
     const state = readState(request.target);
     requireCurrentRevision(request, state, 'check');
-    if (!['applied', 'checked'].includes(state.phase)) {
+    if (!['applied', 'checked', 'failed'].includes(state.phase)) {
       fail(`check action is invalid from phase "${state.phase}"`);
     }
-    const hardFailures = reconcileApplied(request.target, state);
+    let catalog = null;
+    try { ({ catalog } = loadInstalledCatalog(request.target)); } catch { /* reconciliation records the state failure */ }
+    const supplemental = catalog
+      ? checkOnboarding(request.target, state, catalog)
+      : { hardFailures: [], warnings: [], weight: { files: 0, bytes: 0, previous_release_files: 0, previous_release_bytes: 0 } };
+    const hardFailures = [...reconcileApplied(request.target, state), ...supplemental.hardFailures];
     const checks = {
       status: hardFailures.length ? 'fail' : 'pass',
       hard_failures: hardFailures,
-      warnings: [],
-      weight: { files: 0, bytes: 0, previous_release_files: 0, previous_release_bytes: 0 },
+      warnings: supplemental.warnings,
+      weight: supplemental.weight,
     };
     const phase = hardFailures.length ? 'failed' : 'checked';
     const unchanged = state.phase === phase && JSON.stringify(state.checks) === JSON.stringify(checks);

@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |

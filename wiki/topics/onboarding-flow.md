@@ -187,6 +187,13 @@ entrypoint, B-6 weight budget) remains the code-side split; G-class inference
 *in Rig installer code* stays out of beta.
 [Path B adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md)
 
+The operator path and check closure are now complete. `install rig` always
+stages the active runtime and stops at an explicit `rig-onboarding` handoff;
+repeatable host selections replace detection, while omission preserves it. The
+shared check measures journal-backed attributable weight with warning-only
+growth thresholds and fails known projection, graft, reference, state, and
+ownership regressions. [Operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
+
 **Locked 2026-08-31: agent-led graft, not a skill picker.** The intent owner
 answered the Path B grilling. The onboarding host agent receives full repository
 context, the full Rig capability catalogue (organised into families for the

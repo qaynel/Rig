@@ -9,10 +9,12 @@ REPO="${RIG_REPO:-qaynel/Rig}"
 VERSION="latest"
 TARGET_DIR="${PWD}"
 OPENCLAW_MCP=0
+HOSTS=
+HOSTS_EXPLICIT=0
 
 usage() {
   cat <<'EOF'
-Usage: install.sh [--version <tag>] [--target <path>] [--openclaw-mcp]
+Usage: install.sh [--version <tag>] [--target <path>] [--hosts <host,...>] [--openclaw-mcp]
 
 Resolves the requested release tag (or "latest") from GitHub, downloads the
 released tarball locally, and runs the bundled bootstrap. The remote payload
@@ -21,6 +23,7 @@ is written to disk before any script executes.
 Options:
   --version <tag>   Install a specific release (default: latest)
   --target <path>   Repository to install into (default: current directory)
+  --hosts <list>    Explicit comma-separated hosts (replaces detection)
   --openclaw-mcp    Register rig-mcp in OpenClaw's global MCP config
   -h, --help        Show this message
 
@@ -49,6 +52,12 @@ while [ $# -gt 0 ]; do
     --target)
       require_value "$1" "${2:-}"
       TARGET_DIR="$2"
+      shift 2
+      ;;
+    --hosts)
+      require_value "$1" "${2:-}"
+      HOSTS="$2"
+      HOSTS_EXPLICIT=1
       shift 2
       ;;
     --openclaw-mcp)
@@ -132,6 +141,7 @@ if [ ! -x "${SRC_DIR}/rig/bootstrap.sh" ]; then
 fi
 
 set -- "${SRC_DIR}/rig/bootstrap.sh" --target "$TARGET_DIR" --with-runtime
+[ "$HOSTS_EXPLICIT" = 1 ] && set -- "$@" --hosts "$HOSTS"
 if [ "$OPENCLAW_MCP" = 1 ]; then
   set -- "$@" --openclaw-mcp
 fi

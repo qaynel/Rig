@@ -36,6 +36,12 @@ while [ "$#" -gt 0 ]; do
       HOSTS_EXPLICIT=1
       shift 2
       ;;
+    --host)
+      [ "$#" -ge 2 ] || usage
+      if [ "$HOSTS_EXPLICIT" = 0 ] || [ -z "$HOSTS" ]; then HOSTS=$2; else HOSTS="$HOSTS,$2"; fi
+      HOSTS_EXPLICIT=1
+      shift 2
+      ;;
     --with-runtime)
       ACTIVE_DELIVERY=1
       shift
@@ -116,11 +122,6 @@ for (const host of result.hosts) {
 if (openclaw) console.log(`  openclaw: registered ${openclaw.name} in ${openclaw.path}`);
 console.log(`  writes: ${result.writes} (recorded in .rig/install-manifest.jsonl)`);
 EOF
-if [ "$HOSTS_EXPLICIT" = 1 ]; then
-  echo "Rig Tier 1 installed for selected hosts via payload.js."
-else
-  echo "Rig Tier 1 installed for detected hosts via payload.js."
-fi
 if [ "$ACTIVE_DELIVERY" = 1 ]; then
   cat <<EOF
 Rig runtime workflow:
@@ -135,3 +136,5 @@ Rig runtime workflow:
   .rig/bin/rig check --target "$TARGET_ROOT"
 EOF
 fi
+echo "Rig is installed. In your host agent, invoke rig-onboarding for this repository."
+echo "Nothing is adapted until you approve its onboarding summary."

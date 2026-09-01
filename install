@@ -1,0 +1,85 @@
+#!/bin/sh
+# Public release installer. Keep the grammar small; install.sh owns download
+# and rig/bootstrap.sh owns host validation and the journaled payload.
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
+
+usage() {
+  cat <<'EOF'
+Usage: install rig [--host <host>]... [--target <path>] [--version <tag>]
+
+Install Rig's active runtime and catalogue, then invoke rig-onboarding in a
+host agent when you are ready to review an adaptation proposal.
+
+Options:
+  --host <host>     Select a host (repeatable; replaces detection)
+  --target <path>   Repository to install into (default: current directory)
+  --version <tag>   Install a specific release (default: latest)
+  --openclaw-mcp    Register rig-mcp in OpenClaw's global MCP config
+  -h, --help        Show this message
+EOF
+}
+
+[ "$#" -gt 0 ] || { usage >&2; exit 2; }
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  usage
+  exit 0
+fi
+[ "$1" = "rig" ] || { echo "install: expected the 'rig' operand" >&2; usage >&2; exit 2; }
+shift
+
+VERSION=
+TARGET=
+HOSTS=
+OPENCLAW=0
+
+add_host() {
+  case ",${HOSTS}," in
+    *,"$1",*) return ;;
+  esac
+  if [ -n "$HOSTS" ]; then HOSTS="$HOSTS,$1"; else HOSTS=$1; fi
+}
+
+require_value() {
+  [ "$#" -gt 1 ] && [ -n "$2" ] && [ "${2#-}" = "$2" ] || {
+    echo "install: $1 requires a value" >&2
+    usage >&2
+    exit 2
+  }
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --host)
+      require_value "$1" "${2:-}"
+      add_host "$2"
+      shift 2
+      ;;
+    --target|--version)
+      require_value "$1" "${2:-}"
+      if [ "$1" = "--target" ]; then TARGET=$2; else VERSION=$2; fi
+      shift 2
+      ;;
+    --openclaw-mcp)
+      OPENCLAW=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "install: unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+set --
+[ -n "$VERSION" ] && set -- "$@" --version "$VERSION"
+[ -n "$TARGET" ] && set -- "$@" --target "$TARGET"
+[ -n "$HOSTS" ] && set -- "$@" --hosts "$HOSTS"
+[ "$OPENCLAW" = 1 ] && set -- "$@" --openclaw-mcp
+exec "$ROOT/install.sh" "$@"
