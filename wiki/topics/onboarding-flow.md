@@ -389,3 +389,5 @@ warning. The bindings are computed by the engine, never accepted from the
 caller: a caller who could assert the digest of the bytes being approved would
 be re-introducing the `verified: true` defect.
 [Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

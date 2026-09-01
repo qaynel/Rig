@@ -163,3 +163,5 @@ RIG-143 adds AT-PROC-1d for the network conjunct on `runGrade`: the test
 covers isolation, explicit grants, and refusal when the host cannot provide
 the sandbox. Full text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
 [reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

@@ -94,3 +94,14 @@ section in the same transaction. Repository-owned prose around the markers is
 untouched, and the Task 5 delete only fires when the last managed section leaves
 a file Rig created.
 [Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+**Preflight now recognises a landed write with no record as a resume, not a
+conflict (2026-09-01).** A crash between the write and the journal entry that
+should say so used to leave the desired bytes live with nothing recording them,
+and every subsequent preflight read that state as a third-party edit and
+refused forever. Preflight now accepts live bytes whose digest matches what the
+journal was already writing — but only while that transaction is still open,
+so a cleanly finished install can never excuse a proposal built on a stale
+view. A resumed run promotes the pending record instead of leaving it pending,
+and closes the transaction it inherited.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)

@@ -78,3 +78,5 @@ scrape … on a repo that needs ~7 of 65 skills). This is the concrete case for
 pruning the installed set to what the repo's stack implies rather than shipping
 everything, and it stands against the "Rig has everything" framing.
 [Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

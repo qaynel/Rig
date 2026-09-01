@@ -119,3 +119,5 @@ against them, so its wording can drift out of step with the compact version
 without failing any test — a known gap, not yet worth a script for the size of
 the text. The three-minute checkpoint cadence is applied by agent discipline;
 no hook currently verifies a long task actually checkpointed on schedule.
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; no new current traces since last edit. -->

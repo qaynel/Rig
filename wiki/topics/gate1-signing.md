@@ -75,3 +75,5 @@ No agent may run or simulate the approval helper. Path B implementation remains
 blocked until that human act succeeds.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [Status](../status.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; no new current traces since last edit. -->

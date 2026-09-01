@@ -165,3 +165,5 @@ Rig's universal service-depth method is Policy → Context → Evidence: govern,
 understand, then prove the change, while using the lowest level that can reach a
 definitive answer. All 115 leaves carry Policy contracts; lint-format retains
 the deeper repository-specific Context and rerunnable Evidence proof.
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

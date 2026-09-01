@@ -135,3 +135,5 @@ call. And a resume can legitimately write nothing at all, so `finish()` now
 closes a transaction it merely inherited; otherwise the journal stays open and
 every later run keeps a resume licence it should have surrendered.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

@@ -50,3 +50,5 @@ D23's original ruling — why a permanently-red 114-leaf check would have defeat
 the point of the gate, and why filling those leaves with placeholder content was
 rejected rather than scoping the check — is recorded in the
 [originating trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md).
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
