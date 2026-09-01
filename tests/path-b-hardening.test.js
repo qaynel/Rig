@@ -44,3 +44,49 @@ describe('Path B oracle documentation consistency', () => {
     );
   });
 });
+
+describe('Task 2 — single playbook write per install mode', () => {
+  const h = require('./helpers/path-b');
+  const PLAYBOOK_DEST = '.rig/skills/onboarding/SKILL.md';
+  const MANIFEST_REL = '.rig/install-manifest.jsonl';
+
+  function readJournal(target) {
+    const manifest = path.join(target, MANIFEST_REL);
+    if (!fs.existsSync(manifest)) return [];
+    return fs.readFileSync(manifest, 'utf-8')
+      .split('\n')
+      .flatMap((line) => {
+        try { return line.trim() ? [JSON.parse(line)] : []; } catch { return []; }
+      });
+  }
+
+  it('adaptive install writes exactly one applied journal record for PLAYBOOK_DEST', async () => {
+    await h.withRepo(async (target) => {
+      h.installRuntime(target, ['codex']);
+      const records = readJournal(target);
+      const applied = records.filter((r) => r.path === PLAYBOOK_DEST && r.state === 'applied');
+      assert.equal(
+        applied.length,
+        1,
+        `Expected exactly 1 applied journal record for ${PLAYBOOK_DEST}, got ${applied.length}. ` +
+        `Double-write defect: installation must not write the wrapper then overwrite with the full playbook.`,
+      );
+    });
+  });
+
+  it('legacy install writes the wrapper and does not write the full playbook', async () => {
+    await h.withRepo(async (target) => {
+      const { runPayload } = require(path.join(h.root, 'rig', 'lib', 'payload.js'));
+      runPayload(target, ['codex'], { activeDelivery: false });
+      const wrapperContent = fs.readFileSync(
+        path.join(h.root, 'rig/tier-1/skills/onboarding/SKILL.md'), 'utf-8',
+      );
+      const playbookContent = fs.readFileSync(
+        path.join(h.root, 'rig/tier-1/skills/onboarding/playbook.md'), 'utf-8',
+      );
+      const written = fs.readFileSync(path.join(target, PLAYBOOK_DEST), 'utf-8');
+      assert.notEqual(wrapperContent, playbookContent, 'Test precondition: wrapper and playbook must have different content');
+      assert.equal(written, wrapperContent, 'Legacy install must write the wrapper SKILL.md, not the full playbook');
+    });
+  });
+});

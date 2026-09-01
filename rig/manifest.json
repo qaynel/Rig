@@ -11,7 +11,7 @@
     { "op": "copy", "from": "rig/tier-1/skills/tdd/SKILL.md", "to": ".rig/skills/tdd/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/tier-1/skills/debugging/SKILL.md", "to": ".rig/skills/debugging/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/tier-1/skills/code-review/SKILL.md", "to": ".rig/skills/code-review/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
-    { "op": "copy", "from": "rig/tier-1/skills/onboarding/SKILL.md", "to": ".rig/skills/onboarding/SKILL.md", "host": "neutral" },
+    { "op": "copy", "from": "rig/tier-1/skills/onboarding/SKILL.md", "to": ".rig/skills/onboarding/SKILL.md", "host": "neutral", "gate": "default_delivery" },
     { "op": "copy", "from": "rig/tier-1/skills/onboarding/playbook.md", "to": ".rig/skills/onboarding/SKILL.md", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": ".claude/skills/rig-grilling/SKILL.md", "to": ".claude/skills/rig-grilling/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-product-design/SKILL.md", "to": ".claude/skills/rig-product-design/SKILL.md", "host": "claude" },
