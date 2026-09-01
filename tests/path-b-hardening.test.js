@@ -315,3 +315,82 @@ describe('Task 6 — unapproved graft enumeration in check', () => {
     }, { install: true });
   });
 });
+
+describe('Task 7 — registry-driven dangling-reference scan', () => {
+  const h = require('./helpers/path-b');
+
+  // Each entry describes which host adapter file holds the pointer and which
+  // installed file it points at. The old code had a hand-written list that
+  // omitted .claude/skills/rig-onboarding/SKILL.md and .cursor/rules/rig.mdc.
+  // The fix derives the scan set from SCAN_ROOTS + INSTRUCTION_FILE_HOSTS so
+  // all installed host adapters are covered without a hand-maintained list.
+  const MATRIX = [
+    {
+      host: 'cursor',
+      // .cursor/rules/rig.mdc (SCAN_ROOTS 'rule' kind) references .rig/routing.md
+      removeTarget: '.rig/routing.md',
+      adapterFile: '.cursor/rules/rig.mdc',
+    },
+    {
+      host: 'claude',
+      // .claude/skills/rig-onboarding/SKILL.md (SCAN_ROOTS 'skill-dir' kind)
+      // references .rig/skills/onboarding/SKILL.md. This adapter was MISSING from
+      // the old hard-coded list — the key regression this task fixes.
+      removeTarget: '.rig/skills/onboarding/SKILL.md',
+      adapterFile: '.claude/skills/rig-onboarding/SKILL.md',
+    },
+    {
+      host: 'codex',
+      // .agents/skills/rig-onboarding/SKILL.md references .rig/skills/onboarding/SKILL.md.
+      // This was in the old list but the new code derives it from the registry.
+      removeTarget: '.rig/skills/onboarding/SKILL.md',
+      adapterFile: '.agents/skills/rig-onboarding/SKILL.md',
+    },
+  ];
+
+  for (const { host, removeTarget, adapterFile } of MATRIX) {
+    it(`${host}: removing ${removeTarget} is reported as dangling-reference by check`, async () => {
+      await h.withRepo(async (target) => {
+        // Install for the specific host and complete the full apply+check cycle.
+        h.installRuntime(target, [host]);
+        const { checked } = h.applyAndCheck(target);
+        assert.deepEqual(
+          checked.hard_failures,
+          [],
+          `expected clean check after apply for ${host}; got: ${JSON.stringify(checked.hard_failures)}`,
+        );
+
+        // Verify the adapter file is present before deletion (precondition).
+        assert.ok(
+          fs.existsSync(path.join(target, adapterFile)),
+          `precondition: adapter file ${adapterFile} must exist after ${host} install`,
+        );
+
+        // Remove the canonical pointer target. This leaves the adapter file with
+        // a reference that no longer resolves — the check must catch it.
+        fs.rmSync(path.join(target, removeTarget));
+
+        // Re-run check — it must report a dangling-reference failure.
+        const result = h.handle({
+          schema_version: 1,
+          action: 'check',
+          target,
+          expected_revision: checked.revision,
+        });
+        assert.ok(
+          result.hard_failures.some((f) => f.code === 'dangling-reference'),
+          `expected a dangling-reference failure after removing ${removeTarget} for host ${host}; ` +
+          `got: ${JSON.stringify(result.hard_failures)}`,
+        );
+        // The failure path must name the removed target.
+        assert.ok(
+          result.hard_failures.some(
+            (f) => f.code === 'dangling-reference' && f.path === removeTarget,
+          ),
+          `expected dangling-reference failure to name path "${removeTarget}"; ` +
+          `got paths: ${JSON.stringify(result.hard_failures.filter((f) => f.code === 'dangling-reference').map((f) => f.path))}`,
+        );
+      });
+    });
+  }
+});

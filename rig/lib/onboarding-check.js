@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseGraftSections, enumerateGraftMarkers } = require('./payload');
 const { containedPath } = require('./path-safety');
+const { SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 
 const PROJECTION_ROOTS = ['.agents/skills', '.claude/skills', '.rig/skills'];
 
@@ -179,24 +180,68 @@ function projectionFailures(target, state, journal) {
   return failures;
 }
 
-function danglingReferences(target) {
+function danglingReferences(target, _journal) {
   const failures = [];
   const seen = new Set();
-  const files = [
-    'AGENTS.md', 'CLAUDE.md', 'GEMINI.md',
-    '.agents/rules/rig.md', '.claude/skills/rig-onboarding/SKILL.md',
-    '.agents/skills/rig-onboarding/SKILL.md', '.rig/skills/onboarding/SKILL.md',
-  ].map((rel) => containedPath(target, rel)).filter((file) => fs.existsSync(file));
   const realTarget = fs.realpathSync(target);
-  for (const file of files) {
+
+  // Derive the set of candidate files from registry-driven sources so that
+  // installed adapters for all hosts (Cursor, Claude, Codex, and others) are
+  // included without a hand-maintained list.
+  //
+  // Two sources are used:
+  //   A. Registry-driven scan roots, filtered to pointer-bearing adapter files:
+  //      - 'rule' and 'steering' roots: all files (every rule file is a pointer).
+  //      - 'skill-dir' roots: only the 'rig-onboarding/' subdirectory, which is
+  //        the canonical onboarding adapter that points to .rig/skills/onboarding/.
+  //        Other vendored skills reference future/runtime paths and would produce
+  //        excessive false positives if included.
+  //   B. Fixed instruction files from INSTRUCTION_FILE_HOSTS (CLAUDE.md,
+  //      AGENTS.md, GEMINI.md, .cursorrules, etc.).
+  //
+  // .rig/skills/, .rig/runtime/, and .rig/plumbing/ are intentionally excluded:
+  // they reference future/runtime paths rather than installed-file pointers.
+
+  const candidateRels = new Set();
+
+  // Source A: registry-driven scan roots.
+  for (const { root: rootRel, kind } of SCAN_ROOTS) {
+    const rootAbs = path.join(realTarget, rootRel);
+    if (kind === 'rule' || kind === 'steering') {
+      // All files in rule/steering roots are pointer files — include everything.
+      for (const file of walkFiles(rootAbs)) {
+        candidateRels.add(path.relative(realTarget, file).split(path.sep).join('/'));
+      }
+    } else if (kind === 'skill-dir') {
+      // For skill directories, only the 'rig-onboarding' adapter points at
+      // Rig's installed playbook. Vendored skills reference runtime paths.
+      const adapterDir = path.join(rootAbs, 'rig-onboarding');
+      for (const file of walkFiles(adapterDir)) {
+        candidateRels.add(path.relative(realTarget, file).split(path.sep).join('/'));
+      }
+    }
+  }
+
+  // Source B: fixed instruction files from the host registry.
+  for (const rel of Object.keys(INSTRUCTION_FILE_HOSTS)) {
+    candidateRels.add(rel);
+  }
+
+  const filesToScan = [...candidateRels]
+    .map((rel) => ({ rel, abs: containedPath(target, rel) }))
+    .filter(({ abs }) => {
+      try { return fs.statSync(abs).isFile(); } catch { return false; }
+    });
+
+  for (const { rel: fileRel, abs } of filesToScan) {
     let text;
-    try { text = fs.readFileSync(file, 'utf8'); } catch { continue; }
+    try { text = fs.readFileSync(abs, 'utf8'); } catch { continue; }
     for (const match of text.matchAll(/\.rig\/[A-Za-z0-9._/-]+/g)) {
-      const rel = match[0].replace(/[),.;:]+$/, '');
-      if (seen.has(rel)) continue;
-      seen.add(rel);
-      if (!fs.existsSync(containedPath(target, rel))) {
-        failures.push(failure('dangling-reference', rel, `reference from ${path.relative(realTarget, file)} does not resolve`));
+      const ref = match[0].replace(/[),.;:]+$/, '');
+      if (seen.has(ref)) continue;
+      seen.add(ref);
+      if (!fs.existsSync(containedPath(target, ref))) {
+        failures.push(failure('dangling-reference', ref, `reference from ${fileRel} does not resolve`));
       }
     }
   }
@@ -231,7 +276,7 @@ function checkOnboarding(target, state, catalog) {
   const journal = readJournal(target);
   const hardFailures = [
     ...projectionFailures(target, state, journal),
-    ...danglingReferences(target),
+    ...danglingReferences(target, journal),
     ...unapprovedGraftFailures(target, state),
   ];
   const weight = calculateWeight(target, catalog, journal);
