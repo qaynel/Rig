@@ -263,17 +263,52 @@ function managedGraftDetails(sections, previous, separatorCaps) {
   };
 }
 
+// The digest of the bytes an interrupted run was putting at `rel`.
+//
+// A crash between the disk write and the journal record that says so leaves the
+// desired bytes live with nothing recording them. A preflight comparing the
+// file against the proposal's preimage then reads that as "someone changed this
+// under us" and refuses forever, when it is really Rig's own half-finished
+// work. This is offered only while the journal still has an open transaction,
+// so a cleanly finished earlier install can never be used to excuse a proposal
+// built on a stale view of the file. A pending delete is excluded: its desired
+// end state is absence, not bytes, and `resolvePendingDelete` owns that.
+function journalResumeDigest(writeFile, rel) {
+  if (typeof writeFile?.interrupted !== 'function' || !writeFile.interrupted()) return null;
+  const prior = writeFile.latest?.(rel);
+  if (!prior || prior.operation === 'delete_owned') return null;
+  return prior.desired_digest || null;
+}
+
+// Re-issue a write whose bytes are already live so the writer can append the
+// `applied` record that the interrupted run never got to. `write` recognises a
+// pending record whose desired bytes match the file and promotes it without
+// touching disk, so nothing is rewritten and the extra arguments go unread.
+// Without this, a resumed run would leave the path pending forever — the
+// journal would keep claiming an unfinished write that has in fact landed.
+function resumeLandedWrite(target, rel, bytes, writeFile) {
+  const prior = writeFile.latest?.(rel);
+  if (prior?.state !== 'pending' || prior.operation === 'delete_owned') return false;
+  if (prior.desired_digest !== sha256(bytes)) return false;
+  writeFile(target, rel, bytes, undefined, prior.ownership);
+  return true;
+}
+
 function upsertGraftSection(target, args, writeFile) {
   assertGraftArgs(args);
   if (typeof writeFile !== 'function') graftFail('writer is required');
   const file = assertGraftTarget(target, args.path);
   const current = fs.existsSync(file) ? fs.readFileSync(file) : Buffer.alloc(0);
   const currentDigest = current.length ? sha256(current) : null;
-  if (currentDigest !== args.expected_file_digest) graftFail('has stale file digest or preimage');
+  const resumeDigest = current.length ? journalResumeDigest(writeFile, args.path) : null;
+  if (currentDigest !== args.expected_file_digest && !(resumeDigest && currentDigest === resumeDigest)) {
+    graftFail('has stale file digest or preimage');
+  }
   const parsed = parseGraftSections(current);
   const desiredContent = canonicalGraftContent(args.content);
   const existing = parsed.sections.find(({ capability }) => capability === args.capability);
   if (existing && existing.content === desiredContent) {
+    resumeLandedWrite(target, args.path, current, writeFile);
     return { changed: false, action: 'noop', file_digest: sha256(current) };
   }
   const content = desiredContent.split('\n').join(parsed.newline);
@@ -301,10 +336,17 @@ function removeGraftSection(target, args, writeFile) {
   const file = assertGraftTarget(target, args.path);
   if (!fs.existsSync(file)) return { changed: false, action: 'noop', file_digest: null };
   const current = fs.readFileSync(file);
-  if (sha256(current) !== args.expected_file_digest) graftFail('has stale file digest or preimage');
+  const currentDigest = sha256(current);
+  const resumeDigest = journalResumeDigest(writeFile, args.path);
+  if (currentDigest !== args.expected_file_digest && !(resumeDigest && currentDigest === resumeDigest)) {
+    graftFail('has stale file digest or preimage');
+  }
   const parsed = parseGraftSections(current);
   const existing = parsed.sections.find(({ capability }) => capability === args.capability);
-  if (!existing) return { changed: false, action: 'noop', file_digest: sha256(current) };
+  if (!existing) {
+    resumeLandedWrite(target, args.path, current, writeFile);
+    return { changed: false, action: 'noop', file_digest: currentDigest };
+  }
   const previous = writeFile.latest?.(args.path);
   const separatorCaps = new Set(previous?.graft_separators || []);
   const separator = Buffer.from(parsed.newline);
@@ -403,7 +445,16 @@ function journalWriter(target) {
     else if (!originByPath.has(record.path)) originByPath.set(record.path, record);
   };
   let transactionStarted = false;
+  // An `install_state` record opened with complete:false and never closed means
+  // a previous run died mid-transaction. That, and only that, licenses a
+  // preflight to read live bytes matching the journal as this installer's own
+  // unfinished work rather than as an edit it must refuse.
+  let interrupted = false;
   for (const record of records) {
+    if (record.kind === 'install_state') {
+      interrupted = record.complete !== true;
+      continue;
+    }
     if (!Number.isInteger(record.seq) || !record.path) continue;
     latestByPath.set(record.path, record);
     trackOrigin(record);
@@ -564,8 +615,16 @@ function journalWriter(target) {
   write.begin = () => {};
   write.remove = remove;
   write.latest = (rel) => latestByPath.get(rel) || null;
+  write.interrupted = () => interrupted;
+  // Closing also settles a transaction this writer only inherited. A run that
+  // resumes an interrupted install may find every desired byte already in place
+  // and write nothing; without this the journal would stay open forever and
+  // keep handing later runs a resume licence they have not earned.
   write.finish = () => {
-    if (transactionStarted) append({ kind: 'install_state', complete: true });
+    if (!transactionStarted && !interrupted) return;
+    append({ kind: 'install_state', complete: true });
+    transactionStarted = false;
+    interrupted = false;
   };
   write.appliedCount = () => [...latestByPath.values()].filter((record) => record.state === 'applied').length;
   return write;
@@ -622,5 +681,5 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 
 module.exports = {
   ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
-  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
+  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalResumeDigest, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
 };

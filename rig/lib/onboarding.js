@@ -9,7 +9,7 @@ const { readMigrations, sha256, skillsDigest, validateSkillCatalog } = require('
 const { containedPath } = require('./path-safety');
 const { verifySshsig } = require('./policy');
 const {
-  journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
+  journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
 const {
@@ -244,9 +244,10 @@ function cleanProjection(target, writer, rel) {
   const digest = currentDigest(target, rel);
   if (digest === null) return;
   const prior = writer.latest(rel);
-  if (!prior || prior.digest !== digest) {
-    fail(`selected skill projection conflicts with repository-owned path "${rel}"`);
-  }
+  // Bytes an interrupted run already put here carry no `applied` record yet, so
+  // the ownership proof has to come from that run's pending record instead.
+  if (prior?.digest === digest || journalResumeDigest(writer, rel) === digest) return;
+  fail(`selected skill projection conflicts with repository-owned path "${rel}"`);
 }
 
 function planSkillProjections(target, catalog, selected, writer) {
@@ -291,18 +292,23 @@ function planSkillProjections(target, catalog, selected, writer) {
   return { plans, rows: sorted(uniqueRows), projections: sorted(rows) };
 }
 
-function preflightGrafts(target, grafts) {
+function preflightGrafts(target, grafts, writer) {
   const seen = new Set();
+  // A dry writer exercises all path, link, UTF-8, marker, content, and CAS
+  // checks before the first mutation without allowing the helper to write. It
+  // still reads the real journal, so an interrupted run's landed-but-unrecorded
+  // bytes are recognised here as resumable rather than as a stale preimage.
+  const dry = () => {};
+  dry.latest = (rel) => writer?.latest?.(rel) ?? null;
+  dry.interrupted = () => Boolean(writer?.interrupted?.());
   for (const graft of grafts) {
     const key = `${graft.path}\0${graft.capability}`;
     if (seen.has(key)) fail(`proposal duplicates graft "${graft.capability}" at "${graft.path}"`);
     seen.add(key);
-    // A dry writer exercises all path, link, UTF-8, marker, content, and CAS
-    // checks before the first mutation without allowing the helper to write.
     upsertGraftSection(target, {
       ...graft,
       expected_file_digest: graft.preimage_digest,
-    }, () => {});
+    }, dry);
   }
 }
 
@@ -310,6 +316,10 @@ function preflightOwnedFiles(target, ownedFiles, writer) {
   for (const owned of ownedFiles) {
     if (!owned.path.startsWith('.rig/')) fail(`owned file path "${owned.path}" is outside Rig ownership`);
     const digest = currentDigest(target, owned.path);
+    // Bytes an interrupted run already wrote are Rig's own unfinished work, not
+    // a preimage that moved: the journal names them, so resume instead of
+    // refusing. `journalResumeDigest` only says so while a transaction is open.
+    if (digest !== null && journalResumeDigest(writer, owned.path) === digest) continue;
     if (digest !== owned.preimage_digest) fail(`owned file "${owned.path}" has a stale preimage digest`);
     if (digest !== null && (!writer.latest(owned.path) || writer.latest(owned.path).digest !== digest)) {
       fail(`owned file "${owned.path}" is not journal-proven Rig ownership`);
@@ -528,7 +538,7 @@ function apply(request) {
 
     const writer = journalWriter(request.target);
     const projection = planSkillProjections(request.target, catalog, state.proposal.selected_skills, writer);
-    preflightGrafts(request.target, state.proposal.grafts);
+    preflightGrafts(request.target, state.proposal.grafts, writer);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
     const removals = planRemovals(request.target, state, projection, writer, catalog);
 

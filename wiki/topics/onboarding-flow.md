@@ -341,3 +341,42 @@ the journal cannot prove Rig created. Refusals are returned as `unreconciled`
 warnings and persisted at `state.applied.unreconciled`, so every later `check`
 re-emits them rather than the warning being seen once.
 [Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+## An interrupted apply must be resumable by re-running it
+
+**Fixed 2026-09-01.** A journalled write is three steps — `pending` record,
+bytes to disk, `applied` record — and a crash between the last two leaves the
+desired bytes live with nothing recording them. Every preflight in `apply`
+compares the live file against the *proposal's* preimage, so all of them read
+that state as a third-party edit: `upsertGraftSection` and `removeGraftSection`
+raised "stale file digest or preimage", `cleanProjection` raised "conflicts with
+repository-owned path", `preflightOwnedFiles` raised "stale preimage digest".
+Retrying repeated the same comparison, so the install was wedged in `proposed`
+with no path forward that did not involve hand-editing the repository.
+
+All four now accept live bytes that equal what the journal was writing —
+`journalResumeDigest(writer, rel)` — but only while the journal's transaction is
+still open, so a cleanly finished earlier install can never wave through a
+proposal built on a stale view of a file. `preflightGrafts` gained a dry writer
+that forwards `latest` and `interrupted` to the real one; it still cannot
+mutate, but it now sees what the real write will see.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+## An approval covers the bytes, not the skill's name
+
+**Fixed 2026-09-01.** `selected_skills` is a list of names, so an approval
+signed the *name* `qa` and `apply` read whatever the staged shelf held by the
+time it ran; `check` then compared each projection against the ledger row apply
+had written from that same read, so a source edited between propose and apply
+was invisible from both ends. `propose` now freezes `skill_bindings` inside the
+digested proposal body — per selected skill, the catalogue row's `tree_digest`
+and a `projected_digest` over every file the projection will write, keyed by
+its path inside the projected skill directory. `apply` re-derives both and
+refuses a stale proposal when either moved or when the projection reaches a
+skill the bindings do not name; `check` rebuilds the projected digest by
+walking each recorded projection root on disk, so an edited sibling or a file
+smuggled beside an approved `SKILL.md` is a hard failure rather than a
+warning. The bindings are computed by the engine, never accepted from the
+caller: a caller who could assert the digest of the bytes being approved would
+be re-introducing the `verified: true` defect.
+[Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)

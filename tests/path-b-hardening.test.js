@@ -1088,3 +1088,76 @@ describe('Task 3 (Issue 3) — reapplication removes obsolete artifacts', () => 
     }, { install: true });
   });
 });
+
+describe('Task 4 (Issue 4) — journal-aware preflight resume', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+  const { crashAfter } = require('./helpers/path-b-crash');
+
+  function state(target) {
+    return h.readJson(path.join(target, '.rig/state.json'));
+  }
+
+  // Every interruption point in a journalled write, aimed twice: once at the
+  // first skill projection (the owned-file path) and once at AGENTS.md (the
+  // graft path), because the two preflights are separate gates.
+  const CASES = [
+    ['pending journal record but before the disk write', 'pending', {}],
+    ['the disk write but before the applied record', 'write', {}],
+    ['the applied record but before the state advance', 'applied', {}],
+    ['the graft pending record but before the disk write', 'pending', { match: 'AGENTS.md' }],
+    ['the graft disk write but before its applied record', 'write', { match: 'AGENTS.md' }],
+    ['the graft applied record but before the state advance', 'applied', { match: 'AGENTS.md' }],
+  ];
+
+  for (const [label, stage, options] of CASES) {
+    it(`AT-PB-hard resume — crash after ${label} replays cleanly`, async () => {
+      await h.withRepo(async (target) => {
+        const { proposed } = h.prepareAndPropose(target);
+        const applyOnce = () => h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: signApproval(target, proposed.proposal_digest),
+        });
+
+        crashAfter(target, stage, applyOnce, options);
+        assert.strictEqual(
+          state(target).phase,
+          'proposed',
+          'an interrupted apply must not advance onboarding state',
+        );
+
+        const applied = applyOnce();
+        assert.strictEqual(applied.phase, 'applied');
+
+        const checked = h.handle({
+          schema_version: 1, action: 'check', target, expected_revision: applied.revision,
+        });
+        assert.deepStrictEqual(
+          checked.hard_failures || [],
+          [],
+          'the resumed install must reconcile cleanly',
+        );
+        assert.strictEqual(state(target).phase, 'checked');
+
+        // A resume that silently left the interrupted record pending would keep
+        // the journal claiming an unfinished write that has in fact landed.
+        const journal = fs.readFileSync(path.join(target, '.rig/install-manifest.jsonl'), 'utf8')
+          .split('\n').filter(Boolean).map((line) => JSON.parse(line));
+        const stillPending = new Map();
+        for (const record of journal) {
+          if (!record.path) continue;
+          stillPending.set(record.path, record.state);
+        }
+        assert.deepStrictEqual(
+          [...stillPending].filter(([, value]) => value !== 'applied'),
+          [],
+          'no journalled path may be left pending once the install completes',
+        );
+        assert.strictEqual(journal.at(-1).complete, true, 'the journal transaction must be closed');
+      }, { install: true });
+    });
+  }
+});

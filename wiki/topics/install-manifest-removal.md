@@ -118,3 +118,20 @@ so removal sweeps the live skill directory too and uses `latest(rel).digest` as
 the expected-bytes proof for siblings the ledger never named. A `removed: false`
 answer is surfaced as an `unreconciled` warning rather than swallowed.
 [Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+## The open transaction is the resume licence
+
+`install_state` was write-only bookkeeping: `journalWriter` skipped those
+records when loading and only `lifecycle` ever read them. It is now the signal
+that decides whether a preflight may treat live bytes as Rig's own unfinished
+work (`write.interrupted()`), which is what keeps the Issue 4 resume from
+doubling as a way to apply a proposal built against a stale preimage.
+
+Two follow-on obligations come with that. A resume whose bytes already match
+returns `noop` without calling the writer, so the interrupted `pending` record
+would stay pending forever unless the write is re-issued — `journalWriter.write`
+promotes such a record and touches no bytes, and `resumeLandedWrite` is the
+call. And a resume can legitimately write nothing at all, so `finish()` now
+closes a transaction it merely inherited; otherwise the journal stays open and
+every later run keeps a resume licence it should have surrendered.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
