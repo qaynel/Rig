@@ -70,8 +70,10 @@ approval, journalling, and checks apply the exact proposal. The full skill
 library stays release-pinned but outside host discovery, while only approved
 skills are projected into host-native paths. File and byte growth remain
 warnings; duplicate projections, dangling references, malformed ownership, and
-state drift fail.
+state drift fail. The completed vertical slice verifies proposal-bound approval,
+applies only marked grafts, and reconciles the result into checked state.
 [Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
+[Vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
 
 Grilling authored the executable oracle without reopening product direction:
 ten cases cover all six foundational and four support contracts, with the

@@ -368,10 +368,13 @@ function apply(request) {
   return withOnboardingLock(request.target, () => {
     const state = readState(request.target);
     requireCurrentRevision(request, state, 'apply');
+    // Validate the user-presence receipt first, even when semantic decisions
+    // remain unresolved, so a self-made or unbound approval can never be
+    // mistaken for a valid attempt.
+    const approval = approvalRecord(request.approval, state.proposal.digest);
     if (state.proposal.critical_decisions.some((decision) => decision.status !== 'resolved')) {
       fail('apply is blocked by an unresolved critical decision');
     }
-    const approval = approvalRecord(request.approval, state.proposal.digest);
     if (state.phase === 'applied' || state.phase === 'checked') {
       if (state.applied?.proposal_digest !== state.proposal.digest) {
         fail(`apply action is invalid from phase "${state.phase}"`);
@@ -507,7 +510,7 @@ function check(request) {
     };
     const phase = hardFailures.length ? 'failed' : 'checked';
     const unchanged = state.phase === phase && JSON.stringify(state.checks) === JSON.stringify(checks);
-    if (unchanged) return response('check', request.target, state, { hard_failures, warnings: checks.warnings });
+    if (unchanged) return response('check', request.target, state, { hard_failures: hardFailures, warnings: checks.warnings });
     const next = {
       ...state,
       revision: state.revision + 1,
@@ -517,7 +520,7 @@ function check(request) {
     };
     writeIfChanged(request.target, '.rig/grafts.md', renderGrafts(next));
     writeState(request.target, next);
-    return response('check', request.target, next, { hard_failures, warnings: checks.warnings });
+    return response('check', request.target, next, { hard_failures: hardFailures, warnings: checks.warnings });
   });
 }
 

@@ -59,6 +59,17 @@ function runAdvanced(subcommand, argv) {
     return;
   }
 
+  // Onboarding requests carry their own target, so the adapter must not
+  // require the legacy --target flag before reading the JSON request.
+  if (subcommand === 'onboarding') {
+    const inputPath = parseFlag(argv, '--input');
+    if (!inputPath || !fs.existsSync(inputPath)) throw new Error('rig: --input <request.json> is required');
+    const response = handleOnboarding(readJson(inputPath));
+    process.stdout.write(`${JSON.stringify(response)}\n`);
+    if (response.phase === 'failed') process.exitCode = 1;
+    return;
+  }
+
   const hostCheck = subcommand === 'check' && parseFlag(argv, '--host');
   const target = parseFlag(argv, '--target') || (hostCheck ? process.cwd() : null);
   if (!target || !fs.existsSync(target)) {
@@ -222,17 +233,6 @@ function runAdvanced(subcommand, argv) {
       process.exit(result.status || 1);
     }
     process.stdout.write('check passed\n');
-  }
-
-  // Thin JSON adapter over the shared onboarding domain handler: read the
-  // request, hand it to handleOnboarding, print the response. No decision logic.
-  if (subcommand === 'onboarding') {
-    const inputPath = parseFlag(argv, '--input');
-    if (!inputPath || !fs.existsSync(inputPath)) throw new Error('rig: --input <request.json> is required');
-    const response = handleOnboarding(readJson(inputPath));
-    process.stdout.write(`${JSON.stringify(response)}\n`);
-    if (response.phase === 'failed') process.exit(1);
-    return;
   }
 
   if (subcommand === 'validate-commit') {

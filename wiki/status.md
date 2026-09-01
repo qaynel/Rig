@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-09-01 — [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md)**: Path B now has a shared approved onboarding vertical slice with selective projections, managed grafts, canonical playbook routing, CLI parity, and MCP parity.
 - **2026-09-01 — [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md)**: Path B graft sections now provide byte-preserving, journaled ownership in repository instruction files and uninstall removes only those managed sections.
 - **2026-09-01 — [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md)**: Path B prepare and propose now maintain strict, digest-bound state and deterministic structural reports; the approved apply path remains next.
 - **2026-09-01 — [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md)**: Path B now has a bounded structural inventory and pure exact-match overlap surface; state-owned reports are the next integration step.

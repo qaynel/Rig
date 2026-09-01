@@ -8,6 +8,13 @@ The runner iterates selected-service receipts so a missing binding cannot vanish
 Reports persist failures, vacuous results, and coverage gaps; routine passes are
 omitted. [Gate 2 §9](../gate2/technical-spec.md#9-runnable-services-and-reports)
 
+The adaptive onboarding check follows the same honesty boundary for its own
+state: it reconciles the approved proposal, projected skills, managed grafts,
+catalogue, summary, and journal, then reports a checked pass only when those
+facts agree. Its response keeps the next action and hard failures structured so
+the CLI and MCP adapters cannot turn drift into a false green.
+[Path B vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
+
 The report schema also preserves six abnormal non-passing outcomes as distinct
 states: timeout, cancellation, missing dependency, signal termination, partial
 output, and command not found. Evidence assurance comes from rerunnable local

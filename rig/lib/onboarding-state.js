@@ -120,7 +120,7 @@ function validateDecision(row) {
   for (const key of ['id', 'question', 'consequence', 'recommendation', 'status']) {
     if (typeof row[key] !== 'string' || !row[key]) fail('critical decision is invalid');
   }
-  if (row.resolution !== undefined && typeof row.resolution !== 'string') fail('critical decision resolution is invalid');
+  if (row.resolution !== undefined && row.resolution !== null && typeof row.resolution !== 'string') fail('critical decision resolution is invalid');
   if (row.authority !== undefined && typeof row.authority !== 'string') fail('critical decision authority is invalid');
   return { ...row };
 }

@@ -6,8 +6,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { createRequire } from "node:module";
 
 import { MODES, buildInstructions, resolveMode } from "./instructions.js";
+
+const require = createRequire(import.meta.url);
+const { handleOnboarding } = require("../rig/lib/onboarding.js");
 
 const server = new McpServer({ name: "rig", version: "0.1.0" });
 
@@ -42,6 +46,37 @@ server.registerTool(
     const instructions = buildInstructions(resolvedMode);
     const structuredContent = { mode: resolvedMode, instructions };
     return { content: [{ type: "text", text: instructions }], structuredContent };
+  },
+);
+
+const onboardingRequest = {
+  schema_version: z.number().int(),
+  action: z.enum(["prepare", "propose", "apply", "check"]),
+  target: z.string(),
+  expected_revision: z.number().int().optional(),
+  proposal: z.record(z.any()).optional(),
+  summary_markdown: z.string().optional(),
+  approval: z.record(z.any()).optional(),
+};
+const onboardingOutput = {
+  schema_version: z.number(), action: z.string(), phase: z.string(), revision: z.number(),
+  proposal_digest: z.string().nullable(), artifacts: z.record(z.any()),
+  critical_decisions: z.array(z.any()), hard_failures: z.array(z.any()), warnings: z.array(z.any()),
+  next_action: z.string(), context: z.record(z.any()).optional(),
+};
+
+server.registerTool(
+  "rig_onboarding",
+  {
+    title: "Rig onboarding",
+    description: "Prepare, propose, apply, or check adaptive Rig onboarding.",
+    inputSchema: onboardingRequest,
+    outputSchema: onboardingOutput,
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+  },
+  (request) => {
+    const result = handleOnboarding(request);
+    return { content: [{ type: "text", text: JSON.stringify({ next_action: result.next_action, ...result }) }], structuredContent: result };
   },
 );
 

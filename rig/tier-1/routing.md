@@ -49,6 +49,8 @@ wiki and the diff, and are reproduced on request.
 
 ## Pipeline
 
+Grilling → Business Specifications → Acceptance Criteria → Tests → Technical Specifications → LOCK → Test-Driven Development → Verification
+
 For a new feature or behavioral change, use these steps in order:
 
 Spec-driven requests route through `rig-grilling` and then `rig-product-design`.

@@ -257,8 +257,16 @@ writes only Rig-owned state and the two mechanical reports; unchanged facts are
 a byte-stable no-op, while a changed inventory clears the pending proposal and
 approval. Proposing validates a complete, ordered summary plus paths and
 digests before recording it, so the eventual approval can be bound to exactly
-the reviewed bytes. Applying that proposal remains the next protected slice.
-[State slice](../reasoning/2026-09-01-path-b-slice3-state.md)
+the reviewed bytes. The approved vertical slice now applies only a verified,
+proposal-bound receipt: it projects selected skills, writes approved versioned
+grafts through the journal, and reconciles the result into `checked` state.
+[State slice](../reasoning/2026-09-01-path-b-slice3-state.md) ·
+[vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
+
+The active Path B install supplies that flow through one canonical playbook at
+`.rig/skills/onboarding/SKILL.md`; native onboarding skills are thin pointers,
+and the CLI and MCP adapters invoke the same domain handler. Operator install
+grammar and warning-only weight accounting remain separate later slices.
 
 **Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
 After Rig is installed, the user could invoke a single host-native command that
