@@ -82,3 +82,41 @@ test('report returns one entry per step 0..7 with a state', () => {
     assert.ok(['DONE', 'PENDING', 'RECURRING'].includes(row.state), `step ${row.step} state`);
   }
 });
+
+const { lintFindings } = require('../scripts/wiki-maintenance');
+
+test('lintFindings fails on a stale hub', () => {
+  const root = fixture(
+    {
+      '2026-09-03-y.md':
+        '---\ndate: 2026-09-03\nsource: agent\ntopics: graft-mechanics\ndecisions:\nstatus: historical\nsupersedes:\ntags:\nsummary:\n---\n# Y\n',
+    },
+    { 'graft-mechanics.md': '# Graft mechanics\n' },
+  );
+  const dateOf = (rel) => ({
+    'wiki/topics/graft-mechanics.md': '2026-09-01T00:00:00Z',
+    'wiki/reasoning/2026-09-03-y.md': '2026-09-03T00:00:00Z',
+  }[rel] || '');
+  const failures = lintFindings(root, traces(root), dateOf);
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /graft-mechanics/);
+});
+
+test('lintFindings fails on a post-floor trace missing frontmatter but ignores older ones', () => {
+  const root = fixture({
+    '2020-01-01-ancient.md': '---\ndate: 2020-01-01\nsource: agent\n---\n# Ancient\n',
+    '2999-01-01-future-untagged.md': '---\ndate: 2999-01-01\nsource: agent\n---\n# Future\n',
+  });
+  const dateOf = () => '';
+  const failures = lintFindings(root, traces(root), dateOf);
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /2999-01-01-future-untagged\.md/);
+});
+
+test('lintFindings is clean when hubs are fresh and traces are tagged', () => {
+  const root = fixture({
+    '2026-09-02-ok.md':
+      '---\ndate: 2026-09-02\nsource: agent\ntopics: safety\ndecisions:\nstatus: historical\nsupersedes:\ntags:\nsummary:\n---\n# OK\n',
+  });
+  assert.deepEqual(lintFindings(root, traces(root), () => ''), []);
+});

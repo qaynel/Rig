@@ -272,8 +272,22 @@ function formatReport(rows) {
   return `${lines.join('\n')}\n`;
 }
 
-function lintFindings() {
-  throw new Error('lintFindings is implemented in Task 2');
+function lintFindings(root, records, dateOf = (rel) => gitDate(root, rel)) {
+  const failures = [];
+  for (const hub of staleHubs(root, records, dateOf)) {
+    failures.push(
+      `hub wiki/topics/${hub.slug}.md (last change ${hub.hubDate}) is older than its newest cited trace (${hub.newestTraceDate})`,
+    );
+  }
+  for (const trace of untaggedTraces(root)) {
+    const traceDate = path.basename(trace.file).slice(0, 10);
+    if (traceDate >= FRONTMATTER_FLOOR) {
+      failures.push(
+        `${trace.file} is dated on/after ${FRONTMATTER_FLOOR} but is missing frontmatter: ${trace.missing.join(', ')}`,
+      );
+    }
+  }
+  return failures;
 }
 
 function main(argv) {
