@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: graft-mechanics, install-manifest-removal
 decisions:
-status: current
+status: historical
 supersedes:
 tags: oracle, rig-148
 summary: Grilling oracle for RIG-148 — gitignore (tool-cache) design decision confirmed by owner; three red tests in tests/rig-bootstrap.test.js assert the write, idempotency, and uninstall-cleanup behavior. Gate is ready for signing.

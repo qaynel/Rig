@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes: 2026-08-31-routing-hygiene-implementation
 tags:
 summary: RIG-151/RIG-152/RIG-124.2 closed — the frozen four-site reframe landed in routing.md and the three tdd/SKILL.md copies; tests/installed-router-hygiene.test.js is 3/3 green and the full npm test gate passed.

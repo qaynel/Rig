@@ -3,7 +3,7 @@ date: 2026-08-30
 source: review
 topics: what-rig-is, onboarding-flow, the-catalogue
 decisions: GA-36
-status: current
+status: historical
 supersedes:
 tags: interdependency, trap
 summary: First real adaptation run — RIG installed onto inspo/claude-task-master-main scored +12/100; merge-not-overwrite works, adaptive integration is not built.

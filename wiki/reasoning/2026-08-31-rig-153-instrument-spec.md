@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: testing-strategy, onboarding-flow, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags:
 summary: Technical spec for the RIG-153 adaptation-measurement instrument — extended lint, rubric doc, clean-checkout procedure; re-baseline (option B) deferred pending target availability.

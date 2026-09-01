@@ -3,7 +3,7 @@ date: 2026-08-31
 source: intent owner
 topics: onboarding-flow, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: RIG-151/RIG-152 are fixed by reframing routing.md's dev-doctrine passages as explicit adaptation instructions to the onboarding host agent (markdown-only) — not by a static install-time transform (rejected) and not by bare deletion. RIG-124.2's (RIG-124) tag removal folds into the same change. Consistent with B1/GA-1; does not touch D24's mechanical-only detection.

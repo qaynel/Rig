@@ -3,7 +3,7 @@ date: 2026-08-30
 source: agent
 topics: onboarding-flow, graft-mechanics
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, interdependency
 summary: Path A investigation — confirms the eval's 5.8 MB dump was a --with-runtime artifact; measures the real default install at 209 files / 8.3 MB unignored; finds two new verified correctness bugs (a dangling `.rig/skills/implementation/SKILL.md` reference and a `rig`→`rig-rig` name collision) beyond the two previously-known phantom-text traps; specs the missing measurement instrument.

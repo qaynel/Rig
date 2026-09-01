@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: testing-strategy, onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags:
 summary: CI traceability failure on RIG-151/RIG-152 — Acceptance bullets lacked evidence references; rewritten with test titles and one manual spot-check; check-ticket-traceability.js and full npm test gate green.
