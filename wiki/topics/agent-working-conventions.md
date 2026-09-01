@@ -67,6 +67,13 @@ full cadence below unchanged. `rig-tdd`'s red/green inner loop also changed:
 `npm run test:rig` or the single relevant test file, never the full `npm test`
 gate, which runs once, right before push.
 
+The post-release wiki upkeep routine — lifecycle sweep, hub sync, reindex,
+archive, and the one-time context-management infrastructure — is packaged as
+the `wiki-maintenance` skill at `.claude/skills/wiki-maintenance/SKILL.md`,
+backed by `scripts/wiki-maintenance.js`. It is authoring-time only and not
+installed into other repositories.
+[2026-09-02 trace](../reasoning/2026-09-02-wiki-maintenance-skill.md)
+
 ## Why it is this way
 
 Three tools read three separate instruction files here. A rule stated once and
