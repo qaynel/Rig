@@ -522,6 +522,121 @@ describe('Task 9 — multi-host projection deduplication', () => {
   });
 });
 
+describe('Task 5 (Issue 6) — journaled delete restores absence', () => {
+  const h = require('./helpers/path-b');
+  const { journalWriter, upsertGraftSection, removeGraftSection } = require(
+    path.join(__dirname, '..', 'rig', 'lib', 'payload.js'),
+  );
+  const CAPABILITY = 'demo.only';
+  const MANIFEST_REL = '.rig/install-manifest.jsonl';
+
+  function mutate(target, operation, args) {
+    const writer = journalWriter(target);
+    const result = operation(target, args, writer);
+    writer.finish();
+    return result;
+  }
+
+  function digestOf(target, rel) {
+    const file = path.join(target, rel);
+    if (!fs.existsSync(file)) return null;
+    const bytes = fs.readFileSync(file);
+    return bytes.length ? h.sha256(bytes) : null;
+  }
+
+  function journal(target) {
+    const manifest = path.join(target, MANIFEST_REL);
+    if (!fs.existsSync(manifest)) return [];
+    return fs.readFileSync(manifest, 'utf8').split('\n').flatMap((line) => {
+      try { return line.trim() ? [JSON.parse(line)] : []; } catch { return []; }
+    });
+  }
+
+  it('AT-PB-hard delete — removing the last graft section unlinks a Rig-created file', async () => {
+    await h.withRepo((target) => {
+      // Arrange: the file exists only because of a Rig graft.
+      mutate(target, upsertGraftSection, {
+        path: '.rig/foo.md', capability: CAPABILITY, version: 1,
+        content: 'Rig-created body.', expected_file_digest: null,
+      });
+      assert.ok(fs.existsSync(path.join(target, '.rig/foo.md')), 'precondition: graft created the file');
+
+      // Act: drop the only graft.
+      const removed = mutate(target, removeGraftSection, {
+        path: '.rig/foo.md', capability: CAPABILITY,
+        expected_file_digest: digestOf(target, '.rig/foo.md'),
+      });
+
+      // Assert: the file is gone (absence restored), not a zero-byte husk.
+      assert.equal(removed.changed, true);
+      assert.equal(removed.file_digest, null, 'a deleted file has no digest');
+      assert.equal(
+        fs.existsSync(path.join(target, '.rig/foo.md')),
+        false,
+        'a Rig-created file must be unlinked when its last managed section leaves, not left at zero bytes',
+      );
+
+      // ...and the journal records the deletion so uninstall/check can reason about it.
+      const records = journal(target).filter((r) => r.path === '.rig/foo.md');
+      const deletes = records.filter((r) => r.operation === 'delete_owned');
+      assert.ok(deletes.length >= 1, `expected a delete_owned journal record; got: ${JSON.stringify(records)}`);
+      const applied = deletes.find((r) => r.state === 'applied');
+      assert.ok(applied, `expected an applied delete_owned record; got: ${JSON.stringify(deletes)}`);
+      assert.equal(applied.desired_digest, null, 'the desired end state of a delete is absence');
+      assert.equal(applied.digest, null);
+      assert.ok(deletes.some((r) => r.state === 'pending'), 'the delete must be journalled pending before the unlink');
+    });
+  });
+
+  it('AT-PB-hard delete — a pre-existing file is preserved even when Rig removes its section', async () => {
+    await h.withRepo((target) => {
+      fs.mkdirSync(path.join(target, 'docs'), { recursive: true });
+      fs.writeFileSync(path.join(target, 'docs/README.md'), 'pre-existing\n');
+      mutate(target, upsertGraftSection, {
+        path: 'docs/README.md', capability: CAPABILITY, version: 1,
+        content: 'Managed body.', expected_file_digest: h.sha256('pre-existing\n'),
+      });
+      mutate(target, removeGraftSection, {
+        path: 'docs/README.md', capability: CAPABILITY,
+        expected_file_digest: digestOf(target, 'docs/README.md'),
+      });
+      const content = fs.readFileSync(path.join(target, 'docs/README.md'), 'utf8');
+      assert.equal(content.trim(), 'pre-existing');
+    });
+  });
+
+  it('AT-PB-hard delete — a pre-existing empty file survives as an honestly-reported empty file', async () => {
+    await h.withRepo((target) => {
+      // The file was there before Rig touched it, but held nothing. Removing the
+      // graft empties it again — absence-first means Rig must not delete it.
+      fs.writeFileSync(path.join(target, 'PRE.md'), '');
+      mutate(target, upsertGraftSection, {
+        path: 'PRE.md', capability: CAPABILITY, version: 1,
+        content: 'Managed body.', expected_file_digest: null,
+      });
+      const removed = mutate(target, removeGraftSection, {
+        path: 'PRE.md', capability: CAPABILITY,
+        expected_file_digest: digestOf(target, 'PRE.md'),
+      });
+      assert.ok(
+        fs.existsSync(path.join(target, 'PRE.md')),
+        'a file Rig did not create must never be unlinked',
+      );
+      assert.equal(fs.readFileSync(path.join(target, 'PRE.md'), 'utf8'), '');
+      assert.equal(
+        removed.file_digest,
+        h.sha256(''),
+        'an empty file that was preserved must be reported as an empty file, not as absence',
+      );
+      assert.equal(
+        journal(target).filter((r) => r.path === 'PRE.md' && r.operation === 'delete_owned').length,
+        0,
+        'no delete may be journalled for a file Rig did not create',
+      );
+    });
+  });
+});
+
 describe('Task 1 — authenticated approval receipts', () => {
   const h = require('./helpers/path-b');
   const { signApproval } = require('./helpers/path-b-approval');

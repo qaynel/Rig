@@ -316,8 +316,16 @@ function removeGraftSection(target, args, writeFile) {
   const next = Buffer.concat([current.subarray(0, separatorStart), current.subarray(existing.end)]);
   const nextParsed = parseGraftSections(next);
   separatorCaps.delete(args.capability);
+  // The last managed section left and nothing else was in the file. If the file
+  // exists only because Rig grafted it, restore absence rather than leaving a
+  // zero-byte husk; otherwise keep the (now empty) repository-owned file and say
+  // so — file_digest is the digest of the empty file, not null.
+  if (next.length === 0 && typeof writeFile.remove === 'function'
+    && writeFile.remove(target, args.path, sha256(current)).removed) {
+    return { changed: true, action: 'remove', file_digest: null };
+  }
   writeFile(target, args.path, next, undefined, 'graft_managed', managedGraftDetails(nextParsed.sections, previous, separatorCaps));
-  return { changed: true, action: 'remove', file_digest: next.length ? sha256(next) : null };
+  return { changed: true, action: 'remove', file_digest: sha256(next) };
 }
 
 function walkAllFiles(root, out = []) {
@@ -473,7 +481,45 @@ function journalWriter(target) {
     append(applied);
     latestByPath.set(rel, applied);
   };
+  // Journalled delete. Absence is a state Rig can only restore for a path it
+  // created: if the file existed before Rig touched it, unlinking would destroy
+  // repository-owned bytes, so the caller keeps the (possibly empty) file and
+  // reports that honestly instead. Both halves of the delete are journalled —
+  // pending before the unlink, applied after — so an interrupted transaction is
+  // recoverable exactly like a write.
+  const remove = (ignoredTarget, rel, expectedDigest) => {
+    const abs = containedPath(target, rel);
+    const prior = latestByPath.get(rel);
+    if (!prior || prior.preimage_digest !== null) return { removed: false, reason: 'preexisting' };
+    if (!fs.existsSync(abs)) {
+      if (prior.state === 'applied' && prior.digest === null) return { removed: true };
+    } else {
+      const liveDigest = sha256(fs.readFileSync(abs));
+      if (expectedDigest && liveDigest !== expectedDigest && liveDigest !== prior.desired_digest) {
+        throw new Error(`rig: refusing to delete ${rel}: live bytes do not match expected`);
+      }
+    }
+    start();
+    const pending = {
+      seq: ++seq,
+      path: rel,
+      ownership: 'delete_owned',
+      operation: 'delete_owned',
+      transaction_kind: 'install',
+      state: 'pending',
+      preimage_digest: prior.desired_digest ?? null,
+      desired_digest: null,
+    };
+    append(pending);
+    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+    const applied = { ...pending, state: 'applied', digest: null };
+    append(applied);
+    latestByPath.set(rel, applied);
+    return { removed: true };
+  };
+
   write.begin = () => {};
+  write.remove = remove;
   write.latest = (rel) => latestByPath.get(rel) || null;
   write.finish = () => {
     if (transactionStarted) append({ kind: 'install_state', complete: true });
