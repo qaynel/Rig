@@ -12,6 +12,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | current | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md) | onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-remediation-t6-graft-enum](../reasoning/2026-09-01-path-b-remediation-t6-graft-enum.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t5-host-registry](../reasoning/2026-09-01-path-b-remediation-t5-host-registry.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t4-strict-decode](../reasoning/2026-09-01-path-b-remediation-t4-strict-decode.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t3-install-gate](../reasoning/2026-09-01-path-b-remediation-t3-install-gate.md) | — | — | — |

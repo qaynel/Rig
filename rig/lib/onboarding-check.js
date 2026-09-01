@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseGraftSections } = require('./payload');
+const { parseGraftSections, enumerateGraftMarkers } = require('./payload');
 const { containedPath } = require('./path-safety');
 
 const PROJECTION_ROOTS = ['.agents/skills', '.claude/skills', '.rig/skills'];
@@ -203,11 +203,36 @@ function danglingReferences(target) {
   return failures;
 }
 
+// Compare every live Rig graft marker in the repository against the set of
+// tuples that were approved and applied. Any extra (path, capability) tuple is
+// reported as a hard failure. The check intentionally does NOT auto-remove the
+// section — the operator must inspect it and either re-run propose/apply to
+// include it or remove it manually. The marker text is left as forensic
+// evidence until then.
+function unapprovedGraftFailures(target, state) {
+  const approvedSet = new Set(
+    (state.applied?.grafts || []).map(({ path: p, capability }) => `${p}\0${capability}`),
+  );
+  const failures = [];
+  for (const { rel, capability } of enumerateGraftMarkers(target)) {
+    if (!approvedSet.has(`${rel}\0${capability}`)) {
+      failures.push(failure(
+        'unapproved-graft',
+        rel,
+        `live graft "${capability}" at "${rel}" is not in applied state; ` +
+        'remove it manually or re-run propose/apply to include it',
+      ));
+    }
+  }
+  return failures;
+}
+
 function checkOnboarding(target, state, catalog) {
   const journal = readJournal(target);
   const hardFailures = [
     ...projectionFailures(target, state, journal),
     ...danglingReferences(target),
+    ...unapprovedGraftFailures(target, state),
   ];
   const weight = calculateWeight(target, catalog, journal);
   return { hardFailures, warnings: budgetWarnings(weight, catalog), weight };

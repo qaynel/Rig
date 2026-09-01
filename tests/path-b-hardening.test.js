@@ -281,3 +281,37 @@ describe('Task 5 — host registry scan roots', () => {
     });
   }
 });
+
+describe('Task 6 — unapproved graft enumeration in check', () => {
+  const h = require('./helpers/path-b');
+
+  it('a structurally valid graft injected after apply is detected by check as unapproved-graft', async () => {
+    await h.withRepo(async (target) => {
+      // Complete the full apply+check cycle.
+      const { checked } = h.applyAndCheck(target);
+      assert.deepEqual(checked.hard_failures, [], 'expected clean check after apply');
+
+      // Inject a structurally valid Rig graft into a file that was NOT part of
+      // the approved proposal (CLAUDE.md does not exist in the fixture repo).
+      const capability = 'testing.rogue-injection';
+      const marker = [
+        `<!-- rig:graft capability="${capability}" version="1" begin -->`,
+        'This graft was injected after approval and is not in the applied state.',
+        `<!-- rig:graft capability="${capability}" end -->`,
+      ].join('\n') + '\n';
+      fs.writeFileSync(path.join(target, 'CLAUDE.md'), marker);
+
+      // Re-run check — it must detect the unapproved graft.
+      const result = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: checked.revision,
+      });
+      assert.ok(
+        result.hard_failures.some((f) => /unapproved.*graft/i.test(f.code)),
+        `expected a failure with code matching /unapproved.*graft/i; got: ${JSON.stringify(result.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+});

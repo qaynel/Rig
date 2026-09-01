@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { listVendoredSkills } = require('./skills');
-const { discoverHosts, REGISTRY, INSTRUCTION_ONLY_HOSTS } = require('./host-capabilities');
+const { discoverHosts, REGISTRY, INSTRUCTION_ONLY_HOSTS, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { containedPath } = require('./path-safety');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -320,6 +320,60 @@ function removeGraftSection(target, args, writeFile) {
   return { changed: true, action: 'remove', file_digest: next.length ? sha256(next) : null };
 }
 
+function walkAllFiles(root, out = []) {
+  if (!fs.existsSync(root)) return out;
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const file = path.join(root, entry.name);
+    if (entry.isDirectory()) walkAllFiles(file, out);
+    else if (entry.isFile()) out.push(file);
+  }
+  return out;
+}
+
+// Enumerate every live Rig graft marker found in any supported instruction
+// surface of the repository. Returns an array of
+// { rel, capability, version, content_digest } tuples.
+// Malformed-graft files are skipped here; projectionFailures / reconcileApplied
+// report those separately.
+function enumerateGraftMarkers(target) {
+  const realTarget = fs.realpathSync(target);
+  const visited = new Set();
+  const markers = [];
+
+  function scanRel(rel) {
+    if (visited.has(rel)) return;
+    visited.add(rel);
+    if (!isGraftMarkdownPath(rel)) return;
+    const file = containedPath(target, rel);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return;
+    let sections;
+    try {
+      sections = parseGraftSections(fs.readFileSync(file)).sections;
+    } catch {
+      return; // malformed; reported elsewhere
+    }
+    for (const { capability, version, content_digest } of sections) {
+      markers.push({ rel, capability, version, content_digest });
+    }
+  }
+
+  // Fixed instruction files (CLAUDE.md, AGENTS.md, GEMINI.md, …)
+  for (const rel of Object.keys(INSTRUCTION_FILE_HOSTS)) {
+    scanRel(rel);
+  }
+
+  // All files inside the registry-driven scan roots (.cursor/skills, .agents/skills, …)
+  for (const { root: rootRel } of SCAN_ROOTS) {
+    const root = path.join(realTarget, rootRel);
+    for (const file of walkAllFiles(root)) {
+      const rel = path.relative(realTarget, file).split(path.sep).join('/');
+      scanRel(rel);
+    }
+  }
+
+  return markers;
+}
+
 function journalWriter(target) {
   const manifest = containedPath(target, MANIFEST_REL);
   const records = fs.existsSync(manifest)
@@ -479,5 +533,5 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 
 module.exports = {
   ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
-  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload,
+  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
 };
