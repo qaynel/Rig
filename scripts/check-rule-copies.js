@@ -71,9 +71,46 @@ for (const phrase of INVARIANTS) {
   }
 }
 
+// `.claude/skills/` (native Claude discovery) and `.agents/skills/` (Codex
+// discovery) are two roots for the same payload; CLAUDE.md requires them to stay
+// identical. Nothing regenerates one from the other, so a skill added under one
+// root silently misses the other. Compare the two trees by relative file path:
+// any path present in one and not the other fails the build, naming the file.
+// Byte-level parity is deliberately out of scope here — that question rides with
+// the deferred single-source expander (wiki/reasoning/2026-09-02-deferred-single-rig-directory.md).
+function listSkillTree(relRoot) {
+  const absRoot = path.join(root, relRoot);
+  if (!fs.existsSync(absRoot)) return [];
+  const out = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(abs);
+      else out.push(path.relative(absRoot, abs));
+    }
+  };
+  walk(absRoot);
+  return out;
+}
+
+const claudeSkills = new Set(listSkillTree('.claude/skills'));
+const agentsSkills = new Set(listSkillTree('.agents/skills'));
+for (const rel of claudeSkills) {
+  if (!agentsSkills.has(rel)) {
+    console.error(`.agents/skills/${rel} missing (present under .claude/skills/)`);
+    failed = true;
+  }
+}
+for (const rel of agentsSkills) {
+  if (!claudeSkills.has(rel)) {
+    console.error(`.claude/skills/${rel} missing (present under .agents/skills/)`);
+    failed = true;
+  }
+}
+
 if (failed) {
-  console.error('Update the copied rule text, AGENTS.md, or SKILL.md so the shared rules match.');
+  console.error('Update the copied rule text, AGENTS.md, SKILL.md, or the skill trees so the shared payloads match.');
   process.exit(1);
 }
 
-console.log(`Rule copies match AGENTS.md; ${INVARIANTS.length} rule invariants present in SKILL.md and AGENTS.md.`);
+console.log(`Rule copies match AGENTS.md; ${INVARIANTS.length} rule invariants present in SKILL.md and AGENTS.md; .claude/skills and .agents/skills trees match (${claudeSkills.size} files).`);

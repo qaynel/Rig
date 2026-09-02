@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-09-02 — [2026-09-02-skill-tree-parity-check](../reasoning/2026-09-02-skill-tree-parity-check.md)**: .claude/skills and .agents/skills drift closed with a relative-path parity check in check-rule-copies.js plus the two missing trees copied over; the larger single-source .rig expander that would make the check unnecessary is recorded as a deferred future feature, not adopted.
 - **2026-09-02 — [2026-09-02-path-b-qa-prod-deploy-review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)**: Report-only review of path-b-adaptive-onboarding-oracle (53 commits ahead of qa-prod, plus one uncommitted worktree edit) against AT-PB-1..10; two blockers found — an uncommitted acceptance.md edit that breaks the signed oracle, and a umask-dependent catalogue tree digest that makes a fresh checkout fail npm test and go stale on approved proposals.
 - **2026-09-02 — [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md)**: Path B hardening’s final integrated review found no unresolved implementation defects; the completed duplicate-name oracle amendment is verified and ready to commit.
 - **2026-09-02 — [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)**: Current trace from historical.
