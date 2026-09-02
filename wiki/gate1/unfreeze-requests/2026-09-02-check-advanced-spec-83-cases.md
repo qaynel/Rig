@@ -62,10 +62,10 @@ and title-matching all still run unmodified.
   ```
 
   `wiki/gate1/testing-infrastructure.manifest` already carries the `+` digest
-  above — the file bytes are not in question. What remains is the human
-  signing ceremony itself: `wiki/gate1/acceptance.md`'s H1 and §7 still read
-  as unsigned (see the sibling P3-2 wiki cleanup), and `gate1.sig` has not
-  been produced against the amended oracle. This request's authorization
-  block, once filled, is what that re-sign run consumes.
+  above — the file bytes are not in question. The oracle has since been
+  re-signed under the gate1 owner's original key and verifies clean. What
+  remains is this request's own authorization block below, which the re-sign
+  run already consumed in practice but which still needs the owner's
+  recorded signature for the paper trail.
 
 - **Resulting signature or commit reference:**
