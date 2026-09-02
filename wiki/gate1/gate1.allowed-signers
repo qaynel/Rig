@@ -1,6 +1,1 @@
-# key-class: plain file-based ssh-ed25519 key, not hardware-backed. A
-# Secretive-backed (Secure Enclave) replacement was rotated in on commit
-# 5694fd7b and confirmed as owner-authorized, but the owner chose to keep
-# this key rather than complete the switch (2026-09-02) — see
-# wiki/reasoning/2026-09-02-gate1-key-rotation-not-adopted.md.
 gate1-owner namespaces="rig-gate1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZUQP/wuv8qU0o0UobuA2/K4vYJW64ugWy3Oggmp6rp vaibhav.kodiyan.vk@gmail.com

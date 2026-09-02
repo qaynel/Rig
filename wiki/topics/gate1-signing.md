@@ -58,6 +58,9 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 
 ## Authorities and sources
 
+- How to sign, per platform: [signing instructions](../gate1/signing-instructions.md)
+  — macOS, Windows, Debian, Fedora, Arch; key rotation (including the
+  `GATE1_FINGERPRINT` secret step); troubleshooting.
 - Frozen integrity rules: [Gate 1](../gate1/business-spec.md)
 - Verification mechanism: [Gate 2 AD-28 and §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 - Owner ceremony sequencing: [status](../status.md#ordered-next-steps)
@@ -92,6 +95,71 @@ authorization block:
 `2026-09-02-check-advanced-spec-83-cases.md`.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) ·
 [wording-fix trace](../reasoning/2026-09-02-gate1-wording-fix-and-signing-instructions.md)
+
+**Known defect (2026-09-02, grill turns 3–4 — superseded framing below):** the
+ceremony's final `gate1.allowed-signers` write is an unconditional principal-line
+template, so every re-sign silently deleted the human comment lines in the file.
+That framing was **overtaken by a more serious finding**: `verifySignature` loops
+over *every* principal in the file and passes on the first that verifies, so an
+agent can append its own key line, move the oracle goalpost, re-sign with a key
+it just generated, and the check reports "Gate 1 protected" with the owner's line
+still in place. Reproduced end to end. The comment defect is a symptom of the
+same mistake — treating a one-key pin as a hand-maintained register.
+
+**Resolved this change:** the file is now a single generated pin line, comments
+removed (the oracle still verifies without a re-sign, confirming it is outside
+the freeze digest). Provenance lives here, in "Standing", below.
+
+**Anchor chosen and built (2026-09-02, turn 6):** the owner chose the CI-side
+anchor. `.github/workflows/gate1-pin.yml` runs
+`.github/scripts/verify-gate1-pin.sh` — a checker that uses **no repository
+code**, only `sha256sum`/`ssh-keygen`/`awk` — from the *base branch* under
+`pull_request_target`, against a fingerprint held in a repository secret. Six
+forgery attempts were run at it: the control passes and all five real attacks are
+blocked, including the whole-file replacement that defeats the single-principal
+fix and a fully self-consistent re-arm that the repo's own verifier accepts.
+**Not armed until the owner creates the `GATE1_FINGERPRINT` secret and makes
+`gate1-pin` a required status check on `prod`** — until then it fails loudly but
+blocks nothing. It also protects nothing until merged to `prod`, since
+`pull_request_target` reads the base branch's copy. Local verification remains
+forgeable; the anchor exists at the merge boundary only.
+[implementation and attack results](../reasoning/2026-09-02-gate1-ci-pin-anchor-implemented.md)
+
+**Finding that forced it (2026-09-02, turn 5):** the pin is a deterrent,
+not a barrier, and the single-principal fix does not change that. An agent that
+*replaces* the signers file with its own key (keeping the principal name) leaves
+exactly one principal, so the fix never fires; it re-signs the rewritten oracle
+and the check reports `Gate 1 protected: principal=gate1-owner`, with only the
+fingerprint differing. Reproduced. No in-repo check can close this — every input
+the verifier reads is repo-writable — and CI does not currently compare the
+fingerprint, nor are commits signed. This project's own rejected index says an
+audit trail "is not a barrier, and this product does not describe deterrents as
+protection"; by that standard the gate's central claim does not hold until the
+anchor moves outside the agent's write scope. Options and costs in the trace
+below; **owner decision, open.**
+
+**Still open (handed off):** the verifier must require *exactly one* principal —
+structurally, not by name, because frozen `AT-GATE-2` signs as `owner` — and the
+ceremony must refuse a foreign principal line. Two red tests carry this in
+`tests/gate1-approval-script.test.js`. The verifier is itself a frozen manifest
+file, so that half needs the unfreeze ceremony; the ceremony guard does not.
+A passphrase-protected key proves nothing checkable (signatures are
+byte-identical with and without one); only a FIDO `sk-` key plus
+`verify-required` on the pin line enforces real human presence, and adopting it
+would retire the current Ubuntu key.
+[Comment-preservation grill](../reasoning/2026-09-02-gate1-allowed-signers-comment-preservation-grill.md)
+· [turn 2: remove-list pushback](../reasoning/2026-09-02-gate1-allowed-signers-remove-list-pushback.md)
+· [turn 3: demonstrated multi-principal forgery](../reasoning/2026-09-02-gate1-multi-principal-forgery.md)
+· [turn 4: what "a human must sign" can be checked](../reasoning/2026-09-02-gate1-human-presence-what-is-checkable.md)
+· [turn 5: the in-repo anchor is not a barrier](../reasoning/2026-09-02-gate1-in-repo-anchor-is-not-a-barrier.md)
+· [handoff](../handoffs/2026-09-02-gate1-single-principal-pin.md)
+
+Turn 2: the owner asked to drop the allowed-signers list and accept any
+human-generated key. Rejected — `ssh-keygen -Y verify` needs a named key, and a
+repo-writing agent can generate its own key and self-sign, so an unpinned gate
+is forgeable by the agent it constrains. Narrowed instead to making
+`gate1.allowed-signers` a purely generated one-line file with provenance kept
+only in this hub. Awaiting owner confirmation; nothing signed or committed.
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
