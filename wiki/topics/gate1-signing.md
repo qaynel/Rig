@@ -74,6 +74,13 @@ requires the same local key-holder ceremony.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [Status](../status.md)
 
+The signing key was rotated from a plain file-based key to a Secretive-backed
+one (macOS Secure Enclave) during Path B. The owner confirmed the rotation
+was theirs; the allowed-signers file now carries a key-class comment
+recording that attestation directly on the line it describes, since the
+signature itself cannot prove key class or who performed a rotation.
+[Rotation authorization](../reasoning/2026-09-02-gate1-key-rotation-authorized.md)
+
 `node scripts/check-advanced-spec.js` verifies clean against the signed
 83-case oracle (2026-09-02 closeout gate run) — the cryptographic signature
 already covers the amended content. What remains is textual: `acceptance.md`'s

@@ -1,1 +1,7 @@
+# key-class: Secretive-backed (macOS Secure Enclave, non-exportable private
+# key). Rotated from the prior ssh-ed25519 vaibhav.kodiyan.vk@gmail.com key
+# on commit 5694fd7b; rotation authorized by the gate1 owner (confirmed
+# 2026-09-02, see wiki/reasoning/2026-09-02-gate1-key-rotation-authorized.md).
+# Key-class assurance is the owner's attestation, not something this file or
+# its signature can prove on its own.
 gate1-owner namespaces="rig-gate1" ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHhqwYVN0LFoZyI7RM7iVyYy9iRXDh0cFQim+MHWFaDDJSOIOkHjQVycEzVaO56krBudbbN9fToQq5UfXJkeSug= rig-gate-key@secretive.Manoj’s-MacBook-Pro.local
