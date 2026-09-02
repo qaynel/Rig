@@ -85,6 +85,15 @@ the allowed-signers file carries that original key, not the Secretive one.
 [Rotation authorization](../reasoning/2026-09-02-gate1-key-rotation-authorized.md) ·
 [Key retained, not rotated](../reasoning/2026-09-02-gate1-key-rotation-not-adopted.md)
 
+**Update (2026-09-02, rotation adopted):** the gate1 owner intentionally
+changed the active signing key. The current key and its verification
+fingerprint live in `wiki/gate1/gate1.allowed-signers` and are printed by
+every `node scripts/check-advanced-spec.js` run — that pair is the complete
+public record of which key is authoritative. Key custody and operational
+access detail are kept outside this repository, in a private,
+access-controlled system, not here.
+[Rotation adopted](../reasoning/2026-09-02-gate1-key-rotation-adopted.md)
+
 **Update (2026-09-02, later same day):** the stale "awaiting signature"
 wording in both `acceptance.md` and `business-spec.md` is fixed (both
 headers, plus `acceptance.md`'s §7 lead-in), and the oracle has been

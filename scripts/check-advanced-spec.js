@@ -87,16 +87,19 @@ function verifySignature(root, message) {
   const principals = signerPrincipals(allowedText);
   assert.ok(principals.length > 0, 'gate1.allowed-signers has no principal');
 
-  for (const principal of principals) {
-    const result = spawnSync('ssh-keygen', [
-      '-Y', 'verify', '-f', allowed, '-I', principal,
-      '-n', 'rig-gate1', '-s', signature,
-    ], { input: message, encoding: 'utf8' });
-    if (result.status === 0) {
-      const fingerprint = signerFingerprint(allowedText, principal);
-      process.stdout.write(`Gate 1 protected: principal=${principal} fingerprint=${fingerprint}\n`);
-      return { armed: true, principal, fingerprint };
-    }
+  // Enforce exactly one principal
+  assert.equal(principals.length, 1, `oracle requires exactly one principal, found ${principals.length}`);
+  const principal = principals[0];
+
+  // Verify against the single principal
+  const result = spawnSync('ssh-keygen', [
+    '-Y', 'verify', '-f', allowed, '-I', principal,
+    '-n', 'rig-gate1', '-s', signature,
+  ], { input: message, encoding: 'utf8' });
+  if (result.status === 0) {
+    const fingerprint = signerFingerprint(allowedText, principal);
+    process.stdout.write(`Gate 1 protected: principal=${principal} fingerprint=${fingerprint}\n`);
+    return { armed: true, principal, fingerprint };
   }
   throw new Error('oracle signature does not verify');
 }

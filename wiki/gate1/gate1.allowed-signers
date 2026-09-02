@@ -1,1 +1,1 @@
-gate1-owner namespaces="rig-gate1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIZUQP/wuv8qU0o0UobuA2/K4vYJW64ugWy3Oggmp6rp vaibhav.kodiyan.vk@gmail.com
+gate1-owner namespaces="rig-gate1" ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHhqwYVN0LFoZyI7RM7iVyYy9iRXDh0cFQim+MHWFaDDJSOIOkHjQVycEzVaO56krBudbbN9fToQq5UfXJkeSug= gate1-signing-key

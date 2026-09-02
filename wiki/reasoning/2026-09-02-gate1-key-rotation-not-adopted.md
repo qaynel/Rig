@@ -3,7 +3,7 @@ date: 2026-09-02
 source: intent owner
 topics: gate1-signing
 decisions:
-status: current
+status: superseded
 supersedes:
 tags: gate1, key-rotation, correction
 summary: The gate1 owner re-signed the amended oracle with the original ssh-ed25519 key rather than the Secretive-backed key recorded earlier the same day; the hardware-key rotation is not adopted going forward, and the original key is the active signer of record.
