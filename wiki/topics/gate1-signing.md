@@ -74,4 +74,16 @@ requires the same local key-holder ceremony.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [Status](../status.md)
 
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; no new current traces since last edit. -->
+`node scripts/check-advanced-spec.js` verifies clean against the signed
+83-case oracle (2026-09-02 closeout gate run) — the cryptographic signature
+already covers the amended content. What remains is textual: `acceptance.md`'s
+H1 and §7 still read as unsigned ("AWAITING ORACLE SIGNATURE" /
+"submitted for owner approval"), and fixing that wording requires editing a
+file inside the signed manifest, which only the key holder can do as part of
+a re-sign. Two unfreeze requests also await the human authorization block:
+`2026-09-01-path-b-approval-receipts.md` and
+`2026-09-02-check-advanced-spec-83-cases.md`.
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     branch-closeout gate trace. -->

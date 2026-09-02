@@ -422,4 +422,16 @@ caller: a caller who could assert the digest of the bytes being approved would
 be re-introducing the `verified: true` defect.
 [Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
 
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+## Branch closeout gate (2026-09-02)
+
+Fix 3a and Fix 3b landed with 64/64 `path-b-hardening` tests green. The full
+CI gate then ran clean except four tests gated on a host capability
+(`unshare --user --net` network isolation) this sandbox does not have —
+pre-existing, unrelated to onboarding code, and worked around in real CI.
+Three human-only blockers remain before merge: the key-rotation
+authorization question, the `acceptance.md` wording re-sign, and two
+unfreeze-request signature blocks.
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     branch-closeout gate trace. -->

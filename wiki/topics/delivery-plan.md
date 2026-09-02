@@ -67,6 +67,13 @@ oracle remains unchanged as each slice turns its assigned failures green.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
+The branch closeout (2026-09-02) landed the two remaining correctness fixes
+(interrupt-window resume, sibling-file reconcile) and a full CI gate run;
+what remains before merge is entirely human-only — the key-rotation
+authorization question, the `acceptance.md` re-sign, and two unfreeze-request
+signatures.
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+
 The Path B operator slice is complete: `install rig` is the public grammar,
 explicit hosts replace detection while omitted hosts preserve it, and every
 successful install ends at the explicit `rig-onboarding` review step. The
