@@ -1,0 +1,59 @@
+name: gate1-pin
+
+# The trust anchor for Gate 1.
+#
+# Everything the repository's own verifier reads — the signers file, the
+# signature, the manifest, and the verifier's own source — lives in the
+# repository, so an agent with write access can rewrite all of them in one
+# consistent commit and the in-repo check still passes. This job is the part
+# that cannot be rewritten from inside a pull request:
+#
+#   * `pull_request_target` runs the workflow definition from the BASE branch,
+#     not the PR's copy, so a PR cannot edit or delete this check to dodge it.
+#   * The checker script is taken from the base checkout, never the candidate's.
+#   * The expected fingerprint comes from a repository secret, which a PR cannot
+#     read or write. (It is not confidential — a public-key fingerprint is public
+#     by nature. The secret store is being used as write-protected storage.)
+#   * The candidate's files are only ever READ. No repository code is executed
+#     with the secret in scope; the checker uses system binaries only.
+#
+# Requires, on the GitHub side and not settable from this file:
+#   1. A repository secret GATE1_FINGERPRINT holding the owner's key fingerprint.
+#   2. Branch protection on `prod` with `gate1-pin` as a REQUIRED status check.
+#      Without (2) this job is advisory and the gate is still only a deterrent —
+#      a required check that never reports blocks a merge, but an unrequired one
+#      that never reports is simply ignored.
+
+on:
+  pull_request_target:
+  push:
+    branches: [prod]
+
+permissions:
+  contents: read
+
+jobs:
+  gate1-pin:
+    name: gate1-pin
+    runs-on: ubuntu-latest
+    steps:
+      # The checker, from the base branch. Under pull_request_target the default
+      # ref is the base, so a PR cannot influence this checkout.
+      - name: Check out the trusted checker
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: trusted
+
+      # The candidate's oracle files. Read as data only — never executed.
+      - name: Check out the candidate oracle
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          path: candidate
+
+      - name: Verify the Gate 1 pin
+        env:
+          GATE1_EXPECTED_FINGERPRINT: ${{ secrets.GATE1_FINGERPRINT }}
+        run: bash trusted/.github/scripts/verify-gate1-pin.sh candidate
