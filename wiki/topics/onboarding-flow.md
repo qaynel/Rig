@@ -445,5 +445,18 @@ authorization question, the `acceptance.md` wording re-sign, and two
 unfreeze-request signature blocks.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
 
+**qa-prod deploy review (2026-09-02) independently verified Path B onboarding.**
+AT-PB-10's closed failure set is complete: all nine hard-failure codes plus both
+growth warnings exist in `rig/lib/onboarding-check.js` (or `onboarding.js` for
+`malformed-graft`/`state-incomplete`) and each is seeded in
+`tests/path-b-weight.test.js`. The umask-dependent `tree_digest` fix
+(2026-09-02, `AT-PB-5`) was verified: a proposal approved on one machine now
+applies cleanly after a re-clone under a different umask. One medium finding
+from this review: `.claude/skills/wiki-maintenance/SKILL.md` has no
+`.agents/skills/wiki-maintenance/` counterpart, violating CLAUDE.md's parity
+rule; `scripts/check-rule-copies.js` compares rule copies but not skill-directory
+membership, so nothing in the gate caught this asymmetry.
+[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->

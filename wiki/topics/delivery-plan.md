@@ -74,6 +74,15 @@ authorization question, the `acceptance.md` re-sign, and two unfreeze-request
 signatures.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
 
+The qa-prod deploy review (2026-09-02) confirmed the merge shape (53 commits,
+fast-forwardable to qa-prod at `c1b664b`, +17787/-356) and added two further
+findings that bear on delivery: both unfilled unfreeze requests carry empty
+**Date** and **I authorize this oracle change** fields — the recorded human
+decision, not the signature, is the missing piece; and `.superpowers/sdd/` is a
+committed scratch artifact unrelated to the deliverable. Both are human-only to
+resolve before merge.
+[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+
 The Path B operator slice is complete: `install rig` is the public grammar,
 explicit hosts replace detection while omitted hosts preserve it, and every
 successful install ends at the explicit `rig-onboarding` review step. The
