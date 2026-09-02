@@ -21,6 +21,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | current | [2026-09-02-gate1-wording-fix-and-signing-instructions](../reasoning/2026-09-02-gate1-wording-fix-and-signing-instructions.md) | gate1-signing | — | gate1, wording-fix, signing-ceremony |
 | 2026-09-02 | current | [2026-09-02-gate1-key-rotation-not-adopted](../reasoning/2026-09-02-gate1-key-rotation-not-adopted.md) | gate1-signing | — | gate1, key-rotation, correction |
 | 2026-09-02 | current | [2026-09-02-gate1-key-rotation-authorized](../reasoning/2026-09-02-gate1-key-rotation-authorized.md) | gate1-signing | — | gate1, key-rotation, authorization |
+| 2026-09-02 | current | [2026-09-02-catalogue-tree-digest-reproducibility](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md) | onboarding-flow, testing-strategy | — | trap, verification |
 | 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |

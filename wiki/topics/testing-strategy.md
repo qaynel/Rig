@@ -48,6 +48,20 @@ with AT-HOME-1 green.
 [RIG-154 design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md),
 [RIG-154 close-out](../reasoning/2026-08-31-rig-154-close-out.md)
 
+The same green-in-CI, red-on-fresh-clone shape recurred 2026-09-02 in the
+skill-shelf `tree_digest`. `skillTreeDigest` hashed `fs.statSync(file).mode &
+0o777` — nine permission bits, of which git tracks only owner-execute — so a
+checkout under `umask 002` moved every catalogue row's digest and turned
+`build-skill-catalog.js --check` red. The `--check` gate cannot catch it: it
+regenerates and string-compares inside one process, where the umask cancels.
+Fix landed the same day — `mode` collapsed to git's two states (`(mode & 0o111)
+? 0o755 : 0o644`), `catalog.json` byte-unchanged — with a non-frozen guard
+`tests/skill-tree-digest-reproducible.test.js` that holds bytes constant, varies
+`chmod`, and asserts the digest does not move (the reproducibility check the
+`--check` gate structurally cannot be). Auto-discovered by the `tests/*.test.js`
+glob, no Gate-1 re-sign — same precedent as `tests/wiki-maintenance-lint.test.js`.
+[tree-digest reproducibility trace](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md)
+
 ## Authorities and sources
 
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)

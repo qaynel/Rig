@@ -169,7 +169,9 @@ function findOptionalSources(shelfRoot = SKILL_ROOT) {
 // The digest of the skill's whole source tree, not just its SKILL.md. A
 // proposal binds this value so an edit to any staged file — a reference doc, a
 // sibling playbook — invalidates an approval that was granted for the old
-// bytes. Walk order and mode bits are fixed so the value is reproducible.
+// bytes. Walk order is normalized (sorted readdir) and mode is collapsed to
+// git's two states (exec / non-exec) so the digest is a function of tracked
+// content only, not the checkout machine's umask.
 function sourceFile(sourceRel, shelfRoot = SKILL_ROOT) {
   const prefix = `${SKILL_ROOT_REL}/`;
   return sourceRel.startsWith(prefix)
@@ -191,7 +193,7 @@ function skillTreeDigest(sourceRel, shelfRoot = SKILL_ROOT) {
         const file = path.join(abs, next);
         files.push({
           path: next,
-          mode: fs.statSync(file).mode & 0o777,
+          mode: (fs.statSync(file).mode & 0o111) ? 0o755 : 0o644,
           sha256: sha256(fs.readFileSync(file)),
         });
       }

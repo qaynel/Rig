@@ -422,6 +422,18 @@ caller: a caller who could assert the digest of the bytes being approved would
 be re-introducing the `verified: true` defect.
 [Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
 
+**The bound `tree_digest` must not depend on the checkout machine (fixed
+2026-09-02).** As first written, `skillTreeDigest` folded nine `stat` mode bits
+into the digest each proposal binds. Git tracks only the exec bit, so a
+proposal approved on one machine and applied after a re-clone under a different
+`umask` was refused as a `stale proposal: catalogue tree_digest ... has
+changed` with no real byte movement — an environment difference firing the
+byte-binding `AT-PB-5` guard. Fixed by collapsing `mode` to git's two states
+(`(mode & 0o111) ? 0o755 : 0o644`); `catalog.json` and every bound digest are
+byte-unchanged, so no approved proposal is invalidated by the fix itself.
+Guard: `tests/skill-tree-digest-reproducible.test.js`.
+[tree-digest reproducibility trace](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md)
+
 ## Branch closeout gate (2026-09-02)
 
 Fix 3a and Fix 3b landed with 64/64 `path-b-hardening` tests green. The full
