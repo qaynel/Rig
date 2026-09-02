@@ -1331,3 +1331,165 @@ overlap_tags:
     }
   });
 });
+
+describe('Issue N (interrupt window) — crash after writer.finish() but before writeState()', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+
+  it('AT-PB-hard interrupt-window — re-apply after journal-closed crash must succeed without stale-preimage failure', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed } = h.prepareAndPropose(target);
+
+      // Simulate a crash AFTER writer.finish() (journal complete: true) but BEFORE
+      // writeState(). atomicWrite writes to <file>.tmp then renames, so we intercept
+      // the state.json.tmp write specifically to leave state at phase:"proposed" while
+      // all payload bytes and the closed journal are already on disk.
+      const realWriteSync = fs.writeFileSync;
+      let crashed = false;
+      fs.writeFileSync = (file, data, ...rest) => {
+        realWriteSync(file, data, ...rest);
+        if (!crashed && typeof file === 'string' && path.basename(file) === 'state.json.tmp') {
+          crashed = true;
+          throw new Error('simulated interrupt-window crash');
+        }
+      };
+
+      try {
+        h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: signApproval(target, proposed.proposal_digest),
+        });
+      } catch (e) {
+        if (!e.message.includes('simulated interrupt-window crash')) throw e;
+      } finally {
+        fs.writeFileSync = realWriteSync;
+      }
+
+      assert.ok(crashed, 'test precondition: crash must have fired');
+      const stateAfterCrash = h.readJson(path.join(target, '.rig/state.json'));
+      assert.equal(stateAfterCrash.phase, 'proposed',
+        'an interrupted apply must not have advanced state');
+
+      // Re-apply with the same approval receipt. Before the fix this throws with
+      // "stale preimage" because the closed journal prevents journalResumeDigest
+      // from recognising Rig's own previous writes.
+      let reapplyError = null;
+      let applied = null;
+      try {
+        applied = h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: signApproval(target, proposed.proposal_digest),
+        });
+      } catch (e) {
+        reapplyError = e;
+      }
+
+      assert.equal(
+        reapplyError,
+        null,
+        `re-apply after interrupt-window crash must not throw; got: ${reapplyError?.message}`,
+      );
+      assert.equal(applied?.phase, 'applied', 're-apply must advance to applied');
+
+      const checked = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: applied.revision,
+      });
+      assert.deepEqual(
+        checked.hard_failures,
+        [],
+        `check after recovered interrupt-window crash must pass cleanly; got: ${JSON.stringify(checked.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+});
+
+describe('Issue N (sibling-file reconcile) — skill stays selected but loses a sibling across catalog versions', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+
+  function applyWith(target, proposed) {
+    return h.handle({
+      schema_version: 1,
+      action: 'apply',
+      target,
+      expected_revision: proposed.revision,
+      approval: signApproval(target, proposed.proposal_digest),
+    });
+  }
+
+  it('AT-PB-hard sibling-reconcile — orphan sibling from previous catalog version is removed when skill stays selected', async () => {
+    await h.withRepo(async (target) => {
+      // Find the staged qa skill directory from the installed catalog.
+      const catalog = h.readJson(path.join(target, '.rig/catalog.json'));
+      const qaEntry = catalog.skills.find((s) => s.name === 'qa' || s.id === 'qa');
+      assert.ok(qaEntry, 'precondition: qa skill must be in the installed catalog');
+      const stagedSkillDir = path.dirname(
+        path.join(target, '.rig/runtime/rig', qaEntry.source_rel.slice('rig/'.length)),
+      );
+      assert.ok(fs.existsSync(stagedSkillDir), `precondition: staged qa dir must exist at ${stagedSkillDir}`);
+
+      // Cycle 1: add EXTRA.md to the staged shelf so it gets projected alongside SKILL.md.
+      const extraStaged = path.join(stagedSkillDir, 'EXTRA.md');
+      fs.writeFileSync(extraStaged, '# Extra file from older catalog version\n');
+
+      const { proposed: proposed1 } = h.prepareAndPropose(target);
+      applyWith(target, proposed1);
+
+      // Verify EXTRA.md was projected to at least one host directory.
+      const state1 = h.readJson(path.join(target, '.rig/state.json'));
+      const qaSkillMd = state1.applied.projections.find((r) => r.skill === 'qa' || r.skill === qaEntry.id);
+      assert.ok(qaSkillMd, 'precondition: qa projection must be recorded');
+      const qaProjectedDir = path.dirname(path.join(target, qaSkillMd.path));
+      const extraProjected = path.join(qaProjectedDir, 'EXTRA.md');
+      assert.ok(fs.existsSync(extraProjected),
+        `precondition: EXTRA.md must have been projected to ${extraProjected}`);
+
+      // EXTRA.md is on disk and in the journal, but NOT in applied.projections
+      // (planSkillProjections only records SKILL.md paths — the sibling is invisible
+      // to the removal ledger).
+      assert.ok(
+        !state1.applied.projections.some((r) => r.path.endsWith('/EXTRA.md')),
+        'precondition: EXTRA.md must not be in applied.projections (this is the gap the bug exposes)',
+      );
+
+      // Cycle 2: remove EXTRA.md from the staged shelf (simulating a catalog version
+      // that no longer ships the sibling). The skill itself stays selected.
+      fs.rmSync(extraStaged);
+
+      const { proposed: proposed2 } = h.prepareAndPropose(target);
+      applyWith(target, proposed2);
+
+      // After the fix: planRemovals runs the sibling sweep even when SKILL.md is
+      // still desired, finds EXTRA.md via liveFilesUnder, matches the journal record
+      // from cycle 1, and removes it.
+      assert.equal(
+        fs.existsSync(extraProjected),
+        false,
+        `stale sibling ${extraProjected} must be removed during reapply when skill stays selected`,
+      );
+
+      // check must pass cleanly — no state-incomplete from projected_digest mismatch.
+      const state2 = h.readJson(path.join(target, '.rig/state.json'));
+      const checked = h.handle({
+        schema_version: 1,
+        action: 'check',
+        target,
+        expected_revision: state2.revision,
+      });
+      assert.deepEqual(
+        checked.hard_failures,
+        [],
+        `check must pass after sibling removal; got: ${JSON.stringify(checked.hard_failures)}`,
+      );
+    }, { install: true });
+  });
+});

@@ -371,6 +371,38 @@ that forwards `latest` and `interrupted` to the real one; it still cannot
 mutate, but it now sees what the real write will see.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
 
+## A crash between the last payload write and state advance is also resumable
+
+**Fixed 2026-09-02.** The 2026-09-01 resume fix covered crashes *within* a
+journalled write. A second window existed between `writer.finish()` (which closes
+the journal, setting `complete: true`) and `writeState()` (which advances state
+from `proposed` to `applied`). A crash there left the journal closed but state
+still at `proposed`. On the next apply, `journalResumeDigest` returns `null` for
+a closed journal, so preflights treated the already-landed bytes as a
+stale-preimage conflict and threw `"rig: graft has stale file digest or preimage"`.
+
+Fix: moved `writer.finish()` to after `writeState()`. Now a crash before state
+advances leaves the journal OPEN; the next apply's `journalResumeDigest`
+recognises its own unfinished work and resumes cleanly. A crash after both
+writes is indistinguishable from a clean apply — the redundant rewrite is safe.
+[Interrupt-window trace](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)
+
+## A selected skill sheds an orphan sibling when the catalog drops it
+
+**Fixed 2026-09-02.** `planRemovals` built `desiredPaths` from
+`projection.projections`, which records only the SKILL.md row per host scope.
+When a skill stayed selected, its SKILL.md path was in `desiredPaths` and the
+outer loop short-circuited before the sibling sweep ran. A file dropped from
+the staged skill directory between catalog versions (`EXTRA.md`) was therefore
+never removed — it survived on host indefinitely.
+
+Two parts to the fix: (1) the outer short-circuit on `desiredPaths.has(row.path)`
+was removed so the sibling sweep always runs; (2) `desiredPaths` was extended
+to include all `projection.plans` paths (not just SKILL.md entries), so the
+sweep only removes files that are genuinely absent from the new plan, not sibling
+directories (`references/`, `templates/`) that are still being projected.
+[Sibling-reconcile trace](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)
+
 ## An approval covers the bytes, not the skill's name
 
 **Fixed 2026-09-01.** `selected_skills` is a list of names, so an approval

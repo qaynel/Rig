@@ -535,16 +535,22 @@ function pruneEmptyDirs(target, rel, stopRel) {
 // than leaving a stale file behind.
 function planRemovals(target, state, projection, writer, catalog) {
   const previousProjections = state.applied?.projections || state.applied?.skills || [];
-  const desiredPaths = new Set(projection.projections.map((row) => row.path));
+  const desiredPaths = new Set([
+    ...projection.projections.map((row) => row.path),
+    ...projection.plans.map((plan) => plan.rel),
+  ]);
   const removals = { projections: [], grafts: [], unreconciled: [] };
   const seen = new Set();
   for (const row of previousProjections) {
-    if (desiredPaths.has(row.path) || seen.has(row.path)) continue;
+    if (seen.has(row.path)) continue;
     seen.add(row.path);
     if (!isApplyOwnedSkill(catalog, row.skill)) continue;
     // The ledger records one SKILL.md per host, but a projection may have
     // written a whole tree, so sweep the live skill directory as well as the
-    // recorded path — otherwise siblings survive their own skill.
+    // recorded path — otherwise siblings survive their own skill. The desired-
+    // path check is intentionally deferred to the inner loop so the sweep runs
+    // even when SKILL.md is still desired (skill stays selected but loses a
+    // sibling across catalog versions).
     const root = path.posix.dirname(row.path);
     for (const rel of new Set([row.path, ...liveFilesUnder(target, root)])) {
       if (desiredPaths.has(rel)) continue;
@@ -645,7 +651,6 @@ function apply(request) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
       }
-      writer.finish();
     } catch (error) {
       // Keep a pending journal transaction if any mutation landed. It is the
       // resume evidence; state is intentionally not advanced on this path.
@@ -689,6 +694,11 @@ function apply(request) {
     };
     writeIfChanged(request.target, '.rig/grafts.md', renderGrafts(next));
     writeState(request.target, next);
+    // Closing the journal AFTER writeState ensures a crash between the last
+    // payload write and state advance leaves an open transaction; the next
+    // apply then treats the landed bytes as its own unfinished work rather
+    // than a stale preimage from another owner.
+    writer.finish();
     return response('apply', request.target, next, { warnings: unreconciledWarnings(next) });
   });
 }

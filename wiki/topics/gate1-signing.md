@@ -64,15 +64,13 @@ Gate 1 signer were rejected. Gate 1 deliberately has no recovery mechanism.
 
 ## Standing
 
-The Path B amendment is **not signed**. Its business spec, 83-case acceptance
-set, verifier, and expanded testing manifest intentionally invalidate the prior
-73-case signature. The new tests are red before implementation, so no protected
-or green claim applies to the amended oracle yet. The existing signature and
-allowed-signers files remain untouched as historical inputs; only the human key
-holder may complete the local ceremony after reviewing the exact proposal.
+The Path B amendment is **signed** (2026-09-01). Its business spec, 83-case
+acceptance set, verifier, and expanded testing manifest are covered by the
+current `gate1.sig`. The prior 73-case signature was superseded by the
+re-sign that incorporated the Path B cases and the updated testing manifest.
 
-No agent may run or simulate the approval helper. Path B implementation remains
-blocked until that human act succeeds.
+No agent may run or simulate the approval helper. Any future oracle change
+requires the same local key-holder ceremony.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [Status](../status.md)
 

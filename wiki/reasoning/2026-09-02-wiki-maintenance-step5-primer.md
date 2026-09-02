@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Wiki maintenance Step 5 — added wiki/agent-primer.md as the single mandated read and rewired CLAUDE.md, AGENTS.md, GEMINI.md, rig/tier-1/routing.md, and wiki/reasoning/README.md to describe the same primer-based cadence; the six AGENTS.md rule copies were synced to match. Needs explicit human review before merge.

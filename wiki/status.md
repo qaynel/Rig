@@ -6,8 +6,8 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
-- **2026-09-02 — [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)**: Wiki maintenance Step 5 — added wiki/agent-primer.md as the single mandated read and rewired CLAUDE.md, AGENTS.md, GEMINI.md, rig/tier-1/routing.md, and wiki/reasoning/README.md to describe the same primer-based cadence; the six AGENTS.md rule copies were synced to match. Needs explicit human review before merge.
 - **2026-09-02 — [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md)**: Path B hardening’s final integrated review found no unresolved implementation defects; the completed duplicate-name oracle amendment is verified and ready to commit.
+- **2026-09-02 — [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)**: Current trace from historical.
 - **2026-09-01 — [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md)**: Path B now has one public install grammar and a journal-backed onboarding weight and correctness check.
 - **2026-09-01 — [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md)**: Path B now has a shared approved onboarding vertical slice with selective projections, managed grafts, canonical playbook routing, CLI parity, and MCP parity.
 - **2026-09-01 — [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md)**: Path B graft sections now provide byte-preserving, journaled ownership in repository instruction files and uninstall removes only those managed sections.

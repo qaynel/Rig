@@ -2,8 +2,8 @@
 
 The 83 Gate-1 cases. Their deterministic executable targets join them in the
 oracle: each must fail before its behavior exists and pass only when the product
-intent is met. The ten Path B cases are authored and red, but are not
-owner-approved until the pending human signature ceremony completes.
+intent is met. The ten Path B cases are authored and owner-approved under the
+oracle signed 2026-09-01. Their direct checks were red before implementation.
 
 **Set equality is the requirement.** The specification gate reads the ID set from
 Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
@@ -25,7 +25,7 @@ implemented and green — see [status](../status.md).
 **Amended 2026-08-31, Path B:** agent-led adaptive onboarding adds ten cases,
 `AT-PB-1`–`AT-PB-10`, taking the set to **83**. Their 55 direct checks are red
 before implementation (54 product failures plus one green catalogue-preservation
-guard). This amendment awaits the mandatory human signature.
+guard). The oracle covering this amendment was signed 2026-09-01.
 [Path B acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
@@ -228,7 +228,7 @@ re-traced to exact equality, see the note above.
 | 2026-08-19 | 49 | D20 added `AT-PRESENCE-2`. |
 | 2026-08-21 | **68** | D21 added `AT-LF-1`–`AT-LF-19`, the lint-format vertical release boundary. |
 | 2026-08-26 | **73** | D28/GA-37 added `AT-LF-20`–`AT-LF-24`, RIG-115's shell-trust guarantees. |
-| 2026-08-31 | **83** | Path B added `AT-PB-1`–`AT-PB-10`, the agent-led adaptive-onboarding boundary; human signature pending. |
+| 2026-08-31 | **83** | Path B added `AT-PB-1`–`AT-PB-10`, the agent-led adaptive-onboarding boundary; oracle signed 2026-09-01. |
 
 Mechanism-only revisions (D10, D19, GA-13) changed how a case is satisfied
 without changing the count.

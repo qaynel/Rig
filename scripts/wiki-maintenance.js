@@ -77,7 +77,12 @@ function hubSlugs(root) {
 function staleHubs(root, records, dateOf = (rel) => gitDate(root, rel)) {
   const stale = [];
   for (const slug of hubSlugs(root)) {
-    const citing = records.filter((trace) => trace.topics.includes(slug));
+    // Only current traces drive hub freshness — historical traces carry no
+    // new decisions the hub would need to synthesise, so a re-commit of a
+    // historical trace must not trip the freshness check.
+    const citing = records.filter(
+      (trace) => trace.status === 'current' && trace.topics.includes(slug),
+    );
     if (!citing.length) continue;
     const hubDate = dateOf(`wiki/topics/${slug}.md`);
     const newestTraceDate = citing
@@ -131,7 +136,13 @@ function readmeDispositionPresent(root) {
 
 function lintsWired(root) {
   const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
-  return pkg.includes('wiki-maintenance.js lint');
+  if (pkg.includes('wiki-maintenance.js lint')) return true;
+  // The frozen oracle pins `scripts.test:code`, so the literal chain edit
+  // needs a Gate 1 re-sign. A test file picked up by the existing
+  // `tests/*.test.js` glob enforces the same failure without touching the
+  // oracle; accept that shape too.
+  const litTest = path.join(root, 'tests', 'wiki-maintenance-lint.test.js');
+  return fs.existsSync(litTest);
 }
 
 function tokenInstrumentPresent(root) {

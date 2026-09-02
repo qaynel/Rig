@@ -6,13 +6,15 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
-| 2026-09-02 | current | [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md) | agent-working-conventions | — | interdependency |
+| 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step6-lints](../reasoning/2026-09-02-wiki-maintenance-step6-lints.md) | agent-working-conventions, testing-strategy | — | — |
+| 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md) | agent-working-conventions | — | interdependency |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step4-archive](../reasoning/2026-09-02-wiki-maintenance-step4-archive.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step3-disposition](../reasoning/2026-09-02-wiki-maintenance-step3-disposition.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step2-hub-sync](../reasoning/2026-09-02-wiki-maintenance-step2-hub-sync.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step1-lifecycle-sweep](../reasoning/2026-09-02-wiki-maintenance-step1-lifecycle-sweep.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-skill](../reasoning/2026-09-02-wiki-maintenance-skill.md) | agent-working-conventions | — | — |
 | 2026-09-02 | current | [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md) | catalogue-contract, trust-and-failure-boundaries | — | review, hardening |
+| 2026-09-02 | current | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | — | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
 | 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |

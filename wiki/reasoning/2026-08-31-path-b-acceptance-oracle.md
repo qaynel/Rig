@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan
 decisions:
-status: current
+status: historical
 supersedes: 2026-08-31-path-b-oracle-checkpoint
 tags: interdependency, trap
 summary: Path B acceptance oracle authored — ten cases expand Gate 1 to 83; 55 direct checks produce 54 expected product failures and one green service-catalogue preservation guard; the exact 14-file manifest and evidence map await human review and signature, with implementation not begun.
