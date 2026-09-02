@@ -164,4 +164,23 @@ covers isolation, explicit grants, and refusal when the host cannot provide
 the sandbox. Full text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
 [reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
 
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+**Wiki-maintenance lint wired without a Gate 1 re-sign (routine Step 6,
+2026-09-02).** `scripts.test:code`'s exact string is digest-pinned in the
+signed oracle, so `node scripts/wiki-maintenance.js lint` cannot be spliced
+into that chain without a human key-holder ceremony. Instead
+`tests/wiki-maintenance-lint.test.js` asserts `lintFindings(repoRoot,
+traces(repoRoot))` is empty; `npm test`'s existing `tests/*.test.js` glob
+picks it up automatically, so a stale hub or an untagged post-floor trace
+fails the same way any other test fails. `staleHubs` counts a citing trace
+toward a hub's freshness regardless of `status` (a trace filed straight to
+`historical` still owes its hub a sync) but only for traces dated on/after
+`FRONTMATTER_FLOOR` (2026-09-02) — the same grandfather line the
+frontmatter-completeness check uses, so the lint's introduction does not
+retroactively flag the wiki's pre-existing drift. The trace side of the
+staleness comparison uses each trace's first-add commit, not its latest
+commit, so a later lifecycle-flip edit (current → historical) re-committing
+the file cannot retrigger staleness against a hub that already absorbed it.
+[step6-lints trace](../reasoning/2026-09-02-wiki-maintenance-step6-lints.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     step6-lints trace. -->

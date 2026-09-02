@@ -29,6 +29,24 @@ function gitDate(root, rel) {
   return out.status === 0 ? out.stdout.trim() : '';
 }
 
+// A trace's first-add commit, not its latest touch: a later lifecycle-flip
+// edit (current -> historical) re-commits the file without changing what it
+// says, and must not look like a new citation the hub has to catch up to.
+function gitDateAdded(root, rel) {
+  const out = spawnSync(
+    'git',
+    ['log', '--diff-filter=A', '--format=%cI', '--', rel],
+    { cwd: root, encoding: 'utf8' },
+  );
+  if (out.status !== 0) return '';
+  const lines = out.stdout.trim().split('\n').filter(Boolean);
+  return lines[lines.length - 1] || '';
+}
+
+function hubOrTraceDate(root, rel) {
+  return rel.startsWith('wiki/reasoning/') ? gitDateAdded(root, rel) : gitDate(root, rel);
+}
+
 function frontmatterBlock(text) {
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
   return match ? match[1] : '';
@@ -74,14 +92,14 @@ function hubSlugs(root) {
     .map((name) => name.replace(/\.md$/, ''));
 }
 
-function staleHubs(root, records, dateOf = (rel) => gitDate(root, rel)) {
+function staleHubs(root, records, dateOf = (rel) => hubOrTraceDate(root, rel)) {
   const stale = [];
   for (const slug of hubSlugs(root)) {
-    // Only current traces drive hub freshness — historical traces carry no
-    // new decisions the hub would need to synthesise, so a re-commit of a
-    // historical trace must not trip the freshness check.
+    // Same grandfather line as the frontmatter check: traces filed before
+    // the lint landed accrued whatever hub drift they accrued, and that
+    // pre-existing debt is not this check's job to retroactively flag.
     const citing = records.filter(
-      (trace) => trace.status === 'current' && trace.topics.includes(slug),
+      (trace) => trace.date >= FRONTMATTER_FLOOR && trace.topics.includes(slug),
     );
     if (!citing.length) continue;
     const hubDate = dateOf(`wiki/topics/${slug}.md`);

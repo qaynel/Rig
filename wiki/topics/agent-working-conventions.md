@@ -74,6 +74,17 @@ backed by `scripts/wiki-maintenance.js`. It is authoring-time only and not
 installed into other repositories.
 [2026-09-02 trace](../reasoning/2026-09-02-wiki-maintenance-skill.md)
 
+The routine's Step 5 replaced the multi-file read contract above with one
+mandated page: `wiki/agent-primer.md` routes the reader through `Home.md`,
+`status.md`, the four most-used topic hubs, and the four core indexes, states
+the read-before-grep rule, and preserves the task-weight carve-out. `CLAUDE.md`,
+`AGENTS.md`, `GEMINI.md`, `rig/tier-1/routing.md`, and
+`wiki/reasoning/README.md` all point at the same primer-based cadence now, and
+the six `AGENTS.md` rule copies were resynced to match. Flagged for explicit
+human review before merge — an agent following the new cadence reads a
+different set of files first, which `npm test` alone cannot verify.
+[2026-09-02 primer trace](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)
+
 ## Why it is this way
 
 Three tools read three separate instruction files here. A rule stated once and
@@ -110,6 +121,7 @@ state changes, rather than adding a second live-state mechanism.
 - Lightweight path + inner-loop test discipline: [RIG-124](../tickets/RIG-124.md),
   [implementation trace](../reasoning/2026-08-25-rig124-implementation.md),
   token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
+- Single primer page (routine Step 5): [2026-09-02 primer trace](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)
 
 ## What's still open
 
@@ -118,6 +130,9 @@ The byte-equality check only covers the compact `AGENTS.md`-family copies.
 against them, so its wording can drift out of step with the compact version
 without failing any test — a known gap, not yet worth a script for the size of
 the text. The three-minute checkpoint cadence is applied by agent discipline;
-no hook currently verifies a long task actually checkpointed on schedule.
+no hook currently verifies a long task actually checkpointed on schedule. The
+single-primer read contract (Step 5) is unverified in practice pending the
+human review its own trace flags as required.
 
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; no new current traces since last edit. -->
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     step5-primer and step6-lints traces. -->

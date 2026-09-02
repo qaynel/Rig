@@ -14,7 +14,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step1-lifecycle-sweep](../reasoning/2026-09-02-wiki-maintenance-step1-lifecycle-sweep.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-skill](../reasoning/2026-09-02-wiki-maintenance-skill.md) | agent-working-conventions | — | — |
 | 2026-09-02 | current | [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md) | catalogue-contract, trust-and-failure-boundaries | — | review, hardening |
-| 2026-09-02 | current | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | — | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
+| 2026-09-02 | current | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | onboarding-flow | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
+| 2026-09-02 | current → 2026-09-02-wiki-maintenance-step6-lints (staleness-filter claim only) | [2026-09-02-path-b-branch-closeout-staleHubs-fix](../reasoning/2026-09-02-path-b-branch-closeout-staleHubs-fix.md) | agent-working-conventions, testing-strategy | — | correctness, wiki-maintenance, staleHubs |
 | 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |
