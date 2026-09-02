@@ -171,7 +171,7 @@ function tokenInstrumentPresent(root) {
     .some((name) => /token|context-load|read-cost/i.test(name));
 }
 
-function report(root, records, dateOf = (rel) => gitDate(root, rel)) {
+function report(root, records, dateOf = (rel) => hubOrTraceDate(root, rel)) {
   const current = currentTraces(root, records);
   const shipped = current.filter((row) => row.shipped);
   const stale = staleHubs(root, records, dateOf);
@@ -301,7 +301,7 @@ function formatReport(rows) {
   return `${lines.join('\n')}\n`;
 }
 
-function lintFindings(root, records, dateOf = (rel) => gitDate(root, rel)) {
+function lintFindings(root, records, dateOf = (rel) => hubOrTraceDate(root, rel)) {
   const failures = [];
   for (const hub of staleHubs(root, records, dateOf)) {
     failures.push(
