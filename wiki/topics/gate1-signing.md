@@ -74,21 +74,20 @@ requires the same local key-holder ceremony.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [Status](../status.md)
 
-The signing key was rotated from a plain file-based key to a Secretive-backed
-one (macOS Secure Enclave) during Path B. The owner confirmed the rotation
-was theirs; the allowed-signers file now carries a key-class comment
-recording that attestation directly on the line it describes, since the
-signature itself cannot prove key class or who performed a rotation.
-[Rotation authorization](../reasoning/2026-09-02-gate1-key-rotation-authorized.md)
+Commit `5694fd7b` rotated the signing key from a plain file-based key to a
+Secretive-backed one (macOS Secure Enclave), and the owner confirmed that
+rotation was theirs. When it came to actually re-signing, though, the owner
+chose to keep the original file-based key rather than complete the switch —
+the allowed-signers file carries that original key, not the Secretive one.
+[Rotation authorization](../reasoning/2026-09-02-gate1-key-rotation-authorized.md) ·
+[Key retained, not rotated](../reasoning/2026-09-02-gate1-key-rotation-not-adopted.md)
 
 **Update (2026-09-02, later same day):** the stale "awaiting signature"
-wording in both `acceptance.md` and `business-spec.md` is now fixed (both
-headers, plus `acceptance.md`'s §7 lead-in) — owner-authorized, since editing
-either file invalidates the existing signature. The oracle is therefore
-correctly unsigned right now: `node scripts/check-advanced-spec.js` reports
-"oracle signature does not verify" until the key holder re-signs, which is
-expected and is the very next step, not a regression. Two unfreeze requests
-also await the human authorization block:
+wording in both `acceptance.md` and `business-spec.md` is fixed (both
+headers, plus `acceptance.md`'s §7 lead-in), and the oracle has been
+re-signed under the original key — `node scripts/check-advanced-spec.js`
+verifies clean again. Two unfreeze requests still await the human
+authorization block:
 `2026-09-01-path-b-approval-receipts.md` and
 `2026-09-02-check-advanced-spec-83-cases.md`.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) ·
