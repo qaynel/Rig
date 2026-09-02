@@ -127,12 +127,19 @@ code**, only `sha256sum`/`ssh-keygen`/`awk` — from the *base branch* under
 forgery attempts were run at it: the control passes and all five real attacks are
 blocked, including the whole-file replacement that defeats the single-principal
 fix and a fully self-consistent re-arm that the repo's own verifier accepts.
-**Not armed until the owner creates the `GATE1_FINGERPRINT` secret and makes
-`gate1-pin` a required status check on `prod`** — until then it fails loudly but
-blocks nothing. It also protects nothing until merged to `prod`, since
-`pull_request_target` reads the base branch's copy. Local verification remains
-forgeable; the anchor exists at the merge boundary only.
+**Armed on production (2026-09-02):** the `GATE1_FINGERPRINT` repository secret
+now holds the current owner-key fingerprint, `gate1-pin` is a strict required
+GitHub Actions check, and production requires a pull request with administrator
+enforcement and no direct, force-push, or deletion bypass. The trusted workflow
+and checker were first bootstrapped to production, then a disposable
+`pull_request_target` probe passed with the candidate's own checker altered;
+the trusted base-branch checker and external pin are live at the merge boundary.
+Local verification remains forgeable by a repository writer, by design: the CI
+anchor, not the local result, is the enforcement authority. A
+repository-administrator credential can still alter the secret or rule and is
+outside the git-writer threat model.
 [implementation and attack results](../reasoning/2026-09-02-gate1-ci-pin-anchor-implemented.md)
+· [armed and verified](../reasoning/2026-09-02-gate1-ci-pin-anchor-armed.md)
 
 **Finding that forced it (2026-09-02, turn 5):** the pin is a deterrent,
 not a barrier, and the single-principal fix does not change that. An agent that

@@ -27,6 +27,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | current | [2026-09-02-gate1-in-repo-anchor-is-not-a-barrier](../reasoning/2026-09-02-gate1-in-repo-anchor-is-not-a-barrier.md) | gate1-signing | — | trap, security, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-human-presence-what-is-checkable](../reasoning/2026-09-02-gate1-human-presence-what-is-checkable.md) | gate1-signing | — | trap, security, interdependency, rejected |
 | 2026-09-02 | current | [2026-09-02-gate1-ci-pin-anchor-implemented](../reasoning/2026-09-02-gate1-ci-pin-anchor-implemented.md) | gate1-signing | — | interdependency, security, trap |
+| 2026-09-02 | current | [2026-09-02-gate1-ci-pin-anchor-armed](../reasoning/2026-09-02-gate1-ci-pin-anchor-armed.md) | gate1-signing | — | security, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-remove-list-pushback](../reasoning/2026-09-02-gate1-allowed-signers-remove-list-pushback.md) | gate1-signing | — | rejected, trap, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-comment-preservation-grill](../reasoning/2026-09-02-gate1-allowed-signers-comment-preservation-grill.md) | gate1-signing | — | trap |
 | 2026-09-02 | current | [2026-09-02-catalogue-tree-digest-reproducibility](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md) | onboarding-flow, testing-strategy | — | trap, verification |
