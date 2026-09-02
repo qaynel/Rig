@@ -81,16 +81,18 @@ recording that attestation directly on the line it describes, since the
 signature itself cannot prove key class or who performed a rotation.
 [Rotation authorization](../reasoning/2026-09-02-gate1-key-rotation-authorized.md)
 
-`node scripts/check-advanced-spec.js` verifies clean against the signed
-83-case oracle (2026-09-02 closeout gate run) — the cryptographic signature
-already covers the amended content. What remains is textual: `acceptance.md`'s
-H1 and §7 still read as unsigned ("AWAITING ORACLE SIGNATURE" /
-"submitted for owner approval"), and fixing that wording requires editing a
-file inside the signed manifest, which only the key holder can do as part of
-a re-sign. Two unfreeze requests also await the human authorization block:
+**Update (2026-09-02, later same day):** the stale "awaiting signature"
+wording in both `acceptance.md` and `business-spec.md` is now fixed (both
+headers, plus `acceptance.md`'s §7 lead-in) — owner-authorized, since editing
+either file invalidates the existing signature. The oracle is therefore
+correctly unsigned right now: `node scripts/check-advanced-spec.js` reports
+"oracle signature does not verify" until the key holder re-signs, which is
+expected and is the very next step, not a regression. Two unfreeze requests
+also await the human authorization block:
 `2026-09-01-path-b-approval-receipts.md` and
 `2026-09-02-check-advanced-spec-83-cases.md`.
-[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) ·
+[wording-fix trace](../reasoning/2026-09-02-gate1-wording-fix-and-signing-instructions.md)
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->

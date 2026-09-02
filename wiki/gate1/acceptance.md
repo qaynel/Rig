@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED 2026-08-21; AWAITING ORACLE SIGNATURE)
+# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED 2026-08-21; ORACLE SIGNED)
 
 > **Revision note (2026-07-25).** This file was re-grilled with
 > [`spec/business-spec.md`](spec/business-spec.md). Together they are the complete
@@ -287,7 +287,7 @@
 
 ## 7. Acceptance tests (the Gate-1 target)
 
-These are observable cases submitted for owner approval. Their deterministic executable form
+These are observable cases approved by the owner. Their deterministic executable form
 is part of the same signed oracle and may be drafted before implementation, but
 not changed by the implementation agent afterwards. Each must fail before its
 behavior exists and pass only when the product intent is met.

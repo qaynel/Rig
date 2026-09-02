@@ -1,4 +1,4 @@
-# Tier 2 Advanced — Gate 1 (RE-GRILLED 2026-08-21; AWAITING ORACLE SIGNATURE)
+# Tier 2 Advanced — Gate 1 (RE-GRILLED 2026-08-21; ORACLE SIGNED)
 
 **Owner-approved business intent** for the Advanced à-la-carte delivery model.
 This file, [`acceptance.md`](acceptance.md), and the deterministic testing
