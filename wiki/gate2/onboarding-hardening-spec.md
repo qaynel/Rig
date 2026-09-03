@@ -273,13 +273,25 @@ function installedSkillScopes(target, installedHosts) {
 }
 ```
 
-`nativeScope` uses the existing installed wrapper markers for Codex and Claude;
-`instructionOnlyScope` accepts only IDs from the existing
-`INSTRUCTION_ONLY_HOSTS` registry and requires the canonical playbook marker.
-The mixed-host acceptance fixture explicitly installs Codex and Cursor, so it
-now emits both `.agents/skills` and `.rig/skills` scopes. An absent/malformed
-host list fails before proposal projection; Path B is not released, so no
-legacy marker migration is needed.
+`nativeScope` uses the existing installed wrapper markers for Codex and Claude.
+`instructionOnlyScope` requires the canonical playbook marker but, per an
+empirical implementation finding recorded in
+[the code-review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md#fixed-instructiononlyscope-lost-the-old-catch-all-fallback-for-uncommon-hosts),
+does **not** additionally gate on `INSTRUCTION_ONLY_HOSTS` membership — that
+registry set gates a separate, install-time decision (whether the *installer*
+stages the shared core-skill copies for a host), not which hosts get a
+discovery scope at projection time. `.rig/skills/onboarding/SKILL.md` (the
+playbook) is staged unconditionally (`host: "neutral"`, gated only on delivery
+mode), so any host with no native scope — including one outside the registry,
+e.g. `copilot-cli` — must still fall back to instruction-only whenever the
+playbook exists, exactly as the pre-F4 aggregate check did. Narrowing this to
+registry membership was tried and reproducibly broke an optional-skill-only,
+`copilot-cli`-only install (`"no installed skill discovery scope is
+available"`) that worked before F4; the fix is to drop that gate, not to
+re-add it. The mixed-host acceptance fixture explicitly installs Codex and
+Cursor, so it now emits both `.agents/skills` and `.rig/skills` scopes. An
+absent/malformed host list fails before proposal projection; Path B is not
+released, so no legacy marker migration is needed.
 
 **Downstream impact.** `planSkillProjections` iterates `scopes` and produces
 one projection per (skill, host, path) triple. `projection.projections` (the
@@ -293,7 +305,11 @@ union is empty.* Recreates the defect for every mixed install. (b) *Emit
 instruction-only whenever the playbook exists, without consulting installed
 hosts.* Makes a staged neutral artifact look like an installed host and gives a
 pure-native install an extra projection. (c) *Emit instruction-only when the
-playbook is absent.* Loses the existence-attested boundary.
+playbook is absent.* Loses the existence-attested boundary. (d) *Gate
+`instructionOnlyScope` on `INSTRUCTION_ONLY_HOSTS` membership, as originally
+specified above.* Reproducibly regresses any host outside that registry set
+that has no native scope but does have the playbook — see the empirical
+finding cited above.
 
 ### F5 (AT-HD-5) — one source of truth for the release version
 

@@ -1162,6 +1162,95 @@ describe('Task 4 (Issue 4) — journal-aware preflight resume', () => {
   }
 });
 
+// Code review, 2026-09-03 (wiki/reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md):
+// the resume above legitimately checks its OWN crashed transaction back in via
+// writer.interrupted(). That boolean is repo-wide, not proposal-scoped — a
+// stale, unrelated interrupted transaction left by an abandoned proposal must
+// not suppress the freshness check for a different, later proposal reusing the
+// same journal. Only journalWriter's owner-tagged interruptedOwner() may do
+// that. This guards the fix (rig/lib/onboarding.js apply()'s
+// `resumingThisProposal` check) rather than the oracle's own AT-HD-3 coverage,
+// which only exercises a clean (non-interrupted) journal.
+describe('Task 4 (Issue 4) — resume signal is scoped to the interrupted proposal', () => {
+  const h = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+  const { crashAfter } = require('./helpers/path-b-crash');
+
+  function state(target) {
+    return h.readJson(path.join(target, '.rig/state.json'));
+  }
+
+  it('AT-PB-hard resume-scope — an unrelated interrupted transaction does not suppress a later proposal\'s inventory-freshness check', async () => {
+    await h.withRepo(async (target) => {
+      const { proposed: first } = h.prepareAndPropose(target);
+      const applyFirst = () => h.handle({
+        schema_version: 1,
+        action: 'apply',
+        target,
+        expected_revision: first.revision,
+        approval: signApproval(target, first.proposal_digest),
+      });
+
+      // Leave an open, incomplete install_state record owned by the FIRST
+      // proposal's digest — a crashed run that is later abandoned rather than
+      // resumed.
+      crashAfter(target, 'pending', applyFirst, { match: 'AGENTS.md' });
+      assert.strictEqual(state(target).phase, 'proposed', 'the crashed apply must not have advanced state');
+
+      // Drift the repository after the first proposal was signed but before a
+      // second, superseding proposal is even proposed.
+      fs.writeFileSync(path.join(target, 'CLAUDE.md'), '# Injected after the first proposal was signed\n');
+
+      // Re-propose from the still-'proposed' phase, keeping the graft path and
+      // content byte-identical to the abandoned first proposal's (so the
+      // journal's leftover pending record for AGENTS.md matches what's about
+      // to be written and the separate "changed pending payload" guard stays
+      // silent) — only the summary text differs, which is enough on its own
+      // to give the second proposal its own digest (canonicalProposal folds
+      // summary_digest into the hashed body). This isolates the one check
+      // under test: the inventory-freshness re-derivation, not any
+      // journal-content-mismatch guard.
+      const second = h.handle({
+        schema_version: 1,
+        action: 'propose',
+        target,
+        expected_revision: first.revision,
+        proposal: h.proposal(target, state(target)),
+        summary_markdown: h.summary({ 'New capabilities': 'A superseding proposal for the same capability.' }),
+      });
+      assert.notStrictEqual(
+        second.proposal_digest,
+        first.proposal_digest,
+        'precondition: the second proposal must be a genuinely different proposal, not a resume of the first',
+      );
+
+      const graftTarget = path.join(target, 'AGENTS.md');
+      const beforeBytes = fs.readFileSync(graftTarget);
+
+      // The journal still carries the first proposal's open, unrelated
+      // transaction. Applying the second proposal must not mistake that for
+      // its own resume — the drift above must still be caught.
+      assert.throws(
+        () => h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: second.revision,
+          approval: signApproval(target, second.proposal_digest),
+        }),
+        /inventory changed since propose/i,
+        'an unrelated interrupted transaction must not suppress the freshness check for a different proposal',
+      );
+
+      assert.deepEqual(
+        fs.readFileSync(graftTarget),
+        beforeBytes,
+        'apply must refuse before mutating the approved graft target',
+      );
+    }, { install: true });
+  });
+});
+
 describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () => {
   const h = require('./helpers/path-b');
   const { signApproval } = require('./helpers/path-b-approval');

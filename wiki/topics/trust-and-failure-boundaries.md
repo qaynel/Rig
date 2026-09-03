@@ -400,3 +400,11 @@ canonicalization was unconditionally lenient (would let a tampered
 native-scope file declaring an unprefixed name pass); now scope-conditional
 — exact match everywhere except the instruction-only scope. See
 [code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+The owner-tagged scoping fix above shipped with no test proving the *scoped*
+half of the condition — every existing resume test only ever resumes a
+crashed transaction under its own still-current proposal. Closed pre-push
+with a test that crashes one proposal, abandons it, and applies a second,
+unrelated proposal against a drifted repo — checked-verified to fail against
+the pre-fix unscoped form and pass against the fix. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).

@@ -133,7 +133,7 @@ state changes, rather than adding a second live-state mechanism.
   [implementation trace](../reasoning/2026-08-25-rig124-implementation.md),
   token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
 - Single primer page (routine Step 5): [2026-09-02 primer trace](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)
-- Closed-loop workflow + realignment skill + adaptive harness (highest-priority deferred): [2026-09-02 trace](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md)
+- Closed-loop workflow + realignment skill + adaptive harness (highest-priority deferred): [2026-09-02 design trace](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md), [2026-09-03 conversation record + resume-from-cold entrypoint](../reasoning/2026-09-03-closed-loop-conversation-record.md)
 
 ## What's still open
 

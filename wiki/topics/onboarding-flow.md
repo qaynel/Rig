@@ -542,3 +542,16 @@ canonicalization was too permissive for native scopes (now
 scope-conditional); and a legitimate empty `hosts: []` install was
 misreported as malformed. See
 [code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+### Two deferred review gaps closed pre-push (2026-09-03)
+
+The review above shipped the `transactionOwner`-scoped resume-signal fix with
+no regression test, and the `instructionOnlyScope` registry-gate deviation
+with the spec left describing the old (registry-gated) design. Both closed:
+`tests/path-b-hardening.test.js` gained `AT-PB-hard resume-scope`, which
+crashes a first proposal mid-apply, drifts the repo, applies an unrelated
+second proposal, and asserts the freshness check still fires — verified to
+fail against the pre-fix unscoped `writer.interrupted()` and pass against the
+fix. `wiki/gate2/onboarding-hardening-spec.md`'s F4 section now documents the
+ungated fallback as the current design, not the registry-gated original. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).

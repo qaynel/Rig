@@ -7,6 +7,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-prevention-oracle](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
+| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-review-gaps-closed](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f4-scopes](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f2-vs-issueN](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f1-f3-resume](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
@@ -15,6 +16,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-03 | current → 2026-09-03-onboarding-hardening-phase0-corrections | [2026-09-03-onboarding-hardening-phase0-complete](../reasoning/2026-09-03-onboarding-hardening-phase0-complete.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-oracle-review](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md) | testing-strategy, gate1-signing, trust-and-failure-boundaries, onboarding-flow | — | trap |
 | 2026-09-03 | current | [2026-09-03-code-review-and-trace-fixes](../reasoning/2026-09-03-code-review-and-trace-fixes.md) | gate1-signing, testing-strategy, onboarding-flow, trust-and-failure-boundaries | — | review, verification, qa-prod, code-review |
+| 2026-09-03 | current | [2026-09-03-closed-loop-conversation-record](../reasoning/2026-09-03-closed-loop-conversation-record.md) | agent-working-conventions | — | interdependency, deferred |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step6-lints](../reasoning/2026-09-02-wiki-maintenance-step6-lints.md) | agent-working-conventions, testing-strategy | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md) | agent-working-conventions | — | interdependency |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step4-archive](../reasoning/2026-09-02-wiki-maintenance-step4-archive.md) | agent-working-conventions | — | — |

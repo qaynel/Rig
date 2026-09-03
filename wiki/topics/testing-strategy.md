@@ -297,3 +297,16 @@ host-registry gate) was verified empirically — reproduced the failure with
 a hand-built apply() call, confirmed the fix resolves it — rather than
 trusted from code reading alone. See
 [code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+### The unscoped-resume fix got its missing regression test (2026-09-03)
+
+`tests/path-b-hardening.test.js` gained `AT-PB-hard resume-scope`, covering
+the one review-found defect that had shipped with no test. A first draft
+used a differently-worded graft body on the second proposal to force a
+distinct digest, which accidentally tripped a *different* guard
+(`preflightGrafts`'s "changed pending payload write" mismatch) and passed
+even against the broken pre-fix code — a false-positive regression test.
+Fixed by keeping the graft path/content identical across both proposals and
+driving the digest difference through the summary text instead, isolating
+the inventory-freshness check under test. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
