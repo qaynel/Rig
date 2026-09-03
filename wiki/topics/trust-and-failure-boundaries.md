@@ -352,3 +352,14 @@ fix (`AT-HD-4`) along with the rest of Phase 0. A
 the remaining CI-blocking doc drift. Implementation of `AT-HD-4` and the other
 trust-boundary findings (tamper detection, inventory-drift fail-closed
 behavior, approval byte-binding) is now underway against the signed oracle.
+
+### Predictable-temp-path refusal does not distinguish attacker from operator (2026-09-03)
+
+F2's `atomicWrite` refuses *any* pre-existing byte at its predictable `.tmp`
+path with the same `EEXIST` error — an attacker-planted symlink and Rig's own
+stale temp from a prior crash look identical to the guard, by design (the
+spec's rejected-approach (a) explicitly rules out unlinking and retrying
+automatically, since that reopens the race). A legitimate crash recovery
+therefore now costs one operator `rm` where it previously resumed silently.
+See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).

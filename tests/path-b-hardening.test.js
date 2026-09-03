@@ -1341,17 +1341,20 @@ describe('Issue N (interrupt window) — crash after writer.finish() but before 
       const { proposed } = h.prepareAndPropose(target);
 
       // Simulate a crash AFTER writer.finish() (journal complete: true) but BEFORE
-      // writeState(). atomicWrite writes to <file>.tmp then renames, so we intercept
-      // the state.json.tmp write specifically to leave state at phase:"proposed" while
-      // all payload bytes and the closed journal are already on disk.
-      const realWriteSync = fs.writeFileSync;
+      // writeState() commits. atomicWrite opens <file>.tmp exclusively, writes the
+      // new bytes, then renameSync's it onto the target — the rename is the
+      // commit point, so we intercept the rename onto state.json specifically to
+      // leave state at phase:"proposed" while all payload bytes and the closed
+      // journal are already on disk (the .tmp file is left behind, matching a
+      // real crash between the write and the rename).
+      const realRenameSync = fs.renameSync;
       let crashed = false;
-      fs.writeFileSync = (file, data, ...rest) => {
-        realWriteSync(file, data, ...rest);
-        if (!crashed && typeof file === 'string' && path.basename(file) === 'state.json.tmp') {
+      fs.renameSync = (oldPath, newPath) => {
+        if (!crashed && typeof newPath === 'string' && path.basename(newPath) === 'state.json') {
           crashed = true;
           throw new Error('simulated interrupt-window crash');
         }
+        return realRenameSync(oldPath, newPath);
       };
 
       try {
@@ -1365,7 +1368,7 @@ describe('Issue N (interrupt window) — crash after writer.finish() but before 
       } catch (e) {
         if (!e.message.includes('simulated interrupt-window crash')) throw e;
       } finally {
-        fs.writeFileSync = realWriteSync;
+        fs.renameSync = realRenameSync;
       }
 
       assert.ok(crashed, 'test precondition: crash must have fired');
@@ -1373,9 +1376,30 @@ describe('Issue N (interrupt window) — crash after writer.finish() but before 
       assert.equal(stateAfterCrash.phase, 'proposed',
         'an interrupted apply must not have advanced state');
 
-      // Re-apply with the same approval receipt. Before the fix this throws with
-      // "stale preimage" because the closed journal prevents journalResumeDigest
-      // from recognising Rig's own previous writes.
+      // The crash left state.json.tmp fully written but not yet renamed onto
+      // state.json. F2 (AT-HD-2) makes atomicWrite's temp open exclusive
+      // (O_EXCL), so an immediate re-apply must refuse rather than silently
+      // reuse or overwrite the stale temp — see the spec's F2 risk note: "If
+      // the operator hits a legitimate stale .tmp from a prior crash, the
+      // error must give them the exact rm command." Confirm that refusal,
+      // then simulate the operator's remediation before asserting recovery.
+      assert.throws(
+        () => h.handle({
+          schema_version: 1,
+          action: 'apply',
+          target,
+          expected_revision: proposed.revision,
+          approval: signApproval(target, proposed.proposal_digest),
+        }),
+        /already exists.*EEXIST.*remove|remove.*state\.json\.tmp/is,
+        'immediate re-apply must refuse via the F2 stale-temp guard, not silently resume',
+      );
+      fs.unlinkSync(path.join(target, '.rig', 'state.json.tmp'));
+
+      // Re-apply with the same approval receipt now that the operator has
+      // cleared the stale temp. Before the interrupt-window fix this threw
+      // with "stale preimage" because the closed journal prevented
+      // journalResumeDigest from recognising Rig's own previous writes.
       let reapplyError = null;
       let applied = null;
       try {
@@ -1393,7 +1417,7 @@ describe('Issue N (interrupt window) — crash after writer.finish() but before 
       assert.equal(
         reapplyError,
         null,
-        `re-apply after interrupt-window crash must not throw; got: ${reapplyError?.message}`,
+        `re-apply after clearing the stale temp must not throw; got: ${reapplyError?.message}`,
       );
       assert.equal(applied?.phase, 'applied', 're-apply must advance to applied');
 

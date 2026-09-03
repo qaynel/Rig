@@ -251,3 +251,15 @@ prevention strategy 5 — one source of truth per constant, derived from
 `wiki/reasoning/README.md` and `.claude/skills/wiki-maintenance/SKILL.md`
 asserting the body-immutable/frontmatter-mutable split (I-C-3, prevention
 strategy 9).
+
+### Fault-injection point must track the implementation, not just the symptom (2026-09-03)
+
+`tests/path-b-hardening.test.js`'s Issue N crash simulation patched
+`fs.writeFileSync` to fire mid-write; once F2 rewrote `atomicWrite` to use
+`openSync`/`writeSync`/`closeSync`, that patch point stopped intercepting
+anything and the test's real assertion (state survives an interrupted apply
+without permanent wedging) went unchecked instead of failing loudly. The fix
+moved the injection to `fs.renameSync` — `atomicWrite`'s actual commit
+point post-F2 — and added an explicit assertion that the immediate re-apply
+throws the F2 guard before the operator-remediation step. See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).

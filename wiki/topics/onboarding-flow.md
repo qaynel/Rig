@@ -496,3 +496,13 @@ the remaining CI-blocking doc drift (stale AT-HD trace titles in
 onboarding-hardening findings (AT-HD-1..12, all `rig/lib/*` and MCP
 entrypoints) is now underway; the acceptance oracle stays red by design until
 each finding lands.
+
+### F2's O_EXCL guard narrows Issue N's crash-resume promise (2026-09-03)
+
+Implementing F2 (`AT-HD-2`, exclusive-create `atomicWrite`) surfaced a real
+interaction with the earlier Issue N interrupt-window feature: a crash that
+leaves a stale, fully-written `state.json.tmp` on disk now blocks the next
+`apply` with an actionable `EEXIST` error instead of resuming silently — the
+spec's own F2 risk note anticipated exactly this, requiring one operator `rm`
+before retry. See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).

@@ -36,7 +36,20 @@ function atomicWrite(target, rel, contents) {
   const file = containedPath(target, rel);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.tmp`;
-  fs.writeFileSync(temporary, contents);
+  let fd;
+  try {
+    fd = fs.openSync(temporary, 'wx', 0o600);
+  } catch (error) {
+    if (error.code === 'EEXIST') {
+      fail(`onboarding temp file already exists (EEXIST); remove ${temporary} to recover`);
+    }
+    throw error;
+  }
+  try {
+    fs.writeSync(fd, contents);
+  } finally {
+    fs.closeSync(fd);
+  }
   fs.renameSync(temporary, file);
 }
 
