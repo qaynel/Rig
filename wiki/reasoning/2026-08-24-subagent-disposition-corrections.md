@@ -3,6 +3,7 @@ date: 2026-08-24
 source: review
 topics: host-and-ci-coverage
 decisions:
+status: historical
 ---
 
 # RIG-106 — corrections to the subagent lifecycle disposition

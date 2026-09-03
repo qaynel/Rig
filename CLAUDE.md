@@ -10,14 +10,13 @@ Tier 1 supports the repository's static agent-host entrypoints through
 
 ## Working from the wiki
 
-`wiki/Home.md` is this project's first source of truth. Every agent starts a
-task there: `status.md` for what is true now, the topic hubs for why each part
-is shaped the way it is, the indexes for decisions, acceptance cases, rejected
-approaches, and traps. Read the wiki before grepping the code. The answers to
-"what is this, why is it this way, what was already tried and rejected" are
-written down; searching for them again burns tokens and loses the reasoning the
-grep cannot see. Do this before asking the user for context, making
-suggestions, or sketching a solution.
+`wiki/agent-primer.md` is this project's first source of truth for an agent.
+Read it before touching the code. It is one short page: it points at
+`Home.md` for the map, `status.md` for what is true now, and the specific
+topic hubs and indexes a routing decision needs, and it names the rule that
+the wiki (not grep) holds the reasoning behind every part of this project.
+Follow the links it holds only as far as the task requires. Do this before
+asking the user for context, making suggestions, or sketching a solution.
 
 Keep the wiki in sync with the branch. Any change that moves what is true — a
 decision, a spec, a status, a rejected approach — updates the wiki in the same

@@ -37,3 +37,11 @@ benchmarks/agentic/runs/
 
 # PR/branch review harness scratch dir (worktree, diff, meta) — net-zero by design
 .pr-review/
+
+# superpowers agent scratch (per-task SDD reports, run state) — authoring-time only
+.superpowers/
+
+# agent workspace scratch (signing inputs, context notes) — machine-local only
+# approve-gate1.js writes rig-oracle-freeze-v2.txt here before signing; it is
+# a convenience echo, not a trust input (check-advanced-spec.js recomputes it).
+.context/

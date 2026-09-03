@@ -3,6 +3,7 @@ date: 2026-08-28
 source: agent
 topics: install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage
 decisions: D11
+status: historical
 ---
 
 Independent re-review of the CI managed-line fix found remaining grants:

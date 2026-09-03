@@ -16,6 +16,16 @@ description: >
   summaries, recipes).
 argument-hint: "[lite|full|ultra]"
 license: MIT
+family: implementation-and-orchestration
+tool: host-agent
+capability: implementation-and-orchestration.minimal-change
+guarantees:
+  - Chooses the smallest change that actually satisfies the requirement.
+  - Prefers the standard library over a new dependency.
+overlap_tags:
+  - minimal-change
+  - refactoring
+  - yagni
 ---
 
 # Rig

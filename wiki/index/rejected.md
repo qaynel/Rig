@@ -21,6 +21,10 @@ argument. The reason is the useful part, so every entry carries one.
 | An unsigned digest pinned in Gate 2 | Forces a visible multi-file edit, so it is an audit trail and a deterrent. It is not a barrier, and this product does not describe deterrents as protection. |
 | Checking the signing key's *class* from the artifact | No signature format available here carries proof an authenticator was involved. Specifying a check that cannot be implemented buys nothing and costs the reader their trust in the rest of the section (D19). |
 | Treating a missing signature as unprotected-but-passing | Made D10 opt-out: any context wanting to edit Gate 1 could delete the signature first. Fixed by D17 rather than carried into freeze. |
+| Removing the allowed-signers pin — verify any signature, trusting that only humans sign | `ssh-keygen -Y verify` needs a named key; the structural-only check passes for any self-consistent blob. A repo-writing agent can generate its own key and self-sign the oracle message, so an unpinned gate is forgeable by the agent it constrains. Raised 2026-09-02; see [turn-2 trace](../reasoning/2026-09-02-gate1-allowed-signers-remove-list-pushback.md). |
+| A passphrase-protected key proves a human signed | Tested, not argued: signing the same message before and after `ssh-keygen -p -N` yields **byte-identical** signatures (ed25519 is deterministic). A passphrase protects the key at rest and leaves zero trace in the artifact; `ssh-agent` then stops asking at all. Indistinguishable from a key the agent made with `-N ''`. [trace](../reasoning/2026-09-02-gate1-human-presence-what-is-checkable.md) |
+| Requiring an `sk-` (FIDO) key *type* without keeping the key pinned | The sk-ed25519 signature is ed25519 over `SHA256(application) \|\| flags \|\| counter \|\| SHA256(message)`; an agent with no hardware token can implement that in software and set the user-presence flag itself. Only the pin — which the agent cannot produce a private key for — makes the type check load-bearing. Refines the D19 row above: `verify-required` *does* enforce presence for sk keys, but pinned, never standalone. |
+| Enforcing the signer by name (`principal === 'gate1-owner'`) | Frozen `AT-GATE-2` signs as a principal named `owner`, so a name rule breaks a frozen test and buys nothing: requiring *exactly one* principal already closes the append-a-second-key forgery regardless of naming. |
 
 ## Policy, consent, and recovery
 
@@ -80,6 +84,11 @@ argument. The reason is the useful part, so every entry carries one.
 
 | Rejected | Why |
 |---|---|
+| Trusting a digest stored beside the proposal bytes, or updating both after tampering | The witness shares the untrusted write boundary; apply must derive from current canonical bytes before use. |
+| Unlinking a predictable temporary file and retrying its open | Recreates a race between unlink and open; exclusive creation must bind path absence to the file descriptor. |
+| Catching a verification error and returning an empty, zero, false, or skipped result | Converts a broken verifier into clean evidence; the error must propagate or become a hard failure. |
+| Adding an instruction-only scope only when the union of native scopes is empty | One native host suppresses a simultaneously installed fallback host; scope choice is per host. |
+| Reconstructing MCP output inside its acceptance test | Tests the reconstruction, not the shipped adapter, and cannot be made green by a correct production change. [trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) |
 | A second installer, target daemon, Rig model key, or mutable memory database | Duplicates the shipped spine, or violates B1. |
 | YAML, a template engine, or a new validation dependency | Unnecessary for the strict JSON and cumulative-fragment contract. |
 | Safety toggles in `rig.json`, or split safety/network authorities | Couples catalogue selection to authorization, or creates policy-precedence ambiguity. |
@@ -88,3 +97,4 @@ argument. The reason is the useful part, so every entry carries one.
 | A build fingerprint embedded in the install stub | The stub and the source come from the same repository — anyone able to re-point a tag can edit a constant beside it. |
 | `curl \| sh` installation | Rig's own default policy denies `remote_content_execution`. An installer that breaks the product's rule in its first five seconds cannot be defended. |
 | Fixed Basic / mid / Advanced install packages | Deprecated by GA-9g. The catalogue is the product; the only per-repo preset is the dynamic scan recommendation. |
+| **Deferred, not rejected** — a single-source `.rig/` corpus that the host agent expands into `.claude/`, `.agents/`, and the other host trees from prose deployment docs at onboarding | Right direction (one source removes the drift class), but prose/LLM-driven expansion makes the emitted bytes non-deterministic and breaks the `skills_digest`/`tree_digest` freshness and proposal-binding model. The keep-both path is a deterministic non-LLM expander with a regenerate-and-diff CI check; the open fork is whether native trees stay committed or are regenerated on demand. Held until someone picks it up; the relative-path parity check in `check-rule-copies.js` covers the gap meanwhile. [trace](../reasoning/2026-09-02-skill-tree-parity-check.md) |

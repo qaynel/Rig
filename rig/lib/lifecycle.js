@@ -26,7 +26,7 @@ const INSTALL_HOOK_PATHS = new Set([
 ]);
 
 function isManagedAddition(record) {
-  return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed');
+  return Boolean(record.managed_line || record.managed_block || record.ownership === 'append_managed' || record.ownership === 'graft_managed');
 }
 
 function isGitResolvedPath(rel) {
@@ -311,6 +311,15 @@ function uninstall(target, opts = {}) {
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
+    // An *applied* journalled delete already restored absence for this path.
+    // There is nothing left to reclaim, and routing it through the attribution
+    // rules below would file an already-clean path as best-effort — wedging
+    // every later uninstall in best_effort and never dropping the journal.
+    // A pending delete carries the same null desired_digest but its unlink may
+    // never have run, so it must still go through the reclaim path below or
+    // uninstall would report a file still on disk as removed.
+    if (record.operation === 'delete_owned' && record.desired_digest === null
+      && record.state === 'applied') continue;
     const abs = resolvedRecordPaths.get(record);
     const rel = classifiedRel(target, record, abs);
     if (preservePrefixes.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) {
@@ -319,6 +328,34 @@ function uninstall(target, opts = {}) {
     }
     if (!isRigInstallPath(rel, record)) {
       bestEffort.push(record.path);
+      continue;
+    }
+    if (record.ownership === 'graft_managed') {
+      const capabilities = Array.isArray(record.managed_grafts)
+        ? record.managed_grafts.map(({ capability }) => capability).filter(Boolean).sort()
+        : [];
+      if (!capabilities.length) {
+        bestEffort.push(record.path);
+        continue;
+      }
+      const { journalWriter, removeGraftSection } = require('./payload');
+      const writer = journalWriter(target);
+      try {
+        for (const capability of capabilities) {
+          if (!fs.existsSync(abs)) break;
+          const result = removeGraftSection(target, {
+            path: record.path,
+            capability,
+            expected_file_digest: currentDigest(abs),
+          }, writer);
+          if (!result.changed) throw new Error(`missing managed graft ${capability}`);
+        }
+        writer.finish();
+        removed.push(record.path);
+      } catch {
+        writer.finish();
+        bestEffort.push(record.path);
+      }
       continue;
     }
     if (record.path === '.git/hooks/pre-commit') {

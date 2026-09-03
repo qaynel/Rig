@@ -275,3 +275,23 @@ While an install's manifest header says `complete: false`, `policy status`, the
 install line, and every run report must state the install is incomplete and
 report no control as enabled, installed, or protecting anything. An incomplete
 baseline that reports itself active is the exact failure D14 exists to prevent.
+
+## `fs.appendFileSync` is implemented on top of the exported `fs.writeFileSync`
+
+A test that patches both to observe journal appends and payload disk writes
+separately sees every journal append twice — once as an append and once as a
+write — because Node routes `appendFileSync` through the module's exported
+`writeFileSync`. `tests/helpers/path-b-crash.js` guards with a re-entrancy flag.
+Cost: a crash-injection case that looked green while crashing at the wrong
+instant, so it proved nothing. See
+[[2026-09-01-path-b-hardening-issue4-resume]].
+
+## "The bytes match what the journal wanted" is true long after the install
+
+Accepting live bytes equal to a path's latest `desired_digest` looks like a
+clean way to resume an interrupted write. It is also true a week after a clean
+install, which turns the preimage check into a formality and lets a proposal
+built on a stale view of a file be applied over the difference. The resume must
+be scoped to an *open* journal transaction, which is the only evidence that
+distinguishes "this run died halfway" from "an earlier run finished". See
+[[2026-09-01-path-b-hardening-issue4-resume]].

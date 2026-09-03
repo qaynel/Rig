@@ -3,6 +3,7 @@ date: 2026-08-28
 source: agent
 topics: install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage
 decisions: D11
+status: historical
 ---
 
 A further review showed classification still used the lexical contained path, so

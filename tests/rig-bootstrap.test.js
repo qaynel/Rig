@@ -19,6 +19,7 @@ const sharedSkills = [
   ['tdd', 'rig/tier-1/skills/tdd/SKILL.md'],
   ['debugging', 'rig/tier-1/skills/debugging/SKILL.md'],
   ['code-review', 'rig/tier-1/skills/code-review/SKILL.md'],
+  ['onboarding', 'rig/tier-1/skills/onboarding/SKILL.md'],
 ];
 
 function read(target, relativePath) {
@@ -232,7 +233,12 @@ test('Tier 1 --with-runtime restores plumbing and per-skill code', () => {
     ]);
 
     assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')));
-    assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'rig-browse', 'src')));
+    // Path B: --with-runtime stages the whole optional shelf (code included)
+    // once, outside every host discovery path, for a later approved projection.
+    assert.ok(fs.existsSync(path.join(
+      target, '.rig', 'runtime', 'rig', 'catalog', 'skills',
+      'browser-and-research', 'browser-automation', 'browse', 'src',
+    )));
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }

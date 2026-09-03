@@ -3,6 +3,7 @@ date: 2026-08-20
 source: agent
 topics: the-catalogue, delivery-plan, authored-service-gate
 decisions:
+status: historical
 ---
 
 Reconciliation of questions 1–3 in the lint-format production grilling audit

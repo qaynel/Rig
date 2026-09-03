@@ -87,16 +87,19 @@ function verifySignature(root, message) {
   const principals = signerPrincipals(allowedText);
   assert.ok(principals.length > 0, 'gate1.allowed-signers has no principal');
 
-  for (const principal of principals) {
-    const result = spawnSync('ssh-keygen', [
-      '-Y', 'verify', '-f', allowed, '-I', principal,
-      '-n', 'rig-gate1', '-s', signature,
-    ], { input: message, encoding: 'utf8' });
-    if (result.status === 0) {
-      const fingerprint = signerFingerprint(allowedText, principal);
-      process.stdout.write(`Gate 1 protected: principal=${principal} fingerprint=${fingerprint}\n`);
-      return { armed: true, principal, fingerprint };
-    }
+  // Enforce exactly one principal
+  assert.equal(principals.length, 1, `oracle requires exactly one principal, found ${principals.length}`);
+  const principal = principals[0];
+
+  // Verify against the single principal
+  const result = spawnSync('ssh-keygen', [
+    '-Y', 'verify', '-f', allowed, '-I', principal,
+    '-n', 'rig-gate1', '-s', signature,
+  ], { input: message, encoding: 'utf8' });
+  if (result.status === 0) {
+    const fingerprint = signerFingerprint(allowedText, principal);
+    process.stdout.write(`Gate 1 protected: principal=${principal} fingerprint=${fingerprint}\n`);
+    return { armed: true, principal, fingerprint };
   }
   throw new Error('oracle signature does not verify');
 }
@@ -130,7 +133,7 @@ function verifyCoverage(root, entries) {
   const titled = testTitleIds(root, entries.map(({ file }) => file));
   const targets = traceTargets(technicalSpec);
   const manifested = new Set(entries.map(({ file }) => file));
-  assert.equal(accepted.length, 73, 'Gate 1 must contain exactly 73 active acceptance IDs');
+  assert.equal(accepted.length, 95, 'Gate 1 must contain exactly 95 active acceptance IDs');
   assert.deepEqual(traced, accepted, 'technical-spec trace IDs must exactly match Gate 1');
   assert.deepEqual(titled, accepted, 'manifested test titles must exactly match Gate 1');
   assert.deepEqual(targets.map(({ id }) => id).sort(), accepted, 'every trace row must name one test target');

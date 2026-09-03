@@ -3,6 +3,7 @@ date: 2026-08-21
 source: intent owner
 topics: the-catalogue, authored-service-gate, delivery-plan, onboarding-flow, distribution-and-release
 decisions: D24
+status: historical
 ---
 
 # D24 — Build the MVP at agent discretion, generic bar, all 115 leaves

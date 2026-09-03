@@ -9,6 +9,17 @@ inspect -> host review -> recommend -> user selection (rig.json)
 
 Remediation is separate and requires an explicit proposal digest approval.
 
+## Public install
+
+Use `install rig [--host <host>]... [--target <repository>] [--version <tag>]`.
+It installs the active runtime and catalogue, then tells the user to invoke
+`rig-onboarding` in a host agent. Onboarding is explicit: installation does
+not inspect or adapt the repository automatically, and no change is made until
+its summary is approved.
+
+`install.sh` and `rig/bootstrap.sh` remain subordinate compatibility and
+diagnostic paths. The public launcher always enables the active runtime.
+
 ## CLI
 
 From a source checkout use `node rig/materialize.js`; from a tagged release

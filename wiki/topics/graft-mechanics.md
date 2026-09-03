@@ -50,6 +50,28 @@ reapply updates that block idempotently, and the append-only journal records the
 managed-block identity. A caller-graph regression fails if any runtime library
 module is left with no production importer.
 
+**Path B named graft sections landed 2026-09-01.** The shared payload layer can
+now add, update, and remove a versioned capability section in a Markdown
+instruction file while preserving byte-identical unmanaged content and its
+line-ending convention. It rejects malformed markers, stale preimages,
+symlinks, hard links, unsafe paths, and unsupported targets before mutation;
+the install journal records only the managed section(s), and lifecycle removal
+keeps edited user content as a named best-effort case. [Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
+
+**Removing the last graft restores absence, landed 2026-09-01.** When the last
+managed section leaves a file that exists only because Rig grafted it, the
+journal writer unlinks the file through a two-phase `delete_owned` record rather
+than leaving a zero-byte husk; a file that predates Rig is kept and reported as
+the empty file it is, never as absence. Ownership is read from the record that
+*first* wrote the path, not the newest one — every write after the first carries
+a preimage, so the latest record cannot tell "Rig created this" from "Rig
+replaced it", and reading it there made the delete refuse in exactly the
+stacked-graft shape uninstall produces. An applied delete ends the lineage, so a
+path the repository reclaims afterwards is no longer Rig's to delete, and an
+interrupted delete is recovered by `write()` or `remove()` instead of wedging
+the path in both directions. [Delete trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete.md) ·
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
 **Open (2026-08-30): the payload's own ownership classes have no `.gitignore`
 answer.** A default install writes Rig-owned files (`.rig/`, host-specific
 `.claude/skills/rig-*` / `.agents/skills/rig-*`) into the target working tree
@@ -60,3 +82,26 @@ Rig-owned output (tool-cache model — regenerable, never reviewed, re-synced
 by rerunning bootstrap) versus commit it (vendored-config model — reviewed
 and diffed like any other checked-in convention). Recommendation and full
 evidence: [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md).
+
+**Onboarding apply now removes graft sections, not only upserts them
+(2026-09-01).** `removeGraftSection` had exactly one production caller —
+uninstall. A graft that left the approved proposal therefore survived every
+subsequent apply. Apply now calls it for each applied graft the new proposal no
+longer names, after its own upsert loop, so the removal is cut from the digest
+the upsert just produced rather than from a stale preimage; the shared
+`graftDigests` map keeps the chain correct when one file both gains and loses a
+section in the same transaction. Repository-owned prose around the markers is
+untouched, and the Task 5 delete only fires when the last managed section leaves
+a file Rig created.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+**Preflight now recognises a landed write with no record as a resume, not a
+conflict (2026-09-01).** A crash between the write and the journal entry that
+should say so used to leave the desired bytes live with nothing recording them,
+and every subsequent preflight read that state as a third-party edit and
+refused forever. Preflight now accepts live bytes whose digest matches what the
+journal was already writing — but only while that transaction is still open,
+so a cleanly finished install can never excuse a proposal built on a stale
+view. A resumed run promotes the pending record instead of leaving it pending,
+and closes the transaction it inherited.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)

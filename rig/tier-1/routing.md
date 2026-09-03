@@ -26,12 +26,13 @@ and keep a running reasoning trace — on a long or multi-step task, write down
 what you just did, what's in flight, and what's next as you go rather than
 saving it all for a final summary.
 
-Onboarding note: in Rig's own development repo that trace is a dated file
-under `wiki/reasoning/` rolled into a status index on a short cycle of active
-work, per `CLAUDE.md`. When installing Rig into another repo, map that
-practice onto whatever progress-tracking convention the project already has,
-or drop it if the project has none — do not stand up a `wiki/` the repo never
-asked for.
+Onboarding note: in Rig's own development repo, the read-before-grep step is
+one page — `wiki/agent-primer.md` — and the trace is a dated file under
+`wiki/reasoning/` rolled into a generated status index on a short cycle of
+active work, per `CLAUDE.md` and `wiki/reasoning/README.md`. When installing
+Rig into another repo, map that practice onto whatever primer-or-equivalent
+and progress-tracking convention the project already has, or drop it if the
+project has none — do not stand up a `wiki/` the repo never asked for.
 
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`, and
@@ -48,6 +49,8 @@ numbers, and decision IDs stay out of the first-pass reply; they belong in the
 wiki and the diff, and are reproduced on request.
 
 ## Pipeline
+
+Grilling → Business Specifications → Acceptance Criteria → Tests → Technical Specifications → LOCK → Test-Driven Development → Verification
 
 For a new feature or behavioral change, use these steps in order:
 
@@ -95,6 +98,7 @@ than two viable paths.
 | `rig-execution` | Independent work is parallelized and its evidence needs coordination and verification. |
 | `rig-debugging` | Investigating a failure, flaky behavior, performance regression, or unknown root cause. |
 | `rig-code-review` | Reviewing a diff, PR, branch, or proposed change. Report only. |
+| `rig-onboarding` | Rig is installed but not yet adapted to this repository, or the adaptation must be revisited. |
 
 Do not substitute a nearby skill for the named owner. Debugging discovers why;
 TDD drives a known behavior change; review judges an existing diff.

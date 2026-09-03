@@ -3,6 +3,7 @@ date: 2026-08-29
 source: agent
 topics: policy-model, trust-and-failure-boundaries
 decisions: AD-39, GA-38
+status: historical
 ---
 
 # RIG-144 execution-policy implementation design

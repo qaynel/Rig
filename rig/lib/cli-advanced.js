@@ -12,8 +12,9 @@ const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPol
 const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
+const { handleOnboarding } = require('./onboarding');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit', 'onboarding']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -55,6 +56,17 @@ function runAdvanced(subcommand, argv) {
       throw new Error('rig: --target <dir> is required and must exist');
     }
     writeOut(out, selectFromMenu(readJson(menuPath), parseFlags(argv, '--service')));
+    return;
+  }
+
+  // Onboarding requests carry their own target, so the adapter must not
+  // require the legacy --target flag before reading the JSON request.
+  if (subcommand === 'onboarding') {
+    const inputPath = parseFlag(argv, '--input');
+    if (!inputPath || !fs.existsSync(inputPath)) throw new Error('rig: --input <request.json> is required');
+    const response = handleOnboarding(readJson(inputPath));
+    process.stdout.write(`${JSON.stringify(response)}\n`);
+    if (response.phase === 'failed') process.exitCode = 1;
     return;
   }
 

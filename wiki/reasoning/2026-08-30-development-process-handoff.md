@@ -3,7 +3,7 @@ date: 2026-08-30
 source: intent owner
 topics: gate1-signing, agent-working-conventions, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 ---

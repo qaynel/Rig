@@ -3,6 +3,7 @@ date: 2026-08-28
 source: agent
 topics: install-manifest-removal, trust-and-failure-boundaries, user-global-writes, host-and-ci-coverage
 decisions:
+status: historical
 ---
 
 The first safety-defect patch narrowed uninstall to Rig's install namespace, but

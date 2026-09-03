@@ -3,7 +3,7 @@ date: 2026-08-30
 source: agent
 topics: agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: The router now has a tested ten-step human-in-the-loop delivery SOP with a mandatory human key-signing exception.

@@ -3,6 +3,7 @@ date: 2026-08-22
 source: review
 topics: distribution-and-release, the-catalogue, install-manifest-removal, host-and-ci-coverage, testing-strategy, delivery-plan
 decisions:
+status: historical
 ---
 
 # Fresh release review — `mvp-a-la-carte` @ working tree vs `origin/qa-prod`

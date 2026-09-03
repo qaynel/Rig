@@ -3,6 +3,7 @@ date: 2026-08-25
 source: agent
 topics: review-receipts, agent-working-conventions
 decisions: RIG-124
+status: historical
 ---
 
 RIG-124 landed straight from its own draft acceptance without a further

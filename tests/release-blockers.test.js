@@ -1202,9 +1202,9 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
     });
     assert.equal(installed.status, 0, installed.stderr);
     assert.match(fs.readFileSync(downloadLog, 'utf8'), /refs\/tags\/v5\.0\.0\.tar\.gz/);
-    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v5.0.0' });
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v5.0.0', hosts: [] });
     assert.equal(fs.readdirSync(path.join(installTarget, '.rig/skills'), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md'))).length, 55);
+      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md'))).length, 56);
     assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/lib/policy.js')));
     const inspection = path.join(installTarget, 'inspection.json');
     const runtime = spawnSync(path.join(installTarget, '.rig/bin/rig'), [

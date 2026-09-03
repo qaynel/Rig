@@ -1,5 +1,7 @@
 ---
 ticket: RIG-104
+status: historical
+topics: host-and-ci-coverage
 ---
 
 # RIG-104 — unifying the legacy renderers.js MCP path with the catalogue materializer

@@ -3,6 +3,7 @@ date: 2026-08-19
 source: agent
 topics: delivery-plan, the-catalogue
 decisions:
+status: historical
 ---
 
 Handoff context for authoring the first catalogue leaf end to end, as the

@@ -3,6 +3,7 @@ date: 2026-08-20
 source: intent owner
 topics: catalogue-contract, authored-service-gate
 decisions: GA-22
+status: historical
 ---
 
 this split exactly

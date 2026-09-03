@@ -1,3 +1,11 @@
+---
+date: 2026-08-29
+source: agent
+topics: trust-and-failure-boundaries
+decisions:
+status: historical
+---
+
 # RIG-120: symlink-escape refusal fixed; checks.js containment hardened to realpath
 
 2026-08-29

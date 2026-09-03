@@ -3,6 +3,7 @@ date: 2026-08-24
 source: agent
 topics: host-and-ci-coverage
 decisions:
+status: historical
 ---
 
 # RIG-106 — per-host subagent lifecycle event research

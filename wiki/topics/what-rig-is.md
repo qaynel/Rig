@@ -40,6 +40,49 @@ what doesn't — so phantom-convention text in installed files
 (`rig/tier-1/routing.md`, RIG-151/RIG-152) is rewritten as instructions *to
 that onboarding agent*, not resolved by an installer-code transform.
 [reframe-vs-transform trace](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md)
+The same session scoped the adapt engine itself as **deterministic
+acceleration**: Rig ships deterministic tools the host agent invokes (config
+inventory, reference-by-path, selective skill install) so the mechanical-only
+detection boundary (`D24`) is untouched — Rig *code* still does not infer what
+a repo wants. The intent owner then locked Path B as **agent-led graft**: the
+onboarding host agent, given full repo context plus the full Rig capability
+catalogue (organised into families), decides what is relevant, reuses and
+extends what already exists, grafts missing Rig behaviour, and adds only genuine
+gaps. The user reviews the resulting improvement and only critical decisions,
+not a skill-by-skill wizard. Repo-specific state stays under `.rig/`.
+Inference-from-repo-shape *in installer code*, auto-trimming, and a
+deterministic stack→skill rule engine remain out of beta. Follow-up locks in
+the same session settled the last two design points: grafts into repo-owned
+files are permitted but confined to explicit begin/end Rig-managed sections so
+removal is a clean string operation, and the flat vendored skill shelf is
+reorganised into `family → tool/capability → skill` by capability (not by
+vendor origin), while the existing `family → group → service → grade` service
+catalogue is untouched.
+[Path B adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md)
+[Path B product direction](../reasoning/2026-08-31-path-b-product-direction.md)
+[Path B follow-up decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md)
+[Operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
+
+The working Path B technical design makes that identity executable without
+turning Rig into the brain: one explicit onboarding invocation gives the host
+agent a generated capability catalogue and structural repository inventory;
+the agent proposes reuse, marked grafts, and genuine additions; existing
+approval, journalling, and checks apply the exact proposal. The full skill
+library stays release-pinned but outside host discovery, while only approved
+skills are projected into host-native paths. File and byte growth remain
+warnings; duplicate projections, dangling references, malformed ownership, and
+state drift fail. The completed vertical slice verifies proposal-bound approval,
+applies only marked grafts, and reconciles the result into checked state.
+[Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
+[Vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
+
+Grilling authored the executable oracle without reopening product direction:
+ten cases cover all six foundational and four support contracts, with the
+governed service-catalogue guard intentionally green from the start. The owner
+has signed the exact 16-file, 95-case oracle, so implementation can now turn
+the remaining product failures green without moving the contract.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 A later office-hours session tested this identity against a candidate fork
 (DeepSeek Harness, "DSH") — a full agent-runtime host, the opposite category
@@ -108,12 +151,19 @@ The intent owner's full end-product expectation is now recorded as durable
 intent: Rig as a portable "ultimate toolbox" that *installs* (not onboards) into
 any repo, rides the host to graft itself onto whatever is already there, and
 serves a spectrum from no-host beginners through skill-hoarding workflow users
-to superusers — via a tiered, interactive, adaptive install. Parts of this
-target are in tension with the à-la-carte model and with D24's mechanical-only
-detection, and that tension is the honest open state, not a settled plan.
+to superusers — via a tiered, interactive, adaptive install.
 [Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+The apparent tension with the à-la-carte model and D24 is now settled at the
+product-model layer: Rig *code* still does not guess from repo shape; the
+onboarding *host agent* does the judgment from supplied context; the user
+consents by reviewing the graft summary rather than picking families. What
+remains open is implementation and proof — whether that agent-led graft
+actually produces a better result on real repositories.
+[Path B product direction](../reasoning/2026-08-31-path-b-product-direction.md)
 
 Rig's universal service-depth method is Policy → Context → Evidence: govern,
 understand, then prove the change, while using the lowest level that can reach a
 definitive answer. All 115 leaves carry Policy contracts; lint-format retains
 the deeper repository-specific Context and rerunnable Evidence proof.
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

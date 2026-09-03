@@ -1,3 +1,11 @@
+---
+date: 2026-08-28
+source: agent
+topics: trust-and-failure-boundaries
+decisions:
+status: historical
+---
+
 # runReadOnly maps memory_ceiling_unavailable to clean — investigation and fix (2026-08-28)
 
 ## Trigger

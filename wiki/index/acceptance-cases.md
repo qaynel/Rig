@@ -1,8 +1,9 @@
 # Acceptance case index
 
-The 73 owner-approved Gate-1 cases. Their deterministic executable targets join
-them in the signed oracle: each must fail before its behavior exists and pass
-only when the product intent is met.
+The 95 Gate-1 cases. Their deterministic executable targets join them in the
+oracle: each must fail before its behavior exists and pass only when the product
+intent is met. The ten Path B cases are authored and owner-approved under the
+oracle signed 2026-09-01. Their direct checks were red before implementation.
 
 **Set equality is the requirement.** The specification gate reads the ID set from
 Gate 1 as it is on disk and asserts exact equality with Gate 2's traceability
@@ -20,6 +21,17 @@ and the full suite is green on the current bytes. See [status](../status.md).
 **Amended 2026-08-26/27, D28/GA-37:** RIG-115's shell-trust suite adds five
 cases, `AT-LF-20`–`AT-LF-24`, taking the set to **73**. All five are now
 implemented and green — see [status](../status.md).
+
+**Amended 2026-08-31, Path B:** agent-led adaptive onboarding adds ten cases,
+`AT-PB-1`–`AT-PB-10`, taking the set to **83**. Their 55 direct checks are red
+before implementation (54 product failures plus one green catalogue-preservation
+guard). The oracle covering this amendment was signed 2026-09-01.
+[Path B acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+
+**Amended 2026-09-03, onboarding hardening:** eight concrete adversarial cases
+and four recurrence-prevention cases, `AT-HD-1`–`AT-HD-12`, take the set to
+**95**. Both test files are manifested and the amendment awaits owner signing.
+[Hardening prevention trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -76,6 +88,8 @@ These are the five Gate-1 correctness properties plus completeness. Each is an
 
 Aliases are permitted only where a Gate-1 property points at another case.
 Tautological assertions are not — see [testing strategy](../topics/testing-strategy.md).
+Path B's seventh business-level property is covered directly by
+`AT-PB-1`–`AT-PB-10`, not by a new alias.
 
 ## D. Bespoke service and safety behavior (7)
 
@@ -167,6 +181,49 @@ traces: [`specs/lint-format-intent.md`](../specs/lint-format-intent.md).
 
 ---
 
+## I. Path B agent-led adaptive onboarding (10, added 2026-08-31)
+
+| ID | What it requires | Contract |
+|---|---|---|
+| `AT-PB-1` | A generated, digest-bound capability catalogue indexes all 63 skills under the exact eleven-family membership while the governed 115-service catalogue remains byte-identical. | F-1 |
+| `AT-PB-2` | Versioned, machine-detectable graft sections preserve repo-owned bytes, validate their preimages, update idempotently, and remove cleanly; malformed or duplicate ownership fails. | F-2 |
+| `AT-PB-3` | The host agent receives deterministic, bounded catalogue context with exact metadata, release digests, legacy aliases, and no installer-authored relevance judgment. | F-3 |
+| `AT-PB-4` | `.rig/` state and reports follow the exact schemas, revisions, digests, and drift rules, with deterministic bytes and no hidden mutable source of truth. | F-4 |
+| `AT-PB-5` | One shared prepare/propose/apply/check domain interface lets the host agent own relevance, delta, and graft judgment; approval binds the exact proposal plus summary and no unapproved write occurs. | F-5 |
+| `AT-PB-6` | `install rig [--host <host>]` installs the full release-pinned shelf, projects only approved skills to repeatable host targets, and hands off explicitly without an auto-trigger. | F-6 |
+| `AT-PB-7` | Inventory structurally covers every known harness root and emits stable, path-based rows without interpreting what the repository needs. | S-1 |
+| `AT-PB-8` | Overlap output is deterministic and uses only exact declared tags and explicit aliases; it neither infers semantic fit nor mutates the repository. | S-2 |
+| `AT-PB-9` | Every installed adapter resolves to one canonical router and one onboarding mandate, exposed consistently through the skill and MCP paths. | S-3 |
+| `AT-PB-10` | File/byte growth emits warnings only, while duplicate writes, malformed grafts, dangling references, name mismatches, state drift, and unapproved writes remain hard failures. | S-4 |
+
+Full behavior and evidence: [`gate1/acceptance.md`](../gate1/acceptance.md) §7I
+and [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
+
+---
+
+## J. Onboarding hardening and recurrence prevention (12, added 2026-09-03)
+
+| ID | What it requires | Theme |
+|---|---|---|
+| `AT-HD-1` | Re-derive the canonical proposal-body digest before consuming approved proposal fields. | Wrong trust object |
+| `AT-HD-2` | Refuse a pre-existing state-temp symlink with exclusive creation before any outside write. | Wrong trust object |
+| `AT-HD-3` | Re-inventory and compare before apply creates its mutating writer. | Stale snapshot |
+| `AT-HD-4` | Evaluate installed hosts one by one so native and instruction-only scopes coexist. | Aggregate snapshot |
+| `AT-HD-5` | Derive release version from the package manifest and reject an independent library default. | Parallel authority |
+| `AT-HD-6` | Propagate or hard-fail a broken inventory verifier; never return an empty success. | Fail-open verification |
+| `AT-HD-7` | Drive both real MCP adapters and keep human text concise and separate from structured output. | False-green test |
+| `AT-HD-8` | Keep trace bodies immutable, frontmatter mutable, and both policy documents cross-cited. | Parallel authority |
+| `AT-HD-9` | Ratchet derived-on-read, exclusive-create, and fail-closed catch shapes. | Theme A |
+| `AT-HD-10` | Ratchet commit-time rechecks and per-host decisions. | Theme B |
+| `AT-HD-11` | Ratchet version authority, MCP parity, and cross-document policy agreement. | Theme C |
+| `AT-HD-12` | Ratchet real-seam adversarial execution and exact finding/test coverage. | Theme D |
+
+Full behavior and evidence: [`gate1/acceptance.md`](../gate1/acceptance.md) §7J,
+[`gate2/onboarding-hardening-spec.md`](../gate2/onboarding-hardening-spec.md),
+and [`gate2/onboarding-hardening-invariants.md`](../gate2/onboarding-hardening-invariants.md).
+
+---
+
 ## Deleted cases
 
 Four IDs appear in Gate 1's revision notes but define nothing. They were removed
@@ -180,10 +237,13 @@ distinction the product never implemented.
 | `AT-CLAIM-2` | The out-of-repository write disclosure, framed as a claim. | `AT-HOME-1`, as a transparency requirement rather than a claim. |
 | `AT-CLAIM-3` | Per-host claim strings in output. | Nothing — the concept was withdrawn outright. |
 
-If you grep the acceptance file for `AT-` you will find 77 distinct strings.
-Four of them are these, mentioned only in prose. Gate 2's table traces the 73
-that are actually defined — re-traced 2026-08-21, then extended 2026-08-26 by
-D28/GA-37, to exact equality, see the note above.
+If you grep the acceptance file for `AT-` you will find 100 distinct strings
+(`grep -oE 'AT-[A-Z]+-?[0-9]+' wiki/gate1/acceptance.md | sort -u | wc -l`).
+Five of them — `AT-CLAIM-2`, `AT-CLAIM-3`, `AT-HOST-3`, `AT-HOST-4`, `AT-P7` —
+are mentioned only in prose (as superseded-by references or withdrawn
+concepts) and are not accepted IDs. Gate 2's table traces the 95 that are
+actually defined and accepted — re-traced to exact equality, see the note
+above.
 
 ---
 
@@ -199,6 +259,8 @@ D28/GA-37, to exact equality, see the note above.
 | 2026-08-19 | 49 | D20 added `AT-PRESENCE-2`. |
 | 2026-08-21 | **68** | D21 added `AT-LF-1`–`AT-LF-19`, the lint-format vertical release boundary. |
 | 2026-08-26 | **73** | D28/GA-37 added `AT-LF-20`–`AT-LF-24`, RIG-115's shell-trust guarantees. |
+| 2026-08-31 | **83** | Path B added `AT-PB-1`–`AT-PB-10`, the agent-led adaptive-onboarding boundary; oracle signed 2026-09-01. |
+| 2026-09-03 | **95** | Onboarding hardening added eight concrete adversarial cases and four recurring-theme ratchets; awaiting owner signature. |
 
 Mechanism-only revisions (D10, D19, GA-13) changed how a case is satisfied
 without changing the count.

@@ -609,8 +609,11 @@ test('AT-DIST-1 stranger installs complete named-tag release', () => {
   const text = fs.readFileSync(installer, 'utf8');
   assert.doesNotMatch(text, /curl[^\n]*\|[^\n]*(?:sh|bash)/);
   assert.match(text, /latest|--version/);
+  // Shape only: scripts/check-versions.js is the manifest/tag consistency
+  // authority across every version-bearing file. Pinning a literal version
+  // here duplicates that authority and goes stale on every release.
   const packageJson = json(path.join(__dirname, '..', 'package.json'));
-  assert.equal(packageJson.version, '5.0.0');
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
   const skills = api('skills.js', 'listVendoredSkills')();
   assert.equal(skills.length, 55);
   assert.equal(new Set(skills.map((entry) => entry.name)).size, 55);

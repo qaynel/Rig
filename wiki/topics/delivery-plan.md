@@ -59,13 +59,37 @@ as a base were rejected. [Rejected approaches](../index/rejected.md)
 
 ## What is still open
 
-D24 and the one-gate contract are owner-approved, landed in both Gate 1 files,
-and signed: the 73-case (D24 + D28) deterministic testing infrastructure is
-built, manifested, and covered by the oracle signature. See "Where the eight steps
-actually stand" below for the current per-step status — as of the last check,
-steps 1–7 are done: `v5.0.0` is tagged and published. Step 8 remains
-post-beta promotion. [Status](../status.md)
-[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+The D24/D28 73-case oracle remains the signed historical baseline and the MVP
+steps below remain completed. Path B is the active delivery round: its ten-case,
+55-check acceptance amendment has a verified 14-file signature, so the
+technical design's ordered implementation slices are in progress. The frozen
+oracle remains unchanged as each slice turns its assigned failures green.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
+
+The branch closeout (2026-09-02) landed the two remaining correctness fixes
+(interrupt-window resume, sibling-file reconcile) and a full CI gate run;
+what remains before merge is entirely human-only — the key-rotation
+authorization question, the `acceptance.md` re-sign, and two unfreeze-request
+signatures.
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+
+The qa-prod deploy review (2026-09-02) confirmed the merge shape (53 commits,
+fast-forwardable to qa-prod at `c1b664b`, +17787/-356) and added two further
+findings that bear on delivery: both unfilled unfreeze requests carry empty
+**Date** and **I authorize this oracle change** fields — the recorded human
+decision, not the signature, is the missing piece; and `.superpowers/sdd/` is a
+committed scratch artifact unrelated to the deliverable. Both are human-only to
+resolve before merge.
+[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+
+The Path B operator slice is complete: `install rig` is the public grammar,
+explicit hosts replace detection while omitted hosts preserve it, and every
+successful install ends at the explicit `rig-onboarding` review step. The
+failure/weight closure is also complete: checks warn on payload growth, fail on
+known ownership/reference/state regressions, and keep legitimate runtime
+staging and distinct host projections valid.
+[operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
 
 The former lint-format-only path is historical. D24 supersedes D21's release
 boundary and retires D23: all 115 Policy leaves are now release-blocking, while

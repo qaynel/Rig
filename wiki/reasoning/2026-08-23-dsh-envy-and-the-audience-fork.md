@@ -3,6 +3,7 @@ date: 2026-08-23
 source: intent owner
 topics: what-rig-is
 decisions:
+status: historical
 ---
 
 # DSH envy and the audience fork

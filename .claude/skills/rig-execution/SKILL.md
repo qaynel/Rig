@@ -2,6 +2,16 @@
 name: rig-execution
 status: ready
 description: Execute an approved plan with independent task ownership and evidence-based completion.
+family: implementation-and-orchestration
+tool: host-agent
+capability: implementation-and-orchestration.coordinated-execution
+guarantees:
+  - Executes an approved plan task by task with independent ownership.
+  - Requires evidence before a task is called complete.
+overlap_tags:
+  - coordinated-execution
+  - execution
+  - task-ownership
 ---
 
 # Execution And Parallelism

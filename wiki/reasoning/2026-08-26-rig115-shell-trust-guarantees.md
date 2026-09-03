@@ -3,6 +3,7 @@ date: 2026-08-26
 source: intent owner
 topics: trust-and-failure-boundaries, gate1-signing
 decisions: GA-37, D28
+status: historical
 ---
 
 RIG-120's release ceremony is being planned as one bundled signing round

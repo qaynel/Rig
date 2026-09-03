@@ -4,11 +4,19 @@ Where new thinking lands. This is the intake for everything the project reasons
 out from here on: grilling answers, design arguments, review responses, decisions
 made in chat, notes written on the way to a decision.
 
+Before you file one, you have already read `wiki/agent-primer.md` — that page
+is the single mandated read that points at `Home.md`, `status.md`, and the
+hubs and indexes the task's routing decision needs, in the order to read
+them.
+
 ## The rule
 
-**A trace is written once and never edited.** It records what was thought at a
-moment in time. If the thinking later turns out wrong, that is what the topic
-hub is for — the hub gets rewritten, the trace stays as it was.
+**A trace's body is written once and never edited — it is immutable.** It
+records what was thought at a moment in time. If the thinking later turns out
+wrong, that is what the topic hub is for — the hub gets rewritten, the trace
+stays as it was. Only frontmatter fields (`status:`, `topics:`) may change
+after filing; the body never does. The `.claude/skills/wiki-maintenance/SKILL.md`
+ground rules enforce this same body-immutable, frontmatter-mutable split.
 
 This split is the whole point. A wiki whose pages are freely rewritten loses its
 history; a wiki that never rewrites accumulates contradictions. Keeping the
@@ -78,3 +86,14 @@ file by hand. `npm test` rejects a stale generated summary.
 - **Hand-written status.** Current state is generated from current traces. A
   trace is dated and permanent; the generated summary is neither hand-written
   nor independently authoritative.
+
+## Pre-contract traces
+
+The frontmatter contract above was introduced after roughly a quarter of the
+existing reasoning traces had already been filed. Every pre-contract trace
+that is referenced by a live topic hub or ticket has been backfilled to the
+contract. The rest are intentionally left as they were — no synthesised
+`topics:` or `status:` is inserted retroactively. They remain discoverable by
+date and filename through `wiki/index/reasoning.md`, and the generator's
+historical fallback keeps them off the current-state page. Do not sweep them
+in bulk; leave the disposition where it is.

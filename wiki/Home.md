@@ -31,6 +31,11 @@ update it as part of your change — never as an afterthought.
 Plus [`reasoning/`](reasoning/) — where new thinking lands, verbatim and dated, and
 [`specs/`](specs/) — subordinate scope and status documents.
 
+A sixth location, [`archive/`](archive/), holds relocated pages that are no
+longer part of any live navigation. It is not one of the five kinds and is not
+part of the read-before-grep mandate; go there only when hunting for a
+specific file you already know exists.
+
 **The rule that keeps this honest:** topics are rewritten freely; sources and
 reasoning traces are never edited. When they disagree, the source wins and the
 topic is wrong.
@@ -85,7 +90,7 @@ topic is wrong.
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
 - [**Reasoning trace index**](index/reasoning.md) — generated current and historical trace lookup.
-- [**Acceptance cases**](index/acceptance-cases.md) — the 73 frozen cases and where each is traced.
+- [**Acceptance cases**](index/acceptance-cases.md) — all 95 cases and where each is traced; the twelve onboarding-hardening additions are corrected and awaiting owner re-sign.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
@@ -104,7 +109,7 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **The oracle — owner-approved, signed, and green.** D24 keeps 68 acceptance IDs and broadens the MVP to all 115 Policy leaves; D28 extends the set to 73 with RIG-115's shell-trust guarantees. The completed test manifest is covered by the owner signature with both documents. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Onboarding-hardening correction awaiting owner re-sign.** The 16-file, 95-case oracle bytes are corrected per the [oracle review](reasoning/2026-09-03-onboarding-hardening-oracle-review.md); the prior signature covered defective bytes and does not carry forward. Implementation of the eight hardening findings is blocked until the owner re-signs. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 

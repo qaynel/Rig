@@ -3,6 +3,7 @@ date: 2026-08-20
 source: intent owner
 topics: delivery-plan, the-catalogue, what-rig-is
 decisions:
+status: historical
 ---
 
 A retrospective on the first attempt to build the catalogue, in my own voice.

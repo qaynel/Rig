@@ -3,7 +3,7 @@ date: 2026-08-30
 source: agent
 topics: agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes: wiki/status.md
 tags: interdependency
 summary: The current-state page and reasoning-trace index are generated from immutable trace frontmatter; update a trace and run the generator instead of hand-editing either summary.

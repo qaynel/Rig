@@ -1,4 +1,4 @@
-# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED 2026-08-21; AWAITING ORACLE SIGNATURE)
+# Tier 2 Advanced - Acceptance Criteria and Tests (RE-GRILLED 2026-08-21; ORACLE SIGNED)
 
 > **Revision note (2026-07-25).** This file was re-grilled with
 > [`spec/business-spec.md`](spec/business-spec.md). Together they are the complete
@@ -269,9 +269,33 @@
 > fail until the runtime enforces them. A design or implementation context
 > must not edit this file; a genuine conflict returns to grilling.
 
-## 7. Acceptance tests (the frozen Gate-1 target)
+> **Revision note (2026-08-31) — Path B agent-led adaptive onboarding.**
+> Re-grilled from the intent owner's locked Path B product direction,
+> follow-up decisions, and completed technical design. Ten independently
+> observable cases are added, `AT-PB-1` through `AT-PB-10`, covering every
+> foundational (`F-1`–`F-6`) and support (`S-1`–`S-4`) contract. The ID set
+> grows from **73** to **83**.
+>
+> The new cases keep semantic judgment with the host agent while making the
+> deterministic boundaries executable: complete capability metadata, exact
+> marked ownership, release-pinned context, strict repository-local state,
+> content-bound approval, one explicit install/handoff, structural-only
+> inventory and overlap, one mandate/playbook, warning-only size budgets, and
+> hard correctness failures. They do not alter the governed 115-service
+> catalogue. The executable cases are red before Path B implementation and
+> become frozen only when the intent owner signs the amended oracle.
 
-These are owner-approved observable cases. Their deterministic executable form
+> **Revision note (2026-09-03) — onboarding hardening and recurrence
+> prevention.** Eight adversarial cases (`AT-HD-1` through `AT-HD-8`) freeze the
+> concrete review findings. Four pattern cases (`AT-HD-9` through `AT-HD-12`)
+> freeze the trust-boundary, snapshot, parallel-authority, and false-green
+> prevention rules requested by the intent owner. The ID set grows from **83**
+> to **95**. Both hardening test files are part of the signed testing
+> infrastructure and are expected to be red before implementation.
+
+## 7. Acceptance tests (the Gate-1 target)
+
+These are observable cases approved by the owner. Their deterministic executable form
 is part of the same signed oracle and may be drafted before implementation, but
 not changed by the implementation agent afterwards. Each must fail before its
 behavior exists and pass only when the product intent is met.
@@ -477,6 +501,10 @@ behavior exists and pass only when the product intent is met.
   is specifically authored, is attempted as executable first, and produces a
   real observable outcome; a convention-only fallback carries a named
   service-specific reason.
+
+Path B's seventh business-level correctness property, adaptive onboarding
+without installer inference, is evidenced directly by `AT-PB-1` through
+`AT-PB-10`. It does not receive a tautological `AT-P7` alias.
 
 ### D. Bespoke service and safety behavior
 
@@ -919,6 +947,216 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   following the link. Silently following an escaping symlink, or treating it
   as a same-repository path because its lexical form looks contained, fails
   this case.
+
+### I. Path B agent-led adaptive onboarding (2026-08-31)
+
+- **AT-PB-1 (the capability shelf is complete, coherent, and separate).**
+  *Given* the released Rig sources, *when* the skill-shelf catalogue is built,
+  *then* it indexes exactly the current 55 vendored skills, seven established
+  core workflow skills, and `rig-onboarding` as the 63rd skill. Every skill has
+  one canonical name, one of the eleven approved primary families, one listed
+  capability, one primary tool, at least one unique observable guarantee, and
+  sorted unique overlap tags. The complete approved family/capability
+  membership is represented, source traversal is recursive, and origin/vendor
+  prefixes do not choose taxonomy. Legacy names resolve only through the
+  explicit alias map; an unknown prefix is never stripped and guessed, aliases
+  never create a second projection, and the historical duplicate browser name
+  is resolved as two distinct canonical skills. Missing/malformed metadata,
+  duplicate names, invalid aliases, or a source/projection name mismatch fails.
+  *And* the governed 115-service catalogue remains byte-identical: no Path B
+  skill-taxonomy change rewrites or imports it.
+
+- **AT-PB-2 (repo-owned files change only inside exact removable grafts).**
+  *Given* a pre-existing supported Markdown instruction file, including CRLF
+  or no-final-newline input and more than one capability, *when* an approved
+  graft is created, reapplied, updated, or one capability is removed, *then*
+  only the byte range inside that capability's exact version-1 begin/end
+  markers changes. Every byte outside the owned range and the file's newline
+  style remains authoritative; reapply is a no-op; one-of-many removal leaves
+  the other section; clean removal restores the outside bytes without a whole-
+  file snapshot restore. The journal's latest record names every current
+  managed section for the path, and uninstall removes only those sections even
+  when their bodies were edited, while preserving later user edits outside.
+  Stale preimages, unsupported formats, invalid UTF-8, unknown versions,
+  orphaned/mismatched/nested/duplicate markers, marker text in content, and
+  symlink or hard-link mutation ambiguity fail without changing a byte.
+
+- **AT-PB-3 (onboarding context is deterministic, compact, pinned, and
+  non-discoverable by default).** *Given* a Path B install, *then* the generated
+  skill catalogue bytes are deterministic, sorted, content-addressed, and
+  copied exactly to `.rig/catalog.json`; family metadata and every source path
+  resolve. The complete optional source shelf is staged exactly once under the
+  release-pinned runtime outside every host discovery path, while only the
+  eight mandatory workflow/onboarding skills are discoverable before approval.
+  Prepare works without a network lookup and supplies the compact catalogue,
+  not every skill body; likely bodies may be opened locally on demand. A
+  changed catalogue digest makes every existing proposal stale and requires a
+  rebuilt, re-approved proposal. A user-edited installed catalogue conflicts
+  instead of being silently overwritten.
+
+- **AT-PB-4 (repository-local onboarding state is strict, atomic, and
+  truthful).** *Given* explicit onboarding, *when* prepare, propose, apply, and
+  check advance, *then* the sole machine authority is a schema-versioned,
+  revision-CAS `.rig/state.json`; structural inventory, overlap hints, applied
+  grafts/projections, and the semantic summary are deterministic projections
+  under `.rig/`, never competing authorities. The summary contains exactly the
+  eight required headings once and in order, and its digest participates in
+  the proposal digest. Inputs reject unknown keys, unsafe paths, invalid
+  digests, forbidden transitions, and stale revisions without a partial state
+  or report write. Identical prepare/propose/apply operations are no-ops;
+  changed inventory, catalogue, proposal, or summary increments revision and
+  clears stale approval/check evidence. A partial identical apply is resumable,
+  but changed approved bytes require fresh approval. Check reaches `checked`
+  only when the Markdown projections, state, catalogue, summary, journal, and
+  disk reconcile.
+
+- **AT-PB-5 (the host agent proposes; one shared engine validates and applies
+  only the reviewed result).** *Given* an explicit `rig-onboarding` invocation,
+  *when* `prepare` runs, *then* Rig code supplies the canonical playbook,
+  catalogue, structural inventory, and mechanical overlap hints without
+  selecting a capability or modifying a repo-owned target. The host agent reads
+  the relevant repository and Rig material, calculates each semantic delta,
+  prefers reuse → generalise → marked graft → add, decides routine matters,
+  and presents the eight-part resulting-improvement summary. Any option that
+  changes product/business intent, an approved oracle, existing authority,
+  material workflow, security/trust/permissions/secrets/network/presence,
+  external or paid state, destructively or irreversibly acts, or resolves a
+  materially different product interpretation is returned to the user one
+  decision at a time with consequences and one recommendation. Unresolved
+  critical decisions block apply.
+
+  *And given* a complete proposal, *when* no verified receipt binds its exact
+  catalogue/inventory snapshots, dispositions, selected skills, managed bytes
+  and preimages, resolved decisions, and summary digest, *then* nothing applies.
+  The skill, CLI, MCP tool, or agent cannot prompt for, sign, fabricate, or
+  infer approval. With matching approval, only the selected projections,
+  marked grafts, and approved Rig-owned files apply; then check runs. The shared
+  domain handler, installed JSON CLI, root MCP, and installed MCP expose the
+  same four actions, state, failures, warnings, and next action; adapters carry
+  no independent decision logic. Reapply/resume is idempotent. Success is
+  claimed only after a hard-failure-free check; partial writes are reported as
+  resumable state, never active protection.
+
+- **AT-PB-6 (one explicit install command, repeatable host scope, no
+  auto-trigger).** *Given* a released or unpacked Rig, *when* the operator runs
+  `install rig [--host <host>]...`, *then* no host option preserves bounded
+  mechanical detection, while repeated options are registry-validated,
+  de-duplicated in first-seen order, and replace detection. Unknown hosts fail
+  before a target write. The command always installs the runtime, compact
+  catalogue, mandatory skills, canonical router/adapters, and release-pinned
+  source shelf; it does not semantically read the repository, prepare state,
+  select optional skills, create a proposal, or apply a graft. It has no
+  Basic/mid/Advanced package choice. Normal output names the selected/detected
+  hosts and gives one next step: explicitly invoke `rig-onboarding` in a host
+  agent, with the warning that nothing is adapted until the summary is
+  approved. A pre-existing repo-owned instruction file stays byte-identical
+  before that approved onboarding step.
+
+- **AT-PB-7 (inventory is bounded structural fact, never inferred desire).**
+  *Given* repository instructions, rules, steering, skills/assets, hooks, and
+  known host roots, *when* prepare inventories them, *then* every unique
+  contained path yields one stable sorted row with mechanically derived host,
+  kind, declared name/title, ATX headings, declared capability/tags, byte count,
+  and SHA-256. No body prose is emitted or classified. Secret-shaped strings
+  are redacted, the 256-KiB bound is enforced, and oversized, unreadable,
+  non-UTF-8, and malformed-frontmatter inputs produce deterministic warnings.
+  An escaping symlink or two aliases to one real path fails rather than
+  duplicating or reading outside. Repeated unchanged preparation produces
+  identical digest and `adopted-config.md` bytes, whose header says the report
+  is structural inventory rather than endorsement.
+
+- **AT-PB-8 (overlap output is exact-match advice with no side effect).**
+  *Given* a valid inventory and release catalogue, *when* overlaps are built,
+  *then* a match exists only through an exact self-declared capability/tag or
+  exact explicit legacy alias. Unknown prefixes, filenames, headings, and body
+  keywords do not become matches. Rows are deterministically grouped by
+  existing path and Rig capability; multiple skills for one capability stay
+  grouped rather than becoming duplicates; unmapped existing entries and Rig
+  capabilities with no declared match remain visible. The report explicitly
+  says these are hints. It selects, omits, installs, deletes, or mutates
+  nothing; semantic relevance and delta remain the host agent's decision.
+
+- **AT-PB-9 (one router and one onboarding playbook remain canonical).**
+  *Given* a single- or multi-host install, *then* `.rig/routing.md` is the only
+  always-on development-pipeline mandate and the canonical onboarding
+  `SKILL.md` is the only complete onboarding playbook. Native host instructions
+  and discovery wrappers contain the smallest resolvable pointer to those
+  files; they do not copy either mandate. The CLI and both MCP copies load the
+  same playbook bytes. Several host pointers are expected and do not constitute
+  parallel frameworks. Every pointer resolves on disk, and removing or
+  misnaming a canonical target is a hard dangling-reference failure.
+
+- **AT-PB-10 (payload growth warns; the closed correctness set blocks).**
+  *Given* an applied onboarding state, *when* check measures distinct current
+  Rig-owned paths plus only Rig-managed bytes inside repo-owned paths (including
+  journal/preimage overhead), *then* file/byte totals and previous-release
+  deltas are always reported. Growth emits `payload-file-growth` and/or
+  `payload-byte-growth` warnings but exits successfully when no correctness
+  fault exists; a zero/missing baseline disables only the delta warning.
+  Independently seed each of `duplicate-destination`,
+  `duplicate-skill-projection`, `duplicate-graft`, `malformed-graft`,
+  `dangling-reference`, `skill-name-mismatch`, `self-prefix-regression`,
+  `state-incomplete`, and `unapproved-write`: each produces a hard failure,
+  non-success exit, failed phase, and repair/resume next action. One staged
+  non-discoverable runtime source plus one approved native projection is not a
+  duplicate, and legitimate projections into distinct approved host scopes are
+  reported rather than failed.
+
+### J. Onboarding hardening and recurrence prevention (2026-09-03)
+
+- **AT-HD-1 (approval binds the current proposal body).** *Given* a valid
+  approval and a proposal body changed afterwards while its stored digest is
+  left unchanged, *when* apply runs, *then* it re-derives the canonical body
+  digest and refuses before any repository-owned byte changes.
+- **AT-HD-2 (predictable temporary files cannot redirect writes).** *Given* a
+  state temporary path pre-created as a symlink outside the repository, *when*
+  an atomic state write runs, *then* exclusive creation refuses before any byte
+  reaches the outside target.
+- **AT-HD-3 (approval-time inventory is rechecked before commit).** *Given* a
+  signed proposal and a repository file added afterwards, *when* apply runs,
+  *then* it re-inventories and refuses before mutation rather than silently
+  baselining the new file.
+- **AT-HD-4 (mixed hosts receive independent discovery scopes).** *Given* a
+  Codex-plus-Cursor install, *when* an approved skill is projected, *then* both
+  the Codex-native and instruction-only destinations receive it. Installed
+  hosts are evaluated one by one; a non-empty native union cannot suppress a
+  fallback host.
+- **AT-HD-5 (release version has one authority).** *Given* the release
+  catalogue builder and public install examples, *when* their version sources
+  are inspected, *then* the builder requires a caller-supplied version derived
+  from the package manifest and every public example matches it. A hardcoded
+  library default fails.
+- **AT-HD-6 (broken inventory verification fails closed).** *Given* an
+  inventory traversal that throws, *when* the drift verifier runs, *then* the
+  exception propagates or becomes a hard failure. Returning an empty finding
+  set fails.
+- **AT-HD-7 (MCP text is a real concise adapter response).** *Given* either
+  shipped onboarding MCP adapter, *when* its tool is called, *then* the text
+  channel names phase and next action in fewer than 300 characters and differs
+  from the structured payload's JSON. Recreating the handler output inside the
+  test instead of calling the adapter fails.
+- **AT-HD-8 (trace body and metadata mutability agree).** *Given* the reasoning
+  policy and wiki-maintenance instructions, *when* they are read together,
+  *then* both state that trace bodies are immutable, frontmatter metadata is
+  mutable, and each document points to the other.
+- **AT-HD-9 (trust-boundary checks reject the defect shape).** *Given* the
+  onboarding trust boundary, *then* proposal bytes are re-hashed before their
+  first field is consumed, predictable state-temp writes use exclusive
+  creation, and every verification catch rethrows or records a hard failure.
+- **AT-HD-10 (time and host observations stay local to the decision).**
+  *Given* apply and skill-scope planning, *then* inventory is re-derived and
+  compared before the mutating writer exists, and installed hosts are passed
+  into a per-host scope loop with no aggregate-empty fallback.
+- **AT-HD-11 (parallel authorities cannot drift silently).** *Given* release
+  versions, duplicated MCP packaging, and duplicated trace policy prose, *then*
+  no runtime library embeds the package version, both MCP sources remain
+  byte-identical, and both policy documents cross-cite the same body-immutable,
+  frontmatter-mutable rule.
+- **AT-HD-12 (the adversarial oracle cannot become a happy-path simulator).**
+  *Given* the hardening design and tests, *then* every numbered finding has an
+  exact substantive adversarial test title, no finding/test ID exists on only
+  one side, and the compact-MCP case drives the real adapter rather than a
+  locally reconstructed response.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product

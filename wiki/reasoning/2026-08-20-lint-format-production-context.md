@@ -3,6 +3,7 @@ date: 2026-08-20
 source: agent
 topics: the-catalogue, delivery-plan, authored-service-gate
 decisions:
+status: historical
 ---
 
 Gathered current context for vertically deploying

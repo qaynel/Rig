@@ -22,6 +22,12 @@ outside the target are refused before reading, writing, or deleting. Static
 regressions cover resume, uninstall, coverage application, remediation,
 payload, and CI mutations.
 
+Path B's `graft_managed` ownership records the named capability sections inside
+one existing Markdown instruction file, including each section's canonical
+content digest. Reversal removes only a digest-matching recorded section;
+unmanaged bytes and an edited managed body survive as best-effort preservation.
+[Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
+
 Removal walks the last record for each sequence in reverse. It deletes only
 unchanged Rig-owned output, removes recorded managed lines/blocks, deletes a
 file that becomes empty after a managed strip, removes empty Rig-created
@@ -79,6 +85,17 @@ beyond the selected target.
 - CI path-identity ruling: [reasoning trace](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
 - CI realpath ruling: [reasoning trace](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
 
+## A recorded absence is not something to reclaim
+
+The journal now carries `delete_owned` records whose desired end state is
+absence (`desired_digest: null`). Uninstall skips them before path attribution:
+there is nothing left on disk to reclaim, and running one through the ownership
+rules files a clean path as best-effort, which keeps the journal alive and makes
+every later uninstall report best-effort again. `onboarding-check` excludes them
+from its allowed-projection set for the mirror-image reason — an applied record
+licenses the file it asked for, and a delete asked for no file.
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
 ## Remaining work
 
 A real install→uninstall roundtrip now proves the dedicated Rig workflow is
@@ -87,3 +104,36 @@ and common provider files plus forged managed-line records are preserved. Exact
 independently proven reversal of namespaced merges into common CI files remains
 separate work; uninstall currently names those as best-effort. Fresh independent
 review remains the release check on the combined lifecycle.
+
+## The delete primitive's first onboarding caller
+
+`writer.remove` is now called by onboarding `apply` to drop projections a
+re-approved proposal no longer selects. Two limits of the journal's ownership
+answer showed up at that call site. It says yes to installer-staged core skills
+— `bootstrap.sh` created those files, so their origin record has a null preimage
+— which is correct about authorship and wrong about authority, so apply filters
+core skills out before asking. And `applied.projections` records only one
+`SKILL.md` per (skill, host) while a projection may have written a whole tree,
+so removal sweeps the live skill directory too and uses `latest(rel).digest` as
+the expected-bytes proof for siblings the ledger never named. A `removed: false`
+answer is surfaced as an `unreconciled` warning rather than swallowed.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+## The open transaction is the resume licence
+
+`install_state` was write-only bookkeeping: `journalWriter` skipped those
+records when loading and only `lifecycle` ever read them. It is now the signal
+that decides whether a preflight may treat live bytes as Rig's own unfinished
+work (`write.interrupted()`), which is what keeps the Issue 4 resume from
+doubling as a way to apply a proposal built against a stale preimage.
+
+Two follow-on obligations come with that. A resume whose bytes already match
+returns `noop` without calling the writer, so the interrupted `pending` record
+would stay pending forever unless the write is re-issued — `journalWriter.write`
+promotes such a record and touches no bytes, and `resumeLandedWrite` is the
+call. And a resume can legitimately write nothing at all, so `finish()` now
+closes a transaction it merely inherited; otherwise the journal stays open and
+every later run keeps a resume licence it should have surrendered.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

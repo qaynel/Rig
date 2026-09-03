@@ -22,6 +22,29 @@ It also keeps the product promise concrete: Rig first understands the current
 project context, then proposes the smallest harness setup that complements that
 context instead of assuming a clean-slate install.
 
+Approved optional skills are bound to the bytes selected: the proposal carries
+the source-tree and projected-bytes digests, and apply/check re-derive them.
+Binding rows are engine-computed and must be complete, unique, and limited to
+the selected skills; malformed persisted approval state fails closed.
+[Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+[Binding-validation trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
+
+## What the adaptive install lays down
+
+Path B's install is deliberately inert. It pins the release skill catalogue at
+`.rig/catalog.json`, stages the complete 55-skill optional shelf under
+`.rig/runtime/rig/catalog/skills/` where no host discovers it, and projects
+only the eight mandatory skills — `rig-code-review`, `rig-debugging`,
+`rig-execution`, `rig-grilling`, `rig-implementation`, `rig-onboarding`,
+`rig-product-design`, `rig-tdd` — into host discovery. Everything else waits
+for an approved onboarding proposal. Install never runs `prepare`, never reads
+semantic repository content, and never chooses an optional skill.
+
+The legacy markdown-only Tier 1 install is unchanged and still fans the whole
+shelf into native discovery; the two paths are separated by the
+`default_delivery` / `active_delivery` manifest gates until slice 6 retires the
+legacy operator path. [Slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md)
+
 ## What binds it
 
 `AD-6` fixes the stages, `AD-7` constrains inspection, `AD-8` separates
@@ -53,6 +76,8 @@ distinct consent and trust boundaries. [Rejected approaches](../index/rejected.m
 - Untrusted repository-task execution: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
 - Diff-scoped lint-format check-scope default: [reasoning trace](../reasoning/2026-08-21-lint-format-check-scope.md)
 - Stale/tampered command-drift ruling: [reasoning trace](../reasoning/2026-08-21-lint-format-command-drift.md)
+- Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+- Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
 
 ## What is still open
 
@@ -152,10 +177,112 @@ generic parallel files across three ecosystems, and pruned nothing to the
 stack. The eval's single highest-value fix is to make install *parse the
 pre-existing config and reconcile with it* (reference existing Cursor/Kiro rules
 from `routing.md`, prune the skill set to the stack, and stop emitting
-conventions the target lacks). This points against D24's current mechanical-only
-detection and would need its own grilling, not a silent edit.
+conventions the target lacks). That looked like a D24 conflict until grilling
+split the work: Rig *code* stays mechanical; the onboarding *host agent* does
+the judgment. The grilling is now answered — see the lock below.
 [Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) ·
 [Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+
+**Scoped 2026-08-31 as "deterministic acceleration" — D24 stays intact for Rig
+code.** Path B is not a mechanical reconcile-pipeline and not left wholly to
+prose: Rig ships **deterministic tools the onboarding host agent invokes**
+(inventory the repo's existing config, reference it by path, install a selected
+skill set). The code decides nothing about what a repo "wants." Two eval
+premises are withdrawn: no deletion in either direction (the fix is *selective
+install*, not install-all-then-prune), and the install should trend
+context-weight neutral-or-negative. The work-item map (B-1 inventory, B-2
+reference-by-path, B-3 selective install, B-4 overlap surface, B-5 canonical
+entrypoint, B-6 weight budget) remains the code-side split; G-class inference
+*in Rig installer code* stays out of beta.
+[Path B adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md)
+
+The operator path and check closure are now complete. `install rig` always
+stages the active runtime and stops at an explicit `rig-onboarding` handoff;
+repeatable host selections replace detection, while omission preserves it. The
+shared check measures journal-backed attributable weight with warning-only
+growth thresholds and fails known projection, graft, reference, state, and
+ownership regressions. [Operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md)
+
+**Locked 2026-08-31: agent-led graft, not a skill picker.** The intent owner
+answered the Path B grilling. The onboarding host agent receives full repository
+context, the full Rig capability catalogue (organised into families for the
+agent, not as a user picker), grafting instructions, and the Rig development
+pipeline. It decides how Rig fits, makes routine choices itself, and escalates
+only consequential decisions (destructive replacement, security/trust,
+irreversible or product-shaping forks). The user reviews a summary of the
+**resulting repository improvement** — existing state, relevant families,
+reuse, grafts, new capabilities, important decisions, resulting pipeline —
+not a configuration wizard. Repo-specific onboarding state lives under
+`.rig/`; existing repo config is not unnecessarily polluted. When capabilities
+overlap, the agent calculates the delta and grafts missing Rig behaviour onto
+existing infrastructure rather than picking a winner or stacking a parallel
+copy. Payload size (files and bytes) is a warning; duplicate-write and
+correctness regressions are hard failures. A router-only re-eval is deferred
+and does not block this work. Intelligence lives in the host agent plus the
+context Rig supplies, not in a "React → install A, B, C" rule engine.
+D24's mechanical-only detection boundary is unchanged. What shifts is the
+consent UX: D24's "default-full, user trims families" is replaced by
+agent-proposed graft plus summary approval.
+[Path B product direction](../reasoning/2026-08-31-path-b-product-direction.md)
+
+**Follow-up locks 2026-08-31.** The last two Path B design questions closed.
+(1) Grafts into repo-owned files are permitted, but every graft lives inside an
+explicit, machine-detectable begin/end Rig-managed section
+(`<!-- rig:graft capability="..." begin --> ... <!-- rig:graft end -->`) so
+removal is a clean string operation and the ownership boundary is obvious in
+source control. (2) The flat vendored skill shelf is reorganised into a
+`family → tool/capability → skill` hierarchy, taxonomy derived from the actual
+inventory and grouped by capability rather than by vendor origin/prefix; the
+existing `family → group → service → grade` service catalogue is untouched,
+and unification of the two taxonomies is deferred until product evidence
+justifies it. Operator shape confirmed in the same exchange: one install
+command (`install rig [--host <host>]`), `rig-onboarding` delivered as a Rig
+skill and/or a rig-mcp tool the host agent invokes explicitly after install,
+no auto-trigger; installation documentation directs the user to initiate
+onboarding from their host agent as the explicit next step.
+[Path B follow-up decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md)
+
+**Technical design filed 2026-08-31.** Path B now has implementation-ready
+contracts for the capability-family shelf and generated catalogue, versioned
+graft sections, repository-local onboarding state, structural inventory and
+overlap reports, the shared skill/CLI/MCP onboarding interface, selective host
+projections, the one-command install handoff, and warning-only weight checks
+with correctness hard failures. The design keeps semantic relevance and delta
+judgment in the host agent, binds apply to the exact summary and proposal, and
+leaves the governed service catalogue unchanged. Implementation remains
+test-first after the acceptance oracle and human signature.
+[Path B technical specification](../reasoning/2026-08-31-path-b-technical-spec.md)
+
+**Path B oracle signed; implementation underway.** The verified 14-file,
+83-case oracle protects the adaptive-onboarding work. Its initial red run
+identified the implementation slices, and the completed catalogue slice is
+already green without changing the governed 115-service catalogue.
+[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+· [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
+
+**Structural inventory is now available to the onboarding flow.** It enumerates
+only known harness locations, reports paths, declared metadata, hashes, and
+bounded warnings, and rejects escaping or aliased symlinks. Exact-match overlap
+calculation is likewise mechanical: it uses only declared capability tags and
+explicit aliases, leaving relevance and the resulting change to the host agent.
+State-owned Markdown reports consume these facts in the next slice.
+[Inventory slice](../reasoning/2026-09-01-path-b-slice2-inventory.md)
+
+**The prepared and proposed state is now strict and replayable.** Preparing
+writes only Rig-owned state and the two mechanical reports; unchanged facts are
+a byte-stable no-op, while a changed inventory clears the pending proposal and
+approval. Proposing validates a complete, ordered summary plus paths and
+digests before recording it, so the eventual approval can be bound to exactly
+the reviewed bytes. The approved vertical slice now applies only a verified,
+proposal-bound receipt: it projects selected skills, writes approved versioned
+grafts through the journal, and reconciles the result into `checked` state.
+[State slice](../reasoning/2026-09-01-path-b-slice3-state.md) ·
+[vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md)
+
+The active Path B install supplies that flow through one canonical playbook at
+`.rig/skills/onboarding/SKILL.md`; native onboarding skills are thin pointers,
+and the CLI and MCP adapters invoke the same domain handler. Operator install
+grammar and warning-only weight accounting remain separate later slices.
 
 **Idea on file (2026-08-31, office hours pending): `/rig onboarding` skill.**
 After Rig is installed, the user could invoke a single host-native command that
@@ -206,3 +333,225 @@ under that name for native-dispatch hosts. Full evidence, exact line numbers,
 and a ranked fix list for all of the above:
 [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) ·
 [Path A/B scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)
+
+## Reapplication subtracts as well as adds
+
+**Fixed 2026-09-01.** `apply()` was additive only: it never read the previous
+`state.applied` set, so a second approved proposal that dropped a skill or a
+graft left the first one's artifacts on disk while state truthfully reported
+them gone — and `check` could not see them, because `reconcileApplied` only
+walks the *current* `applied.projections`. Apply now reconciles three sets
+(previously applied, newly approved, live on disk) before the write transaction
+and removes the difference inside it. It refuses to delete in three cases: an
+artifact whose live digest has moved since apply wrote it (a human edited it),
+an installer-staged core catalogue skill (`planSkillProjections` records those
+without ever writing them, so apply must not remove them either), and any path
+the journal cannot prove Rig created. Refusals are returned as `unreconciled`
+warnings and persisted at `state.applied.unreconciled`, so every later `check`
+re-emits them rather than the warning being seen once.
+[Reconciliation trace](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md)
+
+## An interrupted apply must be resumable by re-running it
+
+**Fixed 2026-09-01.** A journalled write is three steps — `pending` record,
+bytes to disk, `applied` record — and a crash between the last two leaves the
+desired bytes live with nothing recording them. Every preflight in `apply`
+compares the live file against the *proposal's* preimage, so all of them read
+that state as a third-party edit: `upsertGraftSection` and `removeGraftSection`
+raised "stale file digest or preimage", `cleanProjection` raised "conflicts with
+repository-owned path", `preflightOwnedFiles` raised "stale preimage digest".
+Retrying repeated the same comparison, so the install was wedged in `proposed`
+with no path forward that did not involve hand-editing the repository.
+
+All four now accept live bytes that equal what the journal was writing —
+`journalResumeDigest(writer, rel)` — but only while the journal's transaction is
+still open, so a cleanly finished earlier install can never wave through a
+proposal built on a stale view of a file. `preflightGrafts` gained a dry writer
+that forwards `latest` and `interrupted` to the real one; it still cannot
+mutate, but it now sees what the real write will see.
+[Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+## A crash between the last payload write and state advance is also resumable
+
+**Fixed 2026-09-02.** The 2026-09-01 resume fix covered crashes *within* a
+journalled write. A second window existed between `writer.finish()` (which closes
+the journal, setting `complete: true`) and `writeState()` (which advances state
+from `proposed` to `applied`). A crash there left the journal closed but state
+still at `proposed`. On the next apply, `journalResumeDigest` returns `null` for
+a closed journal, so preflights treated the already-landed bytes as a
+stale-preimage conflict and threw `"rig: graft has stale file digest or preimage"`.
+
+Fix: moved `writer.finish()` to after `writeState()`. Now a crash before state
+advances leaves the journal OPEN; the next apply's `journalResumeDigest`
+recognises its own unfinished work and resumes cleanly. A crash after both
+writes is indistinguishable from a clean apply — the redundant rewrite is safe.
+[Interrupt-window trace](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)
+
+## A selected skill sheds an orphan sibling when the catalog drops it
+
+**Fixed 2026-09-02.** `planRemovals` built `desiredPaths` from
+`projection.projections`, which records only the SKILL.md row per host scope.
+When a skill stayed selected, its SKILL.md path was in `desiredPaths` and the
+outer loop short-circuited before the sibling sweep ran. A file dropped from
+the staged skill directory between catalog versions (`EXTRA.md`) was therefore
+never removed — it survived on host indefinitely.
+
+Two parts to the fix: (1) the outer short-circuit on `desiredPaths.has(row.path)`
+was removed so the sibling sweep always runs; (2) `desiredPaths` was extended
+to include all `projection.plans` paths (not just SKILL.md entries), so the
+sweep only removes files that are genuinely absent from the new plan, not sibling
+directories (`references/`, `templates/`) that are still being projected.
+[Sibling-reconcile trace](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md)
+
+## An approval covers the bytes, not the skill's name
+
+**Fixed 2026-09-01.** `selected_skills` is a list of names, so an approval
+signed the *name* `qa` and `apply` read whatever the staged shelf held by the
+time it ran; `check` then compared each projection against the ledger row apply
+had written from that same read, so a source edited between propose and apply
+was invisible from both ends. `propose` now freezes `skill_bindings` inside the
+digested proposal body — per selected skill, the catalogue row's `tree_digest`
+and a `projected_digest` over every file the projection will write, keyed by
+its path inside the projected skill directory. `apply` re-derives both and
+refuses a stale proposal when either moved or when the projection reaches a
+skill the bindings do not name; `check` rebuilds the projected digest by
+walking each recorded projection root on disk, so an edited sibling or a file
+smuggled beside an approved `SKILL.md` is a hard failure rather than a
+warning. The bindings are computed by the engine, never accepted from the
+caller: a caller who could assert the digest of the bytes being approved would
+be re-introducing the `verified: true` defect.
+[Byte-binding trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+
+**The bound `tree_digest` must not depend on the checkout machine (fixed
+2026-09-02).** As first written, `skillTreeDigest` folded nine `stat` mode bits
+into the digest each proposal binds. Git tracks only the exec bit, so a
+proposal approved on one machine and applied after a re-clone under a different
+`umask` was refused as a `stale proposal: catalogue tree_digest ... has
+changed` with no real byte movement — an environment difference firing the
+byte-binding `AT-PB-5` guard. Fixed by collapsing `mode` to git's two states
+(`(mode & 0o111) ? 0o755 : 0o644`); `catalog.json` and every bound digest are
+byte-unchanged, so no approved proposal is invalidated by the fix itself.
+Guard: `tests/skill-tree-digest-reproducible.test.js`.
+[tree-digest reproducibility trace](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md)
+
+## Branch closeout gate (2026-09-02)
+
+Fix 3a and Fix 3b landed with 64/64 `path-b-hardening` tests green. The full
+CI gate then ran clean except four tests gated on a host capability
+(`unshare --user --net` network isolation) this sandbox does not have —
+pre-existing, unrelated to onboarding code, and worked around in real CI.
+Three human-only blockers remain before merge: the key-rotation
+authorization question, the `acceptance.md` wording re-sign, and two
+unfreeze-request signature blocks.
+[Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
+
+**qa-prod deploy review (2026-09-02) independently verified Path B onboarding.**
+AT-PB-10's closed failure set is complete: all nine hard-failure codes plus both
+growth warnings exist in `rig/lib/onboarding-check.js` (or `onboarding.js` for
+`malformed-graft`/`state-incomplete`) and each is seeded in
+`tests/path-b-weight.test.js`. The umask-dependent `tree_digest` fix
+(2026-09-02, `AT-PB-5`) was verified: a proposal approved on one machine now
+applies cleanly after a re-clone under a different umask. One medium finding
+from this review: `.claude/skills/wiki-maintenance/SKILL.md` has no
+`.agents/skills/wiki-maintenance/` counterpart, violating CLAUDE.md's parity
+rule; `scripts/check-rule-copies.js` compares rule copies but not skill-directory
+membership, so nothing in the gate caught this asymmetry.
+[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     branch-closeout gate trace. -->
+
+## Hardening oracle prepared (2026-09-03)
+
+The onboarding contract now adds eight adversarial behavior cases and four
+pattern ratchets before implementation: current proposal bytes, exclusive
+temporary writes, commit-time inventory, per-host projection, version
+authority, fail-closed verification, real MCP summaries, policy consistency,
+and recurrence checks across the four review themes. The mixed-host fixture now
+installs both a native and an instruction-only host, and the working design
+records exact installed host IDs rather than inferring fallback need from a
+global scope union. Production remains unchanged until owner signing.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+### Oracle corrected per owner review; production still blocked (2026-09-03)
+
+A report-only review found three of the eight cases could not pass under
+their own spec and one recurring-theme fixture would widen a latent
+instruction-only regression once shipped
+([oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)).
+The intent owner's itemized corrections are applied to both oracle files under
+a filed [unfreeze request](../gate1/unfreeze-requests/2026-09-03-onboarding-hardening-oracle-corrections.md);
+production code (`rig/lib/*`, both MCP entrypoints) remains untouched.
+Implementation of the eight hardening findings still waits on the owner
+re-signing the corrected 95-case oracle — this session could not run that
+ceremony (no SSH signing identity available in the sandbox).
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; Phase 1 implementation underway (2026-09-03)
+
+The owner re-signed the corrected 95-case oracle. A
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) closed
+the remaining CI-blocking doc drift (stale AT-HD trace titles in
+`wiki/gate2/technical-spec.md`). Production implementation of the eight
+onboarding-hardening findings (AT-HD-1..12, all `rig/lib/*` and MCP
+entrypoints) is now underway; the acceptance oracle stays red by design until
+each finding lands.
+
+### F2's O_EXCL guard narrows Issue N's crash-resume promise (2026-09-03)
+
+Implementing F2 (`AT-HD-2`, exclusive-create `atomicWrite`) surfaced a real
+interaction with the earlier Issue N interrupt-window feature: a crash that
+leaves a stale, fully-written `state.json.tmp` on disk now blocks the next
+`apply` with an actionable `EEXIST` error instead of resuming silently — the
+spec's own F2 risk note anticipated exactly this, requiring one operator `rm`
+before retry. See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### F4 lands: per-host scopes, plus two exposed latent defects (2026-09-03)
+
+`installedSkillScopes` now reads the exact installed host list from
+`.rig/release.json` (a new `hosts` field written at install time) and gives
+every host its own native-or-instruction-only decision — no host's scope is
+suppressed by another host's presence. Making the instruction-only scope
+reachable alongside a native scope for the first time exposed two latent
+defects: a false-negative in `rewriteProjectedName` for an idempotent rename,
+and a real conflict between Path B's name-consistency check and the legacy
+Tier 1 byte-identity contract for shared core-skill files. Both fixed; see
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### Phase 1 complete: F1–F8 all implemented (2026-09-03)
+
+F1 (proposal body digest, re-derived at the top of `apply()`) and F3
+(commit-time inventory recheck, mirroring the catalog-digest check) close
+out the eight onboarding-hardening findings. Both needed the same
+journal-resume carve-out (`writer.interrupted()`) F2 already established —
+a crashed apply's own disk writes are not third-party drift. All 21 AT-HD-*
+oracle cases (top-level + I-A/B/C/D sub-cases) now pass; so does the full
+`tests/path-b-*` regression suite (120/120). See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### Post-implementation code review found and fixed 4 real defects (2026-09-03)
+
+A 5-agent review of the full Phase 1 diff found the oracle's own coverage
+missed: F3's `interrupted()` carve-out wasn't scoped to the current
+proposal (fixed with a `transactionOwner` tag on the journal transaction);
+`instructionOnlyScope` lost the pre-F4 catch-all fallback for hosts outside
+`INSTRUCTION_ONLY_HOSTS` (e.g. `copilot-cli`), a real regression reproduced
+empirically and fixed by dropping that registry gate; the skill-name
+canonicalization was too permissive for native scopes (now
+scope-conditional); and a legitimate empty `hosts: []` install was
+misreported as malformed. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+### Two deferred review gaps closed pre-push (2026-09-03)
+
+The review above shipped the `transactionOwner`-scoped resume-signal fix with
+no regression test, and the `instructionOnlyScope` registry-gate deviation
+with the spec left describing the old (registry-gated) design. Both closed:
+`tests/path-b-hardening.test.js` gained `AT-PB-hard resume-scope`, which
+crashes a first proposal mid-apply, drifts the repo, applies an unrelated
+second proposal, and asserts the freshness check still fires — verified to
+fail against the pre-fix unscoped `writer.interrupted()` and pass against the
+fix. `wiki/gate2/onboarding-hardening-spec.md`'s F4 section now documents the
+ungated fallback as the current design, not the registry-gated original. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).

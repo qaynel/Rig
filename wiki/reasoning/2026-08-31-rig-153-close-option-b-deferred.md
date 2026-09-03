@@ -3,7 +3,7 @@ date: 2026-08-31
 source: intent owner
 topics: testing-strategy, onboarding-flow, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: RIG-153 closed — the adaptation-measurement instrument (option A) is delivered and frozen; the re-baseline run (option B) is carved out as RIG-156, deferred and low-priority until Path A and Path B are fully decided.

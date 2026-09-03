@@ -15,6 +15,11 @@ instead of quietly becoming a different service. Razor-scoped dependencies
 preserve user control while avoiding warn-and-stop installs. [Gate 1 §2](../gate1/business-spec.md)
 [Advanced grilling GA-9a and GA-9k](../sources/logs/advanced-grilling.md)
 
+The skill shelf follows the same identity rule: two sources may not silently
+share a declared name. Catalogue generation rejects the collision and names
+both source locations rather than changing one skill's identity to fit its
+directory. [Duplicate-name trace](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md)
+
 ## What binds it
 
 `AD-3` fixes source ownership, `AD-4` fixes cumulative grades, and `AD-5` fixes
@@ -48,6 +53,9 @@ either user-choice violations or unnecessary machinery. [Gate 2 §2.1](../gate2/
 - Semantic command discovery: [reasoning trace](../reasoning/2026-08-20-lint-format-semantic-discovery.md)
 - Exact Policy → Context → Evidence capability model: [reasoning trace](../reasoning/2026-08-20-linting-harness-capability-model.md)
 - Universal model with lint-format-only current focus: [reasoning trace](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
+- Strict duplicate skill names: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md)
+- Frozen-test drift during duplicate-name hardening: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md)
+- Final duplicate-name hardening review: [reasoning trace](../reasoning/2026-09-02-path-b-hardening-final-review.md)
 - Partial, truthful lint-format coverage: [reasoning trace](../reasoning/2026-08-20-lint-format-partial-coverage.md)
 - Gate 2 grade-ladder and lint-format mechanism design: [reasoning trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
 

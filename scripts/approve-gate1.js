@@ -14,6 +14,15 @@ const ENV_NAME = 'RIG_GATE1_SIGNING_KEY';
 const PRINCIPAL = 'gate1-owner';
 const NAMESPACE = 'rig-gate1';
 const MANIFEST = path.join('wiki', 'gate1', 'testing-infrastructure.manifest');
+// The public-key comment field is not verification data (ssh-keygen -Y verify
+// never reads it) and local keys carry personal/device labels by default —
+// pin it to a neutral constant so the committed file never leaks one.
+const KEY_COMMENT = 'gate1-signing-key';
+
+function neutralizeKeyComment(publicKey) {
+  const [keyType, keyData] = publicKey.trim().split(/\s+/);
+  return `${keyType} ${keyData} ${KEY_COMMENT}`;
+}
 
 function expandPath(value) {
   return value
@@ -145,9 +154,26 @@ function approveGate1(root = process.cwd(), options = {}) {
 
   run('ssh-keygen', ['-Y', 'sign', '-f', signingKey, '-n', NAMESPACE, messageFile], { env });
 
+  // Validate that the existing allowed-signers file has no non-owner principals
+  const allowedSignersPath = path.join(root, 'wiki/gate1/gate1.allowed-signers');
+  if (fs.existsSync(allowedSignersPath)) {
+    const existingContent = fs.readFileSync(allowedSignersPath, 'utf8');
+    for (const line of existingContent.split('\n')) {
+      const trimmed = line.trim();
+      // Skip empty lines and comments
+      if (!trimmed || trimmed.startsWith('#')) continue;
+
+      // Extract the principal (first word) and reject if it's not the owner
+      const parts = trimmed.split(/\s+/);
+      if (parts.length > 0 && parts[0] !== PRINCIPAL) {
+        throw new Error(`unexpected principal ${parts[0]} in gate1.allowed-signers (expected ${PRINCIPAL})`);
+      }
+    }
+  }
+
   fs.writeFileSync(
-    path.join(root, 'wiki/gate1/gate1.allowed-signers'),
-    `${PRINCIPAL} namespaces="${NAMESPACE}" ${publicKey}\n`,
+    allowedSignersPath,
+    `${PRINCIPAL} namespaces="${NAMESPACE}" ${neutralizeKeyComment(publicKey)}\n`,
   );
   fs.renameSync(`${messageFile}.sig`, path.join(root, 'wiki/gate1/gate1.sig'));
 

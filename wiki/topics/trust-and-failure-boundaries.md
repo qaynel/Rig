@@ -27,8 +27,9 @@ presence, global-write, and report cases make the failures observable.
 ## What was rejected
 
 Path traversal, escaping symlinks, unknown keys, shell execution during scans,
-stale/replayed approval, silent fallback, user-file replacement, artifact
-uploads, and unowned global deletion are refusals, not degraded success.
+stale/replayed approval, silent fallback, duplicate approval bindings,
+user-file replacement, artifact uploads, and unowned global deletion are
+refusals, not degraded success.
 [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 
 ## Authorities and sources
@@ -38,6 +39,10 @@ uploads, and unowned global deletion are refusals, not degraded success.
 - Security sources: [`sources/reference/`](../sources/reference/)
 - Lint-format execution-consent ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-plan-bound-execution.md)
 - Untrusted repository-task ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
+- Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
+- Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
+- Duplicate-name oracle adaptation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md)
+- Final duplicate-name hardening review: [reasoning trace](../reasoning/2026-09-02-path-b-hardening-final-review.md)
 
 ## What is still open
 
@@ -292,3 +297,114 @@ Those scoped capability controls are now implemented in the one canonical
 runner, with direct and installed-byte evidence for resource ceilings,
 three-state network handling, committed authority, and fail-closed outcomes.
 [Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
+
+## Onboarding hardening ratchets (2026-09-03)
+
+The pre-signing onboarding oracle now treats a stored digest as a witness, not
+the checked object: proposal bytes are re-derived before use, approval-time
+inventory is rechecked before mutation, predictable temporary files require
+exclusive creation, and verification exceptions cannot become empty success.
+Pattern-level tests also require host decisions to remain per-host and bind the
+MCP compact-text contract at the real adapter seam. These are red against the
+current implementation by design; no production fix precedes owner signing.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+An interrupted journalled delete is now recovered rather than left as a wedge.
+The pending `delete_owned` record states both ends of the operation, so a later
+`write()` or `remove()` can prove which half landed — an absent file means the
+unlink ran and only the applied record was lost; a file holding exactly the
+recorded preimage means the unlink never ran. Any other bytes are a genuine
+conflict and refuse. Before this, a crash between the two halves left the path
+neither writable (the pending delete's `desired_digest: null` matched no
+intended write) nor deletable (its non-null preimage read as pre-existing).
+[Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
+### Instruction-only scope cannot stage core skills (2026-09-03)
+
+Payload install writes core skills unprefixed under `.rig/skills/`
+(`debugging`, `onboarding`, …), but `planSkillProjections` looks for the
+`rig-`-prefixed name, so an instruction-only projection of any core skill fails
+with `required skill "rig-debugging" was not staged for instruction-only`.
+Today only instruction-only-exclusive installs hit it. The prepared `AT-HD-4`
+per-host scope fix adds instruction-only to every mixed install, which would
+widen the failure to Codex+Cursor repositories; the hardening spec does not
+account for it and the acceptance fixture selects only an optional skill.
+[Oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)
+
+### Resolution: naming is scope-specific, not skill-specific (2026-09-03)
+
+The fix is not "always emit the `rig-` prefix for core skills" — it is that
+each *scope* has its own naming rule. A core skill's catalogue name is already
+`rig-`-prefixed at the source (`rig-debugging`); an optional skill's is not
+(`qa`). Both project as `rig-<canonical-name>` under a native scope and as
+`<canonical-name>` (no prefix) under the instruction-only scope, matching
+`rig/tier-1/routing.md`'s router contract. The corrected `AT-HD-4` fixture now
+selects both an optional skill and the mandatory `rig-debugging` core skill
+across a Codex+Cursor install and asserts all four resulting paths plus the
+`applied.projections` host-scope set.
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; Phase 1 trust-boundary implementation underway (2026-09-03)
+
+The owner re-signed the corrected oracle covering this scope-specific naming
+fix (`AT-HD-4`) along with the rest of Phase 0. A
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) closed
+the remaining CI-blocking doc drift. Implementation of `AT-HD-4` and the other
+trust-boundary findings (tamper detection, inventory-drift fail-closed
+behavior, approval byte-binding) is now underway against the signed oracle.
+
+### Predictable-temp-path refusal does not distinguish attacker from operator (2026-09-03)
+
+F2's `atomicWrite` refuses *any* pre-existing byte at its predictable `.tmp`
+path with the same `EEXIST` error — an attacker-planted symlink and Rig's own
+stale temp from a prior crash look identical to the guard, by design (the
+spec's rejected-approach (a) explicitly rules out unlinking and retrying
+automatically, since that reopens the race). A legitimate crash recovery
+therefore now costs one operator `rm` where it previously resumed silently.
+See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### A shared file can carry two independently-true contracts (2026-09-03)
+
+`.rig/skills/<name>/SKILL.md` for the seven mandatory core skills is staged
+byte-identical to the native `rig-<name>` copies (legacy Tier 1's static
+router resolves by path, not frontmatter) — but Path B's `check()` also reads
+that same file's frontmatter and expects the declared name to match its own
+directory. Rewriting the shared bytes to satisfy Path B broke the legacy
+byte-identity test. Resolution: compare *canonical* identity (leading `rig-`
+stripped from both sides) instead of literal equality, so the one shared file
+satisfies both contracts without either one weakening. See
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### Resume-awareness is now a repeated pattern, not a one-off (2026-09-03)
+
+F1's proposal-body digest and F3's inventory recheck both needed the same
+`writer.interrupted()` carve-out F2 needed: a hardening guard correct for a
+fresh `apply()` misfires on a legitimate resume of a crashed one, because the
+crashed run's own disk writes look identical to third-party drift or tamper
+to a check that only compares before/after digests. Any future guard added
+to `apply()`'s top should ask this question first. See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### "Interrupted" alone isn't "mine" — the resume signal needed an owner tag (2026-09-03)
+
+Code review caught that `writer.interrupted()` reads a repo-wide shared
+journal (installer + every past proposal's apply), so an unrelated stale
+interruption could silently disable F3's freshness check for a genuinely
+fresh apply — the exact bypass F3 was built to close. `journalWriter` now
+accepts an optional `transactionOwner` tag, recorded on the transaction-open
+record and exposed via `interruptedOwner()`; `apply()` only treats an
+interruption as its own resume when the tag matches its own proposal
+digest. Also fixed in the same pass: `projectionFailures`' skill-name
+canonicalization was unconditionally lenient (would let a tampered
+native-scope file declaring an unprefixed name pass); now scope-conditional
+— exact match everywhere except the instruction-only scope. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+The owner-tagged scoping fix above shipped with no test proving the *scoped*
+half of the condition — every existing resume test only ever resumes a
+crashed transaction under its own still-current proposal. Closed pre-push
+with a test that crashes one proposal, abandons it, and applies a second,
+unrelated proposal against a drifted repo — checked-verified to fail against
+the pre-fix unscoped form and pass against the fix. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).

@@ -55,6 +55,15 @@ The neutral payload is independent of host detection, so bare repositories get
 the complete neutral product without receiving `.claude`, `.agents`, or other
 fabricated host trees.
 
+Inside Rig's own repo, the committed `.claude/skills/` and `.agents/skills/`
+authoring trees are held identical by a relative-path parity check in
+`scripts/check-rule-copies.js` (in the `npm test` gate): any skill file under
+one root and not the other fails the build. This closed a drift where
+`wiki-maintenance` and `rig-enforcement` existed only under `.claude/skills/`.
+A single-source expander that would make the duplication unnecessary is a
+deferred feature, not adopted —
+[parity-check trace](../reasoning/2026-09-02-skill-tree-parity-check.md).
+
 The GitHub Actions test job enables Ubuntu 24.04's rootless user-namespace
 setting and probes a working network namespace before running the suite. It
 also installs the bundled `rig-mcp` dependencies before the root oracle runs;

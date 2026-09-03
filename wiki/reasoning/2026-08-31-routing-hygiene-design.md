@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Technical design for RIG-151/RIG-152/RIG-124.2 — the exact reframed wording for four installed-payload sites (three in routing.md, one in tdd/SKILL.md x3 copies), the seams touched, the slice order and verification, and the one gate-mechanics point to confirm before implementation (approve-gate1.js is the MVP oracle ceremony, not re-armed per POLISH ticket).

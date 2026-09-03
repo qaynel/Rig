@@ -3,6 +3,7 @@ date: 2026-08-28
 source: intent owner
 topics: install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage
 decisions: D11
+status: historical
 ---
 
 Release-stopping: a forged repository-local install record can label an existing user CI pipeline as tool-owned and uninstall will delete it if the recorded digest matches. I reproduced this with a normal user Jenkins pipeline. The cleanup must not treat an editable journal as proof of exclusive ownership.

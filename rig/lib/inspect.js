@@ -5,7 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
-const { discoverHosts } = require('./host-capabilities');
+const { discoverHosts, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
+const { canonical } = require('./skill-catalog');
 
 const MAX_BYTES = 256 * 1024;
 const HARNESS_NAMES = new Set([
@@ -15,16 +16,8 @@ const HARNESS_NAMES = new Set([
   '.cursorrules',
   'copilot-instructions.md',
 ]);
-const HARNESS_DIRS = [
-  '.cursor/rules',
-  '.windsurf/rules',
-  '.clinerules',
-  '.agents/rules',
-  '.agents/skills',
-  '.claude/skills',
-  '.kiro/steering',
-  'hooks',
-];
+// Derived from the host registry; do not maintain a second hard-coded list.
+const HARNESS_DIRS = SCAN_ROOTS.map((r) => r.root);
 const SECRET_RE =
   /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[po]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----/gi;
 
@@ -85,6 +78,217 @@ function collectHarnessFiles(target) {
     walk(abs);
   }
   return out;
+}
+
+function toPosix(value) {
+  return value.split(path.sep).join('/');
+}
+
+function inside(root, candidate) {
+  return candidate === root || candidate.startsWith(`${root}${path.sep}`);
+}
+
+// Classify host from registry metadata rather than path-shape conditionals.
+function inventoryHost(rel) {
+  if (Object.prototype.hasOwnProperty.call(INSTRUCTION_FILE_HOSTS, rel)) {
+    return INSTRUCTION_FILE_HOSTS[rel];
+  }
+  for (const { root, host } of SCAN_ROOTS) {
+    if (rel === root || rel.startsWith(`${root}/`)) return host;
+  }
+  return 'generic';
+}
+
+// Classify kind from registry metadata rather than path-shape conditionals.
+function inventoryKind(rel) {
+  if (HARNESS_NAMES.has(rel) || Object.prototype.hasOwnProperty.call(INSTRUCTION_FILE_HOSTS, rel)) {
+    return 'instruction';
+  }
+  for (const { root, kind } of SCAN_ROOTS) {
+    if (rel === root || rel.startsWith(`${root}/`)) {
+      if (kind === 'skill-dir') {
+        return path.posix.basename(rel) === 'SKILL.md' ? 'skill' : 'skill-asset';
+      }
+      return kind;
+    }
+  }
+  return 'other';
+}
+
+function inventoryString(value) {
+  return redact(String(value)).replace(/\s+/g, ' ').trim();
+}
+
+function unquote(value) {
+  const text = value.trim();
+  if (text.length >= 2 && ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'")))) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+
+function inventoryFrontmatter(text) {
+  if (!text.startsWith('---\n')) return {};
+  const lines = text.split('\n');
+  const closingAt = lines.slice(1).findIndex((line) => line === '---');
+  if (closingAt === -1) throw new Error('malformed frontmatter');
+  const closing = closingAt + 1;
+  const fields = {};
+  for (let index = 1; index < closing; index += 1) {
+    const line = lines[index];
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const match = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
+    if (!match) throw new Error('malformed frontmatter');
+    const [, key, rest] = match;
+    const inline = rest.trim();
+    if (inline === '>' || inline === '|') {
+      const parts = [];
+      while (index + 1 < closing && /^\s/.test(lines[index + 1])) {
+        index += 1;
+        parts.push(lines[index].trim());
+      }
+      fields[key] = inline === '>' ? parts.join(' ').trim() : parts.join('\n').trim();
+      continue;
+    }
+    if (inline) {
+      fields[key] = unquote(inline);
+      continue;
+    }
+    const values = [];
+    let validSequence = true;
+    while (index + 1 <= closing && /^\s/.test(lines[index + 1])) {
+      index += 1;
+      const child = lines[index].trim();
+      if (!child) continue;
+      if (!child.startsWith('- ')) validSequence = false;
+      else values.push(unquote(child.slice(2)));
+    }
+    fields[key] = validSequence ? values : null;
+  }
+  return fields;
+}
+
+function inventoryMetadata(text, fallback) {
+  const fields = inventoryFrontmatter(text);
+  if (fields.name !== undefined && typeof fields.name !== 'string') throw new Error('malformed frontmatter name');
+  if (fields.title !== undefined && typeof fields.title !== 'string') throw new Error('malformed frontmatter title');
+  if (fields.capability !== undefined && (typeof fields.capability !== 'string' || !/^[a-z0-9-]+\.[a-z0-9-]+$/.test(fields.capability))) {
+    throw new Error('malformed frontmatter capability');
+  }
+  if (fields.overlap_tags !== undefined && (!Array.isArray(fields.overlap_tags)
+    || fields.overlap_tags.some((tag) => !/^[a-z0-9-]+$/.test(tag)))) {
+    throw new Error('malformed frontmatter overlap tags');
+  }
+  const headings = text.split('\n').flatMap((line) => {
+    const match = line.match(/^#{1,6}\s+(.+?)(?:\s+#+)?\s*$/);
+    return match ? [inventoryString(match[1])] : [];
+  }).filter(Boolean);
+  const capabilityTags = [
+    ...(fields.capability ? [fields.capability] : []),
+    ...(fields.overlap_tags || []),
+  ].map(inventoryString).filter(Boolean).sort();
+  return {
+    name: inventoryString(fields.name || fallback),
+    title: inventoryString(fields.title || fields.name || headings[0] || fallback),
+    headings,
+    capability_tags: [...new Set(capabilityTags)],
+  };
+}
+
+function inventoryOwnedPaths(root) {
+  const manifest = path.join(root, '.rig', 'install-manifest.jsonl');
+  if (!fs.existsSync(manifest)) return new Set();
+  const latest = new Map();
+  for (const line of fs.readFileSync(manifest, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const record = JSON.parse(line);
+      if (record.path && record.state === 'applied') latest.set(record.path, record);
+    } catch {
+      // A malformed journal cannot make untrusted repository content disappear
+      // from inventory; it simply contributes no ownership claim.
+    }
+  }
+  return new Set([...latest.values()]
+    .filter((record) => record.ownership === 'create_owned' || record.ownership === 'replace_owned')
+    .map((record) => record.path));
+}
+
+// Structural only: reads known harness locations, returns declared metadata,
+// and never interprets prose as an agent's desired capability.
+function inventoryHarness(target) {
+  const root = realpathOrNull(target);
+  if (!root) throw new Error('inventory: target must exist');
+  const entries = [];
+  const warnings = [];
+  const seenRealPaths = new Map();
+  const ownedPaths = inventoryOwnedPaths(root);
+  for (const file of collectHarnessFiles(root)) {
+    const rawRel = toPosix(path.relative(root, file));
+    let real;
+    try {
+      real = fs.realpathSync(file);
+    } catch (error) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: inventoryString(error.code || 'unreadable') });
+      continue;
+    }
+    if (!inside(root, real)) throw new Error(`inventory: escaping symlink rejected at ${rawRel}`);
+    const prior = seenRealPaths.get(real);
+    if (prior && prior !== rawRel) throw new Error(`inventory: duplicate real path alias ${prior} and ${rawRel}`);
+    seenRealPaths.set(real, rawRel);
+    if (ownedPaths.has(rawRel)) continue;
+    let stat;
+    try {
+      stat = fs.statSync(file);
+    } catch (error) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: inventoryString(error.code || 'unreadable') });
+      continue;
+    }
+    if (!stat.isFile()) {
+      warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: 'not a regular file' });
+      continue;
+    }
+    if (stat.size > MAX_BYTES) {
+      warnings.push({ path: inventoryString(rawRel), code: 'oversized', detail: `exceeds ${MAX_BYTES} byte limit` });
+      continue;
+    }
+    let bytes;
+    let text;
+    try {
+      bytes = fs.readFileSync(file);
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      warnings.push({ path: inventoryString(rawRel), code: 'non-utf8', detail: 'not valid UTF-8' });
+      continue;
+    }
+    const kind = inventoryKind(rawRel);
+    let metadata;
+    try {
+      metadata = inventoryMetadata(text, path.posix.basename(rawRel, '.md'));
+    } catch {
+      warnings.push({ path: inventoryString(rawRel), code: 'malformed-frontmatter', detail: 'declared metadata is malformed' });
+      continue;
+    }
+    entries.push({
+      path: inventoryString(rawRel),
+      host: inventoryHost(rawRel),
+      kind,
+      name: metadata.name,
+      title: metadata.title,
+      headings: metadata.headings,
+      capability_tags: metadata.capability_tags,
+      bytes: stat.size,
+      sha256: sha256(bytes),
+    });
+  }
+  entries.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  warnings.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+  return {
+    schema_version: 1,
+    digest: sha256(canonical({ entries, warnings })),
+    entries,
+    warnings,
+  };
 }
 
 function explicitHosts(host, hosts) {
@@ -225,6 +429,10 @@ function hostReview(inspection) {
 }
 
 module.exports = {
+  HARNESS_DIRS,
+  HARNESS_NAMES,
+  collectHarnessFiles,
+  inventoryHarness,
   MAX_BYTES,
   inspectTarget,
   hostReview,

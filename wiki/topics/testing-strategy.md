@@ -48,6 +48,20 @@ with AT-HOME-1 green.
 [RIG-154 design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md),
 [RIG-154 close-out](../reasoning/2026-08-31-rig-154-close-out.md)
 
+The same green-in-CI, red-on-fresh-clone shape recurred 2026-09-02 in the
+skill-shelf `tree_digest`. `skillTreeDigest` hashed `fs.statSync(file).mode &
+0o777` — nine permission bits, of which git tracks only owner-execute — so a
+checkout under `umask 002` moved every catalogue row's digest and turned
+`build-skill-catalog.js --check` red. The `--check` gate cannot catch it: it
+regenerates and string-compares inside one process, where the umask cancels.
+Fix landed the same day — `mode` collapsed to git's two states (`(mode & 0o111)
+? 0o755 : 0o644`), `catalog.json` byte-unchanged — with a non-frozen guard
+`tests/skill-tree-digest-reproducible.test.js` that holds bytes constant, varies
+`chmod`, and asserts the digest does not move (the reproducibility check the
+`--check` gate structurally cannot be). Auto-discovered by the `tests/*.test.js`
+glob, no Gate-1 re-sign — same precedent as `tests/wiki-maintenance-lint.test.js`.
+[tree-digest reproducibility trace](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md)
+
 ## Authorities and sources
 
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)
@@ -58,11 +72,13 @@ with AT-HOME-1 green.
 
 ## What is still open
 
-The executable specification gate now exists and runs first:
-`node scripts/check-advanced-spec.js` verifies the owner signature over the
-five-file manifest before any code test, and the 73 cases (D24 + D28) report
-73 pass / 0 fail. That closes the gap this section used to describe and opens
-a different one.
+The prior executable specification gate ran first and proved the signed
+73-case D24/D28 oracle green. Path B expanded the exact testing manifest from
+five to 14 files and the oracle to 83 cases. The amended oracle is now signed
+and verified before every implementation run; its frozen tests remain the
+contract while the adaptive-onboarding slices turn the original red product
+failures green.
+[Implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 **A green oracle alone is not evidence that the product works.** The 2026-08-22
 fresh review found that the oracle bound behavior only by direct
@@ -113,6 +129,15 @@ human-operated judge, model pin string source, a malformed handoff
 blocker-check) are recorded on RIG-156.
 [close-out ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md)
 
+**Path B oracle authored (2026-08-31).** Ten independently visible cases cover
+the six foundational and four support contracts at the real catalogue,
+inventory, state, graft, shared-domain, CLI/MCP, installer, router, and checker
+seams. Exact ID/title/trace equality is 83/83/83 and all 14 manifest hashes
+match. The agent-derived criteria are explicitly presented for owner review;
+they are not frozen until the human signature, and implementation remains
+blocked.
+[acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+
 Those two checks used to return `failures: []` unconditionally. They no longer
 do. `authorshipReport()` opens each fragment file; `contractFor()` reads
 declared host-contract fields instead of inventing them. The signed cases still
@@ -152,3 +177,136 @@ RIG-143 adds AT-PROC-1d for the network conjunct on `runGrade`: the test
 covers isolation, explicit grants, and refusal when the host cannot provide
 the sandbox. Full text: [guarantee sharding § acceptance criteria](../mistakes/guarantee-sharding.md#acceptance-criteria-at-proc-1).
 [reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
+
+**Wiki-maintenance lint wired without a Gate 1 re-sign (routine Step 6,
+2026-09-02).** `scripts.test:code`'s exact string is digest-pinned in the
+signed oracle, so `node scripts/wiki-maintenance.js lint` cannot be spliced
+into that chain without a human key-holder ceremony. Instead
+`tests/wiki-maintenance-lint.test.js` asserts `lintFindings(repoRoot,
+traces(repoRoot))` is empty; `npm test`'s existing `tests/*.test.js` glob
+picks it up automatically, so a stale hub or an untagged post-floor trace
+fails the same way any other test fails. `staleHubs` counts a citing trace
+toward a hub's freshness regardless of `status` (a trace filed straight to
+`historical` still owes its hub a sync) but only for traces dated on/after
+`FRONTMATTER_FLOOR` (2026-09-02) — the same grandfather line the
+frontmatter-completeness check uses, so the lint's introduction does not
+retroactively flag the wiki's pre-existing drift. The trace side of the
+staleness comparison uses each trace's first-add commit, not its latest
+commit, so a later lifecycle-flip edit (current → historical) re-committing
+the file cannot retrigger staleness against a hub that already absorbed it.
+[step6-lints trace](../reasoning/2026-09-02-wiki-maintenance-step6-lints.md)
+
+<!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
+     step6-lints trace. -->
+
+## Review themes become executable ratchets (2026-09-03)
+
+The onboarding hardening oracle now separates concrete adversarial behavior
+from pattern prevention. Eight cases mutate the real state, filesystem, host,
+catalogue, verification, MCP, and policy boundaries. Four additional cases scan
+for the recurring shapes: wrong trust object/fail-open handling, stale global
+snapshots, parallel authorities, and tests that simulate rather than drive the
+shipped seam. The MCP test now uses a real SDK client; source-order checks are
+paired with behavioral tests so neither static shape nor happy-path output is
+the sole evidence.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+### What the pattern ratchets cost (2026-09-03)
+
+Review of the prepared invariant suite recorded the price of freezing
+source-shape checks under Gate 1: `AT-HD-9`–`AT-HD-12` pin a function's
+parameter count, three specific identifier names, and a regex-scanned catch
+shape, so a later rename or refactor of those seams needs an owner re-sign, not
+just a green suite. Two of the checks also read as coverage they do not provide
+— the version-literal scan is built from the current `package.json` version, so
+it goes blind exactly when the version drifts, and the trace-policy check is a
+string proxy that fails on a document stating the correct rule in natural
+wording.
+[Oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)
+
+### Source-shape ratchets replaced with adversarial behavior proofs (2026-09-03)
+
+Four of the identifier/shape ratchets the review flagged (`I-A-1`, `I-A-3`,
+`I-B-1`, `I-B-2`) are rewritten as behavioral tests that drive the real
+`handleOnboarding` seam and assert on observable outcomes — no journal or
+graft-target mutation when a tamper or an inventory drift is detected, correct
+per-host projection under a second native/instruction-only host pair, and an
+end-to-end exception-propagation proof through a symlinked scan-root file —
+instead of parsing source text for a literal function name or an exact
+parameter count. Two checks stay source-level (`I-A-2`'s O_EXCL open,
+`I-D-1`'s MCP text-channel ban) because they pin a stable forbidden
+*primitive*, not an identifier's spelling. The version-literal scan (`I-C-2`)
+now rejects any quoted `vX.Y.Z`-shaped literal unconditionally, rather than one
+built from the currently-installed version.
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; wiki doc-consistency invariants (I-C-1..3) added (2026-09-03)
+
+Following the re-sign, a
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) found
+and fixed doc-consistency drift the corrected oracle now checks for: a
+hardcoded `releaseTag` default in `rig/lib/skill-catalog.js` (I-C-1/I-C-2,
+prevention strategy 5 — one source of truth per constant, derived from
+`package.json` at call time) and a missing cross-citation between
+`wiki/reasoning/README.md` and `.claude/skills/wiki-maintenance/SKILL.md`
+asserting the body-immutable/frontmatter-mutable split (I-C-3, prevention
+strategy 9).
+
+### Fault-injection point must track the implementation, not just the symptom (2026-09-03)
+
+`tests/path-b-hardening.test.js`'s Issue N crash simulation patched
+`fs.writeFileSync` to fire mid-write; once F2 rewrote `atomicWrite` to use
+`openSync`/`writeSync`/`closeSync`, that patch point stopped intercepting
+anything and the test's real assertion (state survives an interrupted apply
+without permanent wedging) went unchecked instead of failing loudly. The fix
+moved the injection to `fs.renameSync` — `atomicWrite`'s actual commit
+point post-F2 — and added an explicit assertion that the immediate re-apply
+throws the F2 guard before the operator-remediation step. See
+[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### A non-AT-HD test caught a real F4 regression the oracle didn't cover (2026-09-03)
+
+`tests/rig-bootstrap.test.js`'s legacy Tier 1 byte-identity assertion — not
+any `AT-HD-*` or `tests/path-b-*` case — is what caught that rewriting shared
+core-skill bytes to satisfy Path B's name check broke the static router
+contract. A reminder that the full regression suite, not just the oracle
+slice under active work, is part of every slice's verification loop. See
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### A test's tampering technique can itself be retired by the fix under test (2026-09-03)
+
+`AT-PB-hard binding — duplicate approved binding rows are rejected` reached
+its target check by hand-editing `state.json` post-propose — exactly the
+attack F1 now closes. Once closed, the test needed to model the duplicate
+binding as baked into a self-consistently-signed proposal instead (recompute
+`proposal.digest` via `proposalBodyDigest` after injecting the duplicate,
+sign against the new digest) to keep exercising `verifySkillBindings`'
+defense-in-depth rather than F1's tamper check. See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### A multi-agent code review found what the oracle's own tests didn't (2026-09-03)
+
+Five parallel review agents (CLAUDE.md conventions, simplification/reuse,
+removed-behavior audit, cross-file caller tracing, line-by-line scan) read
+the full Phase 1 diff independently; two of them separately surfaced the
+same `writer.interrupted()` scoping gap, and between them found three more
+real defects (a lost host-scope fallback, an over-broad name-tolerance, a
+false-negative on legitimate empty host lists) that no `AT-HD-*` case or
+`tests/path-b-*` regression exercised. One finding (`instructionOnlyScope`'s
+host-registry gate) was verified empirically — reproduced the failure with
+a hand-built apply() call, confirmed the fix resolves it — rather than
+trusted from code reading alone. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
+
+### The unscoped-resume fix got its missing regression test (2026-09-03)
+
+`tests/path-b-hardening.test.js` gained `AT-PB-hard resume-scope`, covering
+the one review-found defect that had shipped with no test. A first draft
+used a differently-worded graft body on the second proposal to force a
+distinct digest, which accidentally tripped a *different* guard
+(`preflightGrafts`'s "changed pending payload write" mismatch) and passed
+even against the broken pre-fix code — a false-positive regression test.
+Fixed by keeping the graft path/content identical across both proposals and
+driving the digest difference through the summary text instead, isolating
+the inventory-freshness check under test. See
+[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).

@@ -3,6 +3,7 @@ date: 2026-08-29
 source: agent
 topics: policy-model, trust-and-failure-boundaries, host-and-ci-coverage
 decisions: AD-39, GA-38
+status: historical
 ---
 
 # RIG-120 capability-policy close-out

@@ -3,6 +3,7 @@ date: 2026-08-20
 source: intent owner
 topics: host-and-ci-coverage
 decisions:
+status: historical
 ---
 
 Resolves the open question from

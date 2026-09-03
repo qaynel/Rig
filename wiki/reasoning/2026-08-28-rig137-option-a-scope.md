@@ -3,6 +3,7 @@ date: 2026-08-28
 source: intent owner
 topics: trust-and-failure-boundaries
 decisions:
+status: historical
 ---
 
 Grilled RIG-137 (#91) with the intent owner before touching code.

@@ -3,6 +3,7 @@ date: 2026-08-28
 source: agent
 topics: trust-and-failure-boundaries, testing-strategy
 decisions:
+status: historical
 ---
 
 # Grilling: runGrade has no network isolation (G2 from the PR #83 review)

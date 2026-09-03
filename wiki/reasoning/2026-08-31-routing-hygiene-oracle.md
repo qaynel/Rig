@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags:
 summary: Grilling oracle for RIG-151/RIG-152/RIG-124.2 — acceptance as observable cases plus tests/installed-router-hygiene.test.js (3 tests, currently red). Also the first instance of the mechanical breakage-count lint RIG-153 specifies. Remaining gate input: the reframed wording for the three routing.md sites (rig-product-design).
