@@ -76,7 +76,11 @@ server.registerTool(
   },
   (request) => {
     const result = handleOnboarding(request);
-    return { content: [{ type: "text", text: JSON.stringify({ next_action: result.next_action, ...result }) }], structuredContent: result };
+    const failures = result.hard_failures?.length || 0;
+    const text = failures
+      ? `${result.phase} → ${result.next_action} (${failures} hard ${failures === 1 ? 'failure' : 'failures'})`
+      : `${result.phase} → ${result.next_action}`;
+    return { content: [{ type: "text", text }], structuredContent: result };
   },
 );
 
