@@ -170,8 +170,9 @@ function findOptionalSources(shelfRoot = SKILL_ROOT) {
 // proposal binds this value so an edit to any staged file — a reference doc, a
 // sibling playbook — invalidates an approval that was granted for the old
 // bytes. Walk order is normalized (sorted readdir) and mode is collapsed to
-// git's two states (exec / non-exec) so the digest is a function of tracked
-// content only, not the checkout machine's umask.
+// git's two permission states (exec / non-exec), making the digest independent
+// of the checkout machine's umask. Untracked files in the skill directory are
+// included; keep skill source directories clean of editor/OS artifacts.
 function sourceFile(sourceRel, shelfRoot = SKILL_ROOT) {
   const prefix = `${SKILL_ROOT_REL}/`;
   return sourceRel.startsWith(prefix)
