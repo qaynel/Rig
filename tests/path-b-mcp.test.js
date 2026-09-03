@@ -3,37 +3,14 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 const test = require('node:test');
 
 const h = require('./helpers/path-b');
 
-async function clientModules() {
-  const sdk = path.join(h.root, 'rig-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm');
-  assert.ok(fs.existsSync(sdk), 'rig-mcp dependencies must be bootstrapped by the root pretest');
-  const [{ Client }, { StdioClientTransport }] = await Promise.all([
-    import(pathToFileURL(path.join(sdk, 'client/index.js')).href),
-    import(pathToFileURL(path.join(sdk, 'client/stdio.js')).href),
-  ]);
-  return { Client, StdioClientTransport };
-}
-
-async function withClient(serverPath, run, env = process.env) {
-  const { Client, StdioClientTransport } = await clientModules();
-  const transport = new StdioClientTransport({ command: process.execPath, args: [serverPath], env });
-  const client = new Client({ name: 'path-b-oracle', version: '1.0.0' });
-  await client.connect(transport);
-  try {
-    return await run(client);
-  } finally {
-    await client.close();
-  }
-}
-
 test('AT-PB-5 MCP exposes the same four-action schema with conservative annotations', async () => {
   const server = path.join(h.root, 'rig-mcp/index.js');
   assert.match(fs.readFileSync(server, 'utf8'), /rig_onboarding/, 'root MCP has no Path B tool registration');
-  await withClient(server, async (client) => {
+  await h.withMcpClient(server, async (client) => {
     const tools = await client.listTools();
     const onboarding = tools.tools.find(({ name }) => name === 'rig_onboarding');
     assert.ok(onboarding, 'rig_onboarding is not registered');
@@ -59,8 +36,8 @@ test('AT-PB-5 domain CLI and root/installed MCP return behaviorally identical re
     fs.symlinkSync(path.join(h.root, 'rig-mcp/node_modules'), installedModules, 'dir');
     const request = { schema_version: 1, action: 'prepare', target };
     const direct = h.handle(request);
-    const rootResult = await withClient(rootServer, (client) => client.callTool({ name: 'rig_onboarding', arguments: request }));
-    const installedResult = await withClient(installedServer, (client) => client.callTool({ name: 'rig_onboarding', arguments: request }));
+    const rootResult = await h.withMcpClient(rootServer, (client) => client.callTool({ name: 'rig_onboarding', arguments: request }));
+    const installedResult = await h.withMcpClient(installedServer, (client) => client.callTool({ name: 'rig_onboarding', arguments: request }));
     assert.deepEqual(rootResult.structuredContent, direct);
     assert.deepEqual(installedResult.structuredContent, direct);
     assert.deepEqual(rootResult.structuredContent, installedResult.structuredContent);
@@ -72,7 +49,7 @@ test('AT-PB-5 listing the onboarding tool never auto-runs preparation', async ()
   await h.withRepo(async (target) => {
     const state = path.join(target, '.rig/state.json');
     assert.equal(fs.existsSync(state), false);
-    await withClient(path.join(h.root, 'rig-mcp/index.js'), async (client) => {
+    await h.withMcpClient(path.join(h.root, 'rig-mcp/index.js'), async (client) => {
       const tools = await client.listTools();
       assert.ok(tools.tools.some(({ name }) => name === 'rig_onboarding'));
       assert.equal(fs.existsSync(state), false);
@@ -133,7 +110,7 @@ test('AT-PB-9 domain and MCP load the installed canonical playbook bytes', async
     const server = path.join(target, '.rig/runtime/rig-mcp/index.js');
     assert.match(fs.readFileSync(server, 'utf8'), /rig_onboarding/);
     fs.symlinkSync(path.join(h.root, 'rig-mcp/node_modules'), path.join(target, '.rig/runtime/rig-mcp/node_modules'), 'dir');
-    const result = await withClient(server, (client) => client.callTool({
+    const result = await h.withMcpClient(server, (client) => client.callTool({
       name: 'rig_onboarding',
       arguments: { schema_version: 1, action: 'prepare', target },
     }));

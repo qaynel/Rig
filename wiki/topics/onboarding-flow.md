@@ -460,3 +460,29 @@ membership, so nothing in the gate caught this asymmetry.
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
+
+## Hardening oracle prepared (2026-09-03)
+
+The onboarding contract now adds eight adversarial behavior cases and four
+pattern ratchets before implementation: current proposal bytes, exclusive
+temporary writes, commit-time inventory, per-host projection, version
+authority, fail-closed verification, real MCP summaries, policy consistency,
+and recurrence checks across the four review themes. The mixed-host fixture now
+installs both a native and an instruction-only host, and the working design
+records exact installed host IDs rather than inferring fallback need from a
+global scope union. Production remains unchanged until owner signing.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+### Oracle corrected per owner review; production still blocked (2026-09-03)
+
+A report-only review found three of the eight cases could not pass under
+their own spec and one recurring-theme fixture would widen a latent
+instruction-only regression once shipped
+([oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)).
+The intent owner's itemized corrections are applied to both oracle files under
+a filed [unfreeze request](../gate1/unfreeze-requests/2026-09-03-onboarding-hardening-oracle-corrections.md);
+production code (`rig/lib/*`, both MCP entrypoints) remains untouched.
+Implementation of the eight hardening findings still waits on the owner
+re-signing the corrected 95-case oracle — this session could not run that
+ceremony (no SSH signing identity available in the sandbox).
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)

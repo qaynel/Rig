@@ -298,6 +298,17 @@ runner, with direct and installed-byte evidence for resource ceilings,
 three-state network handling, committed authority, and fail-closed outcomes.
 [Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
 
+## Onboarding hardening ratchets (2026-09-03)
+
+The pre-signing onboarding oracle now treats a stored digest as a witness, not
+the checked object: proposal bytes are re-derived before use, approval-time
+inventory is rechecked before mutation, predictable temporary files require
+exclusive creation, and verification exceptions cannot become empty success.
+Pattern-level tests also require host decisions to remain per-host and bind the
+MCP compact-text contract at the real adapter seam. These are red against the
+current implementation by design; no production fix precedes owner signing.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
 An interrupted journalled delete is now recovered rather than left as a wedge.
 The pending `delete_owned` record states both ends of the operation, so a later
 `write()` or `remove()` can prove which half landed — an absent file means the
@@ -307,3 +318,28 @@ conflict and refuse. Before this, a crash between the two halves left the path
 neither writable (the pending delete's `desired_digest: null` matched no
 intended write) nor deletable (its non-null preimage read as pre-existing).
 [Ownership fix trace](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md)
+
+### Instruction-only scope cannot stage core skills (2026-09-03)
+
+Payload install writes core skills unprefixed under `.rig/skills/`
+(`debugging`, `onboarding`, …), but `planSkillProjections` looks for the
+`rig-`-prefixed name, so an instruction-only projection of any core skill fails
+with `required skill "rig-debugging" was not staged for instruction-only`.
+Today only instruction-only-exclusive installs hit it. The prepared `AT-HD-4`
+per-host scope fix adds instruction-only to every mixed install, which would
+widen the failure to Codex+Cursor repositories; the hardening spec does not
+account for it and the acceptance fixture selects only an optional skill.
+[Oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)
+
+### Resolution: naming is scope-specific, not skill-specific (2026-09-03)
+
+The fix is not "always emit the `rig-` prefix for core skills" — it is that
+each *scope* has its own naming rule. A core skill's catalogue name is already
+`rig-`-prefixed at the source (`rig-debugging`); an optional skill's is not
+(`qa`). Both project as `rig-<canonical-name>` under a native scope and as
+`<canonical-name>` (no prefix) under the instruction-only scope, matching
+`rig/tier-1/routing.md`'s router contract. The corrected `AT-HD-4` fixture now
+selects both an optional skill and the mandatory `rig-debugging` core skill
+across a Codex+Cursor install and asserts all four resulting paths plus the
+`applied.projections` host-scope set.
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)

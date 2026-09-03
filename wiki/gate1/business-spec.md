@@ -404,6 +404,17 @@ infrastructure form the oracle that is signed once before implementation.
 > adopts it so implementation cannot silently weaken the boundary. The intent
 > owner's signature is still required before any Path B implementation begins.
 
+> **Revision note (2026-09-03) — onboarding hardening and recurrence
+> prevention.** The intent owner requires the eight review findings to be fixed
+> and the four recurring defect themes to become executable ratchets before the
+> oracle is signed again. Trust checks bind current bytes and fail closed;
+> approval-time observations are re-derived at mutation time and evaluated per
+> host; duplicated authorities derive, cross-cite, or assert parity; and
+> adversarial tests drive shipped seams rather than simulate them. Twelve cases,
+> `AT-HD-1` through `AT-HD-12`, grow the active set from **83** to **95**.
+> Production changes remain blocked until the intent owner signs these exact
+> acceptance and testing-infrastructure bytes.
+
 ## 1. Problem & outcome
 
 **Problem.** Developers onboard AI agents into repos with inconsistent, unsafe, ad-hoc setups — local
@@ -789,6 +800,11 @@ profiling; Infrastructure keeps capacity load); runtime secret *injection* → *
    unknown vendor prefix into a capability choice. Existing bytes and
    infrastructure remain authoritative unless the exact marked change is
    approved, and success requires complete state plus mechanical post-checks.
+8. **Hardening findings become prevention rules** — integrity is derived from
+   the bytes at the point of use, verification failures never become clean
+   results, approval-time facts are rechecked before mutation, per-host choices
+   stay per-host, duplicated authorities cannot drift silently, and each
+   review-discovered defect class leaves an adversarial test at a shipped seam.
 
 ## 8. The gate and technical handoff
 

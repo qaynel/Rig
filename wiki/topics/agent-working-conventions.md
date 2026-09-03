@@ -74,6 +74,17 @@ backed by `scripts/wiki-maintenance.js`. It is authoring-time only and not
 installed into other repositories.
 [2026-09-02 trace](../reasoning/2026-09-02-wiki-maintenance-skill.md)
 
+The authoring-time counterpart is a proposed `realignment` skill that
+runs on demand to close the issues→fix→review loop and reconcile drift
+between authoring surfaces (skills, rules, wiki). The design is filed as
+the highest-priority deferred item: convert `wiki/mistakes/` into a
+mixed prose+enforcement ledger, add a rule-extraction step to
+`rig-code-review` closeout, add trap-consultation to `rig-grilling` and
+`rig-product-design` closeouts, land CI greps for machine-checkable
+patterns, and evolve the harness to load context per-phase rather than
+statically. Not yet implemented.
+[2026-09-02 closed-loop + realignment trace](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md)
+
 The routine's Step 5 replaced the multi-file read contract above with one
 mandated page: `wiki/agent-primer.md` routes the reader through `Home.md`,
 `status.md`, the four most-used topic hubs, and the four core indexes, states
@@ -122,6 +133,7 @@ state changes, rather than adding a second live-state mechanism.
   [implementation trace](../reasoning/2026-08-25-rig124-implementation.md),
   token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
 - Single primer page (routine Step 5): [2026-09-02 primer trace](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)
+- Closed-loop workflow + realignment skill + adaptive harness (highest-priority deferred): [2026-09-02 trace](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md)
 
 ## What's still open
 

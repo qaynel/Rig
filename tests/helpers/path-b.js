@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const { spawnSync } = require('node:child_process');
 const { signApproval } = require('./path-b-approval');
 
@@ -58,11 +59,29 @@ async function withRepo(run, { hosts = ['codex'], install = false } = {}) {
 
 function installRuntime(target, hosts = ['codex']) {
   const { runPayload } = require(path.join(root, 'rig', 'lib', 'payload.js'));
-  return runPayload(target, hosts, { activeDelivery: true, releaseTag: 'v5.0.0' });
+  const { version } = require(path.join(root, 'package.json'));
+  return runPayload(target, hosts, { activeDelivery: true, releaseTag: `v${version}` });
 }
 
 function handle(request) {
   return api('onboarding.js', 'handleOnboarding')(request);
+}
+
+async function withMcpClient(serverPath, run, env = process.env) {
+  const sdk = path.join(root, 'rig-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm');
+  assert.ok(fs.existsSync(sdk), 'rig-mcp dependencies must be bootstrapped by the root pretest');
+  const [{ Client }, { StdioClientTransport }] = await Promise.all([
+    import(pathToFileURL(path.join(sdk, 'client/index.js')).href),
+    import(pathToFileURL(path.join(sdk, 'client/stdio.js')).href),
+  ]);
+  const transport = new StdioClientTransport({ command: process.execPath, args: [serverPath], env });
+  const client = new Client({ name: 'path-b-oracle', version: '1.0.0' });
+  await client.connect(transport);
+  try {
+    return await run(client);
+  } finally {
+    await client.close();
+  }
 }
 
 function summary(overrides = {}) {
@@ -181,6 +200,7 @@ module.exports = {
   sha256,
   summary,
   walk,
+  withMcpClient,
   withRepo,
   writeJson,
 };

@@ -285,6 +285,14 @@
 > catalogue. The executable cases are red before Path B implementation and
 > become frozen only when the intent owner signs the amended oracle.
 
+> **Revision note (2026-09-03) — onboarding hardening and recurrence
+> prevention.** Eight adversarial cases (`AT-HD-1` through `AT-HD-8`) freeze the
+> concrete review findings. Four pattern cases (`AT-HD-9` through `AT-HD-12`)
+> freeze the trust-boundary, snapshot, parallel-authority, and false-green
+> prevention rules requested by the intent owner. The ID set grows from **83**
+> to **95**. Both hardening test files are part of the signed testing
+> infrastructure and are expected to be red before implementation.
+
 ## 7. Acceptance tests (the Gate-1 target)
 
 These are observable cases approved by the owner. Their deterministic executable form
@@ -1093,6 +1101,62 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   non-discoverable runtime source plus one approved native projection is not a
   duplicate, and legitimate projections into distinct approved host scopes are
   reported rather than failed.
+
+### J. Onboarding hardening and recurrence prevention (2026-09-03)
+
+- **AT-HD-1 (approval binds the current proposal body).** *Given* a valid
+  approval and a proposal body changed afterwards while its stored digest is
+  left unchanged, *when* apply runs, *then* it re-derives the canonical body
+  digest and refuses before any repository-owned byte changes.
+- **AT-HD-2 (predictable temporary files cannot redirect writes).** *Given* a
+  state temporary path pre-created as a symlink outside the repository, *when*
+  an atomic state write runs, *then* exclusive creation refuses before any byte
+  reaches the outside target.
+- **AT-HD-3 (approval-time inventory is rechecked before commit).** *Given* a
+  signed proposal and a repository file added afterwards, *when* apply runs,
+  *then* it re-inventories and refuses before mutation rather than silently
+  baselining the new file.
+- **AT-HD-4 (mixed hosts receive independent discovery scopes).** *Given* a
+  Codex-plus-Cursor install, *when* an approved skill is projected, *then* both
+  the Codex-native and instruction-only destinations receive it. Installed
+  hosts are evaluated one by one; a non-empty native union cannot suppress a
+  fallback host.
+- **AT-HD-5 (release version has one authority).** *Given* the release
+  catalogue builder and public install examples, *when* their version sources
+  are inspected, *then* the builder requires a caller-supplied version derived
+  from the package manifest and every public example matches it. A hardcoded
+  library default fails.
+- **AT-HD-6 (broken inventory verification fails closed).** *Given* an
+  inventory traversal that throws, *when* the drift verifier runs, *then* the
+  exception propagates or becomes a hard failure. Returning an empty finding
+  set fails.
+- **AT-HD-7 (MCP text is a real concise adapter response).** *Given* either
+  shipped onboarding MCP adapter, *when* its tool is called, *then* the text
+  channel names phase and next action in fewer than 300 characters and differs
+  from the structured payload's JSON. Recreating the handler output inside the
+  test instead of calling the adapter fails.
+- **AT-HD-8 (trace body and metadata mutability agree).** *Given* the reasoning
+  policy and wiki-maintenance instructions, *when* they are read together,
+  *then* both state that trace bodies are immutable, frontmatter metadata is
+  mutable, and each document points to the other.
+- **AT-HD-9 (trust-boundary checks reject the defect shape).** *Given* the
+  onboarding trust boundary, *then* proposal bytes are re-hashed before their
+  first field is consumed, predictable state-temp writes use exclusive
+  creation, and every verification catch rethrows or records a hard failure.
+- **AT-HD-10 (time and host observations stay local to the decision).**
+  *Given* apply and skill-scope planning, *then* inventory is re-derived and
+  compared before the mutating writer exists, and installed hosts are passed
+  into a per-host scope loop with no aggregate-empty fallback.
+- **AT-HD-11 (parallel authorities cannot drift silently).** *Given* release
+  versions, duplicated MCP packaging, and duplicated trace policy prose, *then*
+  no runtime library embeds the package version, both MCP sources remain
+  byte-identical, and both policy documents cross-cite the same body-immutable,
+  frontmatter-mutable rule.
+- **AT-HD-12 (the adversarial oracle cannot become a happy-path simulator).**
+  *Given* the hardening design and tests, *then* every numbered finding has an
+  exact substantive adversarial test title, no finding/test ID exists on only
+  one side, and the compact-MCP case drives the real adapter rather than a
+  locally reconstructed response.
 
 Post-launch update cadence, permanent maintenance staffing, commercial
 ownership, and support processes are intentionally deferred until the product

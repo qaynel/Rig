@@ -179,3 +179,40 @@ only in this hub. Awaiting owner confirmation; nothing signed or committed.
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
+
+## Onboarding hardening amendment awaiting signature (2026-09-03)
+
+The next oracle amendment is prepared at 95 active cases: eight concrete
+onboarding hardening failures plus four recurrence-prevention themes. Both new
+test files are in the stable manifest, the acceptance and traceability ID sets
+match, and the tests deliberately remain red until implementation. The current
+signature must remain stale; only the intent owner runs the approval ceremony.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+### Review blocked the 2026-09-03 signature (2026-09-03)
+
+An independent report-only review of the prepared 95-case amendment found three
+cases that cannot go green under their own technical spec (`AT-HD-3`'s fixture
+mutates a path the bounded inventory harness never scans; `AT-HD-4` asserts
+projection paths without the mandatory `rig-` prefix; `AT-HD-6`'s expected-error
+regex does not match the error the harness actually raises), plus a
+spec-versus-test contradiction on whether a broken verifier may record a hard
+failure instead of throwing. Because a signed oracle can only be corrected
+through an unfreeze request, the ceremony waits until the oracle bytes can pass.
+[Oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)
+
+### Oracle corrected under an unfreeze request; owner re-sign pending (2026-09-03)
+
+The intent owner supplied an itemized correction for every review finding.
+All eight corrections are applied to the two AT-HD-* test files plus
+`tests/helpers/path-b.js` and `tests/advanced-oracle.test.js` (both also
+frozen, both carrying pre-existing version-authority defects the hardening
+work is meant to close). `node scripts/check-advanced-spec.js` correctly
+reports the manifest digests as changed — the corrected bytes are unsigned by
+design. The dated
+[unfreeze request](../gate1/unfreeze-requests/2026-09-03-onboarding-hardening-oracle-corrections.md)
+records the authorization and evidence trail; no SSH signing identity is
+available in the environment that made these corrections, so the owner must
+run `node scripts/approve-gate1.js` on a machine holding the gate1 signing
+key before Phase 1 (production) implementation may begin.
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)

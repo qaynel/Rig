@@ -1,6 +1,6 @@
 # Acceptance case index
 
-The 83 Gate-1 cases. Their deterministic executable targets join them in the
+The 95 Gate-1 cases. Their deterministic executable targets join them in the
 oracle: each must fail before its behavior exists and pass only when the product
 intent is met. The ten Path B cases are authored and owner-approved under the
 oracle signed 2026-09-01. Their direct checks were red before implementation.
@@ -27,6 +27,11 @@ implemented and green — see [status](../status.md).
 before implementation (54 product failures plus one green catalogue-preservation
 guard). The oracle covering this amendment was signed 2026-09-01.
 [Path B acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+
+**Amended 2026-09-03, onboarding hardening:** eight concrete adversarial cases
+and four recurrence-prevention cases, `AT-HD-1`–`AT-HD-12`, take the set to
+**95**. Both test files are manifested and the amendment awaits owner signing.
+[Hardening prevention trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
 
 Full text: [`gate1/acceptance.md`](../gate1/acceptance.md) §7.
 Traceability rows: [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
@@ -196,6 +201,29 @@ and [`gate2/technical-spec.md`](../gate2/technical-spec.md) §13.
 
 ---
 
+## J. Onboarding hardening and recurrence prevention (12, added 2026-09-03)
+
+| ID | What it requires | Theme |
+|---|---|---|
+| `AT-HD-1` | Re-derive the canonical proposal-body digest before consuming approved proposal fields. | Wrong trust object |
+| `AT-HD-2` | Refuse a pre-existing state-temp symlink with exclusive creation before any outside write. | Wrong trust object |
+| `AT-HD-3` | Re-inventory and compare before apply creates its mutating writer. | Stale snapshot |
+| `AT-HD-4` | Evaluate installed hosts one by one so native and instruction-only scopes coexist. | Aggregate snapshot |
+| `AT-HD-5` | Derive release version from the package manifest and reject an independent library default. | Parallel authority |
+| `AT-HD-6` | Propagate or hard-fail a broken inventory verifier; never return an empty success. | Fail-open verification |
+| `AT-HD-7` | Drive both real MCP adapters and keep human text concise and separate from structured output. | False-green test |
+| `AT-HD-8` | Keep trace bodies immutable, frontmatter mutable, and both policy documents cross-cited. | Parallel authority |
+| `AT-HD-9` | Ratchet derived-on-read, exclusive-create, and fail-closed catch shapes. | Theme A |
+| `AT-HD-10` | Ratchet commit-time rechecks and per-host decisions. | Theme B |
+| `AT-HD-11` | Ratchet version authority, MCP parity, and cross-document policy agreement. | Theme C |
+| `AT-HD-12` | Ratchet real-seam adversarial execution and exact finding/test coverage. | Theme D |
+
+Full behavior and evidence: [`gate1/acceptance.md`](../gate1/acceptance.md) §7J,
+[`gate2/onboarding-hardening-spec.md`](../gate2/onboarding-hardening-spec.md),
+and [`gate2/onboarding-hardening-invariants.md`](../gate2/onboarding-hardening-invariants.md).
+
+---
+
 ## Deleted cases
 
 Four IDs appear in Gate 1's revision notes but define nothing. They were removed
@@ -209,10 +237,13 @@ distinction the product never implemented.
 | `AT-CLAIM-2` | The out-of-repository write disclosure, framed as a claim. | `AT-HOME-1`, as a transparency requirement rather than a claim. |
 | `AT-CLAIM-3` | Per-host claim strings in output. | Nothing — the concept was withdrawn outright. |
 
-If you grep the acceptance file for `AT-` you will find 87 distinct strings.
-Four of them are these, mentioned only in prose. Gate 2's table traces the 73
-that preceded Path B plus the ten Path B cases that are actually defined —
-re-traced to exact equality, see the note above.
+If you grep the acceptance file for `AT-` you will find 100 distinct strings
+(`grep -oE 'AT-[A-Z]+-?[0-9]+' wiki/gate1/acceptance.md | sort -u | wc -l`).
+Five of them — `AT-CLAIM-2`, `AT-CLAIM-3`, `AT-HOST-3`, `AT-HOST-4`, `AT-P7` —
+are mentioned only in prose (as superseded-by references or withdrawn
+concepts) and are not accepted IDs. Gate 2's table traces the 95 that are
+actually defined and accepted — re-traced to exact equality, see the note
+above.
 
 ---
 
@@ -229,6 +260,7 @@ re-traced to exact equality, see the note above.
 | 2026-08-21 | **68** | D21 added `AT-LF-1`–`AT-LF-19`, the lint-format vertical release boundary. |
 | 2026-08-26 | **73** | D28/GA-37 added `AT-LF-20`–`AT-LF-24`, RIG-115's shell-trust guarantees. |
 | 2026-08-31 | **83** | Path B added `AT-PB-1`–`AT-PB-10`, the agent-led adaptive-onboarding boundary; oracle signed 2026-09-01. |
+| 2026-09-03 | **95** | Onboarding hardening added eight concrete adversarial cases and four recurring-theme ratchets; awaiting owner signature. |
 
 Mechanism-only revisions (D10, D19, GA-13) changed how a case is satisfied
 without changing the count.

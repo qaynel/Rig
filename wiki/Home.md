@@ -90,7 +90,7 @@ topic is wrong.
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
 - [**Reasoning trace index**](index/reasoning.md) — generated current and historical trace lookup.
-- [**Acceptance cases**](index/acceptance-cases.md) — all 83 cases and where each is traced; the ten Path B additions are signed and under implementation.
+- [**Acceptance cases**](index/acceptance-cases.md) — all 95 cases and where each is traced; the twelve onboarding-hardening additions are corrected and awaiting owner re-sign.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
@@ -109,7 +109,7 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Path B amendment signed; implementation underway.** The verified 14-file oracle protects all 83 cases. The prior 73-case oracle remains historical evidence only. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Onboarding-hardening correction awaiting owner re-sign.** The 16-file, 95-case oracle bytes are corrected per the [oracle review](reasoning/2026-09-03-onboarding-hardening-oracle-review.md); the prior signature covered defective bytes and does not carry forward. Implementation of the eight hardening findings is blocked until the owner re-signs. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 

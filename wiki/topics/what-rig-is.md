@@ -79,7 +79,7 @@ applies only marked grafts, and reconciles the result into checked state.
 Grilling authored the executable oracle without reopening product direction:
 ten cases cover all six foundational and four support contracts, with the
 governed service-catalogue guard intentionally green from the start. The owner
-has signed the exact 14-file, 83-case oracle, so implementation can now turn
+has signed the exact 16-file, 95-case oracle, so implementation can now turn
 the remaining product failures green without moving the contract.
 [Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
 [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)

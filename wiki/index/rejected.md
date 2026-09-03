@@ -84,6 +84,11 @@ argument. The reason is the useful part, so every entry carries one.
 
 | Rejected | Why |
 |---|---|
+| Trusting a digest stored beside the proposal bytes, or updating both after tampering | The witness shares the untrusted write boundary; apply must derive from current canonical bytes before use. |
+| Unlinking a predictable temporary file and retrying its open | Recreates a race between unlink and open; exclusive creation must bind path absence to the file descriptor. |
+| Catching a verification error and returning an empty, zero, false, or skipped result | Converts a broken verifier into clean evidence; the error must propagate or become a hard failure. |
+| Adding an instruction-only scope only when the union of native scopes is empty | One native host suppresses a simultaneously installed fallback host; scope choice is per host. |
+| Reconstructing MCP output inside its acceptance test | Tests the reconstruction, not the shipped adapter, and cannot be made green by a correct production change. [trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) |
 | A second installer, target daemon, Rig model key, or mutable memory database | Duplicates the shipped spine, or violates B1. |
 | YAML, a template engine, or a new validation dependency | Unnecessary for the strict JSON and cumulative-fragment contract. |
 | Safety toggles in `rig.json`, or split safety/network authorities | Couples catalogue selection to authorization, or creates policy-precedence ambiguity. |

@@ -198,3 +198,44 @@ the file cannot retrigger staleness against a hub that already absorbed it.
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      step6-lints trace. -->
+
+## Review themes become executable ratchets (2026-09-03)
+
+The onboarding hardening oracle now separates concrete adversarial behavior
+from pattern prevention. Eight cases mutate the real state, filesystem, host,
+catalogue, verification, MCP, and policy boundaries. Four additional cases scan
+for the recurring shapes: wrong trust object/fail-open handling, stale global
+snapshots, parallel authorities, and tests that simulate rather than drive the
+shipped seam. The MCP test now uses a real SDK client; source-order checks are
+paired with behavioral tests so neither static shape nor happy-path output is
+the sole evidence.
+[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
+
+### What the pattern ratchets cost (2026-09-03)
+
+Review of the prepared invariant suite recorded the price of freezing
+source-shape checks under Gate 1: `AT-HD-9`–`AT-HD-12` pin a function's
+parameter count, three specific identifier names, and a regex-scanned catch
+shape, so a later rename or refactor of those seams needs an owner re-sign, not
+just a green suite. Two of the checks also read as coverage they do not provide
+— the version-literal scan is built from the current `package.json` version, so
+it goes blind exactly when the version drifts, and the trace-policy check is a
+string proxy that fails on a document stating the correct rule in natural
+wording.
+[Oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)
+
+### Source-shape ratchets replaced with adversarial behavior proofs (2026-09-03)
+
+Four of the identifier/shape ratchets the review flagged (`I-A-1`, `I-A-3`,
+`I-B-1`, `I-B-2`) are rewritten as behavioral tests that drive the real
+`handleOnboarding` seam and assert on observable outcomes — no journal or
+graft-target mutation when a tamper or an inventory drift is detected, correct
+per-host projection under a second native/instruction-only host pair, and an
+end-to-end exception-propagation proof through a symlinked scan-root file —
+instead of parsing source text for a literal function name or an exact
+parameter count. Two checks stay source-level (`I-A-2`'s O_EXCL open,
+`I-D-1`'s MCP text-channel ban) because they pin a stable forbidden
+*primitive*, not an identifier's spelling. The version-literal scan (`I-C-2`)
+now rejects any quoted `vX.Y.Z`-shaped literal unconditionally, rather than one
+built from the currently-installed version.
+[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)

@@ -6,6 +6,10 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-03 | current | [2026-09-03-onboarding-hardening-prevention-oracle](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
+| 2026-09-03 | superseded | [2026-09-03-onboarding-hardening-phase0-corrections](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency |
+| 2026-09-03 | current → 2026-09-03-onboarding-hardening-phase0-corrections | [2026-09-03-onboarding-hardening-phase0-complete](../reasoning/2026-09-03-onboarding-hardening-phase0-complete.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency |
+| 2026-09-03 | current | [2026-09-03-onboarding-hardening-oracle-review](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md) | testing-strategy, gate1-signing, trust-and-failure-boundaries, onboarding-flow | — | trap |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step6-lints](../reasoning/2026-09-02-wiki-maintenance-step6-lints.md) | agent-working-conventions, testing-strategy | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step5-primer](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md) | agent-working-conventions | — | interdependency |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step4-archive](../reasoning/2026-09-02-wiki-maintenance-step4-archive.md) | agent-working-conventions | — | — |
@@ -19,6 +23,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | current | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | onboarding-flow | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
 | 2026-09-02 | current → 2026-09-02-wiki-maintenance-step6-lints (staleness-filter claim only) | [2026-09-02-path-b-branch-closeout-staleHubs-fix](../reasoning/2026-09-02-path-b-branch-closeout-staleHubs-fix.md) | agent-working-conventions, testing-strategy | — | correctness, wiki-maintenance, staleHubs |
 | 2026-09-02 | current | [2026-09-02-path-b-branch-closeout-gate](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) | onboarding-flow, gate1-signing, delivery-plan | — | verification, handoff |
+| 2026-09-02 | current | [2026-09-02-onboarding-hardening-technical-spec](../reasoning/2026-09-02-onboarding-hardening-technical-spec.md) | path-b-onboarding, gate1-signing, security | — | — |
+| 2026-09-02 | current | [2026-09-02-onboarding-hardening-grilling](../reasoning/2026-09-02-onboarding-hardening-grilling.md) | path-b-onboarding, gate1-signing, security | — | — |
 | 2026-09-02 | current | [2026-09-02-gate1-wording-fix-and-signing-instructions](../reasoning/2026-09-02-gate1-wording-fix-and-signing-instructions.md) | gate1-signing | — | gate1, wording-fix, signing-ceremony |
 | 2026-09-02 | current | [2026-09-02-gate1-multi-principal-forgery](../reasoning/2026-09-02-gate1-multi-principal-forgery.md) | gate1-signing | — | trap, security, interdependency |
 | 2026-09-02 | superseded | [2026-09-02-gate1-key-rotation-not-adopted](../reasoning/2026-09-02-gate1-key-rotation-not-adopted.md) | gate1-signing | — | gate1, key-rotation, correction |
@@ -30,6 +36,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | current | [2026-09-02-gate1-ci-pin-anchor-armed](../reasoning/2026-09-02-gate1-ci-pin-anchor-armed.md) | gate1-signing | — | security, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-remove-list-pushback](../reasoning/2026-09-02-gate1-allowed-signers-remove-list-pushback.md) | gate1-signing | — | rejected, trap, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-comment-preservation-grill](../reasoning/2026-09-02-gate1-allowed-signers-comment-preservation-grill.md) | gate1-signing | — | trap |
+| 2026-09-02 | current | [2026-09-02-closed-loop-workflow-and-context-realignment](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md) | agent-working-conventions, testing-strategy, trust-and-failure-boundaries | — | interdependency, deferred |
 | 2026-09-02 | current | [2026-09-02-catalogue-tree-digest-reproducibility](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md) | onboarding-flow, testing-strategy | — | trap, verification |
 | 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
 | 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
