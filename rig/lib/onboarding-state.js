@@ -226,6 +226,15 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
   return { digest: sha256(canonical(body)), ...body };
 }
 
+// A stored digest is a witness for crash recovery, not the truth: re-derive
+// it from the body before any consumer trusts a stored proposal.digest.
+// Symmetric with canonicalProposal's own digest computation — same body
+// shape, digest key stripped before hashing.
+function proposalBodyDigest(proposal) {
+  const { digest, ...body } = proposal;
+  return sha256(canonical(body));
+}
+
 function cell(value) {
   return String(value ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
 }
@@ -284,6 +293,7 @@ module.exports = {
   STATE_REL,
   atomicWrite,
   canonicalProposal,
+  proposalBodyDigest,
   readState,
   renderAdoptedConfig,
   renderGrafts,

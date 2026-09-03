@@ -272,3 +272,14 @@ core-skill bytes to satisfy Path B's name check broke the static router
 contract. A reminder that the full regression suite, not just the oracle
 slice under active work, is part of every slice's verification loop. See
 [F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### A test's tampering technique can itself be retired by the fix under test (2026-09-03)
+
+`AT-PB-hard binding — duplicate approved binding rows are rejected` reached
+its target check by hand-editing `state.json` post-propose — exactly the
+attack F1 now closes. Once closed, the test needed to model the duplicate
+binding as baked into a self-consistently-signed proposal instead (recompute
+`proposal.digest` via `proposalBodyDigest` after injecting the duplicate,
+sign against the new digest) to keep exercising `verifySkillBindings`'
+defense-in-depth rather than F1's tamper check. See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).

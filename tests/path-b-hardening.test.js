@@ -1272,6 +1272,14 @@ describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () =>
       const statePath = path.join(target, '.rig/state.json');
       const persisted = h.readJson(statePath);
       persisted.proposal.skill_bindings.push({ ...persisted.proposal.skill_bindings[0] });
+      // F1 (AT-HD-1) now rejects any proposal body that no longer hashes to
+      // its stored digest, closing the post-signing-tamper path this test
+      // used to take. Model the duplicate as part of what got signed instead
+      // — a malicious or buggy propose could still produce a self-consistent
+      // digest with a duplicate binding row baked in — so verifySkillBindings'
+      // own duplicate-row rejection is what's actually under test here, not F1.
+      const { proposalBodyDigest } = require('../rig/lib/onboarding-state');
+      persisted.proposal.digest = proposalBodyDigest(persisted.proposal);
       h.writeJson(statePath, persisted);
 
       assert.throws(
@@ -1280,7 +1288,7 @@ describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () =>
           action: 'apply',
           target,
           expected_revision: proposed.revision,
-          approval: signApproval(target, proposed.proposal_digest),
+          approval: signApproval(target, persisted.proposal.digest),
         }),
         /duplicate.*binding|binding.*duplicate/i,
       );

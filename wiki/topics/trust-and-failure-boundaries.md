@@ -375,3 +375,13 @@ byte-identity test. Resolution: compare *canonical* identity (leading `rig-`
 stripped from both sides) instead of literal equality, so the one shared file
 satisfies both contracts without either one weakening. See
 [F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### Resume-awareness is now a repeated pattern, not a one-off (2026-09-03)
+
+F1's proposal-body digest and F3's inventory recheck both needed the same
+`writer.interrupted()` carve-out F2 needed: a hardening guard correct for a
+fresh `apply()` misfires on a legitimate resume of a crashed one, because the
+crashed run's own disk writes look identical to third-party drift or tamper
+to a check that only compares before/after digests. Any future guard added
+to `apply()`'s top should ask this question first. See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).

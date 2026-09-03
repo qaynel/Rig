@@ -16,7 +16,7 @@ const {
 const { checkOnboarding } = require('./onboarding-check');
 const { INSTRUCTION_ONLY_HOSTS } = require('./host-capabilities');
 const {
-  atomicWrite, canonicalProposal, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
+  atomicWrite, canonicalProposal, proposalBodyDigest, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
 } = require('./onboarding-state');
 
@@ -654,6 +654,13 @@ function apply(request) {
   return withOnboardingLock(request.target, () => {
     const state = readState(request.target);
     requireCurrentRevision(request, state, 'apply');
+    // A stored digest is a witness, not the truth: re-derive it from the
+    // proposal body before anything — including approval verification —
+    // trusts state.proposal.digest. Storage can be tampered independently of
+    // the field it is meant to witness.
+    if (proposalBodyDigest(state.proposal) !== state.proposal.digest) {
+      fail('proposal body has been tampered post-signing: digest mismatch');
+    }
     // Validate the user-presence receipt first, even when semantic decisions
     // remain unresolved, so a self-made or unbound approval can never be
     // mistaken for a valid attempt.
@@ -669,12 +676,25 @@ function apply(request) {
     }
     if (state.phase !== 'proposed') fail(`apply action is invalid from phase "${state.phase}"`);
 
+    const writer = journalWriter(request.target);
+    // TOFU at approval is re-verified at commit: the inventory digest
+    // propose captured is a snapshot of the world at that moment, not a
+    // standing guarantee. Mirrors the catalog-digest re-derivation below.
+    // Skipped only when resuming a transaction this same apply already left
+    // open (writer.interrupted()) — a crashed run's own disk writes are not
+    // third-party drift, and the journal-aware preflights below independently
+    // verify those bytes match what the interrupted transaction was writing.
+    if (!writer.interrupted()) {
+      const freshInventory = inventoryHarness(request.target);
+      if (freshInventory.digest !== state.inventory.digest) {
+        fail('the repository inventory changed since propose: approval is stale');
+      }
+    }
+
     const { catalog, digest } = loadInstalledCatalog(request.target);
     if (digest !== state.release.catalog_digest || digest !== state.proposal.catalog_digest) {
       fail('the skill catalog changed since this proposal: approval is stale');
     }
-
-    const writer = journalWriter(request.target);
     const projection = planSkillProjections(request.target, catalog, state.proposal.selected_skills, writer);
     verifySkillBindings(state.proposal, catalog, projection);
     preflightGrafts(request.target, state.proposal.grafts, writer);

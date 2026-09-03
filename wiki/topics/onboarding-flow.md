@@ -518,3 +518,14 @@ defects: a false-negative in `rewriteProjectedName` for an idempotent rename,
 and a real conflict between Path B's name-consistency check and the legacy
 Tier 1 byte-identity contract for shared core-skill files. Both fixed; see
 [F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
+
+### Phase 1 complete: F1–F8 all implemented (2026-09-03)
+
+F1 (proposal body digest, re-derived at the top of `apply()`) and F3
+(commit-time inventory recheck, mirroring the catalog-digest check) close
+out the eight onboarding-hardening findings. Both needed the same
+journal-resume carve-out (`writer.interrupted()`) F2 already established —
+a crashed apply's own disk writes are not third-party drift. All 21 AT-HD-*
+oracle cases (top-level + I-A/B/C/D sub-cases) now pass; so does the full
+`tests/path-b-*` regression suite (120/120). See
+[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
