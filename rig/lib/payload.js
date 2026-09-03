@@ -671,7 +671,8 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
     else if (entry.op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);
   }
   if (releaseTag) {
-    writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag }, null, 2)}\n`);
+    const installedHostIds = [...new Set(selected)].sort();
+    writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag, hosts: installedHostIds }, null, 2)}\n`);
   }
   if (afterPayload) afterPayload({ writeFile });
   writeFile.finish();

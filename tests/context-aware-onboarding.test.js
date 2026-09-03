@@ -115,7 +115,7 @@ test('a named release install records its resolved tag through the journaled pay
 
     assert.deepEqual(
       JSON.parse(fs.readFileSync(path.join(target, '.rig/release.json'), 'utf8')),
-      { tag: 'v5.0.0' },
+      { tag: 'v5.0.0', hosts: ['codex'] },
     );
     const { applied } = appliedManifest(target);
     assert.ok(applied.some((record) => record.path === '.rig/release.json'));

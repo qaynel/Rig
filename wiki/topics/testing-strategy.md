@@ -263,3 +263,12 @@ moved the injection to `fs.renameSync` — `atomicWrite`'s actual commit
 point post-F2 — and added an explicit assertion that the immediate re-apply
 throws the F2 guard before the operator-remediation step. See
 [F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### A non-AT-HD test caught a real F4 regression the oracle didn't cover (2026-09-03)
+
+`tests/rig-bootstrap.test.js`'s legacy Tier 1 byte-identity assertion — not
+any `AT-HD-*` or `tests/path-b-*` case — is what caught that rewriting shared
+core-skill bytes to satisfy Path B's name check broke the static router
+contract. A reminder that the full regression suite, not just the oracle
+slice under active work, is part of every slice's verification loop. See
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).

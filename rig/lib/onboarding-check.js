@@ -136,7 +136,15 @@ function projectionFailures(target, state, journal) {
     if (!fs.existsSync(file)) continue;
     const name = fs.readFileSync(file, 'utf8').match(/^name:\s*(\S+)\s*$/m)?.[1];
     const expected = path.basename(path.dirname(row.path));
-    if (name !== expected) {
+    // A core skill's canonical source always declares its rig-prefixed native
+    // name (e.g. "rig-debugging") and that same file is shared byte-for-byte
+    // with the legacy Tier 1 static router's .rig/skills/<name>/ copy, which
+    // never rewrites it. Compare canonical identity (leading "rig-" stripped
+    // from both sides) rather than literal equality, so an unprefixed
+    // instruction-only directory legitimately housing a rig-prefixed core
+    // skill is not flagged, while a genuine identity mismatch still is.
+    const canonicalize = (value) => (value?.startsWith('rig-') ? value.slice('rig-'.length) : value);
+    if (canonicalize(name) !== canonicalize(expected)) {
       failures.push(failure('skill-name-mismatch', row.path, `directory "${expected}" declares "${name || 'no name'}"`));
     }
   }

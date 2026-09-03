@@ -14,6 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
+const { INSTRUCTION_ONLY_HOSTS } = require('./host-capabilities');
 const {
   atomicWrite, canonicalProposal, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
@@ -182,33 +183,83 @@ function approvalRecord(receipt, proposalDigest, target) {
   };
 }
 
-function installedSkillScopes(target) {
-  const scopes = [];
-  if (fs.existsSync(containedPath(target, '.agents/skills/rig-onboarding/SKILL.md'))) {
-    scopes.push({ host_scope: 'codex', root: '.agents/skills' });
+// The installed release marker records the exact host IDs the installer
+// selected (rig/lib/payload.js's runPayload). Onboarding trusts that list
+// rather than inferring installed hosts from marker-file existence, so every
+// installed host gets its own scope decision instead of one aggregate
+// native-vs-instruction-only boolean.
+function installedHostIds(target) {
+  const file = containedPath(target, '.rig/release.json');
+  if (!fs.existsSync(file)) fail('the installed release marker (.rig/release.json) is missing; re-run the installer');
+  const release = readJson(file, 'the installed release marker (.rig/release.json)');
+  const hosts = release?.hosts;
+  if (!Array.isArray(hosts) || !hosts.length || !hosts.every((id) => typeof id === 'string')) {
+    fail('the installed release marker (.rig/release.json) has no valid "hosts" list; re-run the installer');
   }
-  if (fs.existsSync(containedPath(target, '.claude/skills/rig-onboarding/SKILL.md'))) {
-    scopes.push({ host_scope: 'claude', root: '.claude/skills' });
-  }
-  if (!scopes.length && fs.existsSync(containedPath(target, PLAYBOOK_REL))) {
-    scopes.push({ host_scope: 'instruction-only', root: '.rig/skills' });
-  }
-  if (!scopes.length) fail('no installed skill discovery scope is available for an approved projection');
-  return scopes;
+  return hosts;
 }
 
-function projectedSkillName(skill) {
-  return skill.name === 'rig' || skill.name.startsWith('rig-') ? skill.name : `rig-${skill.name}`;
+// Native skill-discovery scopes Rig writes to directly. Only Codex and Claude
+// have a Rig-managed native skill directory today (the installed wrapper
+// markers this function checks for).
+function nativeScope(target, host) {
+  if (host === 'codex' && fs.existsSync(containedPath(target, '.agents/skills/rig-onboarding/SKILL.md'))) {
+    return { host_scope: 'codex', root: '.agents/skills' };
+  }
+  if (host === 'claude' && fs.existsSync(containedPath(target, '.claude/skills/rig-onboarding/SKILL.md'))) {
+    return { host_scope: 'claude', root: '.claude/skills' };
+  }
+  return null;
+}
+
+// Every host in INSTRUCTION_ONLY_HOSTS shares one instruction-only scope
+// keyed by the canonical playbook marker, not by which host triggered it.
+function instructionOnlyScope(target, host) {
+  if (!INSTRUCTION_ONLY_HOSTS.has(host)) return null;
+  if (!fs.existsSync(containedPath(target, PLAYBOOK_REL))) return null;
+  return { host_scope: 'instruction-only', root: '.rig/skills' };
+}
+
+// Per-host, per-item decision — never an aggregate "any native host present"
+// boolean. A native host's presence must not suppress another installed
+// host's own instruction-only scope (AT-HD-10 I-B-2).
+function installedSkillScopes(target) {
+  const scopes = new Map();
+  for (const host of installedHostIds(target)) {
+    const scope = nativeScope(target, host) || instructionOnlyScope(target, host);
+    if (scope) scopes.set(`${scope.host_scope}\0${scope.root}`, scope);
+  }
+  if (!scopes.size) fail('no installed skill discovery scope is available for an approved projection');
+  return [...scopes.values()];
+}
+
+// The canonical, scope-independent identity of a skill: 'rig' stays 'rig'
+// (it names itself, not a namespace); every other skill's canonical name has
+// any leading "rig-" stripped, so re-adding it per scope is idempotent.
+function canonicalSkillName(skill) {
+  if (skill.name === 'rig') return 'rig';
+  return skill.name.startsWith('rig-') ? skill.name.slice('rig-'.length) : skill.name;
+}
+
+// Naming is scope-specific, not skill-specific (rig/tier-1/routing.md's
+// router contract): native layouts project as `rig-<name>`; the
+// instruction-only layout projects unprefixed, since `rig-<name>` there maps
+// to `.rig/skills/<name>/SKILL.md`.
+function scopedSkillName(canonicalName, scope) {
+  if (canonicalName === 'rig') return 'rig';
+  return scope.host_scope === 'instruction-only' ? canonicalName : `rig-${canonicalName}`;
 }
 
 function rewriteProjectedName(bytes, name) {
   const source = bytes.toString('utf8');
-  const next = source.replace(
-    /^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m,
-    (_match, start) => `${start}${name}`,
-  );
-  if (next === source) fail('selected skill has no rewriteable frontmatter name');
-  return Buffer.from(next);
+  const pattern = /^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m;
+  // A scope whose target name equals the source's own unprefixed name (the
+  // instruction-only scope, when the skill's canonical name has no "rig-"
+  // prefix to strip) rewrites to byte-identical output — that is a correct,
+  // idempotent rewrite, not evidence the pattern failed to match. Check the
+  // match itself, not whether the replacement changed anything.
+  if (!pattern.test(source)) fail('selected skill has no rewriteable frontmatter name');
+  return Buffer.from(source.replace(pattern, (_match, start) => `${start}${name}`));
 }
 
 function sourceFiles(root, prefix = '') {
@@ -277,9 +328,10 @@ function planSkillProjections(target, catalog, selected, writer) {
     projectedFiles.set(skill.id, entries);
   };
   for (const skill of skills) {
-    const name = projectedSkillName(skill);
+    const canonicalName = canonicalSkillName(skill);
     if (skill.source_kind === 'core') {
       for (const scope of scopes) {
+        const name = scopedSkillName(canonicalName, scope);
         const rel = `${scope.root}/${name}/SKILL.md`;
         const digest = currentDigest(target, rel);
         if (!digest) fail(`required skill "${skill.id}" was not staged for ${scope.host_scope}`);
@@ -292,6 +344,7 @@ function planSkillProjections(target, catalog, selected, writer) {
     const skillFile = files.find(({ rel }) => rel === 'SKILL.md');
     if (!skillFile) fail(`selected skill "${skill.id}" has no SKILL.md`);
     for (const scope of scopes) {
+      const name = scopedSkillName(canonicalName, scope);
       const root = `${scope.root}/${name}`;
       for (const source of files) {
         const rel = `${root}/${source.rel}`;

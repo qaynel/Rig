@@ -363,3 +363,15 @@ automatically, since that reopens the race). A legitimate crash recovery
 therefore now costs one operator `rm` where it previously resumed silently.
 See
 [F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### A shared file can carry two independently-true contracts (2026-09-03)
+
+`.rig/skills/<name>/SKILL.md` for the seven mandatory core skills is staged
+byte-identical to the native `rig-<name>` copies (legacy Tier 1's static
+router resolves by path, not frontmatter) — but Path B's `check()` also reads
+that same file's frontmatter and expects the declared name to match its own
+directory. Rewriting the shared bytes to satisfy Path B broke the legacy
+byte-identity test. Resolution: compare *canonical* identity (leading `rig-`
+stripped from both sides) instead of literal equality, so the one shared file
+satisfies both contracts without either one weakening. See
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).

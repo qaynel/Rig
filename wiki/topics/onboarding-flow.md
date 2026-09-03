@@ -506,3 +506,15 @@ leaves a stale, fully-written `state.json.tmp` on disk now blocks the next
 spec's own F2 risk note anticipated exactly this, requiring one operator `rm`
 before retry. See
 [F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
+
+### F4 lands: per-host scopes, plus two exposed latent defects (2026-09-03)
+
+`installedSkillScopes` now reads the exact installed host list from
+`.rig/release.json` (a new `hosts` field written at install time) and gives
+every host its own native-or-instruction-only decision — no host's scope is
+suppressed by another host's presence. Making the instruction-only scope
+reachable alongside a native scope for the first time exposed two latent
+defects: a false-negative in `rewriteProjectedName` for an idempotent rename,
+and a real conflict between Path B's name-consistency check and the legacy
+Tier 1 byte-identity contract for shared core-skill files. Both fixed; see
+[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
