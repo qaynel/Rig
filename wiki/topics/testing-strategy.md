@@ -283,3 +283,17 @@ binding as baked into a self-consistently-signed proposal instead (recompute
 sign against the new digest) to keep exercising `verifySkillBindings`'
 defense-in-depth rather than F1's tamper check. See
 [F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### A multi-agent code review found what the oracle's own tests didn't (2026-09-03)
+
+Five parallel review agents (CLAUDE.md conventions, simplification/reuse,
+removed-behavior audit, cross-file caller tracing, line-by-line scan) read
+the full Phase 1 diff independently; two of them separately surfaced the
+same `writer.interrupted()` scoping gap, and between them found three more
+real defects (a lost host-scope fallback, an over-broad name-tolerance, a
+false-negative on legitimate empty host lists) that no `AT-HD-*` case or
+`tests/path-b-*` regression exercised. One finding (`instructionOnlyScope`'s
+host-registry gate) was verified empirically — reproduced the failure with
+a hand-built apply() call, confirmed the fix resolves it — rather than
+trusted from code reading alone. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).

@@ -385,3 +385,18 @@ crashed run's own disk writes look identical to third-party drift or tamper
 to a check that only compares before/after digests. Any future guard added
 to `apply()`'s top should ask this question first. See
 [F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### "Interrupted" alone isn't "mine" — the resume signal needed an owner tag (2026-09-03)
+
+Code review caught that `writer.interrupted()` reads a repo-wide shared
+journal (installer + every past proposal's apply), so an unrelated stale
+interruption could silently disable F3's freshness check for a genuinely
+fresh apply — the exact bypass F3 was built to close. `journalWriter` now
+accepts an optional `transactionOwner` tag, recorded on the transaction-open
+record and exposed via `interruptedOwner()`; `apply()` only treats an
+interruption as its own resume when the tag matches its own proposal
+digest. Also fixed in the same pass: `projectionFailures`' skill-name
+canonicalization was unconditionally lenient (would let a tampered
+native-scope file declaring an unprefixed name pass); now scope-conditional
+— exact match everywhere except the instruction-only scope. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).

@@ -14,7 +14,6 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
-const { INSTRUCTION_ONLY_HOSTS } = require('./host-capabilities');
 const {
   atomicWrite, canonicalProposal, proposalBodyDigest, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
@@ -193,7 +192,11 @@ function installedHostIds(target) {
   if (!fs.existsSync(file)) fail('the installed release marker (.rig/release.json) is missing; re-run the installer');
   const release = readJson(file, 'the installed release marker (.rig/release.json)');
   const hosts = release?.hosts;
-  if (!Array.isArray(hosts) || !hosts.length || !hosts.every((id) => typeof id === 'string')) {
+  // An empty list is a legitimate installed state (a bare/no-adapter
+  // install) — installedSkillScopes below reports the real "no discovery
+  // scope available" failure if a proposal then tries to project a skill
+  // into it. Only a missing or malformed field is this function's own error.
+  if (!Array.isArray(hosts) || !hosts.every((id) => typeof id === 'string')) {
     fail('the installed release marker (.rig/release.json) has no valid "hosts" list; re-run the installer');
   }
   return hosts;
@@ -212,10 +215,18 @@ function nativeScope(target, host) {
   return null;
 }
 
-// Every host in INSTRUCTION_ONLY_HOSTS shares one instruction-only scope
-// keyed by the canonical playbook marker, not by which host triggered it.
-function instructionOnlyScope(target, host) {
-  if (!INSTRUCTION_ONLY_HOSTS.has(host)) return null;
+// Every non-native installed host shares one instruction-only scope keyed by
+// the canonical playbook marker, not by which host triggered it — not just
+// the hosts in INSTRUCTION_ONLY_HOSTS (that registry set gates whether the
+// *installer* stages the shared core-skill copies there, a separate,
+// aggregate-across-all-selected-hosts decision made at install time). A host
+// with no Rig-managed native skill directory (nativeScope returns null) always
+// falls back here when the playbook exists, exactly as the pre-per-host
+// aggregate check did — narrowing this to registry membership would silently
+// drop optional-skill projection for any host outside that set (e.g.
+// copilot-cli, pi) even though the playbook and the runtime skill shelf are
+// both present and usable.
+function instructionOnlyScope(target, _host) {
   if (!fs.existsSync(containedPath(target, PLAYBOOK_REL))) return null;
   return { host_scope: 'instruction-only', root: '.rig/skills' };
 }
@@ -676,15 +687,21 @@ function apply(request) {
     }
     if (state.phase !== 'proposed') fail(`apply action is invalid from phase "${state.phase}"`);
 
-    const writer = journalWriter(request.target);
+    // Tag the transaction with this proposal's digest so a resumed run can
+    // tell its own crashed attempt apart from an unrelated interrupted
+    // transaction (a different, superseded proposal, or the installer)
+    // sharing the same repo-wide journal — an unscoped boolean would let a
+    // stale, unrelated interruption suppress the freshness check below.
+    const writer = journalWriter(request.target, { transactionOwner: state.proposal.digest });
     // TOFU at approval is re-verified at commit: the inventory digest
     // propose captured is a snapshot of the world at that moment, not a
     // standing guarantee. Mirrors the catalog-digest re-derivation below.
-    // Skipped only when resuming a transaction this same apply already left
-    // open (writer.interrupted()) — a crashed run's own disk writes are not
-    // third-party drift, and the journal-aware preflights below independently
-    // verify those bytes match what the interrupted transaction was writing.
-    if (!writer.interrupted()) {
+    // Skipped only when resuming a transaction *this proposal* already left
+    // open — a crashed run's own disk writes are not third-party drift, and
+    // the journal-aware preflights below independently verify those bytes
+    // match what the interrupted transaction was writing.
+    const resumingThisProposal = writer.interrupted() && writer.interruptedOwner() === state.proposal.digest;
+    if (!resumingThisProposal) {
       const freshInventory = inventoryHarness(request.target);
       if (freshInventory.digest !== state.inventory.digest) {
         fail('the repository inventory changed since propose: approval is stale');

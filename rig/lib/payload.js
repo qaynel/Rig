@@ -423,7 +423,7 @@ function enumerateGraftMarkers(target) {
   return markers;
 }
 
-function journalWriter(target) {
+function journalWriter(target, { transactionOwner = null } = {}) {
   const manifest = containedPath(target, MANIFEST_REL);
   const records = fs.existsSync(manifest)
     ? fs.readFileSync(manifest, 'utf8').split('\n').flatMap((line) => {
@@ -447,11 +447,19 @@ function journalWriter(target) {
   // An `install_state` record opened with complete:false and never closed means
   // a previous run died mid-transaction. That, and only that, licenses a
   // preflight to read live bytes matching the journal as this installer's own
-  // unfinished work rather than as an edit it must refuse.
+  // unfinished work rather than as an edit it must refuse. `owner` is an
+  // optional caller-supplied tag (onboarding apply() passes its proposal
+  // digest) recorded on the record that opened the transaction, so a caller
+  // holding a specific transaction context — not just "some write, somewhere,
+  // once died" — can tell its own crashed run apart from an unrelated one
+  // (a different proposal, or the installer) that happens to have left the
+  // journal open too.
   let interrupted = false;
+  let interruptedOwner = null;
   for (const record of records) {
     if (record.kind === 'install_state') {
       interrupted = record.complete !== true;
+      interruptedOwner = interrupted ? (record.owner ?? null) : null;
       continue;
     }
     if (!Number.isInteger(record.seq) || !record.path) continue;
@@ -466,7 +474,7 @@ function journalWriter(target) {
 
   const start = () => {
     if (transactionStarted) return;
-    append({ kind: 'install_state', complete: false });
+    append({ kind: 'install_state', complete: false, owner: transactionOwner });
     transactionStarted = true;
   };
 
@@ -615,6 +623,7 @@ function journalWriter(target) {
   write.remove = remove;
   write.latest = (rel) => latestByPath.get(rel) || null;
   write.interrupted = () => interrupted;
+  write.interruptedOwner = () => interruptedOwner;
   // Closing also settles a transaction this writer only inherited. A run that
   // resumes an interrupted install may find every desired byte already in place
   // and write nothing; without this the journal would stay open forever and

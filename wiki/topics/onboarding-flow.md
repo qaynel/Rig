@@ -529,3 +529,16 @@ a crashed apply's own disk writes are not third-party drift. All 21 AT-HD-*
 oracle cases (top-level + I-A/B/C/D sub-cases) now pass; so does the full
 `tests/path-b-*` regression suite (120/120). See
 [F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
+
+### Post-implementation code review found and fixed 4 real defects (2026-09-03)
+
+A 5-agent review of the full Phase 1 diff found the oracle's own coverage
+missed: F3's `interrupted()` carve-out wasn't scoped to the current
+proposal (fixed with a `transactionOwner` tag on the journal transaction);
+`instructionOnlyScope` lost the pre-F4 catch-all fallback for hosts outside
+`INSTRUCTION_ONLY_HOSTS` (e.g. `copilot-cli`), a real regression reproduced
+empirically and fixed by dropping that registry gate; the skill-name
+canonicalization was too permissive for native scopes (now
+scope-conditional); and a legitimate empty `hosts: []` install was
+misreported as malformed. See
+[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).

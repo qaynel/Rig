@@ -139,12 +139,19 @@ function projectionFailures(target, state, journal) {
     // A core skill's canonical source always declares its rig-prefixed native
     // name (e.g. "rig-debugging") and that same file is shared byte-for-byte
     // with the legacy Tier 1 static router's .rig/skills/<name>/ copy, which
-    // never rewrites it. Compare canonical identity (leading "rig-" stripped
-    // from both sides) rather than literal equality, so an unprefixed
-    // instruction-only directory legitimately housing a rig-prefixed core
-    // skill is not flagged, while a genuine identity mismatch still is.
+    // never rewrites it. The instruction-only scope alone tolerates that:
+    // compare canonical identity (leading "rig-" stripped from both sides)
+    // there, so an unprefixed instruction-only directory legitimately housing
+    // a rig-prefixed core skill is not flagged. Every other scope's directory
+    // is always exactly "rig-<name>" and rewriteProjectedName always makes
+    // optional-skill bytes match it exactly, so literal equality still
+    // applies there — canonicalizing unconditionally would let a tampered
+    // native-scope file (declaring the unprefixed name) slip through.
     const canonicalize = (value) => (value?.startsWith('rig-') ? value.slice('rig-'.length) : value);
-    if (canonicalize(name) !== canonicalize(expected)) {
+    const matches = row.host_scope === 'instruction-only'
+      ? canonicalize(name) === canonicalize(expected)
+      : name === expected;
+    if (!matches) {
       failures.push(failure('skill-name-mismatch', row.path, `directory "${expected}" declares "${name || 'no name'}"`));
     }
   }
