@@ -289,12 +289,7 @@ function inventoryDriftFailures(target, state) {
   const snapshot = state.applied?.inventory_snapshot;
   if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return [];
 
-  let fresh;
-  try {
-    fresh = inventoryHarness(target);
-  } catch {
-    return [];
-  }
+  const fresh = inventoryHarness(target);
 
   const failures = [];
   const freshMap = new Map(fresh.entries.map((entry) => [entry.path, entry]));
@@ -344,4 +339,4 @@ function checkOnboarding(target, state, catalog) {
   return { hardFailures, warnings: budgetWarnings(weight, catalog), weight };
 }
 
-module.exports = { checkOnboarding };
+module.exports = { checkOnboarding, inventoryDriftFailures };
