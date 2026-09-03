@@ -486,3 +486,13 @@ Implementation of the eight hardening findings still waits on the owner
 re-signing the corrected 95-case oracle — this session could not run that
 ceremony (no SSH signing identity available in the sandbox).
 [Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; Phase 1 implementation underway (2026-09-03)
+
+The owner re-signed the corrected 95-case oracle. A
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) closed
+the remaining CI-blocking doc drift (stale AT-HD trace titles in
+`wiki/gate2/technical-spec.md`). Production implementation of the eight
+onboarding-hardening findings (AT-HD-1..12, all `rig/lib/*` and MCP
+entrypoints) is now underway; the acceptance oracle stays red by design until
+each finding lands.

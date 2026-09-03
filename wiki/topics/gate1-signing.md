@@ -216,3 +216,14 @@ available in the environment that made these corrections, so the owner must
 run `node scripts/approve-gate1.js` on a machine holding the gate1 signing
 key before Phase 1 (production) implementation may begin.
 [Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; CI trace-title drift fixed (2026-09-03)
+
+The owner ran the re-sign ceremony on the Secretive-backed key; the corrected
+95-case oracle (Phase 0) is now signed and `node scripts/check-advanced-spec.js`
+reports the manifest clean. A follow-up
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) found
+four `wiki/gate2/technical-spec.md` trace-row titles had drifted from the
+Phase 0-corrected test titles (would have failed `verifyCoverage`'s exact-regex
+check post re-sign) and fixed them in the same pass. Phase 1 (production
+implementation of the AT-HD-* findings) is unblocked and in progress.

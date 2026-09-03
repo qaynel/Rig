@@ -269,7 +269,7 @@ function catalogRow(skill, aliasesByName, sourceKind, shelfRoot = SKILL_ROOT) {
   };
 }
 
-function buildSkillCatalog({ releaseTag = 'v5.0.0', softBudget, shelfRoot = SKILL_ROOT } = {}) {
+function buildSkillCatalog({ releaseTag, softBudget, shelfRoot = SKILL_ROOT } = {}) {
   const families = readFamilies(shelfRoot);
   const familyIds = new Set(families.map(({ id }) => id));
   const aliases = readMigrations(shelfRoot);

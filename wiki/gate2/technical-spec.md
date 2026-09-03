@@ -3,7 +3,8 @@
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
 > version is retraced to the D24/D28 one-gate oracle plus the Path B amendment,
 > with the signed Path B base at 83 cases and a 95-case onboarding-hardening
-> amendment prepared for the intent owner's signature.
+> amendment signed by the intent owner (Phase 0 corrections). Phase 1
+> implementation of the AT-HD-* findings is in progress.
 > It supersedes v0.11's lint-format-only D21/D23 release boundary: all 115
 > catalogue leaves are release-blocking at declared Policy grade; all 55
 > vendored skills are wired by Rig name; onboarding activates only detected

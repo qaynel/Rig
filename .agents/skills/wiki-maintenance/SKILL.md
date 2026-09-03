@@ -28,9 +28,10 @@ and its execution plan.
 
 ## Ground rules (apply to every step)
 
-1. Never edit the body of `wiki/reasoning/*` or `wiki/sources/*`. You may
-   `git mv` a file or change its frontmatter fields (`status:`, `topics:`);
-   you may never rewrite its content.
+1. A trace's body is immutable: never edit the body of `wiki/reasoning/*` or
+   `wiki/sources/*`. You may `git mv` a file or change its frontmatter fields
+   (`status:`, `topics:`); you may never rewrite its content. See
+   `wiki/reasoning/README.md` for the full rule.
 2. Never hand-edit `wiki/status.md` or `wiki/index/reasoning.md`. They change
    only by editing trace frontmatter and rerunning
    `node scripts/build-wiki-index.js`.

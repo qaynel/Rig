@@ -11,9 +11,12 @@ them.
 
 ## The rule
 
-**A trace is written once and never edited.** It records what was thought at a
-moment in time. If the thinking later turns out wrong, that is what the topic
-hub is for — the hub gets rewritten, the trace stays as it was.
+**A trace's body is written once and never edited — it is immutable.** It
+records what was thought at a moment in time. If the thinking later turns out
+wrong, that is what the topic hub is for — the hub gets rewritten, the trace
+stays as it was. Only frontmatter fields (`status:`, `topics:`) may change
+after filing; the body never does. The `.claude/skills/wiki-maintenance/SKILL.md`
+ground rules enforce this same body-immutable, frontmatter-mutable split.
 
 This split is the whole point. A wiki whose pages are freely rewritten loses its
 history; a wiki that never rewrites accumulates contradictions. Keeping the

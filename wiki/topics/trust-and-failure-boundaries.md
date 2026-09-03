@@ -343,3 +343,12 @@ selects both an optional skill and the mandatory `rig-debugging` core skill
 across a Codex+Cursor install and asserts all four resulting paths plus the
 `applied.projections` host-scope set.
 [Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; Phase 1 trust-boundary implementation underway (2026-09-03)
+
+The owner re-signed the corrected oracle covering this scope-specific naming
+fix (`AT-HD-4`) along with the rest of Phase 0. A
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) closed
+the remaining CI-blocking doc drift. Implementation of `AT-HD-4` and the other
+trust-boundary findings (tamper detection, inventory-drift fail-closed
+behavior, approval byte-binding) is now underway against the signed oracle.

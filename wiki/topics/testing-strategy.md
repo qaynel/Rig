@@ -239,3 +239,15 @@ parameter count. Two checks stay source-level (`I-A-2`'s O_EXCL open,
 now rejects any quoted `vX.Y.Z`-shaped literal unconditionally, rather than one
 built from the currently-installed version.
 [Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
+
+### Oracle re-signed; wiki doc-consistency invariants (I-C-1..3) added (2026-09-03)
+
+Following the re-sign, a
+[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) found
+and fixed doc-consistency drift the corrected oracle now checks for: a
+hardcoded `releaseTag` default in `rig/lib/skill-catalog.js` (I-C-1/I-C-2,
+prevention strategy 5 — one source of truth per constant, derived from
+`package.json` at call time) and a missing cross-citation between
+`wiki/reasoning/README.md` and `.claude/skills/wiki-maintenance/SKILL.md`
+asserting the body-immutable/frontmatter-mutable split (I-C-3, prevention
+strategy 9).
