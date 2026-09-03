@@ -1,4 +1,0 @@
-rig-oracle-freeze-v2
-business-spec.md 3b9abe4b9383a76a7f563df2f9ff8316613dc6cd7103ce6dd0951c6ab556a2d2
-acceptance.md 277ac0d087db053007f0e8025233c70bb926eb48d31b3916ba8b3360d032d583
-testing-infrastructure.manifest 61c6de9c2305a758ca5870a7220ecff250c0eb151cdcd69271fc27e0467e9b04
