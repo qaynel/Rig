@@ -7,7 +7,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { audit } = require('../scripts/wiki-budget');
-const { check } = require('../scripts/check-wiki-budget');
+const { check, updateWaivers } = require('../scripts/check-wiki-budget');
 
 const DEFAULT_CONFIG = {
   limits: { hubBytes: 100, indexRows: 5, indexBytes: 200, entryPathBytes: 500 },
@@ -190,6 +190,55 @@ test('a non-numeric violation is suppressed by any waiver and cannot regress', (
 test('a missing waiver file means no waivers, not a crash', () => {
   const root = fixture({ 'wiki/topics/big.md': 'x'.repeat(101) });
   assert.equal(check(root).length, 1);
+});
+
+test('a generated page in the entry path is exempt from the byte sum but still checked for existence', () => {
+  const root = fixture(
+    { 'wiki/agent-primer.md': 'a'.repeat(300), 'wiki/status.md': 'b'.repeat(1000) },
+    { entryPath: ['wiki/agent-primer.md', 'wiki/status.md'] },
+  );
+  assert.deepEqual(audit(root).filter((row) => row.rule === 'entry-path-bytes'), []);
+});
+
+test('a missing generated page in the entry path still fails as entry-path-missing', () => {
+  const root = fixture(
+    { 'wiki/agent-primer.md': 'a'.repeat(300) },
+    { entryPath: ['wiki/agent-primer.md', 'wiki/status.md'] },
+  );
+  assert.deepEqual(
+    rules(audit(root).filter((row) => row.rule === 'entry-path-missing')),
+    ['entry-path-missing:wiki/status.md'],
+  );
+});
+
+test('a numeric violation waived with a non-numeric value cannot grow past it silently', () => {
+  const root = waive(fixture({ 'wiki/topics/big.md': 'x'.repeat(150) }), { 'hub-bytes:wiki/topics/big.md': 'waived' });
+  const [violation] = check(root);
+  assert.equal(violation.kind, 'waiver-exceeded');
+  assert.equal(violation.actual, 150);
+  assert.equal(violation.limit, 'waived');
+});
+
+test('a waiver recorded against a historical link fails when the link regresses further to missing', () => {
+  const root = waive(
+    fixture({ 'wiki/agent-primer.md': 'See [old](reasoning/2026-01-01-old.md).\n' }),
+    { 'entry-path-current-only:wiki/agent-primer.md -> reasoning/2026-01-01-old.md': 'historical' },
+  );
+  const [violation] = check(root);
+  assert.equal(violation.kind, 'waiver-exceeded');
+  assert.equal(violation.actual, 'missing');
+});
+
+test('updateWaivers on a fresh fixture round-trips to a green check', () => {
+  const root = fixture({ 'wiki/topics/big.md': 'x'.repeat(101) });
+  updateWaivers(root);
+  assert.deepEqual(check(root), []);
+});
+
+test('a second updateWaivers on an existing ledger refuses without --force', () => {
+  const root = fixture({ 'wiki/topics/big.md': 'x'.repeat(101) });
+  updateWaivers(root);
+  assert.throws(() => updateWaivers(root), /--force/);
 });
 
 test('the committed wiki is within its budgets and waivers', () => {

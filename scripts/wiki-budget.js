@@ -119,6 +119,17 @@ function entryLinkViolations(root, config) {
 // cost was 211,775 bytes (~53k tokens) on 2026-09-05 before a single primary
 // source was opened. A missing page fails loudly rather than shrinking the
 // measured total, so splitting a page cannot silently satisfy the budget.
+//
+// GENERATED pages (wiki/status.md, wiki/index/reasoning.md) are excluded from
+// the sum even when they appear in entryPath: they are rebuilt by
+// build-wiki-index.js and grow by design every time the project's own
+// mandated workflow files a dated trace, so a byte cap on them fails with no
+// legal fix -- the same reasoning Task 1 applied to exempt them from the hub
+// and index caps. They are still checked for existence: a generated page
+// that has gone missing fails as entry-path-missing rather than being
+// skipped outright. The tradeoff is explicit: a generated page's real read
+// cost stops being counted toward entry-path-bytes, even though an agent
+// still pays to read it.
 function orientationViolations(root, config, limits) {
   const found = [];
   let bytes = 0;
@@ -128,6 +139,7 @@ function orientationViolations(root, config, limits) {
       found.push({ rule: 'entry-path-missing', subject: relative, actual: 'absent', limit: 'update wiki/budget.json' });
       continue;
     }
+    if (GENERATED.has(relative)) continue;
     bytes += fs.statSync(absolute).size;
   }
   if (bytes > limits.entryPathBytes) {
