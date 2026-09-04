@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: onboarding-flow, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, verification
 summary: The skill-shelf tree_digest folds nine mode bits (fs.statSync().mode & 0o777) into a value it calls reproducible; only the executable bit is git-tracked, so a checkout under a group-writable umask moves every row's digest and turns npm test red on a fresh clone and stale on approved proposals. The catalogue --check gate cannot catch it because it regenerates and string-compares inside one process on one machine, where the umask cancels. Preventive rule: every hash input must be git-tracked state or explicitly canonicalized, and a reproducibility check must vary the environment (or hold one input constant while varying another) or it proves nothing.

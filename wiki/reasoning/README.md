@@ -53,8 +53,12 @@ summary: one-line current-state summary
   this trace does not replace anything.
 - **`tags`** — comma-separated cross-cutting labels such as `rejected`, `trap`,
   or `interdependency`.
-- **`summary`** — a one-line description for current traces. It is rendered on
-  the generated current-state page; leave it empty for historical records.
+- **`summary`** — a one-line description of the trace, filled in regardless of
+  `status:`. The generator only renders it on the current-state page for
+  `current` traces, but a populated summary lets an agent triage a historical
+  trace from `index/reasoning.md` without opening the body — the single
+  highest-ROI context-debloat lever this project has identified. See
+  [[2026-09-04-wiki-maintenance-sweep]] §2.
 
 Then the trace itself, verbatim. Do not summarise it on the way in. Summarising
 is what the hub does, and doing it twice means the second version is the only one

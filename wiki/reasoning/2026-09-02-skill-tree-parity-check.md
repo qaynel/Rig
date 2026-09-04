@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: host-and-ci-coverage
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, rejected
 summary: .claude/skills and .agents/skills drift closed with a relative-path parity check in check-rule-copies.js plus the two missing trees copied over; the larger single-source .rig expander that would make the check unnecessary is recorded as a deferred future feature, not adopted.

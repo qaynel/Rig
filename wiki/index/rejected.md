@@ -98,3 +98,19 @@ argument. The reason is the useful part, so every entry carries one.
 | `curl \| sh` installation | Rig's own default policy denies `remote_content_execution`. An installer that breaks the product's rule in its first five seconds cannot be defended. |
 | Fixed Basic / mid / Advanced install packages | Deprecated by GA-9g. The catalogue is the product; the only per-repo preset is the dynamic scan recommendation. |
 | **Deferred, not rejected** — a single-source `.rig/` corpus that the host agent expands into `.claude/`, `.agents/`, and the other host trees from prose deployment docs at onboarding | Right direction (one source removes the drift class), but prose/LLM-driven expansion makes the emitted bytes non-deterministic and breaks the `skills_digest`/`tree_digest` freshness and proposal-binding model. The keep-both path is a deterministic non-LLM expander with a regenerate-and-diff CI check; the open fork is whether native trees stay committed or are regenerated on demand. Held until someone picks it up; the relative-path parity check in `check-rule-copies.js` covers the gap meanwhile. [trace](../reasoning/2026-09-02-skill-tree-parity-check.md) |
+
+---
+
+## The 2026-09 overhaul
+
+Turned down during the workflow/product/architecture pass. Full argument and
+context: [the overhaul](../topics/the-overhaul.md).
+
+| Rejected | Why |
+|---|---|
+| Decoupling the signed oracle from its prose, so editing prose no longer invalidates the signature | Was the leading candidate before grilling and was retired by the owner's own answer (B2/A2): they want the signature to stay tied to the document. The real ask is different — bulk re-sign, plus the agent packaging lock and delta so the human does one physical auth instead of two approvals. |
+| A scope guard at review closeout that flags diffs touching paths outside the frozen oracle | Evidence says PR #143 did not grow through scope drift. It grew through a deliberate review → fix → new-issue loop the owner chose in order to fix defects at source rather than let them reach `qa-prod`. Guarding scope would not have caught it. |
+| Reducing the review loop by softening review | Pre-empted by the owner as a hard anti-solution: it treats the symptom by removing the check. Review quality is not tradeable against loop count. |
+| Pinning a target number to move in 60 days | Declined on Goodhart grounds — the moment a metric becomes a target the harness optimises for the metric. Directional observables only: shorter commit histories, pass@1 on acceptance criteria, close-to-1:1 deletion-to-addition ratio. |
+| A full harness-evolution port (NexAU / harbor / Agent Debugger) | Rig has no fixed task corpus, so the port rebuilds multi-week infrastructure before producing a single learning signal. Deferred, not dismissed. |
+| Treating the consultation stamp as enforcement | CI can prove the ledger is well-formed and the closeout exists; it cannot prove an agent read the row it stamped. Claiming otherwise buys the same regression blindness the AHE literature is candid about. The stamp is instrumentation that shows which rows deserve promotion into real fail-closed CI greps. |

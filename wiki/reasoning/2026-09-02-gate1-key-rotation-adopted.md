@@ -3,7 +3,7 @@ date: 2026-09-02
 source: intent owner
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-02-gate1-key-rotation-not-adopted
 tags: gate1, key-rotation, authorization
 summary: The gate1 owner intentionally changed the approved Gate 1 signing key on 2026-09-02. The new key and its verification fingerprint are recorded in wiki/gate1/gate1.allowed-signers as the signer of record.

@@ -555,3 +555,18 @@ fail against the pre-fix unscoped `writer.interrupted()` and pass against the
 fix. `wiki/gate2/onboarding-hardening-spec.md`'s F4 section now documents the
 ungated fallback as the current design, not the registry-gated original. See
 [review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
+
+## Open premise challenge: is adaptive onboarding still the headline? (2026-09-04)
+
+The 2026-09-04 office-hours design does not touch anything implemented above —
+Path B's staged flow, byte-binding, and resume guarantees are unchanged — but
+it challenges the product framing this flow serves. B1 ranked dynamic
+onboarding "the entire selling point"; the landscape research found that
+exact position already held by OpenSpec (~52k stars, brownfield-first,
+diff-based) with no distribution advantage available to Rig. The design
+recommends demoting adaptive onboarding from headline claim to install
+plumbing and leading with the signed oracle instead, while explicitly *not*
+proposing to remove or weaken this flow. This is unresolved: Part 6 lists it
+as one of four questions only the intent owner can answer, alongside whether
+anyone besides the owner has ever run onboarding on their own repository.
+[Finished-product design](../reasoning/2026-09-04-finished-product-design.md)

@@ -2,7 +2,7 @@
 date: 2026-09-01
 source: agent
 topics: specification-gate, documentation-consistency
-status: current
+status: historical
 decisions:
 summary: Task 1 documentation consistency fix - non-oracle wiki file updated to reflect oracle state
 ---

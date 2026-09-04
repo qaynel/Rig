@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow, graft-mechanics, install-manifest-removal
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: Onboarding apply was additive only — a second approved proposal that dropped a skill or a graft left the first one's artifacts on disk forever; apply now reconciles the previously applied set against the newly approved one, deletes what it can prove it wrote, refuses to delete installer-owned core skills or anything a human has edited since, and reports the refusals as warnings recorded in state.

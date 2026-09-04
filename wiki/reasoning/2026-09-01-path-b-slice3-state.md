@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B prepare and propose now maintain strict, digest-bound state and deterministic structural reports; the approved apply path remains next.

@@ -3,7 +3,7 @@ id: 2026-09-02-path-b-fix3-interrupt-sibling
 title: "Path B Fix 3: interrupt-window and sibling-file reconcile"
 date: 2026-09-02
 topics: onboarding-flow
-status: current
+status: historical
 tags: [path-b, onboarding, correctness, journal, sibling-sweep]
 ---
 

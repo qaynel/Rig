@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Technical spec for the Path B locked direction — F-1..F-6 + S-1..S-4.

@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, security, interdependency
 summary: Owner asked whether an agent can just add itself to the signers list and bypass the gate. Yes — and worse, replacing the file wholesale leaves exactly one principal, so the proposed single-principal fix never fires. No in-repo check can constrain an actor who writes the whole repo; the anchor must move outside the agent's write scope (CI secret + required check, or owner-signed commits).

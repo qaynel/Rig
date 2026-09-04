@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: user-presence-approvals, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, interdependency
 summary: Onboarding apply now re-verifies an SSHSIG approval receipt against a repository-owned allowed-signers file; the self-asserted `verified: true` Boolean is gone, and landing it needs a Gate 1 unfreeze for two frozen test fixtures.

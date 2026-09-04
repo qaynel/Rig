@@ -6,12 +6,21 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-05 | current | [2026-09-05-pr146-acceptance-criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | the-overhaul, agent-working-conventions | — | review, verification |
+| 2026-09-04 | current | [2026-09-04-wiki-maintenance-sweep](../reasoning/2026-09-04-wiki-maintenance-sweep.md) | agent-working-conventions | — | interdependency, chore |
+| 2026-09-04 | current | [2026-09-04-structural-workflow-fix-grilling](../reasoning/2026-09-04-structural-workflow-fix-grilling.md) | agent-working-conventions, what-rig-is, gate1-signing | — | interdependency, grilling |
+| 2026-09-04 | current | [2026-09-04-structural-workflow-fix-design](../reasoning/2026-09-04-structural-workflow-fix-design.md) | agent-working-conventions, testing-strategy, the-two-gates | — | interdependency, design |
+| 2026-09-04 | historical | [2026-09-04-pr146-test-plan-receipt](../reasoning/2026-09-04-pr146-test-plan-receipt.md) | agent-working-conventions | — | review, verification |
+| 2026-09-04 | current → 2026-09-04-pr146-test-plan-receipt | [2026-09-04-pr146-hub-sync-fix](../reasoning/2026-09-04-pr146-hub-sync-fix.md) | — | — | review, verification |
+| 2026-09-04 | current | [2026-09-04-landscape-research-in-flight](../reasoning/2026-09-04-landscape-research-in-flight.md) | what-rig-is, testing-strategy, distribution-and-release | — | interdependency, research |
+| 2026-09-04 | current | [2026-09-04-gate1-package-scripts-break-and-revert](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md) | gate1-signing, agent-working-conventions | — | trap, interdependency |
+| 2026-09-04 | current | [2026-09-04-finished-product-design](../reasoning/2026-09-04-finished-product-design.md) | what-rig-is, distribution-and-release, the-catalogue, onboarding-flow, gate1-signing | — | interdependency, design, office-hours |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-prevention-oracle](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
-| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-review-gaps-closed](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |
-| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f4-scopes](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
-| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f2-vs-issueN](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
-| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-f1-f3-resume](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
-| 2026-09-03 | current | [2026-09-03-onboarding-hardening-phase1-code-review](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |
+| 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-review-gaps-closed](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |
+| 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-f4-scopes](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
+| 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-f2-vs-issueN](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
+| 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-f1-f3-resume](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | interdependency |
+| 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-code-review](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |
 | 2026-09-03 | superseded | [2026-09-03-onboarding-hardening-phase0-corrections](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency |
 | 2026-09-03 | current → 2026-09-03-onboarding-hardening-phase0-corrections | [2026-09-03-onboarding-hardening-phase0-complete](../reasoning/2026-09-03-onboarding-hardening-phase0-complete.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-oracle-review](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md) | testing-strategy, gate1-signing, trust-and-failure-boundaries, onboarding-flow | — | trap |
@@ -24,33 +33,33 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step2-hub-sync](../reasoning/2026-09-02-wiki-maintenance-step2-hub-sync.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-step1-lifecycle-sweep](../reasoning/2026-09-02-wiki-maintenance-step1-lifecycle-sweep.md) | agent-working-conventions | — | — |
 | 2026-09-02 | historical | [2026-09-02-wiki-maintenance-skill](../reasoning/2026-09-02-wiki-maintenance-skill.md) | agent-working-conventions | — | — |
-| 2026-09-02 | current | [2026-09-02-skill-tree-parity-check](../reasoning/2026-09-02-skill-tree-parity-check.md) | host-and-ci-coverage | — | trap, rejected |
-| 2026-09-02 | current | [2026-09-02-path-b-qa-prod-deploy-review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md) | onboarding-flow, gate1-signing, delivery-plan | — | review, verification, qa-prod |
-| 2026-09-02 | current | [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md) | catalogue-contract, trust-and-failure-boundaries | — | review, hardening |
-| 2026-09-02 | current | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | onboarding-flow | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
-| 2026-09-02 | current → 2026-09-02-wiki-maintenance-step6-lints (staleness-filter claim only) | [2026-09-02-path-b-branch-closeout-staleHubs-fix](../reasoning/2026-09-02-path-b-branch-closeout-staleHubs-fix.md) | agent-working-conventions, testing-strategy | — | correctness, wiki-maintenance, staleHubs |
-| 2026-09-02 | current | [2026-09-02-path-b-branch-closeout-gate](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) | onboarding-flow, gate1-signing, delivery-plan | — | verification, handoff |
+| 2026-09-02 | historical | [2026-09-02-skill-tree-parity-check](../reasoning/2026-09-02-skill-tree-parity-check.md) | host-and-ci-coverage | — | trap, rejected |
+| 2026-09-02 | historical | [2026-09-02-path-b-qa-prod-deploy-review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md) | onboarding-flow, gate1-signing, delivery-plan | — | review, verification, qa-prod |
+| 2026-09-02 | historical | [2026-09-02-path-b-hardening-final-review](../reasoning/2026-09-02-path-b-hardening-final-review.md) | catalogue-contract, trust-and-failure-boundaries | — | review, hardening |
+| 2026-09-02 | historical | [2026-09-02-path-b-fix3-interrupt-sibling](../reasoning/2026-09-02-path-b-fix3-interrupt-sibling.md) | onboarding-flow | — | [path-b, onboarding, correctness, journal, sibling-sweep] |
+| 2026-09-02 | historical → 2026-09-02-wiki-maintenance-step6-lints (staleness-filter claim only) | [2026-09-02-path-b-branch-closeout-staleHubs-fix](../reasoning/2026-09-02-path-b-branch-closeout-staleHubs-fix.md) | agent-working-conventions, testing-strategy | — | correctness, wiki-maintenance, staleHubs |
+| 2026-09-02 | historical | [2026-09-02-path-b-branch-closeout-gate](../reasoning/2026-09-02-path-b-branch-closeout-gate.md) | onboarding-flow, gate1-signing, delivery-plan | — | verification, handoff |
 | 2026-09-02 | current | [2026-09-02-onboarding-hardening-technical-spec](../reasoning/2026-09-02-onboarding-hardening-technical-spec.md) | path-b-onboarding, gate1-signing, security | — | — |
 | 2026-09-02 | current | [2026-09-02-onboarding-hardening-grilling](../reasoning/2026-09-02-onboarding-hardening-grilling.md) | path-b-onboarding, gate1-signing, security | — | — |
 | 2026-09-02 | current | [2026-09-02-gate1-wording-fix-and-signing-instructions](../reasoning/2026-09-02-gate1-wording-fix-and-signing-instructions.md) | gate1-signing | — | gate1, wording-fix, signing-ceremony |
-| 2026-09-02 | current | [2026-09-02-gate1-multi-principal-forgery](../reasoning/2026-09-02-gate1-multi-principal-forgery.md) | gate1-signing | — | trap, security, interdependency |
+| 2026-09-02 | historical | [2026-09-02-gate1-multi-principal-forgery](../reasoning/2026-09-02-gate1-multi-principal-forgery.md) | gate1-signing | — | trap, security, interdependency |
 | 2026-09-02 | superseded | [2026-09-02-gate1-key-rotation-not-adopted](../reasoning/2026-09-02-gate1-key-rotation-not-adopted.md) | gate1-signing | — | gate1, key-rotation, correction |
-| 2026-09-02 | current | [2026-09-02-gate1-key-rotation-authorized](../reasoning/2026-09-02-gate1-key-rotation-authorized.md) | gate1-signing | — | gate1, key-rotation, authorization |
-| 2026-09-02 | current → 2026-09-02-gate1-key-rotation-not-adopted | [2026-09-02-gate1-key-rotation-adopted](../reasoning/2026-09-02-gate1-key-rotation-adopted.md) | gate1-signing | — | gate1, key-rotation, authorization |
-| 2026-09-02 | current | [2026-09-02-gate1-in-repo-anchor-is-not-a-barrier](../reasoning/2026-09-02-gate1-in-repo-anchor-is-not-a-barrier.md) | gate1-signing | — | trap, security, interdependency |
-| 2026-09-02 | current | [2026-09-02-gate1-human-presence-what-is-checkable](../reasoning/2026-09-02-gate1-human-presence-what-is-checkable.md) | gate1-signing | — | trap, security, interdependency, rejected |
-| 2026-09-02 | current | [2026-09-02-gate1-ci-pin-anchor-implemented](../reasoning/2026-09-02-gate1-ci-pin-anchor-implemented.md) | gate1-signing | — | interdependency, security, trap |
-| 2026-09-02 | current | [2026-09-02-gate1-ci-pin-anchor-armed](../reasoning/2026-09-02-gate1-ci-pin-anchor-armed.md) | gate1-signing | — | security, interdependency |
+| 2026-09-02 | historical | [2026-09-02-gate1-key-rotation-authorized](../reasoning/2026-09-02-gate1-key-rotation-authorized.md) | gate1-signing | — | gate1, key-rotation, authorization |
+| 2026-09-02 | historical → 2026-09-02-gate1-key-rotation-not-adopted | [2026-09-02-gate1-key-rotation-adopted](../reasoning/2026-09-02-gate1-key-rotation-adopted.md) | gate1-signing | — | gate1, key-rotation, authorization |
+| 2026-09-02 | historical | [2026-09-02-gate1-in-repo-anchor-is-not-a-barrier](../reasoning/2026-09-02-gate1-in-repo-anchor-is-not-a-barrier.md) | gate1-signing | — | trap, security, interdependency |
+| 2026-09-02 | historical | [2026-09-02-gate1-human-presence-what-is-checkable](../reasoning/2026-09-02-gate1-human-presence-what-is-checkable.md) | gate1-signing | — | trap, security, interdependency, rejected |
+| 2026-09-02 | historical | [2026-09-02-gate1-ci-pin-anchor-implemented](../reasoning/2026-09-02-gate1-ci-pin-anchor-implemented.md) | gate1-signing | — | interdependency, security, trap |
+| 2026-09-02 | historical | [2026-09-02-gate1-ci-pin-anchor-armed](../reasoning/2026-09-02-gate1-ci-pin-anchor-armed.md) | gate1-signing | — | security, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-remove-list-pushback](../reasoning/2026-09-02-gate1-allowed-signers-remove-list-pushback.md) | gate1-signing | — | rejected, trap, interdependency |
 | 2026-09-02 | current | [2026-09-02-gate1-allowed-signers-comment-preservation-grill](../reasoning/2026-09-02-gate1-allowed-signers-comment-preservation-grill.md) | gate1-signing | — | trap |
 | 2026-09-02 | current | [2026-09-02-closed-loop-workflow-and-context-realignment](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md) | agent-working-conventions, testing-strategy, trust-and-failure-boundaries | — | interdependency, deferred |
-| 2026-09-02 | current | [2026-09-02-catalogue-tree-digest-reproducibility](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md) | onboarding-flow, testing-strategy | — | trap, verification |
-| 2026-09-01 | current | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md) | onboarding-flow | — | interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
+| 2026-09-02 | historical | [2026-09-02-catalogue-tree-digest-reproducibility](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md) | onboarding-flow, testing-strategy | — | trap, verification |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice6-operator-check](../reasoning/2026-09-01-path-b-slice6-operator-check.md) | distribution-and-release, delivery-plan, onboarding-flow | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice5-vertical](../reasoning/2026-09-01-path-b-slice5-vertical.md) | onboarding-flow, what-rig-is, services-and-reports | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice4-graft](../reasoning/2026-09-01-path-b-slice4-graft.md) | graft-mechanics, install-manifest-removal | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice3-state](../reasoning/2026-09-01-path-b-slice3-state.md) | onboarding-flow | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice2-inventory](../reasoning/2026-09-01-path-b-slice2-inventory.md) | onboarding-flow | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-slice1-catalogue](../reasoning/2026-09-01-path-b-slice1-catalogue.md) | the-catalogue, onboarding-flow, testing-strategy | PB-1 | interdependency |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t9-multihost](../reasoning/2026-09-01-path-b-remediation-t9-multihost.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t8-reinventory](../reasoning/2026-09-01-path-b-remediation-t8-reinventory.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t7-dangling-ref](../reasoning/2026-09-01-path-b-remediation-t7-dangling-ref.md) | — | — | — |
@@ -59,17 +68,17 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t4-strict-decode](../reasoning/2026-09-01-path-b-remediation-t4-strict-decode.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t3-install-gate](../reasoning/2026-09-01-path-b-remediation-t3-install-gate.md) | — | — | — |
 | 2026-09-01 | historical | [2026-09-01-path-b-remediation-t2-playbook](../reasoning/2026-09-01-path-b-remediation-t2-playbook.md) | — | — | — |
-| 2026-09-01 | current | [2026-09-01-path-b-remediation-docfix-consistency](../reasoning/2026-09-01-path-b-remediation-docfix-consistency.md) | specification-gate, documentation-consistency | — | — |
-| 2026-09-01 | current | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-remediation-docfix-consistency](../reasoning/2026-09-01-path-b-remediation-docfix-consistency.md) | specification-gate, documentation-consistency | — | — |
+| 2026-09-01 | historical | [2026-09-01-path-b-implementation-resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md) | onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates | — | interdependency |
 | 2026-09-01 | superseded | [2026-09-01-path-b-hardening-issue6-delete](../reasoning/2026-09-01-path-b-hardening-issue6-delete.md) | graft-mechanics, install-manifest-removal, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current → 2026-09-01-path-b-hardening-issue6-delete | [2026-09-01-path-b-hardening-issue6-delete-ownership](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md) | graft-mechanics, install-manifest-removal, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue5-test-drift](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md) | catalogue-contract, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue5-dupname](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md) | catalogue-contract, onboarding-flow, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue4-resume](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md) | graft-mechanics, install-manifest-removal, onboarding-flow, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue3-reconcile](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md) | onboarding-flow, graft-mechanics, install-manifest-removal | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue2-bytebinding](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md) | onboarding-flow, user-presence-approvals, trust-and-failure-boundaries | — | trap |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-issue1-approval](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md) | user-presence-approvals, trust-and-failure-boundaries | — | trap, interdependency |
-| 2026-09-01 | current | [2026-09-01-path-b-hardening-binding-validation](../reasoning/2026-09-01-path-b-hardening-binding-validation.md) | onboarding-flow, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical → 2026-09-01-path-b-hardening-issue6-delete | [2026-09-01-path-b-hardening-issue6-delete-ownership](../reasoning/2026-09-01-path-b-hardening-issue6-delete-ownership.md) | graft-mechanics, install-manifest-removal, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue5-test-drift](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md) | catalogue-contract, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue5-dupname](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md) | catalogue-contract, onboarding-flow, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue4-resume](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md) | graft-mechanics, install-manifest-removal, onboarding-flow, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue3-reconcile](../reasoning/2026-09-01-path-b-hardening-issue3-reconcile.md) | onboarding-flow, graft-mechanics, install-manifest-removal | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue2-bytebinding](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md) | onboarding-flow, user-presence-approvals, trust-and-failure-boundaries | — | trap |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue1-approval](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md) | user-presence-approvals, trust-and-failure-boundaries | — | trap, interdependency |
+| 2026-09-01 | historical | [2026-09-01-path-b-hardening-binding-validation](../reasoning/2026-09-01-path-b-hardening-binding-validation.md) | onboarding-flow, trust-and-failure-boundaries | — | trap |
 | 2026-08-31 | historical | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | historical | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
 | 2026-08-31 | historical | [2026-08-31-routing-hygiene-oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md) | onboarding-flow, testing-strategy | — | — |
@@ -82,16 +91,16 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-31 | historical | [2026-08-31-rig-153-close-option-b-deferred](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) | testing-strategy, onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | historical | [2026-08-31-rig-148-gitignore-oracle](../reasoning/2026-08-31-rig-148-gitignore-oracle.md) | graft-mechanics, install-manifest-removal | — | oracle, rig-148 |
 | 2026-08-31 | historical | [2026-08-31-post-install-rig-onboarding-skill](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md) | onboarding-flow | — | — |
-| 2026-08-31 | current | [2026-08-31-path-b-technical-spec](../reasoning/2026-08-31-path-b-technical-spec.md) | onboarding-flow, what-rig-is | — | interdependency |
+| 2026-08-31 | historical | [2026-08-31-path-b-technical-spec](../reasoning/2026-08-31-path-b-technical-spec.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-product-direction](../reasoning/2026-08-31-path-b-product-direction.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | superseded | [2026-08-31-path-b-oracle-checkpoint](../reasoning/2026-08-31-path-b-oracle-checkpoint.md) | onboarding-flow, what-rig-is, testing-strategy | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-follow-up-decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md) | onboarding-flow, what-rig-is | — | interdependency |
-| 2026-08-31 | current | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
+| 2026-08-31 | historical | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
 | 2026-08-31 | historical → 2026-08-31-path-b-oracle-checkpoint | [2026-08-31-path-b-acceptance-oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) | onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan | — | interdependency, trap |
 | 2026-08-30 | historical | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
 | 2026-08-30 | historical | [2026-08-30-path-a-bug-investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) | onboarding-flow, graft-mechanics | — | trap, interdependency |
-| 2026-08-30 | current | [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md) | onboarding-flow, distribution-and-release, what-rig-is | — | trap, interdependency |
+| 2026-08-30 | historical | [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md) | onboarding-flow, distribution-and-release, what-rig-is | — | trap, interdependency |
 | 2026-08-30 | historical → wiki/status.md | [2026-08-30-generated-wiki-summary-design](../reasoning/2026-08-30-generated-wiki-summary-design.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | historical | [2026-08-30-development-process-handoff](../reasoning/2026-08-30-development-process-handoff.md) | gate1-signing, agent-working-conventions, testing-strategy | — | interdependency |
 | 2026-08-30 | historical | [2026-08-30-adaptation-eval-claude-task-master](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) | what-rig-is, onboarding-flow, the-catalogue | GA-36 | interdependency, trap |

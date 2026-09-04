@@ -58,8 +58,11 @@ function traces(root = ROOT) {
     .sort((left, right) => `${right.date}/${right.file}`.localeCompare(`${left.date}/${left.file}`));
 }
 
-function link(trace) {
-  return `[${path.basename(trace.file, '.md')}](${trace.file.replace(/^reasoning\//, '../reasoning/')})`;
+// The two generated pages sit at different depths: wiki/status.md is one level
+// above wiki/reasoning/, while wiki/index/reasoning.md is a sibling directory.
+// Each caller passes the prefix correct for its own output path.
+function link(trace, prefix) {
+  return `[${path.basename(trace.file, '.md')}](${trace.file.replace(/^reasoning\//, prefix)})`;
 }
 
 function renderStatus(records) {
@@ -77,7 +80,7 @@ function renderStatus(records) {
   if (!current.length) lines.push('No current trace is marked in `wiki/reasoning/`.');
   for (const trace of current) {
     const detail = trace.summary || `Current trace from ${trace.source}.`;
-    lines.push(`- **${trace.date} — ${link(trace)}**: ${detail}`);
+    lines.push(`- **${trace.date} — ${link(trace, 'reasoning/')}**: ${detail}`);
   }
   return `${lines.join('\n')}\n`;
 }
@@ -99,7 +102,7 @@ function renderIndex(records) {
   ];
   for (const trace of records) {
     const state = trace.supersedes ? `${trace.status} → ${trace.supersedes}` : trace.status;
-    lines.push(`| ${trace.date} | ${state} | ${link(trace)} | ${display(trace.topics)} | ${display(trace.decisions)} | ${display(trace.tags)} |`);
+    lines.push(`| ${trace.date} | ${state} | ${link(trace, '../reasoning/')} | ${display(trace.topics)} | ${display(trace.decisions)} | ${display(trace.tags)} |`);
   }
   return `${lines.join('\n')}\n`;
 }
