@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-09-05 — [2026-09-05-pr146-acceptance-criteria](reasoning/2026-09-05-pr146-acceptance-criteria.md)**: Merge-scoped acceptance criteria for PR #146 — eight observable wiki/docs checks, not Gate 1 AT-* cases; all eight pass against HEAD after the hub-sync; the four workflow-fix slices and any oracle edit remain out of scope.
 - **2026-09-04 — [2026-09-04-wiki-maintenance-sweep](reasoning/2026-09-04-wiki-maintenance-sweep.md)**: Wiki maintenance sweep — lifecycle sweep cut status.md from 60 traces to 18, a real defect made every link on the generated status page dead and is now fixed, a bounded task-addressable quick reference was added, ten phantom trace references were identified as never-filed, and the glossary gained ten live terms.
 - **2026-09-04 — [2026-09-04-structural-workflow-fix-grilling](reasoning/2026-09-04-structural-workflow-fix-grilling.md)**: Intent owner's completed grilling answers (A–G) for the structural workflow fix, plus the grilling agent's seven notes — including that CLAUDE.md's markdown-only Tier 1 text is dead doctrine.
 - **2026-09-04 — [2026-09-04-structural-workflow-fix-design](reasoning/2026-09-04-structural-workflow-fix-design.md)**: Architectural root-cause of the four workflow symptoms is one asymmetry — a mandatory write path against an advisory, unbounded read path — and the fix is a bounded, phase-scoped, mandatory consultation index; scoped to four slices for the workflow-only PR.

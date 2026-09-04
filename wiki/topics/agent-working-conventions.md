@@ -146,6 +146,9 @@ the 2026-09-04 traces' `topics:` were not updated in the same change.
 [fail receipt](../reasoning/2026-09-04-pr146-test-plan-receipt.md) The five
 hubs were then cited in place; independently re-verified `npm test` green at
 `6a1b6803`. [hub-sync fix](../reasoning/2026-09-04-pr146-hub-sync-fix.md)
+Merge contract for that PR is eight observable wiki/docs checks, not Gate 1
+`AT-*` cases; all eight pass.
+[acceptance criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md)
 
 ## What's still open
 

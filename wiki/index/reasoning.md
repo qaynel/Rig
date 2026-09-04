@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-05 | current | [2026-09-05-pr146-acceptance-criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | the-overhaul, agent-working-conventions | — | review, verification |
 | 2026-09-04 | current | [2026-09-04-wiki-maintenance-sweep](../reasoning/2026-09-04-wiki-maintenance-sweep.md) | agent-working-conventions | — | interdependency, chore |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-grilling](../reasoning/2026-09-04-structural-workflow-fix-grilling.md) | agent-working-conventions, what-rig-is, gate1-signing | — | interdependency, grilling |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-design](../reasoning/2026-09-04-structural-workflow-fix-design.md) | agent-working-conventions, testing-strategy, the-two-gates | — | interdependency, design |

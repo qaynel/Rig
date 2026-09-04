@@ -249,6 +249,7 @@ removing product. Mostly deletion, not construction. Nothing has been deleted.
 | [Closed-loop design](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md) | The deferred design this workstream builds on: three structural gaps, ten debloat techniques, seven tranches. |
 | [Closed-loop conversation record](../reasoning/2026-09-03-closed-loop-conversation-record.md) | Resume-from-cold entrypoint for that design. |
 | [Quick reference](../index/quick-reference.md) | Bounded, task-addressable routing with size hints. The navigation half of the fix above. |
+| [PR #146 acceptance](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | Merge contract for this filing: eight observable wiki/docs checks. Not Gate 1 `AT-*` cases. All eight pass. |
 
 **Related hubs:** [what Rig is](what-rig-is.md) ·
 [the two gates](the-two-gates.md) · [Gate 1 signing](gate1-signing.md) ·
@@ -265,3 +266,8 @@ quick-reference index, a glossary expansion, and the 2026-09-04 wiki sweep —
 no product change. Slice 1 of the workflow fix is the next action and is
 waiting on the owner's go-ahead; the five open decisions above gate everything
 past it.
+
+Merge of this filing (PR #146) is accepted when the eight observables in
+[PR #146 acceptance](../reasoning/2026-09-05-pr146-acceptance-criteria.md)
+hold. They are the wiki restore and design-filing contract, not a product
+oracle. All eight currently pass.
