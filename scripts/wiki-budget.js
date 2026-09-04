@@ -96,7 +96,10 @@ function entryLinkViolations(root, config) {
   const found = [];
   for (const relative of config.mandatoryReads) {
     const absolute = path.join(root, relative);
-    if (!fs.existsSync(absolute)) continue;
+    if (!fs.existsSync(absolute)) {
+      found.push({ rule: 'entry-path-missing', subject: relative, actual: 'absent', limit: 'update wiki/budget.json' });
+      continue;
+    }
     const body = fs.readFileSync(absolute, 'utf8');
     for (const target of new Set([...body.matchAll(TRACE_LINK)].map((match) => match[1]))) {
       const state = status.get(target) || 'missing';
@@ -140,13 +143,23 @@ function orientationViolations(root, config, limits) {
 
 function audit(root = ROOT) {
   const config = readConfig(root);
-  return [
+  const found = [
     ...summaryViolations(root),
     ...hubViolations(root, config.limits),
     ...indexViolations(root, config.limits),
     ...entryLinkViolations(root, config),
     ...orientationViolations(root, config, config.limits),
   ];
+  // mandatoryReads is a subset of entryPath in practice, so a page missing
+  // from both would otherwise surface as two byte-identical entry-path-missing
+  // violations. Keep the first occurrence.
+  const seen = new Set();
+  return found.filter((violation) => {
+    const key = `${violation.rule}:${violation.subject}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 module.exports = { CONFIG, GENERATED, WAIVERS, audit, pages, readConfig };

@@ -125,3 +125,24 @@ test('an entry-path page that no longer exists fails instead of being skipped', 
     ['entry-path-missing:wiki/index/gone.md'],
   );
 });
+
+test('a mandated read that no longer exists fails even when it is not in the entry path', () => {
+  const root = fixture(
+    {},
+    { mandatoryReads: ['wiki/index/gone.md'], entryPath: ['wiki/agent-primer.md'] },
+  );
+  assert.deepEqual(
+    rules(audit(root).filter((row) => row.rule === 'entry-path-missing')),
+    ['entry-path-missing:wiki/index/gone.md'],
+  );
+});
+
+test('a missing page in both lists produces exactly one violation, not two', () => {
+  const root = fixture(
+    {},
+    { mandatoryReads: ['wiki/index/gone.md'], entryPath: ['wiki/agent-primer.md', 'wiki/index/gone.md'] },
+  );
+  const violations = audit(root).filter((row) => row.rule === 'entry-path-missing');
+  assert.equal(violations.length, 1);
+  assert.equal(violations[0].subject, 'wiki/index/gone.md');
+});
