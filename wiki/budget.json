@@ -1,0 +1,29 @@
+{
+  "limits": {
+    "hubBytes": 12000,
+    "indexRows": 200,
+    "indexBytes": 20000,
+    "entryPathBytes": 100000
+  },
+  "mandatoryReads": [
+    "wiki/agent-primer.md",
+    "wiki/Home.md",
+    "wiki/status.md",
+    "wiki/index/quick-reference.md"
+  ],
+  "entryPath": [
+    "wiki/agent-primer.md",
+    "wiki/Home.md",
+    "wiki/status.md",
+    "wiki/index/quick-reference.md",
+    "wiki/topics/the-overhaul.md",
+    "wiki/topics/what-rig-is.md",
+    "wiki/topics/onboarding-flow.md",
+    "wiki/topics/graft-mechanics.md",
+    "wiki/topics/the-two-gates.md",
+    "wiki/index/decisions.md",
+    "wiki/index/acceptance-cases.md",
+    "wiki/index/rejected.md",
+    "wiki/index/traps.md"
+  ]
+}
