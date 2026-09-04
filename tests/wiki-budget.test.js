@@ -7,6 +7,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { audit } = require('../scripts/wiki-budget');
+const { check } = require('../scripts/check-wiki-budget');
 
 const DEFAULT_CONFIG = {
   limits: { hubBytes: 100, indexRows: 5, indexBytes: 200, entryPathBytes: 500 },
@@ -145,4 +146,56 @@ test('a missing page in both lists produces exactly one violation, not two', () 
   const violations = audit(root).filter((row) => row.rule === 'entry-path-missing');
   assert.equal(violations.length, 1);
   assert.equal(violations[0].subject, 'wiki/index/gone.md');
+});
+
+function waive(root, waivers) {
+  fs.writeFileSync(path.join(root, 'wiki', 'budget.waivers.json'), `${JSON.stringify(waivers, null, 2)}\n`);
+  return root;
+}
+
+test('a waiver at the current value suppresses the violation', () => {
+  const root = waive(fixture({ 'wiki/topics/big.md': 'x'.repeat(101) }), { 'hub-bytes:wiki/topics/big.md': 101 });
+  assert.deepEqual(check(root), []);
+});
+
+test('growth past a waived value fails as waiver-exceeded', () => {
+  const root = waive(fixture({ 'wiki/topics/big.md': 'x'.repeat(150) }), { 'hub-bytes:wiki/topics/big.md': 101 });
+  const [violation] = check(root);
+  assert.equal(violation.kind, 'waiver-exceeded');
+  assert.equal(violation.actual, 150);
+  assert.equal(violation.limit, 101);
+});
+
+test('a waiver for a file now within budget fails as stale', () => {
+  const root = waive(fixture({ 'wiki/topics/small.md': 'x'.repeat(10) }), { 'hub-bytes:wiki/topics/small.md': 101 });
+  const [violation] = check(root);
+  assert.equal(violation.kind, 'stale-waiver');
+  assert.equal(violation.subject, 'hub-bytes:wiki/topics/small.md');
+});
+
+test('a new violation with no waiver fails as over-budget', () => {
+  const root = waive(fixture({ 'wiki/topics/big.md': 'x'.repeat(101) }), {});
+  const [violation] = check(root);
+  assert.equal(violation.kind, 'over-budget');
+});
+
+test('a non-numeric violation is suppressed by any waiver and cannot regress', () => {
+  const root = waive(
+    fixture({ 'wiki/reasoning/2026-01-01-bare.md': '---\ndate: 2026-01-01\nstatus: historical\nsummary:\n---\n# Bare\n' }),
+    { 'trace-summary:wiki/reasoning/2026-01-01-bare.md': 'missing' },
+  );
+  assert.deepEqual(check(root), []);
+});
+
+test('a missing waiver file means no waivers, not a crash', () => {
+  const root = fixture({ 'wiki/topics/big.md': 'x'.repeat(101) });
+  assert.equal(check(root).length, 1);
+});
+
+test('the committed wiki is within its budgets and waivers', () => {
+  const failures = check(path.join(__dirname, '..'));
+  assert.deepEqual(
+    failures.map((failure) => `${failure.kind} ${failure.rule} ${failure.subject}`),
+    [],
+  );
 });
