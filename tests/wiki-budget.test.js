@@ -82,3 +82,46 @@ test('README.md is not audited as a hub or an index', () => {
   });
   assert.deepEqual(audit(root), []);
 });
+
+test('a mandated read that links a non-current trace is a violation', () => {
+  const root = fixture({
+    'wiki/agent-primer.md': 'See [old](reasoning/2026-01-01-old.md) and [now](reasoning/2026-01-02-now.md).\n',
+    'wiki/reasoning/2026-01-01-old.md': '---\ndate: 2026-01-01\nstatus: historical\nsummary: Old.\n---\n# Old\n',
+    'wiki/reasoning/2026-01-02-now.md': '---\ndate: 2026-01-02\nstatus: current\nsummary: Now.\n---\n# Now\n',
+  });
+  assert.deepEqual(
+    rules(audit(root).filter((row) => row.rule === 'entry-path-current-only')),
+    ['entry-path-current-only:wiki/agent-primer.md -> reasoning/2026-01-01-old.md'],
+  );
+});
+
+test('a mandated read may link reasoning/README.md, which is not a trace', () => {
+  const root = fixture({ 'wiki/agent-primer.md': 'See [how](reasoning/README.md).\n' });
+  assert.deepEqual(audit(root).filter((row) => row.rule === 'entry-path-current-only'), []);
+});
+
+test('a hub deeper than the mandated reads may cite a historical trace', () => {
+  const root = fixture({
+    'wiki/topics/hub.md': 'See [old](../reasoning/2026-01-01-old.md).\n',
+    'wiki/reasoning/2026-01-01-old.md': '---\ndate: 2026-01-01\nstatus: historical\nsummary: Old.\n---\n# Old\n',
+  });
+  assert.deepEqual(audit(root).filter((row) => row.rule === 'entry-path-current-only'), []);
+});
+
+test('the entry path is capped on total bytes across its pages', () => {
+  const root = fixture(
+    { 'wiki/agent-primer.md': 'a'.repeat(300), 'wiki/Home.md': 'b'.repeat(300) },
+    { entryPath: ['wiki/agent-primer.md', 'wiki/Home.md'] },
+  );
+  const [violation] = audit(root).filter((row) => row.rule === 'entry-path-bytes');
+  assert.equal(violation.actual, 600);
+  assert.equal(violation.limit, 500);
+});
+
+test('an entry-path page that no longer exists fails instead of being skipped', () => {
+  const root = fixture({}, { entryPath: ['wiki/agent-primer.md', 'wiki/index/gone.md'] });
+  assert.deepEqual(
+    rules(audit(root).filter((row) => row.rule === 'entry-path-missing')),
+    ['entry-path-missing:wiki/index/gone.md'],
+  );
+});

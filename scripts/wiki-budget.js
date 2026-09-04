@@ -82,12 +82,70 @@ function indexViolations(root, limits) {
   return found;
 }
 
+// Only dated trace filenames. wiki/reasoning/README.md is a convention page,
+// not a trace, and linking it from a mandated read is correct.
+const TRACE_LINK = /\]\((?:\.{1,2}\/)*(reasoning\/\d{4}-\d{2}-\d{2}-[^)#\s]+\.md)/g;
+
+// The four pages a full-cadence task always opens must route only to current
+// thinking. Hubs one hop deeper may and should cite historical traces: a hub
+// is the synthesis and the trace is its source, and wiki/reasoning/README.md
+// requires the citation. Enforcing this on hubs would order agents to break
+// the wiki's own filing contract.
+function entryLinkViolations(root, config) {
+  const status = new Map(traces(root).map((trace) => [trace.file, trace.status]));
+  const found = [];
+  for (const relative of config.mandatoryReads) {
+    const absolute = path.join(root, relative);
+    if (!fs.existsSync(absolute)) continue;
+    const body = fs.readFileSync(absolute, 'utf8');
+    for (const target of new Set([...body.matchAll(TRACE_LINK)].map((match) => match[1]))) {
+      const state = status.get(target) || 'missing';
+      if (state === 'current') continue;
+      found.push({
+        rule: 'entry-path-current-only',
+        subject: `${relative} -> ${target}`,
+        actual: state,
+        limit: 'current',
+      });
+    }
+  }
+  return found;
+}
+
+// Per-file caps do not bound the sum, and the sum is the symptom: orientation
+// cost was 211,775 bytes (~53k tokens) on 2026-09-05 before a single primary
+// source was opened. A missing page fails loudly rather than shrinking the
+// measured total, so splitting a page cannot silently satisfy the budget.
+function orientationViolations(root, config, limits) {
+  const found = [];
+  let bytes = 0;
+  for (const relative of config.entryPath) {
+    const absolute = path.join(root, relative);
+    if (!fs.existsSync(absolute)) {
+      found.push({ rule: 'entry-path-missing', subject: relative, actual: 'absent', limit: 'update wiki/budget.json' });
+      continue;
+    }
+    bytes += fs.statSync(absolute).size;
+  }
+  if (bytes > limits.entryPathBytes) {
+    found.push({
+      rule: 'entry-path-bytes',
+      subject: 'wiki/agent-primer.md and the pages it links',
+      actual: bytes,
+      limit: limits.entryPathBytes,
+    });
+  }
+  return found;
+}
+
 function audit(root = ROOT) {
   const config = readConfig(root);
   return [
     ...summaryViolations(root),
     ...hubViolations(root, config.limits),
     ...indexViolations(root, config.limits),
+    ...entryLinkViolations(root, config),
+    ...orientationViolations(root, config, config.limits),
   ];
 }
 
