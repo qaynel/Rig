@@ -9,6 +9,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-04 | current | [2026-09-04-wiki-maintenance-sweep](../reasoning/2026-09-04-wiki-maintenance-sweep.md) | agent-working-conventions | — | interdependency, chore |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-grilling](../reasoning/2026-09-04-structural-workflow-fix-grilling.md) | agent-working-conventions, what-rig-is, gate1-signing | — | interdependency, grilling |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-design](../reasoning/2026-09-04-structural-workflow-fix-design.md) | agent-working-conventions, testing-strategy, the-two-gates | — | interdependency, design |
+| 2026-09-04 | current | [2026-09-04-pr146-test-plan-receipt](../reasoning/2026-09-04-pr146-test-plan-receipt.md) | agent-working-conventions | — | review, verification |
 | 2026-09-04 | current | [2026-09-04-landscape-research-in-flight](../reasoning/2026-09-04-landscape-research-in-flight.md) | what-rig-is, testing-strategy, distribution-and-release | — | interdependency, research |
 | 2026-09-04 | current | [2026-09-04-gate1-package-scripts-break-and-revert](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md) | gate1-signing, agent-working-conventions | — | trap, interdependency |
 | 2026-09-04 | current | [2026-09-04-finished-product-design](../reasoning/2026-09-04-finished-product-design.md) | what-rig-is, distribution-and-release, the-catalogue, onboarding-flow, gate1-signing | — | interdependency, design, office-hours |

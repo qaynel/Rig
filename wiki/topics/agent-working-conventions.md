@@ -141,6 +141,12 @@ byte-pinned the same way the acceptance/business-spec/manifest chain is, and
 an agent that edits it breaks `npm test` until reverted or until the owner
 re-signs. [2026-09-04 trace](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md)
 
+PR #146's five-item test plan was run report-only against `b1b5d754`: overall
+fail. `npm test` is red because five hubs named in the 2026-09-04 traces'
+`topics:` were not updated in the same change (the filing rule the
+wiki-maintenance lint enforces). The other four items passed. [2026-09-04
+receipt](../reasoning/2026-09-04-pr146-test-plan-receipt.md)
+
 ## What's still open
 
 The byte-equality check only covers the compact `AGENTS.md`-family copies.
