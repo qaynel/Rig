@@ -3,10 +3,10 @@ date: 2026-09-04
 source: review
 topics: agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification
-summary: Report-only acceptance receipt for PR #146 at b1b5d754 against its five-item test plan — overall fail; npm test is red because five topic hubs are older than the 2026-09-04 traces that name them in topics; the other four items pass.
+summary: Report-only acceptance receipt for PR #146 at b1b5d754 against its five-item test plan — overall fail at that commit; superseded by the hub-sync fix, which made npm test green.
 ---
 
 # Acceptance receipt — PR #146 test plan
