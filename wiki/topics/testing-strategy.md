@@ -310,3 +310,31 @@ Fixed by keeping the graft path/content identical across both proposals and
 driving the digest difference through the summary text instead, isolating
 the inventory-freshness check under test. See
 [review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
+
+## Root cause of the review/context-burn symptoms named (2026-09-04)
+
+The office-hours structural design traces the wiki-maintenance lint above,
+and the regression-loop symptom this page already documents, to one shared
+cause: the project's read path is advisory and unbounded (`agent-primer.md`
+says follow links "only as far as the task requires"; `index/traps.md` is
+described as a page to read, never a phase obligation) while the write path
+is mandatory. There is no bounded middle an agent can consult cheaply before
+writing code, so a fix is locally correct and globally regressive as often as
+not. The proposed fix — not yet implemented — is a bounded, mandatory
+consultation index (`wiki/mistakes/*.md` with `enforcement_site`, `check`,
+and `paths` routing fields, queried by each phase's closeout and asserted by
+a CI backstop) that replaces "read as far as the task requires" rather than
+adding to it. Scoped as four commits/slices for a workflow-only PR; nothing
+in this design is implemented yet.
+[Structural workflow fix design](../reasoning/2026-09-04-structural-workflow-fix-design.md)
+
+The same 2026-09-04 research that produced the design above separately
+measured the test suite's own shape: `tests/` is 101 files / 17,959 lines
+against `rig/tier-1/`'s 733 lines of curated product, and situates the
+frozen-oracle discipline this page documents as Rig's strongest, least-copied
+differentiator against 15+ competing SDD frameworks — the literature reviewed
+(The Verification Horizon, SpecBench) finds no other shipped tool that
+cryptographically freezes acceptance criteria under a human key, and names
+reward-hacking/test-saturation as a growing, unsolved problem this page's
+frozen-oracle-plus-re-sign model already addresses.
+[Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md)
