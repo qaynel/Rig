@@ -150,6 +150,21 @@ Merge contract for that PR is eight observable wiki/docs checks, not Gate 1
 `AT-*` cases; all eight pass.
 [acceptance criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md)
 
+## The wiki budget gate — planned, not built
+
+The read path gets a machine oracle: caps on hub bytes, index rows and bytes,
+a non-empty `summary:` on every trace, `current`-only trace links from the
+four mandated reads, and a total byte cap on the orientation path — enforced
+from a new `tests/` file behind a ratchet-only waiver ledger, plus a
+hard-capped `scripts/wiki-query.js` as the bounded read that replaces hub
+browsing. It enters `npm test` through the `tests/*.test.js` glob rather than
+`package.json`, because `scripts` is a signed Gate 1 surface. Measured
+baseline it locks in: 107 of 194 traces carry no summary, five hubs and five
+indexes are over cap, and orientation costs 211,775 bytes before a primary
+source is opened. Plan at
+`docs/superpowers/plans/2026-09-05-wiki-budget-gate.md`; nothing implemented.
+[budget gate plan](../reasoning/2026-09-05-wiki-budget-gate-plan.md)
+
 ## What's still open
 
 The byte-equality check only covers the compact `AGENTS.md`-family copies.

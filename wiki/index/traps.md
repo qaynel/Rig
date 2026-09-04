@@ -295,3 +295,33 @@ built on a stale view of a file be applied over the difference. The resume must
 be scoped to an *open* journal transaction, which is the only evidence that
 distinguishes "this run died halfway" from "an earlier run finished". See
 [[2026-09-01-path-b-hardening-issue4-resume]].
+
+## "Rewrite the wiki" breaks the wiki's own contract
+
+Identified 2026-09-05, before it was executed. Debloat work is naturally
+described as "trim it down and rewrite everything", and that phrasing handed to
+parallel agents destroys the record.
+
+`wiki/reasoning/README.md` states the rule plainly: **a trace's body is written
+once and never edited.** Only frontmatter (`status:`, `topics:`, `summary:`)
+may change after filing. The immutable-body / mutable-synthesis split is what
+lets the wiki keep both its history and a non-contradictory current state.
+
+The legal debloat operations are therefore:
+
+- change frontmatter on a trace — allowed
+- delete or relocate a trace whole — allowed
+- rewrite a hub, an index, or a spec — allowed, that is what they are for
+- rewrite a trace body — **forbidden**, no exceptions
+
+Two further constraints on any parallel cleanup:
+
+- **Hubs and indexes are shared state.** 26 hubs are referenced by many traces.
+  Partition parallel work by *directory ownership*, never by topic, or agents
+  collide on the same hub and the same decision index.
+- **`wiki/status.md` is generated.** Never hand-edit it; run
+  `node scripts/build-wiki-index.js`.
+- **Gate 1 files are signed.** Splitting or reflowing `gate1/acceptance.md`
+  (77K) or `gate1/business-spec.md` (64K) invalidates the signature and incurs
+  the re-sign multiplier already on record as a ranked symptom. Gate 1 stays
+  out of scope for size work until the signing UX lands.

@@ -17,8 +17,8 @@ still the one mandated read. This is the layer under it.
 
 | Read | Lines | Why |
 |---|---|---|
-| [Traps](traps.md) | 297 | Things that already cost this project time. Skim headings; read only the matching one. |
-| [Rejected](rejected.md) | 100 | Approaches already turned down, with reasons. Check before proposing one. |
+| [Traps](traps.md) | 327 | Things that already cost this project time. Skim headings; read only the matching one. |
+| [Rejected](rejected.md) | 124 | Approaches already turned down, with reasons. Check before proposing one. |
 | [Mistakes](../mistakes/) | 2 files | Named anti-patterns with a concrete example and a check to run. |
 | [Glossary](../glossary.md) | 67 | If a term or ID is unfamiliar. Terms win over older documents unless a frozen gate says otherwise. |
 
@@ -28,18 +28,18 @@ still the one mandated read. This is the layer under it.
 
 | I am about to… | Read first | Lines | Then, only if needed |
 |---|---|---|---|
-| **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 229 | [The two gates](../topics/the-two-gates.md) (99) · `gate1/` is frozen — never edit it |
-| **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 557 | [Graft mechanics](../topics/graft-mechanics.md) (107) · [Install manifest and removal](../topics/install-manifest-removal.md) (139) |
-| **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 144 | [Onboarding flow](../topics/onboarding-flow.md) (557) for the projection path |
-| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 150 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
-| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 82 | [Catalogue contract](../topics/catalogue-contract.md) (124) · [Services and reports](../topics/services-and-reports.md) (146) |
+| **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 240 | [The two gates](../topics/the-two-gates.md) (113) · `gate1/` is frozen — never edit it |
+| **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 572 | [Graft mechanics](../topics/graft-mechanics.md) (107) · [Install manifest and removal](../topics/install-manifest-removal.md) (139) |
+| **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 144 | [Onboarding flow](../topics/onboarding-flow.md) (572) for the projection path |
+| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 180 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
+| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 100 | [Catalogue contract](../topics/catalogue-contract.md) (124) · [Services and reports](../topics/services-and-reports.md) (146) |
 | **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (63) · [Action evaluator](../topics/action-evaluator.md) (42) |
-| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 312 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
+| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 348 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
 | **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 410 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
-| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 77 | [Review receipts](../topics/review-receipts.md) (64) · [Delivery plan](../topics/delivery-plan.md) (167) |
+| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 92 | [Review receipts](../topics/review-receipts.md) (64) · [Delivery plan](../topics/delivery-plan.md) (167) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
-| **Propose a workflow, product, or architecture change** | [The overhaul](../topics/the-overhaul.md) | 267 | The live workstream, its rejected options, and the five open decisions that gate it |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 169 | [Status](../status.md) (27) for what is true right now |
+| **Propose a workflow, product, or architecture change** | [The overhaul](../topics/the-overhaul.md) | 274 | The live workstream, its rejected options, and the five open decisions that gate it |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 169 | [Status](../status.md) (32) for what is true right now |
 
 ---
 
