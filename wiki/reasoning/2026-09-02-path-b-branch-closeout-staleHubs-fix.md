@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: agent-working-conventions, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-02-wiki-maintenance-step6-lints (staleness-filter claim only)
 tags: correctness, wiki-maintenance, staleHubs
 summary: staleHubs counting only status:current citing traces was itself a CLAUDE.md violation, not a fix — corrected to count all statuses, gated by FRONTMATTER_FLOOR on trace content-date and keyed to each trace's first-add commit so future lifecycle-flip edits can't retrigger false staleness.

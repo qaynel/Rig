@@ -11,6 +11,13 @@ work without re-deriving context from the code.
    immutable).
 2. **[Status](status.md)** — what is true on this branch right now. Generated
    from current reasoning traces; do not hand-edit.
+3. **[The overhaul](topics/the-overhaul.md)** — the live 2026-09 workstream:
+   diagnosis, plan, what was rejected, and the five open decisions that gate
+   it. Read this before proposing workflow, product, or architecture changes.
+4. **[Quick reference](index/quick-reference.md)** — routing by task rather
+   than by date, with a line count beside every link so you can budget before
+   you open anything. Capped at 150 lines. Start here when you know what you
+   are about to do; it usually replaces the hub-hunting step below.
 
 ## Then, only the hubs the task actually touches
 

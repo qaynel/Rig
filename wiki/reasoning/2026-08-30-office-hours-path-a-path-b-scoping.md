@@ -3,7 +3,7 @@ date: 2026-08-30
 source: agent
 topics: onboarding-flow, distribution-and-release, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, interdependency
 summary: Office-hours scoping of the post-eval work — order fixed as A (concrete install bugs + a frozen rubric) then B (adaptive integration, gated by grilling), with C (real-user testing) running async. Code confirms the eval's 5.8 MB dump was a --with-runtime artifact, not the default install. Carries the two report-only investigation prompts for A and B.

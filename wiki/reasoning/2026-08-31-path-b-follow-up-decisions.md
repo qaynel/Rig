@@ -6,7 +6,7 @@ decisions:
 status: current
 supersedes:
 tags: interdependency
-summary: Path B follow-up locks — grafts into repo-owned files are permitted inside explicit begin/end Rig-managed sections; the flat vendored skill shelf is reorganised into family → tool/capability → skill by capability, not by vendor origin; the catalogue's existing family → group → service → grade is untouched, and unification is deferred until product evidence justifies it. Grilling agenda in [2026-08-31-path-b-adapt-scope](./2026-08-31-path-b-adapt-scope.md) and product direction in [2026-08-31-path-b-product-direction](./2026-08-31-path-b-product-direction.md) are now fully resolved.
+summary: Path B follow-up locks — grafts into repo-owned files are permitted inside explicit begin/end Rig-managed sections; the flat vendored skill shelf is reorganised into family → tool/capability → skill by capability, not by vendor origin; the catalogue's existing family → group → service → grade is untouched, and unification is deferred until product evidence justifies it. Grilling agenda in 2026-08-31-path-b-adapt-scope and product direction in 2026-08-31-path-b-product-direction are now fully resolved.
 ---
 
 Filed 2026-08-31 from the intent owner, closing the last two Path B design

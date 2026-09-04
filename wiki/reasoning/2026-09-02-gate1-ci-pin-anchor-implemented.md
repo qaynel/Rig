@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, security, trap
 summary: Owner chose the CI-side anchor. Implemented as a base-branch pull_request_target job running a repo-code-free checker against a repository secret; six forgery attempts run against it, five blocked, control passes. Closes the forgery class at the merge boundary only, and only once the owner creates the secret and makes the check required — both are GitHub-side and cannot be done from the repo.

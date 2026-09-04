@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: onboarding-flow, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, trap
 summary: F4's per-host scope enumeration (AT-HD-4, AT-HD-10 I-B-2) is implemented per spec, but exposed two latent defects it did not anticipate — a false-negative in rewriteProjectedName and a real conflict between Path B's name-consistency check and the legacy Tier 1 byte-identity contract for shared core-skill files. Both are now fixed at the correct layer.

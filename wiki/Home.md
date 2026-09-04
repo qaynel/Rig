@@ -3,7 +3,9 @@
 Everything this project knows about itself: what it is, why every part of it is
 shaped the way it is, and what is true right now.
 
-**Start here:** [status](status.md) if you are picking the work up cold ·
+**Start here:** [the overhaul](topics/the-overhaul.md) if you are picking up the 2026-09 workstream ·
+[quick reference](index/quick-reference.md) if you already know what you are about to do ·
+[status](status.md) if you are picking the work up cold ·
 [Tickets](Tickets.md) for the live board ·
 [the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
@@ -22,7 +24,7 @@ update it as part of your change — never as an afterthought.
 
 | Kind | Where | What it is |
 |---|---|---|
-| **Topics** | [`topics/`](topics/) | 28 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
+| **Topics** | [`topics/`](topics/) | 29 hubs, one per subject. Each tells the whole story of one thing: what it is, why, what binds it, what was rejected. **Synthesis** — written here, citing the sources. |
 | **Indexes** | [`index/`](index/) | Flat lookups across everything: every decision, every acceptance case, every rejected idea, every trap. |
 | **Authorities** | [`gate1/`](gate1/), [`gate2/`](gate2/) | The documents that actually decide things. Frozen or candidate. Nothing here is rewritten by the wiki. |
 | **Sources** | [`sources/`](sources/) | The record: decision logs, captured reference material, review receipts, superseded designs. Held as written — see the [sources index](index/sources.md) for a linked way in. |
@@ -82,7 +84,8 @@ topic is wrong.
 [the delivery plan](topics/delivery-plan.md)
 
 **How agents work here**
-[agent working conventions](topics/agent-working-conventions.md)
+[agent working conventions](topics/agent-working-conventions.md) ·
+[the overhaul](topics/the-overhaul.md)
 
 ---
 

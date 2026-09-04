@@ -114,7 +114,7 @@ taxonomy remains only as historical evidence and compatibility context.
 - Current intent: [Gate 1](../gate1/business-spec.md)
 - Technical shape: [Gate 2 §3–4](../gate2/technical-spec.md#3-current-state-trace)
 - Origin: [foundational log](../sources/logs/grill-decisions.md) and [advanced log](../sources/logs/advanced-grilling.md)
-- Historical taxonomy: [superseded tier docs](../sources/superseded/deprecated-tier-taxonomy/README.md)
+- Historical taxonomy: [superseded tier docs](../archive/deprecated-tier-taxonomy/README.md)
 - Product-direction review: [reasoning trace](../reasoning/2026-08-19-product-direction-review.md)
 - First-attempt retrospective (what not to do): [reasoning trace](../reasoning/2026-08-20-first-attempt-retrospective.md)
 - Product spirit and hybrid posture: [reasoning trace](../reasoning/2026-08-20-product-spirit-hybrid.md)

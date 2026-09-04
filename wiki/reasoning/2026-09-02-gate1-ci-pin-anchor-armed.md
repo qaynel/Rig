@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: security, interdependency
 summary: The production merge boundary now enforces the CI-side owner-key pin: the repository secret exists, production requires the trusted check, direct pushes are forbidden, and an end-to-end pull-request probe passed.

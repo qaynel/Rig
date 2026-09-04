@@ -63,3 +63,32 @@ comments, the secret-hygiene test's Gate 1 path, current subordinate specs, and
 the editable `docs/superpowers/` spec-gate plan.
 
 Nothing in `scripts/` or `package.json` hardcodes the old paths.
+
+## Phantom references
+
+Ten `[[trace]]` links in the ticket record name reasoning traces that were
+**never filed**. Verified 2026-09-04: no file of that name exists anywhere
+under `wiki/`, and `git log --diff-filter=D` shows none was ever committed and
+later deleted. They are not moved files and there is nothing to recover — the
+thinking they name was either never written down or was folded into the citing
+ticket itself.
+
+Do not go looking for them. If you land on one, the citing ticket is the only
+record.
+
+| Phantom link | Cited from |
+|---|---|
+| `[[2026-08-24-rig120-review-round2-findings]]` | `tickets/RIG-133.md` |
+| `[[2026-08-25-branch-code-review-snapshot]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md`, `tickets/RIG-129.md` |
+| `[[2026-08-25-escaping-the-quadratic]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md`, `tickets/RIG-129.md`, `tickets/RIG-130.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
+| `[[2026-08-25-prev5-classification-and-migration-pattern]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md`, `tickets/RIG-125.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md`, `tickets/RIG-134.md` |
+| `[[2026-08-25-rig120-review-round3-receipt]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md` |
+| `[[2026-08-25-rig120-round3-finding-map]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md` |
+| `[[2026-08-25-semantic-model-assessment]]` | `tickets/RIG-125.md`, `tickets/RIG-129.md`, `tickets/RIG-130.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
+| `[[2026-08-25-structural-investigation-session-record]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md` |
+| `[[2026-08-25-structural-nondeterminism-root-cause]]` | `tickets/RIG-125.md`, `tickets/RIG-130.md`, `tickets/RIG-131.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
+| `[[2026-08-25-why-each-pass-finds-new-issues]]` | `tickets/RIG-125.md`, `tickets/RIG-132.md` |
+
+The `[[foo]]` in `reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md`
+and `[[hooks.hooks]]` in `sources/reference/host-config-surfaces-verification.raw.md`
+are illustrative examples inside code spans, not real links.

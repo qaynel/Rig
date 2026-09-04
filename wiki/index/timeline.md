@@ -308,3 +308,4 @@ independent review receipt. [[RIG-120]] is Done.
 | 2026-08-21 | There are two gates, lint-format ships alone as the one release-blocking leaf, and the catalogue holds only the 115 service leaves. |
 | 2026-08-23 | The policy/control mechanisms, the action evaluator, one-use approvals, sanitation/remediation, and the service runner are still candidate design, not implemented — and the oracle signature is pending rather than already armed. |
 | 2026-08-29 | `v5.0.0` has not been tagged; the release ceremony is still open. |
+| 2026-09-04 | Tier 1 must remain markdown-only in installed repositories, and adaptive onboarding is the product's differentiator. Both were overturned: the owner retired markdown-only (grilling B2), and the evidence puts the wedge on the human-signed oracle instead. See [the overhaul](../topics/the-overhaul.md). |

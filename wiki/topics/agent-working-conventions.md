@@ -135,6 +135,12 @@ state changes, rather than adding a second live-state mechanism.
 - Single primer page (routine Step 5): [2026-09-02 primer trace](../reasoning/2026-09-02-wiki-maintenance-step5-primer.md)
 - Closed-loop workflow + realignment skill + adaptive harness (highest-priority deferred): [2026-09-02 design trace](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md), [2026-09-03 conversation record + resume-from-cold entrypoint](../reasoning/2026-09-03-closed-loop-conversation-record.md)
 
+A signed Gate 1 surface cannot be self-authorized onto by an agent, even via
+a one-line, clearly-beneficial diff — `package.json`'s `scripts` object is
+byte-pinned the same way the acceptance/business-spec/manifest chain is, and
+an agent that edits it breaks `npm test` until reverted or until the owner
+re-signs. [2026-09-04 trace](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md)
+
 ## What's still open
 
 The byte-equality check only covers the compact `AGENTS.md`-family copies.

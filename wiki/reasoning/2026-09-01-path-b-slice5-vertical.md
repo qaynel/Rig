@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow, what-rig-is, services-and-reports
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B now has a shared approved onboarding vertical slice with selective projections, managed grafts, canonical playbook routing, CLI parity, and MCP parity.

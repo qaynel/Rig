@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: onboarding-flow, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: F2's O_EXCL atomicWrite guard (AT-HD-2) intentionally narrows Issue N's crash-resume promise — a stale state.json.tmp left by Rig's own interrupted apply now requires one operator `rm` before re-apply succeeds, exactly as the F2 spec's own risk note anticipated.

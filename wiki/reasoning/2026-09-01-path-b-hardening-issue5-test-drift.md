@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: catalogue-contract, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: The handoff named a frozen connect-chrome/browser tie-break test that is absent on this branch; the same frozen contract is now represented by an explicit duplicate-source fixture, with the discrepancy documented for the human signer.

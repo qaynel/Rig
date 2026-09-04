@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: onboarding-flow, gate1-signing, delivery-plan
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification, qa-prod
 summary: Report-only review of path-b-adaptive-onboarding-oracle (53 commits ahead of qa-prod, plus one uncommitted worktree edit) against AT-PB-1..10; two blockers found — an uncommitted acceptance.md edit that breaks the signed oracle, and a umask-dependent catalogue tree digest that makes a fresh checkout fail npm test and go stale on approved proposals.

@@ -9,7 +9,7 @@ Folds together the initial plan (`../sources/superseded/foundational/rig-foundat
 3 open), the decisions log (`../sources/logs/grill-decisions.md`, G1–G11a), the shipped Tier 1
 design (`../sources/superseded/tier-1-design-docs/tier-1-mvp-design.md`), and (historically) the
 pre-catalogue Tier 2 framing now archived at
-`../sources/superseded/deprecated-tier-taxonomy/`.
+`../archive/deprecated-tier-taxonomy/`.
 
 **Status: Gate 2 FROZEN for slices S1–S6 (Tier 1 production hardening +
 legacy MCP configurator spine). S7 (catalogue delivery) is no longer gated on
