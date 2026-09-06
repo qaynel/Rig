@@ -6,14 +6,18 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
-| 2026-09-05 | current | [2026-09-05-pr146-acceptance-criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | the-overhaul, agent-working-conventions | — | review, verification |
+| 2026-09-05 | historical | [2026-09-05-wiki-maintenance-working-tree-sync](../reasoning/2026-09-05-wiki-maintenance-working-tree-sync.md) | agent-working-conventions | — | verification |
+| 2026-09-05 | current → 2026-09-05-wiki-budget-gate-plan | [2026-09-05-wiki-budget-gate](../reasoning/2026-09-05-wiki-budget-gate.md) | agent-working-conventions, the-overhaul, testing-strategy | — | interdependency |
+| 2026-09-05 | historical | [2026-09-05-wiki-budget-gate-plan](../reasoning/2026-09-05-wiki-budget-gate-plan.md) | the-overhaul, agent-working-conventions, testing-strategy | — | interdependency, trap |
+| 2026-09-05 | historical | [2026-09-05-pr146-acceptance-criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | the-overhaul, agent-working-conventions | — | review, verification |
+| 2026-09-05 | current | [2026-09-05-overhaul-scope-measurements](../reasoning/2026-09-05-overhaul-scope-measurements.md) | agent-working-conventions, the-overhaul, the-catalogue | — | interdependency, trap |
 | 2026-09-04 | current | [2026-09-04-wiki-maintenance-sweep](../reasoning/2026-09-04-wiki-maintenance-sweep.md) | agent-working-conventions | — | interdependency, chore |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-grilling](../reasoning/2026-09-04-structural-workflow-fix-grilling.md) | agent-working-conventions, what-rig-is, gate1-signing | — | interdependency, grilling |
 | 2026-09-04 | current | [2026-09-04-structural-workflow-fix-design](../reasoning/2026-09-04-structural-workflow-fix-design.md) | agent-working-conventions, testing-strategy, the-two-gates | — | interdependency, design |
 | 2026-09-04 | historical | [2026-09-04-pr146-test-plan-receipt](../reasoning/2026-09-04-pr146-test-plan-receipt.md) | agent-working-conventions | — | review, verification |
-| 2026-09-04 | current → 2026-09-04-pr146-test-plan-receipt | [2026-09-04-pr146-hub-sync-fix](../reasoning/2026-09-04-pr146-hub-sync-fix.md) | — | — | review, verification |
+| 2026-09-04 | historical → 2026-09-04-pr146-test-plan-receipt | [2026-09-04-pr146-hub-sync-fix](../reasoning/2026-09-04-pr146-hub-sync-fix.md) | — | — | review, verification |
 | 2026-09-04 | current | [2026-09-04-landscape-research-in-flight](../reasoning/2026-09-04-landscape-research-in-flight.md) | what-rig-is, testing-strategy, distribution-and-release | — | interdependency, research |
-| 2026-09-04 | current | [2026-09-04-gate1-package-scripts-break-and-revert](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md) | gate1-signing, agent-working-conventions | — | trap, interdependency |
+| 2026-09-04 | historical | [2026-09-04-gate1-package-scripts-break-and-revert](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md) | gate1-signing, agent-working-conventions | — | trap, interdependency |
 | 2026-09-04 | current | [2026-09-04-finished-product-design](../reasoning/2026-09-04-finished-product-design.md) | what-rig-is, distribution-and-release, the-catalogue, onboarding-flow, gate1-signing | — | interdependency, design, office-hours |
 | 2026-09-03 | current | [2026-09-03-onboarding-hardening-prevention-oracle](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md) | onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy | — | interdependency, trap |
 | 2026-09-03 | historical | [2026-09-03-onboarding-hardening-phase1-review-gaps-closed](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md) | onboarding-flow, trust-and-failure-boundaries, testing-strategy | — | review |

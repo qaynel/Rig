@@ -150,6 +150,26 @@ Merge contract for that PR is eight observable wiki/docs checks, not Gate 1
 `AT-*` cases; all eight pass.
 [acceptance criteria](../reasoning/2026-09-05-pr146-acceptance-criteria.md)
 
+## The wiki budget gate
+
+`npm test` measures what the wiki costs to read. `wiki/budget.json` holds the
+caps — 12,000 bytes per topic hub, 200 rows and 20,000 bytes per index, a
+non-empty `summary:` on every trace, only `current` traces linked from the four
+mandated reads, and 100,000 bytes total across the primer and everything it
+links. `wiki/budget.waivers.json` records every violation that existed when the
+gate was installed; a waived value may shrink and may be deleted, never grow.
+Adding a waiver is an explicit edit, not a side effect.
+
+The bounded read is `node scripts/wiki-query.js --topic <slug>`, capped at 40
+rows. Prefer it to opening a hub when you know what you are looking for.
+
+Filed in [wiki budget gate](../reasoning/2026-09-05-wiki-budget-gate.md).
+
+The maintenance lint also validates an uncommitted hub synchronization when it
+cites every newer trace, so the required pre-commit full gate can verify wiki
+work without masking a stale hub.
+[working-tree sync](../reasoning/2026-09-05-wiki-maintenance-working-tree-sync.md)
+
 ## What's still open
 
 The byte-equality check only covers the compact `AGENTS.md`-family copies.

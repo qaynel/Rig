@@ -3,7 +3,7 @@ date: 2026-09-04
 source: agent
 topics: gate1-signing, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, interdependency
 summary: The autonomous wiki-maintenance sweep wired scripts/check-size-hints.js into package.json's test:code, which broke Gate 1's signed package-scripts.json oracle and left npm test red; reverted the wiring (kept the script standalone) to restore green, since re-signing is outside agent authority.

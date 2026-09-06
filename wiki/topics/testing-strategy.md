@@ -338,3 +338,10 @@ cryptographically freezes acceptance criteria under a human key, and names
 reward-hacking/test-saturation as a growing, unsolved problem this page's
 frozen-oracle-plus-re-sign model already addresses.
 [Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md)
+
+The wiki budget gate now applies the same frozen-oracle discipline: its test
+asserts hub, index, summary, and orientation-cost budgets against a waiver
+ledger that may only shrink. It enters `npm test` through the existing
+`tests/*.test.js` glob, avoiding the signed `package.json` scripts object and
+the 2026-09-04 revert that changing it required.
+[wiki budget gate](../reasoning/2026-09-05-wiki-budget-gate.md)

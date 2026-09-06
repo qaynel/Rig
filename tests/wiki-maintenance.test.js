@@ -75,6 +75,42 @@ test('staleHubs flags a hub older than its newest cited trace', () => {
   assert.equal(stale[0].slug, 'onboarding-flow');
 });
 
+test('staleHubs accepts an uncommitted hub sync that cites every newer trace', () => {
+  const root = fixture(
+    {
+      '2026-09-02-x.md':
+        '---\ndate: 2026-09-02\nsource: agent\ntopics: onboarding-flow\ndecisions:\nstatus: historical\nsupersedes:\ntags:\nsummary:\n---\n# X\n',
+    },
+    { 'onboarding-flow.md': '# Onboarding flow\n[Trace](../reasoning/2026-09-02-x.md)\n' },
+  );
+  const dateOf = (rel) => ({
+    'wiki/topics/onboarding-flow.md': '2026-09-01T00:00:00Z',
+    'wiki/reasoning/2026-09-02-x.md': '2026-09-02T00:00:00Z',
+  }[rel] || '');
+  const stale = staleHubs(root, traces(root), dateOf, (rel) => rel === 'wiki/topics/onboarding-flow.md');
+  assert.deepEqual(stale, []);
+});
+
+test('staleHubs still flags a hub that cites only some of its newer traces', () => {
+  const root = fixture(
+    {
+      '2026-09-02-x.md':
+        '---\ndate: 2026-09-02\nsource: agent\ntopics: onboarding-flow\ndecisions:\nstatus: historical\nsupersedes:\ntags:\nsummary:\n---\n# X\n',
+      '2026-09-03-y.md':
+        '---\ndate: 2026-09-03\nsource: agent\ntopics: onboarding-flow\ndecisions:\nstatus: historical\nsupersedes:\ntags:\nsummary:\n---\n# Y\n',
+    },
+    { 'onboarding-flow.md': '# Onboarding flow\n[Trace](../reasoning/2026-09-02-x.md)\n' },
+  );
+  const dateOf = (rel) => ({
+    'wiki/topics/onboarding-flow.md': '2026-09-01T00:00:00Z',
+    'wiki/reasoning/2026-09-02-x.md': '2026-09-02T00:00:00Z',
+    'wiki/reasoning/2026-09-03-y.md': '2026-09-03T00:00:00Z',
+  }[rel] || '');
+  const stale = staleHubs(root, traces(root), dateOf, (rel) => rel === 'wiki/topics/onboarding-flow.md');
+  assert.equal(stale.length, 1);
+  assert.equal(stale[0].slug, 'onboarding-flow');
+});
+
 test('report returns one entry per step 0..7 with a state', () => {
   const rows = report(repoRoot, traces(repoRoot));
   assert.deepEqual(rows.map((r) => r.step), [0, 1, 2, 3, 4, 5, 6, 7]);

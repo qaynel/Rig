@@ -3,7 +3,7 @@ date: 2026-09-04
 source: agent
 topics:
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-04-pr146-test-plan-receipt
 tags: review, verification
 summary: Closes the one PR #146 test-plan failure — updated the five stale hubs (distribution-and-release, onboarding-flow, testing-strategy, the-catalogue, the-two-gates) to cite the 2026-09-04 traces that already named them in topics; independently re-verified npm test green at 6a1b6803.

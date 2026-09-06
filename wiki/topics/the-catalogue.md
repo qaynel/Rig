@@ -97,4 +97,9 @@ this as needing an explicit owner veto/approval before any deletion runs.
 [Finished-product design](../reasoning/2026-09-04-finished-product-design.md) ·
 [Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md)
 
+The 2026-09-05 scope measurement confirms that renaming the vendored shelf is
+a licensing and provenance decision, not a cleanup: its upstream notices cover
+6.9M bytes of third-party skills, so a mass `rig-*` rename would re-badge work
+without reducing the maintenance burden. [Scope measurement](../reasoning/2026-09-05-overhaul-scope-measurements.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
