@@ -339,10 +339,9 @@ reward-hacking/test-saturation as a growing, unsolved problem this page's
 frozen-oracle-plus-re-sign model already addresses.
 [Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md)
 
-A planned addition to the gate applies the same frozen-oracle discipline to
-the wiki itself: `tests/wiki-budget.test.js` asserts hub, index, summary, and
-orientation-cost budgets against a waiver ledger that may only shrink. It
-enters `npm test` through the existing `tests/*.test.js` glob specifically to
-avoid editing `package.json`'s signed `scripts` object, the mistake recorded
-in the 2026-09-04 Gate 1 revert.
-[budget gate plan](../reasoning/2026-09-05-wiki-budget-gate-plan.md)
+The wiki budget gate now applies the same frozen-oracle discipline: its test
+asserts hub, index, summary, and orientation-cost budgets against a waiver
+ledger that may only shrink. It enters `npm test` through the existing
+`tests/*.test.js` glob, avoiding the signed `package.json` scripts object and
+the 2026-09-04 revert that changing it required.
+[wiki budget gate](../reasoning/2026-09-05-wiki-budget-gate.md)

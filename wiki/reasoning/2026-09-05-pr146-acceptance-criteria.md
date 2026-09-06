@@ -3,7 +3,7 @@ date: 2026-09-05
 source: agent
 topics: the-overhaul, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification
 summary: Merge-scoped acceptance criteria for PR #146 — eight observable wiki/docs checks, not Gate 1 AT-* cases; all eight pass against HEAD after the hub-sync; the four workflow-fix slices and any oracle edit remain out of scope.

@@ -249,7 +249,7 @@ removing product. Mostly deletion, not construction. Nothing has been deleted.
 | [Closed-loop design](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md) | The deferred design this workstream builds on: three structural gaps, ten debloat techniques, seven tranches. |
 | [Closed-loop conversation record](../reasoning/2026-09-03-closed-loop-conversation-record.md) | Resume-from-cold entrypoint for that design. |
 | [Quick reference](../index/quick-reference.md) | Bounded, task-addressable routing with size hints. The navigation half of the fix above. |
-| [Budget gate plan](../reasoning/2026-09-05-wiki-budget-gate-plan.md) | The five caps, the ratchet-only waiver ledger, why the gate avoids `package.json`, and why reachability is scoped to four pages rather than 85 hub citations. Plan at `docs/superpowers/plans/2026-09-05-wiki-budget-gate.md`. |
+| [Wiki budget gate](../reasoning/2026-09-05-wiki-budget-gate.md) | The five caps and ratchet-only waiver ledger now ship, with a bounded query and reachability scoped to the four mandated reads rather than 85 hub citations. |
 | [PR #146 acceptance](../reasoning/2026-09-05-pr146-acceptance-criteria.md) | Merge contract for this filing: eight observable wiki/docs checks. Not Gate 1 `AT-*` cases. All eight pass. |
 
 **Related hubs:** [what Rig is](what-rig-is.md) ·

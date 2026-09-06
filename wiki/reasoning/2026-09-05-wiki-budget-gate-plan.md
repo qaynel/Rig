@@ -3,7 +3,7 @@ date: 2026-09-05
 source: agent
 topics: the-overhaul, agent-working-conventions, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, trap
 summary: Implementation plan for the wiki budget gate filed at docs/superpowers/plans/2026-09-05-wiki-budget-gate.md — five caps measured against the live tree, a ratchet-only waiver ledger instead of a permanently-red suite, entry into npm test via a new test file because package.json scripts is a signed Gate 1 oracle, and reachability scoped to the four mandated reads because the literal rule would break the wiki's own hub-cites-trace contract.

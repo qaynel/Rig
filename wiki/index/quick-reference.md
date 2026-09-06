@@ -3,10 +3,7 @@
 Routing by **task**, not by date. Find the row that matches what you are about
 to do, read the "Read first" cell, and stop there unless it does not answer you.
 
-**This page is capped at 150 lines and stays capped.** It exists because the
-alternative reads are "skip the wiki" (cheap, uninformed) or "follow the links"
-(informed, unpredictable cost). If a row cannot change a decision, it does not
-belong here. Line counts are real — they let you budget before you open a file.
+**This page is capped at 150 lines.** Keep only rows that can change a decision.
 
 Not a replacement for [the primer](../agent-primer.md) (62 lines), which is
 still the one mandated read. This is the layer under it.
@@ -31,15 +28,15 @@ still the one mandated read. This is the layer under it.
 | **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 240 | [The two gates](../topics/the-two-gates.md) (113) · `gate1/` is frozen — never edit it |
 | **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 572 | [Graft mechanics](../topics/graft-mechanics.md) (107) · [Install manifest and removal](../topics/install-manifest-removal.md) (139) |
 | **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 144 | [Onboarding flow](../topics/onboarding-flow.md) (572) for the projection path |
-| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 180 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
-| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 100 | [Catalogue contract](../topics/catalogue-contract.md) (124) · [Services and reports](../topics/services-and-reports.md) (146) |
+| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 185 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
+| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 105 | [Catalogue contract](../topics/catalogue-contract.md) (124) · [Services and reports](../topics/services-and-reports.md) (146) |
 | **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (63) · [Action evaluator](../topics/action-evaluator.md) (42) |
-| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 348 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
+| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 347 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
 | **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 410 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
 | **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 92 | [Review receipts](../topics/review-receipts.md) (64) · [Delivery plan](../topics/delivery-plan.md) (167) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
 | **Propose a workflow, product, or architecture change** | [The overhaul](../topics/the-overhaul.md) | 274 | The live workstream, its rejected options, and the five open decisions that gate it |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 169 | [Status](../status.md) (32) for what is true right now |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 169 | [Status](../status.md) (30) for what is true right now |
 
 ---
 
@@ -58,9 +55,13 @@ These are here because agents keep rediscovering them.
   `node scripts/build-wiki-index.js`.
 - **`npm test` is the full gate.** `npm run test:rig` is a fast subset and is
   not a substitute. Do not push on a red or unrun suite.
-- **The catalogue is 88% of `rig/`** — 1,214 files, 162,599 lines, mostly
-  vendored third-party skills. Rig's own product is ~10k lines of runtime plus
-  733 lines of Tier 1 markdown.
+- **The wiki has a budget and `npm test` enforces it.** Caps in
+  `wiki/budget.json`, current debt in `wiki/budget.waivers.json`. Waived values
+  may shrink, never grow. Run `node scripts/check-wiki-budget.js` before you
+  add a page.
+- **`node scripts/wiki-query.js --topic <slug>` is the bounded read.** Capped
+  at 40 rows, newest first, one summary line each. Use it instead of opening a
+  hub when you already know the subject.
 
 ---
 
