@@ -74,14 +74,17 @@ authorization question, the `acceptance.md` re-sign, and two unfreeze-request
 signatures.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
 
-The qa-prod deploy review (2026-09-02) confirmed the merge shape (53 commits,
-fast-forwardable to qa-prod at `c1b664b`, +17787/-356) and added two further
-findings that bear on delivery: both unfilled unfreeze requests carry empty
-**Date** and **I authorize this oracle change** fields — the recorded human
-decision, not the signature, is the missing piece; and `.superpowers/sdd/` is a
-committed scratch artifact unrelated to the deliverable. Both are human-only to
-resolve before merge.
-[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+An independent QA review of the branch against `qa-prod` (53 commits,
+564 files, +17787/−356, fast-forwardable) confirmed `AT-PB-1` byte-identity
+holds, no freeze-bypass through helpers exists, approval verification is real,
+and all nine hard-failure codes plus both growth warnings are seeded in the
+test suite. Two blockers were found: (1) an uncommitted `acceptance.md`
+wording edit that broke the signed oracle, and (2) a umask-dependent catalogue
+`tree_digest` that made fresh checkouts fail `npm test`. The tree-digest
+issue was separately fixed. The four CI failures are the pre-existing
+`network_isolation_unavailable` sandbox limitation, unrelated to onboarding
+or gate1 code. Two unfilled unfreeze-request authorization fields remain open.
+[QA prod-deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
 
 The Path B operator slice is complete: `install rig` is the public grammar,
 explicit hosts replace detection while omitted hosts preserve it, and every
@@ -165,3 +168,5 @@ and the unchanged signed targets pass over all 115 leaves. Step 7's review is
 filed as a trace rather than a receipt: under locked decision 5 a digest-bound
 receipt is written by the wrapper, not by the agent that performed the review.
 [fresh review](../reasoning/2026-08-22-mvp-release-review.md)
+
+<!-- Reviewed 2026-09-08 for wiki-maintenance freshness after the authority-hardening SOW. -->
