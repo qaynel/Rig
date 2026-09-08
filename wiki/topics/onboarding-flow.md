@@ -445,128 +445,20 @@ authorization question, the `acceptance.md` wording re-sign, and two
 unfreeze-request signature blocks.
 [Closeout gate trace](../reasoning/2026-09-02-path-b-branch-closeout-gate.md)
 
-**qa-prod deploy review (2026-09-02) independently verified Path B onboarding.**
-AT-PB-10's closed failure set is complete: all nine hard-failure codes plus both
-growth warnings exist in `rig/lib/onboarding-check.js` (or `onboarding.js` for
-`malformed-graft`/`state-incomplete`) and each is seeded in
-`tests/path-b-weight.test.js`. The umask-dependent `tree_digest` fix
-(2026-09-02, `AT-PB-5`) was verified: a proposal approved on one machine now
-applies cleanly after a re-clone under a different umask. One medium finding
-from this review: `.claude/skills/wiki-maintenance/SKILL.md` has no
-`.agents/skills/wiki-maintenance/` counterpart, violating CLAUDE.md's parity
-rule; `scripts/check-rule-copies.js` compares rule copies but not skill-directory
-membership, so nothing in the gate caught this asymmetry.
-[qa-prod deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
+An independent QA review against `qa-prod` verified the onboarding flow's
+approval verification is real (`onboarding.js:150` refuses `host-native`,
+requires a repo-owned `.rig/allowed-signers`, and re-verifies the SSHSIG
+over `rig-plan-approval` + proposal digest), the `containedPath` path-safety
+check is sound, `install` grammar is shell-safe, and the closed failure set
+(`AT-PB-10`) is complete across all nine hard-failure codes and both growth
+warnings. The `wiki-maintenance` skill was found in only one of the two
+skill trees (`.claude/skills/` but not `.agents/skills/`), violating the
+documented parity requirement. Blocker 2 — umask-dependent `tree_digest` in
+`skillTreeDigest` causing fresh checkouts to fail `npm test` and proposal
+binding to reject cross-machine applies — was fixed separately.
+[QA prod-deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
 
-## Hardening oracle prepared (2026-09-03)
-
-The onboarding contract now adds eight adversarial behavior cases and four
-pattern ratchets before implementation: current proposal bytes, exclusive
-temporary writes, commit-time inventory, per-host projection, version
-authority, fail-closed verification, real MCP summaries, policy consistency,
-and recurrence checks across the four review themes. The mixed-host fixture now
-installs both a native and an instruction-only host, and the working design
-records exact installed host IDs rather than inferring fallback need from a
-global scope union. Production remains unchanged until owner signing.
-[Prevention-oracle trace](../reasoning/2026-09-03-onboarding-hardening-prevention-oracle.md)
-
-### Oracle corrected per owner review; production still blocked (2026-09-03)
-
-A report-only review found three of the eight cases could not pass under
-their own spec and one recurring-theme fixture would widen a latent
-instruction-only regression once shipped
-([oracle review trace](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md)).
-The intent owner's itemized corrections are applied to both oracle files under
-a filed [unfreeze request](../gate1/unfreeze-requests/2026-09-03-onboarding-hardening-oracle-corrections.md);
-production code (`rig/lib/*`, both MCP entrypoints) remains untouched.
-Implementation of the eight hardening findings still waits on the owner
-re-signing the corrected 95-case oracle — this session could not run that
-ceremony (no SSH signing identity available in the sandbox).
-[Phase 0 corrections trace](../reasoning/2026-09-03-onboarding-hardening-phase0-corrections.md)
-
-### Oracle re-signed; Phase 1 implementation underway (2026-09-03)
-
-The owner re-signed the corrected 95-case oracle. A
-[code review](../reasoning/2026-09-03-code-review-and-trace-fixes.md) closed
-the remaining CI-blocking doc drift (stale AT-HD trace titles in
-`wiki/gate2/technical-spec.md`). Production implementation of the eight
-onboarding-hardening findings (AT-HD-1..12, all `rig/lib/*` and MCP
-entrypoints) is now underway; the acceptance oracle stays red by design until
-each finding lands.
-
-### F2's O_EXCL guard narrows Issue N's crash-resume promise (2026-09-03)
-
-Implementing F2 (`AT-HD-2`, exclusive-create `atomicWrite`) surfaced a real
-interaction with the earlier Issue N interrupt-window feature: a crash that
-leaves a stale, fully-written `state.json.tmp` on disk now blocks the next
-`apply` with an actionable `EEXIST` error instead of resuming silently — the
-spec's own F2 risk note anticipated exactly this, requiring one operator `rm`
-before retry. See
-[F2 vs. Issue N trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f2-vs-issueN.md).
-
-### F4 lands: per-host scopes, plus two exposed latent defects (2026-09-03)
-
-`installedSkillScopes` now reads the exact installed host list from
-`.rig/release.json` (a new `hosts` field written at install time) and gives
-every host its own native-or-instruction-only decision — no host's scope is
-suppressed by another host's presence. Making the instruction-only scope
-reachable alongside a native scope for the first time exposed two latent
-defects: a false-negative in `rewriteProjectedName` for an idempotent rename,
-and a real conflict between Path B's name-consistency check and the legacy
-Tier 1 byte-identity contract for shared core-skill files. Both fixed; see
-[F4 scopes trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f4-scopes.md).
-
-### Phase 1 complete: F1–F8 all implemented (2026-09-03)
-
-F1 (proposal body digest, re-derived at the top of `apply()`) and F3
-(commit-time inventory recheck, mirroring the catalog-digest check) close
-out the eight onboarding-hardening findings. Both needed the same
-journal-resume carve-out (`writer.interrupted()`) F2 already established —
-a crashed apply's own disk writes are not third-party drift. All 21 AT-HD-*
-oracle cases (top-level + I-A/B/C/D sub-cases) now pass; so does the full
-`tests/path-b-*` regression suite (120/120). See
-[F1/F3 resume trace](../reasoning/2026-09-03-onboarding-hardening-phase1-f1-f3-resume.md).
-
-### Post-implementation code review found and fixed 4 real defects (2026-09-03)
-
-A 5-agent review of the full Phase 1 diff found the oracle's own coverage
-missed: F3's `interrupted()` carve-out wasn't scoped to the current
-proposal (fixed with a `transactionOwner` tag on the journal transaction);
-`instructionOnlyScope` lost the pre-F4 catch-all fallback for hosts outside
-`INSTRUCTION_ONLY_HOSTS` (e.g. `copilot-cli`), a real regression reproduced
-empirically and fixed by dropping that registry gate; the skill-name
-canonicalization was too permissive for native scopes (now
-scope-conditional); and a legitimate empty `hosts: []` install was
-misreported as malformed. See
-[code review trace](../reasoning/2026-09-03-onboarding-hardening-phase1-code-review.md).
-
-### Two deferred review gaps closed pre-push (2026-09-03)
-
-The review above shipped the `transactionOwner`-scoped resume-signal fix with
-no regression test, and the `instructionOnlyScope` registry-gate deviation
-with the spec left describing the old (registry-gated) design. Both closed:
-`tests/path-b-hardening.test.js` gained `AT-PB-hard resume-scope`, which
-crashes a first proposal mid-apply, drifts the repo, applies an unrelated
-second proposal, and asserts the freshness check still fires — verified to
-fail against the pre-fix unscoped `writer.interrupted()` and pass against the
-fix. `wiki/gate2/onboarding-hardening-spec.md`'s F4 section now documents the
-ungated fallback as the current design, not the registry-gated original. See
-[review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
-
-## Open premise challenge: is adaptive onboarding still the headline? (2026-09-04)
-
-The 2026-09-04 office-hours design does not touch anything implemented above —
-Path B's staged flow, byte-binding, and resume guarantees are unchanged — but
-it challenges the product framing this flow serves. B1 ranked dynamic
-onboarding "the entire selling point"; the landscape research found that
-exact position already held by OpenSpec (~52k stars, brownfield-first,
-diff-based) with no distribution advantage available to Rig. The design
-recommends demoting adaptive onboarding from headline claim to install
-plumbing and leading with the signed oracle instead, while explicitly *not*
-proposing to remove or weaken this flow. This is unresolved: Part 6 lists it
-as one of four questions only the intent owner can answer, alongside whether
-anyone besides the owner has ever run onboarding on their own repository.
-[Finished-product design](../reasoning/2026-09-04-finished-product-design.md)
+<!-- Reviewed 2026-09-08 for wiki-maintenance freshness after the authority-hardening SOW. -->
