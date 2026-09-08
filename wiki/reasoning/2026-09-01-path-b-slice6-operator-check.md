@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: distribution-and-release, delivery-plan, onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B now has one public install grammar and a journal-backed onboarding weight and correctness check.

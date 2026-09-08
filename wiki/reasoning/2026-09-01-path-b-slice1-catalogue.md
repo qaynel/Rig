@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: the-catalogue, onboarding-flow, testing-strategy
 decisions: PB-1
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B slice 1 landed the skill-shelf capability hierarchy, the generated pinned catalogue, and the eight-skill pre-approval projection.

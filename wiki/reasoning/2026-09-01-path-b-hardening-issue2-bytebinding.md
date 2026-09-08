@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow, user-presence-approvals, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: An approval only named the skills it approved, never their bytes — apply re-read the staged shelf and projected whatever was there by then; the proposal now freezes a per-skill tree digest and projected-bytes digest inside the digested body, apply refuses when either moved, and check re-derives the projected tree from disk instead of trusting the ledger's own echo.

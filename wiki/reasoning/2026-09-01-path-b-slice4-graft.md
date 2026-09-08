@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: graft-mechanics, install-manifest-removal
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B graft sections now provide byte-preserving, journaled ownership in repository instruction files and uninstall removes only those managed sections.

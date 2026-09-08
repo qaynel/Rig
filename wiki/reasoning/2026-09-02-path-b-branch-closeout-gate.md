@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: onboarding-flow, gate1-signing, delivery-plan
 decisions:
-status: current
+status: historical
 supersedes:
 tags: verification, handoff
 summary: Path B branch closeout — Fix 3a + Fix 3b (already landed), staleHubs corrected, unfreeze draft filed; full CI gate green modulo 4 tests that require a host capability this sandbox does not have (documented, pre-existing, CI works around it); three human-only blockers remain.

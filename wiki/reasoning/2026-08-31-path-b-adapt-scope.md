@@ -3,7 +3,7 @@ date: 2026-08-31
 source: agent
 topics: onboarding-flow, what-rig-is
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, trap
 summary: Path-B "adapt" scoped as deterministic acceleration — Rig ships deterministic tools the onboarding host agent invokes (inventory existing config, reference it by path, selective skill install) with judgment injected by agent+user; D24 stays intact, inference/pruning-by-shape is gated behind grilling, and consolidation + repo-file reconciliation are deferred features.

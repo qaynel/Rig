@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: graft-mechanics, install-manifest-removal, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-01-path-b-hardening-issue6-delete
 tags: trap
 summary: Ownership of a path is read from the record that first wrote it, not the newest one — the latest record always carries a preimage after the second graft, so the first implementation of the journalled delete silently refused to delete in exactly the case uninstall produces; an interrupted delete is now recovered rather than wedging the path, and neither uninstall nor check treats a recorded absence as a licence.

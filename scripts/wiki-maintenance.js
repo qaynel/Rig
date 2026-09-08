@@ -92,7 +92,20 @@ function hubSlugs(root) {
     .map((name) => name.replace(/\.md$/, ''));
 }
 
-function staleHubs(root, records, dateOf = (rel) => hubOrTraceDate(root, rel)) {
+function worktreeChanged(root, rel) {
+  const out = spawnSync('git', ['diff', '--quiet', 'HEAD', '--', rel], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  return out.status === 1;
+}
+
+function staleHubs(
+  root,
+  records,
+  dateOf = (rel) => hubOrTraceDate(root, rel),
+  changed = (rel) => worktreeChanged(root, rel),
+) {
   const stale = [];
   for (const slug of hubSlugs(root)) {
     // Same grandfather line as the frontmatter check: traces filed before
@@ -103,12 +116,17 @@ function staleHubs(root, records, dateOf = (rel) => hubOrTraceDate(root, rel)) {
     );
     if (!citing.length) continue;
     const hubDate = dateOf(`wiki/topics/${slug}.md`);
-    const newestTraceDate = citing
-      .map((trace) => dateOf(`wiki/${trace.file}`))
-      .filter(Boolean)
-      .sort()
-      .pop();
+    const datedTraces = citing
+      .map((trace) => ({ trace, date: dateOf(`wiki/${trace.file}`) }))
+      .filter(({ date }) => date);
+    const newestTraceDate = datedTraces.map(({ date }) => date).sort().pop();
     if (hubDate && newestTraceDate && hubDate < newestTraceDate) {
+      const hub = path.posix.join('wiki', 'topics', `${slug}.md`);
+      const newerTraces = datedTraces
+        .filter(({ date }) => hubDate < date)
+        .map(({ trace }) => trace);
+      const body = fs.readFileSync(path.join(root, hub), 'utf8');
+      if (changed(hub) && newerTraces.every((trace) => body.includes(path.basename(trace.file)))) continue;
       stale.push({ slug, hubDate, newestTraceDate });
     }
   }

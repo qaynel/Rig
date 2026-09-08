@@ -3,7 +3,7 @@ date: 2026-09-03
 source: review
 topics: onboarding-flow, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review
 summary: Multi-agent code review of the Phase 1 onboarding-hardening diff (49afffd6..HEAD) found four real defects beyond the oracle's own coverage — an unscoped resume signal, a lost host-scope fallback, an over-broad name-tolerance, and a false-negative on legitimate empty host lists. All four fixed; three simplification/reuse findings deferred as non-blocking.

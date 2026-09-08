@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: onboarding-flow, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: F1 (proposal body digest) and F3 (commit-time inventory recheck) landed per spec, but both needed the same journal-resume carve-out F2 already established — a crashed apply's own disk writes are not third-party drift or tampering. F1 also retired one test's premise; that test now models a self-consistent malicious proposal instead.

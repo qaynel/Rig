@@ -227,3 +227,14 @@ four `wiki/gate2/technical-spec.md` trace-row titles had drifted from the
 Phase 0-corrected test titles (would have failed `verifyCoverage`'s exact-regex
 check post re-sign) and fixed them in the same pass. Phase 1 (production
 implementation of the AT-HD-* findings) is unblocked and in progress.
+
+### Another signed surface an agent walked into: `package.json` scripts (2026-09-04)
+
+`wiki/gate1/package-scripts.json` freezes `package.json`'s `scripts` object
+byte-exact (`verifyPackageScripts`), separately from the manifest digest
+chain. An autonomous chore session wired a new check into `test:code` without
+noticing this, leaving `npm test` red until reverted. Not a Gate 1 defect —
+the check caught exactly what it exists to catch — but a reminder that
+"signed oracle" in this project covers more surface than the manifest-listed
+files, and an agent cannot self-authorize onto it regardless of how small the
+diff. [Break-and-revert trace](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md)

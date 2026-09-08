@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, security, interdependency, rejected
 summary: Owner clarified the real ask — only keys requiring a human password/touch should be able to sign. Tested it: a passphrase leaves byte-identical signatures (zero verifiable signal), while FIDO sk- keys are enforceable via verify-required — but only from inside the very signers file the owner wanted deleted. Roster removed; single-principal enforcement specified; FIDO layer left as an owner decision.

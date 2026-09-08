@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: graft-mechanics, install-manifest-removal, onboarding-flow, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 tags: trap
 summary: A crash between the disk write and the journal record that says so leaves the desired bytes live with nothing recording them, and every preflight read that as a third-party edit and refused forever. Preflight now accepts live bytes that match what the journal was writing — but only while the transaction is still open, so a cleanly finished install can never excuse a proposal built on a stale view; a resumed run promotes the pending record instead of leaving it pending, and closes the transaction it inherited.
 ---

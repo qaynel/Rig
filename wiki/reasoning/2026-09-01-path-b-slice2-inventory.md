@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B now has a bounded structural inventory and pure exact-match overlap surface; state-owned reports are the next integration step.

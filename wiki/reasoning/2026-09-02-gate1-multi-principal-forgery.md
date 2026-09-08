@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, security, interdependency
 summary: Demonstrated forgery — the verifier accepts ANY principal in gate1.allowed-signers, so an agent can append its own key line, move the oracle goalpost, re-sign, and the gate reports "protected". The allowed-signers list semantics are the defect; the owner's "we don't need a signers register" instinct is right about the register and wrong about the pin.

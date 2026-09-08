@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: catalogue-contract, onboarding-flow, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: Catalogue generation still silently renames a later source when two skills declare the same name; the frozen tie-break test asserts that identity-changing fallback, so the planned correction requires strict rejection and a human oracle unfreeze.

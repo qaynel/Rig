@@ -97,3 +97,17 @@ deterministic testing infrastructure is manifested and its amended 95-case
 oracle has received the live-human signature, so the protected implementation
 work is now underway. The technical spec remains a non-blocking design record.
 [Implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
+
+**Root cause named for the re-sign cost (2026-09-04).** The office-hours
+structural design traces this page's re-sign-multiplier symptom (already a
+documented contributor to PR #143's 74 commits) to the same asymmetry as the
+project's other workflow symptoms: the signature covers one document that
+mixes frozen acceptance criteria with unfrozen prose, with no addressable
+boundary between the two, so a prose-only edit still costs a human ceremony.
+The design explicitly retires "decouple the oracle from prose" as the fix —
+the owner wants the signature tied to the document — in favor of separate
+signing-UX work: bulk re-sign (clear one, some, or all invalidated items at
+once) and single-physical-auth packaging (one Touch ID instead of two
+approvals). That signing-UX work is scoped as a follow-on PR, not part of the
+four-slice workflow fix, and nothing here is implemented yet.
+[Structural workflow fix design](../reasoning/2026-09-04-structural-workflow-fix-design.md)

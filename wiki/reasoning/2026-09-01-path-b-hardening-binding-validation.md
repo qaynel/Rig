@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: Independent review found that approved skill binding verification accepted duplicate rows for one skill; the verifier now requires one valid, unique binding for every selected skill and rejects unselected or malformed rows before apply.

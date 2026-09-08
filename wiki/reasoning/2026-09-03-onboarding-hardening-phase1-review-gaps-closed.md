@@ -3,7 +3,7 @@ date: 2026-09-03
 source: review
 topics: onboarding-flow, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review
 summary: Closed the two non-blocking gaps left open by the Phase 1 code review — added a regression test for the unscoped-resume-signal fix, and synced the technical spec's F4 text to the implemented `instructionOnlyScope` fallback deviation.

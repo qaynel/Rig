@@ -3,7 +3,7 @@ date: 2026-09-02
 source: review
 topics: catalogue-contract, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, hardening
 summary: Path B hardening’s final integrated review found no unresolved implementation defects; the completed duplicate-name oracle amendment is verified and ready to commit.

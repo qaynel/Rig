@@ -3,7 +3,7 @@ date: 2026-09-02
 source: intent owner
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: gate1, key-rotation, authorization
 summary: The gate1 owner confirmed the ssh-ed25519 -> ecdsa-sha2-nistp256 (Secretive-backed) signing-key rotation on commit 5694fd7b was performed by them; recorded as the key-class attestation the signature itself cannot provide.

@@ -75,3 +75,18 @@ batching similar hosts) feeding a tiered, interactive, adaptive install. That
 target is captured as intent, not a committed release plan, and is in tension
 with the current default lean install.
 [Product vision and tiered adaptive install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md)
+
+**Office-hours positioning research (2026-09-04, not yet a decision).** 2026
+SDD-landscape measurement found OpenSpec (~52k stars) already occupies the
+brownfield/diff-based/token-efficient position this section's tiered rollout
+was aiming distribution at, with no incumbency advantage available to Rig
+there. The same research recommends vendoring less, not more: `rig/catalog/`
+is 88% of `rig/` and mostly repackages gstack/Superpowers, which a user can
+already install directly from projects with faster release cadence — a
+liability for a per-host distribution strategy that currently ships the whole
+catalogue regardless of host. The recommended reframe (lead with the signed
+oracle, keep the tiered/adaptive rollout as install experience rather than the
+headline) has not been ruled on by the intent owner; see Part 6 of the design
+trace for the open questions blocking it.
+[Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md) ·
+[Finished-product design](../reasoning/2026-09-04-finished-product-design.md)

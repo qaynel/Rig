@@ -3,7 +3,7 @@ date: 2026-09-01
 source: agent
 topics: onboarding-flow, testing-strategy, delivery-plan, what-rig-is, specification-gate, the-two-gates
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Path B implementation resumed from the completed catalogue slice with the signed 83-case oracle verified and the structural inventory slice next.
