@@ -1,0 +1,13 @@
+{
+  "assistant": {
+    "default_model": "claude-sonnet-4-20250514",
+    "version": "2",
+    "prompt_instructions": [
+      {
+        "title": "Rig Routing",
+        "content": "Before acting on any coding task, read `.rig/routing.md` and route through its skill table. Apply `.rig/rules/rig.md` to every coding task and `.rig/rules/communication.md` to every message.",
+        "enabled": true
+      }
+    ]
+  }
+}
