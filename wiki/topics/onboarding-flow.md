@@ -480,6 +480,11 @@ only when journal-owned and byte-unchanged, plan persisted and resumable,
 onboarding selections preserved and changed approvals invalidated.
 [Slice 5 trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md)
 
+Contract: `rig/tier-1/` is gone, `scripts/check-rule-copies.js` now proves the
+projection is reproducible and no corpus file has a twin, and tier wording is
+removed (`--tier 1` is accepted but deprecated; other values are rejected).
+[Slice 6 trace](../reasoning/2026-10-13-corpus-03-slice6-contract.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
 
