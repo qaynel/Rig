@@ -137,3 +137,9 @@ every later run keeps a resume licence it should have surrendered.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+
+2026-10-13 close-everything bug fixes ([trace](../reasoning/2026-10-13-rig-127-145-147-146-bug-fixes.md)):
+a corrupted global config now makes uninstall report that path best-effort and
+leave it byte-identical (RIG-127.11); a nameless legacy managed-block record
+strips a block only when removing it restores the journaled preimage digest,
+otherwise best-effort (RIG-127.12).

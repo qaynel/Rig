@@ -61,3 +61,8 @@ touched by this fix and still have the matching defect for their own
 callers: `grantApproval` writes a durable approval file, but nothing reads it
 back and durably marks it used — the write half of this pattern exists
 generically, the consume half does not, for anything outside lint-format.
+
+2026-10-13: frozen AT-LF-20 reuses one approval object, so the in-memory flag
+rejects before the durable record is consulted. A candidate amendment with two
+independent approval objects and a recorded mutation check is filed unsigned
+for the owner's batched re-sign ([trace](../reasoning/2026-10-13-rig-127-145-147-146-bug-fixes.md)).
