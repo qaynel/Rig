@@ -35,6 +35,18 @@ summary: RIG-135.1/.2/.3 browse descendant-cleanup fixes, test-first; what was p
 - Allowlist entry for xvfb.ts reclassified (direct-kill gone; remaining
   Bun.spawnSync probes are non-forking) rather than deleted.
 
-## Next
+## 135.1 done (cookie-import-browser.ts)
 
-135.1 (cookie-import-browser.ts, Windows job).
+- Seam: `importCookiesViaCdp` split so `launchChromeAndExtract` takes exe/args/
+  AbortSignal/extractor; a forking fake Chrome (`fixtures/browse-descendants/
+  fake-chrome.js`) stands in for Chromium.
+- Red (macOS): all four scenarios failed -- descendant survived success, startup
+  timeout, and importer SIGKILL; cancel hung (no cancel path existed).
+- Green: `spawnTreeGuarded` in `src/process-tree.ts` (detached group kill on
+  POSIX, `taskkill /T /F` on Windows, stdin-pipe watchdog for importer death);
+  `signal` abort throws CookieImportError `cancelled`. 4/4 on macOS, 6/6 for all
+  three browse tests in node:22+bun Linux docker.
+- Windows: no Job Object (see candidate-amendments note). New workflow
+  `.github/workflows/browse-process-cleanup.yml` runs the tests on windows-latest
+  and ubuntu-latest with RIG_REQUIRE_PROCESS_CLEANUP=1 (missing bun fails, not
+  skips). Windows behaviour is unproven until that job runs.

@@ -1,0 +1,38 @@
+name: browse-process-cleanup
+
+# RIG-135: browse children that fork (Chromium on the user's real profile,
+# skill scripts, Xvfb) must leave no descendant on any exit path. The Windows
+# tree-kill and watchdog can only be proven on a Windows runner. Missing tools
+# fail here (RIG_REQUIRE_PROCESS_CLEANUP=1) instead of skipping silently.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  descendants-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
+      - name: No descendant survives success, timeout, cancel, or importer death
+        shell: bash
+        env:
+          RIG_REQUIRE_PROCESS_CLEANUP: '1'
+        run: node --test tests/browse-cookie-import-descendants.test.js tests/browse-skill-spawn-descendants.test.js
+
+  descendants-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
+      - name: No descendant survives (cookie import, skill timeout, Xvfb stop)
+        env:
+          RIG_REQUIRE_PROCESS_CLEANUP: '1'
+        run: node --test tests/browse-cookie-import-descendants.test.js tests/browse-skill-spawn-descendants.test.js tests/browse-xvfb-descendants.test.js
