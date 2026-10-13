@@ -25,7 +25,16 @@ summary: RIG-135.1/.2/.3 browse descendant-cleanup fixes, test-first; what was p
   was removed directly and the ratchet is green (stale-entry rule forced it).
 - Patch + provenance: `wiki/specs/close-everything/candidate-amendments/rig-135.md`.
 
+## 135.3 done (xvfb.ts)
+
+- Red (node:22 + bun in docker, Linux): `tests/browse-xvfb-descendants.test.js`
+  uses a fake `Xvfb` that forks a descendant plus a fake `xdpyinfo`; Xvfb was not
+  its own process-group leader (`detached` never passed) and close() left the
+  descendant. Green: `detached: true` via node:child_process, group SIGTERM then
+  group SIGKILL in `cleanupXvfb`. Test skips off Linux (ownership reads /proc).
+- Allowlist entry for xvfb.ts reclassified (direct-kill gone; remaining
+  Bun.spawnSync probes are non-forking) rather than deleted.
+
 ## Next
 
-135.3 (xvfb.ts, Linux test via fake forking Xvfb in docker), then 135.1
-(cookie-import-browser.ts, Windows job).
+135.1 (cookie-import-browser.ts, Windows job).
