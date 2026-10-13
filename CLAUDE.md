@@ -1,11 +1,11 @@
-Before acting, read `rig/tier-1/routing.md` and route this task through its
+Before acting, read `rig/corpus/routing.md` and route this task through its
 skill table — its "Task weight" section sets a lighter path for single-step
 tasks; everything else uses the full cadence below.
 
 # Rig Development
 
 Rig installs a curated markdown-only agent workflow into other repositories.
-Tier 1 supports the repository's static agent-host entrypoints through
+Rig supports the repository's static agent-host entrypoints through
 `rig/bootstrap.sh`.
 
 ## Working from the wiki
@@ -35,13 +35,13 @@ or an approach that just failed the moment it happens — as its own reasoning
 trace, or in `index/rejected.md` / `index/traps.md` if that is what it is —
 rather than batching it for later. A session picking up cold should be able to
 resume from what is written, not from re-deriving it or reading the lost
-conversation. A single-step task on the lightweight path (`rig/tier-1/routing.md`
+conversation. A single-step task on the lightweight path (`rig/corpus/routing.md`
 §Task weight) skips this cadence; it applies once the task is multi-step or
 changes what's true in the wiki.
 
 ## Talking to the user
 
-Every message to the user follows `rig/tier-1/rules/communication.md` (installed
+Every message to the user follows `rig/corpus/rules/communication.md` (installed
 as `.rig/rules/communication.md`). Treat the user as your product manager: send
 the least information needed to decide, with the overall picture intact. Ground
 the problem, the real options with their business costs, one recommendation, and
@@ -51,9 +51,9 @@ belong in the wiki and the diff, and are reproduced on request.
 
 ## Architecture
 
-- `rig/tier-1/routing.md` is the single task router.
-- `rig/tier-1/skills/` contains Rig's curated phase owners and grafts.
-- `rig/tier-1/rules/rig.md` activates the implementation rule.
+- `rig/corpus/routing.md` is the single task router.
+- `rig/corpus/skills/` contains Rig's curated phase owners and grafts.
+- `rig/corpus/rules/rig.md` activates the implementation rule.
 - `skills/rig/SKILL.md` is the unchanged Rig source component.
 - `.claude/skills/` and `.agents/skills/` are install targets for native Claude
   and Codex discovery; their payloads must stay identical.
@@ -91,4 +91,4 @@ npm run test:rig  # fast bootstrap-only subset
 
 The rest of the repository is the existing Rig component and its adapters.
 When changing those internal files, keep their established tests and generated
-copies green; do not route new Tier 1 behavior through the old plugin runtime.
+copies green; do not route new Rig behavior through the old plugin runtime.

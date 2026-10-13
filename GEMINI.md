@@ -1,4 +1,4 @@
-Before acting, read `rig/tier-1/routing.md` and route this task through its skill table.
+Before acting, read `rig/corpus/routing.md` and route this task through its skill table.
 
 # Rig Agent Instructions
 
@@ -17,8 +17,8 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 
 ## Project Context
 
-- Tier 1 is the markdown-only bootstrap: fixed file list, no catalogue
-  resolver, no runtime, no keys, no `.env` handling.
+- Rig ships from one central corpus (`rig/corpus/`) that the user's agent
+  unpacks. No keys and no `.env` handling are ever installed.
 - Active delivery beyond the bootstrap is **mandatory agent-tech-safety
   baseline + à-la-carte catalogue** (`family → group → service → grade`).
   Fixed Basic / mid / Advanced install packages are deprecated (GA-9g).
@@ -31,7 +31,7 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 
 ## Working Rules
 
-- Route through `rig/tier-1/routing.md` first; do not substitute a nearby skill
+- Route through `rig/corpus/routing.md` first; do not substitute a nearby skill
   for the named owner.
 - Preserve Gate 1 acceptance artifacts unless the task is explicitly routed back
   to grilling.
