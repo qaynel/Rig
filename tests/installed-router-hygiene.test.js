@@ -90,11 +90,11 @@ test('RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ pa
 });
 
 test('RIG-149 — prefix self-collision guard is present for the rig router skill', () => {
-  const payloadSrc = read('rig/lib/payload.js');
+  const projectSrc = read('rig/lib/project.js');
   assert.match(
-    payloadSrc,
+    projectSrc,
     /skill\.name\s*===\s*prefix\.replace/,
-    'payload.js must carry the self-collision guard so _core installs as "rig" not "rig-rig"',
+    'project.js must carry the self-collision guard so _core installs as "rig" not "rig-rig"',
   );
 });
 

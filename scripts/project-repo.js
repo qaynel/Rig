@@ -6,7 +6,8 @@
 //   node scripts/project-repo.js --check   fail if any generated file is stale
 //
 // Generated: native skill directories for Claude and Codex discovery,
-// Antigravity workflows, and the repository-instruction copies host agents read
+// Antigravity workflows, and the repository-instruction copies (the six host
+// rule files and everything in AGENTS.md after its first line) host agents read
 // in this checkout. Nothing here is authored by hand; edit the corpus.
 'use strict';
 
@@ -29,10 +30,17 @@ function generatedFiles(root = ROOT) {
     }
   }
   const body = corpus.files.get('rig/corpus/rules/repo-instructions.md').bytes;
-  const { copies } = JSON.parse(corpus.files.get('rig/corpus/rules/repo-copies.json').bytes.toString('utf8'));
+  const { copies, agents_md: agentsMd } = JSON.parse(corpus.files.get('rig/corpus/rules/repo-copies.json').bytes.toString('utf8'));
   for (const [rel, frontmatter] of Object.entries(copies)) {
     files.set(rel, Buffer.concat([Buffer.from(frontmatter), body]));
   }
+  // AGENTS.md keeps its hand-authored first line (the per-checkout pointer);
+  // everything after it is the canonical body.
+  const agentsPath = path.join(root, 'AGENTS.md');
+  const pointer = fs.existsSync(agentsPath)
+    ? fs.readFileSync(agentsPath, 'utf8').split('\n')[0]
+    : 'Before acting, read `rig/corpus/routing.md` and route this task through its skill table.';
+  files.set('AGENTS.md', Buffer.from(`${pointer}\n\n${body.toString('utf8')}\n${agentsMd.suffix}`));
   return files;
 }
 

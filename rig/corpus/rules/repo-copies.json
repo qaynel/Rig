@@ -7,5 +7,9 @@
     ".agents/rules/rig.md": "",
     ".github/copilot-instructions.md": "",
     ".kiro/steering/rig.md": "---\ntitle: Rig, lazy senior dev mode\ninclusion: always\n---\n\n"
+  },
+  "agents_md": {
+    "comment": "AGENTS.md keeps its own first line (the per-checkout pointer, hand-authored); the rest is the canonical body plus this note.",
+    "suffix": "(Yes, this file also applies when you develop the Rig repo itself: run `npm test`\nlocally and confirm it is green before pushing. That is the full CI gate — the\nrule-copy check, the version check, the Node suite, and the pi-extension tests,\nthe same commands `.github/workflows/test.yml` runs. Do not push on a red or\nunrun suite.)\n"
   }
 }

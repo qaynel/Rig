@@ -1,24 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { listVendoredSkills } = require('./skills');
-const { discoverHosts, REGISTRY, INSTRUCTION_ONLY_HOSTS, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
+const { discoverHosts, REGISTRY, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { containedPath } = require('./path-safety');
+const { loadCorpus } = require('./corpus');
+const { projectAll } = require('./project');
 
 const ROOT = path.join(__dirname, '..', '..');
-// Instruction-only hosts: rely on `.rig/skills/` as their Rig-managed skill-discovery
-// path. Sourced from the host registry so the list is maintained in one place.
-// Antigravity co-reads `.agents/skills` natively and also gets `.rig/skills` as
-// the instruction-only fallback (same gate as cursor/gemini/etc.).
-const INSTRUCTION_ONLY = [...INSTRUCTION_ONLY_HOSTS];
 const PAYLOAD_HOSTS = [
   'claude', 'codex', 'antigravity', 'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot',
 ];
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
-
-function loadCanonicalManifest() {
-  return JSON.parse(fs.readFileSync(path.join(ROOT, 'rig', 'manifest.json'), 'utf8'));
-}
 
 function directWrite(target, rel, contents, mode) {
   const dst = containedPath(target, rel);
@@ -27,50 +19,20 @@ function directWrite(target, rel, contents, mode) {
   if (mode) fs.chmodSync(dst, mode);
 }
 
-function copyOp(target, from, to, writeFile = directWrite) {
-  const src = path.join(ROOT, from);
-  writeFile(target, to, fs.readFileSync(src), fs.statSync(src).mode & 0o777);
-}
-
-function seedUserFile(target, from, to, writeFile = directWrite) {
+// Writer side of the projection entries. project() decides what a repository
+// receives; these helpers only look at the target to decide how to land it.
+function seedUserFile(target, to, entry, writeFile = directWrite) {
   const dst = containedPath(target, to);
   if (fs.existsSync(dst)) return;
-  const src = path.join(ROOT, from);
-  writeFile(target, to, fs.readFileSync(src), fs.statSync(src).mode & 0o777, 'user_owned', {
+  writeFile(target, to, entry.bytes, entry.mode, 'user_owned', {
     transaction_kind: 'user_seed',
   });
-}
-
-// Build inputs and working notes never ship: the rendered SKILL.md is the
-// product; .tmpl is its source; TODOS-format.md is a dev file.
-function isLitter(srcAbs) {
-  return srcAbs.endsWith('.tmpl') || path.basename(srcAbs) === 'TODOS-format.md';
-}
-
-function copyTree(target, srcAbs, dstRel, writeFile, transform, filter) {
-  const stat = fs.statSync(srcAbs);
-  if (path.basename(srcAbs) === 'node_modules') return;
-  if (stat.isDirectory()) {
-    for (const entry of fs.readdirSync(srcAbs)) {
-      copyTree(target, path.join(srcAbs, entry), path.join(dstRel, entry), writeFile, transform, filter);
-    }
-  } else {
-    if (filter && !filter(srcAbs)) return;
-    const source = fs.readFileSync(srcAbs);
-    const contents = transform ? transform(srcAbs, source) : source;
-    writeFile(target, dstRel, contents, stat.mode & 0o777);
-  }
-}
-
-function copyTreeOp(target, from, to, writeFile = directWrite) {
-  copyTree(target, path.join(ROOT, from), to, writeFile, undefined, (srcAbs) => !isLitter(srcAbs));
 }
 
 // The release-pinned skill catalogue. Rig owns `.rig/catalog.json`, so a copy
 // that no longer matches its own journal receipt was edited by the user: that
 // conflicts rather than being silently overwritten (F-3 §5.2).
-function installPinnedCatalogOp(target, from, to, writeFile = directWrite) {
-  const pinned = fs.readFileSync(path.join(ROOT, from));
+function installPinnedCatalog(target, to, pinned, writeFile = directWrite) {
   const dst = containedPath(target, to);
   if (fs.existsSync(dst)) {
     const current = fs.readFileSync(dst);
@@ -99,44 +61,6 @@ function ensureLine(target, to, line, writeFile = directWrite) {
   if (body.split('\n').includes(line)) return;
   const separator = body && !body.endsWith('\n') ? '\n' : '';
   writeFile(target, to, `${body}${separator}${line}\n`, undefined, 'append_managed', { managed_line: line });
-}
-
-// Rewrite the frontmatter `name:` line so a skill installed under
-// `rig-<name>/` also identifies itself as `rig-<name>` — Claude and Codex
-// discover skills by that frontmatter field and it must match the directory
-// so calling it by its Rig name resolves to this file. The rewrite is bounded
-// to the first `name:` line inside the leading `---` block; nothing else in
-// the SKILL.md is touched. Upstream MIT permits this modification and the
-// modified-partial-distribution notice ships alongside.
-function rewriteSkillName(body, prefix, declared) {
-  return body.replace(
-    /^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m,
-    (_m, head) => `${head}${prefix}${declared}`,
-  );
-}
-
-function installVendoredSkillsOp(target, entry, writeFile = directWrite, activeDelivery = false) {
-  const skills = listVendoredSkills();
-  const destPattern = entry.destination;
-  const prefix = entry.rewrite_name_prefix || '';
-  const filter = (srcAbs) => {
-    if (isLitter(srcAbs)) return false;
-    if (activeDelivery) return true;
-    return srcAbs.endsWith('.md'); // default install = markdown only
-  };
-  for (const skill of skills) {
-    const src = path.join(ROOT, path.dirname(skill.source_rel));
-    const effectivePrefix = (prefix && skill.name === prefix.replace(/-$/, '')) ? '' : prefix;
-    const finalName = `${effectivePrefix}${skill.name}`;
-    const rel = destPattern.replace('{name}', finalName);
-    const skillMd = path.join(src, 'SKILL.md');
-    copyTree(target, src, rel, writeFile, (sourcePath, contents) => {
-      // Always align the frontmatter with the installed directory so native
-      // hosts never receive a source/directory name mismatch.
-      if (sourcePath !== skillMd) return contents;
-      return rewriteSkillName(contents.toString('utf8'), effectivePrefix, skill.name);
-    }, filter);
-  }
 }
 
 function sha256(contents) {
@@ -638,11 +562,15 @@ function journalWriter(target, { transactionOwner = null } = {}) {
   return write;
 }
 
-// `host` may be a string, or an array of hosts that share one payload entry.
-function hostSelected(entryHost, selected) {
-  if (entryHost === 'neutral') return true;
-  const hosts = Array.isArray(entryHost) ? entryHost : [entryHost];
-  return hosts.some((host) => selected.includes(host));
+// Apply one projection entry through the journalled writer.
+function applyEntry(target, entry, writeFile) {
+  const op = entry.op || 'write';
+  if (op === 'write') writeFile(target, entry.path, entry.bytes, entry.mode);
+  else if (op === 'seed_user_file') seedUserFile(target, entry.path, entry, writeFile);
+  else if (op === 'pinned_catalog') installPinnedCatalog(target, entry.path, entry.bytes, writeFile);
+  else if (op === 'ensure_line') ensureLine(target, entry.path, entry.line, writeFile);
+  else if (op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);
+  else throw new Error(`rig: unknown projection op "${op}"`);
 }
 
 function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPayload = null } = {}) {
@@ -653,32 +581,16 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
       return { id, provenance: 'explicit', marker_paths: [] };
     });
   const selected = hostEntries.map((entry) => entry.id);
-  const instructionOnly = INSTRUCTION_ONLY.some((host) => selected.includes(host));
+  // The adaptive (Path B) install projects only the mandatory skills into host
+  // discovery and stages the rest under .rig/runtime for an approved selective
+  // projection; the legacy default install keeps its fan-out. The gates that
+  // decide this live in project(), not here.
+  const selection = { hosts: selected, delivery: activeDelivery ? 'active' : 'default' };
+  const entries = projectAll(loadCorpus(selection), selection);
   const writeFile = journalWriter(target);
   const writesBefore = writeFile.appliedCount();
   writeFile.begin();
-  for (const entry of loadCanonicalManifest().payload) {
-    if (!hostSelected(entry.host, selected)) continue;
-    if (entry.gate === 'instruction_only_selected' && !instructionOnly) continue;
-    if (entry.gate === 'active_delivery' && !activeDelivery) continue;
-    // The adaptive (Path B) install projects only the mandatory skills into
-    // host discovery and stages the rest under .rig/runtime for an approved
-    // selective projection. The legacy markdown-only install keeps its fan-out.
-    if (entry.gate === 'default_delivery' && activeDelivery) continue;
-    // The neutral optional-skill fan-out is suppressed for instruction-only
-    // hosts in adaptive mode: they must see only the 8 mandatory skills before
-    // approval (AC-T3).  Bare installs (no hosts) and legacy installs are
-    // unaffected: instructionOnly is false when no hosts are selected, and
-    // activeDelivery is false in legacy mode.
-    if (entry.gate === 'suppress_on_instruction_only_adaptive' && instructionOnly && activeDelivery) continue;
-    if (entry.op === 'copy') copyOp(target, entry.from, entry.to, writeFile);
-    else if (entry.op === 'seed_user_file') seedUserFile(target, entry.from, entry.to, writeFile);
-    else if (entry.op === 'copy_tree') copyTreeOp(target, entry.from, entry.to, writeFile);
-    else if (entry.op === 'install_pinned_catalog') installPinnedCatalogOp(target, entry.from, entry.to, writeFile);
-    else if (entry.op === 'install_vendored_skills') installVendoredSkillsOp(target, entry, writeFile, activeDelivery);
-    else if (entry.op === 'ensure_line') ensureLine(target, entry.to, entry.line, writeFile);
-    else if (entry.op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);
-  }
+  for (const entry of entries) applyEntry(target, entry, writeFile);
   if (releaseTag) {
     const installedHostIds = [...new Set(selected)].sort();
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag, hosts: installedHostIds }, null, 2)}\n`);
@@ -689,6 +601,6 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 }
 
 module.exports = {
-  ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
-  MANIFEST_REL, loadCanonicalManifest, copyOp, copyTreeOp, seedUserFile, ensureGitignoreBlock, ensureLine, hostSelected, journalResumeDigest, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
+  ROOT, PAYLOAD_HOSTS,
+  MANIFEST_REL, ensureGitignoreBlock, ensureLine, journalResumeDigest, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
 };

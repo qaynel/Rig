@@ -87,7 +87,7 @@ test('mcp disposition is one of the three degradation states', () => {
 });
 
 test('mcp catalogue contracts expose the governing key for non-default shapes', () => {
-  const { materializeSelectedHosts } = require('../rig/lib/host-capabilities');
+  const { MCP_HOSTS } = require('../rig/lib/mcp-hosts');
   const expected = {
     copilot: 'servers',
     opencode: 'mcp',
@@ -98,7 +98,7 @@ test('mcp catalogue contracts expose the governing key for non-default shapes', 
   for (const [host, key] of Object.entries(expected)) {
     const contract = validateRegistryContracts().contracts.find((entry) => entry.id === host);
     assert.equal(contract.axes.mcp_config.output.key, key, `${host} host contract mcp key`);
-    assert.equal(materializeSelectedHosts(null, [host])[host].mcp.key, key, `${host} selected-host mcp key`);
+    assert.equal(MCP_HOSTS[host].key, key, `${host} write-table mcp key`);
   }
 });
 

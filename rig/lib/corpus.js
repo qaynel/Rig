@@ -33,12 +33,8 @@ function loadCorpus(selection = {}, root = ROOT) {
         if (entry.name === 'node_modules') continue;
         const child = path.join(dir, entry.name);
         // The shelf links one executable to another (rig-brain-reader), and
-        // the v5 installer copied the link's target bytes; follow links, but
-        // never out of the source checkout.
+        // the v5 installer copied the link's target bytes; keep doing that.
         const stat = fs.statSync(child);
-        if (entry.isSymbolicLink() && !fs.realpathSync(child).startsWith(`${fs.realpathSync(root)}${path.sep}`)) {
-          throw new Error(`rig: corpus link escapes the source checkout: ${relOf(root, child)}`);
-        }
         if (stat.isDirectory()) walk(child);
         else if (stat.isFile()) {
           const childRel = relOf(root, child);

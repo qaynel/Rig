@@ -335,32 +335,6 @@ function validateRegistryContracts() {
   return { hosts: Object.keys(REGISTRY).length, contracts, failures };
 }
 
-function materializeSelectedHosts(target, hostIds) {
-  const results = {};
-  for (const id of hostIds) {
-    const caps = REGISTRY[id] || DEFAULT_CAPABILITIES;
-    const mcpStatus = caps.mcp_config;
-    const entry = {
-      instruction: { status: caps.instruction },
-      skills: { status: caps.native_skill },
-      hooks: {
-        shell: caps.shell_hook, web: caps.web_hook, mcp: caps.mcp_hook,
-      },
-    };
-    if (mcpStatus.emission === 'unsupported') {
-      entry.mcp = {
-        status: 'unsupported',
-        guidance: 'MCP is unsupported for this host; preserving user files unchanged.',
-      };
-    } else {
-      const surfaces = caps.surfaces || {};
-      entry.mcp = { status: mcpStatus.scope, path: surfaces.mcp, key: surfaces.mcp_key || 'mcpServers' };
-    }
-    results[id] = entry;
-  }
-  return results;
-}
-
 // Hosts that rely on `.rig/skills/` as their Rig-managed skill-discovery path.
 // This includes hosts where Rig has no native skill-directory manifest entry,
 // so the instruction-only fallback is the only way skills surface to the agent.
@@ -420,5 +394,4 @@ module.exports = {
   materializeHostAdapters,
   discoverHosts,
   validateRegistryContracts,
-  materializeSelectedHosts,
 };

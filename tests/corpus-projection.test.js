@@ -164,3 +164,45 @@ test('this repository\'s generated twins reproduce from the corpus (project-repo
   const result = spawnSync(process.execPath, [path.join(root, 'scripts/project-repo.js'), '--check'], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
 });
+
+function diskFiles(dir) {
+  const files = new Map();
+  const walk = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const abs = path.join(current, entry.name);
+      if (entry.isDirectory()) { walk(abs); continue; }
+      const rel = path.relative(dir, abs).split(path.sep).join('/');
+      if (rel === '.rig/install-manifest.jsonl' || rel.startsWith('.rig/preimages/')) continue;
+      files.set(rel, { bytes: fs.readFileSync(abs), mode: fs.statSync(abs).mode & 0o777 });
+    }
+  };
+  walk(dir);
+  return files;
+}
+
+for (const name of Object.keys(golden.configs)) {
+  test(`the installer lands exactly the v5 bytes for ${name}`, () => {
+    const os = require('node:os');
+    const { runPayload } = require('../rig/lib/payload');
+    const selection = selectionFor(name);
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-parity-'));
+    try {
+      runPayload(target, selection.hosts, { activeDelivery: selection.delivery === 'active' });
+      const actual = inventory(diskFiles(target));
+      const expected = goldenInventory(name);
+      const allowed = new Set(intended.differences
+        .filter((entry) => entry.configs === '*' || entry.configs.includes(name))
+        .map((entry) => entry.path));
+      const diffs = [];
+      for (const rel of new Set([...Object.keys(actual.flat), ...Object.keys(expected.flat)])) {
+        if (actual.flat[rel] !== expected.flat[rel] && !allowed.has(rel)) diffs.push(rel);
+      }
+      for (const prefix of new Set([...Object.keys(actual.trees), ...Object.keys(expected.trees)])) {
+        if (JSON.stringify(actual.trees[prefix]) !== JSON.stringify(expected.trees[prefix]) && !allowed.has(prefix)) diffs.push(prefix);
+      }
+      assert.deepEqual(diffs.sort(), []);
+    } finally {
+      fs.rmSync(target, { recursive: true, force: true });
+    }
+  });
+}

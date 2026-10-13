@@ -15,6 +15,9 @@ const {
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
 const {
+  NATIVE_SKILL_SCOPES, INSTRUCTION_ONLY_SCOPE, canonicalSkillName, scopedSkillName, projectSkillFiles,
+} = require('./project');
+const {
   atomicWrite, canonicalProposal, proposalBodyDigest, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
 } = require('./onboarding-state');
@@ -202,16 +205,12 @@ function installedHostIds(target) {
   return hosts;
 }
 
-// Native skill-discovery scopes Rig writes to directly. Only Codex and Claude
-// have a Rig-managed native skill directory today (the installed wrapper
-// markers this function checks for).
+// Native skill-discovery scopes come from the one table project() installs
+// through (Codex and Claude have a Rig-managed native skill directory); a scope
+// applies only when its installed wrapper marker is present.
 function nativeScope(target, host) {
-  if (host === 'codex' && fs.existsSync(containedPath(target, '.agents/skills/rig-onboarding/SKILL.md'))) {
-    return { host_scope: 'codex', root: '.agents/skills' };
-  }
-  if (host === 'claude' && fs.existsSync(containedPath(target, '.claude/skills/rig-onboarding/SKILL.md'))) {
-    return { host_scope: 'claude', root: '.claude/skills' };
-  }
+  const scope = NATIVE_SKILL_SCOPES[host];
+  if (scope && fs.existsSync(containedPath(target, `${scope.root}/rig-onboarding/SKILL.md`))) return { ...scope };
   return null;
 }
 
@@ -228,7 +227,7 @@ function nativeScope(target, host) {
 // both present and usable.
 function instructionOnlyScope(target, _host) {
   if (!fs.existsSync(containedPath(target, PLAYBOOK_REL))) return null;
-  return { host_scope: 'instruction-only', root: '.rig/skills' };
+  return { ...INSTRUCTION_ONLY_SCOPE };
 }
 
 // Per-host, per-item decision — never an aggregate "any native host present"
@@ -244,33 +243,16 @@ function installedSkillScopes(target) {
   return [...scopes.values()];
 }
 
-// The canonical, scope-independent identity of a skill: 'rig' stays 'rig'
-// (it names itself, not a namespace); every other skill's canonical name has
-// any leading "rig-" stripped, so re-adding it per scope is idempotent.
-function canonicalSkillName(skill) {
-  if (skill.name === 'rig') return 'rig';
-  return skill.name.startsWith('rig-') ? skill.name.slice('rig-'.length) : skill.name;
+// Selected skills keep their canonical, scope-independent identity; naming and
+// frontmatter rewriting per scope are project()'s (rig/lib/project.js).
+function skillIdentity(skill) {
+  return canonicalSkillName(skill.name);
 }
 
-// Naming is scope-specific, not skill-specific (rig/tier-1/routing.md's
-// router contract): native layouts project as `rig-<name>`; the
-// instruction-only layout projects unprefixed, since `rig-<name>` there maps
-// to `.rig/skills/<name>/SKILL.md`.
-function scopedSkillName(canonicalName, scope) {
-  if (canonicalName === 'rig') return 'rig';
-  return scope.host_scope === 'instruction-only' ? canonicalName : `rig-${canonicalName}`;
-}
-
-function rewriteProjectedName(bytes, name) {
-  const source = bytes.toString('utf8');
-  const pattern = /^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m;
-  // A scope whose target name equals the source's own unprefixed name (the
-  // instruction-only scope, when the skill's canonical name has no "rig-"
-  // prefix to strip) rewrites to byte-identical output — that is a correct,
-  // idempotent rewrite, not evidence the pattern failed to match. Check the
-  // match itself, not whether the replacement changed anything.
-  if (!pattern.test(source)) fail('selected skill has no rewriteable frontmatter name');
-  return Buffer.from(source.replace(pattern, (_match, start) => `${start}${name}`));
+function assertRewriteable(bytes) {
+  if (!/^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m.test(bytes.toString('utf8'))) {
+    fail('selected skill has no rewriteable frontmatter name');
+  }
 }
 
 function sourceFiles(root, prefix = '') {
@@ -339,7 +321,7 @@ function planSkillProjections(target, catalog, selected, writer) {
     projectedFiles.set(skill.id, entries);
   };
   for (const skill of skills) {
-    const canonicalName = canonicalSkillName(skill);
+    const canonicalName = skillIdentity(skill);
     if (skill.source_kind === 'core') {
       for (const scope of scopes) {
         const name = scopedSkillName(canonicalName, scope);
@@ -354,19 +336,18 @@ function planSkillProjections(target, catalog, selected, writer) {
     const files = optionalProjectionSource(target, skill);
     const skillFile = files.find(({ rel }) => rel === 'SKILL.md');
     if (!skillFile) fail(`selected skill "${skill.id}" has no SKILL.md`);
+    assertRewriteable(skillFile.bytes);
     for (const scope of scopes) {
       const name = scopedSkillName(canonicalName, scope);
-      const root = `${scope.root}/${name}`;
-      for (const source of files) {
-        const rel = `${root}/${source.rel}`;
-        const bytes = source.rel === 'SKILL.md' ? rewriteProjectedName(source.bytes, name) : source.bytes;
+      const projected = projectSkillFiles({ files, dir: `${scope.root}/${name}`, declaredName: name });
+      projected.forEach(({ path: rel, bytes }, index) => {
         if (writer) cleanProjection(target, writer, rel);
         plans.push({ skill: skill.id, rel, bytes, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
-        record(skill, source.rel, sha256(bytes));
-        if (source.rel === 'SKILL.md') {
+        record(skill, files[index].rel, sha256(bytes));
+        if (files[index].rel === 'SKILL.md') {
           rows.push({ skill: skill.id, host_scope: scope.host_scope, path: rel, sha256: sha256(bytes) });
         }
-      }
+      });
     }
   }
   const digests = new Map([...projectedFiles].map(([id, entries]) => [id, projectedDigest(entries)]));
