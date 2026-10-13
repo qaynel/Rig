@@ -7,43 +7,48 @@ kanban-plugin: board
 ## Backlog
 
 - [ ] **RIG-155 — Real-`npm` clean-container E2E of the customer install path**
-	**Status:** OPEN (proposed 2026-08-31) — follow-up from [[RIG-154]]; explicit non-goal of that ticket · [Solution](tickets/RIG-155.md)
+	**Status:** OPEN (proposed 2026-08-31) — no GitHub issue yet (creation pending owner approval) — follow-up from [[RIG-154]]; explicit non-goal of that ticket · [Solution](tickets/RIG-155.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** TEST INFRASTRUCTURE / COVERAGE GAP. `AT-HOME-1` proves the installed `rig-mcp` server works but only through a fake `npm` shim that `cp`s a pre-built `node_modules`. Nothing exercises the real customer path — real `install.sh` → real `npm ci` from `rig-mcp/package-lock.json` → MCP server boots → tool call — in a clean container with a live registry. RIG-154 deliberately kept the fake-`npm` fixture; this ticket tracks the missing real-network E2E so the customer guarantee is tested, not assumed.
-- [ ] **RIG-148 — Default install lands unignored: 209 files / 8.3 MB with no .gitignore**
-	**Status:** OPEN (2026-08-30) — GitHub #125 — found during Path A install-bug investigation · [Solution](tickets/RIG-148.md)
-	**Class:** DELIVERABILITY / ONBOARDING HYGIENE. `rig/lib/payload.js`/`rig/bootstrap.sh` write no `.gitignore`. Measured: a default `--hosts claude` install is 209 files / 8.3 MB, 100% untracked-and-unignored. Needs an owner design call: gitignore (tool-cache) vs commit (vendored-config) — recommendation is gitignore.
-- [ ] **RIG-149 — Vendored `rig` switchboard installs as `rig-rig`, breaking routing.md's own fallback instruction**
-	**Status:** OPEN (2026-08-30) — GitHub #126 — found during Path A install-bug investigation · [Solution](tickets/RIG-149.md)
-	**Class:** CORRECTNESS, installer-code. `payload.js:94`'s blanket `rig-` prefix rewrite doubles the vendored `_core` skill's own `name: rig` to `rig-rig` for Claude/Codex/Antigravity; `routing.md`'s "invoke the vendored `rig` router" fallback names a skill that doesn't exist under that name. Verified by direct repro.
 - [ ] **RIG-156 — (Low priority / deferred) Re-baseline the adaptation score against post-fix Rig (RIG-153 option B)**
-	**Status:** OPEN (2026-08-31) — deferred, low priority — carved out of [[RIG-153]] on close · [Solution](tickets/RIG-156.md)
+	**Status:** OPEN (2026-08-31) — deferred, low priority — no GitHub issue yet (creation pending owner approval) — carved out of [[RIG-153]] on close · [Solution](tickets/RIG-156.md)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
 	**Class:** MEASUREMENT / PROCESS. Run the frozen RIG-153 instrument to produce a post-fix per-axis profile against the +12/100 baseline. Deferred: the six hygiene tests already prove the RIG-148..152 defect shapes are fixed, so a re-baseline now would just flip the G2 gate; the interesting run is after adaptive integration (prune-to-stack, reconcile-with-existing-config) is built — a Path B question. Blockers: no clean in-workspace target copy, unpinned Rig SHA, human-operated judge, model pin string source. Hold until Path A + Path B are fully decided. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
 - [ ] **RIG-145 — runReadOnly batch-aborts the command list on isolation-unavailable where runGrade marks per command**
 	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking; latent (no non-test caller yet) · [Solution](tickets/RIG-145.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** CORRECTNESS / SHELL TRUST (parity). `runReadOnly` (`lint-format.js:696-700`) does a function-level return of `network_isolation_unavailable` on the first ungranted command when no OS isolation is present, skipping every later command — including a `network: true` one that `runGrade`'s per-command check (`:627-628`, inside `.map`) would still run. Same guarantee-sharding pattern as [[RIG-139]]/[[RIG-143]]. Not a safety hole (nothing ungranted runs); a granted command is silently skipped. Neither runner has a non-test caller yet, so latent. Fix touches `runReadOnly`'s single-status return shape — owner call. Secondary nit: that early return omits `changed_paths`.
 - [ ] **RIG-147 — Undeclared-network diagnostic is written to stderr via console.warn on top of the structured result field**
 	**Status:** OPEN (2026-08-29) — GitHub #110 — accepted follow-up from the passing v5.0.0 review; non-blocking · [Solution](tickets/RIG-147.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** ARCHITECTURE / DIAGNOSTIC HYGIENE (minor). `runConfiguredArgv` (`check-runner.js:196-200`) already returns `network_state: 'undeclared'` + `diagnostic` (AD-39 / `GA-38`; `AT-CAP-3` + `AT-PROC-1u` assert it) but also calls `console.warn` — a redundant stderr side channel CI can bury under the checked command's output. Drop the `console.warn`; have the installed CI path route `network_state === 'undeclared'` from the return value into a visible annotation. No spec or oracle change.
 - [ ] **RIG-127.11 — Uninstall hard-crashes on a corrupted legacy global config**
 	**Status:** OPEN (2026-08-26, re-verified 2026-08-29) — GitHub #69 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** DELIVERABILITY / v5-observable. `removeGlobalConfig()` (`global-writes.js:200`) calls `readJson()` (`:35`) — raw `JSON.parse`, no try/catch — unguarded from `lifecycle.js` `uninstall()`; a corrupted global file throws uncaught mid-uninstall. Sibling `removeGlobalMcp` already catches this; no test exercises the path. Confirmed still present on HEAD `9d1ea45`.
 - [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
 - [ ] **RIG-146 — Frozen AT-LF-20 proves one-use only via the in-memory flag, never the durable on-disk record**
 	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #109 — accepted follow-up from the passing v5.0.0 review; non-blocking; needs owner re-sign; dev-process/oracle workstream · [Solution](tickets/RIG-146.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** TEST QUALITY / SHELL TRUST. [[RIG-138]] landed the durable `consumePlanApproval` on-disk record, but `AT-LF-20` (`tests/advanced-oracle.test.js:916-927`) reuses one `approval` object, so the second `executePlan` is rejected by the in-memory `approval.used` guard before the on-disk check. `AT-LF-20` would still pass with the whole durable block deleted; the real cross-process case is covered only by non-frozen `AT-PROC-1a`. **Re-evaluation 2026-08-30:** reclassified from Bucket 1 (install bugs) to dev-process/oracle workstream — fixing `AT-LF-20` edits a byte-pinned oracle file so it needs a key-holder re-sign and rides [[RIG-133]]/[[RIG-136]]'s ceremony, not Path A tester-observable fixes.
 - [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
 	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #62 — approved post-release work; [[RIG-120]] is Done and `v5.0.0` is published; unblocked but gated on product vision (à-la-carte/prune) · [Solution](tickets/RIG-122.md)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
 	**Class:** POST-RELEASE. Optional markdown wiki graft. **Re-evaluation 2026-08-30:** the blocker (RIG-120 Done, v5.0.0 published) is satisfied, so this is unblocked. However, building another installable family graft is exactly the "does the vision want everything installed" question the adaptation eval put in question — hold for Path B grilling gate decision on à-la-carte/prune vision.
-- [x] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
-	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #78 — browse-skill-owned, runtime-only (--with-runtime only), no Windows CI · [Solution](tickets/RIG-135.md)
+- [ ] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
+	**Status:** OPEN — reopened 2026-10-13 (owner close bar: "Not Planned" reasons are below the bar; not fixed) — GitHub #78 was closed as COMPLETED in error; reopen pending owner approval — original note: browse-skill-owned, runtime-only (--with-runtime only), no Windows CI · [Solution](tickets/RIG-135.md)
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** DELIVERABILITY, browse-skill owned (AD-37). Windows-only CDP cookie import; `--with-runtime` only. Do not build: shared cleanup helper (RIG-135) makes the design constraint explicit in code, and runtime-only debt respects the rejected-approaches decision.
-- [x] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
-	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #79 — browse-skill-owned, runtime-only, Bun upstream limitation · [Solution](tickets/RIG-135.md)
+- [ ] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
+	**Status:** OPEN — reopened 2026-10-13 (owner close bar: "Not Planned" reasons are below the bar; not fixed) — GitHub #79 was closed as COMPLETED in error; reopen pending owner approval — original note: browse-skill-owned, runtime-only, Bun upstream limitation · [Solution](tickets/RIG-135.md)
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** DELIVERABILITY, browse-skill owned. `browser-skill-commands.ts`'s `spawnSkill` via `Bun.spawn`; Bun's `Subprocess#kill()` has no negative-pid group-kill ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791)). Owner chooses: shim through `node:child_process`, or build Bun-native group-kill (do not build in Tier 1).
-- [x] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
-	**Status:** CLOSED — Not Planned (2026-08-30) — GitHub #80 — browse-skill-owned, runtime-only, low priority · [Solution](tickets/RIG-135.md)
+- [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
+	**Status:** OPEN — reopened 2026-10-13 (owner close bar: "Not Planned" reasons are below the bar; not fixed) — GitHub #80 was closed as COMPLETED in error; reopen pending owner approval — original note: browse-skill-owned, runtime-only, low priority · [Solution](tickets/RIG-135.md)
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` missing `detached: true`; runtime-only, minor. Do not build: same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
 
 - [x] **RIG-115 — Author lint-format acceptance for applicability, execution consent, and shell trust**
@@ -79,9 +84,6 @@ kanban-plugin: board
 - [x] **RIG-141 — runReadOnly hard-refuses all tasks when sandbox absent, including network-granted ones; granted-network path untested**
 	**Status:** COMPLETE (2026-08-27) — GitHub #96 — sandbox refusal is now checked per command grant, preserving ungranted denial while allowing granted tasks; focused oracle is green · [Solution](tickets/RIG-141.md)
 	**Class:** CORRECTNESS / SHELL TRUST.
-- [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
-	**Status:** OPEN (2026-08-29) — GitHub #62 — approved post-release work; [[RIG-120]] is Done and `v5.0.0` is published · [Solution](tickets/RIG-122.md)
-	**Class:** POST-RELEASE. Optional markdown wiki graft. Unblocked by the published release.
 
 
 ## Solution Discovery
@@ -108,23 +110,27 @@ kanban-plugin: board
 
 - [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #41 — awaiting owner approve-for-Coding; do before RIG-133 then RIG-125 · [Solution](tickets/RIG-132.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Pre-v5 ratchet slice (`rig/raw-registry-access.json` + checker + 5/5 tests) landed alongside RIG-134; v5.1 migration untouched.
 	**Acceptance:**
 	- One home per fact with generated projections; new duplication ships with its generator or doesn't ship.
 	- Property tests over a collapsed registry are near-exhaustive; runtime/docs/tests are projections through one semantic model + narrow waist.
 - [ ] **RIG-133 — The signature freezes 68 samples; it should freeze the properties and a case generator**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #42 — awaiting owner approve-for-Coding; do after RIG-132, before RIG-125 · [Solution](tickets/RIG-133.md)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Tests now **73** signed acceptance IDs but still enumerated sample list; requires key-holder re-sign to fix.
 	**Acceptance:**
 	- Sign the **properties + case generator** instead of enumerated samples; adding a host extends coverage with no signed byte changed.
 - [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #44 — awaiting owner approve-for-Coding; do after RIG-132/RIG-133 · [Solution](tickets/RIG-125.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Loop-breaker implementation substantially landed (all 3 tests green) but not promoted into signed oracle (blocked on RIG-133).
 	**Acceptance:**
 	- One MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip inside signed oracle.
 	- Printed bootstrap sequence to a green check.
 - [ ] **RIG-130 — The review loop has no memory, so convergence is unmeasurable**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #43 — awaiting owner approve-for-Coding; do alongside RIG-132 · [Solution](tickets/RIG-130.md)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
 	**Blocker:** Blocked on owner decision to approve implementation strategy. No finding-ledger exists; review convergence metric is unmeasurable.
 	**Acceptance:**
 	- Append-only finding-class ledger; closed-class feed-in to next reviewer; convergence metric becomes release stopping rule.
@@ -132,24 +138,28 @@ kanban-plugin: board
 
 - [ ] **RIG-110 — Prove first-wire + live-hook contracts for every supported host**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #67 — Path B gate; corpus-first tension (GA-36) may reshape "prove all 19 wires" · [Solution](tickets/RIG-110.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Blocker:** **Re-evaluated 2026-08-30.** Old blocker (owner host-roster + vendor access) still holds, but **GA-36** ("one analysis emitted per host") may shrink or reshape the model. Route to Path B gate, not a stale owner-access wait.
 	**Acceptance:**
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
 	- The §3.1 ❔/🟡 conflicts (codewhale, hermes, swival, antigravity CLI) are each resolved to a decided disposition in the wiki.
 - [ ] **RIG-112 — Freeze and implement the catalogue contract + authored-service gate**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #66 — Path B gate; D27 defers freeze, vision may reshape catalogue · [Solution](tickets/RIG-112.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 04 catalogue services) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Blocker:** **Re-evaluated 2026-08-30.** D27 legitimately defers the freeze; the vision now adds a second reason — freezing the 115-leaf catalogue before the à-la-carte/prune direction settles would freeze the wrong artifact. Hold for B-gate. **Do not close** (mechanical gate is real and green).
 	**Acceptance:**
 	- The catalogue contract is frozen and enforced in code; a leaf that is mechanically valid but generic (no repository binding / no service-specific check) fails the authored-service gate as a coverage gap.
 	- The gate runs in CI over all 115 leaves.
 - [ ] **RIG-113 — Bound the lint-format setup/replacement (hybrid-plus) contract**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #65 — Path B gate; owner must approve ranked lists + backup semantics · [Solution](tickets/RIG-113.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 05 lint-format setup) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
 	**Blocker:** **Re-evaluated 2026-08-30.** Genuinely pending an owner product-policy decision (ranked lists + backup semantics). Move to B-gate so the decision is actually scheduled rather than aging in Blocked.
 	**Acceptance:**
 	- "Better alternative" has a defined, testable decision rule; a proposed setup/replacement never lands without an explicit user decision.
 	- The generated-setup contract (files, scope, approval) is specified and covered by acceptance cases.
 - [ ] **RIG-116 — Promote the non-lint-format leaves Policy → Context → Evidence**
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #63 — Path B gate; Path C supplies demand signal, but prune-all vs universal is a B-gate call · [Solution](tickets/RIG-116.md)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
 	**Blocker:** **Re-evaluated 2026-08-30.** Path C is exactly the demand-evidence stream it waited on, so old blocker is on its way to being answered — but the vision reframes the question from "promote which family first" to "does promote-all survive prune-to-stack." Hold for B-gate. **Do not close:** GA-23 freezes Policy→Context→Evidence as the universal model.
 	**Acceptance:**
 	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
@@ -157,98 +167,109 @@ kanban-plugin: board
 
 ## Done
 
-- [ ] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
-	**Status:** CLOSED (2026-08-31) — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
+- [x] **RIG-148 — Default install lands unignored: 209 files / 8.3 MB with no .gitignore**
+	**Status:** DONE (2026-08-31, board corrected 2026-10-13) — GitHub #125 closed as COMPLETED (PR #137); fixed on HEAD · [Solution](tickets/RIG-148.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch (reality audit at `051a819c`) · **QA delivery:** n/a
+	**Done:** `tests/rig-bootstrap.test.js::RIG-148 — default Claude install writes a .gitignore block covering Rig-owned paths`; `tests/rig-bootstrap.test.js::RIG-148 — gitignore block is idempotent: re-running bootstrap does not duplicate it`; `tests/rig-bootstrap.test.js::RIG-148 — uninstall removes the gitignore block and preserves pre-existing user content`; `tests/installed-router-hygiene.test.js::RIG-148 — manifest writes a gitignore block for Rig-owned install paths`. Implemented as one `ensure_gitignore_block` manifest entry via `ensureGitignoreBlock` in `rig/lib/payload.js`.
+- [x] **RIG-149 — Vendored `rig` switchboard installs as `rig-rig`, breaking routing.md's own fallback instruction**
+	**Status:** DONE (2026-08-30, board corrected 2026-10-13) — GitHub #126 closed as COMPLETED (PR #132); fixed on HEAD · [Solution](tickets/RIG-149.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch (reality audit at `051a819c`) · **QA delivery:** n/a
+	**Done:** `tests/rig-bootstrap.test.js::vendored rig router installs addressable as 'rig' on native hosts, matching routing.md fallback (RIG-149)`; `tests/installed-router-hygiene.test.js::RIG-149 — prefix self-collision guard is present for the rig router skill`.
+- [x] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
+	**Status:** CLOSED (2026-08-31) — GitHub #138 (still open; closes at ship) — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #138 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
 	**Done:** `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent`; `tests/rig-mcp-bootstrap.test.js::CI relies on the root pretest bootstrap instead of a duplicate install step`; `manual: fresh-clone npm test exit 0 with AT-HOME-1 green, recorded in [[reasoning/2026-08-31-rig-154-close-out.md]]`. Follow-up [[RIG-155]] (real-`npm` clean-container E2E).
-- [ ] **RIG-153 — No frozen instrument exists to measure adaptation quality**
+- [x] **RIG-153 — No frozen instrument exists to measure adaptation quality**
 	**Status:** DONE (2026-08-31) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #130 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
 	**Done:** option A delivered and frozen (`592f4eed`). `tests/installed-router-hygiene.test.js` — all six RIG-148→152 defect-shape blocks green (`RIG-124.2 …`, `RIG-151 …`, `RIG-152 …`, `RIG-150 …`, `RIG-149 — prefix self-collision guard is present for the rig router skill`, `RIG-148 — manifest writes a gitignore block for Rig-owned install paths`); `wiki/specs/adaptation-measurement-rubric.md` frozen (2 gates, 3 equal-weight axes, per-axis profile, clean-checkout procedure, pinned dated model). The re-baseline run (option B) is carved out as [[RIG-156]], deferred. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
-- [ ] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
+- [x] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
 	**Status:** DONE (2026-08-31) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #127 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path`; `tests/basic-payload-gating.test.js::RIG-150 — rig.md reference resolves after claude-only install`.
-- [ ] **RIG-151 — routing.md's full-cadence branch asserts a wiki/status.md convention the target repo doesn't have**
+- [x] **RIG-151 — routing.md's full-cadence branch asserts a wiki/status.md convention the target repo doesn't have**
 	**Status:** DONE (2026-08-31) — GitHub #128 — found during Path A install-bug investigation · [Solution](tickets/RIG-151.md)
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-151 — router asserts no wiki/status.md cadence the target repo does not have`.
-- [ ] **RIG-152 — "In this source checkout" conditionals in routing.md are always-false once installed**
+- [x] **RIG-152 — "In this source checkout" conditionals in routing.md are always-false once installed**
 	**Status:** DONE (2026-08-31) — GitHub #129 — found during Path A install-bug investigation · [Solution](tickets/RIG-152.md)
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-152 — router hands the onboarding agent no never-true "source checkout" conditional`.
-- [ ] **RIG-124.2 — `(RIG-124)` test-title citation convention leaks into installed payload text**
+- [x] **RIG-124.2 — `(RIG-124)` test-title citation convention leaks into installed payload text**
 	**Status:** DONE (2026-08-31) — GitHub #131 — found during Path A install-bug investigation, unrelated to RIG-124.1 · [Solution](tickets/RIG-124.md)
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-124.2 — installed instruction text carries no dangling internal ticket citation`.
-- [ ] **RIG-120 — Finish the release ceremony and cut v5.0.0**
+- [x] **RIG-120 — Finish the release ceremony and cut v5.0.0**
 	**Status:** DONE (2026-08-29) — GitHub #68; annotated tag and GitHub latest release published · [Solution](tickets/RIG-120.md)
 	**Done:** `tests/release-blockers.test.js::the POSIX installer downloads and executes a named tagged archive`; tag `v5.0.0` on `9d1ea45`.
 	**Accepted follow-up (non-blocking, from the passing review):** [[RIG-145]] runReadOnly/runGrade isolation-unavailable parity · [[RIG-146]] frozen AT-LF-20 proves one-use only via the in-memory flag · [[RIG-147]] undeclared-network `console.warn` side channel.
-- [ ] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
+- [x] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
 	**Status:** DONE (2026-08-26) — GitHub #73 closed by PR #74; general process-cleanup helper remains [[RIG-135]] (#75) · [Solution](tickets/RIG-124.md)
 	**Done:** `tests/release-blockers.test.js::review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)`.
-- [ ] **RIG-126 — Onboarding is not runnable end-to-end**
+- [x] **RIG-126 — Onboarding is not runnable end-to-end**
 	**Status:** DONE (2026-08-26) — GitHub #35 closed by PR #32; 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md)
 	**Done:** `tests/runtime-onboarding.test.js::the staged sequence produces review selection plan and a green check`.
-- [ ] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
+- [x] **RIG-127 — Uninstall does not cleanly reverse an install (orphan cluster)**
 	**Status:** DONE (2026-08-26) — GitHub #36 closed by PR #31; 127.1–127.8 and 127.10; 127.11/127.12 filed as #69/#70 · [Solution](tickets/RIG-127.md)
 	**Done:** `tests/install-uninstall-roundtrip.test.js::public uninstall reverses a default bootstrap install`.
-- [ ] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
+- [x] **RIG-128 — MCP delivery: emitted contracts misdescribe reality + repo merge writer clobbers files**
 	**Status:** DONE (2026-08-26) — GitHub #37 closed by PR #29; descriptor parity plus 128.4/128.5; 128.3/128.6 remain debt · [Solution](tickets/RIG-128.md)
 	**Done:** `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
-- [ ] **RIG-129 — Host-capability citation & claim-accuracy audit**
+- [x] **RIG-129 — Host-capability citation & claim-accuracy audit**
 	**Status:** DONE (2026-08-26) — GitHub #38 closed by PR #28; 129.1 only; 129.2–129.4 remain debt · [Solution](tickets/RIG-129.md)
 	**Done:** `tests/pi-mcp-claim.test.js::pi MCP guidance names the extension path and never says unsupported`.
-- [ ] **RIG-131 — "Done" is agent prose, not a named green test**
+- [x] **RIG-131 — "Done" is agent prose, not a named green test**
 	**Status:** DONE (2026-08-26) — GitHub #39 closed by PR #30; checker in the npm test path · [Solution](tickets/RIG-131.md)
 	**Done:** `tests/ticket-traceability.test.js::the current board has no unresolved completed-card violation`.
-- [ ] **RIG-134 — Pre-v5 release gate: classify every known finding as debt or v5-observable**
+- [x] **RIG-134 — Pre-v5 release gate: classify every known finding as debt or v5-observable**
 	**Status:** DONE (2026-08-26) — GitHub #40 closed by PR #34; Option A observable set green; debt inventory is `rig/raw-registry-access.json` · [Solution](tickets/RIG-134.md)
 	**Done:** Classification tagged; 134.1 parity and the v5-observable cluster are proven by `tests/pre-v5-gate.test.js::every v5-observable finding has a green deterministic test` and `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
-- [ ] **RIG-124 — Stop the Rig dev loop from burning the token budget**
+- [x] **RIG-124 — Stop the Rig dev loop from burning the token budget**
 	**Status:** DONE (2026-08-26) — GitHub #45 closed; RIG-124.1 (#73) fixed by PR #74 · [Solution](tickets/RIG-124.md)
 	**Done:** `tests/release-blockers.test.js::review-receipt caps re-review after one retry for the same author-context (RIG-124)`.
-- [ ] **RIG-123 — Implement the OpenClaw global MCP opt-in**
+- [x] **RIG-123 — Implement the OpenClaw global MCP opt-in**
 	**Status:** DONE (2026-08-26) — GitHub #46 closed · [Solution](tickets/RIG-123.md)
 	**Done:** `tests/release-blockers.test.js::shipping OpenClaw bootstrap discloses the configured path before registration`.
-- [ ] **RIG-119 — Incorporate spec-driven development into the Rig pipeline**
+- [x] **RIG-119 — Incorporate spec-driven development into the Rig pipeline**
 	**Status:** DONE (2026-08-26) — GitHub #47 closed · [Solution](tickets/RIG-119.md)
 	**Done:** `tests/spec-driven-pipeline.test.js::RIG-119 folds spec-driven requests into grilling and product design`.
-- [ ] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
+- [x] **RIG-105 — Automate Antigravity MCP wiring or make the manual step first-class**
 	**Status:** DONE (2026-08-26) — GitHub #48 closed · [Solution](tickets/RIG-105.md)
 	**Done:** `tests/runtime-onboarding.test.js::staged antigravity onboarding renders the same manual entry it verifies`.
-- [ ] **RIG-114 — Replace fixed npm-script discovery with whole-repo semantic discovery**
+- [x] **RIG-114 — Replace fixed npm-script discovery with whole-repo semantic discovery**
 	**Status:** DONE (2026-08-26) — GitHub #49 closed · [Solution](tickets/RIG-114.md)
 	**Done:** `tests/semantic-lint-format.test.js::semantic binding covers nonstandard tasks, configured tools, ignores, and arbitrary nesting`.
-- [ ] **RIG-111 — Define exact user-global MCP contracts + byte-landing tests**
+- [x] **RIG-111 — Define exact user-global MCP contracts + byte-landing tests**
 	**Status:** DONE (2026-08-26) — GitHub #50 closed · [Solution](tickets/RIG-111.md)
 	**Done:** `tests/global-mcp-writes.test.js::RIG-111 refuses malformed or incompatible global configuration`.
-- [ ] **RIG-109 — Test the runtime through its shipping path, not by direct `require`**
+- [x] **RIG-109 — Test the runtime through its shipping path, not by direct `require`**
 	**Status:** DONE (2026-08-26) — GitHub #51 closed · [Solution](tickets/RIG-109.md)
 	**Done:** `tests/rig-bootstrap.test.js::Tier 1 --with-runtime installs and surfaces a working catalogue entrypoint`.
-- [ ] **RIG-108 — Resolve the four zero-caller runtime modules (wire or delete)**
+- [x] **RIG-108 — Resolve the four zero-caller runtime modules (wire or delete)**
 	**Status:** DONE (2026-08-26) — GitHub #52 closed · [Solution](tickets/RIG-108.md)
 	**Done:** `tests/runtime-caller-graph.test.js::every runtime library module has a production caller`.
-- [ ] **RIG-107 — Wire the advanced runtime into a real install/run entrypoint**
+- [x] **RIG-107 — Wire the advanced runtime into a real install/run entrypoint**
 	**Status:** DONE (2026-08-26) — GitHub #53 closed · [Solution](tickets/RIG-107.md)
 	**Done:** `tests/rig-bootstrap.test.js::Tier 1 --with-runtime installs and surfaces a working catalogue entrypoint`.
-- [ ] **RIG-101 — Wire the `rig-mcp` server into host distribution**
+- [x] **RIG-101 — Wire the `rig-mcp` server into host distribution**
 	**Status:** DONE (2026-08-26) — GitHub #54 closed · [Solution](tickets/RIG-101.md)
 	**Done:** `tests/rig-mcp-adapters.test.js::opencode.json registers rig-mcp as a local MCP server`.
-- [ ] **RIG-106 — Propagate Rig mode to subagents on every host that supports them**
+- [x] **RIG-106 — Propagate Rig mode to subagents on every host that supports them**
 	**Status:** DONE (2026-08-26) — GitHub #55 closed · [Solution](tickets/RIG-106.md)
 	**Done:** `manual: tests/hooks.test.js asserts Copilot subagentStart injection as script-style cases with no node:test titles`.
-- [ ] **RIG-103 — Stop emitting MCP config for hosts that don't support it (pi contradiction)**
+- [x] **RIG-103 — Stop emitting MCP config for hosts that don't support it (pi contradiction)**
 	**Status:** DONE (2026-08-26) — GitHub #56 closed · [Solution](tickets/RIG-103.md)
 	**Done:** `tests/basic-renderers.test.js::AT-HOST-5 (legacy path) pi emits no MCP config and preserves + guides a pre-existing user file`.
-- [ ] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
+- [x] **RIG-104 — Unify the legacy `renderers.js` MCP path with the catalogue materializer**
 	**Status:** DONE (2026-08-26) — GitHub #57 closed · [Solution](tickets/RIG-104.md)
 	**Done:** `tests/host-contract-parity.test.js::every emitted MCP descriptor agrees with the interpreted write contract`.
-- [ ] **RIG-102 — Run the `rig-mcp` test suite in the CI gate**
+- [x] **RIG-102 — Run the `rig-mcp` test suite in the CI gate**
 	**Status:** DONE (2026-08-26) — GitHub #58 closed · [Solution](tickets/RIG-102.md)
 	**Done:** `manual: wired in package.json test:code and the signed wiki/gate1/package-scripts.json`.
-- [ ] **RIG-117 — Fix stale plugin/repo identity across manifests and README**
+- [x] **RIG-117 — Fix stale plugin/repo identity across manifests and README**
 	**Status:** DONE (2026-08-26) — GitHub #59 closed · [Solution](tickets/RIG-117.md)
 	**Done:** `manual: identity guard lives in scripts/check-versions.js and runs from npm test`.
-- [ ] **RIG-118 — Make the full plugin distribution discoverable from the README**
+- [x] **RIG-118 — Make the full plugin distribution discoverable from the README**
 	**Status:** DONE (2026-08-26) — GitHub #60 closed · [Solution](tickets/RIG-118.md)
 	**Done:** `manual: README documentation change; no named test renders the host capability matrix`.
-- [ ] **RIG-121 — Refresh drifted wiki specs to match shipped reality**
+- [x] **RIG-121 — Refresh drifted wiki specs to match shipped reality**
 	**Status:** DONE (2026-08-26) — GitHub #61 closed · [Solution](tickets/RIG-121.md)
 	**Done:** `manual: documentation-only refresh of wiki specs; no named test pins those prose rows`.
 
