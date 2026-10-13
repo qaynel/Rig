@@ -572,3 +572,43 @@ test('RIG-127.11 uninstall leaves a corrupted global config byte-identical and r
   assert.ok(result.best_effort.includes(globalFile));
   assert.equal(fs.readFileSync(globalFile, 'utf8'), corrupt);
 }));
+
+function writeLegacyNamelessRecord(target, rel, preimage, file) {
+  fs.writeFileSync(path.join(target, rel), file);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: rel,
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'append_managed',
+    preimage_digest: digest(preimage),
+    digest: digest(file),
+  })}\n`);
+}
+
+test('RIG-127.12 a legacy nameless managed-block record strips only the block Rig appended', () => withTarget((target) => {
+  const rel = 'AGENTS.md';
+  const preimage = 'user text\n<!-- rig:other-tool:start -->\nsomeone else\n<!-- rig:other-tool:end -->\n';
+  const owned = '<!-- rig:legacy-graft:start -->\nrig wrote this\n<!-- rig:legacy-graft:end -->\n';
+  writeLegacyNamelessRecord(target, rel, preimage, `${preimage}${owned}`);
+
+  const result = uninstall(target);
+
+  assert.ok(result.removed.includes(rel));
+  assert.equal(fs.readFileSync(path.join(target, rel), 'utf8'), preimage);
+}));
+
+test('RIG-127.12 a legacy nameless record that cannot attribute a block is best-effort and the file is untouched', () => withTarget((target) => {
+  const rel = 'AGENTS.md';
+  const preimage = 'user text\n';
+  const body = `${preimage}<!-- rig:legacy-graft:start -->\nrig wrote this\n<!-- rig:legacy-graft:end -->\n`
+    + '<!-- rig:other-tool:start -->\nadded later by someone else\n<!-- rig:other-tool:end -->\n';
+  writeLegacyNamelessRecord(target, rel, preimage, body);
+
+  const result = uninstall(target);
+
+  assert.equal(result.status, 'best_effort');
+  assert.ok(result.best_effort.includes(rel));
+  assert.equal(fs.readFileSync(path.join(target, rel), 'utf8'), body);
+}));

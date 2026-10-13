@@ -232,6 +232,26 @@ function pruneEmptyParents(target, rel) {
   }
 }
 
+// RIG-127.12: a legacy record names no block, so a wildcard strip would delete
+// any other `rig:*` block in the file. Remove a block only when taking it out
+// restores exactly the preimage digest the record journaled; otherwise leave
+// the file untouched (the caller reports best-effort).
+const LEGACY_BLOCK_PATTERNS = [
+  /<!-- rig:([^\n]*?):start -->\n[\s\S]*?<!-- rig:\1:end -->\n?/g,
+  /# rig:([^\n]*?):start\n[\s\S]*?# rig:\1:end\n?/g,
+];
+
+function stripLegacyNamelessBlock(body, record) {
+  for (const pattern of LEGACY_BLOCK_PATTERNS) {
+    for (const match of body.matchAll(pattern)) {
+      const candidate = body.slice(0, match.index) + body.slice(match.index + match[0].length);
+      const created = !record.preimage_digest && !candidate.trim();
+      if (created || digestOf(Buffer.from(candidate)) === record.preimage_digest) return candidate;
+    }
+  }
+  return body;
+}
+
 function dropEmptyOrWrite(abs, stripped) {
   if (!stripped.trim()) {
     fs.rmSync(abs, { force: true });
@@ -412,19 +432,21 @@ function uninstall(target, opts = {}) {
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
-      const name = typeof record.managed_block === 'string'
-        ? escapeRegExp(record.managed_block)
-        : '[^\\n]*';
-      const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
-      let stripped = body.replace(
-        new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
-        '',
-      );
-      if (stripped === body) {
+      let stripped;
+      if (typeof record.managed_block === 'string') {
+        const marker = record.managed_block === 'rig' ? 'rig' : `rig:${escapeRegExp(record.managed_block)}`;
         stripped = body.replace(
-          new RegExp(`# ${marker}:start\\n[\\s\\S]*?# ${marker}:end\\n?`, 'g'),
+          new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
           '',
         );
+        if (stripped === body) {
+          stripped = body.replace(
+            new RegExp(`# ${marker}:start\\n[\\s\\S]*?# ${marker}:end\\n?`, 'g'),
+            '',
+          );
+        }
+      } else {
+        stripped = stripLegacyNamelessBlock(body, record);
       }
       if (stripped === body) bestEffort.push(record.path);
       else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
