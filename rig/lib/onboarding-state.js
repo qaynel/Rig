@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { canonical, sha256 } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
+const { validateScriptSlot } = require('./projection-script');
 
 const STATE_REL = '.rig/state.json';
 
@@ -204,6 +205,9 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     // Accepted so a stored proposal can be resubmitted verbatim, never read:
     // the binding below is always recomputed from the repository.
     'skill_bindings',
+    // Optional agent-written projection script for a host the corpus has no
+    // projector for. Absent proposals keep their exact v5 body and digest.
+    'projection_script',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -222,6 +226,7 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     grafts: input.grafts.map(validateGraft).sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
     owned_files: input.owned_files.map(validateOwnedFile).sort((a, b) => a.path.localeCompare(b.path)),
     critical_decisions: input.critical_decisions.map(validateDecision).sort((a, b) => a.id.localeCompare(b.id)),
+    ...(input.projection_script === undefined ? {} : { projection_script: validateScriptSlot(input.projection_script) }),
   };
   return { digest: sha256(canonical(body)), ...body };
 }

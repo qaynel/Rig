@@ -14,6 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
+const { runProjectionScript } = require('./projection-script');
 const {
   NATIVE_SKILL_SCOPES, INSTRUCTION_ONLY_SCOPE, canonicalSkillName, scopedSkillName, projectSkillFiles,
 } = require('./project');
@@ -445,6 +446,24 @@ function preflightOwnedFiles(target, ownedFiles, writer) {
   }
 }
 
+// Approved script outputs are repository files, not `.rig/` artifacts: the
+// approval pinned the digest each one had when it was approved. A file that
+// moved since is the user's, not ours to overwrite.
+function preflightScriptOutputs(target, slot, writer) {
+  for (const output of slot.approved_outputs) {
+    const digest = currentDigest(target, output.path);
+    if (digest !== null && journalResumeDigest(writer, output.path) === digest) continue;
+    if (digest !== output.preimage_digest) fail(`projection output "${output.path}" has a stale preimage digest`);
+    if (digest !== null && (!writer.latest(output.path) || writer.latest(output.path).digest !== digest)) {
+      fail(`projection output "${output.path}" is not journal-proven Rig ownership`);
+    }
+  }
+}
+
+function scriptRel(slot) {
+  return `.rig/projections/${slot.host}.js`;
+}
+
 function writeIfChanged(target, rel, contents) {
   const file = containedPath(target, rel);
   const next = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
@@ -697,6 +716,16 @@ function apply(request) {
     verifySkillBindings(state.proposal, catalog, projection);
     preflightGrafts(request.target, state.proposal.grafts, writer);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
+    // The agent-script slot: every check above has already passed and the
+    // approval is verified, so this is the first moment the approved bytes may
+    // run. A refusal (no sandbox, bad artifact) throws here, before any write.
+    const slot = state.proposal.projection_script || null;
+    let scriptRun = null;
+    if (slot) {
+      preflightScriptOutputs(request.target, slot, writer);
+      scriptRun = runProjectionScript({ target: request.target, slot });
+      preflightScriptOutputs(request.target, slot, writer);
+    }
     const removals = planRemovals(request.target, state, projection, writer, catalog);
 
     const graftDigests = new Map();
@@ -721,6 +750,15 @@ function apply(request) {
       for (const owned of state.proposal.owned_files) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
+      }
+      if (slot) {
+        // The approved script itself is kept (reviewable, re-runnable, and
+        // offerable back to Rig as a projector), then its approved artifacts.
+        writer(request.target, scriptRel(slot), slot.source, 0o644, currentDigest(request.target, scriptRel(slot)) === null ? 'create_owned' : 'replace_owned');
+        for (const artifact of scriptRun.artifacts) {
+          const approved = slot.approved_outputs.find((row) => row.path === artifact.path);
+          writer(request.target, artifact.path, artifact.bytes, 0o644, approved.preimage_digest === null ? 'create_owned' : 'replace_owned');
+        }
       }
     } catch (error) {
       // Keep a pending journal transaction if any mutation landed. It is the
@@ -755,6 +793,14 @@ function apply(request) {
         projections: projection.projections,
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
+        ...(slot ? {
+          projection_script: {
+            host: slot.host,
+            script_digest: slot.script_digest,
+            script_path: scriptRel(slot),
+            outputs: scriptRun.artifacts.map((artifact) => ({ path: artifact.path, sha256: sha256(artifact.bytes) })),
+          },
+        } : {}),
         inventory_snapshot: inventorySnapshot,
         // Recorded, not just returned, so every later check keeps naming the
         // obsolete artifact this apply refused to delete.
@@ -835,6 +881,21 @@ function reconcileApplied(target, state) {
   for (const row of state.applied.owned_files || []) {
     if (currentDigest(target, row.path) !== row.sha256) {
       hardFailures.push(failure('state-incomplete', row.path, 'Rig-owned applied file is missing or has changed'));
+    }
+  }
+  const scriptApplied = state.applied.projection_script;
+  if (scriptApplied) {
+    const approved = state.proposal?.projection_script;
+    if (!approved || approved.script_digest !== scriptApplied.script_digest) {
+      hardFailures.push(failure('state-incomplete', '.rig/state.json', 'the applied projection script is not the approved one'));
+    }
+    if (currentDigest(target, scriptApplied.script_path) !== scriptApplied.script_digest) {
+      hardFailures.push(failure('state-incomplete', scriptApplied.script_path, 'the approved projection script is missing or has changed'));
+    }
+    for (const row of scriptApplied.outputs) {
+      if (currentDigest(target, row.path) !== row.sha256) {
+        hardFailures.push(failure('state-incomplete', row.path, 'a projection script output is missing or has changed'));
+      }
     }
   }
   for (const row of state.applied.grafts || []) {

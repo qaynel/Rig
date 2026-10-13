@@ -468,6 +468,12 @@ reproduces the v5 installer bytes; the services catalogue and vendored shelf
 stay at `rig/catalog/` until the pinned frozen cases are re-signed.
 [Slice 1 trace](../reasoning/2026-10-13-corpus-03-slice1-expand.md)
 
+For a host with no projector, the agent follows `rig/corpus/onboarding/unpack.md`
+and proposes a `projection_script`: its digest is signed with the proposal, it
+runs only under a probe-verified filesystem+network sandbox (else a named
+refusal), and its artifacts are validated before journaled writes.
+[Slice 3 trace](../reasoning/2026-10-13-corpus-03-slice3-onboarding-scripts.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
 

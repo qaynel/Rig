@@ -1,4 +1,15 @@
 {
   "comment": "Differences between project() and the v5 installer output (tests/fixtures/v5-install-golden.json). Each entry names the path (or bulk tree prefix), the configs it applies to ('*' for all), and a written reason of at least a sentence. A stale entry fails the parity test.",
-  "differences": []
+  "differences": [
+    {
+      "path": ".rig/onboarding/README.md",
+      "configs": "*",
+      "reason": "Intended delivery change (03 slice 3): the agent's step-by-step unpacking instructions now ship inside the installed corpus; v5 had no such file."
+    },
+    {
+      "path": ".rig/onboarding/unpack.md",
+      "configs": "*",
+      "reason": "Intended delivery change (03 slice 3): instructions for hosts with no projector, including the agent-script slot and its sandbox-or-refuse boundary, ship inside the installed corpus; v5 had no such file."
+    }
+  ]
 }
