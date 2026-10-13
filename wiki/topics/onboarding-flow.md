@@ -474,6 +474,12 @@ runs only under a probe-verified filesystem+network sandbox (else a named
 refusal), and its artifacts are validated before journaled writes.
 [Slice 3 trace](../reasoning/2026-10-13-corpus-03-slice3-onboarding-scripts.md)
 
+A v5 install upgrades through `rig/lib/migrate.js` (bootstrap detects it; `rig
+migrate`): journal validated strictly, corpus staged, files replaced or retired
+only when journal-owned and byte-unchanged, plan persisted and resumable,
+onboarding selections preserved and changed approvals invalidated.
+[Slice 5 trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
 

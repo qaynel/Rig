@@ -541,6 +541,7 @@ function prepare(target) {
       proposal: null,
       approval: null,
       applied: previous?.applied || { proposal_digest: null, skills: [], grafts: [], owned_files: [] },
+      ...(previous?.migration ? { migration: previous.migration } : {}),
       checks: null,
       last_error: null,
     };
@@ -1026,6 +1027,63 @@ function check(request) {
   });
 }
 
+// Called by the v5 -> corpus migration after the new layout is on disk. The
+// repository's valid selections survive; any approval, applied or checked
+// result whose bytes the new layout changed is invalidated, so the old
+// apply early return can never claim the new layout was applied.
+function migrateState(target, { fromTag, toTag }) {
+  return withOnboardingLock(target, () => {
+    const state = readState(target);
+    if (!state) return { status: 'none' };
+    if (state.migration?.to === toTag) return { status: 'already-migrated' };
+    const invalidated = [];
+    let catalogInfo = null;
+    try { catalogInfo = loadInstalledCatalog(target); } catch { invalidated.push('catalog-unreadable'); }
+    if (catalogInfo && catalogInfo.digest !== state.release.catalog_digest) invalidated.push('catalog-digest');
+    const proposal = state.proposal;
+    let selected = proposal ? proposal.selected_skills : [];
+    if (catalogInfo && proposal) {
+      const known = new Set(catalogInfo.catalog.skills.flatMap((skill) => [skill.id, skill.name]));
+      selected = selected.filter((id) => known.has(id));
+      if (selected.length !== proposal.selected_skills.length) invalidated.push('selected-skill-removed');
+      try {
+        const now = new Map(skillBindings(target, catalogInfo.catalog, selected).map((row) => [row.id, row]));
+        for (const binding of proposal.skill_bindings || []) {
+          const row = now.get(binding.id);
+          if (!row || row.tree_digest !== binding.tree_digest || row.projected_digest !== binding.projected_digest) invalidated.push(`binding:${binding.id}`);
+        }
+      } catch { invalidated.push('bindings-unverifiable'); }
+    }
+    const preserved = proposal ? {
+      selected_skills: selected,
+      capabilities: proposal.capabilities,
+      grafts: proposal.grafts.map(({ capability, path: graftPath, version, content }) => ({ capability, path: graftPath, version, content })),
+      owned_files: proposal.owned_files.map(({ path: filePath, kind }) => ({ path: filePath, kind })),
+      ...(proposal.upstream_fetch ? { upstream_fetch: proposal.upstream_fetch } : {}),
+      ...(proposal.projection_script ? { projection_script: { host: proposal.projection_script.host, script_digest: proposal.projection_script.script_digest } } : {}),
+    } : null;
+    const migration = {
+      from: fromTag, to: toTag, invalidated, preserved_selection: preserved,
+    };
+    if (!invalidated.length) {
+      writeState(target, { ...state, revision: state.revision + 1, release: { ...state.release, version: toTag }, migration });
+      return { status: 'kept', invalidated };
+    }
+    writeState(target, {
+      ...state,
+      revision: state.revision + 1,
+      phase: 'prepared',
+      release: { version: toTag, catalog_digest: catalogInfo ? catalogInfo.digest : state.release.catalog_digest },
+      proposal: null,
+      approval: null,
+      checks: null,
+      last_error: null,
+      migration,
+    });
+    return { status: 'invalidated', invalidated };
+  });
+}
+
 function handleOnboarding(request) {
   if (!request || typeof request !== 'object' || Array.isArray(request)) fail('onboarding request must be an object');
   if (request.schema_version !== 1) fail(`unsupported onboarding schema version: ${request.schema_version}`);
@@ -1038,5 +1096,5 @@ function handleOnboarding(request) {
 }
 
 module.exports = {
-  ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
+  migrateState, ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
 };

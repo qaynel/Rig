@@ -14,7 +14,7 @@ const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
 const { handleOnboarding } = require('./onboarding');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit', 'onboarding']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit', 'onboarding', 'migrate']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -67,6 +67,20 @@ function runAdvanced(subcommand, argv) {
     const response = handleOnboarding(readJson(inputPath));
     process.stdout.write(`${JSON.stringify(response)}\n`);
     if (response.phase === 'failed') process.exitCode = 1;
+    return;
+  }
+
+  // Upgrade an existing v5 install to the corpus layout (journaled, resumable).
+  if (subcommand === 'migrate') {
+    const migrateTarget = parseFlag(argv, '--target');
+    if (!migrateTarget || !fs.existsSync(migrateTarget)) throw new Error('rig: --target <dir> is required and must exist');
+    const hostsFlag = parseFlag(argv, '--hosts');
+    const report = require('./migrate').migrate(migrateTarget, {
+      ...(hostsFlag ? { hosts: hostsFlag.split(',').map((h) => h.trim()).filter(Boolean) } : {}),
+      dryRun: argv.includes('--dry-run'),
+    });
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.status === 'refused') process.exitCode = 1;
     return;
   }
 

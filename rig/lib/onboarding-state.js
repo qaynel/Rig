@@ -10,7 +10,7 @@ const STATE_REL = '.rig/state.json';
 
 const ALLOWED_STATE_KEYS = new Set([
   'applied', 'approval', 'checks', 'inventory', 'last_error',
-  'phase', 'proposal', 'release', 'revision', 'schema_version',
+  'migration', 'phase', 'proposal', 'release', 'revision', 'schema_version',
 ]);
 
 const VALID_PHASES = new Set([

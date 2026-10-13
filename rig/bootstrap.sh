@@ -98,8 +98,30 @@ const { registerOpenClawMcp } = require(require('node:path').join(process.env.SO
 const hosts = process.env.HOSTS_EXPLICIT === '1'
   ? process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
   : undefined;
+const { detectInstall, migrate } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'migrate'));
 let result;
 let openclaw = null;
+// An existing v5 install (or an interrupted migration) is upgraded through the
+// journaled, resumable migration, never overwritten in place.
+const existing = detectInstall(process.env.TARGET_ROOT);
+if (existing.kind === 'v5' || existing.kind === 'resume') {
+  const report = migrate(process.env.TARGET_ROOT, {
+    ...(hosts ? { hosts } : {}),
+    releaseTag: process.env.RIG_RELEASE_TAG || undefined,
+    ...(process.env.ACTIVE_DELIVERY === '1' ? { delivery: 'active' } : {}),
+  });
+  if (report.status === 'refused') {
+    console.error(`rig: migration refused (${report.code}): ${report.detail}`);
+    for (const conflict of report.conflicts || []) console.error(`  ${conflict.path}: ${conflict.reason} - ${conflict.detail}`);
+    console.error('  The repository was not changed beyond what the install journal records. Fix the item above and re-run this command.');
+    process.exit(1);
+  }
+  console.log(`  migrated v5 install: ${report.written.length} written, ${report.retired.length} retired, ${report.kept_edited.length} kept (edited), ${report.retained.length} retained (edited orphans)`);
+  for (const row of report.retained) console.log(`  retained: ${row.path} (${row.reason})`);
+  console.log(`  onboarding state: ${report.onboarding_state.status}`);
+  if (report.onboarding_state.status === 'invalidated') console.log('  your selections were preserved; re-run rig-onboarding to propose and approve them against the new bytes');
+  process.exit(0);
+}
 try {
   result = runPayload(process.env.TARGET_ROOT, hosts, {
     releaseTag: process.env.RIG_RELEASE_TAG || undefined,

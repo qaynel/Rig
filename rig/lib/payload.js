@@ -602,5 +602,5 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
 
 module.exports = {
   ROOT, PAYLOAD_HOSTS,
-  MANIFEST_REL, ensureGitignoreBlock, ensureLine, journalResumeDigest, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
+  MANIFEST_REL, ensureGitignoreBlock, ensureLine, applyEntry, journalResumeDigest, journalWriter, parseGraftSections, upsertGraftSection, removeGraftSection, runPayload, enumerateGraftMarkers,
 };
