@@ -1,0 +1,4 @@
+{
+  "comment": "Differences between project() and the v5 installer output (tests/fixtures/v5-install-golden.json). Each entry names the path (or bulk tree prefix), the configs it applies to ('*' for all), and a written reason of at least a sentence. A stale entry fails the parity test.",
+  "differences": []
+}

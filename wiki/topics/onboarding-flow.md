@@ -458,6 +458,16 @@ documented parity requirement. Blocker 2 — umask-dependent `tree_digest` in
 binding to reject cross-machine applies — was fixed separately.
 [QA prod-deploy review](../reasoning/2026-09-02-path-b-qa-prod-deploy-review.md)
 
+## The corpus and its projection (subplan 03)
+
+Everything a repository receives is projected from `rig/corpus/` by one pure
+`project(corpus, host, selection)` (`rig/lib/project.js`); `rig/lib/corpus.js`
+is the only code that reads the corpus from disk. Shipped projectors under
+`rig/corpus/projections/` are pure. A golden v5 inventory proves the projection
+reproduces the v5 installer bytes; the services catalogue and vendored shelf
+stay at `rig/catalog/` until the pinned frozen cases are re-signed.
+[Slice 1 trace](../reasoning/2026-10-13-corpus-03-slice1-expand.md)
+
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 6; synced to the
      branch-closeout gate trace. -->
 

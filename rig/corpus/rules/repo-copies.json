@@ -1,0 +1,11 @@
+{
+  "comment": "Where the canonical repository instruction body (repo-instructions.md) is projected for this repository's own agents. Frontmatter is the only per-file difference.",
+  "copies": {
+    ".cursor/rules/rig.mdc": "---\ndescription: Rig, lazy senior dev mode. Always pick the simplest solution that works.\nglobs:\nalwaysApply: true\n---\n\n",
+    ".windsurf/rules/rig.md": "",
+    ".clinerules/rig.md": "",
+    ".agents/rules/rig.md": "",
+    ".github/copilot-instructions.md": "",
+    ".kiro/steering/rig.md": "---\ntitle: Rig, lazy senior dev mode\ninclusion: always\n---\n\n"
+  }
+}
