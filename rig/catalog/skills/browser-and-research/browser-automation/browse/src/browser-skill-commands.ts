@@ -20,6 +20,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { spawn } from 'node:child_process';
+import type { Readable } from 'node:stream';
+import { killProcessTree } from './process-tree';
 import {
   listBrowserSkills,
   readBrowserSkill,
@@ -240,7 +243,8 @@ export interface SpawnSkillResult {
  * 1. Mint a scoped token (read+write only; expires at timeout + 30s slack).
  * 2. Build the env: trusted=true → process.env; trusted=false → scrubbed.
  *    RIG_PORT and RIG_SKILL_TOKEN are always set.
- * 3. Spawn `bun run script.ts -- <args>` with cwd=skill.dir.
+ * 3. Spawn `bun run script.ts -- <args>` with cwd=skill.dir, detached so the
+ *    timeout can kill the whole process group.
  * 4. Capture stdout (capped at 1MB) and stderr; enforce timeout.
  * 5. On exit/timeout, revoke the token. Always.
  */
@@ -263,24 +267,36 @@ export async function spawnSkill(opts: SpawnSkillOptions): Promise<SpawnSkillRes
       throw new Error(`Skill "${opts.skill.name}" missing script.ts at ${scriptPath}`);
     }
 
-    const proc = Bun.spawn(['bun', 'run', scriptPath, '--', ...opts.skillArgs], {
+    // Rig local patch (RIG-135.2): node:child_process + detached so the timeout
+    // kills the script's whole process group, not just the leader (Bun's own
+    // Subprocess#kill() has no group form, oven-sh/bun#15791).
+    const proc = spawn('bun', ['run', scriptPath, '--', ...opts.skillArgs], {
       cwd: opts.skill.dir,
       env,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: process.platform !== 'win32',
+      windowsHide: true,
+    });
+    const exited = new Promise<number>((resolve, reject) => {
+      proc.once('error', reject);
+      proc.once('exit', (code) => resolve(code ?? 1));
     });
 
     let timedOut = false;
     const killer = setTimeout(() => {
       timedOut = true;
-      try { proc.kill(); } catch {}
+      killProcessTree(proc.pid);
     }, opts.timeoutSeconds * 1000);
 
     const stdoutPromise = readCapped(proc.stdout, MAX_STDOUT_BYTES);
     const stderrPromise = readCapped(proc.stderr, MAX_STDOUT_BYTES);
 
-    const exitCode = await proc.exited;
-    clearTimeout(killer);
+    let exitCode: number;
+    try {
+      exitCode = await exited;
+    } finally {
+      clearTimeout(killer);
+    }
 
     const stdoutResult = await stdoutPromise;
     const stderrResult = await stderrPromise;
@@ -299,33 +315,36 @@ export async function spawnSkill(opts: SpawnSkillOptions): Promise<SpawnSkillRes
 
 interface CappedRead { text: string; truncated: boolean; }
 
-async function readCapped(stream: ReadableStream<Uint8Array> | undefined, capBytes: number): Promise<CappedRead> {
-  if (!stream) return { text: '', truncated: false };
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  let truncated = false;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (!value) continue;
-      total += value.length;
+function readCapped(stream: Readable | null | undefined, capBytes: number): Promise<CappedRead> {
+  return new Promise((resolve) => {
+    if (!stream) return resolve({ text: '', truncated: false });
+    const chunks: Buffer[] = [];
+    let total = 0;
+    let truncated = false;
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve({ text: Buffer.concat(chunks).toString('utf-8'), truncated });
+    };
+    stream.on('data', (chunk: Buffer) => {
+      if (truncated) return;
+      total += chunk.length;
       if (total > capBytes) {
         truncated = true;
-        // Take only what fits; drop the rest of the stream (release reader).
-        const fits = value.length - (total - capBytes);
-        if (fits > 0) chunks.push(value.subarray(0, fits));
-        try { await reader.cancel(); } catch {}
-        break;
+        // Take only what fits; drop the rest of the stream.
+        const fits = chunk.length - (total - capBytes);
+        if (fits > 0) chunks.push(chunk.subarray(0, fits));
+        stream.destroy();
+        finish();
+        return;
       }
-      chunks.push(value);
-    }
-  } finally {
-    try { reader.releaseLock(); } catch {}
-  }
-  const buf = Buffer.concat(chunks.map(c => Buffer.from(c)));
-  return { text: buf.toString('utf-8'), truncated };
+      chunks.push(chunk);
+    });
+    stream.on('end', finish);
+    stream.on('close', finish);
+    stream.on('error', finish);
+  });
 }
 
 // ─── env construction (security-critical) ───────────────────────
