@@ -7,6 +7,7 @@
     { "op": "copy", "from": "rig/corpus/rules/rig.md", "to": ".rig/rules/rig.md", "host": "neutral" },
     { "op": "copy", "from": "rig/corpus/rules/communication.md", "to": ".rig/rules/communication.md", "host": "neutral" },
     { "op": "copy_tree", "from": "rig/corpus/onboarding", "to": ".rig/onboarding", "host": "neutral" },
+    { "op": "copy_tree", "from": "rig/corpus/upstream", "to": ".rig/upstream", "host": "neutral", "gate": "active_delivery" },
     { "op": "copy", "from": "rig/corpus/allowed-signers.example.md", "to": ".rig/allowed-signers.example.md", "host": "neutral" },
     { "op": "copy", "from": "rig/corpus/skills/grilling/SKILL.md", "to": ".rig/skills/grilling/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },
     { "op": "copy", "from": "rig/corpus/skills/product-design/SKILL.md", "to": ".rig/skills/product-design/SKILL.md", "host": "neutral", "gate": "instruction_only_selected" },

@@ -195,6 +195,18 @@ function validateDecision(row) {
   return { ...row };
 }
 
+function validateUpstreamFetch(rows) {
+  if (!Array.isArray(rows) || !rows.length || rows.length > 8) fail('proposal upstream_fetch must list 1 to 8 fetches');
+  const seen = new Set();
+  return rows.map((row) => {
+    exactKeys(row, new Set(['id', 'tar_sha256']), 'upstream fetch');
+    if (typeof row.id !== 'string' || !/^[a-z0-9][a-z0-9-]{0,40}$/.test(row.id) || seen.has(row.id)) fail('upstream fetch id is invalid or repeated');
+    seen.add(row.id);
+    if (typeof row.tar_sha256 !== 'string' || !DIGEST_RE.test(row.tar_sha256)) fail('upstream fetch tar_sha256 is not a SHA-256 digest');
+    return { id: row.id, tar_sha256: row.tar_sha256 };
+  }).sort((a, b) => a.id.localeCompare(b.id));
+}
+
 // `bindSkills` receives the canonical selection and returns the per-skill
 // digest rows the proposal freezes. It is a callback, not an argument, because
 // the binding is derived from the sorted selection and must land inside the
@@ -208,6 +220,8 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     // Optional agent-written projection script for a host the corpus has no
     // projector for. Absent proposals keep their exact v5 body and digest.
     'projection_script',
+    // Optional list of pinned third-party fetches to perform at apply.
+    'upstream_fetch',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -227,6 +241,7 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     owned_files: input.owned_files.map(validateOwnedFile).sort((a, b) => a.path.localeCompare(b.path)),
     critical_decisions: input.critical_decisions.map(validateDecision).sort((a, b) => a.id.localeCompare(b.id)),
     ...(input.projection_script === undefined ? {} : { projection_script: validateScriptSlot(input.projection_script) }),
+    ...(input.upstream_fetch === undefined ? {} : { upstream_fetch: validateUpstreamFetch(input.upstream_fetch) }),
   };
   return { digest: sha256(canonical(body)), ...body };
 }

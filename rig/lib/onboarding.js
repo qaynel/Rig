@@ -14,6 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
+const { fetchUpstreamSync, loadUpstream } = require('./upstream-fetch');
 const { runProjectionScript, assertOutputOutsideProtected } = require('./projection-script');
 const {
   NATIVE_SKILL_SCOPES, INSTRUCTION_ONLY_SCOPE, canonicalSkillName, scopedSkillName, projectSkillFiles,
@@ -461,6 +462,43 @@ function preflightScriptOutputs(target, slot, writer) {
   }
 }
 
+const UPSTREAM_META_REL = '.rig/upstream';
+const UPSTREAM_LICENCE_REL = '.rig/skills/LICENSE.upstream';
+
+// The signature binds the pinned archive digest; it must be the digest the
+// installed metadata pins, so a proposal cannot ask for a different revision.
+function checkUpstreamPins(target, rows) {
+  for (const row of rows || []) {
+    let meta;
+    try { meta = loadUpstream(row.id, containedPath(target, UPSTREAM_META_REL)); } catch (error) { fail(error.message.replace(/^rig: /, '')); }
+    if (meta.archive.tar_sha256 !== row.tar_sha256) fail(`upstream "${row.id}" is pinned to a different archive digest than the proposal`);
+  }
+}
+
+function fetchedRel(id, output) {
+  return `.rig/fetched/${id}/${output}`;
+}
+
+// Fetch, verify and patch every requested upstream. Any gap refuses the whole
+// apply before a byte is written: a missing capability is never installed.
+function fetchApprovedUpstreams(target, rows, writer) {
+  const fetched = [];
+  for (const row of rows || []) {
+    const result = fetchUpstreamSync(row.id, {
+      metaDir: containedPath(target, UPSTREAM_META_REL),
+      licencePath: containedPath(target, UPSTREAM_LICENCE_REL),
+    });
+    if (result.status !== 'ok') {
+      const first = result.gaps[0];
+      fail(`upstream fetch refused (${first.code}): ${first.detail}${first.guidance ? ` — ${first.guidance}` : ''}`);
+    }
+    for (const output of result.files.keys()) cleanProjection(target, writer, fetchedRel(row.id, output));
+    cleanProjection(target, writer, fetchedRel(row.id, 'receipt.json'));
+    fetched.push(result);
+  }
+  return fetched;
+}
+
 function scriptRel(slot) {
   return `.rig/projections/${slot.host}.js`;
 }
@@ -536,6 +574,7 @@ function propose(request) {
       request.proposal, state, sha256(Buffer.from(summary)),
       (selected) => skillBindings(request.target, catalog, selected),
     );
+    checkUpstreamPins(request.target, stored.upstream_fetch);
     const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
     const identical = state.proposal && state.proposal.digest === stored.digest
       && fs.existsSync(summaryFile) && fs.readFileSync(summaryFile, 'utf8') === summary;
@@ -727,6 +766,8 @@ function apply(request) {
       scriptRun = runProjectionScript({ target: request.target, slot });
       preflightScriptOutputs(request.target, slot, writer);
     }
+    checkUpstreamPins(request.target, state.proposal.upstream_fetch);
+    const fetchedUpstreams = fetchApprovedUpstreams(request.target, state.proposal.upstream_fetch, writer);
     const removals = planRemovals(request.target, state, projection, writer, catalog);
 
     const graftDigests = new Map();
@@ -751,6 +792,14 @@ function apply(request) {
       for (const owned of state.proposal.owned_files) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
+      }
+      for (const result of fetchedUpstreams) {
+        for (const [output, bytes] of result.files) {
+          const rel = fetchedRel(result.id, output);
+          writer(request.target, rel, bytes, 0o644, currentDigest(request.target, rel) === null ? 'create_owned' : 'replace_owned');
+        }
+        const receiptRel = fetchedRel(result.id, 'receipt.json');
+        writer(request.target, receiptRel, `${JSON.stringify(result.receipt, null, 2)}\n`, 0o644, currentDigest(request.target, receiptRel) === null ? 'create_owned' : 'replace_owned');
       }
       if (slot) {
         // The approved script itself is kept (reviewable, re-runnable, and
@@ -794,6 +843,15 @@ function apply(request) {
         projections: projection.projections,
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
+        ...(fetchedUpstreams.length ? {
+          upstream: fetchedUpstreams.map((result) => ({
+            id: result.id,
+            revision: result.receipt.revision,
+            tar_sha256: result.receipt.tar_sha256,
+            receipt_path: fetchedRel(result.id, 'receipt.json'),
+            files: result.receipt.files.map((file) => ({ path: fetchedRel(result.id, file.path), sha256: file.sha256 })),
+          })),
+        } : {}),
         ...(slot ? {
           projection_script: {
             host: slot.host,
@@ -882,6 +940,18 @@ function reconcileApplied(target, state) {
   for (const row of state.applied.owned_files || []) {
     if (currentDigest(target, row.path) !== row.sha256) {
       hardFailures.push(failure('state-incomplete', row.path, 'Rig-owned applied file is missing or has changed'));
+    }
+  }
+  for (const upstream of state.applied.upstream || []) {
+    const approved = (state.proposal?.upstream_fetch || []).find((row) => row.id === upstream.id);
+    if (!approved || approved.tar_sha256 !== upstream.tar_sha256) {
+      hardFailures.push(failure('state-incomplete', '.rig/state.json', `applied upstream "${upstream.id}" is not the approved pin`));
+    }
+    for (const file of [...upstream.files, { path: upstream.receipt_path, sha256: null }]) {
+      const live = currentDigest(target, file.path);
+      if (live === null || (file.sha256 !== null && live !== file.sha256)) {
+        hardFailures.push(failure('state-incomplete', file.path, `fetched upstream "${upstream.id}" file is missing or has changed`));
+      }
     }
   }
   const scriptApplied = state.applied.projection_script;

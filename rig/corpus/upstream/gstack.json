@@ -14,12 +14,94 @@
   "licence": {
     "spdx": "MIT",
     "notice": "rig/catalog/skills/LICENSE.upstream",
-    "retention": "The notice installs beside every projected copy of an upstream skill and is never removed by a patch."
+    "retention": "The notice installs beside every projected copy of an upstream skill and is never removed by a patch.",
+    "sha256": "e56fbb5b3d95756f3fa1cfefa24732ec79f18ece1ad08a4e79e00df57e8b198c"
   },
   "provenance": {
     "import_commit": "ff7cea5d4d678bbd447dcdaee3cd14ea2ecfeeed",
     "modifications": "Rig renamed the product namespace (gstack to rig, gbrain to brain), omitted dependencies, fixtures, generated bundles, source maps and release history, and neutralised illustrative credential-shaped strings. The result is a modified, partial distribution, not an upstream release.",
     "statement": "rig/catalog/skills/UPSTREAM.md"
   },
-  "local_patches": []
+  "rename": [
+    [
+      "GSTACK",
+      "RIG"
+    ],
+    [
+      "gstack",
+      "rig"
+    ],
+    [
+      "GStack",
+      "Rig"
+    ],
+    [
+      "Gstack",
+      "Rig"
+    ],
+    [
+      "GBRAIN",
+      "BRAIN"
+    ],
+    [
+      "gbrain",
+      "brain"
+    ],
+    [
+      "GBrain",
+      "Brain"
+    ]
+  ],
+  "rename_note": "The namespace rename Rig applied on import (UPSTREAM.md); files with rename:true are renamed before their base digest is checked.",
+  "files": [
+    {
+      "upstream": "browse/src/browser-skill-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browser-skill-commands.ts",
+      "base_sha256": "03e3691118845c540825aa36105c41334e0a5caffd5e2ca32aa2f6a5acb3180b",
+      "final_sha256": "5eb481bac9a5edcc5233eb79311365390e215828b2de5964fe569b688609fb16",
+      "rename": true
+    },
+    {
+      "upstream": "browse/src/xvfb.ts",
+      "output": "browser-and-research/browser-automation/browse/src/xvfb.ts",
+      "base_sha256": "9c40862dad6722a5e4c2b9f1ba30d8a237bb5d7635b2e66495730e5d43d8fe4d",
+      "final_sha256": "03c83c216d0f0f70d0ef9c8732b00cadd61a1164edddbfe40aeea4d25a3b0255",
+      "rename": true
+    },
+    {
+      "upstream": "browse/src/cookie-import-browser.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cookie-import-browser.ts",
+      "base_sha256": "f05d8f05eeb8dc1715c6a17bd5c0beaa43465478b54a6e9dd09304b2b13fe0b1",
+      "final_sha256": "ff16b846cc0fa305dae37bbe64c796726c6aad2d1758912277eec99c53e9b322",
+      "rename": true
+    },
+    {
+      "upstream": null,
+      "output": "browser-and-research/browser-automation/browse/src/process-tree.ts",
+      "base_sha256": null,
+      "final_sha256": "2c9ea3c753fd5e89894f53f9c406f5d58cbd2347036472eba781c30d5d7d6cbc",
+      "rename": false
+    }
+  ],
+  "local_patches": [
+    {
+      "id": "RIG-135.2",
+      "file": "patches/135.2-browser-skill-commands.patch",
+      "sha256": "b8c28dff32e57d8c34a23cab5ecd13082b8a179100e01e9db0978f8dfab8f1c6",
+      "purpose": "Kill skill scripts by process group so forked descendants die; adds the Rig-authored src/process-tree.ts."
+    },
+    {
+      "id": "RIG-135.3",
+      "file": "patches/135.3-xvfb.patch",
+      "sha256": "2f839d5d24f92d752a43586cc423f0041d4fdf058f6131fde9faf0af840b37a8",
+      "purpose": "Spawn Xvfb detached and stop it by process group."
+    },
+    {
+      "id": "RIG-135.1",
+      "file": "patches/135.1-cookie-import-browser.patch",
+      "sha256": "7b511f789e5b4c641d5e936ab3af997e67434688363cd94d82f65e3b34bd4876",
+      "purpose": "Kill the whole Chromium tree on every cookie-import exit path; extends process-tree.ts."
+    }
+  ],
+  "patches_note": "Applied in listed order; 135.1 extends the file 135.2 creates. Provenance and deviations: wiki/specs/close-everything/candidate-amendments/rig-135.md."
 }

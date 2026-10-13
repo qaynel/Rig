@@ -54,3 +54,21 @@ unmutated tree passes it (pass 1). Production code was not touched.
 
 Frozen-suite effect until applied: exactly one frozen case is red,
 `AT-HOST-5`, on this branch.
+
+## A2. Third-party fetch (slice 4) — no frozen-test change yet; one pending amendment recorded
+
+Fetch metadata, patches and the verify/patch pipeline are additive: the shelf
+under `rig/catalog/skills/` still ships and AT-PB-3 (55 staged SKILL.md files)
+and the licence checks stay green byte-for-byte. The pipeline reproduces the
+four RIG-135 runtime files exactly from the pinned upstream revision (tested),
+which proves the patches apply; it does not yet replace the whole shelf.
+
+Pending amendment (not applied, needs the owner's re-sign): to drop the
+vendored 6.9 MB shelf from the install and stage it by fetch, AT-PB-3's
+`staged.length === 55` check and the `.rig/runtime/rig/catalog/skills` staging
+assertions in `tests/path-b-catalog.test.js`, `tests/path-b-weight.test.js` and
+`tests/path-b-hardening.test.js` (the last is not pinned) change to "55 after
+fetch". 83 of the 298 shelf files also carry Rig-authored changes beyond the
+rename (catalogue frontmatter, neutralised strings, RIG-135 code) that are not
+reproducible from upstream bytes alone; those need an overlay in the corpus
+before whole-shelf fetch is possible. Recorded as a remaining gap, not hidden.
