@@ -434,3 +434,142 @@ test('the rig migrate command plans without writing (--dry-run), then migrates, 
   const broken = run();
   assert.equal(JSON.parse(broken.stdout).status, 'noop', 'a current install is not re-validated');
 }));
+
+// ------------------------------------------------ symlink containment
+
+function outsideDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-migrate-outside-'));
+  fs.writeFileSync(path.join(dir, 'precious.txt'), 'outside the repo\n');
+  return dir;
+}
+
+function treeOf(dir) {
+  const out = {};
+  const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const a = path.join(d, e.name); if (e.isDirectory()) walk(a); else out[path.relative(dir, a)] = e.isSymbolicLink() ? 'link' : sha(fs.readFileSync(a)); } };
+  walk(dir);
+  return out;
+}
+
+function expectSymlinkRefusal(result, rel) {
+  assert.equal(result.status, 'refused', JSON.stringify(result));
+  assert.equal(result.recoverable, true);
+  assert.equal((result.conflicts || []).some((c) => c.reason === 'symlink' && (rel === undefined || c.path === rel || c.path.startsWith(rel))), true, JSON.stringify(result));
+}
+
+test('a migration target that is a symlink (outside or inside the repo) is a named conflict; nothing is written through it', () => {
+  for (const where of ['outside', 'inside']) withTarget((target) => {
+    userRepo(target);
+    installV5(target);
+    const outside = outsideDir();
+    try {
+      const victim = where === 'outside' ? path.join(outside, 'victim.txt') : path.join(target, '.git/config');
+      const victimBefore = fs.existsSync(victim) ? fs.readFileSync(victim) : null;
+      fs.rmSync(path.join(target, '.rig/routing.md'));
+      fs.symlinkSync(victim, path.join(target, '.rig/routing.md'));
+      const before = inventory(target);
+      expectSymlinkRefusal(migrate(target, { releaseTag: 'v5.0.0' }), '.rig/routing.md');
+      assert.deepEqual(inventory(target), before);
+      assert.equal(fs.existsSync(victim) ? fs.readFileSync(victim).toString() : null, victimBefore === null ? null : victimBefore.toString());
+      assert.deepEqual(Object.keys(treeOf(outside)), ['precious.txt']);
+    } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+  });
+});
+
+test('a parent directory that is a symlink cannot redirect writes or deletes', () => {
+  for (const where of ['outside', 'inside']) withTarget((target) => {
+    userRepo(target);
+    installV5(target);
+    const outside = outsideDir();
+    try {
+      const real = path.join(target, '.rig/skills');
+      const destination = where === 'outside' ? path.join(outside, 'skills') : path.join(target, '.rig-moved-skills');
+      fs.cpSync(real, destination, { recursive: true });
+      const destBefore = treeOf(destination);
+      fs.rmSync(real, { recursive: true });
+      fs.symlinkSync(destination, real);
+      const before = inventory(target);
+      expectSymlinkRefusal(migrate(target, { releaseTag: 'v5.0.0' }));
+      assert.deepEqual(inventory(target), before);
+      assert.deepEqual(treeOf(destination), destBefore, 'nothing under the link target was written or removed');
+      assert.equal(fs.existsSync(path.join(destination, 'legacy-orphan/SKILL.md')), true, 'an orphan behind a link is not deleted');
+    } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+  });
+});
+
+test('a path swapped for a symlink while a migration is interrupted is refused on resume', () => {
+  for (const where of ['outside', 'inside']) withTarget((target) => {
+    userRepo(target);
+    installV5(target);
+    const outside = outsideDir();
+    try {
+      let seen = 0;
+      assert.throws(() => migrate(target, { releaseTag: 'v5.0.0', onStep: () => { if (seen++ === 1) throw new Error('crash'); } }), /crash/);
+      const saved = JSON.parse(fs.readFileSync(path.join(target, MIGRATION_REL), 'utf8'));
+      const pending = saved.actions.filter((a) => a.action !== 'retire').at(-1);
+      const victim = where === 'outside' ? path.join(outside, 'victim.txt') : path.join(target, '.git/config');
+      const victimBefore = fs.existsSync(victim) ? fs.readFileSync(victim, 'utf8') : null;
+      fs.rmSync(path.join(target, pending.path), { force: true });
+      fs.symlinkSync(victim, path.join(target, pending.path));
+      const retired = saved.actions.filter((a) => a.action === 'retire').map((a) => a.path);
+      expectSymlinkRefusal(migrate(target, { releaseTag: 'v5.0.0' }), pending.path);
+      assert.equal(fs.existsSync(victim) ? fs.readFileSync(victim, 'utf8') : null, victimBefore, 'the link target is untouched');
+      for (const rel of retired) assert.equal(fs.existsSync(path.join(target, rel)), true, `${rel}: nothing was retired after the refusal`);
+      assert.deepEqual(Object.keys(treeOf(outside)), ['precious.txt']);
+    } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+  });
+});
+
+test('a symlinked instruction file that needs an appended pointer line is refused, not written through', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const outside = outsideDir();
+  try {
+    const instructions = path.join(target, 'AGENTS.md');
+    const stripped = fs.readFileSync(instructions, 'utf8').split('\n').filter((l) => !l.includes('.rig/routing.md')).join('\n');
+    const elsewhere = path.join(outside, 'AGENTS.md');
+    fs.writeFileSync(elsewhere, stripped);
+    fs.rmSync(instructions);
+    fs.symlinkSync(elsewhere, instructions);
+    expectSymlinkRefusal(migrate(target, { releaseTag: 'v5.0.0' }), 'AGENTS.md');
+    assert.equal(fs.readFileSync(elsewhere, 'utf8'), stripped);
+  } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+}));
+
+test('a symlinked instruction file whose pointer line is already present needs no write and is left alone', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const real = path.join(target, 'CLAUDE-real.md');
+  fs.renameSync(path.join(target, 'AGENTS.md'), real);
+  fs.symlinkSync(real, path.join(target, 'AGENTS.md'));
+  const result = migrate(target, { releaseTag: 'v5.0.0' });
+  assert.equal(result.status, 'migrated', JSON.stringify(result));
+  assert.equal(fs.lstatSync(path.join(target, 'AGENTS.md')).isSymbolicLink(), true);
+}));
+
+test('bookkeeping paths are contained too: a symlinked journal, backup dir or transaction record is a named refusal, not a crash or a write-through', () => {
+  const cases = [
+    ['.rig/install-manifest.jsonl', (target, outside) => {
+      const copy = path.join(outside, 'journal.jsonl');
+      fs.copyFileSync(path.join(target, '.rig/install-manifest.jsonl'), copy);
+      fs.rmSync(path.join(target, '.rig/install-manifest.jsonl'));
+      fs.symlinkSync(copy, path.join(target, '.rig/install-manifest.jsonl'));
+    }],
+    ['.rig/migration-backup', (target, outside) => fs.symlinkSync(outside, path.join(target, '.rig/migration-backup'))],
+    ['.rig/migration.json', (target, outside) => fs.symlinkSync(path.join(outside, 'record.json'), path.join(target, '.rig/migration.json'))],
+    ['.rig/preimages', (target, outside) => fs.symlinkSync(outside, path.join(target, '.rig/preimages'))],
+  ];
+  for (const [rel, setup] of cases) withTarget((target) => {
+    userRepo(target);
+    installV5(target);
+    const outside = outsideDir();
+    try {
+      if (rel === '.rig/preimages') fs.rmSync(path.join(target, rel), { recursive: true, force: true });
+      setup(target, outside);
+      const before = inventory(target);
+      const result = migrate(target, { releaseTag: 'v5.0.0' });
+      expectSymlinkRefusal(result);
+      assert.deepEqual(inventory(target), before, `${rel}: the repository is unchanged`);
+      assert.deepEqual(Object.keys(treeOf(outside)).sort().filter((n) => n !== 'journal.jsonl'), ['precious.txt'], `${rel}: nothing was written outside`);
+    } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+  });
+});

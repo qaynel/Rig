@@ -178,6 +178,32 @@ function symlinked(target, rel) {
   return false;
 }
 
+// Every write, rename and delete the migration performs goes through here
+// first: no component of the path (parents included) may be a symlink,
+// whatever it points at. Checked at plan time and again immediately before
+// each mutation, because a resumed migration runs long after it was planned.
+function guard(target, rel, detail = 'the path or a parent is a symlink; Rig will not write, move or delete through it') {
+  if (symlinked(target, rel)) refuse('conflicts', `${rel} is a symlink`, { conflicts: [{ path: rel, reason: 'symlink', detail }] });
+}
+
+// Where the migration keeps its own records. A link here would redirect the
+// journal, the plan, the backups or the preimage store.
+const BOOKKEEPING = ['.rig', MANIFEST_REL, '.rig/preimages', BACKUP_REL, MIGRATION_REL];
+
+// Would applying this projection entry change its file? (An already-present
+// pointer line is a no-op and is never a write through a link.)
+function entryWouldWrite(target, entry) {
+  const abs = containedPathSafe(target, entry.path);
+  if (!abs || !fs.existsSync(abs)) return true;
+  const body = fs.readFileSync(abs, 'utf8');
+  if (entry.op === 'ensure_line') return !body.split('\n').includes(entry.line);
+  return !body.includes('# rig:gitignore:start');
+}
+
+function containedPathSafe(target, rel) {
+  try { return containedPath(target, rel); } catch { return path.join(fs.realpathSync(target), rel); }
+}
+
 function inferHosts(target, override) {
   if (override) return [...new Set(override)];
   const release = containedPath(target, RELEASE_REL);
@@ -250,6 +276,11 @@ function plan(target, opts) {
       detail: old === null ? 'a file the journal does not own already exists here and the new layout needs different bytes' : 'you edited this Rig-owned file and the new layout changes it; move your edit aside or re-apply it after migrating',
     });
   }
+  for (const entry of staged.entries.filter((e) => e.op === 'ensure_line' || e.op === 'ensure_gitignore_block')) {
+    if (symlinked(target, entry.path) && entryWouldWrite(target, entry)) {
+      conflicts.push({ path: entry.path, reason: 'symlink', detail: 'this instruction file is a symlink and needs a line appended; Rig will not write through it' });
+    }
+  }
   for (const [rel, record] of journal.latest) {
     if (desiredPaths.has(rel) || !isFileOwned(record) || record.state !== 'applied') continue;
     if (!V5_ZONES.some((zone) => zone.test(rel)) || isProtected(rel, keep)) continue;
@@ -273,6 +304,7 @@ function plan(target, opts) {
 // ------------------------------------------------------------- execution
 
 function atomicJson(target, rel, value) {
+  guard(target, rel);
   const abs = containedPath(target, rel);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   const tmp = `${abs}.tmp`;
@@ -281,6 +313,8 @@ function atomicJson(target, rel, value) {
 }
 
 function backup(target, rel, digest) {
+  guard(target, rel);
+  guard(target, `${BACKUP_REL}/${digest}`);
   const dst = containedPath(target, `${BACKUP_REL}/${digest}`);
   if (fs.existsSync(dst)) return;
   fs.mkdirSync(path.dirname(dst), { recursive: true });
@@ -311,6 +345,7 @@ function execute(target, planned, opts) {
     const entry = byPath.get(action.path);
     if (!entry || sha256(entry.bytes) !== action.new) refuse('plan-drift', `the new layout for ${action.path} changed since the plan was made; remove ${MIGRATION_REL} only after restoring the previous Rig checkout`);
     tick(`write:${action.path}`);
+    guard(target, action.path);
     const live = liveDigest(target, action.path);
     if (action.action === 'write' && live !== null && live !== action.old && live !== action.new) {
       refuse('conflicts', `${action.path} changed while migrating`, { conflicts: [{ path: action.path, reason: 'edited-owned-file', detail: 'edited after the plan was made' }] });
@@ -323,10 +358,12 @@ function execute(target, planned, opts) {
     (action.action === 'adopt' ? result.adopted : result.written).push(action.path);
   }
   for (const entry of planned.staged.entries.filter((e) => e.op === 'ensure_line' || e.op === 'ensure_gitignore_block')) {
+    if (entryWouldWrite(target, entry)) guard(target, entry.path);
     applyEntry(target, entry, writer);
   }
   for (const action of planned.actions.filter((a) => a.action === 'retire')) {
     tick(`retire:${action.path}`);
+    guard(target, action.path);
     const live = liveDigest(target, action.path);
     if (live === null) { result.retired.push(action.path); continue; }
     if (live !== action.old) { planned.retained.push({ path: action.path, reason: 'edited-orphan' }); continue; }
@@ -344,6 +381,7 @@ function execute(target, planned, opts) {
 function writeMarker(target, planned) {
   const action = planned.actions.find((a) => a.path === V6_MARKER);
   if (!action) return;
+  guard(target, V6_MARKER);
   const entry = planned.staged.entries.find((e) => e.path === V6_MARKER);
   const writer = journalWriter(target, { transactionOwner: `migrate:${planned.plan_digest}` });
   writer.begin();
@@ -375,6 +413,7 @@ function migrate(target, opts = {}) {
   const root = fs.realpathSync(target);
   void root;
   try {
+    for (const rel of BOOKKEEPING) guard(target, rel, 'a migration record path is a symlink; Rig will not read or write through it');
     const detected = detectInstall(target);
     if (detected.kind === 'none') return { status: 'noop', reason: 'no-install' };
     if (detected.kind === 'current') return { status: 'noop', reason: 'already-current' };
@@ -406,6 +445,12 @@ function migrate(target, opts = {}) {
     fs.rmSync(containedPath(target, BACKUP_REL), { recursive: true, force: true });
     return summarize(planned, result, state);
   } catch (error) {
+    if (/follows an outside symlink|escapes target|unsafe repository path/.test(error.message)) {
+      return {
+        status: 'refused', code: 'conflicts', detail: error.message, recoverable: true,
+        conflicts: [{ path: String(error.message.split(': ').pop()), reason: 'symlink', detail: error.message }],
+      };
+    }
     if (error instanceof MigrationRefusal) {
       return {
         status: 'refused', code: error.code, detail: error.detail, ...error.extra, recoverable: true,
