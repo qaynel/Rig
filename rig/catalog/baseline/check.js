@@ -14,7 +14,7 @@ const path = require('node:path');
 // silently missed the other). `apply.js` materializes `check-runner.js`
 // alongside this file's other `../lib/*` requires so the installed
 // `.rig/bin/check.js` resolves the same module.
-const { runArgv, runBinding } = require('../lib/check-runner');
+const { runArgv, runBinding, renderDiagnostic } = require('../lib/check-runner');
 
 function parseArgs(argv) {
   const args = { scope: 'repo', service: null };
@@ -66,6 +66,7 @@ function main() {
       process.stderr.write(message.endsWith('\n') ? message : `${message}\n`);
       process.exit(result.status || 1);
     }
+    if (result.diagnostic) process.stderr.write(renderDiagnostic(serviceId, result.diagnostic));
   }
 }
 

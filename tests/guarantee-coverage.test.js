@@ -387,6 +387,70 @@ test('AT-PROC-1u (2026-08-29 review): the undeclared network compatibility state
   });
 });
 
+function installedCheckRun(env) {
+  const { spawnSync } = require('node:child_process');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-installed-check-'));
+  try {
+    fs.cpSync(materializedCheckDir, dir, { recursive: true });
+    fs.rmSync(path.join(dir, '.rig', 'bin', 'check-copies.js'), { force: true });
+    fs.writeFileSync(path.join(dir, '.rig', 'service-bindings.json'), JSON.stringify({
+      'undeclared-network-service': { repo: [process.execPath, '-e', ''] },
+    }));
+    const cleanEnv = { ...process.env };
+    delete cleanEnv.GITHUB_ACTIONS;
+    return spawnSync(process.execPath, [path.join(dir, '.rig', 'bin', 'check.js'), '--scope', 'repo'], {
+      cwd: dir, encoding: 'utf8', env: { ...cleanEnv, ...env },
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('AT-PROC-1ad (RIG-147): the library runner stays silent on an undeclared network; the installed CLI warns once', () => {
+  withRepo((target) => {
+    const warnings = [];
+    const savedWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(' '));
+    try {
+      for (const runner of [runBinding, catalogCheck.runBinding]) {
+        runner('undeclared-network-service', { repo: [process.execPath, '-e', ''] }, 'repo', target);
+      }
+    } finally {
+      console.warn = savedWarn;
+    }
+    assert.deepEqual(warnings, [], 'the library runner wrote its own stderr warning instead of leaving it to the caller');
+  });
+
+  const cli = installedCheckRun({});
+  assert.equal(cli.status, 0, cli.stderr);
+  const lines = cli.stderr.split('\n').filter((line) => /network capability undeclared/.test(line));
+  assert.equal(lines.length, 1, `expected exactly one caller-level diagnostic, got: ${JSON.stringify(cli.stderr)}`);
+  assert.match(lines[0], /undeclared-network-service/);
+  assert.doesNotMatch(cli.stderr, /::warning/);
+});
+
+test('AT-PROC-1ae (RIG-147): the installed CLI emits a GitHub Actions annotation in CI', () => {
+  const ci = installedCheckRun({ GITHUB_ACTIONS: 'true' });
+  assert.equal(ci.status, 0, ci.stderr);
+  const annotations = `${ci.stdout}${ci.stderr}`.split('\n').filter((line) => line.startsWith('::warning'));
+  assert.equal(annotations.length, 1, `expected one annotation, got: ${JSON.stringify(ci.stdout + ci.stderr)}`);
+  assert.match(annotations[0], /network capability undeclared/);
+  assert.match(annotations[0], /undeclared-network-service/);
+});
+
+test('AT-PROC-1af (RIG-147): interactive runChecks returns the undeclared-network diagnostic on stderr once', () => {
+  const { runChecks } = require('../rig/lib/checks');
+  withRepo((target) => {
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'service-bindings.json'), JSON.stringify({
+      'undeclared-network-service': { repo: [process.execPath, '-e', ''] },
+    }));
+    const result = runChecks(target, { scope: 'repo' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal((result.stderr.match(/network capability undeclared/g) || []).length, 1, result.stderr);
+  });
+});
+
 test('AT-PROC-1v (2026-08-29 review): ending classification consumes real command outcomes', () => {
   const classifyEnding = require('../rig/lib/lint-format').classifyEnding;
   withRepo((target) => {

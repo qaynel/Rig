@@ -11,7 +11,7 @@ const { containedPath } = require('./path-safety');
 // installed CI/git-floor runner (rig/catalog/baseline/check.js) — see
 // GA-38. Do not re-implement containment or argv-execution logic here; a
 // hand-duplicated copy is exactly the defect class RIG-144 found and fixed.
-const { runArgv, runBinding } = require('./check-runner');
+const { runArgv, runBinding, renderDiagnostic } = require('./check-runner');
 
 function loadBindings(target) {
   const file = path.join(target, '.rig', 'service-bindings.json');
@@ -169,6 +169,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
   const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
   let failedEarlier = null;
   let failure = null;
+  let diagnostics = '';
 
   for (const serviceId of selected) {
     if (failedEarlier) {
@@ -227,6 +228,7 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
       return { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
     }
     const result = runBinding(serviceId, binding, scope, target);
+    if (result.diagnostic) diagnostics += renderDiagnostic(serviceId, result.diagnostic);
     if (result.error || result.status !== 0) {
       failedEarlier = serviceId;
       const reason = result.reason || result.stderr || result.stdout || String(result.error || 'non-zero exit');
@@ -245,7 +247,8 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     }
   }
 
-  return failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
+  const outcome = failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
+  return diagnostics ? { ...outcome, stderr: `${diagnostics}${outcome.stderr}` } : outcome;
 }
 
 module.exports = {

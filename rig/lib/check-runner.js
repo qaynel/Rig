@@ -170,6 +170,17 @@ function evaluateCapabilities(serviceId, target, request) {
   return { request };
 }
 
+// RIG-147: the runner only returns the undeclared-network diagnostic on the
+// result; the CLI/CI caller renders it once. A GitHub Actions annotation in CI,
+// a plain stderr line elsewhere.
+function renderDiagnostic(serviceId, diagnostic, env = process.env) {
+  if (env.GITHUB_ACTIONS === 'true') {
+    const escape = (text) => text.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+    return `::warning title=Rig check::${escape(`${serviceId}: ${diagnostic}`)}\n`;
+  }
+  return `rig check: ${serviceId}: ${diagnostic}\n`;
+}
+
 function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
   const limits = executionLimits(...sources);
   if (!limits) {
@@ -195,7 +206,6 @@ function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
   }
   if (network === 'undeclared') {
     const diagnostic = 'network capability undeclared; running under temporary compatibility mode';
-    console.warn(diagnostic);
     return { ...runArgv(command, argv, cwd, limits), network_state: network, diagnostic };
   }
   return { ...runArgv(command, argv, cwd, limits), network_state: network };
@@ -272,4 +282,4 @@ function runBinding(serviceId, binding, scope, target) {
   return { status: 0, stdout: '', stderr: '' };
 }
 
-module.exports = { runArgv, runBinding, evaluateCapabilities };
+module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic };
