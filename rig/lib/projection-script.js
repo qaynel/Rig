@@ -28,7 +28,8 @@ const HOST_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/;
 const DIGEST_RE = /^[0-9a-f]{64}$/;
 // Paths a script may never target, whatever the approval says: Rig's own state
 // and signer list, git internals, and secret files.
-const RESERVED = [/^\.rig(\/|$)/, /^\.git(\/|$)/, /(^|\/)\.env($|\.)/, /(^|\/)node_modules(\/|$)/];
+// Matched case-insensitively: macOS and Windows file systems alias `.GIT` to `.git`.
+const RESERVED = [/^\.rig(\/|$)/i, /^\.git(\/|$)/i, /(^|\/)\.env($|\.)/i, /(^|\/)node_modules(\/|$)/i];
 
 class ScriptRefusal extends Error {
   constructor(code, detail) {
@@ -55,6 +56,8 @@ function safeOutputPath(rel) {
     refuse('slot-invalid', 'approved output path is invalid');
   }
   if (rel.split('/').some((part) => !part || part === '.' || part === '..')) refuse('slot-invalid', `approved output path "${rel}" is not a clean relative path`);
+  // NTFS ignores trailing dots and spaces, so `.git.` and `.git ` name `.git`.
+  if (rel.split('/').some((part) => /[. ]$/.test(part))) refuse('slot-invalid', `approved output path "${rel}" has a component ending in a dot or space`);
   if (RESERVED.some((pattern) => pattern.test(rel))) refuse('slot-invalid', `approved output path "${rel}" is reserved`);
   return rel;
 }
@@ -63,6 +66,33 @@ function digestOrNull(value, label) {
   if (value === undefined || value === null) return null;
   if (typeof value !== 'string' || !DIGEST_RE.test(value)) refuse('slot-invalid', `${label} is not a SHA-256 digest`);
   return value;
+}
+
+// Defense in depth for the string guard: resolve the real location of the
+// output's parent (nearest existing ancestor, so nothing is created) and refuse
+// if it lands inside the real .rig or .git, whatever case or symlink got it there.
+function realpathOf(p) {
+  return fs.realpathSync.native(p);
+}
+
+function assertOutputOutsideProtected(target, rel) {
+  const root = realpathOf(target);
+  let ancestor = path.join(root, path.dirname(rel));
+  const rest = [];
+  while (!fs.existsSync(ancestor)) {
+    rest.unshift(path.basename(ancestor));
+    ancestor = path.dirname(ancestor);
+    if (ancestor.length <= root.length) { ancestor = root; break; }
+  }
+  const resolved = path.join(realpathOf(ancestor), ...rest);
+  if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`)) refuse('artifact-escapes-output', `output "${rel}" resolves outside the repository`);
+  for (const name of ['.rig', '.git']) {
+    for (const guarded of new Set([path.join(root, name), ...(fs.existsSync(path.join(root, name)) ? [realpathOf(path.join(root, name))] : [])])) {
+      const a = resolved.toLowerCase();
+      const g = guarded.toLowerCase();
+      if (a === g || a.startsWith(`${g}${path.sep}`)) refuse('slot-invalid', `output "${rel}" resolves into protected ${name}`);
+    }
+  }
 }
 
 // Canonical form of the slot, with the script digest computed by the engine.
@@ -177,5 +207,5 @@ function runProjectionScript({
 }
 
 module.exports = {
-  ScriptRefusal, validateScriptSlot, collectArtifacts, runProjectionScript, sha256, RESERVED,
+  ScriptRefusal, validateScriptSlot, assertOutputOutsideProtected, collectArtifacts, runProjectionScript, sha256, RESERVED,
 };

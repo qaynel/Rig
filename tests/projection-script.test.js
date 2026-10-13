@@ -383,3 +383,42 @@ fs.writeFileSync(path.join(process.env.RIG_OUT_DIR, 'blocked/b.md'), 'second\\n'
     assert.deepEqual(checked.hard_failures, []);
   }, { install: true });
 });
+
+// ---------------------------------------- case/alias bypass of the reserved guard
+
+test('reserved paths are matched case-insensitively and trailing dot/space aliases are rejected', () => {
+  const reject = (rel, pattern = /reserved|clean relative path|dot or space/) => assert.throws(
+    () => validateScriptSlot(slotFor({ approved_outputs: [{ path: rel, max_bytes: 10, preimage_digest: null }] })), pattern, rel);
+  for (const rel of ['.GIT/config', '.Git/hooks/pre-commit', '.Rig/x', '.RIG/allowed-signers', '.ENV', '.Env.local', 'Node_Modules/x', 'sub/NODE_MODULES/x',
+    'sub/.ENV', '.git./config', '.git /config', '.rig./x', 'ok./x', 'a/b /c', 'trail.', 'trail ']) {
+    reject(rel);
+  }
+  validateScriptSlot(slotFor({ approved_outputs: [{ path: '.zed/rig-rules.md', max_bytes: 10, preimage_digest: null }] }));
+  validateScriptSlot(slotFor({ approved_outputs: [{ path: '.github/rig.md', max_bytes: 10, preimage_digest: null }] }));
+});
+
+test('apply refuses an output whose parent resolves into .rig or .git even through an alias or symlink', async () => {
+  const { assertOutputOutsideProtected } = require('../rig/lib/projection-script');
+  await h.withRepo((target) => {
+    fs.mkdirSync(path.join(target, '.git/hooks'), { recursive: true });
+    fs.symlinkSync(path.join(target, '.git'), path.join(target, 'alias'));
+    fs.symlinkSync(path.join(target, '.rig'), path.join(target, 'rigalias'));
+    for (const rel of ['alias/hooks/pre-commit', 'rigalias/allowed-signers', '.GIT/hooks/pre-commit', '.RIG/state.json', 'alias/new/dir/file']) {
+      assert.throws(() => assertOutputOutsideProtected(target, rel), /protected|escapes/i, rel);
+    }
+    assert.doesNotThrow(() => assertOutputOutsideProtected(target, '.zed/rig-rules.md'));
+    assert.doesNotThrow(() => assertOutputOutsideProtected(target, 'docs/new/file.md'));
+  }, { install: true });
+});
+
+test('a symlinked approved parent into .git is refused at apply before any write', { skip: real }, async () => {
+  await h.withRepo((target) => {
+    fs.symlinkSync(path.join(target, '.git'), path.join(target, 'alias'));
+    const proposed = propose(target, slotFor({
+      source: `require('node:fs').mkdirSync(require('node:path').join(process.env.RIG_OUT_DIR, 'alias'));require('node:fs').writeFileSync(require('node:path').join(process.env.RIG_OUT_DIR, 'alias/hooks-x'), 'x');`,
+      approved_outputs: [{ path: 'alias/hooks-x', max_bytes: 10, preimage_digest: null }],
+    }));
+    assert.throws(() => apply(target, proposed), /protected|escapes/i);
+    assert.equal(fs.existsSync(path.join(target, '.git/hooks-x')), false);
+  }, { install: true });
+});

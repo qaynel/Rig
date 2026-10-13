@@ -14,7 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
-const { runProjectionScript } = require('./projection-script');
+const { runProjectionScript, assertOutputOutsideProtected } = require('./projection-script');
 const {
   NATIVE_SKILL_SCOPES, INSTRUCTION_ONLY_SCOPE, canonicalSkillName, scopedSkillName, projectSkillFiles,
 } = require('./project');
@@ -451,6 +451,7 @@ function preflightOwnedFiles(target, ownedFiles, writer) {
 // moved since is the user's, not ours to overwrite.
 function preflightScriptOutputs(target, slot, writer) {
   for (const output of slot.approved_outputs) {
+    assertOutputOutsideProtected(target, output.path);
     const digest = currentDigest(target, output.path);
     if (digest !== null && journalResumeDigest(writer, output.path) === digest) continue;
     if (digest !== output.preimage_digest) fail(`projection output "${output.path}" has a stale preimage digest`);
