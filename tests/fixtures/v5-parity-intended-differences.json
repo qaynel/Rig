@@ -105,6 +105,122 @@
         "active/all"
       ],
       "reason": "Intended delivery change (03 slice 4): pinned third-party fetch metadata, licence/provenance record and the RIG-135 local patches ship in the active-delivery corpus so onboarding can fetch, verify and patch upstream bytes; v5 vendored those bytes instead."
+    },
+    {
+      "path": ".rig/routing.md",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/claude",
+        "active/cline",
+        "active/codewhale",
+        "active/codex",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/none",
+        "active/opencode",
+        "active/windsurf",
+        "default/all",
+        "default/antigravity",
+        "default/claude",
+        "default/cline",
+        "default/codewhale",
+        "default/codex",
+        "default/copilot",
+        "default/cursor",
+        "default/gemini",
+        "default/kiro",
+        "default/none",
+        "default/opencode",
+        "default/windsurf"
+      ],
+      "reason": "Intended text change (03 slice 6): the source-repo path notes now name rig/corpus/ instead of the retired rig/tier-1/ tree, and 'Tier 1 skill' wording is removed from the shipped router."
+    },
+    {
+      "path": ".claude/skills/rig-debugging/SKILL.md",
+      "configs": [
+        "active/all",
+        "active/claude",
+        "default/all",
+        "default/claude"
+      ],
+      "reason": "Intended text change (03 slice 6): tier wording removed from the debugging skill; the installed bytes follow the one canonical corpus skill."
+    },
+    {
+      "path": ".agents/skills/rig-debugging/SKILL.md",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/codex",
+        "default/all",
+        "default/antigravity",
+        "default/codex"
+      ],
+      "reason": "Intended text change (03 slice 6): tier wording removed from the debugging skill; the installed bytes follow the one canonical corpus skill."
+    },
+    {
+      "path": ".rig/skills/debugging/SKILL.md",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/cline",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/opencode",
+        "active/windsurf",
+        "default/all",
+        "default/antigravity",
+        "default/cline",
+        "default/copilot",
+        "default/cursor",
+        "default/gemini",
+        "default/kiro",
+        "default/opencode",
+        "default/windsurf"
+      ],
+      "reason": "Intended text change (03 slice 6): tier wording removed from the debugging skill; the installed bytes follow the one canonical corpus skill."
+    },
+    {
+      "path": ".rig/catalog.json",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/claude",
+        "active/cline",
+        "active/codewhale",
+        "active/codex",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/none",
+        "active/opencode",
+        "active/windsurf"
+      ],
+      "reason": "Intended change (03 slice 6): the pinned skill catalogue is regenerated because the core skills' source_rel now point into rig/corpus/skills/ and the debugging skill text changed; digests follow from the new rows."
+    },
+    {
+      "path": ".rig/runtime/rig/catalog/skills/",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/claude",
+        "active/cline",
+        "active/codewhale",
+        "active/codex",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/none",
+        "active/opencode",
+        "active/windsurf"
+      ],
+      "reason": "Intended change (03 slice 6): the staged skill-shelf tree carries the regenerated catalog.json (same cause as .rig/catalog.json)."
     }
   ]
 }

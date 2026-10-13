@@ -72,3 +72,21 @@ fetch". 83 of the 298 shelf files also carry Rig-authored changes beyond the
 rename (catalogue frontmatter, neutralised strings, RIG-135 code) that are not
 reproducible from upstream bytes alone; those need an overlay in the corpus
 before whole-shelf fetch is possible. Recorded as a remaining gap, not hidden.
+
+## A3. Contract (slice 6) — pinned package scripts and pinned-file leftovers
+
+No frozen test is red because of slice 6. Items the owner may want to fold into
+the single re-sign, none required for green:
+
+- `wiki/gate1/package-scripts.json` pins `test:code`, which calls
+  `node scripts/check-rule-copies.js`. The script was rewritten in place
+  (reproducible projection plus no-twin) rather than renamed. A rename to
+  `check-corpus.js`, or a `pretest` step running `node scripts/project-repo.js`
+  so generated host files need not be checked in, changes that pinned snapshot
+  and belongs in the bundle.
+- `rig/catalog.json` (hashed by AT-PB-1) still carries four `reuses` strings
+  naming `rig/tier-1/skills/...`. They are inert metadata (no code reads them);
+  correcting them changes the pinned catalogue hash, so they ship as-is until
+  the re-sign.
+- `tests/onboarding-hardening.test.js` (pinned) has one comment mentioning
+  `rig/tier-1/routing.md`; comment only.

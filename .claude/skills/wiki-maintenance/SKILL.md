@@ -1,6 +1,6 @@
 ---
 name: wiki-maintenance
-description: Run after a major release (or on a schedule) to keep wiki/ synced with the branch and its context cost bounded — lifecycle sweep, hub sync, reindex, archive, and the one-time context-management infrastructure. Authoring-time only; not part of the installed Tier 1 payload.
+description: Run after a major release (or on a schedule) to keep wiki/ synced with the branch and its context cost bounded — lifecycle sweep, hub sync, reindex, archive, and the one-time context-management infrastructure. Authoring-time only; not part of the installed payload.
 ---
 
 # Wiki maintenance (post-release routine)
@@ -38,9 +38,9 @@ and its execution plan.
 3. `wiki/gate1/` and `wiki/gate2/` are off-limits — no edits, trims, or
    restructuring, even if a file looks bloated.
 4. New automation is authoring-time only, under `scripts/`. Nothing in
-   `rig/tier-1/` may depend on it — Tier 1 stays markdown-only in the
-   installed payload.
-5. `CLAUDE.md`, `rig/tier-1/routing.md`, and `wiki/reasoning/README.md`
+   `rig/corpus/` may depend on it — authoring-time scripts never ship in the
+   installed corpus.
+5. `CLAUDE.md`, `rig/corpus/routing.md`, and `wiki/reasoning/README.md`
    describe one read/write cadence. A step that changes that cadence updates
    all three in the same commit.
 6. Every step that changes what's true in the wiki is a full-cadence change:
@@ -139,7 +139,7 @@ This step changes the agent's core read contract.
 as a single mandated read that replaces the current "read Home.md +
 status.md + hubs before grepping" instruction. Point `CLAUDE.md`'s
 read-before-grep mandate at `wiki/agent-primer.md`. Update
-`rig/tier-1/routing.md` and `wiki/reasoning/README.md` to describe the same
+`rig/corpus/routing.md` and `wiki/reasoning/README.md` to describe the same
 cadence — all three must agree. Do not remove the task-weight carve-out in
 `routing.md`. Flag the PR for explicit human review before merge even if
 `npm test` passes.

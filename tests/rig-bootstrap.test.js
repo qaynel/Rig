@@ -12,14 +12,14 @@ const root = path.join(__dirname, '..');
 const pointer = 'Before acting, read `.rig/routing.md` and route this task through its skill table.';
 
 const sharedSkills = [
-  ['grilling', 'rig/tier-1/skills/grilling/SKILL.md'],
-  ['product-design', 'rig/tier-1/skills/product-design/SKILL.md'],
+  ['grilling', 'rig/corpus/skills/grilling/SKILL.md'],
+  ['product-design', 'rig/corpus/skills/product-design/SKILL.md'],
   ['implementation', 'skills/rig/SKILL.md'],
-  ['execution', 'rig/tier-1/skills/execution/SKILL.md'],
-  ['tdd', 'rig/tier-1/skills/tdd/SKILL.md'],
-  ['debugging', 'rig/tier-1/skills/debugging/SKILL.md'],
-  ['code-review', 'rig/tier-1/skills/code-review/SKILL.md'],
-  ['onboarding', 'rig/tier-1/skills/onboarding/SKILL.md'],
+  ['execution', 'rig/corpus/skills/execution/SKILL.md'],
+  ['tdd', 'rig/corpus/skills/tdd/SKILL.md'],
+  ['debugging', 'rig/corpus/skills/debugging/SKILL.md'],
+  ['code-review', 'rig/corpus/skills/code-review/SKILL.md'],
+  ['onboarding', 'rig/corpus/skills/onboarding/SKILL.md'],
 ];
 
 function read(target, relativePath) {
@@ -76,7 +76,7 @@ test('committed Claude and Codex skills match their canonical Tier 1 sources', (
 });
 
 test('native skill names match the router index', () => {
-  const routerNames = [...read(root, 'rig/tier-1/routing.md').matchAll(/^\| `([^`]+)` \|/gm)]
+  const routerNames = [...read(root, 'rig/corpus/routing.md').matchAll(/^\| `([^`]+)` \|/gm)]
     .map((match) => match[1])
     .sort();
 
@@ -359,7 +359,7 @@ test("vendored rig router installs addressable as 'rig' on native hosts, matchin
   // routing.md's "Fallback to the router" section instructs the agent to invoke a named skill.
   // That name must match an actual installed skill on every native-dispatch host. The bug:
   // payload.js's blanket `rig-` prefix doubles _core's declared `name: rig` to `rig-rig`.
-  const routerName = read(root, 'rig/tier-1/routing.md')
+  const routerName = read(root, 'rig/corpus/routing.md')
     .match(/invoke the vendored `([^`]+)` router/)?.[1];
   assert.ok(routerName, "routing.md must name the vendored router skill in its fallback section");
 

@@ -1,7 +1,7 @@
 ---
 date: 2026-10-13
 source: agent
-topics: onboarding-flow, trust-and-failure-boundaries
+topics: onboarding-flow
 decisions:
 status: current
 supersedes:

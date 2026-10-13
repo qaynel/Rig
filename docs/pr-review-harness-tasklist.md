@@ -162,7 +162,7 @@ engine and the verifier read, so nothing downstream re-branches on "PR vs local"
 - One canonical source → thin per-host pointers. Never hand-edit generated files
   (`.openclaw/skills/*`, the ladder marker block) — run the generator.
 - After editing any `skills/*/SKILL.md`, run `build-openclaw-skills.js`.
-- After editing the compact rule text (`AGENTS.md` / per-host copies), run `check-rule-copies.js`.
+- After editing the compact rule text (`rig/corpus/rules/`), run `node scripts/project-repo.js`, then `check-rule-copies.js` (the projection gate).
 - All new tests offline and framework-free (`node --test` only).
 - Do **not** add a new command name — reuse `rig-review` to keep the 6-skill and
   `commands.test.js` parity invariants.

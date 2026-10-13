@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Tier 2 install seam: Basic legacy path + Advanced subcommand delegation.
+// Install seam: Basic legacy path + Advanced subcommand delegation.
 // Domain logic stays under rig/lib/. Legacy no-subcommand path unchanged.
 const fs = require('node:fs');
 const { loadUserConfig, validate } = require('./lib/config');

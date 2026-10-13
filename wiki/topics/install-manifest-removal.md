@@ -143,3 +143,10 @@ a corrupted global config now makes uninstall report that path best-effort and
 leave it byte-identical (RIG-127.11); a nameless legacy managed-block record
 strips a block only when removing it restores the journaled preimage digest,
 otherwise best-effort (RIG-127.12).
+
+2026-10-13 (subplan 03): a v5 install upgrades through `rig/lib/migrate.js`
+(`sh rig/bootstrap.sh` or `rig migrate`): strict journal validation, corpus
+staged first, files replaced or retired only when journal-owned and
+byte-unchanged, a persisted resumable plan, marker-last completion, and an
+uninstall round trip that restores the full pre-install inventory.
+([trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md))

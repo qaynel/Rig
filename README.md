@@ -9,7 +9,7 @@
 Rig is a curated, host-agnostic toolbox for coding agents. It ships two
 delivery surfaces:
 
-1. **Markdown bootstrap (Tier 1)** — one shared router, an always-on Ponytail
+1. **Corpus install** — one shared router, an always-on Ponytail
    implementation rule, and focused skills for intent, design, execution, TDD,
    debugging, and code review. No processes, API keys, or dependencies.
 2. **À-la-carte catalogue** — let the user pick engineering capabilities as
@@ -46,7 +46,7 @@ payload install; the public launcher above always enables the active runtime.
 
 ```sh
 sh install.sh --version v5.0.0 --target /path/to/repository
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 Without `--hosts`, Rig mechanically detects existing host configuration from
@@ -54,14 +54,14 @@ the 19-host registry and installs no absent host tree. Narrow or override that
 selection explicitly with a comma-separated list:
 
 ```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
-# or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository --hosts antigravity,codex
+# or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 Bootstrap requires `node` on `PATH`. Its output names each detected or explicit
 host and records every payload write in `.rig/install-manifest.jsonl`.
 
-Tier 1 installs the same instruction set for these host entrypoints:
+Rig installs the same instruction set for these host entrypoints:
 
 - Claude Code gets project skills in `.claude/skills/` and a router pointer in
   `CLAUDE.md`.
@@ -94,13 +94,13 @@ and `.agents/skills/`; the bootstrap copies them unchanged into target repos.
 | Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
-| Other agents | Configure the host to read `.rig/routing.md`, or add the one-line pointer from `rig/tier-1/adapters/pointer.md` to its project instructions. |
+| Other agents | Configure the host to read `.rig/routing.md`, or add the one-line pointer from `rig/corpus/projections/adapters/pointer.md` to its project instructions. |
 
 ## Install Full Plugin Distribution
 
 Rig also ships richer native adapters for hosts that can load plugins,
-extensions, commands, hooks, or statusline integrations. Tier 1 stays the
-markdown bootstrap above; use the full distribution when you want the host's
+extensions, commands, hooks, or statusline integrations. The corpus install
+above stays the base layer; use the full distribution when you want the host's
 native install surface.
 
 Capability legend: **full-hook** = the host runs Rig's lifecycle hooks
@@ -162,7 +162,7 @@ Design sources and reasoning: [`wiki/`](wiki/).
 
 The legacy MCP-configurator CLI (`node rig/materialize.js --target … --manifest …`)
 remains available as a compatibility path; it is no longer a separate install
-tier.
+path.
 
 ## Curation Spine
 
@@ -179,14 +179,14 @@ tier.
 The curated skills label their checks by workflow phase. They merge the
 distinctive parts of each workflow instead of concatenating source documents.
 
-## Markdown bootstrap boundary
+## Install boundary
 
-The Tier 1 bootstrap has a fixed file list and mechanical host detection only.
-It has no catalogue resolver, runtime, keys, or `.env` handling. The shared
-layout is predictable so the catalogue materializer can describe it without
-reshaping what was installed.
+Every install is projected from one corpus (`rig/corpus/`) with mechanical host
+detection only; your own agent then adapts it to the repository through
+`rig-onboarding`. The default install is instructions only; `--with-runtime`
+adds the scripts and catalogue. No keys or `.env` files are ever installed.
 
-The workflow is advisory because the bootstrap ships markdown only. Claude and
+The default workflow is advisory because it ships instructions only. Claude and
 other hook-capable hosts can provide real tool-boundary enforcement where the
 host supports it; Cursor cannot. Rig states that limitation instead of claiming
 prose is a hard guardrail.

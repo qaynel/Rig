@@ -80,10 +80,10 @@ describe('Task 2 — single playbook write per install mode', () => {
       const { runPayload } = require(path.join(h.root, 'rig', 'lib', 'payload.js'));
       runPayload(target, ['codex'], { activeDelivery: false });
       const wrapperContent = fs.readFileSync(
-        path.join(h.root, 'rig/tier-1/skills/onboarding/SKILL.md'), 'utf-8',
+        path.join(h.root, 'rig/corpus/skills/onboarding/SKILL.md'), 'utf-8',
       );
       const playbookContent = fs.readFileSync(
-        path.join(h.root, 'rig/tier-1/skills/onboarding/playbook.md'), 'utf-8',
+        path.join(h.root, 'rig/corpus/skills/onboarding/playbook.md'), 'utf-8',
       );
       const written = fs.readFileSync(path.join(target, PLAYBOOK_DEST), 'utf-8');
       assert.notEqual(wrapperContent, playbookContent, 'Test precondition: wrapper and playbook must have different content');

@@ -105,3 +105,13 @@ so a cleanly finished install can never excuse a proposal built on a stale
 view. A resumed run promotes the pending record instead of leaving it pending,
 and closes the transaction it inherited.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+2026-10-13 central corpus (subplan 03): every file a repository receives,
+including graft-adjacent host entrypoints, is projected from `rig/corpus/` by
+one pure `project()`; the installer and onboarding share its scope table and
+naming functions, and a golden v5 inventory pins the installed bytes. Generated
+host files in this repo are reproducible via `scripts/project-repo.js` and
+policed by `scripts/check-rule-copies.js`.
+([expand](../reasoning/2026-10-13-corpus-03-slice1-expand.md) ·
+[migrate](../reasoning/2026-10-13-corpus-03-slice2-migrate.md) ·
+[contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md))

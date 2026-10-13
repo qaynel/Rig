@@ -23,9 +23,9 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
-const routing = read('rig/tier-1/routing.md');
+const routing = read('rig/corpus/routing.md');
 const tddSources = [
-  'rig/tier-1/skills/tdd/SKILL.md',
+  'rig/corpus/skills/tdd/SKILL.md',
   '.claude/skills/rig-tdd/SKILL.md',
   '.agents/skills/rig-tdd/SKILL.md',
 ];
@@ -36,7 +36,7 @@ test('RIG-124.2 — installed instruction text carries no dangling internal tick
   assert.doesNotMatch(
     routing,
     bareTicketCitation,
-    'rig/tier-1/routing.md ships into repos with no wiki/Tickets.md to resolve (RIG-NNN) against',
+    'rig/corpus/routing.md ships into repos with no wiki/Tickets.md to resolve (RIG-NNN) against',
   );
   for (const rel of tddSources) {
     assert.doesNotMatch(read(rel), bareTicketCitation, `${rel} ships a bare (RIG-NNN) citation`);
@@ -74,13 +74,13 @@ test('RIG-152 — router hands the onboarding agent no never-true "source checko
   // Reframed, not deleted: contributor path guidance stays available where it is true.
   assert.match(
     routing,
-    /rig\/tier-1\//,
+    /rig\/corpus\//,
     'the Rig-source path guidance must be retained (scoped for contributors), not removed',
   );
 });
 
 test('RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path', () => {
-  const rigRule = read('rig/tier-1/rules/rig.md');
+  const rigRule = read('rig/corpus/rules/rig.md');
   assert.doesNotMatch(
     rigRule,
     /\.rig\/skills\/implementation\/SKILL\.md/,

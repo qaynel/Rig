@@ -90,3 +90,12 @@ headline) has not been ruled on by the intent owner; see Part 6 of the design
 trace for the open questions blocking it.
 [Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md) ·
 [Finished-product design](../reasoning/2026-09-04-finished-product-design.md)
+
+2026-10-13 (subplan 03): third-party skills are fetched at onboarding from a
+pinned revision in `rig/corpus/upstream/` — staging download, tar-digest
+verify, strict extraction, RIG-135 patches applied to the fetched bytes, named
+gaps for bad digests or unavailable upstream, licence kept — and the retired
+`rig/tier-1/` tree is gone; `--tier 1` stays accepted (deprecated) for one
+release, any other value is rejected.
+([fetch](../reasoning/2026-10-13-corpus-03-slice4-upstream-fetch.md) ·
+[contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md))

@@ -4,7 +4,7 @@ Read this file before acting. Apply `.rig/rules/rig.md` to every coding task
 and `.rig/rules/communication.md` to every message you send the user, then
 choose the smallest set of skills whose trigger matches the work. (Working in
 the Rig source repo, before an install has created `.rig/`? Read the originals
-at `rig/tier-1/rules/rig.md` and `rig/tier-1/rules/communication.md`.) Read
+at `rig/corpus/rules/rig.md` and `rig/corpus/rules/communication.md`.) Read
 each chosen skill completely before proceeding, except on the lightweight path
 below.
 
@@ -37,7 +37,7 @@ project has none — do not stand up a `wiki/` the repo never asked for.
 Native skill hosts discover the names below automatically. On instruction-only
 hosts, `rig-<name>` maps to `.rig/skills/<name>/SKILL.md`, and
 `rig-implementation` maps to `.rig/skills/implementation/SKILL.md`. (Working in
-the Rig source repo, those payloads live at `rig/tier-1/skills/<name>/SKILL.md`
+the Rig source repo, those payloads live at `rig/corpus/skills/<name>/SKILL.md`
 and `skills/rig/SKILL.md` until an install lays down `.rig/`.)
 
 ## Communication Policy
@@ -105,7 +105,7 @@ TDD drives a known behavior change; review judges an existing diff.
 
 ## Fallback to the router
 
-If a request does not match any Tier 1 skill above and the user has not named a
+If a request does not match any skill above and the user has not named a
 specific vendored skill, invoke the vendored `rig` router (the `/rig`
 switchboard shipped from the swallowed suite) before answering ad-hoc. The
 router either dispatches to the right vendored skill or hands the turn back for

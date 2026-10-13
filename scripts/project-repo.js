@@ -30,10 +30,11 @@ function generatedFiles(root = ROOT) {
     }
   }
   const body = corpus.files.get('rig/corpus/rules/repo-instructions.md').bytes;
-  const { copies, agents_md: agentsMd } = JSON.parse(corpus.files.get('rig/corpus/rules/repo-copies.json').bytes.toString('utf8'));
+  const { copies, agents_md: agentsMd, mirrors } = JSON.parse(corpus.files.get('rig/corpus/rules/repo-copies.json').bytes.toString('utf8'));
   for (const [rel, frontmatter] of Object.entries(copies)) {
     files.set(rel, Buffer.concat([Buffer.from(frontmatter), body]));
   }
+  for (const [rel, source] of Object.entries(mirrors.files)) files.set(rel, corpus.files.get(source).bytes);
   // AGENTS.md keeps its hand-authored first line (the per-checkout pointer);
   // everything after it is the canonical body.
   const agentsPath = path.join(root, 'AGENTS.md');

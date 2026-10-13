@@ -1,10 +1,11 @@
 #!/usr/bin/env sh
-# Install Rig Tier 1's fixed markdown payload into a repository.
+# Install Rig into a repository from the one Rig corpus (projected by rig/lib/project.js).
 set -eu
 
 SOURCE_ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 TARGET_ROOT=$(pwd)
-TIER=
+TIER_FLAG=
+TIER_SEEN=0
 HOSTS=${RIG_HOSTS:-}
 HOSTS_EXPLICIT=0
 ACTIVE_DELIVERY=0
@@ -12,9 +13,10 @@ OPENCLAW_MCP=0
 [ "${RIG_HOSTS+x}" = x ] && HOSTS_EXPLICIT=1
 
 usage() {
-  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2] [--with-runtime] [--openclaw-mcp]" >&2
+  echo "usage: sh rig/bootstrap.sh [--target REPOSITORY] [--hosts host1,host2] [--with-runtime] [--openclaw-mcp]" >&2
   echo "  Hosts may also be set via RIG_HOSTS (comma-separated)." >&2
-  echo "  Install reads rig/manifest.json through rig/lib/payload.js and requires 'node' on PATH." >&2
+  echo "  Install projects the Rig corpus (rig/corpus/) through rig/lib/payload.js and requires 'node' on PATH." >&2
+  echo "  --tier 1 is accepted for one more release (deprecated, ignored); any other value is rejected." >&2
   exit 2
 }
 
@@ -22,7 +24,8 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --tier)
       [ "$#" -ge 2 ] || usage
-      TIER=$2
+      TIER_FLAG=$2
+      TIER_SEEN=1
       shift 2
       ;;
     --target)
@@ -60,18 +63,16 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "$TIER" ] && [ -t 0 ]; then
-  printf 'Select Rig tier [1]: '
-  read -r TIER
+if [ "${TIER_SEEN:-0}" = 1 ]; then
+  [ "$TIER_FLAG" = 1 ] || { echo "rig: --tier accepts only 1 (the flag is deprecated and will be removed); got '$TIER_FLAG'" >&2; exit 1; }
+  echo "rig: --tier is deprecated and has no effect; omit it." >&2
 fi
-TIER=${TIER:-1}
-[ "$TIER" = 1 ] || { echo "rig: only Tier 1 is available" >&2; exit 1; }
 [ -d "$TARGET_ROOT" ] || { echo "rig: target is not a directory: $TARGET_ROOT" >&2; exit 1; }
 TARGET_ROOT=$(CDPATH= cd -- "$TARGET_ROOT" && pwd)
 [ "$SOURCE_ROOT" != "$TARGET_ROOT" ] || { echo "rig: target must differ from the Rig checkout: $SOURCE_ROOT" >&2; exit 1; }
 
 command -v node >/dev/null 2>&1 || {
-  echo "rig: bootstrap needs 'node' on PATH to read rig/manifest.json." >&2
+  echo "rig: bootstrap needs 'node' on PATH to project the Rig corpus." >&2
   exit 1
 }
 
@@ -87,9 +88,9 @@ if [ "$OPENCLAW_MCP" = 1 ]; then
 fi
 
 if [ "$HOSTS_EXPLICIT" = 1 ]; then
-  echo "Installing Rig Tier 1 into $TARGET_ROOT (hosts: $HOSTS)"
+  echo "Installing Rig into $TARGET_ROOT (hosts: $HOSTS)"
 else
-  echo "Installing Rig Tier 1 into $TARGET_ROOT"
+  echo "Installing Rig into $TARGET_ROOT"
 fi
 
 HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" OPENCLAW_MCP="$OPENCLAW_MCP" OPENCLAW_CONFIG_PATH="${OPENCLAW_PATH:-${OPENCLAW_CONFIG_PATH:-}}" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'

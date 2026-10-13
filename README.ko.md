@@ -9,7 +9,7 @@
 Rig은 코딩 에이전트를 위한 엄선된 호스트 독립형 도구 상자다. 두 가지 전달
 표면을 제공한다.
 
-1. **마크다운 부트스트랩 (Tier 1)** — 공유 라우터, 항상 켜져 있는 Ponytail
+1. **코퍼스 설치** — 공유 라우터, 항상 켜져 있는 Ponytail
    구현 규칙, 의도·설계·실행·TDD·디버깅·코드 리뷰용 집중 스킬. 프로세스,
    API 키, 의존성 없음.
 2. **베이스라인 + à-la-carte 카탈로그** — 먼저 에이전트 하네스를 안전하게
@@ -41,11 +41,10 @@ sh rig/bootstrap.sh --target /path/to/repository --with-runtime
 sh install.sh --version v5.0.0 --target /path/to/repository
 ```
 
-부트스트랩은 대화형으로 실행될 때 tier를 묻는다. 자동화에서는 같은 선택을
-명시적으로 지정할 수 있다:
+부트스트랩은 기존 호스트를 기계적으로 감지한다:
 
 ```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 `--hosts` 없이 실행하면 Rig은 19개 호스트 레지스트리를 기준으로 기존 호스트
@@ -53,15 +52,15 @@ sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 구분한 목록으로 그 선택을 명시적으로 좁히거나 덮어쓸 수 있다:
 
 ```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
-# 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository --hosts antigravity,codex
+# 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 부트스트랩에는 `PATH`에 `node`가 필요하다. 출력은 감지되거나 명시적으로
 지정된 각 호스트를 나열하고, 모든 payload 기록을
 `.rig/install-manifest.jsonl`에 남긴다.
 
-Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
+Rig는 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 
 - Claude Code는 `.claude/skills/`에 프로젝트 스킬을 받고 `CLAUDE.md`에
   라우터 포인터를 받는다.
@@ -96,7 +95,7 @@ Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 | Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
-| 기타 에이전트 | 호스트가 `.rig/routing.md`를 읽도록 설정하거나, `rig/tier-1/adapters/pointer.md`의 한 줄 포인터를 프로젝트 지시문에 추가한다. |
+| 기타 에이전트 | 호스트가 `.rig/routing.md`를 읽도록 설정하거나, `rig/corpus/projections/adapters/pointer.md`의 한 줄 포인터를 프로젝트 지시문에 추가한다. |
 
 ### Hermes Agent
 
@@ -119,7 +118,7 @@ inspect → host review → recommend → select (rig.json) → plan → apply �
 설계 및 추론: [`wiki/`](wiki/).
 
 레거시 MCP 설정 CLI는 호환 경로로 남아 있으며, 더 이상 별도의 설치
-tier가 아니다.
+경로가 아니다.
 
 ## 큐레이션 축
 
@@ -136,11 +135,9 @@ tier가 아니다.
 큐레이션된 스킬은 워크플로 단계별로 자체 점검에 라벨을 붙인다. 소스 문서를
 그냥 이어 붙이지 않고, 각 워크플로의 특징적인 부분을 합친다.
 
-## 마크다운 부트스트랩 경계
+## 설치 경계
 
-Tier 1 부트스트랩은 의도적으로 고정 파일 목록만 가진 단순한 설치다.
-카탈로그 해석기, runtime, keys, `.env` 처리가 없다. 공유 레이아웃은 예측
-가능하므로 카탈로그 materializer가 설치된 형태를 바꾸지 않고 설명할 수 있다.
+모든 설치는 하나의 코퍼스(`rig/corpus/`)에서 기계적 호스트 감지로 투영되며, 이후 사용자의 에이전트가 `rig-onboarding`으로 저장소에 맞춘다. 기본 설치는 지시문만 포함하고 `--with-runtime`은 스크립트와 카탈로그를 더한다. 키나 `.env` 파일은 설치되지 않는다.
 
 부트스트랩은 마크다운만 제공하므로 워크플로는 권고 사항이다. Claude와 다른
 hook 가능 호스트는 호스트가 지원하는 곳에서 실제 도구 경계 강제를 제공할 수

@@ -23,14 +23,14 @@ const RESERVED = new Set([
 // Core workflow skills keep their established source paths and join the index
 // by frontmatter alone. Source hierarchy never dictates the invocation name.
 const CORE_SOURCES = [
-  'rig/tier-1/skills/grilling/SKILL.md',
-  'rig/tier-1/skills/product-design/SKILL.md',
+  'rig/corpus/skills/grilling/SKILL.md',
+  'rig/corpus/skills/product-design/SKILL.md',
   'skills/rig/SKILL.md',
-  'rig/tier-1/skills/execution/SKILL.md',
-  'rig/tier-1/skills/tdd/SKILL.md',
-  'rig/tier-1/skills/debugging/SKILL.md',
-  'rig/tier-1/skills/code-review/SKILL.md',
-  'rig/tier-1/skills/onboarding/SKILL.md',
+  'rig/corpus/skills/execution/SKILL.md',
+  'rig/corpus/skills/tdd/SKILL.md',
+  'rig/corpus/skills/debugging/SKILL.md',
+  'rig/corpus/skills/code-review/SKILL.md',
+  'rig/corpus/skills/onboarding/SKILL.md',
 ];
 
 const TAXONOMY_ID = 'skill-shelf-v1';

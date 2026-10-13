@@ -10,9 +10,9 @@ const root = path.join(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 
 test('RIG-119 folds spec-driven requests into grilling and product design', () => {
-  const router = read('rig/tier-1/routing.md');
-  const grilling = read('rig/tier-1/skills/grilling/SKILL.md');
-  const productDesign = read('rig/tier-1/skills/product-design/SKILL.md');
+  const router = read('rig/corpus/routing.md');
+  const grilling = read('rig/corpus/skills/grilling/SKILL.md');
+  const productDesign = read('rig/corpus/skills/product-design/SKILL.md');
 
   assert.match(router, /spec-driven requests[^\n]+rig-grilling[^\n]+rig-product-design/i);
   assert.match(router, /\| `rig-grilling` \|[^\n]+spec(?:ification|-driven)/i);

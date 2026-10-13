@@ -1,116 +1,86 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
+'use strict';
+
+// One authoring authority (subplan 03 Contract). This gate keeps its historical
+// name because `npm test` pins it, but it no longer compares hand-kept copies:
+//   1. the projection is reproducible: every generated host file in this
+//      repository (native skill directories, workflows, the six host rule files,
+//      AGENTS.md after its pointer line) equals what project() yields from
+//      rig/corpus/ — regenerate with `node scripts/project-repo.js`;
+//   2. no twin: no file under rig/corpus/ is byte-identical to a file elsewhere
+//      in the repository, other than those generated host projections;
+//   3. the load-bearing rule phrases survive in the implementation skill and in
+//      the canonical repository instructions.
+
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const path = require('node:path');
+const { generatedFiles } = require('./project-repo');
 
 const root = path.join(__dirname, '..');
+const SKIP_DIRS = new Set(['node_modules', '.git', '.venv', '.context']);
+// History and fixtures quote corpus bytes on purpose; they are provenance, not authorities.
+const PROVENANCE = (file) => file.startsWith('wiki/') || file.startsWith('docs/superpowers/') || file.startsWith('tests/fixtures/');
+const MIN_TWIN_BYTES = 64;
 
-function read(relPath) {
-  return fs.readFileSync(path.join(root, relPath), 'utf8').replace(/\r\n/g, '\n').trim();
-}
-
-function stripFrontmatter(text) {
-  return text.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
-}
-
-const agents = read('AGENTS.md');
-// The Rig routing pointer lives in AGENTS.md for this repo only; the per-host
-// rig copies stay pure Rig, so it is not part of the canonical body.
-const canonical = agents
-  .replace(/^Before acting, read `rig\/tier-1\/routing\.md`[^\n]*\n+/, '')
-  .replace(/\n\n\(Yes, this file also applies[\s\S]*?\)$/, '')
-  .trim();
-
-// Compact copies: same body as AGENTS.md, host-specific frontmatter stripped.
-const copies = [
-  ['.cursor/rules/rig.mdc', stripFrontmatter],
-  ['.windsurf/rules/rig.md', text => text.trim()],
-  ['.clinerules/rig.md', text => text.trim()],
-  ['.agents/rules/rig.md', text => text.trim()],
-  ['.github/copilot-instructions.md', text => text.trim()],
-  ['.kiro/steering/rig.md', stripFrontmatter],
-];
-
-let failed = false;
-
-for (const [relPath, normalize] of copies) {
-  const actual = normalize(read(relPath));
-  if (actual !== canonical) {
-    console.error(`${relPath} drifted from AGENTS.md`);
-    failed = true;
-  }
-}
-
-// SKILL.md is the runtime source of truth and is longer than the compact body,
-// so it cannot be byte-compared. rig: canary, not full equality. Assert the
-// load-bearing rules survive verbatim in both the source and AGENTS.md. Changing
-// a rule's wording trips this, which is the reminder to propagate it everywhere.
-// Upgrade path: generate the copies from SKILL.md if this ever misses a real drift.
 const INVARIANTS = [
-  'naive heuristic',                       // ceiling-comment rule
-  'ONE runnable check',                    // test reflex
-  'flimsier algorithm',                    // robust-variant rule
-  // the four "not lazy about" safety carve-outs: pin each so a reword in either
-  // file can't silently drop one. Only validation was pinned before. These are the
-  // continuous substrings present in both files ("prevents data loss" because the
-  // full "error handling that prevents data loss" wraps a line in SKILL.md).
-  'input validation at trust boundaries',
-  'prevents data loss',
-  'security',
-  'accessibility',
-  'Lazy code without its check is unfinished', // one-check promoted to headline
+  'naive heuristic', 'ONE runnable check', 'flimsier algorithm', 'input validation at trust boundaries',
+  'prevents data loss', 'security', 'accessibility', 'Lazy code without its check is unfinished',
 ];
 
-const skill = read('skills/rig/SKILL.md');
-const sources = [['skills/rig/SKILL.md', skill], ['AGENTS.md', agents]];
-for (const phrase of INVARIANTS) {
-  for (const [label, text] of sources) {
-    if (!text.includes(phrase)) {
-      console.error(`${label} is missing rule invariant: "${phrase}"`);
-      failed = true;
-    }
+function walk(dir, out = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (SKIP_DIRS.has(entry.name)) continue;
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(abs, out);
+    else if (entry.isFile()) out.push(abs);
   }
-}
-
-// `.claude/skills/` (native Claude discovery) and `.agents/skills/` (Codex
-// discovery) are two roots for the same payload; CLAUDE.md requires them to stay
-// identical. Nothing regenerates one from the other, so a skill added under one
-// root silently misses the other. Compare the two trees by relative file path:
-// any path present in one and not the other fails the build, naming the file.
-// Byte-level parity is deliberately out of scope here — that question rides with
-// the deferred single-source expander (wiki/reasoning/2026-09-02-deferred-single-rig-directory.md).
-function listSkillTree(relRoot) {
-  const absRoot = path.join(root, relRoot);
-  if (!fs.existsSync(absRoot)) return [];
-  const out = [];
-  const walk = dir => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-      const abs = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(abs);
-      else out.push(path.relative(absRoot, abs));
-    }
-  };
-  walk(absRoot);
   return out;
 }
 
-const claudeSkills = new Set(listSkillTree('.claude/skills'));
-const agentsSkills = new Set(listSkillTree('.agents/skills'));
-for (const rel of claudeSkills) {
-  if (!agentsSkills.has(rel)) {
-    console.error(`.agents/skills/${rel} missing (present under .claude/skills/)`);
-    failed = true;
+const digestOf = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
+const relOf = (abs) => path.relative(root, abs).split(path.sep).join('/');
+
+function main() {
+  const problems = [];
+
+  const generated = generatedFiles(root);
+  for (const [rel, bytes] of generated) {
+    const abs = path.join(root, rel);
+    if (!fs.existsSync(abs) || !fs.readFileSync(abs).equals(bytes)) problems.push(`${rel} is not what the corpus projects (run: node scripts/project-repo.js)`);
   }
-}
-for (const rel of agentsSkills) {
-  if (!claudeSkills.has(rel)) {
-    console.error(`.claude/skills/${rel} missing (present under .agents/skills/)`);
-    failed = true;
+
+  const bySize = new Map();
+  for (const abs of walk(root)) {
+    const rel = relOf(abs);
+    if (rel.startsWith('rig/corpus/') || PROVENANCE(rel)) continue;
+    const size = fs.statSync(abs).size;
+    if (size >= MIN_TWIN_BYTES) (bySize.get(size) || bySize.set(size, []).get(size)).push(rel);
   }
+  for (const abs of walk(path.join(root, 'rig/corpus'))) {
+    const size = fs.statSync(abs).size;
+    const candidates = bySize.get(size);
+    if (!candidates) continue;
+    const digest = digestOf(fs.readFileSync(abs));
+    for (const other of candidates) {
+      if (generated.has(other)) continue;
+      if (digestOf(fs.readFileSync(path.join(root, other))) === digest) problems.push(`${relOf(abs)} is duplicated at ${other} (a corpus file has exactly one home)`);
+    }
+  }
+
+  const skill = fs.readFileSync(path.join(root, 'skills/rig/SKILL.md'), 'utf8');
+  const instructions = fs.readFileSync(path.join(root, 'rig/corpus/rules/repo-instructions.md'), 'utf8');
+  for (const phrase of INVARIANTS) {
+    for (const [label, text] of [['skills/rig/SKILL.md', skill], ['rig/corpus/rules/repo-instructions.md', instructions]]) {
+      if (!text.includes(phrase)) problems.push(`${label} is missing rule invariant: "${phrase}"`);
+    }
+  }
+
+  if (problems.length) {
+    console.error(problems.join('\n'));
+    process.exit(1);
+  }
+  console.log(`The projection is reproducible (${generated.size} generated files); no corpus file has a twin; ${INVARIANTS.length} rule invariants present.`);
 }
 
-if (failed) {
-  console.error('Update the copied rule text, AGENTS.md, SKILL.md, or the skill trees so the shared payloads match.');
-  process.exit(1);
-}
-
-console.log(`Rule copies match AGENTS.md; ${INVARIANTS.length} rule invariants present in SKILL.md and AGENTS.md; .claude/skills and .agents/skills trees match (${claudeSkills.size} files).`);
+main();

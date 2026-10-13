@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
-const routing = fs.readFileSync(path.join(root, 'rig/tier-1/routing.md'), 'utf8');
+const routing = fs.readFileSync(path.join(root, 'rig/corpus/routing.md'), 'utf8');
 const packageScripts = require(path.join(root, 'package.json')).scripts;
 
 function section(name) {

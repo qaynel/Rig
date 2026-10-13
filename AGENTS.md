@@ -1,4 +1,4 @@
-Before acting, read `rig/tier-1/routing.md` and route this task through its skill table, and read the owner-locked "North star" decisions at the top of `CLAUDE.md` — never re-ask or contradict them.
+Before acting, read `rig/corpus/routing.md` and route this task through its skill table, and read the owner-locked "North star" decisions at the top of `CLAUDE.md` — never re-ask or contradict them.
 
 # Rig Agent Instructions
 

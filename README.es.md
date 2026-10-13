@@ -9,7 +9,7 @@
 Rig es una caja de herramientas curada e independiente del host para agentes de
 programación. Ofrece dos superficies de entrega:
 
-1. **Bootstrap solo Markdown (Tier 1)** — un router compartido, una regla de
+1. **Instalación del corpus** — un router compartido, una regla de
    implementación Ponytail siempre activa y skills enfocadas para intención,
    diseño, ejecución, TDD, depuración y revisión de código. Sin procesos, claves
    de API ni dependencias.
@@ -43,11 +43,10 @@ el catálogo activo y el runtime de seguridad quedan incluidos:
 sh install.sh --version v5.0.0 --target /path/to/repository
 ```
 
-El bootstrap pregunta por el tier cuando se ejecuta de forma interactiva. La
-automatización puede tomar la misma decisión explícitamente:
+El bootstrap detecta los hosts existentes de forma mecánica:
 
 ```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 Sin `--hosts`, Rig detecta mecánicamente la configuración de host existente en
@@ -55,15 +54,15 @@ el registro de 19 hosts y no instala ningún árbol de host ausente. Limita o
 sobrescribe esa selección explícitamente con una lista separada por comas:
 
 ```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
-# o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+sh rig/bootstrap.sh --target /path/to/repository --hosts antigravity,codex
+# o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --target /path/to/repository
 ```
 
 El bootstrap requiere `node` en el `PATH`. Su salida nombra cada host
 detectado o explícito y registra cada escritura de payload en
 `.rig/install-manifest.jsonl`.
 
-Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
+Rig instala el mismo conjunto de instrucciones para estos entrypoints de
 host:
 
 - Claude Code recibe skills de proyecto en `.claude/skills/` y un puntero al
@@ -99,7 +98,7 @@ repositorios destino.
 | Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
-| Otros agentes | Configura el host para leer `.rig/routing.md`, o agrega el puntero de una línea de `rig/tier-1/adapters/pointer.md` a sus instrucciones de proyecto. |
+| Otros agentes | Configura el host para leer `.rig/routing.md`, o agrega el puntero de una línea de `rig/corpus/projections/adapters/pointer.md` a sus instrucciones de proyecto. |
 
 ### Hermes Agent
 
@@ -123,7 +122,7 @@ Detalles del operador: [`docs/advanced/operator.md`](docs/advanced/operator.md).
 Diseño y razonamiento: [`wiki/`](wiki/).
 
 La CLI legacy del configurador MCP sigue disponible como compatibilidad; ya no
-es un tier de instalación separado.
+es una vía de instalación separada.
 
 ## Columna vertebral de curaduría
 
@@ -140,12 +139,12 @@ es un tier de instalación separado.
 Las skills curadas etiquetan sus checks por fase del flujo de trabajo. Fusionan
 las partes distintivas de cada flujo en vez de concatenar documentos fuente.
 
-## Límite del bootstrap Markdown
+## Límite de la instalación
 
-El bootstrap Tier 1 es intencionalmente una instalación tonta con una lista fija
-de archivos. No tiene resolvedor de catálogo, runtime, claves ni manejo de
-`.env`. El layout compartido es predecible para que el materializer del
-catálogo lo describa sin cambiar la forma instalada.
+Toda instalación se proyecta desde un único corpus (`rig/corpus/`) con detección
+mecánica de hosts; tu propio agente la adapta después con `rig-onboarding`. La
+instalación por defecto solo contiene instrucciones; `--with-runtime` añade los
+scripts y el catálogo. Nunca se instalan claves ni archivos `.env`.
 
 El flujo de trabajo es asesor porque el bootstrap solo entrega Markdown. Claude
 y otros hosts con hooks pueden proveer enforcement real donde el host lo
