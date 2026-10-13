@@ -221,6 +221,51 @@ test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and preser
   });
 });
 
+test('AT-PROC-1ac (RIG-145): runReadOnly decides network isolation per command, at parity with runGrade, and reports changed_paths', () => {
+  const net = require('node:net');
+  withRepo((target) => {
+    const server = net.createServer((socket) => socket.end());
+    server.listen(0);
+    const { port } = server.address();
+    const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-readonly-parity-'));
+    const connected = path.join(scratch, 'ungranted-connected.marker');
+    const granted = path.join(scratch, 'granted-ran.marker');
+    const probe = path.join(scratch, 'network-check.js');
+    fs.writeFileSync(probe, `
+      const net = require('net');
+      const done = () => process.exit(0);
+      setTimeout(done, 800);
+      const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
+        require('fs').writeFileSync(${JSON.stringify(connected)}, 'connected');
+        socket.end();
+        done();
+      });
+      socket.on('error', done);
+    `);
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
+    const savedPath = process.env.PATH;
+    try {
+      process.env.PATH = emptyBin;
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, probe] },
+        { argv: [process.execPath, '-e', `require('fs').writeFileSync(${JSON.stringify(granted)}, 'ran')`], network: true },
+      ]);
+      assert.equal(fs.existsSync(granted), true,
+        'the network-granted command after an ungranted one was skipped -- runReadOnly batch-aborted where runGrade decides per command');
+      assert.equal(fs.existsSync(connected), false, 'an ungranted read-only command reached the listener');
+      assert.equal(result.status, 'network_isolation_unavailable');
+      assert.deepEqual(result.changed_paths, []);
+      assert.equal(result.commands[0].status, 'network_isolation_unavailable');
+      assert.equal(result.commands[1].status, 'clean');
+    } finally {
+      process.env.PATH = savedPath;
+      server.close();
+      fs.rmSync(emptyBin, { recursive: true, force: true });
+      fs.rmSync(scratch, { recursive: true, force: true });
+    }
+  });
+});
+
 test('AT-PROC-1r (2026-08-29 review): runAutofix denies ungranted network access and reports isolation-unavailable, at parity with runGrade/runReadOnly', () => {
   const net = require('node:net');
   withRepo((target) => {

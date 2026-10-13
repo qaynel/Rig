@@ -693,10 +693,13 @@ function runReadOnly(target, commands) {
   const isolation = networkIsolationPrefix();
   const preState = snapshotDir(target);
   const changed_paths = [];
+  const outcomes = [];
   for (const cmd of commands) {
+    // RIG-145: like runGrade, an ungranted command is marked and skipped; the
+    // network-granted commands after it still run.
     if (!isolation && cmd.network !== true) {
-      console.warn('runReadOnly: network isolation unavailable; skipping read-only tasks');
-      return { status: 'network_isolation_unavailable' };
+      outcomes.push({ status: 'network_isolation_unavailable' });
+      continue;
     }
     let cwd;
     try {
@@ -721,8 +724,10 @@ function runReadOnly(target, commands) {
       for (const rel of diff) if (!changed_paths.includes(rel)) changed_paths.push(rel);
       return { status: 'mutated', changed_paths };
     }
+    outcomes.push({ status: 'clean' });
   }
-  return { status: 'clean', changed_paths };
+  const unavailable = outcomes.some((outcome) => outcome.status === 'network_isolation_unavailable');
+  return { status: unavailable ? 'network_isolation_unavailable' : 'clean', changed_paths, commands: outcomes };
 }
 
 // Tooling caches and build outputs are ignorable mutations — a lint or format
