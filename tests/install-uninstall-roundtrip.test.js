@@ -555,3 +555,20 @@ test('missing shim restores the chained backup instead of orphaning it', () => w
   assert.equal(fs.existsSync(path.join(hookDir, 'pre-commit.rig-chained')), false);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), false);
 }));
+
+test('RIG-127.11 uninstall leaves a corrupted global config byte-identical and reports it best-effort', () => withTarget((target) => {
+  const globalFile = path.join(target, 'global-config.json');
+  const corrupt = '{"rig": {"repo-a": {"enabled": true}, oops\n';
+  fs.writeFileSync(globalFile, corrupt);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), `${JSON.stringify({
+    entries: [{ kind: 'json-namespace', path: globalFile, install_id: 'repo-a' }],
+  })}\n`);
+
+  let result;
+  assert.doesNotThrow(() => { result = uninstall(target); });
+
+  assert.equal(result.status, 'best_effort');
+  assert.ok(result.best_effort.includes(globalFile));
+  assert.equal(fs.readFileSync(globalFile, 'utf8'), corrupt);
+}));

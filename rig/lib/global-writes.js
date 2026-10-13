@@ -197,8 +197,13 @@ function mergeGlobalConfig(file, { install_id, value }) {
 
 function removeGlobalConfig(file, install_id) {
   if (!fs.existsSync(file)) return { removed: false };
-  const current = readJson(file);
-  if (!current.rig || !(install_id in current.rig)) return { removed: false };
+  let current;
+  try {
+    current = readJson(file);
+  } catch {
+    return { removed: false };
+  }
+  if (!current || !current.rig || !(install_id in current.rig)) return { removed: false };
   delete current.rig[install_id];
   writeJson(file, current);
   return { removed: true };
