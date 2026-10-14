@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds stale cleanup to repo-hygiene.stale-cleanup. It uses `stale-cleanup-slice-property-floor` and checks candidate_paths (nonempty): candidate paths must name the concrete repository contract..
 
-Anchor the review on a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/development.repo-hygiene.stale-cleanup.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Select an approved repository-owned command to verify that behavior..
+For stale cleanup, choose a repository example that satisfies candidate_paths at the property-floor floor, plus a failure where candidate paths must name the concrete repository contract. is false. For stale cleanup, wire `property-floor` to `rig-services/development.repo-hygiene.stale-cleanup.json` and keep its verdict on candidate_paths; missing evidence is a named gap, with ceiling stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Choose a repository-owned check that observes stale cleanup from rig-services/development.repo-hygiene.stale-cleanup.json..
 
 Service-specific evidence cues:
-Establish that a stale candidate has no remaining callers before removing it. Retain a recoverable deletion and preserve user-owned files that only look unused.
-
-Owned scope: `repo-hygiene.stale-cleanup`.
-
 Offer: Establish that a stale candidate has no remaining callers before removing it. Retain a recoverable deletion and preserve user-owned files that only look unused.
-
-Input: `rig-services/development.repo-hygiene.stale-cleanup.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: candidate paths — ["unused/generated.js"].
-
 mid: reference checks — ["search callers"].
-
 maximal: delete without recovery — false.

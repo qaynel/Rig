@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds api client generation to code-creation.api-client-generation. It uses `api-client-generation-slice-floor` and checks specification_path (nonempty): specification path must name the concrete repository contract..
 
-Use a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/development.code-creation.api-client-generation.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than api client generation configuration validation only; declared policy does not prove running api client generation behavior. Select an approved repository-owned command to verify that behavior..
+For api client generation, choose a repository example that satisfies specification_path at the floor and mutation-floor floor, plus a failure where specification path must name the concrete repository contract. is false. For api client generation, wire `floor and mutation-floor` to `rig-services/development.code-creation.api-client-generation.json` and keep its verdict on specification_path; missing evidence is a named gap, with ceiling api client generation configuration validation only; declared policy does not prove running api client generation behavior. Choose a repository-owned check that observes api client generation from rig-services/development.code-creation.api-client-generation.json..
 
 Service-specific evidence cues:
-Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.
-
-Owned scope: `code-creation.api-client-generation`.
-
 Offer: Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.
-
-Input: `rig-services/development.code-creation.api-client-generation.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: api client generation configuration validation only; declared policy does not prove running api client generation behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: specification path — "openapi.json".
-
 mid: compatibility version — "1.0.0".
-
 maximal: unknown response policy — "fail-explicitly".

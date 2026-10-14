@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds issue pr triage to repo-hygiene.issue-pr-triage. It uses `issue-pr-triage-slice-behavior-oracle` and checks triage_labels (nonempty): triage labels must name the concrete repository contract..
 
-Inspect a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/development.repo-hygiene.issue-pr-triage.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Select an approved repository-owned command to verify that behavior..
+For issue pr triage, choose a repository example that satisfies triage_labels at the behavior-oracle floor, plus a failure where triage labels must name the concrete repository contract. is false. For issue pr triage, wire `behavior-oracle` to `rig-services/development.repo-hygiene.issue-pr-triage.json` and keep its verdict on triage_labels; missing evidence is a named gap, with ceiling issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Choose a repository-owned check that observes issue pr triage from rig-services/development.repo-hygiene.issue-pr-triage.json..
 
 Service-specific evidence cues:
-Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
-
-Owned scope: `repo-hygiene.issue-pr-triage`.
-
 Offer: Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
-
-Input: `rig-services/development.repo-hygiene.issue-pr-triage.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: triage labels — ["bug","needs-reproduction"].
-
 mid: responsible owners — ["maintainers"].
-
 maximal: close without disposition — false.

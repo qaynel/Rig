@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds system design to architecture.system-design. It uses `system-design-slice-behavior-oracle` and checks components (nonempty): components must name the concrete repository contract..
 
-Inspect a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/development.architecture.system-design.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior..
+For system design, choose a repository example that satisfies components at the behavior-oracle floor, plus a failure where components must name the concrete repository contract. is false. For system design, wire `behavior-oracle` to `rig-services/development.architecture.system-design.json` and keep its verdict on components; missing evidence is a named gap, with ceiling system design configuration validation only; declared policy does not prove running system design behavior. Choose a repository-owned check that observes system design from rig-services/development.architecture.system-design.json..
 
 Service-specific evidence cues:
-Name the system components and the trust boundaries between them. Evaluate failure modes before adopting the diagram as a design; arrows alone do not explain resilience.
-
-Owned scope: `architecture.system-design`.
-
 Offer: Name the system components and the trust boundaries between them. Evaluate failure modes before adopting the diagram as a design; arrows alone do not explain resilience.
-
-Input: `rig-services/development.architecture.system-design.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: components — ["api","database"].
-
 mid: trust boundaries — ["external input enters api"].
-
 maximal: failure modes — ["database unavailable"].
