@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { root, readJson } = require('./helpers/advanced');
-const { validateCatalog } = require('../rig/lib/catalog');
+const { validateCatalog, authoredBodiesReport } = require('../rig/lib/catalog');
 
 const expectedPath = path.join(
   __dirname,
@@ -98,6 +98,25 @@ test('catalog validator rejects missing strict grade growth', () => {
     () => validateCatalog({ services: [service] }),
     /maximal must strictly grow beyond mid/,
   );
+});
+
+test('authored service gate rejects known boilerplate and near-duplicate bodies', () => {
+  const boilerplate = authoredBodiesReport([
+    { id: 'development.one', part: 'identity', text: '# One\n\nThis is generic baseline practice for the service.' },
+  ]);
+  assert.equal(boilerplate.length, 1);
+  assert.match(boilerplate[0].reason, /known boilerplate/i);
+
+  const body = '# Infrastructure one\n\nInspect the deployment manifest and prove each region has an independent rollback path.';
+  const nearDuplicate = authoredBodiesReport([
+    { id: 'infrastructure.one', part: 'identity', text: body },
+    { id: 'infrastructure.two', part: 'identity', text: `${body} Keep rollback easy.` },
+  ]);
+  assert.ok(nearDuplicate.some((failure) => /shares .* of its body with infrastructure\.one/.test(failure.reason)));
+
+  const live = require('../rig/lib/catalog').authorshipReport();
+  assert.equal(live.services.length, 115);
+  assert.deepEqual(live.failures, []);
 });
 
 test('MECE scope-map spot checks (Gate 1 AT-P3)', () => {
