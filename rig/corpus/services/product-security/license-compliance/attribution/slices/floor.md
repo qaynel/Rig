@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds attribution to license-compliance.attribution. It uses `attribution-slice-floor` and checks notice_paths (nonempty): notice paths must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/product-security.license-compliance.attribution.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than attribution configuration validation only; declared policy does not prove running attribution behavior. Select an approved repository-owned command to verify that behavior..
+For attribution, choose a repository example that satisfies notice_paths at the floor and mutation-floor floor, plus a failure where notice paths must name the concrete repository contract. is false. For attribution, wire `floor and mutation-floor` to `rig-services/product-security.license-compliance.attribution.json` and keep its verdict on notice_paths; missing evidence is a named gap, with ceiling attribution configuration validation only; declared policy does not prove running attribution behavior. Choose a repository-owned check that observes attribution from rig-services/product-security.license-compliance.attribution.json..
 
 Service-specific evidence cues:
-Retain the required notices for redistributed third-party components and keep attribution tied to the inventory. A license label cannot replace a required copyright notice.
-
-Owned scope: `license-compliance.attribution`.
-
 Offer: Retain the required notices for redistributed third-party components and keep attribution tied to the inventory. A license label cannot replace a required copyright notice.
-
-Input: `rig-services/product-security.license-compliance.attribution.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: attribution configuration validation only; declared policy does not prove running attribution behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: notice paths — ["THIRD_PARTY_NOTICES"].
-
 mid: attributed components — ["library@1.0.0"].
-
 maximal: remove required notices — false.

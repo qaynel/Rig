@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds abuse resistance to red-team.abuse-resistance. It uses `abuse-resistance-slice-property-floor` and checks abuse_cases (nonempty): abuse cases must name the concrete repository contract..
 
-Use a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/product-security.red-team.abuse-resistance.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Select an approved repository-owned command to verify that behavior..
+For abuse resistance, choose a repository example that satisfies abuse_cases at the property-floor floor, plus a failure where abuse cases must name the concrete repository contract. is false. For abuse resistance, wire `property-floor` to `rig-services/product-security.red-team.abuse-resistance.json` and keep its verdict on abuse_cases; missing evidence is a named gap, with ceiling abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Choose a repository-owned check that observes abuse resistance from rig-services/product-security.red-team.abuse-resistance.json..
 
 Service-specific evidence cues:
-Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
-
-Owned scope: `red-team.abuse-resistance`.
-
 Offer: Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
-
-Input: `rig-services/product-security.red-team.abuse-resistance.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: abuse cases — ["credential stuffing"].
-
 mid: rate limit policy — "per identity and IP".
-
 maximal: unbounded public requests — false.

@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds precommit leak scanner to secrets.precommit-leak-scanner. It uses `precommit-leak-scanner-slice-floor` and checks scanner_command (nonempty): scanner command must name the concrete repository contract..
 
-Use a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/product-security.secrets.precommit-leak-scanner.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than precommit leak scanner configuration validation only; declared policy does not prove running precommit leak scanner behavior. Select an approved repository-owned command to verify that behavior..
+For precommit leak scanner, choose a repository example that satisfies scanner_command at the floor and mutation-floor floor, plus a failure where scanner command must name the concrete repository contract. is false. For precommit leak scanner, wire `floor and mutation-floor` to `rig-services/product-security.secrets.precommit-leak-scanner.json` and keep its verdict on scanner_command; missing evidence is a named gap, with ceiling precommit leak scanner configuration validation only; declared policy does not prove running precommit leak scanner behavior. Choose a repository-owned check that observes precommit leak scanner from rig-services/product-security.secrets.precommit-leak-scanner.json..
 
 Service-specific evidence cues:
-Run the available leak scanner against the staged change and keep its failure authoritative. A missing scanner needs installation guidance rather than a clean secret-safety claim.
-
-Owned scope: `secrets.precommit-leak-scanner`.
-
 Offer: Run the available leak scanner against the staged change and keep its failure authoritative. A missing scanner needs installation guidance rather than a clean secret-safety claim.
-
-Input: `rig-services/product-security.secrets.precommit-leak-scanner.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: precommit leak scanner configuration validation only; declared policy does not prove running precommit leak scanner behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: scanner command — ["gitleaks","protect"].
-
 mid: scan scope — "staged-diff".
-
 maximal: ignore scanner exit — false.

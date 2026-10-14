@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds sbom inventory to license-compliance.sbom-inventory. It uses `sbom-inventory-slice-floor` and checks sbom_format (nonempty): sbom format must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/product-security.license-compliance.sbom-inventory.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Select an approved repository-owned command to verify that behavior..
+For sbom inventory, choose a repository example that satisfies sbom_format at the floor and mutation-floor floor, plus a failure where sbom format must name the concrete repository contract. is false. For sbom inventory, wire `floor and mutation-floor` to `rig-services/product-security.license-compliance.sbom-inventory.json` and keep its verdict on sbom_format; missing evidence is a named gap, with ceiling sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Choose a repository-owned check that observes sbom inventory from rig-services/product-security.license-compliance.sbom-inventory.json..
 
 Service-specific evidence cues:
-Record a machine-readable software inventory with exact component versions. An SBOM describes shipped components; it does not by itself establish license or vulnerability compliance.
-
-Owned scope: `license-compliance.sbom-inventory`.
-
 Offer: Record a machine-readable software inventory with exact component versions. An SBOM describes shipped components; it does not by itself establish license or vulnerability compliance.
-
-Input: `rig-services/product-security.license-compliance.sbom-inventory.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: sbom format — "cyclonedx".
-
 mid: components — ["library@1.0.0"].
-
 maximal: omit dependency versions — false.
