@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.maintenance.readability-dry",
+  "input": "rig-services/testing.maintenance.readability-dry.json",
+  "format": "json",
+  "ceiling": "readability dry configuration validation only; declared policy does not prove running readability dry behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Name scenarios by the behavior they establish and share setup only where it clarifies them. Hiding every assertion behind helpers makes failures harder to interpret.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "scenario_names",
+        "op": "nonempty",
+        "reason": "scenario names must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "shared_helpers",
+        "op": "nonempty",
+        "reason": "shared helpers must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "hide_assertions_in_helpers",
+        "op": "equals",
+        "value": false,
+        "reason": "hide assertions in helpers must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "readability-dry-slice-floor",
+      "rule": {
+        "field": "scenario_names",
+        "op": "nonempty",
+        "reason": "scenario names must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "readability-dry-slice-behavior-oracle",
+      "rule": {
+        "field": "scenario_names",
+        "op": "nonempty",
+        "reason": "scenario names must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "readability-dry-slice-property-floor",
+      "rule": {
+        "field": "scenario_names",
+        "op": "nonempty",
+        "reason": "scenario names must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "readability-dry-slice-mutation-floor",
+      "rule": {
+        "field": "scenario_names",
+        "op": "nonempty",
+        "reason": "scenario names must name the concrete repository contract."
+      }
+    }
+  }
+}

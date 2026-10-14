@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.unit.mocking-strategy",
+  "input": "rig-services/testing.unit.mocking-strategy.json",
+  "format": "json",
+  "ceiling": "mocking strategy configuration validation only; declared policy does not prove running mocking strategy behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "mocked_boundaries",
+        "op": "nonempty",
+        "reason": "mocked boundaries must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "real_components",
+        "op": "nonempty",
+        "reason": "real components must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "mock_unit_under_test",
+        "op": "equals",
+        "value": false,
+        "reason": "mock unit under test must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "mocking-strategy-slice-floor",
+      "rule": {
+        "field": "mocked_boundaries",
+        "op": "nonempty",
+        "reason": "mocked boundaries must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "mocking-strategy-slice-behavior-oracle",
+      "rule": {
+        "field": "mocked_boundaries",
+        "op": "nonempty",
+        "reason": "mocked boundaries must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "mocking-strategy-slice-property-floor",
+      "rule": {
+        "field": "mocked_boundaries",
+        "op": "nonempty",
+        "reason": "mocked boundaries must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "mocking-strategy-slice-mutation-floor",
+      "rule": {
+        "field": "mocked_boundaries",
+        "op": "nonempty",
+        "reason": "mocked boundaries must name the concrete repository contract."
+      }
+    }
+  }
+}

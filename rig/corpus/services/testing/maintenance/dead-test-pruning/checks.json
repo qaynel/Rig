@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.maintenance.dead-test-pruning",
+  "input": "rig-services/testing.maintenance.dead-test-pruning.json",
+  "format": "json",
+  "ceiling": "dead test pruning configuration validation only; declared policy does not prove running dead test pruning behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "obsolete cases must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_evidence",
+        "op": "nonempty",
+        "reason": "replacement evidence must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_live_regressions",
+        "op": "equals",
+        "value": false,
+        "reason": "delete live regressions must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dead-test-pruning-slice-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "obsolete cases must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dead-test-pruning-slice-behavior-oracle",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "obsolete cases must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "dead-test-pruning-slice-property-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "obsolete cases must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dead-test-pruning-slice-mutation-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "obsolete cases must name the concrete repository contract."
+      }
+    }
+  }
+}

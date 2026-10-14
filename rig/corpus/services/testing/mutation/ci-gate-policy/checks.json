@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.ci-gate-policy",
+  "input": "rig-services/testing.mutation.ci-gate-policy.json",
+  "format": "json",
+  "ceiling": "ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "minimum_score_percent",
+        "op": "minimum",
+        "value": 70,
+        "reason": "minimum score percent must meet the configured minimum of 70."
+      }
+    ],
+    "mid": [
+      {
+        "field": "timeout_policy",
+        "op": "nonempty",
+        "reason": "timeout policy must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_unrun_mutants",
+        "op": "equals",
+        "value": false,
+        "reason": "allow unrun mutants must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "ci-gate-policy-slice-floor",
+      "rule": {
+        "field": "minimum_score_percent",
+        "op": "minimum",
+        "value": 70,
+        "reason": "minimum score percent must meet the configured minimum of 70."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "ci-gate-policy-slice-behavior-oracle",
+      "rule": {
+        "field": "minimum_score_percent",
+        "op": "minimum",
+        "value": 70,
+        "reason": "minimum score percent must meet the configured minimum of 70."
+      }
+    },
+    "property-floor": {
+      "check_id": "ci-gate-policy-slice-property-floor",
+      "rule": {
+        "field": "minimum_score_percent",
+        "op": "minimum",
+        "value": 70,
+        "reason": "minimum score percent must meet the configured minimum of 70."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "ci-gate-policy-slice-mutation-floor",
+      "rule": {
+        "field": "minimum_score_percent",
+        "op": "minimum",
+        "value": 70,
+        "reason": "minimum score percent must meet the configured minimum of 70."
+      }
+    }
+  }
+}

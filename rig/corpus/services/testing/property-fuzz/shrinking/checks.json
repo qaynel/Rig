@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.property-fuzz.shrinking",
+  "input": "rig-services/testing.property-fuzz.shrinking.json",
+  "format": "json",
+  "ceiling": "shrinking configuration validation only; declared policy does not prove running shrinking behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "failure predicate must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "preserved_constraints",
+        "op": "nonempty",
+        "reason": "preserved constraints must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "drop_failure_during_shrink",
+        "op": "equals",
+        "value": false,
+        "reason": "drop failure during shrink must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "shrinking-slice-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "failure predicate must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "shrinking-slice-behavior-oracle",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "failure predicate must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "shrinking-slice-property-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "failure predicate must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "shrinking-slice-mutation-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "failure predicate must name the concrete repository contract."
+      }
+    }
+  }
+}

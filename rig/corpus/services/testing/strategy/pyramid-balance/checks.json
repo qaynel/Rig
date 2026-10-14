@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.pyramid-balance",
+  "input": "rig-services/testing.strategy.pyramid-balance.json",
+  "format": "json",
+  "ceiling": "pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "unit suites must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "integration_suites",
+        "op": "nonempty",
+        "reason": "integration suites must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "e2e_only_strategy",
+        "op": "equals",
+        "value": false,
+        "reason": "e2e only strategy must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "pyramid-balance-slice-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "unit suites must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "pyramid-balance-slice-behavior-oracle",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "unit suites must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "pyramid-balance-slice-property-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "unit suites must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "pyramid-balance-slice-mutation-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "unit suites must name the concrete repository contract."
+      }
+    }
+  }
+}

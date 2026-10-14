@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.execution-orchestrator",
+  "input": "rig-services/testing.mutation.execution-orchestrator.json",
+  "format": "json",
+  "ceiling": "execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "worker limit must meet the configured minimum of 2."
+      }
+    ],
+    "mid": [
+      {
+        "field": "per_mutant_timeout_ms",
+        "op": "minimum",
+        "value": 1000,
+        "reason": "per mutant timeout ms must meet the configured minimum of 1000."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "share_mutable_worktrees",
+        "op": "equals",
+        "value": false,
+        "reason": "share mutable worktrees must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "execution-orchestrator-slice-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "worker limit must meet the configured minimum of 2."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "execution-orchestrator-slice-behavior-oracle",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "worker limit must meet the configured minimum of 2."
+      }
+    },
+    "property-floor": {
+      "check_id": "execution-orchestrator-slice-property-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "worker limit must meet the configured minimum of 2."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "execution-orchestrator-slice-mutation-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "worker limit must meet the configured minimum of 2."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.regression.suite-curation",
+  "input": "rig-services/testing.regression.suite-curation.json",
+  "format": "json",
+  "ceiling": "suite curation configuration validation only; declared policy does not prove running suite curation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Keep the regressions that protect live behavior and give obsolete tests a written retirement reason. Removing a slow test without identifying its behavior owner can silently reopen a defect.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "retained suites must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "retirement_reasons",
+        "op": "nonempty",
+        "reason": "retirement reasons must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "remove_without_behavior_owner",
+        "op": "equals",
+        "value": false,
+        "reason": "remove without behavior owner must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "suite-curation-slice-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "retained suites must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "suite-curation-slice-behavior-oracle",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "retained suites must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "suite-curation-slice-property-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "retained suites must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "suite-curation-slice-mutation-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "retained suites must name the concrete repository contract."
+      }
+    }
+  }
+}

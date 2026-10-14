@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.maintenance.test-code-sync",
+  "input": "rig-services/testing.maintenance.test-code-sync.json",
+  "format": "json",
+  "ceiling": "test code sync configuration validation only; declared policy does not prove running test code sync behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Update tests from the intended contract when behavior changes. Copying new output into old assertions without a behavioral decision creates circular evidence.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "changed behaviors must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "updated_cases",
+        "op": "nonempty",
+        "reason": "updated cases must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "tests_follow_output_blindly",
+        "op": "equals",
+        "value": false,
+        "reason": "tests follow output blindly must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "test-code-sync-slice-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "changed behaviors must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "test-code-sync-slice-behavior-oracle",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "changed behaviors must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "test-code-sync-slice-property-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "changed behaviors must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "test-code-sync-slice-mutation-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "changed behaviors must name the concrete repository contract."
+      }
+    }
+  }
+}

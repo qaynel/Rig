@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.language-adapter",
+  "input": "rig-services/testing.mutation.language-adapter.json",
+  "format": "json",
+  "ceiling": "language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "source extensions must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "compiler_command",
+        "op": "nonempty",
+        "reason": "compiler command must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "parse_errors_are_success",
+        "op": "equals",
+        "value": false,
+        "reason": "parse errors are success must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "language-adapter-slice-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "source extensions must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "language-adapter-slice-behavior-oracle",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "source extensions must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "language-adapter-slice-property-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "source extensions must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "language-adapter-slice-mutation-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "source extensions must name the concrete repository contract."
+      }
+    }
+  }
+}

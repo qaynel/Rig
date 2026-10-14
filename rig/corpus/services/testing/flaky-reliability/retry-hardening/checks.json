@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.flaky-reliability.retry-hardening",
+  "input": "rig-services/testing.flaky-reliability.retry-hardening.json",
+  "format": "json",
+  "ceiling": "retry hardening configuration validation only; declared policy does not prove running retry hardening behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "retryable failures must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "maximum_attempts",
+        "op": "minimum",
+        "value": 3,
+        "reason": "maximum attempts must meet the configured minimum of 3."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "retry_assertion_failures",
+        "op": "equals",
+        "value": false,
+        "reason": "retry assertion failures must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "retry-hardening-slice-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "retryable failures must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "retry-hardening-slice-behavior-oracle",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "retryable failures must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "retry-hardening-slice-property-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "retryable failures must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "retry-hardening-slice-mutation-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "retryable failures must name the concrete repository contract."
+      }
+    }
+  }
+}

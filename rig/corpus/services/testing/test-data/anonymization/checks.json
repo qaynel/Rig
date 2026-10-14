@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.test-data.anonymization",
+  "input": "rig-services/testing.test-data.anonymization.json",
+  "format": "json",
+  "ceiling": "anonymization configuration validation only; declared policy does not prove running anonymization behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "sensitive fields must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_strategy",
+        "op": "nonempty",
+        "reason": "replacement strategy must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "retain_reidentification_map",
+        "op": "equals",
+        "value": false,
+        "reason": "retain reidentification map must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "anonymization-slice-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "sensitive fields must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "anonymization-slice-behavior-oracle",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "sensitive fields must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "anonymization-slice-property-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "sensitive fields must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "anonymization-slice-mutation-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "sensitive fields must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.coverage-gap",
+  "input": "rig-services/testing.strategy.coverage-gap.json",
+  "format": "json",
+  "ceiling": "coverage gap configuration validation only; declared policy does not prove running coverage gap behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Map untested behavior to business risk and owners. Line coverage can locate unused paths, but it does not prove that important outcomes are asserted.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "uncovered behaviors must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "risk_owners",
+        "op": "nonempty",
+        "reason": "risk owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "claim_complete_from_line_coverage",
+        "op": "equals",
+        "value": false,
+        "reason": "claim complete from line coverage must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "coverage-gap-slice-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "uncovered behaviors must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "coverage-gap-slice-behavior-oracle",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "uncovered behaviors must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "coverage-gap-slice-property-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "uncovered behaviors must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "coverage-gap-slice-mutation-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "uncovered behaviors must name the concrete repository contract."
+      }
+    }
+  }
+}

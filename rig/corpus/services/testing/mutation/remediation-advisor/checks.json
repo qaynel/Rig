@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.remediation-advisor",
+  "input": "rig-services/testing.mutation.remediation-advisor.json",
+  "format": "json",
+  "ceiling": "remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "remediation_cases",
+        "op": "nonempty",
+        "reason": "remediation cases must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "target_behaviors",
+        "op": "nonempty",
+        "reason": "target behaviors must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "add_implementation_mirrors",
+        "op": "equals",
+        "value": false,
+        "reason": "add implementation mirrors must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "remediation-advisor-slice-floor",
+      "rule": {
+        "field": "remediation_cases",
+        "op": "nonempty",
+        "reason": "remediation cases must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "remediation-advisor-slice-behavior-oracle",
+      "rule": {
+        "field": "remediation_cases",
+        "op": "nonempty",
+        "reason": "remediation cases must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "remediation-advisor-slice-property-floor",
+      "rule": {
+        "field": "remediation_cases",
+        "op": "nonempty",
+        "reason": "remediation cases must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "remediation-advisor-slice-mutation-floor",
+      "rule": {
+        "field": "remediation_cases",
+        "op": "nonempty",
+        "reason": "remediation cases must name the concrete repository contract."
+      }
+    }
+  }
+}

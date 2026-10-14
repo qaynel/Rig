@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.equivalent-mutant-detector",
+  "input": "rig-services/testing.mutation.equivalent-mutant-detector.json",
+  "format": "json",
+  "ceiling": "equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "equivalence_evidence",
+        "op": "nonempty",
+        "reason": "equivalence evidence must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "review_owners",
+        "op": "nonempty",
+        "reason": "review owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "classify_by_survival_only",
+        "op": "equals",
+        "value": false,
+        "reason": "classify by survival only must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "equivalent-mutant-detector-slice-floor",
+      "rule": {
+        "field": "equivalence_evidence",
+        "op": "nonempty",
+        "reason": "equivalence evidence must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "equivalent-mutant-detector-slice-behavior-oracle",
+      "rule": {
+        "field": "equivalence_evidence",
+        "op": "nonempty",
+        "reason": "equivalence evidence must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "equivalent-mutant-detector-slice-property-floor",
+      "rule": {
+        "field": "equivalence_evidence",
+        "op": "nonempty",
+        "reason": "equivalence evidence must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "equivalent-mutant-detector-slice-mutation-floor",
+      "rule": {
+        "field": "equivalence_evidence",
+        "op": "nonempty",
+        "reason": "equivalence evidence must name the concrete repository contract."
+      }
+    }
+  }
+}

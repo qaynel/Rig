@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.property-fuzz.fuzz-input-generation",
+  "input": "rig-services/testing.property-fuzz.fuzz-input-generation.json",
+  "format": "json",
+  "ceiling": "fuzz input generation configuration validation only; declared policy does not prove running fuzz input generation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Generate adversarial inputs with a saved seed and bounded resource use. Retaining the seed is what makes a discovered failure a reproducible engineering result.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "input_seeds",
+        "op": "nonempty",
+        "reason": "input seeds must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "reproduction_seed",
+        "op": "minimum",
+        "value": 42,
+        "reason": "reproduction seed must meet the configured minimum of 42."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unbounded_input_size",
+        "op": "equals",
+        "value": false,
+        "reason": "unbounded input size must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "fuzz-input-generation-slice-floor",
+      "rule": {
+        "field": "input_seeds",
+        "op": "nonempty",
+        "reason": "input seeds must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "fuzz-input-generation-slice-behavior-oracle",
+      "rule": {
+        "field": "input_seeds",
+        "op": "nonempty",
+        "reason": "input seeds must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "fuzz-input-generation-slice-property-floor",
+      "rule": {
+        "field": "input_seeds",
+        "op": "nonempty",
+        "reason": "input seeds must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "fuzz-input-generation-slice-mutation-floor",
+      "rule": {
+        "field": "input_seeds",
+        "op": "nonempty",
+        "reason": "input seeds must name the concrete repository contract."
+      }
+    }
+  }
+}

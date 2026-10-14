@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.survivor-rca",
+  "input": "rig-services/testing.mutation.survivor-rca.json",
+  "format": "json",
+  "ceiling": "survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "surviving mutants must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "missing_assertions",
+        "op": "nonempty",
+        "reason": "missing assertions must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_equivalence_question",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore equivalence question must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "survivor-rca-slice-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "surviving mutants must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "survivor-rca-slice-behavior-oracle",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "surviving mutants must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "survivor-rca-slice-property-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "surviving mutants must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "survivor-rca-slice-mutation-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "surviving mutants must name the concrete repository contract."
+      }
+    }
+  }
+}

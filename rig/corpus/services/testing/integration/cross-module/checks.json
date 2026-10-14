@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.integration.cross-module",
+  "input": "rig-services/testing.integration.cross-module.json",
+  "format": "json",
+  "ceiling": "cross module configuration validation only; declared policy does not prove running cross module behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Exercise interactions between real modules and assert their shared observable result. Stubbing the internal boundary defeats the purpose of the integration check.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "participating_modules",
+        "op": "nonempty",
+        "reason": "participating modules must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "interaction_cases",
+        "op": "nonempty",
+        "reason": "interaction cases must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "stub_internal_contracts",
+        "op": "equals",
+        "value": false,
+        "reason": "stub internal contracts must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "cross-module-slice-floor",
+      "rule": {
+        "field": "participating_modules",
+        "op": "nonempty",
+        "reason": "participating modules must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "cross-module-slice-behavior-oracle",
+      "rule": {
+        "field": "participating_modules",
+        "op": "nonempty",
+        "reason": "participating modules must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "cross-module-slice-property-floor",
+      "rule": {
+        "field": "participating_modules",
+        "op": "nonempty",
+        "reason": "participating modules must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "cross-module-slice-mutation-floor",
+      "rule": {
+        "field": "participating_modules",
+        "op": "nonempty",
+        "reason": "participating modules must name the concrete repository contract."
+      }
+    }
+  }
+}

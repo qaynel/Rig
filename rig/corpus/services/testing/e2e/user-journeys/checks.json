@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.e2e.user-journeys",
+  "input": "rig-services/testing.e2e.user-journeys.json",
+  "format": "json",
+  "ceiling": "user journeys configuration validation only; declared policy does not prove running user journeys behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Follow the user through the complete outcome, including persistence or resulting state. A page-loading check cannot prove that the requested journey succeeded.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "journeys",
+        "op": "nonempty",
+        "reason": "journeys must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "observable_outcomes",
+        "op": "nonempty",
+        "reason": "observable outcomes must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "assert_only_page_loaded",
+        "op": "equals",
+        "value": false,
+        "reason": "assert only page loaded must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "user-journeys-slice-floor",
+      "rule": {
+        "field": "journeys",
+        "op": "nonempty",
+        "reason": "journeys must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "user-journeys-slice-behavior-oracle",
+      "rule": {
+        "field": "journeys",
+        "op": "nonempty",
+        "reason": "journeys must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "user-journeys-slice-property-floor",
+      "rule": {
+        "field": "journeys",
+        "op": "nonempty",
+        "reason": "journeys must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "user-journeys-slice-mutation-floor",
+      "rule": {
+        "field": "journeys",
+        "op": "nonempty",
+        "reason": "journeys must name the concrete repository contract."
+      }
+    }
+  }
+}

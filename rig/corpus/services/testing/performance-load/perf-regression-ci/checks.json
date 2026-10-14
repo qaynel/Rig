@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.performance-load.perf-regression-ci",
+  "input": "rig-services/testing.performance-load.perf-regression-ci.json",
+  "format": "json",
+  "ceiling": "perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "tracked metrics must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "regression_budget_percent",
+        "op": "minimum",
+        "value": 10,
+        "reason": "regression budget percent must meet the configured minimum of 10."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_threshold_failure",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore threshold failure must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "perf-regression-ci-slice-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "tracked metrics must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "perf-regression-ci-slice-behavior-oracle",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "tracked metrics must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "perf-regression-ci-slice-property-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "tracked metrics must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "perf-regression-ci-slice-mutation-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "tracked metrics must name the concrete repository contract."
+      }
+    }
+  }
+}

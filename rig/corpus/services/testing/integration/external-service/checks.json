@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.integration.external-service",
+  "input": "rig-services/testing.integration.external-service.json",
+  "format": "json",
+  "ceiling": "external service configuration validation only; declared policy does not prove running external service behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Check the external contract with isolated test credentials and explicit failure cases. Integration validation must not require a production account or alter real customer data.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "external_contracts",
+        "op": "nonempty",
+        "reason": "external contracts must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "failure_cases",
+        "op": "nonempty",
+        "reason": "failure cases must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "require_production_account",
+        "op": "equals",
+        "value": false,
+        "reason": "require production account must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "external-service-slice-floor",
+      "rule": {
+        "field": "external_contracts",
+        "op": "nonempty",
+        "reason": "external contracts must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "external-service-slice-behavior-oracle",
+      "rule": {
+        "field": "external_contracts",
+        "op": "nonempty",
+        "reason": "external contracts must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "external-service-slice-property-floor",
+      "rule": {
+        "field": "external_contracts",
+        "op": "nonempty",
+        "reason": "external contracts must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "external-service-slice-mutation-floor",
+      "rule": {
+        "field": "external_contracts",
+        "op": "nonempty",
+        "reason": "external contracts must name the concrete repository contract."
+      }
+    }
+  }
+}

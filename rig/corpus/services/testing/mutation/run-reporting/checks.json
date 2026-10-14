@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.run-reporting",
+  "input": "rig-services/testing.mutation.run-reporting.json",
+  "format": "json",
+  "ceiling": "run reporting configuration validation only; declared policy does not prove running run reporting behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "reported outcomes must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "input_revision",
+        "op": "nonempty",
+        "reason": "input revision must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "publish_raw_secrets",
+        "op": "equals",
+        "value": false,
+        "reason": "publish raw secrets must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "run-reporting-slice-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "reported outcomes must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "run-reporting-slice-behavior-oracle",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "reported outcomes must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "run-reporting-slice-property-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "reported outcomes must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "run-reporting-slice-mutation-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "reported outcomes must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.e2e.browser-automation",
+  "input": "rig-services/testing.e2e.browser-automation.json",
+  "format": "json",
+  "ceiling": "browser automation configuration validation only; declared policy does not prove running browser automation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "browser_targets",
+        "op": "nonempty",
+        "reason": "browser targets must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "interaction_steps",
+        "op": "nonempty",
+        "reason": "interaction steps must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "fixed_sleeps",
+        "op": "equals",
+        "value": false,
+        "reason": "fixed sleeps must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "browser-automation-slice-floor",
+      "rule": {
+        "field": "browser_targets",
+        "op": "nonempty",
+        "reason": "browser targets must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "browser-automation-slice-behavior-oracle",
+      "rule": {
+        "field": "browser_targets",
+        "op": "nonempty",
+        "reason": "browser targets must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "browser-automation-slice-property-floor",
+      "rule": {
+        "field": "browser_targets",
+        "op": "nonempty",
+        "reason": "browser targets must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "browser-automation-slice-mutation-floor",
+      "rule": {
+        "field": "browser_targets",
+        "op": "nonempty",
+        "reason": "browser targets must name the concrete repository contract."
+      }
+    }
+  }
+}

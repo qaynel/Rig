@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.risk-prioritization",
+  "input": "rig-services/testing.strategy.risk-prioritization.json",
+  "format": "json",
+  "ceiling": "risk prioritization configuration validation only; declared policy does not prove running risk prioritization behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "high risk behaviors must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "impact_scores",
+        "op": "nonempty",
+        "reason": "impact scores must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "prioritize_only_easy_cases",
+        "op": "equals",
+        "value": false,
+        "reason": "prioritize only easy cases must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "risk-prioritization-slice-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "high risk behaviors must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "risk-prioritization-slice-behavior-oracle",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "high risk behaviors must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "risk-prioritization-slice-property-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "high risk behaviors must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "risk-prioritization-slice-mutation-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "high risk behaviors must name the concrete repository contract."
+      }
+    }
+  }
+}

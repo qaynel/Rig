@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.integration.internal-contract",
+  "input": "rig-services/testing.integration.internal-contract.json",
+  "format": "json",
+  "ceiling": "internal contract configuration validation only; declared policy does not prove running internal contract behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Verify producer and consumer compatibility against the same schema. Breaking a consumer contract needs a deliberate transition rather than updating only the producer fixture.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "producer_schema",
+        "op": "nonempty",
+        "reason": "producer schema must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "consumer_versions",
+        "op": "nonempty",
+        "reason": "consumer versions must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_breaking_change",
+        "op": "equals",
+        "value": false,
+        "reason": "allow breaking change must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "internal-contract-slice-floor",
+      "rule": {
+        "field": "producer_schema",
+        "op": "nonempty",
+        "reason": "producer schema must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "internal-contract-slice-behavior-oracle",
+      "rule": {
+        "field": "producer_schema",
+        "op": "nonempty",
+        "reason": "producer schema must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "internal-contract-slice-property-floor",
+      "rule": {
+        "field": "producer_schema",
+        "op": "nonempty",
+        "reason": "producer schema must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "internal-contract-slice-mutation-floor",
+      "rule": {
+        "field": "producer_schema",
+        "op": "nonempty",
+        "reason": "producer schema must name the concrete repository contract."
+      }
+    }
+  }
+}

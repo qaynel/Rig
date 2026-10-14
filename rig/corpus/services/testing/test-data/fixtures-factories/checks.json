@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.test-data.fixtures-factories",
+  "input": "rig-services/testing.test-data.fixtures-factories.json",
+  "format": "json",
+  "ceiling": "fixtures factories configuration validation only; declared policy does not prove running fixtures factories behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "fixture defaults must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "explicit_variants",
+        "op": "nonempty",
+        "reason": "explicit variants must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "shared_mutable_state",
+        "op": "equals",
+        "value": false,
+        "reason": "shared mutable state must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "fixtures-factories-slice-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "fixture defaults must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "fixtures-factories-slice-behavior-oracle",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "fixture defaults must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "fixtures-factories-slice-property-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "fixture defaults must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "fixtures-factories-slice-mutation-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "fixture defaults must name the concrete repository contract."
+      }
+    }
+  }
+}

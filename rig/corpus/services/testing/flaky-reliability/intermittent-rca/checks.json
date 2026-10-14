@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.flaky-reliability.intermittent-rca",
+  "input": "rig-services/testing.flaky-reliability.intermittent-rca.json",
+  "format": "json",
+  "ceiling": "intermittent rca configuration validation only; declared policy does not prove running intermittent rca behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Capture the conditions correlated with intermittent failure and run discriminating reproductions. Calling a defect random without evidence delays the actual scheduling or resource cause.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "observed_conditions",
+        "op": "nonempty",
+        "reason": "observed conditions must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "reproduction_attempts",
+        "op": "nonempty",
+        "reason": "reproduction attempts must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "blame_randomness_without_evidence",
+        "op": "equals",
+        "value": false,
+        "reason": "blame randomness without evidence must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "intermittent-rca-slice-floor",
+      "rule": {
+        "field": "observed_conditions",
+        "op": "nonempty",
+        "reason": "observed conditions must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "intermittent-rca-slice-behavior-oracle",
+      "rule": {
+        "field": "observed_conditions",
+        "op": "nonempty",
+        "reason": "observed conditions must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "intermittent-rca-slice-property-floor",
+      "rule": {
+        "field": "observed_conditions",
+        "op": "nonempty",
+        "reason": "observed conditions must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "intermittent-rca-slice-mutation-floor",
+      "rule": {
+        "field": "observed_conditions",
+        "op": "nonempty",
+        "reason": "observed conditions must name the concrete repository contract."
+      }
+    }
+  }
+}

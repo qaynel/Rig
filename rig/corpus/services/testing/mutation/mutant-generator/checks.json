@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.mutant-generator",
+  "input": "rig-services/testing.mutation.mutant-generator.json",
+  "format": "json",
+  "ceiling": "mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "mutation_operators",
+        "op": "nonempty",
+        "reason": "mutation operators must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "target_paths",
+        "op": "nonempty",
+        "reason": "target paths must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "mutate_test_code",
+        "op": "equals",
+        "value": false,
+        "reason": "mutate test code must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "mutant-generator-slice-floor",
+      "rule": {
+        "field": "mutation_operators",
+        "op": "nonempty",
+        "reason": "mutation operators must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "mutant-generator-slice-behavior-oracle",
+      "rule": {
+        "field": "mutation_operators",
+        "op": "nonempty",
+        "reason": "mutation operators must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "mutant-generator-slice-property-floor",
+      "rule": {
+        "field": "mutation_operators",
+        "op": "nonempty",
+        "reason": "mutation operators must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "mutant-generator-slice-mutation-floor",
+      "rule": {
+        "field": "mutation_operators",
+        "op": "nonempty",
+        "reason": "mutation operators must name the concrete repository contract."
+      }
+    }
+  }
+}

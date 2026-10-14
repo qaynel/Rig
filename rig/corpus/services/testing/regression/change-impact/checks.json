@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.regression.change-impact",
+  "input": "rig-services/testing.regression.change-impact.json",
+  "format": "json",
+  "ceiling": "change impact configuration validation only; declared policy does not prove running change impact behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "changed interfaces must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "affected_suites",
+        "op": "nonempty",
+        "reason": "affected suites must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "select_by_filename_only",
+        "op": "equals",
+        "value": false,
+        "reason": "select by filename only must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "change-impact-slice-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "changed interfaces must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "change-impact-slice-behavior-oracle",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "changed interfaces must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "change-impact-slice-property-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "changed interfaces must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "change-impact-slice-mutation-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "changed interfaces must name the concrete repository contract."
+      }
+    }
+  }
+}

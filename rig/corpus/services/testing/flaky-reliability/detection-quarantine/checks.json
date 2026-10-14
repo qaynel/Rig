@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.flaky-reliability.detection-quarantine",
+  "input": "rig-services/testing.flaky-reliability.detection-quarantine.json",
+  "format": "json",
+  "ceiling": "detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "flaky cases must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "quarantine_owners",
+        "op": "nonempty",
+        "reason": "quarantine owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "silent_quarantine",
+        "op": "equals",
+        "value": false,
+        "reason": "silent quarantine must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "detection-quarantine-slice-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "flaky cases must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "detection-quarantine-slice-behavior-oracle",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "flaky cases must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "detection-quarantine-slice-property-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "flaky cases must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "detection-quarantine-slice-mutation-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "flaky cases must name the concrete repository contract."
+      }
+    }
+  }
+}

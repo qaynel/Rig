@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.selector-sampler",
+  "input": "rig-services/testing.mutation.selector-sampler.json",
+  "format": "json",
+  "ceiling": "selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "selection_scope",
+        "op": "nonempty",
+        "reason": "selection scope must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "sampling_seed",
+        "op": "minimum",
+        "value": 42,
+        "reason": "sampling seed must meet the configured minimum of 42."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "claim_exhaustive_from_sample",
+        "op": "equals",
+        "value": false,
+        "reason": "claim exhaustive from sample must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "selector-sampler-slice-floor",
+      "rule": {
+        "field": "selection_scope",
+        "op": "nonempty",
+        "reason": "selection scope must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "selector-sampler-slice-behavior-oracle",
+      "rule": {
+        "field": "selection_scope",
+        "op": "nonempty",
+        "reason": "selection scope must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "selector-sampler-slice-property-floor",
+      "rule": {
+        "field": "selection_scope",
+        "op": "nonempty",
+        "reason": "selection scope must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "selector-sampler-slice-mutation-floor",
+      "rule": {
+        "field": "selection_scope",
+        "op": "nonempty",
+        "reason": "selection scope must name the concrete repository contract."
+      }
+    }
+  }
+}

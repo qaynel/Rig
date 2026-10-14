@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.property-fuzz.invariant-identification",
+  "input": "rig-services/testing.property-fuzz.invariant-identification.json",
+  "format": "json",
+  "ceiling": "invariant identification configuration validation only; declared policy does not prove running invariant identification behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "invariants must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "input_domain",
+        "op": "nonempty",
+        "reason": "input domain must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "derive_expected_from_subject",
+        "op": "equals",
+        "value": false,
+        "reason": "derive expected from subject must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "invariant-identification-slice-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "invariants must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "invariant-identification-slice-behavior-oracle",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "invariants must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "invariant-identification-slice-property-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "invariants must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "invariant-identification-slice-mutation-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "invariants must name the concrete repository contract."
+      }
+    }
+  }
+}

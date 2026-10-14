@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.performance-load.benchmarks",
+  "input": "rig-services/testing.performance-load.benchmarks.json",
+  "format": "json",
+  "ceiling": "benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "benchmark workload must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "samples",
+        "op": "minimum",
+        "value": 30,
+        "reason": "samples must meet the configured minimum of 30."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "single_sample_conclusion",
+        "op": "equals",
+        "value": false,
+        "reason": "single sample conclusion must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "benchmarks-slice-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "benchmark workload must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "benchmarks-slice-behavior-oracle",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "benchmark workload must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "benchmarks-slice-property-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "benchmark workload must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "benchmarks-slice-mutation-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "benchmark workload must name the concrete repository contract."
+      }
+    }
+  }
+}

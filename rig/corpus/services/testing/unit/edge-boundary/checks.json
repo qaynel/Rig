@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.unit.edge-boundary",
+  "input": "rig-services/testing.unit.edge-boundary.json",
+  "format": "json",
+  "ceiling": "edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "boundary cases must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "invalid_cases",
+        "op": "nonempty",
+        "reason": "invalid cases must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "normal_only_tests",
+        "op": "equals",
+        "value": false,
+        "reason": "normal only tests must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "edge-boundary-slice-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "boundary cases must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "edge-boundary-slice-behavior-oracle",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "boundary cases must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "edge-boundary-slice-property-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "boundary cases must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "edge-boundary-slice-mutation-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "boundary cases must name the concrete repository contract."
+      }
+    }
+  }
+}
