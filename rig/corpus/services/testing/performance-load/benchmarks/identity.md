@@ -1,9 +1,26 @@
 # testing.performance-load.benchmarks — identity
 
-benchmarks owns performance-load.benchmarks. Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
+Policy grade: benchmarks owns performance-load.benchmarks. Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
 
 Keep sibling services in performance-load under their own verdicts. Tie acceptance to the configured input at `rig-services/testing.performance-load.benchmarks.json`; malformed input is still attributed to that path.
 
 Disposition: convention. Read the limit: benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Select an approved repository-owned command to verify that behavior.
 
 Acceptance target: fixture:testing.performance-load.benchmarks:policy-boundary. Given source-code is present and performance-load.benchmarks is selected, pass only when the repository binding evaluates performance-load.benchmarks and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent performance load concern.
+
+Service-specific evidence cues:
+Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
+
+Owned scope: `performance-load.benchmarks`.
+
+Offer: Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
+
+Input: `rig-services/testing.performance-load.benchmarks.json`. Detection records the path even when its contents are malformed.
+
+Coverage ceiling: benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Select an approved repository-owned command to verify that behavior.
+
+minimal: benchmark workload — "serialize 1000 records".
+
+mid: samples — 30.
+
+maximal: single sample conclusion — false.

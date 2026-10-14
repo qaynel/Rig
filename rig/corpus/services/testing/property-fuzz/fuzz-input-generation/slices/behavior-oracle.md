@@ -1,5 +1,22 @@
 # testing.property-fuzz.fuzz-input-generation — behavior-oracle slice
 
-This slice bounds fuzz input generation to property-fuzz.fuzz-input-generation. It uses `fuzz-input-generation-slice-behavior-oracle` and checks input_seeds (nonempty): input seeds must name the concrete repository contract..
+Policy grade slice. This slice bounds fuzz input generation to property-fuzz.fuzz-input-generation. It uses `fuzz-input-generation-slice-behavior-oracle` and checks input_seeds (nonempty): input seeds must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.property-fuzz.fuzz-input-generation.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than fuzz input generation configuration validation only; declared policy does not prove running fuzz input generation behavior. Select an approved repository-owned command to verify that behavior.
+Trace the verdict to a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.property-fuzz.fuzz-input-generation.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than fuzz input generation configuration validation only; declared policy does not prove running fuzz input generation behavior. Select an approved repository-owned command to verify that behavior..
+
+Service-specific evidence cues:
+Generate adversarial inputs with a saved seed and bounded resource use. Retaining the seed is what makes a discovered failure a reproducible engineering result.
+
+Owned scope: `property-fuzz.fuzz-input-generation`.
+
+Offer: Generate adversarial inputs with a saved seed and bounded resource use. Retaining the seed is what makes a discovered failure a reproducible engineering result.
+
+Input: `rig-services/testing.property-fuzz.fuzz-input-generation.json`. Detection records the path even when its contents are malformed.
+
+Coverage ceiling: fuzz input generation configuration validation only; declared policy does not prove running fuzz input generation behavior. Select an approved repository-owned command to verify that behavior.
+
+minimal: input seeds — ["empty","unicode","truncated"].
+
+mid: reproduction seed — 42.
+
+maximal: unbounded input size — false.

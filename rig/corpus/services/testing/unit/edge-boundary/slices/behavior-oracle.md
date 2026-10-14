@@ -1,5 +1,22 @@
 # testing.unit.edge-boundary — behavior-oracle slice
 
-This slice bounds edge boundary to unit.edge-boundary. It uses `edge-boundary-slice-behavior-oracle` and checks boundary_cases (nonempty): boundary cases must name the concrete repository contract..
+Policy grade slice. This slice bounds edge boundary to unit.edge-boundary. It uses `edge-boundary-slice-behavior-oracle` and checks boundary_cases (nonempty): boundary cases must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.unit.edge-boundary.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior.
+Trace the verdict to a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.unit.edge-boundary.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior..
+
+Service-specific evidence cues:
+Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
+
+Owned scope: `unit.edge-boundary`.
+
+Offer: Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
+
+Input: `rig-services/testing.unit.edge-boundary.json`. Detection records the path even when its contents are malformed.
+
+Coverage ceiling: edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior.
+
+minimal: boundary cases — ["empty input","maximum length"].
+
+mid: invalid cases — ["negative count"].
+
+maximal: normal only tests — false.
