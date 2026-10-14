@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.config-drift",
+  "input": "rig-services/infrastructure.environment-config.config-drift.json",
+  "format": "json",
+  "ceiling": "config drift configuration validation only; declared policy does not prove running config drift behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "authoritative_sources",
+        "op": "nonempty",
+        "reason": "authoritative sources must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "comparison_schedule",
+        "op": "nonempty",
+        "reason": "comparison schedule must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "silent_drift_acceptance",
+        "op": "equals",
+        "value": false,
+        "reason": "silent drift acceptance must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "config-drift-slice-floor",
+      "rule": {
+        "field": "authoritative_sources",
+        "op": "nonempty",
+        "reason": "authoritative sources must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "config-drift-slice-behavior-oracle",
+      "rule": {
+        "field": "authoritative_sources",
+        "op": "nonempty",
+        "reason": "authoritative sources must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "config-drift-slice-property-floor",
+      "rule": {
+        "field": "authoritative_sources",
+        "op": "nonempty",
+        "reason": "authoritative sources must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "config-drift-slice-mutation-floor",
+      "rule": {
+        "field": "authoritative_sources",
+        "op": "nonempty",
+        "reason": "authoritative sources must name the concrete repository contract."
+      }
+    }
+  }
+}

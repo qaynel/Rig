@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.storage.tiering-lifecycle",
+  "input": "rig-services/infrastructure.storage.tiering-lifecycle.json",
+  "format": "json",
+  "ceiling": "tiering lifecycle configuration validation only; declared policy does not prove running tiering lifecycle behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Define storage transitions and retention from the data contract. Lifecycle rules must not destroy data before its retention requirement expires.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "storage classes must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "retention_days",
+        "op": "minimum",
+        "value": 30,
+        "reason": "retention days must meet the configured minimum of 30."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_before_retention",
+        "op": "equals",
+        "value": false,
+        "reason": "delete before retention must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "tiering-lifecycle-slice-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "storage classes must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "tiering-lifecycle-slice-behavior-oracle",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "storage classes must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "tiering-lifecycle-slice-property-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "storage classes must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "tiering-lifecycle-slice-mutation-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "storage classes must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.observability.alerting",
+  "input": "rig-services/infrastructure.observability.alerting.json",
+  "format": "json",
+  "ceiling": "alerting configuration validation only; declared policy does not prove running alerting behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Every actionable alert needs an owned response and a runbook. Signals without an operator or response path create noise rather than protection.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "alert_conditions",
+        "op": "nonempty",
+        "reason": "alert conditions must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "runbook_path",
+        "op": "nonempty",
+        "reason": "runbook path must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "alert_without_owner",
+        "op": "equals",
+        "value": false,
+        "reason": "alert without owner must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "alerting-slice-floor",
+      "rule": {
+        "field": "alert_conditions",
+        "op": "nonempty",
+        "reason": "alert conditions must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "alerting-slice-behavior-oracle",
+      "rule": {
+        "field": "alert_conditions",
+        "op": "nonempty",
+        "reason": "alert conditions must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "alerting-slice-property-floor",
+      "rule": {
+        "field": "alert_conditions",
+        "op": "nonempty",
+        "reason": "alert conditions must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "alerting-slice-mutation-floor",
+      "rule": {
+        "field": "alert_conditions",
+        "op": "nonempty",
+        "reason": "alert conditions must name the concrete repository contract."
+      }
+    }
+  }
+}

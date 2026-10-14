@@ -1,0 +1,5 @@
+# infrastructure.container.image-optimization — property-floor slice
+
+This slice bounds image optimization to container.image-optimization. It uses `image-optimization-slice-property-floor` and checks base_image_digest (nonempty): base image digest must name the concrete repository contract..
+
+Use a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.container.image-optimization.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than image optimization configuration validation only; declared policy does not prove running image optimization behavior. Select an approved repository-owned command to verify that behavior.

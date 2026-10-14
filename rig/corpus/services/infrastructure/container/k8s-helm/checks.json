@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.container.k8s-helm",
+  "input": "rig-services/infrastructure.container.k8s-helm.json",
+  "format": "json",
+  "ceiling": "k8s helm configuration validation only; declared policy does not prove running k8s helm behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Declare Kubernetes resource bounds and readiness independently of process existence. Pin deployed images rather than selecting mutable latest tags.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "resource limits must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "readiness_probe",
+        "op": "nonempty",
+        "reason": "readiness probe must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "latest_image_tag",
+        "op": "equals",
+        "value": false,
+        "reason": "latest image tag must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "k8s-helm-slice-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "resource limits must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "k8s-helm-slice-behavior-oracle",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "resource limits must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "k8s-helm-slice-property-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "resource limits must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "k8s-helm-slice-mutation-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "resource limits must name the concrete repository contract."
+      }
+    }
+  }
+}

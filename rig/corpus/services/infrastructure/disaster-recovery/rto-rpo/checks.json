@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.disaster-recovery.rto-rpo",
+  "input": "rig-services/infrastructure.disaster-recovery.rto-rpo.json",
+  "format": "json",
+  "ceiling": "rto rpo configuration validation only; declared policy does not prove running rto rpo behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "State recovery-time and data-loss objectives as measurable limits. Targets become demonstrated assurance only when an actual recovery exercise measures them.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "rto_minutes",
+        "op": "minimum",
+        "value": 30,
+        "reason": "rto minutes must meet the configured minimum of 30."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rpo_minutes",
+        "op": "minimum",
+        "value": 5,
+        "reason": "rpo minutes must meet the configured minimum of 5."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "claim_targets_without_exercise",
+        "op": "equals",
+        "value": false,
+        "reason": "claim targets without exercise must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "rto-rpo-slice-floor",
+      "rule": {
+        "field": "rto_minutes",
+        "op": "minimum",
+        "value": 30,
+        "reason": "rto minutes must meet the configured minimum of 30."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "rto-rpo-slice-behavior-oracle",
+      "rule": {
+        "field": "rto_minutes",
+        "op": "minimum",
+        "value": 30,
+        "reason": "rto minutes must meet the configured minimum of 30."
+      }
+    },
+    "property-floor": {
+      "check_id": "rto-rpo-slice-property-floor",
+      "rule": {
+        "field": "rto_minutes",
+        "op": "minimum",
+        "value": 30,
+        "reason": "rto minutes must meet the configured minimum of 30."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "rto-rpo-slice-mutation-floor",
+      "rule": {
+        "field": "rto_minutes",
+        "op": "minimum",
+        "value": 30,
+        "reason": "rto minutes must meet the configured minimum of 30."
+      }
+    }
+  }
+}

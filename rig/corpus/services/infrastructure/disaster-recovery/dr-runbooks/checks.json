@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.disaster-recovery.dr-runbooks",
+  "input": "rig-services/infrastructure.disaster-recovery.dr-runbooks.json",
+  "format": "json",
+  "ceiling": "dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "recovery steps must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "exercise_schedule",
+        "op": "nonempty",
+        "reason": "exercise schedule must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "runbook_without_owner",
+        "op": "equals",
+        "value": false,
+        "reason": "runbook without owner must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dr-runbooks-slice-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "recovery steps must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dr-runbooks-slice-behavior-oracle",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "recovery steps must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "dr-runbooks-slice-property-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "recovery steps must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dr-runbooks-slice-mutation-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "recovery steps must name the concrete repository contract."
+      }
+    }
+  }
+}

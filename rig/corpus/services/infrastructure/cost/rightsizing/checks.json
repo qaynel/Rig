@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cost.rightsizing",
+  "input": "rig-services/infrastructure.cost.rightsizing.json",
+  "format": "json",
+  "ceiling": "rightsizing configuration validation only; declared policy does not prove running rightsizing behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "candidate resources must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "minimum_headroom_percent",
+        "op": "minimum",
+        "value": 20,
+        "reason": "minimum headroom percent must meet the configured minimum of 20."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "resize_without_workload_evidence",
+        "op": "equals",
+        "value": false,
+        "reason": "resize without workload evidence must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "rightsizing-slice-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "candidate resources must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "rightsizing-slice-behavior-oracle",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "candidate resources must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "rightsizing-slice-property-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "candidate resources must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "rightsizing-slice-mutation-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "candidate resources must name the concrete repository contract."
+      }
+    }
+  }
+}

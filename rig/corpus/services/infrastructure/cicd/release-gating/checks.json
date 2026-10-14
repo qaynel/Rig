@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.release-gating",
+  "input": "rig-services/infrastructure.cicd.release-gating.json",
+  "format": "json",
+  "ceiling": "release gating configuration validation only; declared policy does not prove running release gating behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "required gates must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "release_revision",
+        "op": "nonempty",
+        "reason": "release revision must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "use_stale_gate_results",
+        "op": "equals",
+        "value": false,
+        "reason": "use stale gate results must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "release-gating-slice-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "required gates must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "release-gating-slice-behavior-oracle",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "required gates must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "release-gating-slice-property-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "required gates must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "release-gating-slice-mutation-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "required gates must name the concrete repository contract."
+      }
+    }
+  }
+}

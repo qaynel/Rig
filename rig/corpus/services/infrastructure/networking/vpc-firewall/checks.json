@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.networking.vpc-firewall",
+  "input": "rig-services/infrastructure.networking.vpc-firewall.json",
+  "format": "json",
+  "ceiling": "vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "allowed_ingress",
+        "op": "nonempty",
+        "reason": "allowed ingress must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "default_action",
+        "op": "nonempty",
+        "reason": "default action must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_world_admin_access",
+        "op": "equals",
+        "value": false,
+        "reason": "allow world admin access must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "vpc-firewall-slice-floor",
+      "rule": {
+        "field": "allowed_ingress",
+        "op": "nonempty",
+        "reason": "allowed ingress must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "vpc-firewall-slice-behavior-oracle",
+      "rule": {
+        "field": "allowed_ingress",
+        "op": "nonempty",
+        "reason": "allowed ingress must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "vpc-firewall-slice-property-floor",
+      "rule": {
+        "field": "allowed_ingress",
+        "op": "nonempty",
+        "reason": "allowed ingress must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "vpc-firewall-slice-mutation-floor",
+      "rule": {
+        "field": "allowed_ingress",
+        "op": "nonempty",
+        "reason": "allowed ingress must name the concrete repository contract."
+      }
+    }
+  }
+}

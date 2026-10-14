@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.scaling-reliability.chaos-engineering",
+  "input": "rig-services/infrastructure.scaling-reliability.chaos-engineering.json",
+  "format": "json",
+  "ceiling": "chaos engineering configuration validation only; declared policy does not prove running chaos engineering behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Choose faults that test a resilience assumption and define immediate stop conditions. Production chaos requires explicit approval and measured safeguards.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "fault_scenarios",
+        "op": "nonempty",
+        "reason": "fault scenarios must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "stop_conditions",
+        "op": "nonempty",
+        "reason": "stop conditions must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "production_experiment_without_approval",
+        "op": "equals",
+        "value": false,
+        "reason": "production experiment without approval must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "chaos-engineering-slice-floor",
+      "rule": {
+        "field": "fault_scenarios",
+        "op": "nonempty",
+        "reason": "fault scenarios must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "chaos-engineering-slice-behavior-oracle",
+      "rule": {
+        "field": "fault_scenarios",
+        "op": "nonempty",
+        "reason": "fault scenarios must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "chaos-engineering-slice-property-floor",
+      "rule": {
+        "field": "fault_scenarios",
+        "op": "nonempty",
+        "reason": "fault scenarios must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "chaos-engineering-slice-mutation-floor",
+      "rule": {
+        "field": "fault_scenarios",
+        "op": "nonempty",
+        "reason": "fault scenarios must name the concrete repository contract."
+      }
+    }
+  }
+}

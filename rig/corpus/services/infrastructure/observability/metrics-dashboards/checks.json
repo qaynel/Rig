@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.observability.metrics-dashboards",
+  "input": "rig-services/infrastructure.observability.metrics-dashboards.json",
+  "format": "json",
+  "ceiling": "metrics dashboards configuration validation only; declared policy does not prove running metrics dashboards behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Expose user-facing latency, failure and saturation metrics with a responsible dashboard owner. A throughput-only dashboard cannot reveal whether the service is failing its users.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "service metrics must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "dashboard_owner",
+        "op": "nonempty",
+        "reason": "dashboard owner must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "omit_error_metrics",
+        "op": "equals",
+        "value": false,
+        "reason": "omit error metrics must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "metrics-dashboards-slice-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "service metrics must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "metrics-dashboards-slice-behavior-oracle",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "service metrics must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "metrics-dashboards-slice-property-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "service metrics must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "metrics-dashboards-slice-mutation-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "service metrics must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.networking.load-balancer-ingress",
+  "input": "rig-services/infrastructure.networking.load-balancer-ingress.json",
+  "format": "json",
+  "ceiling": "load balancer ingress configuration validation only; declared policy does not prove running load balancer ingress behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "backend health path must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "request_timeout_ms",
+        "op": "minimum",
+        "value": 5000,
+        "reason": "request timeout ms must meet the configured minimum of 5000."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "expose_admin_route",
+        "op": "equals",
+        "value": false,
+        "reason": "expose admin route must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "load-balancer-ingress-slice-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "backend health path must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "load-balancer-ingress-slice-behavior-oracle",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "backend health path must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "load-balancer-ingress-slice-property-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "backend health path must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "load-balancer-ingress-slice-mutation-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "backend health path must name the concrete repository contract."
+      }
+    }
+  }
+}

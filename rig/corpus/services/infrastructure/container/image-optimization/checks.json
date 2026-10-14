@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.container.image-optimization",
+  "input": "rig-services/infrastructure.container.image-optimization.json",
+  "format": "json",
+  "ceiling": "image optimization configuration validation only; declared policy does not prove running image optimization behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Pin the container base and use an unprivileged runtime user. Build secrets must not enter the resulting image layers; config inspection alone cannot verify a built image.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "base_image_digest",
+        "op": "nonempty",
+        "reason": "base image digest must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "runtime_user",
+        "op": "nonempty",
+        "reason": "runtime user must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "include_build_secrets",
+        "op": "equals",
+        "value": false,
+        "reason": "include build secrets must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "image-optimization-slice-floor",
+      "rule": {
+        "field": "base_image_digest",
+        "op": "nonempty",
+        "reason": "base image digest must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "image-optimization-slice-behavior-oracle",
+      "rule": {
+        "field": "base_image_digest",
+        "op": "nonempty",
+        "reason": "base image digest must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "image-optimization-slice-property-floor",
+      "rule": {
+        "field": "base_image_digest",
+        "op": "nonempty",
+        "reason": "base image digest must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "image-optimization-slice-mutation-floor",
+      "rule": {
+        "field": "base_image_digest",
+        "op": "nonempty",
+        "reason": "base image digest must name the concrete repository contract."
+      }
+    }
+  }
+}

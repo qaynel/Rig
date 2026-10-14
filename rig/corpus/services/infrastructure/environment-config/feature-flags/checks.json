@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.feature-flags",
+  "input": "rig-services/infrastructure.environment-config.feature-flags.json",
+  "format": "json",
+  "ceiling": "feature flags configuration validation only; declared policy does not prove running feature flags behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Give feature flags an owner and a rollback route. Unowned permanent flags accumulate untested branches and should not pass as deliberate release controls.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "flag names must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_owner",
+        "op": "nonempty",
+        "reason": "rollback owner must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "permanent_unowned_flags",
+        "op": "equals",
+        "value": false,
+        "reason": "permanent unowned flags must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "feature-flags-slice-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "flag names must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "feature-flags-slice-behavior-oracle",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "flag names must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "feature-flags-slice-property-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "flag names must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "feature-flags-slice-mutation-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "flag names must name the concrete repository contract."
+      }
+    }
+  }
+}

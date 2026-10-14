@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.provisioning.iac-authoring",
+  "input": "rig-services/infrastructure.provisioning.iac-authoring.json",
+  "format": "json",
+  "ceiling": "iac authoring configuration validation only; declared policy does not prove running iac authoring behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Declare infrastructure resources with a recoverable state backend and inspect the exact plan before applying. Configuration checks do not establish live infrastructure behavior.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "resource names must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "state_backend",
+        "op": "nonempty",
+        "reason": "state backend must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "apply_without_reviewed_plan",
+        "op": "equals",
+        "value": false,
+        "reason": "apply without reviewed plan must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "iac-authoring-slice-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "resource names must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "iac-authoring-slice-behavior-oracle",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "resource names must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "iac-authoring-slice-property-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "resource names must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "iac-authoring-slice-mutation-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "resource names must name the concrete repository contract."
+      }
+    }
+  }
+}

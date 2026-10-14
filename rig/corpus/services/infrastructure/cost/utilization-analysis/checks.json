@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cost.utilization-analysis",
+  "input": "rig-services/infrastructure.cost.utilization-analysis.json",
+  "format": "json",
+  "ceiling": "utilization analysis configuration validation only; declared policy does not prove running utilization analysis behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Measure utilization over a representative window and inspect multiple constrained resources. A single peak does not establish steady-state capacity or an opportunity to reduce it.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "observed resources must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "observation_window_days",
+        "op": "minimum",
+        "value": 7,
+        "reason": "observation window days must meet the configured minimum of 7."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "decide_from_single_peak",
+        "op": "equals",
+        "value": false,
+        "reason": "decide from single peak must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "utilization-analysis-slice-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "observed resources must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "utilization-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "observed resources must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "utilization-analysis-slice-property-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "observed resources must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "utilization-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "observed resources must name the concrete repository contract."
+      }
+    }
+  }
+}

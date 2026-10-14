@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.storage.db-provisioning",
+  "input": "rig-services/infrastructure.storage.db-provisioning.json",
+  "format": "json",
+  "ceiling": "db provisioning configuration validation only; declared policy does not prove running db provisioning behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Pin the database engine and restrict connectivity to its intended clients. Configuration conformance does not establish actual managed-service access controls.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "database_version",
+        "op": "nonempty",
+        "reason": "database version must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "access_scope",
+        "op": "nonempty",
+        "reason": "access scope must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "public_database_endpoint",
+        "op": "equals",
+        "value": false,
+        "reason": "public database endpoint must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "db-provisioning-slice-floor",
+      "rule": {
+        "field": "database_version",
+        "op": "nonempty",
+        "reason": "database version must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "db-provisioning-slice-behavior-oracle",
+      "rule": {
+        "field": "database_version",
+        "op": "nonempty",
+        "reason": "database version must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "db-provisioning-slice-property-floor",
+      "rule": {
+        "field": "database_version",
+        "op": "nonempty",
+        "reason": "database version must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "db-provisioning-slice-mutation-floor",
+      "rule": {
+        "field": "database_version",
+        "op": "nonempty",
+        "reason": "database version must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.secret-injection",
+  "input": "rig-services/infrastructure.environment-config.secret-injection.json",
+  "format": "json",
+  "ceiling": "secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "secret references must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "delivery_mechanism",
+        "op": "nonempty",
+        "reason": "delivery mechanism must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "plaintext_secret_values",
+        "op": "equals",
+        "value": false,
+        "reason": "plaintext secret values must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "secret-injection-slice-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "secret references must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "secret-injection-slice-behavior-oracle",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "secret references must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "secret-injection-slice-property-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "secret references must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "secret-injection-slice-mutation-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "secret references must name the concrete repository contract."
+      }
+    }
+  }
+}

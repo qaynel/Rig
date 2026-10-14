@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.container.service-mesh",
+  "input": "rig-services/infrastructure.container.service-mesh.json",
+  "format": "json",
+  "ceiling": "service mesh configuration validation only; declared policy does not prove running service mesh behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Enumerate mesh participants and require authenticated encrypted service traffic. Plaintext fallback undermines the declared mesh boundary and must not be implicit.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "mesh services must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "transport_security",
+        "op": "nonempty",
+        "reason": "transport security must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_plaintext_fallback",
+        "op": "equals",
+        "value": false,
+        "reason": "allow plaintext fallback must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "service-mesh-slice-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "mesh services must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "service-mesh-slice-behavior-oracle",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "mesh services must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "service-mesh-slice-property-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "mesh services must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "service-mesh-slice-mutation-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "mesh services must name the concrete repository contract."
+      }
+    }
+  }
+}

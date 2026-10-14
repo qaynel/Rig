@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.pipeline-definition",
+  "input": "rig-services/infrastructure.cicd.pipeline-definition.json",
+  "format": "json",
+  "ceiling": "pipeline definition configuration validation only; declared policy does not prove running pipeline definition behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Make build, verification and deployment ordering explicit in the pipeline. Deployment must be blocked when a required check fails rather than merely recording a red stage.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "stages must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "required_checks",
+        "op": "nonempty",
+        "reason": "required checks must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "deploy_after_failed_checks",
+        "op": "equals",
+        "value": false,
+        "reason": "deploy after failed checks must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "pipeline-definition-slice-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "stages must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "pipeline-definition-slice-behavior-oracle",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "stages must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "pipeline-definition-slice-property-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "stages must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "pipeline-definition-slice-mutation-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "stages must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.observability.distributed-tracing",
+  "input": "rig-services/infrastructure.observability.distributed-tracing.json",
+  "format": "json",
+  "ceiling": "distributed tracing configuration validation only; declared policy does not prove running distributed tracing behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Propagate trace context across HTTP and asynchronous boundaries and bound sampling costs. Sensitive request bodies must not become trace attributes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "trace propagation must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "sampling_policy",
+        "op": "nonempty",
+        "reason": "sampling policy must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "record_sensitive_payloads",
+        "op": "equals",
+        "value": false,
+        "reason": "record sensitive payloads must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "distributed-tracing-slice-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "trace propagation must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "distributed-tracing-slice-behavior-oracle",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "trace propagation must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "distributed-tracing-slice-property-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "trace propagation must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "distributed-tracing-slice-mutation-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "trace propagation must name the concrete repository contract."
+      }
+    }
+  }
+}

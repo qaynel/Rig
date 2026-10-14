@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.scaling-reliability.autoscaling",
+  "input": "rig-services/infrastructure.scaling-reliability.autoscaling.json",
+  "format": "json",
+  "ceiling": "autoscaling configuration validation only; declared policy does not prove running autoscaling behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Choose a scaling signal and bound the replica count. Scaling to zero requires a working wakeup route; declaring a metric alone does not establish live scaling behavior.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "scaling_metric",
+        "op": "nonempty",
+        "reason": "scaling metric must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "maximum_replicas",
+        "op": "minimum",
+        "value": 10,
+        "reason": "maximum replicas must meet the configured minimum of 10."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "scale_to_zero_without_wakeup",
+        "op": "equals",
+        "value": false,
+        "reason": "scale to zero without wakeup must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "autoscaling-slice-floor",
+      "rule": {
+        "field": "scaling_metric",
+        "op": "nonempty",
+        "reason": "scaling metric must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "autoscaling-slice-behavior-oracle",
+      "rule": {
+        "field": "scaling_metric",
+        "op": "nonempty",
+        "reason": "scaling metric must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "autoscaling-slice-property-floor",
+      "rule": {
+        "field": "scaling_metric",
+        "op": "nonempty",
+        "reason": "scaling metric must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "autoscaling-slice-mutation-floor",
+      "rule": {
+        "field": "scaling_metric",
+        "op": "nonempty",
+        "reason": "scaling metric must name the concrete repository contract."
+      }
+    }
+  }
+}

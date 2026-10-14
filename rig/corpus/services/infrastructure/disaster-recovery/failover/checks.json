@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.disaster-recovery.failover",
+  "input": "rig-services/infrastructure.disaster-recovery.failover.json",
+  "format": "json",
+  "ceiling": "failover configuration validation only; declared policy does not prove running failover behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Define the trigger and fencing that keep failover from creating two writers. Redundant resources without split-brain protection are not a safe failover design.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "failover trigger must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "fencing_strategy",
+        "op": "nonempty",
+        "reason": "fencing strategy must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_split_brain",
+        "op": "equals",
+        "value": false,
+        "reason": "allow split brain must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "failover-slice-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "failover trigger must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "failover-slice-behavior-oracle",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "failover trigger must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "failover-slice-property-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "failover trigger must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "failover-slice-mutation-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "failover trigger must name the concrete repository contract."
+      }
+    }
+  }
+}

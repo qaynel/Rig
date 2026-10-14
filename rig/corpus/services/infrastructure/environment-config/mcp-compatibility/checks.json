@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.mcp-compatibility",
+  "input": "rig-services/infrastructure.environment-config.mcp-compatibility.json",
+  "format": "json",
+  "ceiling": "mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Declare the MCP transport and protocol contract without embedding credential values. Descriptor checks do not establish that a live server can complete the protocol handshake.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "transport must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "protocol_revision",
+        "op": "nonempty",
+        "reason": "protocol revision must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "credentials_in_descriptor",
+        "op": "equals",
+        "value": false,
+        "reason": "credentials in descriptor must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "mcp-compatibility-slice-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "transport must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "mcp-compatibility-slice-behavior-oracle",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "transport must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "mcp-compatibility-slice-property-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "transport must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "mcp-compatibility-slice-mutation-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "transport must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.provisioning.capacity-planning",
+  "input": "rig-services/infrastructure.provisioning.capacity-planning.json",
+  "format": "json",
+  "ceiling": "capacity planning configuration validation only; declared policy does not prove running capacity planning behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Size capacity from a declared peak workload with explicit headroom and growth assumptions. A static configuration cannot prove that the hardware sustains the forecast.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "peak_requests_per_second",
+        "op": "minimum",
+        "value": 100,
+        "reason": "peak requests per second must meet the configured minimum of 100."
+      }
+    ],
+    "mid": [
+      {
+        "field": "headroom_percent",
+        "op": "minimum",
+        "value": 30,
+        "reason": "headroom percent must meet the configured minimum of 30."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_growth_forecast",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore growth forecast must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "capacity-planning-slice-floor",
+      "rule": {
+        "field": "peak_requests_per_second",
+        "op": "minimum",
+        "value": 100,
+        "reason": "peak requests per second must meet the configured minimum of 100."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "capacity-planning-slice-behavior-oracle",
+      "rule": {
+        "field": "peak_requests_per_second",
+        "op": "minimum",
+        "value": 100,
+        "reason": "peak requests per second must meet the configured minimum of 100."
+      }
+    },
+    "property-floor": {
+      "check_id": "capacity-planning-slice-property-floor",
+      "rule": {
+        "field": "peak_requests_per_second",
+        "op": "minimum",
+        "value": 100,
+        "reason": "peak requests per second must meet the configured minimum of 100."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "capacity-planning-slice-mutation-floor",
+      "rule": {
+        "field": "peak_requests_per_second",
+        "op": "minimum",
+        "value": 100,
+        "reason": "peak requests per second must meet the configured minimum of 100."
+      }
+    }
+  }
+}

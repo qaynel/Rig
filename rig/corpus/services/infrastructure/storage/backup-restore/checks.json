@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.storage.backup-restore",
+  "input": "rig-services/infrastructure.storage.backup-restore.json",
+  "format": "json",
+  "ceiling": "backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "backup_schedule",
+        "op": "nonempty",
+        "reason": "backup schedule must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "restore_test_schedule",
+        "op": "nonempty",
+        "reason": "restore test schedule must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "backup_without_restore_test",
+        "op": "equals",
+        "value": false,
+        "reason": "backup without restore test must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "backup-restore-slice-floor",
+      "rule": {
+        "field": "backup_schedule",
+        "op": "nonempty",
+        "reason": "backup schedule must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "backup-restore-slice-behavior-oracle",
+      "rule": {
+        "field": "backup_schedule",
+        "op": "nonempty",
+        "reason": "backup schedule must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "backup-restore-slice-property-floor",
+      "rule": {
+        "field": "backup_schedule",
+        "op": "nonempty",
+        "reason": "backup schedule must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "backup-restore-slice-mutation-floor",
+      "rule": {
+        "field": "backup_schedule",
+        "op": "nonempty",
+        "reason": "backup schedule must name the concrete repository contract."
+      }
+    }
+  }
+}

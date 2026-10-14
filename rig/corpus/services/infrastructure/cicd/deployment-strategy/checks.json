@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.deployment-strategy",
+  "input": "rig-services/infrastructure.cicd.deployment-strategy.json",
+  "format": "json",
+  "ceiling": "deployment strategy configuration validation only; declared policy does not prove running deployment strategy behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Select a deployment strategy with measurable rollout and rollback conditions. Configuration validates the declared controls; live canary outcomes need separately available deployment tooling.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "strategy must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_trigger",
+        "op": "nonempty",
+        "reason": "rollback trigger must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "automatic_full_rollout_without_checks",
+        "op": "equals",
+        "value": false,
+        "reason": "automatic full rollout without checks must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "deployment-strategy-slice-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "strategy must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "deployment-strategy-slice-behavior-oracle",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "strategy must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "deployment-strategy-slice-property-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "strategy must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "deployment-strategy-slice-mutation-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "strategy must name the concrete repository contract."
+      }
+    }
+  }
+}

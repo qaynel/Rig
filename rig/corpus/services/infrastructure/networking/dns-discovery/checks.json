@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.networking.dns-discovery",
+  "input": "rig-services/infrastructure.networking.dns-discovery.json",
+  "format": "json",
+  "ceiling": "dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "service_records",
+        "op": "nonempty",
+        "reason": "service records must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "ttl_seconds",
+        "op": "minimum",
+        "value": 60,
+        "reason": "ttl seconds must meet the configured minimum of 60."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "hardcode_ephemeral_addresses",
+        "op": "equals",
+        "value": false,
+        "reason": "hardcode ephemeral addresses must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dns-discovery-slice-floor",
+      "rule": {
+        "field": "service_records",
+        "op": "nonempty",
+        "reason": "service records must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dns-discovery-slice-behavior-oracle",
+      "rule": {
+        "field": "service_records",
+        "op": "nonempty",
+        "reason": "service records must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "dns-discovery-slice-property-floor",
+      "rule": {
+        "field": "service_records",
+        "op": "nonempty",
+        "reason": "service records must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dns-discovery-slice-mutation-floor",
+      "rule": {
+        "field": "service_records",
+        "op": "nonempty",
+        "reason": "service records must name the concrete repository contract."
+      }
+    }
+  }
+}

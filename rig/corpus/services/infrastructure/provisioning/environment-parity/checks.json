@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.provisioning.environment-parity",
+  "input": "rig-services/infrastructure.provisioning.environment-parity.json",
+  "format": "json",
+  "ceiling": "environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "environments must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "intentional_differences",
+        "op": "nonempty",
+        "reason": "intentional differences must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unrecorded_differences_allowed",
+        "op": "equals",
+        "value": false,
+        "reason": "unrecorded differences allowed must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "environment-parity-slice-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "environments must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "environment-parity-slice-behavior-oracle",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "environments must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "environment-parity-slice-property-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "environments must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "environment-parity-slice-mutation-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "environments must name the concrete repository contract."
+      }
+    }
+  }
+}
