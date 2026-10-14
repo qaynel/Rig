@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds environment parity to provisioning.environment-parity. It uses `environment-parity-slice-floor` and checks environments (nonempty): environments must name the concrete repository contract..
 
-Ground the decision in a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.provisioning.environment-parity.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior..
+For environment parity, choose a repository example that satisfies environments at the floor and mutation-floor floor, plus a failure where environments must name the concrete repository contract. is false. For environment parity, wire `floor and mutation-floor` to `rig-services/infrastructure.provisioning.environment-parity.json` and keep its verdict on environments; missing evidence is a named gap, with ceiling environment parity configuration validation only; declared policy does not prove running environment parity behavior. Choose a repository-owned check that observes environment parity from rig-services/infrastructure.provisioning.environment-parity.json..
 
 Service-specific evidence cues:
-Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
-
-Owned scope: `provisioning.environment-parity`.
-
 Offer: Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
-
-Input: `rig-services/infrastructure.provisioning.environment-parity.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: environments — ["staging","production"].
-
 mid: intentional differences — ["instance count"].
-
 maximal: unrecorded differences allowed — false.

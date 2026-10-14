@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds vpc firewall to networking.vpc-firewall. It uses `vpc-firewall-slice-property-floor` and checks allowed_ingress (nonempty): allowed ingress must name the concrete repository contract..
 
-Use a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.networking.vpc-firewall.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Select an approved repository-owned command to verify that behavior..
+For vpc firewall, choose a repository example that satisfies allowed_ingress at the property-floor floor, plus a failure where allowed ingress must name the concrete repository contract. is false. For vpc firewall, wire `property-floor` to `rig-services/infrastructure.networking.vpc-firewall.json` and keep its verdict on allowed_ingress; missing evidence is a named gap, with ceiling vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Choose a repository-owned check that observes vpc firewall from rig-services/infrastructure.networking.vpc-firewall.json..
 
 Service-specific evidence cues:
-Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
-
-Owned scope: `networking.vpc-firewall`.
-
 Offer: Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
-
-Input: `rig-services/infrastructure.networking.vpc-firewall.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: allowed ingress — ["443/tcp"].
-
 mid: default action — "deny".
-
 maximal: allow world admin access — false.

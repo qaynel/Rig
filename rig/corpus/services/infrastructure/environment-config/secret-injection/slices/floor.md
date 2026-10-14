@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds secret injection to runtime-secret-injection, secret-injection-wiring. It uses `secret-injection-slice-floor` and checks secret_references (nonempty): secret references must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.environment-config.secret-injection.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior..
+For secret injection, choose a repository example that satisfies secret_references at the floor and mutation-floor floor, plus a failure where secret references must name the concrete repository contract. is false. For secret injection, wire `floor and mutation-floor` to `rig-services/infrastructure.environment-config.secret-injection.json` and keep its verdict on secret_references; missing evidence is a named gap, with ceiling secret injection configuration validation only; declared policy does not prove running secret injection behavior. Choose a repository-owned check that observes secret injection from rig-services/infrastructure.environment-config.secret-injection.json..
 
 Service-specific evidence cues:
-Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.
-
-Owned scope: `runtime-secret-injection`, `secret-injection-wiring`.
-
 Offer: Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.
-
-Input: `rig-services/infrastructure.environment-config.secret-injection.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: secret references — ["vault://app/db"].
-
 mid: delivery mechanism — "workload-identity".
-
 maximal: plaintext secret values — false.

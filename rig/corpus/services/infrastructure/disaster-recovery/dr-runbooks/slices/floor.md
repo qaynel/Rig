@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds dr runbooks to disaster-recovery.dr-runbooks. It uses `dr-runbooks-slice-floor` and checks recovery_steps (nonempty): recovery steps must name the concrete repository contract..
 
-Use a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.disaster-recovery.dr-runbooks.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Select an approved repository-owned command to verify that behavior..
+For dr runbooks, choose a repository example that satisfies recovery_steps at the floor and mutation-floor floor, plus a failure where recovery steps must name the concrete repository contract. is false. For dr runbooks, wire `floor and mutation-floor` to `rig-services/infrastructure.disaster-recovery.dr-runbooks.json` and keep its verdict on recovery_steps; missing evidence is a named gap, with ceiling dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Choose a repository-owned check that observes dr runbooks from rig-services/infrastructure.disaster-recovery.dr-runbooks.json..
 
 Service-specific evidence cues:
-A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.
-
-Owned scope: `disaster-recovery.dr-runbooks`.
-
 Offer: A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.
-
-Input: `rig-services/infrastructure.disaster-recovery.dr-runbooks.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: recovery steps — ["restore database","verify application"].
-
 mid: exercise schedule — "quarterly".
-
 maximal: runbook without owner — false.

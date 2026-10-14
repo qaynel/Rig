@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds tiering lifecycle to storage.tiering-lifecycle. It uses `tiering-lifecycle-slice-behavior-oracle` and checks storage_classes (nonempty): storage classes must name the concrete repository contract..
 
-Use a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.storage.tiering-lifecycle.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than tiering lifecycle configuration validation only; declared policy does not prove running tiering lifecycle behavior. Select an approved repository-owned command to verify that behavior..
+For tiering lifecycle, choose a repository example that satisfies storage_classes at the behavior-oracle floor, plus a failure where storage classes must name the concrete repository contract. is false. For tiering lifecycle, wire `behavior-oracle` to `rig-services/infrastructure.storage.tiering-lifecycle.json` and keep its verdict on storage_classes; missing evidence is a named gap, with ceiling tiering lifecycle configuration validation only; declared policy does not prove running tiering lifecycle behavior. Choose a repository-owned check that observes tiering lifecycle from rig-services/infrastructure.storage.tiering-lifecycle.json..
 
 Service-specific evidence cues:
-Define storage transitions and retention from the data contract. Lifecycle rules must not destroy data before its retention requirement expires.
-
-Owned scope: `storage.tiering-lifecycle`.
-
 Offer: Define storage transitions and retention from the data contract. Lifecycle rules must not destroy data before its retention requirement expires.
-
-Input: `rig-services/infrastructure.storage.tiering-lifecycle.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: tiering lifecycle configuration validation only; declared policy does not prove running tiering lifecycle behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: storage classes — ["hot","archive"].
-
 mid: retention days — 30.
-
 maximal: delete before retention — false.

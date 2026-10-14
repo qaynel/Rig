@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds mcp compatibility to environment-config.mcp-compatibility. It uses `mcp-compatibility-slice-behavior-oracle` and checks transport (nonempty): transport must name the concrete repository contract..
 
-Tie acceptance to a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.environment-config.mcp-compatibility.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Select an approved repository-owned command to verify that behavior..
+For mcp compatibility, choose a repository example that satisfies transport at the behavior-oracle floor, plus a failure where transport must name the concrete repository contract. is false. For mcp compatibility, wire `behavior-oracle` to `rig-services/infrastructure.environment-config.mcp-compatibility.json` and keep its verdict on transport; missing evidence is a named gap, with ceiling mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Choose a repository-owned check that observes mcp compatibility from rig-services/infrastructure.environment-config.mcp-compatibility.json..
 
 Service-specific evidence cues:
-Declare the MCP transport and protocol contract without embedding credential values. Descriptor checks do not establish that a live server can complete the protocol handshake.
-
-Owned scope: `environment-config.mcp-compatibility`.
-
 Offer: Declare the MCP transport and protocol contract without embedding credential values. Descriptor checks do not establish that a live server can complete the protocol handshake.
-
-Input: `rig-services/infrastructure.environment-config.mcp-compatibility.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: transport — "stdio".
-
 mid: protocol revision — "2025-03-26".
-
 maximal: credentials in descriptor — false.

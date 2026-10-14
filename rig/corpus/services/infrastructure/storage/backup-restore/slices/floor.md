@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds backup restore to storage.backup-restore. It uses `backup-restore-slice-floor` and checks backup_schedule (nonempty): backup schedule must name the concrete repository contract..
 
-Tie acceptance to a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.storage.backup-restore.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior..
+For backup restore, choose a repository example that satisfies backup_schedule at the floor and mutation-floor floor, plus a failure where backup schedule must name the concrete repository contract. is false. For backup restore, wire `floor and mutation-floor` to `rig-services/infrastructure.storage.backup-restore.json` and keep its verdict on backup_schedule; missing evidence is a named gap, with ceiling backup restore configuration validation only; declared policy does not prove running backup restore behavior. Choose a repository-owned check that observes backup restore from rig-services/infrastructure.storage.backup-restore.json..
 
 Service-specific evidence cues:
-Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
-
-Owned scope: `storage.backup-restore`.
-
 Offer: Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
-
-Input: `rig-services/infrastructure.storage.backup-restore.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: backup schedule — "daily".
-
 mid: restore test schedule — "monthly".
-
 maximal: backup without restore test — false.

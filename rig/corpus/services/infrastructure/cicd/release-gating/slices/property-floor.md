@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds release gating to cicd.release-gating. It uses `release-gating-slice-property-floor` and checks required_gates (nonempty): required gates must name the concrete repository contract..
 
-Read a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/infrastructure.cicd.release-gating.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than release gating configuration validation only; declared policy does not prove running release gating behavior. Select an approved repository-owned command to verify that behavior..
+For release gating, choose a repository example that satisfies required_gates at the property-floor floor, plus a failure where required gates must name the concrete repository contract. is false. For release gating, wire `property-floor` to `rig-services/infrastructure.cicd.release-gating.json` and keep its verdict on required_gates; missing evidence is a named gap, with ceiling release gating configuration validation only; declared policy does not prove running release gating behavior. Choose a repository-owned check that observes release gating from rig-services/infrastructure.cicd.release-gating.json..
 
 Service-specific evidence cues:
-Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.
-
-Owned scope: `cicd.release-gating`.
-
 Offer: Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.
-
-Input: `rig-services/infrastructure.cicd.release-gating.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: release gating configuration validation only; declared policy does not prove running release gating behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: required gates — ["tests","artifact digest"].
-
 mid: release revision — "a1b2c3d".
-
 maximal: use stale gate results — false.
