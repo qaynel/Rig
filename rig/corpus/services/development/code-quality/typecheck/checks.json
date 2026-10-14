@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-quality.typecheck",
+  "input": "rig-services/development.code-quality.typecheck.json",
+  "format": "json",
+  "ceiling": "typecheck configuration validation only; declared policy does not prove running typecheck behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Bind the type checker to the repository task and enumerate covered components. Do not make a clean result by suppressing type errors or silently excluding a package.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "typecheck_command",
+        "op": "nonempty",
+        "reason": "typecheck command must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "checked_components",
+        "op": "nonempty",
+        "reason": "checked components must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_type_errors",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore type errors must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "typecheck-slice-floor",
+      "rule": {
+        "field": "typecheck_command",
+        "op": "nonempty",
+        "reason": "typecheck command must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "typecheck-slice-behavior-oracle",
+      "rule": {
+        "field": "typecheck_command",
+        "op": "nonempty",
+        "reason": "typecheck command must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "typecheck-slice-property-floor",
+      "rule": {
+        "field": "typecheck_command",
+        "op": "nonempty",
+        "reason": "typecheck command must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "typecheck-slice-mutation-floor",
+      "rule": {
+        "field": "typecheck_command",
+        "op": "nonempty",
+        "reason": "typecheck command must name the concrete repository contract."
+      }
+    }
+  }
+}

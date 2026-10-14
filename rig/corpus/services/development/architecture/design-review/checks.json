@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.architecture.design-review",
+  "input": "rig-services/development.architecture.design-review.json",
+  "format": "json",
+  "ceiling": "design review configuration validation only; declared policy does not prove running design review behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Review interfaces and explicit tradeoffs against the intended outcomes. Resolve contradictory design assumptions before implementation instead of treating an approved diagram as proof of correctness.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "reviewed interfaces must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "tradeoffs",
+        "op": "nonempty",
+        "reason": "tradeoffs must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unresolved_tradeoffs",
+        "op": "minimum",
+        "value": 0,
+        "reason": "unresolved tradeoffs must meet the configured minimum of 0."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "design-review-slice-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "reviewed interfaces must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "design-review-slice-behavior-oracle",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "reviewed interfaces must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "design-review-slice-property-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "reviewed interfaces must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "design-review-slice-mutation-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "reviewed interfaces must name the concrete repository contract."
+      }
+    }
+  }
+}

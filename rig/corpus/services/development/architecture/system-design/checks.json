@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.architecture.system-design",
+  "input": "rig-services/development.architecture.system-design.json",
+  "format": "json",
+  "ceiling": "system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Name the system components and the trust boundaries between them. Evaluate failure modes before adopting the diagram as a design; arrows alone do not explain resilience.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "components",
+        "op": "nonempty",
+        "reason": "components must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "trust_boundaries",
+        "op": "nonempty",
+        "reason": "trust boundaries must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "failure_modes",
+        "op": "nonempty",
+        "reason": "failure modes must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "system-design-slice-floor",
+      "rule": {
+        "field": "components",
+        "op": "nonempty",
+        "reason": "components must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "system-design-slice-behavior-oracle",
+      "rule": {
+        "field": "components",
+        "op": "nonempty",
+        "reason": "components must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "system-design-slice-property-floor",
+      "rule": {
+        "field": "components",
+        "op": "nonempty",
+        "reason": "components must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "system-design-slice-mutation-floor",
+      "rule": {
+        "field": "components",
+        "op": "nonempty",
+        "reason": "components must name the concrete repository contract."
+      }
+    }
+  }
+}

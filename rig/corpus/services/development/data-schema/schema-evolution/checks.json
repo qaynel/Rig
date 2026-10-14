@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.data-schema.schema-evolution",
+  "input": "rig-services/development.data-schema.schema-evolution.json",
+  "format": "json",
+  "ceiling": "schema evolution configuration validation only; declared policy does not prove running schema evolution behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "compatible_readers",
+        "op": "nonempty",
+        "reason": "compatible readers must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "unknown_field_policy",
+        "op": "nonempty",
+        "reason": "unknown field policy must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "remove_required_fields",
+        "op": "equals",
+        "value": false,
+        "reason": "remove required fields must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "schema-evolution-slice-floor",
+      "rule": {
+        "field": "compatible_readers",
+        "op": "nonempty",
+        "reason": "compatible readers must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "schema-evolution-slice-behavior-oracle",
+      "rule": {
+        "field": "compatible_readers",
+        "op": "nonempty",
+        "reason": "compatible readers must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "schema-evolution-slice-property-floor",
+      "rule": {
+        "field": "compatible_readers",
+        "op": "nonempty",
+        "reason": "compatible readers must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "schema-evolution-slice-mutation-floor",
+      "rule": {
+        "field": "compatible_readers",
+        "op": "nonempty",
+        "reason": "compatible readers must name the concrete repository contract."
+      }
+    }
+  }
+}

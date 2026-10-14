@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-quality.code-review",
+  "input": "rig-services/development.code-quality.code-review.json",
+  "format": "json",
+  "ceiling": "code review configuration validation only; declared policy does not prove running code review behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Review the actual changed scope with independent ownership. At least one reviewer must resolve or explicitly disposition every finding before the change earns a clean review.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "review_scope",
+        "op": "nonempty",
+        "reason": "review scope must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "required_reviewers",
+        "op": "minimum",
+        "value": 1,
+        "reason": "required reviewers must meet the configured minimum of 1."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unresolved_findings_allowed",
+        "op": "equals",
+        "value": false,
+        "reason": "unresolved findings allowed must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "code-review-slice-floor",
+      "rule": {
+        "field": "review_scope",
+        "op": "nonempty",
+        "reason": "review scope must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "code-review-slice-behavior-oracle",
+      "rule": {
+        "field": "review_scope",
+        "op": "nonempty",
+        "reason": "review scope must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "code-review-slice-property-floor",
+      "rule": {
+        "field": "review_scope",
+        "op": "nonempty",
+        "reason": "review scope must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "code-review-slice-mutation-floor",
+      "rule": {
+        "field": "review_scope",
+        "op": "nonempty",
+        "reason": "review scope must name the concrete repository contract."
+      }
+    }
+  }
+}

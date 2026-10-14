@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.codegen-scaffolding",
+  "input": "rig-services/development.code-creation.codegen-scaffolding.json",
+  "format": "json",
+  "ceiling": "codegen scaffolding configuration validation only; declared policy does not prove running codegen scaffolding behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Pin the generator revision and identify exactly which paths are generated. Generated output must never overwrite hand-written files without a separate decision.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "generator_revision",
+        "op": "nonempty",
+        "reason": "generator revision must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "generated_paths",
+        "op": "nonempty",
+        "reason": "generated paths must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "overwrite_user_files",
+        "op": "equals",
+        "value": false,
+        "reason": "overwrite user files must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "codegen-scaffolding-slice-floor",
+      "rule": {
+        "field": "generator_revision",
+        "op": "nonempty",
+        "reason": "generator revision must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "codegen-scaffolding-slice-behavior-oracle",
+      "rule": {
+        "field": "generator_revision",
+        "op": "nonempty",
+        "reason": "generator revision must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "codegen-scaffolding-slice-property-floor",
+      "rule": {
+        "field": "generator_revision",
+        "op": "nonempty",
+        "reason": "generator revision must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "codegen-scaffolding-slice-mutation-floor",
+      "rule": {
+        "field": "generator_revision",
+        "op": "nonempty",
+        "reason": "generator revision must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.debugging.log-trace-analysis",
+  "input": "rig-services/development.debugging.log-trace-analysis.json",
+  "format": "json",
+  "ceiling": "log trace analysis configuration validation only; declared policy does not prove running log trace analysis behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Correlate events across requests using stable trace fields. Remove authorization material before analysis; raw credentials must never enter the diagnostic log.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "trace fields must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "redacted_fields",
+        "op": "nonempty",
+        "reason": "redacted fields must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "log_credentials",
+        "op": "equals",
+        "value": false,
+        "reason": "log credentials must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "log-trace-analysis-slice-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "trace fields must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "log-trace-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "trace fields must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "log-trace-analysis-slice-property-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "trace fields must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "log-trace-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "trace fields must name the concrete repository contract."
+      }
+    }
+  }
+}

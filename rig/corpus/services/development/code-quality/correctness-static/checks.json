@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-quality.correctness-static",
+  "input": "rig-services/development.code-quality.correctness-static.json",
+  "format": "json",
+  "ceiling": "correctness static configuration validation only; declared policy does not prove running correctness static behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Choose correctness rules for the language and record the actual analyzer invocation. Analyzer crashes and findings remain non-passing; a missing analyzer is a setup gap.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "analyzer command must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "enabled_rules",
+        "op": "nonempty",
+        "reason": "enabled rules must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_analyzer_failure",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore analyzer failure must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "correctness-static-slice-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "analyzer command must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "correctness-static-slice-behavior-oracle",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "analyzer command must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "correctness-static-slice-property-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "analyzer command must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "correctness-static-slice-mutation-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "analyzer command must name the concrete repository contract."
+      }
+    }
+  }
+}

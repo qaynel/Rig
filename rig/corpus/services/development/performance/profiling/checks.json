@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.performance.profiling",
+  "input": "rig-services/development.performance.profiling.json",
+  "format": "json",
+  "ceiling": "profiling configuration validation only; declared policy does not prove running profiling behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "workload",
+        "op": "nonempty",
+        "reason": "workload must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "measured_metrics",
+        "op": "nonempty",
+        "reason": "measured metrics must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "optimize_without_measurement",
+        "op": "equals",
+        "value": false,
+        "reason": "optimize without measurement must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "profiling-slice-floor",
+      "rule": {
+        "field": "workload",
+        "op": "nonempty",
+        "reason": "workload must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "profiling-slice-behavior-oracle",
+      "rule": {
+        "field": "workload",
+        "op": "nonempty",
+        "reason": "workload must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "profiling-slice-property-floor",
+      "rule": {
+        "field": "workload",
+        "op": "nonempty",
+        "reason": "workload must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "profiling-slice-mutation-floor",
+      "rule": {
+        "field": "workload",
+        "op": "nonempty",
+        "reason": "workload must name the concrete repository contract."
+      }
+    }
+  }
+}

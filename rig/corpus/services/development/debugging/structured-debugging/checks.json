@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.debugging.structured-debugging",
+  "input": "rig-services/development.debugging.structured-debugging.json",
+  "format": "json",
+  "ceiling": "structured debugging configuration validation only; declared policy does not prove running structured debugging behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Capture a repeatable failure before changing code and rank hypotheses from evidence. One experiment should separate explanations; speculative fixes before reproduction erase useful evidence.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "reproduction_steps",
+        "op": "nonempty",
+        "reason": "reproduction steps must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "ranked_hypotheses",
+        "op": "nonempty",
+        "reason": "ranked hypotheses must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "change_before_reproduction",
+        "op": "equals",
+        "value": false,
+        "reason": "change before reproduction must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "structured-debugging-slice-floor",
+      "rule": {
+        "field": "reproduction_steps",
+        "op": "nonempty",
+        "reason": "reproduction steps must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "structured-debugging-slice-behavior-oracle",
+      "rule": {
+        "field": "reproduction_steps",
+        "op": "nonempty",
+        "reason": "reproduction steps must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "structured-debugging-slice-property-floor",
+      "rule": {
+        "field": "reproduction_steps",
+        "op": "nonempty",
+        "reason": "reproduction steps must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "structured-debugging-slice-mutation-floor",
+      "rule": {
+        "field": "reproduction_steps",
+        "op": "nonempty",
+        "reason": "reproduction steps must name the concrete repository contract."
+      }
+    }
+  }
+}

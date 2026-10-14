@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.feature-implementation",
+  "input": "rig-services/development.code-creation.feature-implementation.json",
+  "format": "json",
+  "ceiling": "feature implementation configuration validation only; declared policy does not prove running feature implementation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "acceptance cases must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "change_scope",
+        "op": "nonempty",
+        "reason": "change scope must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "compatibility",
+        "op": "nonempty",
+        "reason": "compatibility must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "feature-implementation-slice-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "acceptance cases must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "feature-implementation-slice-behavior-oracle",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "acceptance cases must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "feature-implementation-slice-property-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "acceptance cases must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "feature-implementation-slice-mutation-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "acceptance cases must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.debugging.root-cause-analysis",
+  "input": "rig-services/development.debugging.root-cause-analysis.json",
+  "format": "json",
+  "ceiling": "root cause analysis configuration validation only; declared policy does not prove running root cause analysis behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Locate the first boundary where expected behavior diverges and record the causal observation. Fix the shared cause and retain a reproduction rather than masking the final symptom.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "failure boundary must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "causal_evidence",
+        "op": "nonempty",
+        "reason": "causal evidence must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "symptom_only_fix",
+        "op": "equals",
+        "value": false,
+        "reason": "symptom only fix must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "root-cause-analysis-slice-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "failure boundary must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "root-cause-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "failure boundary must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "root-cause-analysis-slice-property-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "failure boundary must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "root-cause-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "failure boundary must name the concrete repository contract."
+      }
+    }
+  }
+}

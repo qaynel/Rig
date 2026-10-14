@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.architecture.tech-debt",
+  "input": "rig-services/development.architecture.tech-debt.json",
+  "format": "json",
+  "ceiling": "tech debt configuration validation only; declared policy does not prove running tech debt behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Define debt as an observable cost with an owner and an exit condition. A vague cleanup label without a completion condition cannot guide a useful maintenance change.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "debt_items",
+        "op": "nonempty",
+        "reason": "debt items must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "owners",
+        "op": "nonempty",
+        "reason": "owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "exit_criteria",
+        "op": "nonempty",
+        "reason": "exit criteria must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "tech-debt-slice-floor",
+      "rule": {
+        "field": "debt_items",
+        "op": "nonempty",
+        "reason": "debt items must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "tech-debt-slice-behavior-oracle",
+      "rule": {
+        "field": "debt_items",
+        "op": "nonempty",
+        "reason": "debt items must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "tech-debt-slice-property-floor",
+      "rule": {
+        "field": "debt_items",
+        "op": "nonempty",
+        "reason": "debt items must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "tech-debt-slice-mutation-floor",
+      "rule": {
+        "field": "debt_items",
+        "op": "nonempty",
+        "reason": "debt items must name the concrete repository contract."
+      }
+    }
+  }
+}

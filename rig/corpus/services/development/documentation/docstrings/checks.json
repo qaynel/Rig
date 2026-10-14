@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.documentation.docstrings",
+  "input": "rig-services/development.documentation.docstrings.json",
+  "format": "json",
+  "ceiling": "docstrings configuration validation only; declared policy does not prove running docstrings behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "documented symbols must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "parameters",
+        "op": "nonempty",
+        "reason": "parameters must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "failure_contract",
+        "op": "nonempty",
+        "reason": "failure contract must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "docstrings-slice-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "documented symbols must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "docstrings-slice-behavior-oracle",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "documented symbols must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "docstrings-slice-property-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "documented symbols must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "docstrings-slice-mutation-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "documented symbols must name the concrete repository contract."
+      }
+    }
+  }
+}

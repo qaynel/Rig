@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.documentation.adrs",
+  "input": "rig-services/development.documentation.adrs.json",
+  "format": "json",
+  "ceiling": "adrs configuration validation only; declared policy does not prove running adrs behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Record the chosen approach, credible alternatives and concrete consequences. A decision record should explain the tradeoff that shaped the system rather than restating the implementation.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "decision must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "alternatives",
+        "op": "nonempty",
+        "reason": "alternatives must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "consequences",
+        "op": "nonempty",
+        "reason": "consequences must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "adrs-slice-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "decision must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "adrs-slice-behavior-oracle",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "decision must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "adrs-slice-property-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "decision must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "adrs-slice-mutation-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "decision must name the concrete repository contract."
+      }
+    }
+  }
+}

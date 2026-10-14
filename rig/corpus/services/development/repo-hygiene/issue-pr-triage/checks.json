@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.repo-hygiene.issue-pr-triage",
+  "input": "rig-services/development.repo-hygiene.issue-pr-triage.json",
+  "format": "json",
+  "ceiling": "issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "triage labels must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "responsible_owners",
+        "op": "nonempty",
+        "reason": "responsible owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "close_without_disposition",
+        "op": "equals",
+        "value": false,
+        "reason": "close without disposition must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "issue-pr-triage-slice-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "triage labels must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "issue-pr-triage-slice-behavior-oracle",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "triage labels must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "issue-pr-triage-slice-property-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "triage labels must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "issue-pr-triage-slice-mutation-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "triage labels must name the concrete repository contract."
+      }
+    }
+  }
+}

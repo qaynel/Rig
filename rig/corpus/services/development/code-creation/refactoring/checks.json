@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.refactoring",
+  "input": "rig-services/development.code-creation.refactoring.json",
+  "format": "json",
+  "ceiling": "refactoring configuration validation only; declared policy does not prove running refactoring behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "A refactor changes structure while preserving behavior. Enumerate the observable contract and keep public API changes at zero; retain a direct way to revert the restructuring.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "preserved behaviors must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "public_api_changes",
+        "op": "minimum",
+        "value": 0,
+        "reason": "public api changes must meet the configured minimum of 0."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "rollback_strategy",
+        "op": "nonempty",
+        "reason": "rollback strategy must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "refactoring-slice-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "preserved behaviors must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "refactoring-slice-behavior-oracle",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "preserved behaviors must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "refactoring-slice-property-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "preserved behaviors must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "refactoring-slice-mutation-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "preserved behaviors must name the concrete repository contract."
+      }
+    }
+  }
+}

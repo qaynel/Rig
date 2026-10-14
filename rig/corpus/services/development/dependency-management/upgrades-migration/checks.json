@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.dependency-management.upgrades-migration",
+  "input": "rig-services/development.dependency-management.upgrades-migration.json",
+  "format": "json",
+  "ceiling": "upgrades migration configuration validation only; declared policy does not prove running upgrades migration behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Inventory the target versions and deliberate migration steps. Keep the prior dependency state recoverable until compatibility checks prove that the upgrade can stay.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "target_versions",
+        "op": "nonempty",
+        "reason": "target versions must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "migration_steps",
+        "op": "nonempty",
+        "reason": "migration steps must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "rollback_available",
+        "op": "equals",
+        "value": true,
+        "reason": "rollback available must be true."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "upgrades-migration-slice-floor",
+      "rule": {
+        "field": "target_versions",
+        "op": "nonempty",
+        "reason": "target versions must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "upgrades-migration-slice-behavior-oracle",
+      "rule": {
+        "field": "target_versions",
+        "op": "nonempty",
+        "reason": "target versions must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "upgrades-migration-slice-property-floor",
+      "rule": {
+        "field": "target_versions",
+        "op": "nonempty",
+        "reason": "target versions must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "upgrades-migration-slice-mutation-floor",
+      "rule": {
+        "field": "target_versions",
+        "op": "nonempty",
+        "reason": "target versions must name the concrete repository contract."
+      }
+    }
+  }
+}

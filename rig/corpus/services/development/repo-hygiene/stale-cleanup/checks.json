@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.repo-hygiene.stale-cleanup",
+  "input": "rig-services/development.repo-hygiene.stale-cleanup.json",
+  "format": "json",
+  "ceiling": "stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Establish that a stale candidate has no remaining callers before removing it. Retain a recoverable deletion and preserve user-owned files that only look unused.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "candidate paths must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "reference_checks",
+        "op": "nonempty",
+        "reason": "reference checks must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_without_recovery",
+        "op": "equals",
+        "value": false,
+        "reason": "delete without recovery must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "stale-cleanup-slice-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "candidate paths must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "stale-cleanup-slice-behavior-oracle",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "candidate paths must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "stale-cleanup-slice-property-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "candidate paths must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "stale-cleanup-slice-mutation-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "candidate paths must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.data-schema.db-migrations",
+  "input": "rig-services/development.data-schema.db-migrations.json",
+  "format": "json",
+  "ceiling": "db migrations configuration validation only; declared policy does not prove running db migrations behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Keep migration ordering deterministic and preserve a tested recovery route. Destructive schema operations require their own explicit approval rather than inheriting ordinary migration consent.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "migration order must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_steps",
+        "op": "nonempty",
+        "reason": "rollback steps must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "destructive_change_approved",
+        "op": "equals",
+        "value": false,
+        "reason": "destructive change approved must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "db-migrations-slice-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "migration order must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "db-migrations-slice-behavior-oracle",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "migration order must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "db-migrations-slice-property-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "migration order must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "db-migrations-slice-mutation-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "migration order must name the concrete repository contract."
+      }
+    }
+  }
+}

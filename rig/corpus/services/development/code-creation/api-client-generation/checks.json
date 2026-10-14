@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.api-client-generation",
+  "input": "rig-services/development.code-creation.api-client-generation.json",
+  "format": "json",
+  "ceiling": "api client generation configuration validation only; declared policy does not prove running api client generation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "specification path must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "compatibility_version",
+        "op": "nonempty",
+        "reason": "compatibility version must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unknown_response_policy",
+        "op": "nonempty",
+        "reason": "unknown response policy must name the concrete repository contract."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "api-client-generation-slice-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "specification path must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "api-client-generation-slice-behavior-oracle",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "specification path must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "api-client-generation-slice-property-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "specification path must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "api-client-generation-slice-mutation-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "specification path must name the concrete repository contract."
+      }
+    }
+  }
+}

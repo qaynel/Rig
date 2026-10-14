@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.dependency-management.deprecation-triage",
+  "input": "rig-services/development.dependency-management.deprecation-triage.json",
+  "format": "json",
+  "ceiling": "deprecation triage configuration validation only; declared policy does not prove running deprecation triage behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Identify each deprecated API and assign a migration owner. Removal deadlines remain explicit; warning suppression is not a substitute for replacing a disappearing dependency.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "deprecated apis must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_owners",
+        "op": "nonempty",
+        "reason": "replacement owners must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_removal_deadline",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore removal deadline must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "deprecation-triage-slice-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "deprecated apis must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "deprecation-triage-slice-behavior-oracle",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "deprecated apis must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "deprecation-triage-slice-property-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "deprecated apis must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "deprecation-triage-slice-mutation-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "deprecated apis must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# development.architecture.system-design — identity
+
+system design owns architecture.system-design. Name the system components and the trust boundaries between them. Evaluate failure modes before adopting the diagram as a design; arrows alone do not explain resilience.
+
+Keep sibling services in architecture under their own verdicts. Read the configured input at `rig-services/development.architecture.system-design.json`; malformed input is still attributed to that path.
+
+Disposition: convention. Ground the decision in the limit: system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior.
+
+Acceptance target: fixture:development.architecture.system-design:policy-boundary. Given source-code is present and architecture.system-design is selected, pass only when the repository binding evaluates architecture.system-design and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent architecture concern.
