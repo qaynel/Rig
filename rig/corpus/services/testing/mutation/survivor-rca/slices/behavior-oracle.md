@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds survivor rca to mutation.survivor-rca. It uses `survivor-rca-slice-behavior-oracle` and checks surviving_mutants (nonempty): surviving mutants must name the concrete repository contract..
 
-Read a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.mutation.survivor-rca.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior..
+For survivor rca, choose a repository example that satisfies surviving_mutants at the behavior-oracle floor, plus a failure where surviving mutants must name the concrete repository contract. is false. For survivor rca, wire `behavior-oracle` to `rig-services/testing.mutation.survivor-rca.json` and keep its verdict on surviving_mutants; missing evidence is a named gap, with ceiling survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Choose a repository-owned check that observes survivor rca from rig-services/testing.mutation.survivor-rca.json..
 
 Service-specific evidence cues:
-Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
-
-Owned scope: `mutation.survivor-rca`.
-
 Offer: Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
-
-Input: `rig-services/testing.mutation.survivor-rca.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: surviving mutants — ["boundary comparison changed"].
-
 mid: missing assertions — ["exact limit rejected"].
-
 maximal: ignore equivalence question — false.

@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds pyramid balance to strategy.pyramid-balance. It uses `pyramid-balance-slice-property-floor` and checks unit_suites (nonempty): unit suites must name the concrete repository contract..
 
-Start from a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.strategy.pyramid-balance.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior..
+For pyramid balance, choose a repository example that satisfies unit_suites at the property-floor floor, plus a failure where unit suites must name the concrete repository contract. is false. For pyramid balance, wire `property-floor` to `rig-services/testing.strategy.pyramid-balance.json` and keep its verdict on unit_suites; missing evidence is a named gap, with ceiling pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Choose a repository-owned check that observes pyramid balance from rig-services/testing.strategy.pyramid-balance.json..
 
 Service-specific evidence cues:
-Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
-
-Owned scope: `strategy.pyramid-balance`.
-
 Offer: Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
-
-Input: `rig-services/testing.strategy.pyramid-balance.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: unit suites — ["parser"].
-
 mid: integration suites — ["api database"].
-
 maximal: e2e only strategy — false.

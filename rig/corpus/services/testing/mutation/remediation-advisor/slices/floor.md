@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds remediation advisor to mutation.remediation-advisor. It uses `remediation-advisor-slice-floor` and checks remediation_cases (nonempty): remediation cases must name the concrete repository contract..
 
-Ground the decision in a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.mutation.remediation-advisor.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior..
+For remediation advisor, choose a repository example that satisfies remediation_cases at the floor and mutation-floor floor, plus a failure where remediation cases must name the concrete repository contract. is false. For remediation advisor, wire `floor and mutation-floor` to `rig-services/testing.mutation.remediation-advisor.json` and keep its verdict on remediation_cases; missing evidence is a named gap, with ceiling remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Choose a repository-owned check that observes remediation advisor from rig-services/testing.mutation.remediation-advisor.json..
 
 Service-specific evidence cues:
-Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-
-Owned scope: `mutation.remediation-advisor`.
-
 Offer: Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-
-Input: `rig-services/testing.mutation.remediation-advisor.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: remediation cases — ["reject exact upper limit"].
-
 mid: target behaviors — ["limit enforcement"].
-
 maximal: add implementation mirrors — false.

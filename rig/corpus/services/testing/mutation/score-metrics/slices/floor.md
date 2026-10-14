@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds score metrics to mutation.score-metrics. It uses `score-metrics-slice-floor` and checks killed_mutants (minimum 8): killed mutants must meet the configured minimum of 8..
 
-Trace the verdict to a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.mutation.score-metrics.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior..
+For score metrics, choose a repository example that satisfies killed_mutants at the floor and mutation-floor floor, plus a failure where killed mutants must meet the configured minimum of 8. is false. For score metrics, wire `floor and mutation-floor` to `rig-services/testing.mutation.score-metrics.json` and keep its verdict on killed_mutants; missing evidence is a named gap, with ceiling score metrics configuration validation only; declared policy does not prove running score metrics behavior. Choose a repository-owned check that observes score metrics from rig-services/testing.mutation.score-metrics.json..
 
 Service-specific evidence cues:
-Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
-
-Owned scope: `mutation.score-metrics`.
-
 Offer: Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
-
-Input: `rig-services/testing.mutation.score-metrics.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: killed mutants — 8.
-
 mid: valid mutants — 10.
-
 maximal: include invalid mutants in score — false.

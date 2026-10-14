@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds test case generation to unit.test-case-generation. It uses `test-case-generation-slice-floor` and checks behavior_cases (nonempty): behavior cases must name the concrete repository contract..
 
-Start from a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.unit.test-case-generation.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than test case generation configuration validation only; declared policy does not prove running test case generation behavior. Select an approved repository-owned command to verify that behavior..
+For test case generation, choose a repository example that satisfies behavior_cases at the floor and mutation-floor floor, plus a failure where behavior cases must name the concrete repository contract. is false. For test case generation, wire `floor and mutation-floor` to `rig-services/testing.unit.test-case-generation.json` and keep its verdict on behavior_cases; missing evidence is a named gap, with ceiling test case generation configuration validation only; declared policy does not prove running test case generation behavior. Choose a repository-owned check that observes test case generation from rig-services/testing.unit.test-case-generation.json..
 
 Service-specific evidence cues:
-Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.
-
-Owned scope: `unit.test-case-generation`.
-
 Offer: Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.
-
-Input: `rig-services/testing.unit.test-case-generation.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: test case generation configuration validation only; declared policy does not prove running test case generation behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: behavior cases — ["reject malformed input"].
-
 mid: asserted outcomes — ["throws invalid record"].
-
 maximal: assert implementation details — false.

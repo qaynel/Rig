@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds mutant generator to mutation.mutant-generator. It uses `mutant-generator-slice-floor` and checks mutation_operators (nonempty): mutation operators must name the concrete repository contract..
 
-Ground the decision in a concrete repository example that would pass this floor and mutation-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.mutation.mutant-generator.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior..
+For mutant generator, choose a repository example that satisfies mutation_operators at the floor and mutation-floor floor, plus a failure where mutation operators must name the concrete repository contract. is false. For mutant generator, wire `floor and mutation-floor` to `rig-services/testing.mutation.mutant-generator.json` and keep its verdict on mutation_operators; missing evidence is a named gap, with ceiling mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Choose a repository-owned check that observes mutant generator from rig-services/testing.mutation.mutant-generator.json..
 
 Service-specific evidence cues:
-Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
-
-Owned scope: `mutation.mutant-generator`.
-
 Offer: Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
-
-Input: `rig-services/testing.mutation.mutant-generator.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: mutation operators — ["negate conditional"].
-
 mid: target paths — ["src/parser.js"].
-
 maximal: mutate test code — false.

@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds perf regression ci to performance-load.perf-regression-ci. It uses `perf-regression-ci-slice-behavior-oracle` and checks tracked_metrics (nonempty): tracked metrics must name the concrete repository contract..
 
-Inspect a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.performance-load.perf-regression-ci.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior..
+For perf regression ci, choose a repository example that satisfies tracked_metrics at the behavior-oracle floor, plus a failure where tracked metrics must name the concrete repository contract. is false. For perf regression ci, wire `behavior-oracle` to `rig-services/testing.performance-load.perf-regression-ci.json` and keep its verdict on tracked_metrics; missing evidence is a named gap, with ceiling perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Choose a repository-owned check that observes perf regression ci from rig-services/testing.performance-load.perf-regression-ci.json..
 
 Service-specific evidence cues:
-Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.
-
-Owned scope: `performance-load.perf-regression-ci`.
-
 Offer: Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.
-
-Input: `rig-services/testing.performance-load.perf-regression-ci.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: tracked metrics — ["p95 latency"].
-
 mid: regression budget percent — 10.
-
 maximal: ignore threshold failure — false.

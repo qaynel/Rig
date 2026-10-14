@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds internal contract to integration.internal-contract. It uses `internal-contract-slice-behavior-oracle` and checks producer_schema (nonempty): producer schema must name the concrete repository contract..
 
-Start from a concrete repository example that would pass this behavior-oracle floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.integration.internal-contract.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than internal contract configuration validation only; declared policy does not prove running internal contract behavior. Select an approved repository-owned command to verify that behavior..
+For internal contract, choose a repository example that satisfies producer_schema at the behavior-oracle floor, plus a failure where producer schema must name the concrete repository contract. is false. For internal contract, wire `behavior-oracle` to `rig-services/testing.integration.internal-contract.json` and keep its verdict on producer_schema; missing evidence is a named gap, with ceiling internal contract configuration validation only; declared policy does not prove running internal contract behavior. Choose a repository-owned check that observes internal contract from rig-services/testing.integration.internal-contract.json..
 
 Service-specific evidence cues:
-Verify producer and consumer compatibility against the same schema. Breaking a consumer contract needs a deliberate transition rather than updating only the producer fixture.
-
-Owned scope: `integration.internal-contract`.
-
 Offer: Verify producer and consumer compatibility against the same schema. Breaking a consumer contract needs a deliberate transition rather than updating only the producer fixture.
-
-Input: `rig-services/testing.integration.internal-contract.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: internal contract configuration validation only; declared policy does not prove running internal contract behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: producer schema — "schemas/order.json".
-
 mid: consumer versions — ["v1","v2"].
-
 maximal: allow breaking change — false.

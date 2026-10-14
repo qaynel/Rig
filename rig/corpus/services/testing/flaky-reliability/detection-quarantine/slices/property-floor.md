@@ -2,21 +2,10 @@
 
 Policy grade slice. This slice bounds detection quarantine to flaky-reliability.detection-quarantine. It uses `detection-quarantine-slice-property-floor` and checks flaky_cases (nonempty): flaky cases must name the concrete repository contract..
 
-Trace the verdict to a concrete repository example that would pass this property-floor floor and a nearby failure that must remain visible. Wire the slice to the repository-owned source named by `rig-services/testing.flaky-reliability.detection-quarantine.json`; if that source or its binding is absent, report a named coverage gap. This slice does not establish more than detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Select an approved repository-owned command to verify that behavior..
+For detection quarantine, choose a repository example that satisfies flaky_cases at the property-floor floor, plus a failure where flaky cases must name the concrete repository contract. is false. For detection quarantine, wire `property-floor` to `rig-services/testing.flaky-reliability.detection-quarantine.json` and keep its verdict on flaky_cases; missing evidence is a named gap, with ceiling detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Choose a repository-owned check that observes detection quarantine from rig-services/testing.flaky-reliability.detection-quarantine.json..
 
 Service-specific evidence cues:
-Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.
-
-Owned scope: `flaky-reliability.detection-quarantine`.
-
 Offer: Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.
-
-Input: `rig-services/testing.flaky-reliability.detection-quarantine.json`. Detection records the path even when its contents are malformed.
-
-Coverage ceiling: detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Select an approved repository-owned command to verify that behavior.
-
 minimal: flaky cases — ["slow websocket reconnect"].
-
 mid: quarantine owners — ["realtime"].
-
 maximal: silent quarantine — false.
