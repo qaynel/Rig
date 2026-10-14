@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.red-team.blast-radius",
+  "input": "rig-services/product-security.red-team.blast-radius.json",
+  "format": "json",
+  "ceiling": "blast radius configuration validation only; declared policy does not prove running blast radius behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "privilege scopes must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "isolation_boundaries",
+        "op": "nonempty",
+        "reason": "isolation boundaries must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "cross_tenant_access",
+        "op": "equals",
+        "value": false,
+        "reason": "cross tenant access must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "blast-radius-slice-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "privilege scopes must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "blast-radius-slice-behavior-oracle",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "privilege scopes must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "blast-radius-slice-property-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "privilege scopes must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "blast-radius-slice-mutation-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "privilege scopes must name the concrete repository contract."
+      }
+    }
+  }
+}

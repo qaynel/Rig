@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.red-team.dast",
+  "input": "rig-services/product-security.red-team.dast.json",
+  "format": "json",
+  "ceiling": "dast configuration validation only; declared policy does not prove running dast behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "target_origin",
+        "op": "nonempty",
+        "reason": "target origin must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "authorized_scope",
+        "op": "nonempty",
+        "reason": "authorized scope must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "scan_unapproved_targets",
+        "op": "equals",
+        "value": false,
+        "reason": "scan unapproved targets must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dast-slice-floor",
+      "rule": {
+        "field": "target_origin",
+        "op": "nonempty",
+        "reason": "target origin must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dast-slice-behavior-oracle",
+      "rule": {
+        "field": "target_origin",
+        "op": "nonempty",
+        "reason": "target origin must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "dast-slice-property-floor",
+      "rule": {
+        "field": "target_origin",
+        "op": "nonempty",
+        "reason": "target origin must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dast-slice-mutation-floor",
+      "rule": {
+        "field": "target_origin",
+        "op": "nonempty",
+        "reason": "target origin must name the concrete repository contract."
+      }
+    }
+  }
+}

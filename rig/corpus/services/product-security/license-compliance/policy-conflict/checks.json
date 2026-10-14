@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.license-compliance.policy-conflict",
+  "input": "rig-services/product-security.license-compliance.policy-conflict.json",
+  "format": "json",
+  "ceiling": "policy conflict configuration validation only; declared policy does not prove running policy conflict behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Evaluate component licenses against the explicit distribution policy. Conflicting or unknown licensing needs review rather than silently expanding the allow list.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "allowed_licenses",
+        "op": "nonempty",
+        "reason": "allowed licenses must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "restricted_licenses",
+        "op": "nonempty",
+        "reason": "restricted licenses must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_license_conflicts",
+        "op": "equals",
+        "value": false,
+        "reason": "ignore license conflicts must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "policy-conflict-slice-floor",
+      "rule": {
+        "field": "allowed_licenses",
+        "op": "nonempty",
+        "reason": "allowed licenses must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "policy-conflict-slice-behavior-oracle",
+      "rule": {
+        "field": "allowed_licenses",
+        "op": "nonempty",
+        "reason": "allowed licenses must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "policy-conflict-slice-property-floor",
+      "rule": {
+        "field": "allowed_licenses",
+        "op": "nonempty",
+        "reason": "allowed licenses must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "policy-conflict-slice-mutation-floor",
+      "rule": {
+        "field": "allowed_licenses",
+        "op": "nonempty",
+        "reason": "allowed licenses must name the concrete repository contract."
+      }
+    }
+  }
+}

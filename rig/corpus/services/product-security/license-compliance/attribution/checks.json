@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.license-compliance.attribution",
+  "input": "rig-services/product-security.license-compliance.attribution.json",
+  "format": "json",
+  "ceiling": "attribution configuration validation only; declared policy does not prove running attribution behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Retain the required notices for redistributed third-party components and keep attribution tied to the inventory. A license label cannot replace a required copyright notice.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "notice_paths",
+        "op": "nonempty",
+        "reason": "notice paths must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "attributed_components",
+        "op": "nonempty",
+        "reason": "attributed components must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "remove_required_notices",
+        "op": "equals",
+        "value": false,
+        "reason": "remove required notices must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "attribution-slice-floor",
+      "rule": {
+        "field": "notice_paths",
+        "op": "nonempty",
+        "reason": "notice paths must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "attribution-slice-behavior-oracle",
+      "rule": {
+        "field": "notice_paths",
+        "op": "nonempty",
+        "reason": "notice paths must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "attribution-slice-property-floor",
+      "rule": {
+        "field": "notice_paths",
+        "op": "nonempty",
+        "reason": "notice paths must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "attribution-slice-mutation-floor",
+      "rule": {
+        "field": "notice_paths",
+        "op": "nonempty",
+        "reason": "notice paths must name the concrete repository contract."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.license-compliance.license-diff",
+  "input": "rig-services/product-security.license-compliance.license-diff.json",
+  "format": "json",
+  "ceiling": "license diff configuration validation only; declared policy does not prove running license diff behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Compare license inventories across the actual release change. New or changed obligations require a deliberate disposition before the update is accepted.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "previous inventory must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "current_inventory",
+        "op": "nonempty",
+        "reason": "current inventory must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "accept_new_licenses_automatically",
+        "op": "equals",
+        "value": false,
+        "reason": "accept new licenses automatically must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "license-diff-slice-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "previous inventory must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "license-diff-slice-behavior-oracle",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "previous inventory must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "license-diff-slice-property-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "previous inventory must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "license-diff-slice-mutation-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "previous inventory must name the concrete repository contract."
+      }
+    }
+  }
+}

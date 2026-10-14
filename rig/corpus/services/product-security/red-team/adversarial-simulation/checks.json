@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.red-team.adversarial-simulation",
+  "input": "rig-services/product-security.red-team.adversarial-simulation.json",
+  "format": "json",
+  "ceiling": "adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Select an approved repository-owned command to verify that behavior.",
+  "offer": "Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "attack_scenarios",
+        "op": "nonempty",
+        "reason": "attack scenarios must name the concrete repository contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "containment_scope",
+        "op": "nonempty",
+        "reason": "containment scope must name the concrete repository contract."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "use_real_customer_data",
+        "op": "equals",
+        "value": false,
+        "reason": "use real customer data must be false."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "adversarial-simulation-slice-floor",
+      "rule": {
+        "field": "attack_scenarios",
+        "op": "nonempty",
+        "reason": "attack scenarios must name the concrete repository contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "adversarial-simulation-slice-behavior-oracle",
+      "rule": {
+        "field": "attack_scenarios",
+        "op": "nonempty",
+        "reason": "attack scenarios must name the concrete repository contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "adversarial-simulation-slice-property-floor",
+      "rule": {
+        "field": "attack_scenarios",
+        "op": "nonempty",
+        "reason": "attack scenarios must name the concrete repository contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "adversarial-simulation-slice-mutation-floor",
+      "rule": {
+        "field": "attack_scenarios",
+        "op": "nonempty",
+        "reason": "attack scenarios must name the concrete repository contract."
+      }
+    }
+  }
+}
