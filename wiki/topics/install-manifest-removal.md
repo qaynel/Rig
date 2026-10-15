@@ -1,5 +1,14 @@
 # Install manifest and removal
 
+The corpus parity run now compares every v5 configuration with explicitly
+explained path-family changes, and the real migration round trip restores the
+complete initial fixture inventory after removing only generated uninstall
+evidence. [2026-10-14 closure trace](../reasoning/2026-10-14-closure-corpus-parity.md)
+
+The install projector no longer reads or emits optional upstream shelf files;
+the active onboarding path still carries verified fetch metadata.
+[2026-10-14 shelf trace](../reasoning/2026-10-14-closure-shelf-removal.md)
+
 ## What it is
 
 Rig records repository mutations in `.rig/install-manifest.jsonl`, an
@@ -150,3 +159,5 @@ staged first, files replaced or retired only when journal-owned and
 byte-unchanged, a persisted resumable plan, marker-last completion, and an
 uninstall round trip that restores the full pre-install inventory.
 ([trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md))
+
+Closure work in progress: [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md).

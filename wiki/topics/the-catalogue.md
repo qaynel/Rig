@@ -26,18 +26,26 @@ from a directory name or a vendor prefix.
 `--check` runs inside the `npm test` gate so the committed artefact cannot
 drift from its sources. The adaptive install pins those exact bytes at
 `.rig/catalog.json` and refuses to overwrite a user-edited copy. This shelf
-never imports, rewrites, or reads a 115-service selection — `rig/catalog.json`
-and `rig/catalog/services/**` stay byte-identical.
+never imports, rewrites, or reads a 115-service selection. The active 115-service
+catalogue and authored guidance live in `rig/corpus/catalogue.json` and
+`rig/corpus/services/`; `rig/catalog.json` and `rig/catalog/services/**` remain
+as the byte-identical compatibility copy pending the owner-applied frozen-pin
+amendment. [Catalogue pin candidate](../specs/close-everything/candidate-amendments/04-catalogue/AT-PB-1.md)
+The retained v5 skill-shelf artifact keeps its generator release tag while the
+eight active release manifests move to 6.0.0.
+[Version trace](../reasoning/2026-10-14-closure-version-bump.md)
 [Slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md)
 
 ## Current release shape
 
-D24 makes the beta broad and shallow: all 115 leaves ship at Policy grade and
-declare themselves generic, untailored baseline practice. Lint/format is the
-only leaf currently backed for higher-grade claims. Every other leaf names its
-owned scope, applicability, dependencies, disposition, exact checks, and slice
-behavior; a missing repository binding reports a coverage gap instead of
-passing vacuously.
+The 115 services now carry service-specific guidance, grade evidence, and
+coverage ceilings. The authored-service gate rejects known boilerplate and
+near-duplicate bodies; it reports no failures across the active catalogue.
+Runtime checks remain limited to each service's declared disposition and
+coverage ceiling; configuration-only checks do not claim live infrastructure
+assurance. [Authored-service gate](authored-service-gate.md)
+· [Catalogue amendments](../reasoning/2026-10-14-closure-catalogue-candidates.md)
+[115-service authorship proof](../reasoning/2026-10-14-closure-authorship-complete.md)
 
 The tagged-release payload installs `catalog.json`, every service fragment,
 baseline assets, the safety/runtime modules, all 55 neutral skills, and their

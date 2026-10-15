@@ -7,6 +7,12 @@ dependency a canonical identity. Grades are cumulative and dependencies pull
 only named slices; a dependency never replaces the user's selection or raises
 its grade. [Gate 2 §5.1–5.4](../gate2/technical-spec.md#5-catalogue-contract)
 
+The current 115-service corpus has service-specific identity, minimal, mid,
+maximal, and slice guidance; the coherence and corpus-contract proofs pass
+([closeout trace](../reasoning/2026-10-14-closure-coherence-green.md)). The
+unsigned owner cases and active corpus pin also pass their advisory checks
+([candidate evidence](../reasoning/2026-10-14-closure-candidate-advisories.md)).
+
 ## Why it is this way
 
 Stable leaf identities make selection, receipts, reports, and compatibility
@@ -122,3 +128,5 @@ lint-format may still install for the covered components. The proposed plan
 names every excluded component for user approval, reports it as unprotected,
 and suppresses the whole-repository support claim. An advisory-only fallback
 does not count as coverage.
+
+Closure work in progress: [2026-10-13-catalogue-04-discovery](../reasoning/2026-10-13-catalogue-04-discovery.md).

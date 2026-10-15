@@ -43,6 +43,51 @@ or `[[ ... ]]`. Release-tag input is restricted before URL and path use.
 
 ## Evidence
 
+The public installer invokes the shipped MCP setup helper through bootstrap's
+journaled post-payload callback. It downloads locked dependencies and records
+the server descriptor before optional global MCP registration
+([trace](../reasoning/2026-10-14-closure-e2e-mcp-setup-wired.md)).
+Uninstall purge restores only journaled evidence and preserves pre-existing or
+unrelated reports under `reports/rig`
+([trace](../reasoning/2026-10-14-closure-e2e-scoped-purge.md)).
+
+The weekly/manual QA health workflow runs the full gate, exact-SHA E2E,
+dependency checks and wiki budget. Only its final report job can write issues;
+it updates a single health issue for each SHA.
+[Health workflow trace](../reasoning/2026-10-14-closure-health-workflow.md)
+Process cleanup has focused Linux, Windows, and macOS jobs, and the clean-install
+workflow covers Linux and macOS ([platform CI trace](../reasoning/2026-10-14-closure-platform-ci.md)).
+
+Root, MCP, and pi-extension lockfiles now support clean-install dry-runs; the
+MCP transitive lock versions are updated and all three production audits report
+zero vulnerabilities.
+[Dependency audit trace](../reasoning/2026-10-14-closure-dependency-audit-green.md)
+A complete provisional E2E archive now passes both fresh and existing-repo
+scenarios, including real MCP traffic, signed onboarding, a named executed
+service check, and byte-for-byte uninstall restoration. Exact branch-commit
+evidence will be rerun after the owner freezes the bytes
+([earlier run](../reasoning/2026-10-14-closure-e2e-provisional-green.md),
+[current run](../reasoning/2026-10-14-closure-e2e-provisional-final3.md)).
+The earlier failure where both fault cases stopped at the missing MCP
+descriptor is resolved by wiring the shipped dependency setup into the public
+installer ([setup fix](../reasoning/2026-10-14-closure-e2e-mcp-setup-wired.md));
+both deliberate breakages now fail at the shipping boundary: an invalid
+runtime lock integrity returns `EINTEGRITY`, and a missing router source fails
+with `ENOENT`. Evidence is recorded for both
+([trace](../reasoning/2026-10-14-closure-e2e-faults-red.md)).
+
+The 6.0.0 changelog entry is present. Exact-SHA release eligibility depends on
+the health run, including its clean-install E2E, and checks the changelog entry
+before producing eligibility evidence.
+[Changelog eligibility trace](../reasoning/2026-10-14-closure-changelog-eligibility.md)
+
+Ticket/evidence references and the 63 declared tracker transitions pass the
+local coherence sweep; exact pushed-SHA CI and QA health remain owner-sequenced
+([closeout trace](../reasoning/2026-10-14-closure-coherence-green.md)).
+The eight release-version manifests now agree on 6.0.0; the retained v5 skill
+shelf keeps its own stable generator tag.
+[Version trace](../reasoning/2026-10-14-closure-version-bump.md)
+
 The distribution regression builds a tagged archive fixture from the release
 payload, serves it through a local fake `curl`, runs the real root installer
 under `dash`, and checks the recorded tag, 55 installed skills, catalogue, and
@@ -50,6 +95,40 @@ safety runtime. It invokes inspection through the installed `.rig/bin/rig`
 entrypoint, while the bootstrap regression plans, applies, and checks the
 lint-format leaf through the same command. This replaces the former source-only
 assertion that never ran the installer.
+
+The README now gives the single checkout install command and explains that the
+user invokes `rig-onboarding`, reviews its proposal, then selects catalogue
+services. It intentionally has no per-host support matrix. Its coherence proof
+is still blocked by the pending install guide, tracker issues, and test-evidence
+findings ([trace](../reasoning/2026-10-14-closure-readme-coherence-blocked.md)).
+The install guide now covers fresh and configured repositories, v5 upgrades,
+and journal-based uninstall; each command and flag was checked against installer
+and materializer help ([trace](../reasoning/2026-10-14-closure-install-guide.md)).
+The troubleshooting guide explains named install, migration, onboarding,
+projection, upstream, and service-check refusal and coverage-gap messages
+([trace](../reasoning/2026-10-14-closure-troubleshooting.md)).
+The one-page [product vision](../../docs/vision.md) describes 6.0.0 as shipped
+and points to the separate owner-directed redesign backlog
+([trace](../reasoning/2026-10-14-closure-vision.md)).
+The Spanish and Korean README editions visibly identify themselves as lagging
+and link to the current English README ([trace](../reasoning/2026-10-14-closure-translations-lagging.md)).
+The README's clean-machine install command is now a single clone-and-install
+line. It cannot complete until the owner publishes the `v6.0.0` tag: GitHub
+returned HTTP 404 for the archive, then reported the branch/tag missing before
+any target write ([archive attempt](../reasoning/2026-10-14-closure-readme-install-404.md),
+[clone attempt](../reasoning/2026-10-14-closure-readme-clone-tag-missing.md)).
+Security review covered the installer, sandboxed projector, service runner,
+MCP boundary, and secret handling; it left no actionable finding open
+([trace](../reasoning/2026-10-14-closure-security-review.md)).
+The independent code review's health-token and patch-scan findings are fixed;
+its fresh-install finding is now an owner tag-publication dependency
+([report](../reasoning/2026-10-14-closure-code-review.md),
+[disposition](../reasoning/2026-10-14-closure-review-findings-resolved.md)).
+The unsigned owner amendment bundle inventories the proposed frozen-case,
+catalogue, patch-provenance, and package-script updates. Its case-level proofs
+pass, while coherence and exact-SHA E2E remain blocked, so T-10.3 stays open
+([bundle](../specs/close-everything/candidate-amendments/owner-bundle.md),
+[trace](../reasoning/2026-10-14-closure-owner-bundle-incomplete.md)).
 
 ## Authorities and sources
 

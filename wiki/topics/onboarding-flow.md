@@ -10,6 +10,12 @@ The practical job of that flow is to set up the packaged harness against the
 repo as it actually exists, using delivered Rig tools while preserving the
 user's current infrastructure unless they approve a change. [Packaged harness clarification](../reasoning/2026-08-20-packaged-forward-deployed-harness.md)
 
+Catalogue onboarding guidance uses each service's `identity.md` Offer text and
+applicability to decide whether the service fits a real repository gap. It
+states the service's coverage ceiling, selects the minimal suitable grade, and
+grafts approved guidance into a marked section of an existing instruction file.
+[Service offer onboarding trace](../reasoning/2026-10-14-closure-onboarding-service-offers.md)
+
 ## Why it is this way
 
 The order prevents untrusted repository harness content from influencing the
@@ -318,19 +324,12 @@ D24. Oracle: `tests/installed-router-hygiene.test.js` (3/3 green).
 [reframe-vs-transform trace](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md)
 · [close-out trace](../reasoning/2026-08-31-routing-hygiene-close-out.md)
 
-Two further correctness bugs were found the same pass, by running
-`bootstrap.sh` against disposable targets rather than reading source alone:
-`rig/tier-1/rules/rig.md` (installed unconditionally) hardcodes
-`.rig/skills/implementation/SKILL.md` as its one concrete instruction, but
-that path is gated (`instruction_only_selected`) and is never written for a
-Claude-only or Codex-only install — confirmed missing by direct repro. And
-the vendored `rig` switchboard (`rig/catalog/skills/_core`, `name: rig`)
-installs as `rig-rig` for Claude/Codex/Antigravity because the per-host
-`rig-` prefix rewrite (`rig/lib/payload.js:94`) isn't exempted for the one
-skill whose own name is the prefix — so `routing.md`'s "invoke the vendored
-`rig` router" fallback (~lines 100-102) names a skill that doesn't exist
-under that name for native-dispatch hosts. Full evidence, exact line numbers,
-and a ranked fix list for all of the above:
+Two further correctness defects are fixed: router fallback now resolves to a
+canonical corpus skill on native hosts, and the installer test distinguishes
+the installed signer example from the repository-owned signer file users
+create themselves. The runtime and projection proofs pass
+([closure trace](../reasoning/2026-10-14-closure-runtime-router-complete.md)).
+The historical investigation and original ranked fix list remain available:
 [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) ·
 [Path A/B scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md)
 
@@ -489,3 +488,5 @@ removed (`--tier 1` is accepted but deprecated; other values are rejected).
      branch-closeout gate trace. -->
 
 <!-- Reviewed 2026-09-08 for wiki-maintenance freshness after the authority-hardening SOW. -->
+
+Closure work in progress: [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md).

@@ -6,6 +6,121 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-15 | current | [2026-10-15-router-single-name](../reasoning/2026-10-15-router-single-name.md) | the-overhaul, catalogue-contract | — | — |
+| 2026-10-15 | current | [2026-10-15-closure-full-gate-green](../reasoning/2026-10-15-closure-full-gate-green.md) | the-overhaul, release-readiness | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-wiki-budget](../reasoning/2026-10-14-closure-wiki-budget.md) | the-overhaul, testing-strategy, trust-and-failure-boundaries | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-vision](../reasoning/2026-10-14-closure-vision.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-version-bump](../reasoning/2026-10-14-closure-version-bump.md) | the-overhaul, distribution-and-release, the-catalogue | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-troubleshooting](../reasoning/2026-10-14-closure-troubleshooting.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-translations-lagging](../reasoning/2026-10-14-closure-translations-lagging.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-task-list-and-sop](../reasoning/2026-10-14-closure-task-list-and-sop.md) | the-overhaul, agent-working-conventions | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-standards-links](../reasoning/2026-10-14-closure-standards-links.md) | the-overhaul, agent-working-conventions | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-spawn-guard](../reasoning/2026-10-14-closure-spawn-guard.md) | trust-and-failure-boundaries, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-signed-gate-reconcile](../reasoning/2026-10-14-closure-signed-gate-reconcile.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-shelf-removal](../reasoning/2026-10-14-closure-shelf-removal.md) | the-overhaul, install-manifest-removal | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-shelf-amendment](../reasoning/2026-10-14-closure-shelf-amendment.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-service-guidance](../reasoning/2026-10-14-closure-service-guidance.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-security-review](../reasoning/2026-10-14-closure-security-review.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-runtime-router-complete](../reasoning/2026-10-14-closure-runtime-router-complete.md) | the-overhaul, onboarding-flow | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-runtime-proof-blocked](../reasoning/2026-10-14-closure-runtime-proof-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-runtime-payload-blocked](../reasoning/2026-10-14-closure-runtime-payload-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-runner-nonpasses](../reasoning/2026-10-14-closure-runner-nonpasses.md) | the-overhaul, the-catalogue, trust-and-failure-boundaries | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-review-findings-resolved](../reasoning/2026-10-14-closure-review-findings-resolved.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-retired-source-cleared](../reasoning/2026-10-14-closure-retired-source-cleared.md) | the-overhaul, the-catalogue | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-retired-source-check](../reasoning/2026-10-14-closure-retired-source-check.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-readme-install-404](../reasoning/2026-10-14-closure-readme-install-404.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-readme-coherence-blocked](../reasoning/2026-10-14-closure-readme-coherence-blocked.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-readme-clone-tag-missing](../reasoning/2026-10-14-closure-readme-clone-tag-missing.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-platform-ci](../reasoning/2026-10-14-closure-platform-ci.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-owner-bundle-incomplete](../reasoning/2026-10-14-closure-owner-bundle-incomplete.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-onboarding-service-offers](../reasoning/2026-10-14-closure-onboarding-service-offers.md) | onboarding-flow, the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-no-service-merges](../reasoning/2026-10-14-closure-no-service-merges.md) | the-overhaul, the-catalogue, catalogue-contract | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-no-lint-amendment](../reasoning/2026-10-14-closure-no-lint-amendment.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-mcp-table](../reasoning/2026-10-14-closure-mcp-table.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-matrix-rerun](../reasoning/2026-10-14-closure-matrix-rerun.md) | the-overhaul, the-catalogue, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-matrix-progress](../reasoning/2026-10-14-closure-matrix-progress.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-matrix-blocked](../reasoning/2026-10-14-closure-matrix-blocked.md) | the-overhaul, the-catalogue, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-installed-lint-setup](../reasoning/2026-10-14-closure-installed-lint-setup.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-install-guide](../reasoning/2026-10-14-closure-install-guide.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-health-workflow](../reasoning/2026-10-14-closure-health-workflow.md) | the-overhaul, testing-strategy, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-grade-selection](../reasoning/2026-10-14-closure-grade-selection.md) | the-overhaul, the-catalogue, catalogue-contract | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-frozen-test-amendment](../reasoning/2026-10-14-closure-frozen-test-amendment.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-evidence-gate-wired](../reasoning/2026-10-14-closure-evidence-gate-wired.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-sha-blocked](../reasoning/2026-10-14-closure-e2e-sha-blocked.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-script-candidate](../reasoning/2026-10-14-closure-e2e-script-candidate.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-scoped-purge](../reasoning/2026-10-14-closure-e2e-scoped-purge.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-provisional-green](../reasoning/2026-10-14-closure-e2e-provisional-green.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | current → 2026-10-14-closure-e2e-provisional-final2 | [2026-10-14-closure-e2e-provisional-final3](../reasoning/2026-10-14-closure-e2e-provisional-final3.md) | distribution-and-release | — | — |
+| 2026-10-14 | superseded → 2026-10-14-closure-e2e-provisional-final | [2026-10-14-closure-e2e-provisional-final2](../reasoning/2026-10-14-closure-e2e-provisional-final2.md) | distribution-and-release | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-e2e-provisional-final](../reasoning/2026-10-14-closure-e2e-provisional-final.md) | distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-mcp-setup-wired](../reasoning/2026-10-14-closure-e2e-mcp-setup-wired.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-local-blocked](../reasoning/2026-10-14-closure-e2e-local-blocked.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-e2e-faults-red](../reasoning/2026-10-14-closure-e2e-faults-red.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | superseded → 2026-10-14-closure-e2e-faults-red | [2026-10-14-closure-e2e-breakage-unproven](../reasoning/2026-10-14-closure-e2e-breakage-unproven.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-detection](../reasoning/2026-10-14-closure-detection.md) | the-overhaul, the-catalogue, onboarding-flow | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-dependency-audit-red](../reasoning/2026-10-14-closure-dependency-audit-red.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-dependency-audit-green](../reasoning/2026-10-14-closure-dependency-audit-green.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-corpus-parity](../reasoning/2026-10-14-closure-corpus-parity.md) | the-overhaul, install-manifest-removal | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-corpus-parity-attempt](../reasoning/2026-10-14-closure-corpus-parity-attempt.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-coherence-sweep-blocked](../reasoning/2026-10-14-closure-coherence-sweep-blocked.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-coherence-green](../reasoning/2026-10-14-closure-coherence-green.md) | the-overhaul, catalogue-contract, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-coherence-gate-red](../reasoning/2026-10-14-closure-coherence-gate-red.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-coherence-entrypoint-blocked](../reasoning/2026-10-14-closure-coherence-entrypoint-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-code-review](../reasoning/2026-10-14-closure-code-review.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-changelog-eligibility](../reasoning/2026-10-14-closure-changelog-eligibility.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-catalogue-guidance-proof-blocked](../reasoning/2026-10-14-closure-catalogue-guidance-proof-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-catalogue-candidates](../reasoning/2026-10-14-closure-catalogue-candidates.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-candidate-advisories](../reasoning/2026-10-14-closure-candidate-advisories.md) | the-overhaul, catalogue-contract | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-authorship-proof](../reasoning/2026-10-14-closure-authorship-proof.md) | the-overhaul, authored-service-gate, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-authorship-proof-progress](../reasoning/2026-10-14-closure-authorship-proof-progress.md) | the-overhaul, authored-service-gate, testing-strategy | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-authorship-gate](../reasoning/2026-10-14-closure-authorship-gate.md) | the-overhaul, authored-service-gate, the-catalogue | — | — |
+| 2026-10-14 | current | [2026-10-14-closure-authorship-complete](../reasoning/2026-10-14-closure-authorship-complete.md) | the-overhaul, the-catalogue, authored-service-gate, testing-strategy | — | — |
+| 2026-10-13 | current | [2026-10-13-standards-shipped-checks](../reasoning/2026-10-13-standards-shipped-checks.md) | onboarding-flow, install-manifest-removal, testing-strategy, agent-working-conventions | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-standards-evidence-audit](../reasoning/2026-10-13-standards-evidence-audit.md) | testing-strategy, agent-working-conventions | — | trap, interdependency |
+| 2026-10-13 | historical | [2026-10-13-rig-135-process-cleanup-fixes](../reasoning/2026-10-13-rig-135-process-cleanup-fixes.md) | bug-fixes, third-party-skills | — | interdependency |
+| 2026-10-13 | historical | [2026-10-13-rig-127-145-147-146-bug-fixes](../reasoning/2026-10-13-rig-127-145-147-146-bug-fixes.md) | bug-fixes, install-manifest-removal, one-use-approvals | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md) | onboarding-flow, install-manifest-removal, testing-strategy | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-lint-standards-runtime](../reasoning/2026-10-13-lint-standards-runtime.md) | onboarding-flow, install-manifest-removal, testing-strategy | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice6-contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md) | onboarding-flow, graft-mechanics, distribution-and-release | — | corpus, contract, rejected |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice5-symlink-fix](../reasoning/2026-10-13-corpus-03-slice5-symlink-fix.md) | install-manifest-removal | — | corpus, migration, trap |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice5-migration](../reasoning/2026-10-13-corpus-03-slice5-migration.md) | onboarding-flow, install-manifest-removal | — | corpus, migration, trap |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice4-upstream-fetch](../reasoning/2026-10-13-corpus-03-slice4-upstream-fetch.md) | onboarding-flow, distribution-and-release | — | corpus, upstream, interdependency |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice3-reserved-path-fix](../reasoning/2026-10-13-corpus-03-slice3-reserved-path-fix.md) | onboarding-flow | — | corpus, sandbox, trap |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice3-onboarding-scripts](../reasoning/2026-10-13-corpus-03-slice3-onboarding-scripts.md) | onboarding-flow | — | corpus, sandbox, trap |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice2-migrate](../reasoning/2026-10-13-corpus-03-slice2-migrate.md) | onboarding-flow, graft-mechanics | — | corpus, projection, rejected |
+| 2026-10-13 | current | [2026-10-13-corpus-03-slice1-expand](../reasoning/2026-10-13-corpus-03-slice1-expand.md) | onboarding-flow, graft-mechanics | — | corpus, projection, interdependency |
+| 2026-10-13 | current | [2026-10-13-closure-resume-checkpoint1](../reasoning/2026-10-13-closure-resume-checkpoint1.md) | the-overhaul | — | — |
+| 2026-10-13 | current | [2026-10-13-closure-checkpoint2](../reasoning/2026-10-13-closure-checkpoint2.md) | the-overhaul | — | — |
+| 2026-10-13 | current | [2026-10-13-close-everything-tracker-sync-local](../reasoning/2026-10-13-close-everything-tracker-sync-local.md) | the-overhaul, agent-working-conventions | — | tracker-sync, interdependency |
+| 2026-10-13 | current | [2026-10-13-close-everything-specification-sow](../reasoning/2026-10-13-close-everything-specification-sow.md) | the-overhaul | — | specification, sow, applied-amendments |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-tools](../reasoning/2026-10-13-close-everything-review-owner-tools.md) | the-overhaul | — | review, decision, service-coverage |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-tier](../reasoning/2026-10-13-close-everything-review-owner-tier.md) | the-overhaul | — | review, decision, compatibility |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-promotion](../reasoning/2026-10-13-close-everything-review-owner-promotion.md) | the-overhaul | — | review, decision, release |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-merges](../reasoning/2026-10-13-close-everything-review-owner-merges.md) | the-overhaul | — | review, decision, catalogue-compatibility |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-fetch](../reasoning/2026-10-13-close-everything-review-owner-fetch.md) | the-overhaul | — | review, decision, third-party-skills |
+| 2026-10-13 | current | [2026-10-13-close-everything-review-owner-corpus-root](../reasoning/2026-10-13-close-everything-review-owner-corpus-root.md) | the-overhaul | — | review, decision, corpus |
+| 2026-10-13 | historical | [2026-10-13-close-everything-resume-transcript](../reasoning/2026-10-13-close-everything-resume-transcript.md) | the-overhaul | — | — |
+| 2026-10-13 | current | [2026-10-13-close-everything-reality-audit](../reasoning/2026-10-13-close-everything-reality-audit.md) | the-overhaul, agent-working-conventions | — | audit, tracker-sync |
+| 2026-10-13 | current | [2026-10-13-close-everything-plan-v2](../reasoning/2026-10-13-close-everything-plan-v2.md) | the-overhaul, agent-working-conventions | — | plan, self-review, handoff |
+| 2026-10-13 | current | [2026-10-13-close-everything-plan-review](../reasoning/2026-10-13-close-everything-plan-review.md) | the-overhaul | — | review, plan-amendment, pending-owner-input |
+| 2026-10-13 | historical | [2026-10-13-close-everything-plan-review-progress](../reasoning/2026-10-13-close-everything-plan-review-progress.md) | the-overhaul | — | review, in-flight |
+| 2026-10-13 | current | [2026-10-13-close-everything-plan-review-complete](../reasoning/2026-10-13-close-everything-plan-review-complete.md) | the-overhaul | — | review, complete, plan-amendment |
+| 2026-10-13 | historical | [2026-10-13-close-everything-plan-review-checkpoint2](../reasoning/2026-10-13-close-everything-plan-review-checkpoint2.md) | the-overhaul | — | review, in-flight |
+| 2026-10-13 | current | [2026-10-13-close-everything-owner-answers-round5](../reasoning/2026-10-13-close-everything-owner-answers-round5.md) | the-overhaul, what-rig-is, onboarding-flow, the-catalogue, agent-working-conventions | — | grilling, corpus, catalogue, harness |
+| 2026-10-13 | current | [2026-10-13-close-everything-owner-answers-round4](../reasoning/2026-10-13-close-everything-owner-answers-round4.md) | the-overhaul, what-rig-is, onboarding-flow, the-catalogue | — | grilling, scope, corpus, catalogue |
+| 2026-10-13 | current | [2026-10-13-close-everything-owner-answers-round3](../reasoning/2026-10-13-close-everything-owner-answers-round3.md) | the-overhaul, what-rig-is, onboarding-flow | — | grilling, scope, host-portability, trap |
+| 2026-10-13 | current | [2026-10-13-close-everything-owner-answers-round2](../reasoning/2026-10-13-close-everything-owner-answers-round2.md) | the-overhaul, agent-working-conventions, testing-strategy | — | grilling, scope, production-level |
+| 2026-10-13 | current | [2026-10-13-close-everything-owner-answers-round1](../reasoning/2026-10-13-close-everything-owner-answers-round1.md) | the-overhaul, agent-working-conventions | — | grilling, scope |
+| 2026-10-13 | current | [2026-10-13-close-everything-grilling-open](../reasoning/2026-10-13-close-everything-grilling-open.md) | the-overhaul, agent-working-conventions | — | grilling, in-flight |
+| 2026-10-13 | current | [2026-10-13-clean-install-e2e-in-flight](../reasoning/2026-10-13-clean-install-e2e-in-flight.md) | distribution-and-release, install-manifest-removal | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-clean-install-e2e-boundaries](../reasoning/2026-10-13-clean-install-e2e-boundaries.md) | distribution-and-release, install-manifest-removal | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-catalogue-04-signed-lane](../reasoning/2026-10-13-catalogue-04-signed-lane.md) | catalogue-contract, services-and-reports | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-catalogue-04-installed-matrix](../reasoning/2026-10-13-catalogue-04-installed-matrix.md) | catalogue-contract, services-and-reports | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-catalogue-04-discovery](../reasoning/2026-10-13-catalogue-04-discovery.md) | catalogue-contract, services-and-reports | — | interdependency |
+| 2026-10-13 | current | [2026-10-13-catalogue-04-authored-contracts](../reasoning/2026-10-13-catalogue-04-authored-contracts.md) | catalogue-contract, services-and-reports | — | interdependency |
+| 2026-09-08 | current | [2026-09-08-dynamic-projection-script-test](../reasoning/2026-09-08-dynamic-projection-script-test.md) | onboarding-flow, what-rig-is, the-catalogue, delivery-plan | — | feasibility, test, evidence |
+| 2026-09-08 | current | [2026-09-08-dynamic-projection-feasibility-test](../reasoning/2026-09-08-dynamic-projection-feasibility-test.md) | onboarding-flow, what-rig-is, the-catalogue, delivery-plan | — | feasibility, test, evidence |
+| 2026-09-08 | current | [2026-09-08-dynamic-offboarding-architecture-brainstorm](../reasoning/2026-09-08-dynamic-offboarding-architecture-brainstorm.md) | onboarding-flow, what-rig-is, the-catalogue, delivery-plan | — | brainstorm, architecture |
 | 2026-09-05 | historical | [2026-09-05-wiki-maintenance-working-tree-sync](../reasoning/2026-09-05-wiki-maintenance-working-tree-sync.md) | agent-working-conventions | — | verification |
 | 2026-09-05 | current → 2026-09-05-wiki-budget-gate-plan | [2026-09-05-wiki-budget-gate](../reasoning/2026-09-05-wiki-budget-gate.md) | agent-working-conventions, the-overhaul, testing-strategy | — | interdependency |
 | 2026-09-05 | historical | [2026-09-05-wiki-budget-gate-plan](../reasoning/2026-09-05-wiki-budget-gate-plan.md) | the-overhaul, agent-working-conventions, testing-strategy | — | interdependency, trap |

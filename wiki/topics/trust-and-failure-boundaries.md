@@ -1,11 +1,15 @@
 # Trust and failure boundaries
 
+Repeated boundary exposition was shortened to keep its hub within the existing
+budget. [Wiki-budget trace](../reasoning/2026-10-14-closure-wiki-budget.md)
+
+Timed repository subprocesses use the shared process-tree guard.
+[Spawn-guard trace](../reasoning/2026-10-14-closure-spawn-guard.md)
+
 ## What it is
 
-Rig treats repository paths, config bytes, policy candidates, signatures, host
-events, catalogue fragments, existing harness content, user files, commands,
-bindings, CI config, reports, and concurrent writes as explicit boundaries with
-defined validation and failure behavior. [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
+Rig validates repository paths, bytes, commands, approvals, bindings, and writes
+at explicit boundaries. [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 
 ## Why it is this way
 
@@ -81,28 +85,12 @@ behavior of a package-manager task or tool that may invoke a shell internally.
 Repository-owned tasks remain untrusted and execute under Rig's policy,
 least-privilege, secret-isolation, network, and resource/time controls.
 
-Those five words are now five concrete, testable guarantees (`GA-37`, `D28`):
-a plan approval authorizes exactly one execution of its exact digest and does
-not carry over to a later run; a task's working directory and every path it
-touches must resolve inside the repository even through a symlink, and it
-receives no ambient environment variable beyond an explicit allowlist; a task
-has no outbound network reachability unless the plan explicitly grants it; a
-task exceeding a configured memory ceiling or wall-clock timeout is killed
-and reported as its own distinct non-passing state (`GA-33`); a
-repository-supplied symlink resolving outside the repository is refused like
-any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases,
-and all five are implemented as of 2026-08-28: `AT-LF-20` in `executePlan`
-(consumes the approval on a successful run and refuses replay), `AT-LF-21` at
-task spawn (cwd/path containment plus an explicit env allowlist, both
-`runGrade` and `runReadOnly`), `AT-LF-22` in `runGrade` and `runReadOnly`
-(default-deny network with per-command grants), `AT-LF-23` (timeoutMs
-kill-and-report plus memory ceiling), and
-`AT-LF-24` in `planExecution` (refuses a read whose target escapes the
-repository through a symlink). The five guarantees are complete on the
-interactive lint-format plan/grade path. The installed CI floor intentionally
-has no plan/approval seam under GA-38; its shared runner enforces containment,
-resource ceilings, three-state network handling, and committed-policy
-capability authority. Remaining shard gaps are closed in the same file — see
+The concrete guarantees are single-use exact approvals, cwd/path containment
+and env allowlisting, default-deny network, memory/time limits, and symlink
+escape refusal (`GA-37`, `D28`, `GA-33`; `AT-LF-20`–`AT-LF-24`). They hold on
+the interactive plan/grade path. The installed CI floor has no plan-approval
+seam (`GA-38`); its runner enforces containment, resource limits, network
+handling, and committed-policy authority. Remaining shard gaps are listed
 below.
 [reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
 

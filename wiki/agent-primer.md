@@ -4,6 +4,10 @@ The one page you read before touching this project. Skim it, follow the
 handful of links it holds, and you have everything you need to route the
 work without re-deriving context from the code.
 
+**Settled product decisions are listed under "North star" at the top of
+`CLAUDE.md`. Never re-ask or contradict them** — above all: Rig is one central
+corpus the user's agent unpacks; never scope or test per host.
+
 ## Read these first (in this order)
 
 1. **[Home](Home.md)** — what lives where in this wiki, and the rule that

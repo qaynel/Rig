@@ -1,5 +1,9 @@
 # Agent working conventions
 
+`CLAUDE.md` and `GEMINI.md` link to the canonical AI development and delivery
+standards rather than repeating their lifecycle and task-list procedures.
+[Standards links trace](../reasoning/2026-10-14-closure-standards-links.md)
+
 ## What it is
 
 Three standing rules govern how any agent works in this repository, regardless
@@ -73,6 +77,9 @@ the `wiki-maintenance` skill at `.claude/skills/wiki-maintenance/SKILL.md`,
 backed by `scripts/wiki-maintenance.js`. It is authoring-time only and not
 installed into other repositories.
 [2026-09-02 trace](../reasoning/2026-09-02-wiki-maintenance-skill.md)
+
+The current closeout's ticket and local tracker state were reconciled against
+the workspace before release actions. [Tracker sync trace](../reasoning/2026-10-13-close-everything-tracker-sync-local.md)
 
 The authoring-time counterpart is a proposed `realignment` skill that
 runs on demand to close the issues→fix→review loop and reconcile drift

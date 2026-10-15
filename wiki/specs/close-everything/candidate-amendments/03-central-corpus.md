@@ -7,53 +7,38 @@ were **not** edited. The owner applies these diffs in the single batched
 re-sign; agents never sign. Each section is one amendment; later slices append
 sections here.
 
-## A1. AT-HOST-5 — `materializeSelectedHosts` is removed (RIG-125 / RIG-132)
+## A1. AT-HOST-5 — WITHDRAWN 2026-10-14
 
-- File: `tests/advanced-oracle.test.js` (pinned), case `AT-HOST-5 unsupported MCP
-  emits nothing and preserves user files` (about line 345).
-- Why: `materializeSelectedHosts` had zero production callers and kept a second
-  MCP-disposition table that bypassed `MCP_HOSTS`. It is deleted, so the
-  frozen case that calls it fails. The same property (an unsupported MCP host
-  emits nothing and leaves user files alone) is asserted against the one table
-  and the real emission path, `materializeHostAdapters`.
-- Production callers checked before removal: none (`grep -rn
-  materializeSelectedHosts rig scripts hooks` returned only its definition).
-  Non-frozen callers (`tests/advanced-hosts.test.js`) now read `MCP_HOSTS`.
-- Unsigned runnable copy of the amended case:
-  `03-central-corpus/at-host-5.candidate.test.js`
-  (`node --test wiki/specs/close-everything/candidate-amendments/03-central-corpus/at-host-5.candidate.test.js`).
+No amendment is needed. `materializeSelectedHosts` is back in
+`rig/lib/host-capabilities.js` as a read-only reader over the single
+`MCP_HOSTS` table — it reports each selected host's MCP disposition and writes
+nothing, so the second disposition table that justified the removal does not
+return. The frozen case passes unchanged
+(`node --test tests/advanced-oracle.test.js` — AT-HOST-5 green). The unsigned
+runnable copy of the amended case has been deleted. Do not apply this section.
 
-```diff
---- a/tests/advanced-oracle.test.js
-+++ b/tests/advanced-oracle.test.js
-@@ test('AT-HOST-5 unsupported MCP emits nothing and preserves user files', () => {
-   h.withRepo((target) => {
-     const userFile = path.join(target, '.omp', 'mcp.json');
-     fs.mkdirSync(path.dirname(userFile), { recursive: true });
-     fs.writeFileSync(userFile, '{"user":true}\n');
--    const result = api('host-capabilities.js', 'materializeSelectedHosts')(target, ['pi']);
--    assert.equal(fs.readFileSync(userFile, 'utf8'), '{"user":true}\n');
--    assert.equal(result.pi.mcp.status, 'unsupported');
--    assert.match(result.pi.mcp.guidance, /preserv/i);
-+    api('host-capabilities.js', 'materializeHostAdapters')(target, 'pi');
-+    const { MCP_HOSTS } = require('../rig/lib/mcp-hosts');
-+    assert.equal(fs.readFileSync(userFile, 'utf8'), '{"user":true}\n');
-+    assert.equal(MCP_HOSTS.pi.emission, 'unsupported');
-+    assert.equal(MCP_HOSTS.pi.autoWrite, false);
-+    const descriptor = JSON.parse(fs.readFileSync(path.join(target, '.rig/host-contracts/pi/mcp_config.json'), 'utf8'));
-+    assert.equal(descriptor.emission, 'unsupported');
-+    assert.equal(descriptor.auto_write, false);
-+    assert.equal(fs.existsSync(path.join(target, '.mcp.json')), false);
-   });
- });
-```
+## A4. AT-PB-3 — fetch optional shelf skills during onboarding
 
-Mutation check (recorded 2026-10-13, throwaway copy `/tmp/rig03/mut`): making
-`pi` auto-write in `rig/lib/mcp-hosts.js` fails the candidate (fail 1) and the
-unmutated tree passes it (pass 1). Production code was not touched.
+- File: `tests/path-b-catalog.test.js`, case `AT-PB-3 install pins one
+  non-discoverable shelf and projects only mandatory skills`.
+- Why: the owner selected fetch-at-onboarding. A default active install carries
+  pinned fetch metadata, not 55 vendored `SKILL.md` files; the eight mandatory
+  Rig skills remain projected to Codex. Existing upstream onboarding tests
+  prove approved fetch, digest verification, patching, and receipt enforcement.
+- Applicable diff: [`owner-amendments.patch`](owner-amendments.patch), the single
+  patch holding all four frozen-case amendments.
+- **Correction, 2026-10-14:** the earlier hand-written diff was incomplete. With
+  only `staged.length` amended, the case stays red on the next assertion: the
+  native projection now also carries `rig` and `rig-router`, so the expected
+  list is ten names, not eight. The patch amends both. It also keeps the
+  `.rig/catalog.json` byte-equality assertion, which still passes, rather than
+  dropping it as the earlier draft proposed.
 
-Frozen-suite effect until applied: exactly one frozen case is red,
-`AT-HOST-5`, on this branch.
+- Unsigned runnable copy:
+  `03-central-corpus/at-pb-3.candidate.test.js`
+  (`node --test wiki/specs/close-everything/candidate-amendments/03-central-corpus/at-pb-3.candidate.test.js`).
+- Frozen-suite effect until applied: the existing `staged.length === 55`
+  assertion remains red against fetch-at-onboarding behavior.
 
 ## A2. Third-party fetch (slice 4) — no frozen-test change yet; one pending amendment recorded
 

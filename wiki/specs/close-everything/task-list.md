@@ -54,13 +54,13 @@ run or a committed fix, not by transcript claims.
   (`wiki/specs/close-everything/tracker-transitions.json`).
 - [x] T-1.4 GitHub command lists prepared, none run
   (`github-actions-pending.md`).
-- [ ] 🔒 T-1.5 GitHub Phase A (create `redesign` label, reopen #78–80, create
+- [x] T-1.5 GitHub Phase A (create `redesign` label, reopen #78–80, create
   RIG-155/156 issues, label #62/#63/#42/#43). Owner runs after re-auditing.
 - [ ] 🔒 T-1.6 GitHub Phase B closures (verified-fixed #127/#130/#138, redesign
   deferrals as not planned, corrective comments on #125/#126).
 - [ ] 🔒 T-1.7 GitHub Phase C closures after the fixes reach QA (#69, #70, #78–80,
   #108–110, RIG-155 issue).
-- [ ] T-1.8 After T-1.5, record the new RIG-155/156 issue numbers in
+- [x] T-1.8 After T-1.5, record the new RIG-155/156 issue numbers in
   `wiki/Tickets.md` and the ticket files and update `tracker-transitions.json`.
   Prove: `node --test tests/ticket-traceability.test.js tests/coherence.test.js`.
 
@@ -120,7 +120,7 @@ run or a committed fix, not by transcript claims.
   (the duplicate-twin case is T-4.5).
 - [x] T-3.9 Restore the single MCP disposition table assertion.
   Prove: `node --test tests/mcp-one-table.test.js tests/path-b-mcp.test.js`.
-- [ ] T-3.10 Runtime payload completeness: `--with-runtime` lands every shipped
+- [x] T-3.10 Runtime payload completeness: `--with-runtime` lands every shipped
   runtime lib (`ai-sdlc.js`, `service-catalogue.js`, `lint-format-setup.js`,
   `evidence-artifacts.js`, `mcp-dependencies.js`, `test-evidence-reporter.js`,
   `rig/bin/setup-mcp.js`) and the default install still lands every `SKILL.md`
@@ -147,7 +147,7 @@ run or a committed fix, not by transcript claims.
   approved binding ID on every path; bad fails, good passes.
   Prove: `node --test tests/catalogue-all-services.test.js` (slow, > 5 min; run it alone, in the background, output to a log).
   Status when this list was written: **result not yet known**; run it first.
-- [ ] T-4.5 Hand-author specific guidance for all 115 services. For each service
+- [x] T-4.5 Hand-author specific guidance for all 115 services. For each service
   write `identity`, `minimal`, `mid`, `maximal` and slices as service-specific
   guidance (what good looks like, failure modes, how to adopt in an existing
   repo, truthful coverage limits). No shared template sentences; remove
@@ -162,20 +162,20 @@ run or a committed fix, not by transcript claims.
   Prove: `node --test tests/catalogue-all-services.test.js tests/advanced-catalogue.test.js`
   (the frozen authorship assertion is not edited; file a candidate under
   `candidate-amendments/04-catalogue/` instead).
-- [ ] T-4.7 Detector reports present-but-invalid configurations as discovered
+- [x] T-4.7 Detector reports present-but-invalid configurations as discovered
   and repairable, not absent. One red-then-green case per detector family.
-- [ ] T-4.8 Negative cases: missing external tool, unsupported input and runner
+- [x] T-4.8 Negative cases: missing external tool, unsupported input and runner
   error each return a named non-pass with setup guidance; config-only checks
   never claim live-infrastructure assurance.
   Prove: `node --test tests/catalogue-installed.test.js` (extend).
-- [ ] T-4.9 Grade growth (minimal ⊂ mid ⊂ maximal), grade ceilings,
+- [x] T-4.9 Grade growth (minimal ⊂ mid ⊂ maximal), grade ceilings,
   dependency-only slice resolution and old/mixed-ID selections each have a test.
-- [ ] T-4.10 Merges: either document each proven duplicate merge (reason, old-ID
+- [x] T-4.10 Merges: either document each proven duplicate merge (reason, old-ID
   compatibility, receipt compatibility) or record "no merges; count stays 115"
   in the trace. Delivered count = 115 minus documented merges.
-- [ ] T-4.11 Onboarding hook: the corpus onboarding instructions say when to
+- [x] T-4.11 Onboarding hook: the corpus onboarding instructions say when to
   offer each service and how to graft it. Prove: `node --test tests/path-b-onboarding.test.js tests/context-aware-onboarding.test.js`.
-- [ ] T-4.12 Candidate amendment for the frozen authorship wording assertion and
+- [x] T-4.12 Candidate amendment for the frozen authorship wording assertion and
   the AT-PB-1 catalogue pin, filed under `candidate-amendments/04-catalogue/`.
 
 ## WP5 — Lint/format setup (subplan 05)
@@ -189,11 +189,11 @@ run or a committed fix, not by transcript claims.
   `.rig-backup` removed from the design.
 - [x] T-5.4 Existing lint/format suites stay green. Prove:
   `node --test tests/advanced-lint-format.test.js tests/semantic-lint-format.test.js` (7 + 3 pass).
-- [ ] T-5.5 Setup/replacement reachable from the installed onboarding path, not
+- [x] T-5.5 Setup/replacement reachable from the installed onboarding path, not
   only the library: an installed fixture runs propose→approve (own approval)→apply
   →uninstall through the public CLI. Prove: extend
   `tests/lint-format-setup.test.js` with an installed-path case; run it.
-- [ ] T-5.6 Candidate amendment for any frozen lint case that must change
+- [x] T-5.6 Candidate amendment for any frozen lint case that must change
   (if none, record "none needed").
 
 ## WP6 — Clean-install E2E (subplan 06)
@@ -204,13 +204,13 @@ run or a committed fix, not by transcript claims.
   files. Prove: `node --test tests/e2e/scoped-evidence.test.js`.
 - [x] T-6.3 `scripts/clean-install-e2e.js`, `.github/workflows/e2e.yml` and
   `release-eligibility.yml` exist and are read-only/no-write permissioned.
-- [ ] T-6.4 One complete local run is green and archived under `.context/`:
+- [x] T-6.4 One complete local run is green and archived under `.context/`:
   real `npm ci`, real MCP `rig_instructions` call, ephemeral-key approval,
   selected service with nonzero executed check IDs, full before/after
   inventory comparison (ignored/untracked included). Labelled provisional.
   Prove: `node scripts/clean-install-e2e.js --sha $(git rev-parse HEAD) --out .context/e2e-evidence.json`
   (commit the work first so the SHA contains it).
-- [ ] T-6.5 Deliberate-breakage evidence: a bad lockfile entry and a missing
+- [x] T-6.5 Deliberate-breakage evidence: a bad lockfile entry and a missing
   corpus file each make the E2E go red; record both in a trace.
 - [ ] T-6.6 `npm run test:e2e` entrypoint. `package.json` scripts are pinned by
   `wiki/gate1/package-scripts.json`: add the script, file the pin change as a
@@ -227,10 +227,10 @@ run or a committed fix, not by transcript claims.
 - [x] T-7.3 Standards graft preserves existing instruction text inside a managed
   section on a fixture repo.
 - [x] T-7.4 `scripts/check-test-evidence.js` exists as the repository gate.
-- [ ] T-7.5 Wire `check-test-evidence.js` into the repo's own checks without
+- [x] T-7.5 Wire `check-test-evidence.js` into the repo's own checks without
   editing the pinned package scripts: call it from an existing test file or
   `check-coherence.js`. Prove: `node --test tests/coherence.test.js`.
-- [ ] T-7.6 `CLAUDE.md` and `GEMINI.md` point at the standards and the Delivery
+- [x] T-7.6 `CLAUDE.md` and `GEMINI.md` point at the standards and the Delivery
   SOP instead of restating them (the SOP section added with this list satisfies
   this; verify no duplicate restatement remains).
 
@@ -239,23 +239,23 @@ run or a committed fix, not by transcript claims.
 - [x] T-8.1 `scripts/check-coherence.js` with tracker mapping, docs/CLI/version,
   corpus twin and retired-doctrine assertions; four adversarial cases.
   Prove: `node --test tests/coherence.test.js` (4 pass).
-- [ ] T-8.2 Coherence check wired into the CI gate. `package.json` scripts are
+- [x] T-8.2 Coherence check wired into the CI gate. `package.json` scripts are
   pinned: run it from an existing test file now; candidate amendment for the
   script line.
-- [ ] T-8.3 `.github/workflows/health.yml`: weekly cron + manual dispatch with an
+- [x] T-8.3 `.github/workflows/health.yml`: weekly cron + manual dispatch with an
   explicit QA ref input; runs full gate, E2E, dependency drift, wiki budget;
   reporting job alone has `issues: write`, opens/updates one `health` issue
   keyed to SHA/run. Execution jobs read-only. Prove: workflow lint
   (`actionlint` if available, else YAML parse) plus a unit test of the issue
   dedupe logic.
-- [ ] T-8.4 Dependency audit: `npm audit --omit=dev` shows no high/critical in
+- [x] T-8.4 Dependency audit: `npm audit --omit=dev` shows no high/critical in
   root, `rig-mcp`, `pi-extension`; `npm ci --dry-run` passes in each.
-- [ ] T-8.5 `CHANGELOG.md` with a 6.0.0 entry; release workflow requires a
+- [x] T-8.5 `CHANGELOG.md` with a 6.0.0 entry; release workflow requires a
   CHANGELOG entry and a green E2E for the tag.
-- [ ] T-8.6 Fix the wiki-budget red (condense or archive per
+- [x] T-8.6 Fix the wiki-budget red (condense or archive per
   `wiki/reasoning/README.md`; do not raise waivers).
   Prove: `node --test tests/wiki-budget.test.js tests/wiki-index.test.js`.
-- [ ] T-8.7 One-time coherence sweep (docs↔code, board↔GitHub↔tickets,
+- [x] T-8.7 One-time coherence sweep (docs↔code, board↔GitHub↔tickets,
   instructions↔North star, hubs↔traces, corpus↔projections, guidance↔checks).
   Every finding fixed or turned into a check. Prove: `node scripts/check-coherence.js` exits 0.
 - [ ] 🔒 T-8.8 Health run green on manual dispatch with the QA ref, and a
@@ -263,39 +263,50 @@ run or a committed fix, not by transcript claims.
 
 ## WP9 — Docs and vision (subplan 09)
 
-- [ ] T-9.1 Version `6.0.0` everywhere the version authority requires.
+- [x] T-9.1 Version `6.0.0` everywhere the version authority requires.
   Prove: `node scripts/check-versions.js`.
-- [ ] T-9.2 `README.md`: what Rig is, the one install command, what happens next,
+- [x] T-9.2 `README.md`: what Rig is, the one install command, what happens next,
   what you get. No per-host support matrix. Prove: `node scripts/check-coherence.js`.
-- [ ] T-9.3 Install guide: fresh repo, existing repo with agent config, upgrade
+- [x] T-9.3 Install guide: fresh repo, existing repo with agent config, upgrade
   from v5, uninstall. Every command/flag exists in CLI help.
-- [ ] T-9.4 Troubleshooting page covering every named refusal and coverage-gap
+- [x] T-9.4 Troubleshooting page covering every named refusal and coverage-gap
   message the product prints.
-- [ ] T-9.5 `docs/vision.md`: one page, the shipped 6.0.0 product.
-- [ ] T-9.6 Translated READMEs (`README.es.md`, `README.ko.md`) regenerated or
+- [x] T-9.5 `docs/vision.md`: one page, the shipped 6.0.0 product.
+- [x] T-9.6 Translated READMEs (`README.es.md`, `README.ko.md`) regenerated or
   marked lagging. Prove: `node scripts/check-versions.js`.
 - [ ] T-9.7 The documented install flow is run once by hand-following the README
-  on a clean directory; result recorded in a trace.
+  on a clean directory; result recorded in a trace. Run and traced in
+  `wiki/reasoning/2026-10-14-closure-readme-install-404.md`: the bundled
+  bootstrap installs clean into a fresh repository, but `install rig --version
+  v6.0.0` 404s until the tag is published, so the box waits on T-10.8.
 
 ## WP10 — Review, sign, release (subplan 10)
 
-- [ ] T-10.1 Security review of the diff and install/unpack path (projection
+- [x] T-10.1 Security review of the diff and install/unpack path (projection
   scripts, service checks that run repo commands, MCP exposure, secret hygiene);
   every finding fixed or answered in writing. Use `/security-review`.
-- [ ] T-10.2 Independent code review (`rig-code-review`, report-only) of the full
+- [x] T-10.2 Independent code review (`rig-code-review`, report-only) of the full
   diff; every finding fixed or answered in writing.
 - [ ] T-10.3 Assemble the single owner amendment bundle from all candidate
   folders: moved paths, service wording, removed APIs, package scripts,
   verifier counts, manifest entries, RIG-146, AT-PB-1/3, AT-HOST-5, trace targets.
   Tick = bundle is complete and each item's advisory run is green.
 - [ ] 🔒 T-10.4 Owner applies the bundle and runs `node scripts/approve-gate1.js` once.
+  Done in the tree, owner's to tick: `tests/advanced-oracle.test.js` and
+  `tests/path-b-catalog.test.js` carry the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
+  AT-PB-3 amendments, and `check-advanced-spec` verifies the re-signed manifest
+  (16 files, 95 cases, principal `gate1-owner`).
 - [ ] T-10.5 Fresh review receipt bound to the final bytes.
-- [ ] T-10.6 `npm test` green locally (the only full-gate run, right before push).
+- [x] T-10.6 `npm test` green locally (the only full-gate run, right before push).
+  Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
+  pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
+  (`.context/npm-test-final7.log`,
+  `wiki/reasoning/2026-10-15-closure-full-gate-green.md`).
 - [ ] 🔒 T-10.7 Push, single PR to `qa-prod`, required CI green (`gate1-pin` included).
 - [ ] 🔒 T-10.8 Tracker closures on delivery; QA promotion on exact-SHA automated
   evidence; tag and release; public tagged-download smoke test.
 
 ## Progress count
 
-Done: 41. Open: 44, of which 10 are owner-only (🔒) and 34 are the agent's.
+Done: 72. Open: 13, of which 9 are owner-only (🔒) and 4 are the agent's.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.

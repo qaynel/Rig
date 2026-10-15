@@ -5,8 +5,9 @@
 Rig is a packaged, forward-deployed, host-agnostic agentic harness for an
 existing repository. It reads the current repo and project context, chooses how
 best to install the harness with the tools Rig ships, and helps the user set it
-up while respecting existing infrastructure instead of replacing it. Tier 1 is
-a markdown-only bootstrap; the beta delivery focuses on the user-selected
+up while respecting existing infrastructure instead of replacing it. Rig ships
+from one central corpus that the user's agent unpacks per host ([corpus design](../reasoning/2026-09-08-dynamic-offboarding-architecture-brainstorm.md));
+the markdown-only rule is retired. The beta delivery focuses on the user-selected
 engineering catalogue without adding a Rig model runtime or model key.
 **Beta note:** The mandatory agent-technology safety baseline is included. The
 Product-Security catalogue remains independently selectable, and no Rig model

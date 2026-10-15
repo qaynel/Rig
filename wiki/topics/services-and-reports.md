@@ -144,3 +144,5 @@ and refusing to ever claim support at all, are both rejected — the first lets
 install success masquerade as coverage, the second discards the customer-facing
 promise the leaf exists to earn.
 [reasoning trace](../reasoning/2026-08-21-lint-format-support-claim.md)
+
+Closure work in progress: [2026-10-13-catalogue-04-discovery](../reasoning/2026-10-13-catalogue-04-discovery.md).

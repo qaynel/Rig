@@ -1,5 +1,14 @@
 # The authored-service gate
 
+The completed corpus uses service-specific guidance and coverage ceilings.
+The frozen AT-SHAPE-6 wording assertion that requires generic-baseline text has
+an unsigned owner amendment at
+[`candidate-amendments/04-catalogue/AT-SHAPE-6.md`](../specs/close-everything/candidate-amendments/04-catalogue/AT-SHAPE-6.md).
+The AT-PB-1 byte pin likewise has a candidate to move from the compatibility
+catalogue to the active corpus catalogue and its 115 service definitions:
+[`candidate amendment`](../specs/close-everything/candidate-amendments/04-catalogue/AT-PB-1.md).
+[Candidate trace](../reasoning/2026-10-14-closure-catalogue-candidates.md)
+
 ## What it is
 
 All 115 catalogue leaves must carry service-specific identity, owned scope,
@@ -25,6 +34,7 @@ metadata, omitted dispositions, missing grade checks, and duplicate bodies. It
 returns exact leaf/fragment failures. Catalogue apply never substitutes an
 unconditional success command: an unbound generic Policy service is a named,
 nonzero coverage gap.
+[Current authorship proof](../reasoning/2026-10-14-closure-authorship-complete.md)
 
 ## Why
 

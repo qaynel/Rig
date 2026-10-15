@@ -1,6 +1,6 @@
 # Decision index
 
-Every ruling this project has made, across four ID schemes, in one place.
+Rulings across four ID schemes.
 
 | Scheme | Count | What it is | Defined in |
 |---|---|---|---|
@@ -9,17 +9,13 @@ Every ruling this project has made, across four ID schemes, in one place.
 | `D#` | 28 | Gate 1 revisions — rulings that changed owner-approved intent. D28 is signed into the oracle. | [`gate1/business-spec.md`](../gate1/business-spec.md) |
 | `AD-#` | 36 | Gate 2 mechanisms — working implementation constraints. | [`gate2/technical-spec.md`](../gate2/technical-spec.md) §2 |
 
-The relationship: a `GA-` ruling is the conversation, the matching `D#` is what
-that ruling did to frozen intent, and an `AD-#` is the mechanism Gate 2 built to
-satisfy it. Not every ID has counterparts in the other schemes.
+`GA-` records the conversation, `D#` its frozen-intent revision, and `AD-#` its mechanism; not every ID has counterparts.
 
 ---
 
 ## Workflow-doctrine rulings
 
-Rulings about the development cycle itself, distinct from the four catalogue
-schemes above. They change the router and skills, not the frozen catalogue
-intent.
+Workflow rulings change router/skills, not the frozen catalogue intent.
 
 | Date | Ruling | Source |
 |---|---|---|
@@ -34,25 +30,29 @@ intent.
 
 ## Product-integration rulings
 
-Owner decisions that resolve a delivery integration without changing the
-frozen business oracle or claiming a new numbered architecture decision.
+Owner delivery rulings; these do not amend the frozen oracle or invent numbered architecture decisions.
 
 | Date | Ruling | Source |
 |---|---|---|
 | 2026-08-24 | **Antigravity MCP is first-class manual setup for beta.** Onboarding emits exact selected-server JSON plus a verification command; Rig does not write the user-global file while upstream CLI issue #60 remains open. | [RIG-105](../tickets/RIG-105.md), [host contract](../specs/host-coverage-spec.md#321-rig-mcp-server-coverage-rig-101) |
 | 2026-08-24 | **Spec-driven development folds into the existing phase owners.** Requests route through grilling's five executable-spec checkpoints and product design's code-grounded technical interrogation; no separate skill or graft is added. | [RIG-119](../tickets/RIG-119.md), [working conventions](../topics/agent-working-conventions.md) |
-| 2026-08-31 | **RIG-153 closes on the instrument alone; the re-baseline run is deferred as RIG-156.** RIG-153 was scoped to build the adaptation-measurement instrument, not to run it. Option A (six hygiene tests + frozen rubric) is delivered; the re-baseline against the +12/100 baseline is measurement work, is low-value until adaptive integration is built (a Path B question), and is held on RIG-156 until Path A and Path B are fully decided. | [RIG-153](../tickets/RIG-153.md), [RIG-156](../tickets/RIG-156.md), [close-out ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) |
-| 2026-09-01 | **Pre-approval skill projection drops to eight on the adaptive install only.** The Path B (`--with-runtime`) install projects only the eight mandatory skills into host discovery and stages the complete 55-skill shelf under `.rig/runtime/rig/catalog/skills/`, where no host discovers it. The legacy markdown-only Tier 1 install keeps its full native fan-out, gated by `default_delivery`, so RIG-149's "the vendored router is addressable as `rig`" guard survives where it still applies; slice 6 retires that path as a whole rather than hollowing it out now. | [slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md), [onboarding flow](../topics/onboarding-flow.md) |
-| 2026-09-01 | **The skill shelf is a generated, digest-pinned catalogue with no alias fiction.** Family/capability membership is self-declared frontmatter compiled by `scripts/build-skill-catalog.js` into `rig/catalog/skills/catalog.json`, checked for drift in `npm test`, and pinned byte-for-byte at `.rig/catalog.json`. `migrations.json` ships with an empty alias map because no callable name actually changed: `connect-chrome` now declares the name its collision tie-break already produced, removing the collision at the source instead of aliasing around it. | [slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md), [the catalogue](../topics/the-catalogue.md) |
-| 2026-08-31 | **Path B is agent-led graft, not a skill picker and not a Rig-code inference engine.** The onboarding host agent receives full repo context plus the Rig capability catalogue (organised into families), decides relevance, reuses/extends existing infra, grafts missing Rig behaviour, and escalates only critical decisions. The user reviews the resulting improvement. Repo-specific state lives under `.rig/`. Payload size warns; duplicate-write fails. Router re-test does not block. D24 still constrains what *Rig code* infers; the consent UX shifts from default-full family-trim to agent-proposed graft plus summary approval. | [product direction](../reasoning/2026-08-31-path-b-product-direction.md), [adapt scope](../reasoning/2026-08-31-path-b-adapt-scope.md), [vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md) |
+| 2026-08-31 | **RIG-153 delivers the instrument, not its run.** Six hygiene tests plus frozen rubric landed. RIG-156 holds the +12/100 re-baseline until adaptive integration and Path A/B direction are settled. | [RIG-153](../tickets/RIG-153.md), [RIG-156](../tickets/RIG-156.md), [ruling](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) |
+| 2026-09-01 | **Adaptive pre-approval projection: eight mandatory skills.** All 55 shelf skills stage at `.rig/runtime/rig/catalog/skills/`, outside discovery. Legacy static delivery keeps full fan-out through `default_delivery`, preserving RIG-149's `rig` router; slice 6 retires that path whole. | [slice 1](../reasoning/2026-09-01-path-b-slice1-catalogue.md), [onboarding](../topics/onboarding-flow.md) |
+| 2026-09-01 | **Generated, digest-pinned skill shelf; no aliases.** Frontmatter compiles to `rig/catalog/skills/catalog.json`, checked in `npm test`, installed byte-for-byte at `.rig/catalog.json`. `migrations.json` stays empty: `connect-chrome` declares its existing callable name, resolving the collision at source. | [slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md), [catalogue](../topics/the-catalogue.md) |
+| 2026-10-13 | **Fetch third-party skills during onboarding for this release.** Replaces the plan's recommendation to keep pinned vendored copies. | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-fetch.md) |
+| 2026-10-13 | **One new canonical corpus root.** Use `rig/corpus/`. | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-corpus-root.md) |
+| 2026-10-13 | **Remove tier wording now; retain compatible flag for one release.** | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-tier.md) |
+| 2026-10-13 | **Use available external tools; report missing tools as named gaps with setup guidance.** | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-tools.md) |
+| 2026-10-13 | **Proven duplicates may merge with written reasons and selection compatibility; count may fall below 115.** | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-merges.md) |
+| 2026-10-13 | **QA promotion: automated health and clean-install checks on the exact QA commit; no manual outside-repo install gate.** | [owner answer](../reasoning/2026-10-13-close-everything-review-owner-promotion.md) |
+| 2026-08-31 | **Agent-led graft, not skill picking or Rig-code inference.** The agent uses repo/capability context, reuses or extends infra and proposes missing behavior; the user approves the improvement and critical decisions. State lives in `.rig/`; size warns, duplicate writes fail, router re-test does not block. D24 still limits code inference. | [direction](../reasoning/2026-08-31-path-b-product-direction.md), [scope](../reasoning/2026-08-31-path-b-adapt-scope.md), [vertical slice](../reasoning/2026-09-01-path-b-slice5-vertical.md) |
 | 2026-09-01 | **Path B now has a public operator path and closed check surface.** `install rig` maps repeatable host selections through the existing registry, always installs the active runtime, and stops at explicit onboarding approval. The shared check reports journal-backed file/byte growth as warnings and known ownership, reference, projection, and state regressions as hard failures. | [operator and check closure](../reasoning/2026-09-01-path-b-slice6-operator-check.md) |
 
 ---
 
 ## `D#` — Gate 1 revisions
 
-These changed frozen business intent. Each is marked at its point of effect in
-both Gate 1 files.
+Frozen-intent revisions are marked in both Gate 1 files.
 
 | ID | Date | Ruling | Topic |
 |---|---|---|---|

@@ -1,0 +1,87 @@
+# 06 — Real clean-install end-to-end test (D1, RIG-155)
+
+Part of the [master plan](00-master-plan.md). Depends on [03](03-central-corpus.md).
+
+**Owner (round 2):** fresh install, run end to end with real downloads, rolled
+into the test suite.
+
+## Current state
+
+`AT-HOME-1` proves the MCP server only through a fake `npm` that copies a
+pre-built `node_modules`. RIG-155 was written around one host's MCP opt-in
+flag, which is per-host framing and is rescoped here per North star 1.
+
+## Shape
+
+A workflow, `.github/workflows/e2e.yml`, plus `npm run test:e2e`. It runs on a
+clean runner (no repo `node_modules`, no npm cache, no `.venv`), on a schedule,
+on manual dispatch, and as a required step before tagging a release. It does
+not run on every push: the RIG-154 design kept networked installs out of the
+unit suite.
+
+Steps:
+
+1. Create an empty git repo, plus a second fixture repo with existing agent
+   config, to exercise grafting.
+2. Add and specify a candidate-artifact input to the public installer; it
+   currently downloads tags only. Pack the exact candidate commit, record its
+   archive digest, and exercise the same extract/bootstrap path with real
+   `npm ci` downloads. Keep the tagged public-download smoke test separate.
+   Release eligibility requires the candidate run at the exact reviewed SHA;
+   tag publication is followed by a public-download smoke test at that tag.
+3. Assert install exits 0 and lays down the corpus `.rig/` plus the default
+   projection.
+4. Start the installed MCP server the way the projection says to, and complete
+   a real MCP tool call (`rig_instructions`) over stdio.
+5. Exercise inspect→proposal→real human-compatible approval→apply→check
+   using documented approval support. The run cannot forge approval or leave
+   CLI placeholders unresolved. Declare the scheduled approval mechanism and
+   restrict its authority to disposable fixture targets. Explicitly select
+   named services and assert their executed check IDs/counts; an empty
+   catalogue selection cannot satisfy end-to-end service acceptance.
+6. Uninstall with the scoped evidence cleanup defined in 03. Compare complete
+   file inventories and bytes, not git status alone; ignored/untracked files
+   and existing user reports/config are included in the baseline.
+7. Record the Node version, npm registry, OS, and SHA as a run artifact.
+
+## Acceptance
+
+- The workflow is green on `ubuntu-latest` and `macos-latest`, the two
+  platforms the installer is shell-based for.
+- If the workflow is broken on purpose (a bad lockfile entry, or a missing
+  corpus file), it goes red. Both breakages are recorded once as evidence in
+  the trace.
+- RIG-155 closes with a link to the run.
+
+## Implemented execution interface (candidate, 2026-10-13)
+
+`node scripts/clean-install-e2e.js --sha <commit> --out <evidence.json>` packs a
+clean exact commit with Git archive. An explicitly supplied `--artifact` uses
+that archive; the public installer requires `--candidate-artifact`,
+`--candidate-sha` and `--candidate-digest`, verifies SHA-256 and the Git archive
+commit header before extraction, and records the downloaded archive digest.
+An intermediate working-tree snapshot is labelled provisional in evidence and
+cannot satisfy release eligibility. `--tag <published-tag>` runs the separate
+public-download flow after publication.
+
+Scheduled approval creates a throwaway Ed25519 key in the disposable run
+folder and trusts its public half only in the two fixture repositories. The
+fixture signer verifies the target is one of those repositories, then signs
+the exact `rig-plan-approval` message through SSHSIG. It has no authority over
+the author's checkout or the release oracle. Both fixtures select
+`development.documentation.onboarding-docs=minimal`; its actual executed IDs
+and nonzero counts are retained from installed onboarding state.
+
+The public installer runs real `npm ci` in an isolated temporary staging
+folder and journals downloaded dependency files plus `.rig/mcp-server.json`.
+The E2E launches that descriptor and completes `rig_instructions` over stdio.
+`--uninstall --purge` now means scoped evidence cleanup: named runtime evidence
+retains its original bytes and mode in an ownership ledger, and cleanup
+restores the preimage or removes newly created evidence only when attributable.
+Unrelated reports and changed evidence remain. This replaces whole-directory
+report deletion.
+
+The reusable E2E workflow resolves one SHA and checks Linux/macOS. The
+read-only release-eligibility workflow requires that SHA to be current QA both
+before and after the reusable health/full-gate/coherence/E2E jobs, then emits
+an eligibility artifact. It does not publish a tag or promote stale evidence.

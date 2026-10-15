@@ -1,0 +1,889 @@
+{
+  "schema_version": 1,
+  "phase": "candidate",
+  "repository": "qaynel/Rig",
+  "items": [
+    {
+      "id": "RIG-101",
+      "ticket": "RIG-101.md",
+      "state": "delivered",
+      "issue": 54,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-102",
+      "ticket": "RIG-102.md",
+      "state": "delivered",
+      "issue": 58,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-103",
+      "ticket": "RIG-103.md",
+      "state": "delivered",
+      "issue": 56,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-104",
+      "ticket": "RIG-104.md",
+      "state": "delivered",
+      "issue": 57,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-105",
+      "ticket": "RIG-105.md",
+      "state": "delivered",
+      "issue": 48,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-106",
+      "ticket": "RIG-106.md",
+      "state": "delivered",
+      "issue": 55,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-107",
+      "ticket": "RIG-107.md",
+      "state": "delivered",
+      "issue": 53,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-108",
+      "ticket": "RIG-108.md",
+      "state": "delivered",
+      "issue": 52,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-109",
+      "ticket": "RIG-109.md",
+      "state": "delivered",
+      "issue": 51,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-110",
+      "ticket": "RIG-110.md",
+      "state": "open",
+      "issue": 67,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-111",
+      "ticket": "RIG-111.md",
+      "state": "delivered",
+      "issue": 50,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-112",
+      "ticket": "RIG-112.md",
+      "state": "open",
+      "issue": 66,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-113",
+      "ticket": "RIG-113.md",
+      "state": "open",
+      "issue": 65,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-114",
+      "ticket": "RIG-114.md",
+      "state": "delivered",
+      "issue": 49,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-115",
+      "ticket": "RIG-115.md",
+      "state": "delivered",
+      "issue": 64,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-116",
+      "ticket": "RIG-116.md",
+      "state": "redesign",
+      "issue": 63,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "NOT_PLANNED"
+      }
+    },
+    {
+      "id": "RIG-117",
+      "ticket": "RIG-117.md",
+      "state": "delivered",
+      "issue": 59,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-118",
+      "ticket": "RIG-118.md",
+      "state": "delivered",
+      "issue": 60,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-119",
+      "ticket": "RIG-119.md",
+      "state": "delivered",
+      "issue": 47,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-120",
+      "ticket": "RIG-120.md",
+      "state": "delivered",
+      "issue": 68,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-121",
+      "ticket": "RIG-121.md",
+      "state": "delivered",
+      "issue": 61,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-122",
+      "ticket": "RIG-122.md",
+      "state": "redesign",
+      "issue": 62,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "NOT_PLANNED"
+      }
+    },
+    {
+      "id": "RIG-123",
+      "ticket": "RIG-123.md",
+      "state": "delivered",
+      "issue": 46,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-124",
+      "ticket": "RIG-124.md",
+      "state": "delivered",
+      "issue": 45,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-124.1",
+      "ticket": "RIG-124.md",
+      "state": "delivered",
+      "issue": 73,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-124.2",
+      "ticket": "RIG-124.md",
+      "state": "delivered",
+      "issue": 131,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-125",
+      "ticket": "RIG-125.md",
+      "state": "open",
+      "issue": 44,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-126",
+      "ticket": "RIG-126.md",
+      "state": "delivered",
+      "issue": 35,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-127",
+      "ticket": "RIG-127.md",
+      "state": "delivered",
+      "issue": 36,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-127.11",
+      "ticket": "RIG-127.md",
+      "state": "open",
+      "issue": 69,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-127.12",
+      "ticket": "RIG-127.md",
+      "state": "open",
+      "issue": 70,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-128",
+      "ticket": "RIG-128.md",
+      "state": "delivered",
+      "issue": 37,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-129",
+      "ticket": "RIG-129.md",
+      "state": "delivered",
+      "issue": 38,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-130",
+      "ticket": "RIG-130.md",
+      "state": "redesign",
+      "issue": 43,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "NOT_PLANNED"
+      }
+    },
+    {
+      "id": "RIG-131",
+      "ticket": "RIG-131.md",
+      "state": "delivered",
+      "issue": 39,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-132",
+      "ticket": "RIG-132.md",
+      "state": "open",
+      "issue": 41,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-133",
+      "ticket": "RIG-133.md",
+      "state": "redesign",
+      "issue": 42,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "NOT_PLANNED"
+      }
+    },
+    {
+      "id": "RIG-134",
+      "ticket": "RIG-134.md",
+      "state": "delivered",
+      "issue": 40,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-135",
+      "ticket": "RIG-135.md",
+      "state": "delivered",
+      "issue": 75,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-135.1",
+      "ticket": "RIG-135.md",
+      "state": "open",
+      "issue": 78,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-135.2",
+      "ticket": "RIG-135.md",
+      "state": "open",
+      "issue": 79,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-135.3",
+      "ticket": "RIG-135.md",
+      "state": "open",
+      "issue": 80,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-136",
+      "ticket": "RIG-136.md",
+      "state": "delivered",
+      "issue": 92,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-137",
+      "ticket": "RIG-137.md",
+      "state": "delivered",
+      "issue": 91,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-138",
+      "ticket": "RIG-138.md",
+      "state": "delivered",
+      "issue": 93,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-139",
+      "ticket": "RIG-139.md",
+      "state": "delivered",
+      "issue": 94,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-140",
+      "ticket": "RIG-140.md",
+      "state": "delivered",
+      "issue": 95,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-141",
+      "ticket": "RIG-141.md",
+      "state": "delivered",
+      "issue": 96,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-142",
+      "ticket": "RIG-142.md",
+      "state": "delivered",
+      "issue": 97,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-143",
+      "ticket": "RIG-143.md",
+      "state": "delivered",
+      "issue": 111,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-144",
+      "ticket": "RIG-144.md",
+      "state": "delivered",
+      "issue": 104,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-145",
+      "ticket": "RIG-145.md",
+      "state": "open",
+      "issue": 108,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-146",
+      "ticket": "RIG-146.md",
+      "state": "open",
+      "issue": 109,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-147",
+      "ticket": "RIG-147.md",
+      "state": "open",
+      "issue": 110,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-148",
+      "ticket": "RIG-148.md",
+      "state": "delivered",
+      "issue": 125,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-149",
+      "ticket": "RIG-149.md",
+      "state": "delivered",
+      "issue": 126,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-150",
+      "ticket": "RIG-150.md",
+      "state": "delivered",
+      "issue": 127,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-151",
+      "ticket": "RIG-151.md",
+      "state": "delivered",
+      "issue": 128,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-152",
+      "ticket": "RIG-152.md",
+      "state": "delivered",
+      "issue": 129,
+      "github_from": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-153",
+      "ticket": "RIG-153.md",
+      "state": "delivered",
+      "issue": 130,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-154",
+      "ticket": "RIG-154.md",
+      "state": "delivered",
+      "issue": 138,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "COMPLETED"
+      }
+    },
+    {
+      "id": "RIG-155",
+      "ticket": "RIG-155.md",
+      "state": "open",
+      "issue": 151,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-156",
+      "ticket": "RIG-156.md",
+      "state": "redesign",
+      "issue": 152,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "CLOSED",
+        "stateReason": "NOT_PLANNED"
+      }
+    }
+  ]
+}

@@ -17,27 +17,9 @@ this change in the single batched re-sign; agents never sign.
   The production `authorshipReport()` now rejects known boilerplate and bodies
   sharing more than 80% of their normalized eight-character shingles with a
   different service; it reports zero failures for the 115 current services.
-- Proposed diff:
-
-```diff
---- a/tests/advanced-oracle.test.js
-+++ b/tests/advanced-oracle.test.js
-@@ test('AT-SHAPE-6 all 115 leaves are authored at their declared grade', () => {
-   const report = api('catalog.js', 'authorshipReport')();
-   assert.deepEqual(report.counts, { development: 26, testing: 40, infrastructure: 31, 'product-security': 18 });
-   assert.equal(report.services.length, 115);
-   assert.deepEqual(report.failures, []);
-   for (const { service, file } of allServiceFiles()) {
-     const text = fs.readFileSync(file, 'utf8');
-     if (service.id !== 'development.code-quality.lint-format') {
-       assert.match(text, /Policy(?:-| )grade/i, file);
--      assert.match(text, /generic baseline|not repository-tailored|not tailored/i, file);
-+      assert.doesNotMatch(text, /generic baseline|not repository-tailored|not tailored/i, file);
-     }
-     assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
-   }
- });
-```
+- Applicable diff: [`owner-amendments.patch`](../owner-amendments.patch) — one
+  patch carries all four frozen-case amendments, applies cleanly to this tree
+  with `git apply`, and was proved green before signing (see the bundle).
 
 - Local evidence: `authorshipReport()` reports 115 services and zero failures;
   `node --test tests/advanced-catalogue.test.js` exercises boilerplate and
