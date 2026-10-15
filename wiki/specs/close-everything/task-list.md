@@ -296,7 +296,11 @@ run or a committed fix, not by transcript claims.
   `tests/path-b-catalog.test.js` carry the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
   AT-PB-3 amendments, and `check-advanced-spec` verifies the re-signed manifest
   (16 files, 95 cases, principal `gate1-owner`).
-- [ ] T-10.5 Fresh review receipt bound to the final bytes.
+- [ ] T-10.5 Fresh review receipt bound to the final bytes. Needs one run of
+  `node scripts/review-receipt.js --target <spec> --implementation-root .
+  --base origin/qa-prod --model <id> --out <receipt> --author-context <id>`:
+  it spawns a 30-minute ephemeral reviewer, and a `fail` burns one of the two
+  attempts RIG-124 allows, so the owner picks the model and fires it.
 - [x] T-10.6 `npm test` green locally (the only full-gate run, right before push).
   Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
   pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
