@@ -19,6 +19,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { loadCorpus } = require('../rig/lib/corpus');
+const { project } = require('../rig/lib/project');
 
 const root = path.join(__dirname, '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
@@ -89,13 +91,12 @@ test('RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ pa
   assert.match(rigRule, /rig-implementation/, 'must reference the skill by name');
 });
 
-test('RIG-149 — prefix self-collision guard is present for the rig router skill', () => {
-  const projectSrc = read('rig/lib/project.js');
-  assert.match(
-    projectSrc,
-    /skill\.name\s*===\s*prefix\.replace/,
-    'project.js must carry the self-collision guard so _core installs as "rig" not "rig-rig"',
-  );
+test('RIG-149 — the routing fallback projects the skill it names on native hosts', () => {
+  const selection = { hosts: ['claude'], delivery: 'active' };
+  const entry = project(loadCorpus(selection), 'claude', selection)
+    .find((candidate) => candidate.path === '.claude/skills/rig-router/SKILL.md');
+  assert.ok(entry, 'the router must be projected at the fallback invocation path');
+  assert.match(entry.bytes.toString('utf8'), /^name: rig-router$/m);
 });
 
 test('RIG-148 — manifest writes a gitignore block for Rig-owned install paths', () => {

@@ -1,0 +1,5 @@
+{
+  "retryable_failures": [],
+  "maximum_attempts": 3,
+  "retry_assertion_failures": false
+}

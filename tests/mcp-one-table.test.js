@@ -62,7 +62,28 @@ test('no host claims auto-write without a renderer, and every projector host has
   }
 });
 
-test('there is exactly one MCP disposition table: the dead second reader is gone', () => {
-  assert.equal('materializeSelectedHosts' in hostCapabilities, false);
-  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../rig/lib/host-capabilities.js'), 'utf8'), /materializeSelectedHosts/);
+test('there is exactly one MCP disposition table: the AT-HOST-5 reader reports from it', () => {
+  // The signed oracle calls materializeSelectedHosts. It is a view over the one
+  // table, not a second one: it may hold no host entry of its own, and what it
+  // reports must equal the descriptor the host contract advertises.
+  const source = fs.readFileSync(path.join(__dirname, '../rig/lib/host-capabilities.js'), 'utf8');
+  const after = source.slice(source.indexOf('function materializeSelectedHosts'));
+  const reader = after.slice(0, after.indexOf('\n}\n'));
+  for (const host of Object.keys(REGISTRY)) {
+    assert.doesNotMatch(reader, new RegExp(`['"]${host}['"]`), `the reader must not carry its own entry for ${host}`);
+  }
+  for (const host of Object.keys(REGISTRY)) {
+    withTarget((target) => {
+      const advertised = descriptor(target, host);
+      const reported = hostCapabilities.materializeSelectedHosts(target, [host])[host].mcp;
+      if (advertised.emission === 'unsupported') {
+        assert.equal(reported.status, 'unsupported', `${host} is unsupported in the table`);
+        assert.match(reported.guidance, /preserv/i, `${host} guidance must promise preservation`);
+      } else {
+        assert.equal(reported.status, advertised.config_scope, `${host} config scope`);
+        assert.equal(reported.path, advertised.output.path, `${host} file`);
+        assert.equal(reported.key, advertised.output.key, `${host} key`);
+      }
+    });
+  }
 });

@@ -46,7 +46,7 @@ function cleanPath(name) {
 // Returns Map(path -> Buffer) of regular files, with the single leading
 // directory (`<repo>-<rev>/`) stripped. Symlinks, hard links, devices and FIFOs
 // inside the archive are refused outright.
-function readTar(buffer, { stripComponents = 1 } = {}) {
+function readTar(buffer, { stripComponents = 1, ignoredLinks = {} } = {}) {
   const files = new Map();
   let offset = 0;
   let pax = {};
@@ -73,6 +73,16 @@ function readTar(buffer, { stripComponents = 1 } = {}) {
     pax = {};
     longName = null;
     if (type === '5') { cleanPath(name); continue; }
+    // rig: verified upstream archives contain two declared aliases. Ignore only
+    // these exact links; never extract or follow them. Outputs use regular targets.
+    if (type === '2') {
+      const rel = cleanPath(name).split('/').slice(stripComponents).join('/');
+      const target = field(header, 157, 100);
+      if (Object.hasOwn(ignoredLinks, rel) && ignoredLinks[rel] === target) {
+        cleanPath(target);
+        continue;
+      }
+    }
     if (type !== '0' && type !== '\0') throw new Error(`archive entry "${name}" is a ${type === '2' ? 'symlink' : type === '1' ? 'hard link' : 'special file'}; refused`);
     const parts = cleanPath(name).split('/');
     if (parts.length <= stripComponents) throw new Error(`archive entry "${name}" is outside the top-level directory`);

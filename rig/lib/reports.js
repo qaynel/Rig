@@ -30,12 +30,8 @@ function writeReport(target, report) {
   };
   const digest = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 12);
   const file = path.join(dir, `${body.run_id}-${digest}.json`);
-  const fd = fs.openSync(file, 'wx');
-  try {
-    fs.writeFileSync(fd, `${JSON.stringify(body, null, 2)}\n`);
-  } finally {
-    fs.closeSync(fd);
-  }
+  if (fs.existsSync(file)) throw new Error('rig: evidence report already exists');
+  require('./evidence-artifacts').writeEvidence(target, path.relative(target, file).split(path.sep).join('/'), `${JSON.stringify(body, null, 2)}\n`);
   return file;
 }
 

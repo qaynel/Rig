@@ -1,0 +1,7 @@
+{
+  "abuse_cases": [
+    "credential stuffing"
+  ],
+  "rate_limit_policy": "per identity and IP",
+  "unbounded_public_requests": false
+}

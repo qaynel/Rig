@@ -180,6 +180,21 @@ function materializeHostAdapters(target, host, writeFile = null) {
   return { capabilities: caps, emitted_axes: emittedAxes, emitted_live_hooks: [], pointers };
 }
 
+// Reports the MCP disposition of each selected host from the one MCP_HOSTS
+// table. It writes nothing — an unsupported host must leave the user's own
+// config untouched (AT-HOST-5) — and `target` is accepted only because the
+// caller names the install it is asking about.
+function materializeSelectedHosts(target, hostIds) {
+  const results = {};
+  for (const id of hostIds) {
+    const mcp = contractFor(id, getCapabilities(id)).axes.mcp_config;
+    results[id] = mcp.emission === 'unsupported'
+      ? { mcp: { status: 'unsupported', guidance: 'MCP is unsupported for this host; its existing files are preserved unchanged.' } }
+      : { mcp: { status: mcp.config_scope, path: mcp.output.path, key: mcp.output.key } };
+  }
+  return results;
+}
+
 const HOST_DETECTION = {
   claude: ['.claude'],
   codex: ['.codex'],
@@ -394,4 +409,5 @@ module.exports = {
   materializeHostAdapters,
   discoverHosts,
   validateRegistryContracts,
+  materializeSelectedHosts,
 };

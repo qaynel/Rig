@@ -24,6 +24,20 @@ jobs:
           RIG_REQUIRE_PROCESS_CLEANUP: '1'
         run: node --test tests/browse-cookie-import-descendants.test.js tests/browse-skill-spawn-descendants.test.js
 
+  descendants-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
+      - name: No descendant survives success, timeout, cancel, or importer death
+        shell: bash
+        env:
+          RIG_REQUIRE_PROCESS_CLEANUP: '1'
+        run: node --test tests/browse-cookie-import-descendants.test.js tests/browse-skill-spawn-descendants.test.js
+
   descendants-linux:
     runs-on: ubuntu-latest
     steps:

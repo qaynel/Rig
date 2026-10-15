@@ -1,0 +1,5 @@
+{
+  "sensitive_fields": [],
+  "replacement_strategy": "irreversible-synthetic-values",
+  "retain_reidentification_map": false
+}

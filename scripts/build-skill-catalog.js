@@ -8,10 +8,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { buildSkillCatalog } = require('../rig/lib/skill-catalog');
-const { version } = require('../package.json');
 
 const OUT = path.join(__dirname, '..', 'rig', 'catalog', 'skills', 'catalog.json');
-const RELEASE_TAG = `v${version}`;
+// rig: this retained skill shelf is the v5 compatibility artefact; the active v6 catalogue lives under rig/corpus. Keep its generated release tag stable until the compatibility shelf is retired.
+const RELEASE_TAG = 'v5.0.0';
 
 function render(catalog) {
   return `${JSON.stringify(catalog, null, 2)}\n`;

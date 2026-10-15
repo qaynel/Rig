@@ -6,7 +6,5 @@ module.exports = function agentsTree(h) {
     ...h.nativeSkills('.agents/skills'),
     h.adapter('pointer', '.agents/rules/rig.md'),
     h.ensureLine('AGENTS.md'),
-    ...h.vendored('.agents/skills/{name}', 'rig-'),
-    ...h.licenseFiles('.agents/skills'),
   ];
 };

@@ -1,0 +1,7 @@
+{
+  "target_origin": "http://127.0.0.1:8080",
+  "authorized_scope": [
+    "/api"
+  ],
+  "scan_unapproved_targets": false
+}

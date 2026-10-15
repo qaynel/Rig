@@ -1,0 +1,7 @@
+{
+  "invariants": [
+    "sum of debits equals credits"
+  ],
+  "input_domain": "nonnegative integer amounts",
+  "derive_expected_from_subject": false
+}

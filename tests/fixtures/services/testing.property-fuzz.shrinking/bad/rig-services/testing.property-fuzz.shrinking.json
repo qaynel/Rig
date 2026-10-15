@@ -1,0 +1,7 @@
+{
+  "failure_predicate": "",
+  "preserved_constraints": [
+    "valid UTF-8"
+  ],
+  "drop_failure_during_shrink": false
+}

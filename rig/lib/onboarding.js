@@ -14,6 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
+const { bindServices, preflightServices, applyServices, checkServices } = require('./service-catalogue');
 const { fetchUpstreamSync, loadUpstream } = require('./upstream-fetch');
 const { runProjectionScript, assertOutputOutsideProtected } = require('./projection-script');
 const {
@@ -269,14 +270,34 @@ function sourceFiles(root, prefix = '') {
   return files;
 }
 
-function optionalProjectionSource(target, skill) {
+function optionalProjectionSource(target, skill, cache) {
   if (skill.source_kind !== 'optional' || !skill.source_rel.startsWith('rig/catalog/skills/')) {
     fail(`selected skill "${skill.id}" is not an installed optional runtime skill`);
   }
   const installed = `.rig/runtime/rig/${skill.source_rel.slice('rig/'.length)}`;
   const skillFile = containedPath(target, installed);
-  if (!fs.existsSync(skillFile)) fail(`selected skill "${skill.id}" is missing from the installed runtime shelf`);
-  return sourceFiles(path.dirname(skillFile));
+  if (fs.existsSync(skillFile)) return sourceFiles(path.dirname(skillFile)); // v5 compatibility
+  const id = 'gstack-shelf';
+  const meta = loadUpstream(id, containedPath(target, '.rig/upstream'));
+  const prefix = skill.source_rel.slice('rig/catalog/skills/'.length).replace(/SKILL\.md$/, '');
+  const receiptPath = containedPath(target, `.rig/fetched/${id}/receipt.json`);
+  let files;
+  if (fs.existsSync(receiptPath)) {
+    files = new Map();
+    for (const row of meta.files.filter((row) => row.output.startsWith(prefix))) {
+      const file = containedPath(target, `.rig/fetched/${id}/${row.output}`);
+      if (!fs.existsSync(file) || sha256(fs.readFileSync(file)) !== row.final_sha256) fail(`fetched skill "${skill.id}" has changed; rebuild its proposal`);
+      files.set(row.output, fs.readFileSync(file));
+    }
+  } else {
+    if (!cache.has(id)) {
+      const result = fetchUpstreamSync(id, { metaDir: containedPath(target, '.rig/upstream'), licencePath: containedPath(target, '.rig/skills/LICENSE.upstream') });
+      if (result.status !== 'ok') fail(`upstream fetch refused (${result.gaps[0].code}): ${result.gaps[0].detail}`);
+      cache.set(id, result.files);
+    }
+    files = cache.get(id);
+  }
+  return [...files].filter(([output]) => output.startsWith(prefix)).map(([output, bytes]) => ({ rel: output.slice(prefix.length), bytes }));
 }
 
 function selectedCatalogSkills(catalog, selected) {
@@ -317,6 +338,7 @@ function planSkillProjections(target, catalog, selected, writer) {
   const plans = [];
   const rows = [];
   const projectedFiles = new Map();
+  const sourceCache = new Map();
   const record = (skill, rel, digest) => {
     const entries = projectedFiles.get(skill.id) || [];
     entries.push({ path: rel, sha256: digest });
@@ -335,7 +357,7 @@ function planSkillProjections(target, catalog, selected, writer) {
       }
       continue;
     }
-    const files = optionalProjectionSource(target, skill);
+    const files = optionalProjectionSource(target, skill, sourceCache);
     const skillFile = files.find(({ rel }) => rel === 'SKILL.md');
     if (!skillFile) fail(`selected skill "${skill.id}" has no SKILL.md`);
     assertRewriteable(skillFile.bytes);
@@ -472,6 +494,7 @@ function checkUpstreamPins(target, rows) {
     let meta;
     try { meta = loadUpstream(row.id, containedPath(target, UPSTREAM_META_REL)); } catch (error) { fail(error.message.replace(/^rig: /, '')); }
     if (meta.archive.tar_sha256 !== row.tar_sha256) fail(`upstream "${row.id}" is pinned to a different archive digest than the proposal`);
+    if (row.metadata_sha256 !== sha256(fs.readFileSync(containedPath(target, `${UPSTREAM_META_REL}/${row.id}.json`)))) fail(`upstream "${row.id}" metadata digest has changed since proposal`);
   }
 }
 
@@ -571,9 +594,17 @@ function propose(request) {
     // The caller proposes skill names; the engine — not the caller — computes
     // the digests those names resolve to, so a proposal cannot be approved for
     // one set of bytes and applied against another.
+    const proposed = { ...request.proposal };
+    const upstreams = [...(proposed.upstream_fetch || [])];
+    if (selectedCatalogSkills(catalog, proposed.selected_skills || []).some((skill) => skill.source_kind === 'optional') && !upstreams.some((row) => row.id === 'gstack-shelf')) {
+      const meta = loadUpstream('gstack-shelf', containedPath(request.target, UPSTREAM_META_REL));
+      upstreams.push({ id: 'gstack-shelf', tar_sha256: meta.archive.tar_sha256 });
+    }
+    if (upstreams.length) proposed.upstream_fetch = upstreams.map((row) => ({ ...row, metadata_sha256: sha256(fs.readFileSync(containedPath(request.target, `${UPSTREAM_META_REL}/${row.id}.json`))) }));
     const stored = canonicalProposal(
-      request.proposal, state, sha256(Buffer.from(summary)),
+      proposed, state, sha256(Buffer.from(summary)),
       (selected) => skillBindings(request.target, catalog, selected),
+      (selected) => bindServices(request.target, selected),
     );
     checkUpstreamPins(request.target, stored.upstream_fetch);
     const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
@@ -757,6 +788,7 @@ function apply(request) {
     verifySkillBindings(state.proposal, catalog, projection);
     preflightGrafts(request.target, state.proposal.grafts, writer);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
+    preflightServices(request.target, state.proposal, writer);
     // The agent-script slot: every check above has already passed and the
     // approval is verified, so this is the first moment the approved bytes may
     // run. A refusal (no sandbox, bad artifact) throws here, before any write.
@@ -794,6 +826,7 @@ function apply(request) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
       }
+      appliedOwnedFiles.push(...applyServices(request.target, state.proposal, writer, currentDigest));
       for (const result of fetchedUpstreams) {
         for (const [output, bytes] of result.files) {
           const rel = fetchedRel(result.id, output);
@@ -1005,11 +1038,16 @@ function check(request) {
       ? checkOnboarding(request.target, state, catalog)
       : { hardFailures: [], warnings: [], weight: { files: 0, bytes: 0, previous_release_files: 0, previous_release_bytes: 0 } };
     const hardFailures = [...reconcileApplied(request.target, state), ...supplemental.hardFailures];
+    const serviceChecks = hardFailures.length ? { executed_count: 0, results: [] } : checkServices(request.target, state.proposal);
+    for (const result of serviceChecks.results) if (result.status !== 0) {
+      hardFailures.push(failure('service-check-failed', result.service_id, result.reason || 'service check failed'));
+    }
     const checks = {
       status: hardFailures.length ? 'fail' : 'pass',
       hard_failures: hardFailures,
       warnings: [...supplemental.warnings, ...unreconciledWarnings(state)],
       weight: supplemental.weight,
+      ...(state.proposal?.selected_services === undefined ? {} : { service_checks: serviceChecks }),
     };
     const phase = hardFailures.length ? 'failed' : 'checked';
     const unchanged = state.phase === phase && JSON.stringify(state.checks) === JSON.stringify(checks);
@@ -1022,7 +1060,17 @@ function check(request) {
       last_error: hardFailures[0]?.detail || null,
     };
     writeIfChanged(request.target, '.rig/grafts.md', renderGrafts(next));
-    writeState(request.target, next);
+    try {
+      writeState(request.target, next);
+    } catch (error) {
+      // A detected state edit is evidence of tampering. Return the failed
+      // reconciliation without overwriting the edited state that must be
+      // repaired by its owner.
+      if (hardFailures.length && error.message === 'rig: edited evidence .rig/state.json') {
+        return response('check', request.target, next, { hard_failures: hardFailures, warnings: checks.warnings });
+      }
+      throw error;
+    }
     return response('check', request.target, next, { hard_failures: hardFailures, warnings: checks.warnings });
   });
 }

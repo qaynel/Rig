@@ -1,0 +1,7 @@
+{
+  "generator_revision": "a1b2c3d",
+  "generated_paths": [
+    "generated/client.js"
+  ],
+  "overwrite_user_files": false
+}

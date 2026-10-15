@@ -68,6 +68,16 @@ function main() {
     }
   }
 
+  // The two MCP entrypoints are byte-identical by design (I-C-4). The frozen
+  // oracle pins that only for index.js, so instructions.js would drift unseen.
+  // shortcut: partial trees (this gate's own fixtures copy rig/ without rig-mcp/)
+  // are skipped rather than reported; drop the guard if the pair ever moves.
+  const pair = ['rig-mcp/instructions.js', 'rig/mcp-runtime/instructions.js'].map((rel) => path.join(root, rel));
+  if (pair.every((file) => fs.existsSync(file))) {
+    const [mcp, runtime] = pair.map((file) => digestOf(fs.readFileSync(file)));
+    if (mcp !== runtime) problems.push('rig-mcp/instructions.js and rig/mcp-runtime/instructions.js must be byte-identical; edit both in one commit');
+  }
+
   const skill = fs.readFileSync(path.join(root, 'skills/rig/SKILL.md'), 'utf8');
   const instructions = fs.readFileSync(path.join(root, 'rig/corpus/rules/repo-instructions.md'), 'utf8');
   for (const phrase of INVARIANTS) {

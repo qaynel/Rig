@@ -1,0 +1,7 @@
+{
+  "trace_fields": [],
+  "redacted_fields": [
+    "authorization"
+  ],
+  "log_credentials": false
+}

@@ -29,6 +29,17 @@ choice as a critical decision for the user instead of making it yourself. Where 
 capability needs a service, take it from the staged flow
 (`inspect`, `recommend`, `select`, `plan`) and keep the service's grade explicit.
 
+### When to offer a catalogue service
+
+Offer a service when its `identity.md` **Offer** guidance fits the repository's
+actual gap and its applicability conditions hold. Compare the service's stated
+coverage ceiling with the guarantee the repository needs; do not imply that a
+service covers behavior beyond that ceiling. Choose the minimal grade that meets
+the need. Use a higher grade only when its additional evidence or checks close a
+specific gap. If applicability does not hold, the coverage ceiling is too narrow,
+or the repository already has an equivalent guarantee, omit the service and say
+why in the proposal summary.
+
 ## 3. Project
 
 - **A host Rig has a projector for** is already done by the installer. Do not
@@ -44,6 +55,13 @@ digest is a named gap, never a silent success.
 
 ## 4. Graft
 
+### Graft a selected service
+
+Add selected service guidance to the repository's existing instruction file
+that owns the relevant workflow. Preserve its existing text and place the new
+content only inside a marked section. Name the service and selected grade in the
+proposal, and show the exact graft for approval before applying it.
+
 Put new guidance into existing instruction files inside marked sections, never
 over the user's text:
 
@@ -56,6 +74,14 @@ over the user's text:
 Each graft names the file, the capability, the content digest, and the digest of
 the file you read (`preimage_digest`), so a file that changed under you is
 refused rather than overwritten.
+
+Offer `.rig/standards/ai-sdlc.md` in the repository's existing agent or
+contributing instructions as a managed `development.ai-sdlc` graft. The runtime
+helper `standardsGraft(target, path)` builds the exact proposal row, including its
+preimage digest; for an installed runtime pass the standards file as `source`.
+Do not restate the standards in a second authority. Only offer a rule as enforced
+when its checker is installed and invoked in the existing gate; otherwise retain
+the document's guidance label. Existing repository docs survive outside markers.
 
 ## 5. Propose, approve, apply, check
 

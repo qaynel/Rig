@@ -15,7 +15,6 @@ const { applyCoverage } = require('../rig/lib/lint-format');
 const { runGrade } = require('../rig/lib/lint-format');
 const { projectForAgent } = require('../rig/lib/reports');
 const { runPayload } = require('../rig/lib/payload');
-const { listVendoredSkills } = require('../rig/lib/skills');
 const {
   activatePolicy, activationMessage, policyStatus, proposePolicy,
   proposeRecovery, recoverPolicy, recoveryMessage,
@@ -559,7 +558,7 @@ test('a partial OpenClaw set remains removable through the pending ledger', () =
     fs.writeFileSync(path.join(runtime, 'package.json'), '{}\n');
     fs.writeFileSync(path.join(runtime, 'package-lock.json'), '{}\n');
     fs.writeFileSync(server, 'server\n');
-    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
     fs.writeFileSync(path.join(bin, 'openclaw'), [
       '#!/bin/sh',
       'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then if [ -e "$OPENCLAW_CONFIG_PATH" ]; then cat "$OPENCLAW_CONFIG_PATH"; else printf "{}"; fi; exit 0; fi',
@@ -696,7 +695,7 @@ test('shipping OpenClaw bootstrap discloses the configured path before registrat
       'exit 2',
       '',
     ].join('\n'), { mode: 0o755 });
-    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
 
     const run = spawnSync('/bin/dash', [path.join(root, 'rig/bootstrap.sh'), '--target', target, '--with-runtime', '--openclaw-mcp'], {
       encoding: 'utf8',
@@ -722,7 +721,7 @@ test('payload post-step failures keep the install journal incomplete', () => {
   });
 });
 
-test('purge lists usage artifacts first and preserves user-owned policy', () => {
+test('purge drops the report scope and preserves user-owned data outside it', () => {
   withTarget((target) => {
     fs.mkdirSync(path.join(target, '.rig/run-history'), { recursive: true });
     fs.mkdirSync(path.join(target, 'reports/rig'), { recursive: true });
@@ -734,9 +733,12 @@ test('purge lists usage artifacts first and preserves user-owned policy', () => 
       purge: true,
       beforePurge: (paths) => observed.push({ paths, policy: fs.existsSync(path.join(target, '.rig/network-policy.json')) }),
     });
-    assert.deepEqual(observed, [{ paths: ['reports/rig', '.rig/run-history'], policy: true }]);
-    assert.deepEqual(result.purge_list, ['reports/rig', '.rig/run-history']);
+    assert.deepEqual(observed, [{ paths: ['reports/rig', 'journal-owned runtime evidence'], policy: true }]);
+    assert.deepEqual(result.purge_list, ['reports/rig', 'journal-owned runtime evidence']);
     assert.equal(fs.readFileSync(path.join(target, '.rig/network-policy.json'), 'utf8'), '{"user":true}\n');
+    // AT-UNINSTALL-3: an explicit purge drops the whole report scope.
+    assert.equal(fs.existsSync(path.join(target, 'reports/rig')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/run-history/a')), true);
   });
 });
 
@@ -773,9 +775,10 @@ test('a bare repository receives the neutral skills, catalogue, and safety runti
     const result = runPayload(target, undefined, { activeDelivery: true });
 
     assert.deepEqual(result.hosts, []);
-    for (const skill of listVendoredSkills()) {
-      assert.ok(fs.existsSync(path.join(target, '.rig/skills', skill.name, 'SKILL.md')), skill.name);
+    for (const skill of ['onboarding']) {
+      assert.ok(fs.existsSync(path.join(target, '.rig/skills', skill, 'SKILL.md')), skill);
     }
+    assert.equal(fs.existsSync(path.join(target, '.rig/skills/setup-browser-cookies')), false);
     for (const rel of [
       '.rig/bin/rig',
       '.rig/runtime/rig/materialize.js',
@@ -1164,12 +1167,12 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
     assert.match(source, /^#!\/bin\/sh\n/);
     assert.doesNotMatch(source, /pipefail|\$\{[^}]+:[0-9]+(?::[0-9]+)?\}|^\s*\[\[/m);
 
-    const staging = path.join(target, 'staging', 'Rig-v5.0.0');
+    const staging = path.join(target, 'staging', 'Rig-v6.0.0');
     fs.mkdirSync(staging, { recursive: true });
     for (const rel of ['rig', '.agents', '.claude', 'skills']) {
-      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true });
+      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true, filter: (src) => !src.split(path.sep).includes('node_modules') });
     }
-    const archive = path.join(target, 'rig-v5.0.0.tar.gz');
+    const archive = path.join(target, 'rig-v6.0.0.tar.gz');
     const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(staging), path.basename(staging)], { encoding: 'utf8' });
     assert.equal(packed.status, 0, packed.stderr);
 
@@ -1189,8 +1192,12 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
       '',
     ].join('\n'), { mode: 0o755 });
 
+    // Network downloads belong to clean-install E2E; this unit isolates tag
+    // resolution/extraction and supplies an empty dependency staging tree.
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
+
     const installed = spawnSync('/bin/dash', [
-      path.join(root, 'install.sh'), '--version', 'v5.0.0', '--target', installTarget,
+      path.join(root, 'install.sh'), '--version', 'v6.0.0', '--target', installTarget,
     ], {
       encoding: 'utf8',
       env: {
@@ -1201,10 +1208,13 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
       },
     });
     assert.equal(installed.status, 0, installed.stderr);
-    assert.match(fs.readFileSync(downloadLog, 'utf8'), /refs\/tags\/v5\.0\.0\.tar\.gz/);
-    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v5.0.0', hosts: [] });
-    assert.equal(fs.readdirSync(path.join(installTarget, '.rig/skills'), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md'))).length, 56);
+    assert.match(fs.readFileSync(downloadLog, 'utf8'), /refs\/tags\/v6\.0\.0\.tar\.gz/);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v6.0.0', hosts: [] });
+    const neutralSkills = fs.readdirSync(path.join(installTarget, '.rig/skills'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md')))
+      .map((entry) => entry.name);
+    assert.deepEqual(neutralSkills, ['onboarding']);
+    assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/catalog/services')));
     assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/lib/policy.js')));
     const inspection = path.join(installTarget, 'inspection.json');
     const runtime = spawnSync(path.join(installTarget, '.rig/bin/rig'), [

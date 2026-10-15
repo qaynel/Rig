@@ -1,0 +1,7 @@
+{
+  "target_origin": "",
+  "authorized_scope": [
+    "/api"
+  ],
+  "scan_unapproved_targets": false
+}

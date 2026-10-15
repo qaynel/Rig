@@ -9,7 +9,11 @@
     "url": "https://codeload.github.com/garrytan/gstack/tar.gz/7c9df1c568a9ea745508f679a329332b2c338063",
     "sha256": "5dab9119ac9a5909b4faf173d4bc8817052f1726e79ae85d4259bf70219a3120",
     "tar_sha256": "5aecc2b030d3ae0d878f420335ffa7f14f66d9769349eb82c9f699812fb4aa55",
-    "digest_note": "tar_sha256 is the digest of the gunzipped tar stream and is authoritative; a re-compressed archive with the same tar stream still verifies. Digests were taken from two independent downloads on 2026-10-13."
+    "digest_note": "tar_sha256 is the digest of the gunzipped tar stream and is authoritative; a re-compressed archive with the same tar stream still verifies. Digests were taken from two independent downloads on 2026-10-13.",
+    "ignored_links": {
+      "bin/gstack-brain-reader": "gstack-brain-consumer",
+      "connect-chrome": "open-gstack-browser"
+    }
   },
   "licence": {
     "spdx": "MIT",

@@ -1,0 +1,7 @@
+{
+  "candidate_resources": [
+    "worker pool"
+  ],
+  "minimum_headroom_percent": 20,
+  "resize_without_workload_evidence": false
+}

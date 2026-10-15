@@ -212,10 +212,15 @@ test('the patch applier is exact: moved hunks apply, changed content and missing
 });
 
 test('the unfetched tree stays untouched: staging is removed and no file is written under the shelf', async () => {
-  const before = fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith('rig-upstream-gstack-'));
+  // A private staging root. os.tmpdir() is shared with every other test file
+  // node --test runs in parallel, so a snapshot of it reports their staging
+  // directories as this fetch's leak.
+  const stagingRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-staging-probe-'));
   await withMeta(fixtureBytes, null, async (dir) => {
-    await fetchUpstream('gstack', { metaDir: dir, licencePath: LICENCE, fetcher: serve(fixtureBytes) });
+    await fetchUpstream('gstack', {
+      metaDir: dir, licencePath: LICENCE, fetcher: serve(fixtureBytes), stagingRoot,
+    });
   });
-  const after = fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith('rig-upstream-gstack-'));
-  assert.deepEqual(after, before);
+  assert.deepEqual(fs.readdirSync(stagingRoot), []);
+  fs.rmSync(stagingRoot, { recursive: true, force: true });
 });

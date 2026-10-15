@@ -147,21 +147,6 @@ function projectSkillFiles({ files, dir, declaredName, prefix = '' }) {
   });
 }
 
-function vendoredSkillEntries(corpus, { destination, rewrite_name_prefix: prefix = '' }, active) {
-  const entries = [];
-  for (const skill of corpus.shelf) {
-    const effectivePrefix = (prefix && skill.name === prefix.replace(/-$/, '')) ? '' : prefix;
-    const finalName = `${effectivePrefix}${skill.name}`;
-    const dir = destination.replace('{name}', finalName);
-    const files = treeFiles(corpus, skill.dir, { markdownOnly: !active }).map((key) => {
-      const { bytes, mode } = read(corpus, key);
-      return { rel: key.slice(skill.dir.length + 1), bytes, mode };
-    });
-    entries.push(...projectSkillFiles({ files, dir, declaredName: skill.name, prefix: effectivePrefix }));
-  }
-  return entries;
-}
-
 // ---------------------------------------------------------------------------
 // Helpers handed to host projectors
 // ---------------------------------------------------------------------------
@@ -193,13 +178,6 @@ function projectionHelpers(corpus, flags) {
     ensureLine(to) {
       return { op: 'ensure_line', path: to, line: pointer, bytes: Buffer.from(`${pointer}\n`) };
     },
-    vendored(destination, prefix) {
-      if (flags.active) return []; // default_delivery gate: adaptive installs stage the shelf instead
-      return vendoredSkillEntries(corpus, { destination, rewrite_name_prefix: prefix }, false);
-    },
-    licenseFiles(dir) {
-      return ['LICENSE.upstream', 'UPSTREAM.md'].map((name) => copyEntry(corpus, `rig/catalog/skills/${name}`, `${dir}/${name}`));
-    },
   };
 }
 
@@ -212,11 +190,16 @@ function neutralEntries(corpus, flags) {
   for (const row of corpus.manifest.payload) {
     if (!hostMatches(row.host, NEUTRAL)) continue;
     if (!gateOpen(row.gate, flags)) continue;
-    if (row.op === 'copy') entries.push(copyEntry(corpus, row.from, row.to));
+    if (row.op === 'copy') {
+      const entry = copyEntry(corpus, row.from, row.to);
+      if (row.rewrite_skill_name) {
+        entry.bytes = Buffer.from(rewriteSkillName(entry.bytes.toString('utf8'), '', row.rewrite_skill_name));
+      }
+      entries.push(entry);
+    }
     else if (row.op === 'seed_user_file') entries.push({ ...copyEntry(corpus, row.from, row.to), op: 'seed_user_file' });
     else if (row.op === 'copy_tree') entries.push(...copyTreeEntries(corpus, row.from, row.to));
     else if (row.op === 'install_pinned_catalog') entries.push({ ...copyEntry(corpus, row.from, row.to), mode: 0o644, op: 'pinned_catalog' });
-    else if (row.op === 'install_vendored_skills') entries.push(...vendoredSkillEntries(corpus, row, flags.active));
     else if (row.op === 'ensure_line') {
       entries.push({ op: 'ensure_line', path: row.to, line: row.line, bytes: Buffer.from(`${row.line}\n`) });
     } else if (row.op === 'ensure_gitignore_block') {

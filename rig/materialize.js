@@ -18,6 +18,7 @@ function parseArgs(argv) {
     if (argv[i] === '--target') args.target = argv[++i];
     else if (argv[i] === '--manifest') args.manifest = argv[++i];
     else if (argv[i] === '--uninstall') args.uninstall = true;
+    else if (argv[i] === '--purge') args.purge = true;
     else throw new Error(`rig: unknown argument "${argv[i]}"`);
   }
   return args;
@@ -25,6 +26,22 @@ function parseArgs(argv) {
 
 function main() {
   const argv = process.argv.slice(2);
+  if (argv[0] === '--help' || argv[0] === 'help') {
+    console.log(`Rig commands: ${[...ADVANCED, 'lint-setup'].join(', ')}
+Legacy install: --target <repo> --manifest <config.json>; removal: --target <repo> --uninstall [--purge]
+Command flags: --target --input --out --hosts --host --manifest --review --plan --approval --menu --service --inspection --dry-run --purge --policy --proposal --replacement --identity --challenge --action
+Lint setup: lint-setup --input <request.json>; request action=propose or apply, target, proposal and separate approval.`);
+    return;
+  }
+  if (argv[0] === 'lint-setup') {
+    if (argv.length !== 3 || argv[1] !== '--input') throw new Error('rig: lint-setup requires --input <request.json>');
+    const request = JSON.parse(fs.readFileSync(argv[2], 'utf8'));
+    const { proposeSetup, applySetup } = require('./lib/lint-format');
+    if (request.action !== 'propose' && request.action !== 'apply') throw new Error('rig: lint-setup action must be propose or apply');
+    const result = request.action === 'propose' ? proposeSetup(request) : applySetup(request.target, request.proposal, request.approval);
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
   if (argv.length && ADVANCED.has(argv[0])) {
     runAdvanced(argv[0], argv.slice(1));
     return;
@@ -34,7 +51,7 @@ function main() {
     throw new Error('rig: --target <dir> is required and must exist');
   }
   if (args.uninstall) {
-    const result = uninstall(args.target) || { best_effort: [] };
+    const result = uninstall(args.target, { purge: args.purge === true }) || { best_effort: [] };
     if ((result.best_effort || []).length) {
       const retained = (result.best_effort_details || []).length
         ? result.best_effort_details

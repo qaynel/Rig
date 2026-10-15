@@ -5,6 +5,10 @@
 </figcaption>
 </figure>
 
+> **Traducción pendiente:** esta edición describe una versión anterior y no está
+> actualizada para Rig 6.0.0. Consulta el [README vigente en inglés](README.md)
+> para la instalación y el comportamiento actuales.
+
 ---
 Rig es una caja de herramientas curada e independiente del host para agentes de
 programación. Ofrece dos superficies de entrega:
@@ -40,7 +44,7 @@ de ejecutarla, y siempre invoca el bootstrap con `--with-runtime`, de modo que
 el catálogo activo y el runtime de seguridad quedan incluidos:
 
 ```sh
-sh install.sh --version v5.0.0 --target /path/to/repository
+sh install.sh --version v6.0.0 --target /path/to/repository
 ```
 
 El bootstrap detecta los hosts existentes de forma mecánica:

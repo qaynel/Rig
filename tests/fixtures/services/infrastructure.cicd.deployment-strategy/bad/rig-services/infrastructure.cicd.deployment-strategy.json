@@ -1,0 +1,5 @@
+{
+  "strategy": "",
+  "rollback_trigger": "error rate above budget",
+  "automatic_full_rollout_without_checks": false
+}

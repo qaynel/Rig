@@ -1,0 +1,9 @@
+{
+  "remediation_cases": [
+    "reject exact upper limit"
+  ],
+  "target_behaviors": [
+    "limit enforcement"
+  ],
+  "add_implementation_mirrors": false
+}

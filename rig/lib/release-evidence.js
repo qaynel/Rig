@@ -22,7 +22,12 @@ function implementationDigest(root) {
   const hash = crypto.createHash('sha256');
   for (const rel of files) {
     const absolute = path.join(root, rel);
-    const stat = fs.lstatSync(absolute);
+    let stat;
+    try { stat = fs.lstatSync(absolute); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      throw new Error(`implementation digest inventory failed: ${rel} is tracked but missing; stage its deletion first`);
+    }
     const kind = stat.isSymbolicLink() ? 'symlink' : 'file';
     const body = stat.isSymbolicLink() ? Buffer.from(fs.readlinkSync(absolute)) : fs.readFileSync(absolute);
     hash.update(`${kind}\0${(stat.mode & 0o777).toString(8)}\0${rel}\0${body.length}\0`).update(body);

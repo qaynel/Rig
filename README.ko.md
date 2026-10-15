@@ -5,6 +5,10 @@
 </figcaption>
 </figure>
 
+> **번역 업데이트 예정:** 이 문서는 이전 버전을 설명하며 Rig 6.0.0에 맞게
+> 업데이트되지 않았습니다. 현재 설치 및 동작은 [최신 영어 README](README.md)를
+> 확인하세요.
+
 ---
 Rig은 코딩 에이전트를 위한 엄선된 호스트 독립형 도구 상자다. 두 가지 전달
 표면을 제공한다.
@@ -38,7 +42,7 @@ sh rig/bootstrap.sh --target /path/to/repository --with-runtime
 카탈로그와 안전 runtime이 함께 설치된다:
 
 ```sh
-sh install.sh --version v5.0.0 --target /path/to/repository
+sh install.sh --version v6.0.0 --target /path/to/repository
 ```
 
 부트스트랩은 기존 호스트를 기계적으로 감지한다:

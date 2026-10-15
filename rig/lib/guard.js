@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const FLOOR_PATTERN = [
-  'sk-[A-Za-z0-9_-]{16,}',
+  '\\bsk-[A-Za-z0-9_-]{16,}',
   'ghp_[A-Za-z0-9]{20,}',
   'gho_[A-Za-z0-9]{20,}',
   'AKIA[0-9A-Z]{16}',

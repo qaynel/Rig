@@ -1,0 +1,10 @@
+{
+  "migration_order": [
+    "001_create_items",
+    "002_add_owner"
+  ],
+  "rollback_steps": [
+    "drop owner column"
+  ],
+  "destructive_change_approved": false
+}

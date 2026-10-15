@@ -69,13 +69,7 @@ test('the staged sequence produces review selection plan and a green check', () 
   run(['select', '--menu', menu, '--service', 'development.code-quality.lint-format=minimal', '--out', selection]);
   run(['plan', '--target', target, '--manifest', selection, '--review', review, '--out', plan]);
   const planned = JSON.parse(fs.readFileSync(plan, 'utf8'));
-  const approval = path.join(target, 'approval.json');
-  fs.writeFileSync(approval, JSON.stringify({
-    schema_version: 1,
-    kind: 'plan-approval',
-    plan_digest: planned.plan_digest,
-    approval: { method: 'external-sshsig', verified: true },
-  }) + '\n');
+  const approval = writePlanApproval(target, plan);
   run(['apply', '--target', target, '--manifest', selection, '--review', review, '--plan', plan, '--approval', approval]);
   const check = runRig(rig, ['check', '--target', target, '--service', 'development.code-quality.lint-format']);
   assert.equal(check.status, 0, check.stderr || check.stdout);

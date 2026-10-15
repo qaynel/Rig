@@ -211,12 +211,42 @@ function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
   return { ...runArgv(command, argv, cwd, limits), network_state: network };
 }
 
+function classifyRunnerFailure(result, checkId, command) {
+  // rig: status -2 is the current spawnGuardedSync ENOENT result when the memory wrapper cannot report metadata; prefer a portable error code if that wrapper exposes one later.
+  if (result.kind === 'command_not_found' || result.error?.code === 'ENOENT' || result.status === -2) {
+    return {
+      ...result,
+      status: 1,
+      kind: 'missing_tool',
+      reason: `${checkId}: required tool "${command}" is unavailable`,
+      setup_guidance: `Install ${command} or configure an approved repository-owned adapter that provides this check.`,
+    };
+  }
+  if (result.kind) {
+    return {
+      ...result,
+      setup_guidance: result.setup_guidance || `Review ${checkId}'s execution capability and configure the required host support or repository-owned adapter.`,
+    };
+  }
+  if (result.error || result.status !== 0) {
+    return {
+      ...result,
+      kind: 'runner_error',
+      reason: `${checkId}: command "${command}" exited with status ${result.status}${result.error?.message ? ` (${result.error.message})` : ''}`,
+      setup_guidance: `Inspect ${checkId}'s command and output; correct or replace the repository-owned binding, then rerun it.`,
+    };
+  }
+  return result;
+}
+
 // Runs one service's binding (either a bare argv, or a `checks` map of named
 // sub-checks) against `target`, returning a normalized result:
 //   { status: 0 }                                    on success
 //   { status: 1, kind: 'coverage_gap', reason }       on a binding/config gap
 //   { status, error?, stdout?, stderr?, checkId? }    on a command failure
 function runBinding(serviceId, binding, scope, target) {
+  let executedCount = 0;
+  const executedChecks = [];
   const checks = binding.checks && Object.entries(binding.checks);
   if (!checks) {
     const argv = binding[scope] || binding.repo;
@@ -230,6 +260,13 @@ function runBinding(serviceId, binding, scope, target) {
   for (const [checkId, check] of checks) {
     if (!check || typeof check !== 'object') {
       return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` };
+    }
+    if (check.native_service) {
+      const result = require('./service-catalogue').runNativeService(check.native_service, target);
+      executedCount += result.executed_count || 0;
+      if (result.executed_count) executedChecks.push(checkId);
+      if (result.status !== 0) return { ...result, checkId, executed_count: executedCount, executed_checks: executedChecks };
+      continue;
     }
     if (check.coverage_gap) {
       return { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${check.coverage_gap}` };
@@ -266,7 +303,9 @@ function runBinding(serviceId, binding, scope, target) {
         }
         const [command, ...rest] = commandBinding.argv;
         const result = runConfiguredArgv(serviceId, target, command, rest, cwd, binding, check, commandBinding);
-        if (result.error || result.status !== 0) return { ...result, checkId };
+        if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
+        const classified = classifyRunnerFailure(result, checkId, command);
+        if (classified.error || classified.status !== 0) return { ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks };
       }
       continue;
     }
@@ -276,10 +315,18 @@ function runBinding(serviceId, binding, scope, target) {
       return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` };
     }
     const [command, ...rest] = argv;
+    const readOnly = check.read_only ? require('./lint-format') : null;
+    const before = readOnly?.snapshotDir(target);
     const result = runConfiguredArgv(serviceId, target, command, rest, target, binding, check);
-    if (result.error || result.status !== 0) return { ...result, checkId };
+    if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
+    if (readOnly) {
+      const changed = readOnly.diffSnapshots(before, readOnly.snapshotDir(target));
+      if (changed.length) return { status: 1, kind: 'mutated', reason: 'read-only service command changed repository files', changed_paths: changed, checkId, executed_count: executedCount, executed_checks: executedChecks };
+    }
+    const classified = classifyRunnerFailure(result, checkId, command);
+    if (classified.error || classified.status !== 0) return { ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks };
   }
-  return { status: 0, stdout: '', stderr: '' };
+  return { status: 0, stdout: '', stderr: '', executed_count: executedCount, executed_checks: executedChecks };
 }
 
 module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic };

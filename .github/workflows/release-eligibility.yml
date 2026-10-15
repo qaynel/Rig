@@ -1,0 +1,61 @@
+name: exact-qa-release-eligibility
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Exact QA commit to prove (must equal current qa-prod head)'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.verify.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa-prod
+          persist-credentials: false
+      - id: verify
+        env:
+          REQUESTED_SHA: ${{ inputs.sha }}
+        run: |
+          test "$REQUESTED_SHA" = "$(git rev-parse HEAD)"
+          echo "sha=$REQUESTED_SHA" >> "$GITHUB_OUTPUT"
+  health:
+    needs: resolve
+    uses: ./.github/workflows/health.yml
+    permissions:
+      contents: read
+      issues: write
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
+  eligibility:
+    needs: [resolve, health]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa-prod
+          persist-credentials: false
+      - name: Reject stale QA evidence
+        env:
+          PROVED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          test "$PROVED_SHA" = "$(git rev-parse HEAD)"
+      - name: Require a changelog entry for the release version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          grep -Eq "^## \\[${version}\\]([[:space:]]|$)" CHANGELOG.md
+      - name: Record exact-SHA health and clean-install evidence
+        env:
+          PROVED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          printf '{"schema_version":1,"sha":"%s","status":"pass","run_id":"%s","health_and_clean_install":"pass"}\n' "$PROVED_SHA" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/release-eligibility.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-eligibility-${{ needs.resolve.outputs.sha }}
+          path: ${{ runner.temp }}/release-eligibility.json
+          if-no-files-found: error

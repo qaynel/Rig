@@ -5,7 +5,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { root, readJson } = require('./helpers/advanced');
-const { validateCatalog, authoredBodiesReport } = require('../rig/lib/catalog');
+const { validateCatalog, validateRigJson, loadCatalog, effectiveChecks, authoredBodiesReport } = require('../rig/lib/catalog');
+const { bindServices, definition } = require('../rig/lib/service-catalogue');
+const { resolve } = require('../rig/lib/resolve');
 
 const expectedPath = path.join(
   __dirname,
@@ -73,6 +75,44 @@ test('strict grade growth: maximal ⊃ mid ⊃ minimal check IDs', () => {
       `${service.id} maximal must strictly grow beyond minimal`,
     );
   }
+});
+
+test('selected grades enforce cumulative check ceilings and preserve the service ceiling', () => {
+  const catalog = loadCatalog();
+  const service = catalog.services.find(row => row.id === 'infrastructure.container.k8s-helm');
+  const declaredCeiling = definition(service).value.ceiling;
+  for (const grade of ['minimal', 'mid', 'maximal']) {
+    const binding = bindServices(root, { [service.id]: grade })[service.id];
+    assert.equal(binding.grade, grade);
+    assert.deepEqual(Object.keys(binding.checks), effectiveChecks(service, grade));
+    assert.equal(binding.ceiling, declaredCeiling);
+  }
+});
+
+test('retired old service IDs are rejected', () => {
+  assert.throws(() => validateRigJson({
+    schema_version: 1,
+    services: { 'testing.unit.test-case-generation-legacy': 'minimal' },
+  }), /unknown service/);
+});
+
+test('mixed current and retired service IDs reject the whole selection', () => {
+  assert.throws(() => validateRigJson({
+    schema_version: 1,
+    services: {
+      'testing.unit.test-case-generation': 'minimal',
+      'testing.unit.test-case-generation-legacy': 'minimal',
+    },
+  }), /unknown service/);
+});
+
+test('dependency-only selections retain null grade and only the named slice', () => {
+  const selected = { 'testing.mutation.mutant-generator': 'minimal' };
+  const result = resolve(loadCatalog(), selected);
+  const dependencies = result.filter(entry => entry.reason === 'dependency');
+  assert.ok(dependencies.length > 0);
+  assert.ok(dependencies.every(entry => entry.grade === null && entry.slices.length > 0));
+  assert.equal(result.find(entry => entry.id === 'testing.mutation.mutant-generator').grade, 'minimal');
 });
 
 test('catalog validator rejects missing strict grade growth', () => {

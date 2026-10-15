@@ -1,0 +1,7 @@
+{
+  "migration_order": [],
+  "rollback_steps": [
+    "drop owner column"
+  ],
+  "destructive_change_approved": false
+}

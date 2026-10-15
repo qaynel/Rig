@@ -1,0 +1,7 @@
+{
+  "review_scope": [
+    "src"
+  ],
+  "required_reviewers": 1,
+  "unresolved_findings_allowed": false
+}

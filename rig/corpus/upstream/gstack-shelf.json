@@ -1,0 +1,2673 @@
+{
+  "schema_version": 1,
+  "id": "gstack-shelf",
+  "description": "All55 optional skill resources and shared plumbing fetched during onboarding from pinned upstream, verified before selection projects them.",
+  "repository": "https://github.com/garrytan/gstack",
+  "version": "1.60.1.0",
+  "revision": "7c9df1c568a9ea745508f679a329332b2c338063",
+  "archive": {
+    "url": "https://codeload.github.com/garrytan/gstack/tar.gz/7c9df1c568a9ea745508f679a329332b2c338063",
+    "sha256": "5dab9119ac9a5909b4faf173d4bc8817052f1726e79ae85d4259bf70219a3120",
+    "tar_sha256": "5aecc2b030d3ae0d878f420335ffa7f14f66d9769349eb82c9f699812fb4aa55",
+    "digest_note": "tar_sha256 is the digest of the gunzipped tar stream and is authoritative; a re-compressed archive with the same tar stream still verifies. Digests were taken from two independent downloads on 2026-10-13.",
+    "ignored_links": {
+      "bin/gstack-brain-reader": "gstack-brain-consumer",
+      "connect-chrome": "open-gstack-browser"
+    }
+  },
+  "licence": {
+    "spdx": "MIT",
+    "notice": "rig/catalog/skills/LICENSE.upstream",
+    "retention": "The notice installs beside every projected copy of an upstream skill and is never removed by a patch.",
+    "sha256": "e56fbb5b3d95756f3fa1cfefa24732ec79f18ece1ad08a4e79e00df57e8b198c"
+  },
+  "provenance": {
+    "import_commit": "ff7cea5d4d678bbd447dcdaee3cd14ea2ecfeeed",
+    "modifications": "Rig renamed the product namespace (gstack to rig, gbrain to brain), omitted dependencies, fixtures, generated bundles, source maps and release history, and neutralised illustrative credential-shaped strings. The result is a modified, partial distribution, not an upstream release.",
+    "statement": "rig/catalog/skills/UPSTREAM.md"
+  },
+  "rename": [
+    [
+      "GSTACK",
+      "RIG"
+    ],
+    [
+      "gstack",
+      "rig"
+    ],
+    [
+      "GStack",
+      "Rig"
+    ],
+    [
+      "Gstack",
+      "Rig"
+    ],
+    [
+      "GBRAIN",
+      "BRAIN"
+    ],
+    [
+      "gbrain",
+      "brain"
+    ],
+    [
+      "GBrain",
+      "Brain"
+    ]
+  ],
+  "rename_note": "The namespace rename Rig applied on import (UPSTREAM.md); files with rename:true are renamed before their base digest is checked.",
+  "files": [
+    {
+      "upstream": "setup-browser-cookies/SKILL.md",
+      "output": "browser-and-research/authenticated-session/setup-browser-cookies/SKILL.md",
+      "base_sha256": "138dc5b322c0e0586eeca800a467b6c80e3a88535dbbc4bd80c9561309388b5e",
+      "final_sha256": "c80a4906125666fe0ac634901a6555ca61e04deb9cba97b54f344208790ad738",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/PLAN-snapshot-dropdown-interactive.md",
+      "output": "browser-and-research/browser-automation/browse/PLAN-snapshot-dropdown-interactive.md",
+      "base_sha256": "e84d9a23dead141c63c18cf99801afa74190d9830496162cf78de6018ce675bb",
+      "final_sha256": "e84d9a23dead141c63c18cf99801afa74190d9830496162cf78de6018ce675bb",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/SKILL.md",
+      "output": "browser-and-research/browser-automation/browse/SKILL.md",
+      "base_sha256": "4a84413eef0e7e5d356635984ebf7095e89de02320d92fa300a72ff0cd4a2284",
+      "final_sha256": "991cefc503e341b1293064f09f51f8dbfbec896045b3d33d8c85ad5c2b437800",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/bin/find-browse",
+      "output": "browser-and-research/browser-automation/browse/bin/find-browse",
+      "base_sha256": "dfb65bd92f3e76f9aa122d9e63b2d826d1728ab8891808cc5e3dba1191dc0af9",
+      "final_sha256": "dfb65bd92f3e76f9aa122d9e63b2d826d1728ab8891808cc5e3dba1191dc0af9",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "browse/bin/remote-slug",
+      "output": "browser-and-research/browser-automation/browse/bin/remote-slug",
+      "base_sha256": "84260eaadc3baf994c7d9377525672c78e2332fdbe82d8b37047b53e7180c3d8",
+      "final_sha256": "84260eaadc3baf994c7d9377525672c78e2332fdbe82d8b37047b53e7180c3d8",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "browse/scripts/build-node-server.sh",
+      "output": "browser-and-research/browser-automation/browse/scripts/build-node-server.sh",
+      "base_sha256": "59aa452542a771043a10b4b8fb1e06995f94b7164c47bbc67dfc9d0ab607c9d9",
+      "final_sha256": "59aa452542a771043a10b4b8fb1e06995f94b7164c47bbc67dfc9d0ab607c9d9",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "browse/src/activity.ts",
+      "output": "browser-and-research/browser-automation/browse/src/activity.ts",
+      "base_sha256": "29aae8ce5a82fe60dc40d78f9f9bb180836f88673a4a05f51d11fe552cb67bd7",
+      "final_sha256": "29aae8ce5a82fe60dc40d78f9f9bb180836f88673a4a05f51d11fe552cb67bd7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/audit.ts",
+      "output": "browser-and-research/browser-automation/browse/src/audit.ts",
+      "base_sha256": "9a3e3cfe8f727fd1507b6b9d227b4ab3829814c0ea01df205298568205884b3f",
+      "final_sha256": "9a3e3cfe8f727fd1507b6b9d227b4ab3829814c0ea01df205298568205884b3f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/browse-client.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browse-client.ts",
+      "base_sha256": "b8f26651af0ab4e502ea481f65a0e8bc3a2a54d521e01f05460062d877ec1a5f",
+      "final_sha256": "b8f26651af0ab4e502ea481f65a0e8bc3a2a54d521e01f05460062d877ec1a5f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/browser-manager.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browser-manager.ts",
+      "base_sha256": "d7ba622a704fc321dfd1aabfe7c819e602d78055db35bd17be9675d327431f8e",
+      "final_sha256": "d7ba622a704fc321dfd1aabfe7c819e602d78055db35bd17be9675d327431f8e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/browser-skill-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browser-skill-commands.ts",
+      "base_sha256": "03e3691118845c540825aa36105c41334e0a5caffd5e2ca32aa2f6a5acb3180b",
+      "final_sha256": "5eb481bac9a5edcc5233eb79311365390e215828b2de5964fe569b688609fb16",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/browser-skill-write.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browser-skill-write.ts",
+      "base_sha256": "5a2bb579ca6b92eb6e42b1b1be35806cf500fea44bd64e60a3daf7616e1bb397",
+      "final_sha256": "5a2bb579ca6b92eb6e42b1b1be35806cf500fea44bd64e60a3daf7616e1bb397",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/browser-skills.ts",
+      "output": "browser-and-research/browser-automation/browse/src/browser-skills.ts",
+      "base_sha256": "c44cf42e77c404d6104981242c011380cca982fcdd8e6e0262cabbb071c9bb67",
+      "final_sha256": "c44cf42e77c404d6104981242c011380cca982fcdd8e6e0262cabbb071c9bb67",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/buffers.ts",
+      "output": "browser-and-research/browser-automation/browse/src/buffers.ts",
+      "base_sha256": "4bb058655cfe4c9ce7c228356ddfcd85b7a85dad18e22d3100b241424ddac101",
+      "final_sha256": "4bb058655cfe4c9ce7c228356ddfcd85b7a85dad18e22d3100b241424ddac101",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/bun-polyfill.cjs",
+      "output": "browser-and-research/browser-automation/browse/src/bun-polyfill.cjs",
+      "base_sha256": "7d0d31689a6215b2bd71871e144ae95f8acb266e9e97cb9d831d965c465df5ba",
+      "final_sha256": "7d0d31689a6215b2bd71871e144ae95f8acb266e9e97cb9d831d965c465df5ba",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cdp-allowlist.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cdp-allowlist.ts",
+      "base_sha256": "b9bc0b2b3a6d3cfde7562d7117e0c4faa18335eb3508ae8fec1a4b55cc8a6133",
+      "final_sha256": "b9bc0b2b3a6d3cfde7562d7117e0c4faa18335eb3508ae8fec1a4b55cc8a6133",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cdp-bridge.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cdp-bridge.ts",
+      "base_sha256": "9fc3b87492790b94d6ee496d7a6deec4dbb38fbf8903f2d4ab76f9132feda877",
+      "final_sha256": "9fc3b87492790b94d6ee496d7a6deec4dbb38fbf8903f2d4ab76f9132feda877",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cdp-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cdp-commands.ts",
+      "base_sha256": "5eeb5b773f7dd8ac9afe945547adb9b34d6c003bb175a8d020516f1dca1dd4b4",
+      "final_sha256": "5eeb5b773f7dd8ac9afe945547adb9b34d6c003bb175a8d020516f1dca1dd4b4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cdp-inspector.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cdp-inspector.ts",
+      "base_sha256": "9b2a26864f7687335bd42e89cb476d5cc0d39a39a913c44822600c16b04f6f32",
+      "final_sha256": "9b2a26864f7687335bd42e89cb476d5cc0d39a39a913c44822600c16b04f6f32",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/claude-bin.ts",
+      "output": "browser-and-research/browser-automation/browse/src/claude-bin.ts",
+      "base_sha256": "bfe2ceca39fedd6a4460b55844ce7accd4c7d4dd985ef075f26fd917e2e23919",
+      "final_sha256": "bfe2ceca39fedd6a4460b55844ce7accd4c7d4dd985ef075f26fd917e2e23919",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cli.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cli.ts",
+      "base_sha256": "e1e43a849fc67d71ff028936913c5538f15afbd09658ab88faf9ee427bd82656",
+      "final_sha256": "f3a75bba9dc92d53f6199f02639cfa2bbc3d1769fc986dafcab5314a0ad75dc0",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/commands.ts",
+      "base_sha256": "36b66db9332515474e34a0e13ca3e108e08dc65e8e6b7e216a92f954278bf6a4",
+      "final_sha256": "36b66db9332515474e34a0e13ca3e108e08dc65e8e6b7e216a92f954278bf6a4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/config.ts",
+      "output": "browser-and-research/browser-automation/browse/src/config.ts",
+      "base_sha256": "bf35503ba538bc7a170329a8c3856b952796f360835aebb47f63cb2ce0fc37fb",
+      "final_sha256": "33e8d39edd40cfe05535c3839f9aa34938638480bc9c8b296d8898373b00b502",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/content-security.ts",
+      "output": "browser-and-research/browser-automation/browse/src/content-security.ts",
+      "base_sha256": "f6fb64bcd17956c2ad113cdfd2c1f7354ac93fb4a07105a70e05f2d43411793b",
+      "final_sha256": "8101786d6793c80c216c5c67978de3f1cfc22ddf69985387d60d6c013ff51818",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cookie-import-browser.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cookie-import-browser.ts",
+      "base_sha256": "f05d8f05eeb8dc1715c6a17bd5c0beaa43465478b54a6e9dd09304b2b13fe0b1",
+      "final_sha256": "ff16b846cc0fa305dae37bbe64c796726c6aad2d1758912277eec99c53e9b322",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cookie-picker-routes.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cookie-picker-routes.ts",
+      "base_sha256": "955bb84aedf88fa6c4c7141a52da2a2c4cfbeebfbdd8f1c6023a547c257323f6",
+      "final_sha256": "955bb84aedf88fa6c4c7141a52da2a2c4cfbeebfbdd8f1c6023a547c257323f6",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/cookie-picker-ui.ts",
+      "output": "browser-and-research/browser-automation/browse/src/cookie-picker-ui.ts",
+      "base_sha256": "5a2e97117f06b737e81bda13be0fb5ff571787ed8a778300ef904a49c2b3236d",
+      "final_sha256": "5a2e97117f06b737e81bda13be0fb5ff571787ed8a778300ef904a49c2b3236d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/domain-skill-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/domain-skill-commands.ts",
+      "base_sha256": "7468f0dc0b3c3c95298cd298cb738b5d2046d139531f5b429fa16aaa69a46d81",
+      "final_sha256": "7468f0dc0b3c3c95298cd298cb738b5d2046d139531f5b429fa16aaa69a46d81",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/domain-skills.ts",
+      "output": "browser-and-research/browser-automation/browse/src/domain-skills.ts",
+      "base_sha256": "87094ee9504d8d111e263a512f46ae0fb9182354808e6bb1b84e9fb3dc79c428",
+      "final_sha256": "87094ee9504d8d111e263a512f46ae0fb9182354808e6bb1b84e9fb3dc79c428",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/error-handling.ts",
+      "output": "browser-and-research/browser-automation/browse/src/error-handling.ts",
+      "base_sha256": "302acbcd440faccf1847b533b857f969e9c6d09f5088a53ebad9fcabfb2d7fe8",
+      "final_sha256": "302acbcd440faccf1847b533b857f969e9c6d09f5088a53ebad9fcabfb2d7fe8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/file-permissions.ts",
+      "output": "browser-and-research/browser-automation/browse/src/file-permissions.ts",
+      "base_sha256": "81604a68a3ab83b7de129b549c005beff512e0d6a75b8bdafe3c6de4dc7917ba",
+      "final_sha256": "81604a68a3ab83b7de129b549c005beff512e0d6a75b8bdafe3c6de4dc7917ba",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/find-browse.ts",
+      "output": "browser-and-research/browser-automation/browse/src/find-browse.ts",
+      "base_sha256": "c5d0ee310cc81c705b5e84c92800ca92375c0f60ead3ac0a7a5cb0d7ab314596",
+      "final_sha256": "c5d0ee310cc81c705b5e84c92800ca92375c0f60ead3ac0a7a5cb0d7ab314596",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/find-security-sidecar.ts",
+      "output": "browser-and-research/browser-automation/browse/src/find-security-sidecar.ts",
+      "base_sha256": "5df63f5f044eb23b97886aa14cb5c5f8ce48870e3919f5532baeeb55c4ace25b",
+      "final_sha256": "5df63f5f044eb23b97886aa14cb5c5f8ce48870e3919f5532baeeb55c4ace25b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/media-extract.ts",
+      "output": "browser-and-research/browser-automation/browse/src/media-extract.ts",
+      "base_sha256": "c3fccb1c875db79cbc3fb857ab10534aaa7e99942d72a97f3fa9336a7ca13fa7",
+      "final_sha256": "c3fccb1c875db79cbc3fb857ab10534aaa7e99942d72a97f3fa9336a7ca13fa7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/memory-command.ts",
+      "output": "browser-and-research/browser-automation/browse/src/memory-command.ts",
+      "base_sha256": "31288ea76587cc0c14c3656d5131cab1c6dbf9cafad24a151860b95fc4232a0d",
+      "final_sha256": "31288ea76587cc0c14c3656d5131cab1c6dbf9cafad24a151860b95fc4232a0d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/memory-snapshot.ts",
+      "output": "browser-and-research/browser-automation/browse/src/memory-snapshot.ts",
+      "base_sha256": "877ae07e5a94dbd165cd379e1d611473ca64624a8f6cc324fb5edfa8ecfac561",
+      "final_sha256": "877ae07e5a94dbd165cd379e1d611473ca64624a8f6cc324fb5edfa8ecfac561",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/meta-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/meta-commands.ts",
+      "base_sha256": "cbbbf0e9f04fac2efd7996b34dbd6e1265bc17deedc184727ed3bbce069bb3cd",
+      "final_sha256": "cbbbf0e9f04fac2efd7996b34dbd6e1265bc17deedc184727ed3bbce069bb3cd",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/network-capture.ts",
+      "output": "browser-and-research/browser-automation/browse/src/network-capture.ts",
+      "base_sha256": "0dabb6e3093998f8fe168d09b3ecaa3d1e0faf7fb18324dc6435bceae11d31cc",
+      "final_sha256": "0dabb6e3093998f8fe168d09b3ecaa3d1e0faf7fb18324dc6435bceae11d31cc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/path-security.ts",
+      "output": "browser-and-research/browser-automation/browse/src/path-security.ts",
+      "base_sha256": "4f1e466471801719528c4a9829ddf74294252faf93e1919a7b9893de6875d640",
+      "final_sha256": "4f1e466471801719528c4a9829ddf74294252faf93e1919a7b9893de6875d640",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/platform.ts",
+      "output": "browser-and-research/browser-automation/browse/src/platform.ts",
+      "base_sha256": "bd163c28b8d93a1a704e20eeafeafc6b5e4d09177f1350231972259e4f968960",
+      "final_sha256": "bd163c28b8d93a1a704e20eeafeafc6b5e4d09177f1350231972259e4f968960",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": null,
+      "output": "browser-and-research/browser-automation/browse/src/process-tree.ts",
+      "base_sha256": null,
+      "final_sha256": "2c9ea3c753fd5e89894f53f9c406f5d58cbd2347036472eba781c30d5d7d6cbc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/project-slug.ts",
+      "output": "browser-and-research/browser-automation/browse/src/project-slug.ts",
+      "base_sha256": "bc5c1801ceebde8ca56e7563cb35fa4ca102996944e3c9ed6bf87cceb176663f",
+      "final_sha256": "2f0a65b959db9b8309873e24d21b9d117f84f3d86a8763a662a75ea6fcb8d0de",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/proxy-config.ts",
+      "output": "browser-and-research/browser-automation/browse/src/proxy-config.ts",
+      "base_sha256": "5007d30873e5761bbc3a8b7b989e487aca5738a8e80e0a1f17919d33c65a9323",
+      "final_sha256": "5007d30873e5761bbc3a8b7b989e487aca5738a8e80e0a1f17919d33c65a9323",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/proxy-redact.ts",
+      "output": "browser-and-research/browser-automation/browse/src/proxy-redact.ts",
+      "base_sha256": "01a4b81bb4da979270d28bd802119bce93c02615574cdcfcb43be29f74381516",
+      "final_sha256": "01a4b81bb4da979270d28bd802119bce93c02615574cdcfcb43be29f74381516",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/pty-session-cookie.ts",
+      "output": "browser-and-research/browser-automation/browse/src/pty-session-cookie.ts",
+      "base_sha256": "4e54e3ff356c06479e0dfff5b5e6ede5508e430599bebf23afb4ad8f562e833d",
+      "final_sha256": "4e54e3ff356c06479e0dfff5b5e6ede5508e430599bebf23afb4ad8f562e833d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/pty-session-lease.ts",
+      "output": "browser-and-research/browser-automation/browse/src/pty-session-lease.ts",
+      "base_sha256": "042a9db764bc2d838f6b0a1c7518ee81d21e59cfde5d1f7da7f74a29fa32940e",
+      "final_sha256": "042a9db764bc2d838f6b0a1c7518ee81d21e59cfde5d1f7da7f74a29fa32940e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/read-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/read-commands.ts",
+      "base_sha256": "c1d23a769eb3439e36c785a7780a5d7134f24dce34e94f399594e53d3c8625a4",
+      "final_sha256": "c1d23a769eb3439e36c785a7780a5d7134f24dce34e94f399594e53d3c8625a4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/sanitize.ts",
+      "output": "browser-and-research/browser-automation/browse/src/sanitize.ts",
+      "base_sha256": "6c99c793ba3f54b3014fb526ff49c6d92d985d10a1d60677daceef6c9e36d6e3",
+      "final_sha256": "6c99c793ba3f54b3014fb526ff49c6d92d985d10a1d60677daceef6c9e36d6e3",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/screenshot-size-guard.ts",
+      "output": "browser-and-research/browser-automation/browse/src/screenshot-size-guard.ts",
+      "base_sha256": "ed1e7d3af2ea06b7c9ca5b541dd2620b9c66c74d1cf71ab27d83e4cf2d2bcaa9",
+      "final_sha256": "ed1e7d3af2ea06b7c9ca5b541dd2620b9c66c74d1cf71ab27d83e4cf2d2bcaa9",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/security-bunnative.ts",
+      "output": "browser-and-research/browser-automation/browse/src/security-bunnative.ts",
+      "base_sha256": "c57369061efd4672c7735ed10e8a0af1a15550a38f6a4243e03d02adbd0488ca",
+      "final_sha256": "c57369061efd4672c7735ed10e8a0af1a15550a38f6a4243e03d02adbd0488ca",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/security-classifier.ts",
+      "output": "browser-and-research/browser-automation/browse/src/security-classifier.ts",
+      "base_sha256": "189d49964a2ac6bbe887e46292ee9c9d68e5af00509ba985dd97b8674b276e9c",
+      "final_sha256": "bc437ba3674a90e2f8c733f54c7d9685b0572274dd6a6d0027b916c12ee3b3af",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/security-sidecar-client.ts",
+      "output": "browser-and-research/browser-automation/browse/src/security-sidecar-client.ts",
+      "base_sha256": "f784da3b40d000b22b8ceb698b475cf0e013973893d70815ddf6142b4ba56c37",
+      "final_sha256": "4418185442d05d4aaa4438c00e5572e23c65496a542bc0a419b0c2f08396cfcf",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/security-sidecar-entry.ts",
+      "output": "browser-and-research/browser-automation/browse/src/security-sidecar-entry.ts",
+      "base_sha256": "4e5e047cbe42340a51d76730e01374ca16adef297d9ff148bd2b144b8b6fbac3",
+      "final_sha256": "4e5e047cbe42340a51d76730e01374ca16adef297d9ff148bd2b144b8b6fbac3",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/security.ts",
+      "output": "browser-and-research/browser-automation/browse/src/security.ts",
+      "base_sha256": "3cb8a02121b4a7cf28a7ea503e2a172279139cb6eac25d8bed3a66f86478a904",
+      "final_sha256": "3cb8a02121b4a7cf28a7ea503e2a172279139cb6eac25d8bed3a66f86478a904",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/server.ts",
+      "output": "browser-and-research/browser-automation/browse/src/server.ts",
+      "base_sha256": "283e91fd6545a6455c30f817429a9d4f5c329faf568dbbe3681bd664c5f69062",
+      "final_sha256": "283e91fd6545a6455c30f817429a9d4f5c329faf568dbbe3681bd664c5f69062",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/sidebar-utils.ts",
+      "output": "browser-and-research/browser-automation/browse/src/sidebar-utils.ts",
+      "base_sha256": "f779188d963d81539cfc1b32b5bfaa591369c4e0ae5210aa9a82e43f17994a85",
+      "final_sha256": "f779188d963d81539cfc1b32b5bfaa591369c4e0ae5210aa9a82e43f17994a85",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/skill-token.ts",
+      "output": "browser-and-research/browser-automation/browse/src/skill-token.ts",
+      "base_sha256": "2282ffff3e9e39eb267aba9712aa5c8c4b1fa9d896babfccc766108b32ca4073",
+      "final_sha256": "2282ffff3e9e39eb267aba9712aa5c8c4b1fa9d896babfccc766108b32ca4073",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/snapshot.ts",
+      "output": "browser-and-research/browser-automation/browse/src/snapshot.ts",
+      "base_sha256": "8a0f4c6a6172f98f4378172df4b68864ba2369055cc96c118d4267014f1d39dd",
+      "final_sha256": "8a0f4c6a6172f98f4378172df4b68864ba2369055cc96c118d4267014f1d39dd",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/socks-bridge.ts",
+      "output": "browser-and-research/browser-automation/browse/src/socks-bridge.ts",
+      "base_sha256": "7d2fe319b708687c2c5a13a002b81ad679df2008af095e699a11c36164162f6d",
+      "final_sha256": "7d2fe319b708687c2c5a13a002b81ad679df2008af095e699a11c36164162f6d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/sse-helpers.ts",
+      "output": "browser-and-research/browser-automation/browse/src/sse-helpers.ts",
+      "base_sha256": "3b53c9f9ce34e48d113cef404a827f14fec0ecca095ce7fe9d681633e3ac7b43",
+      "final_sha256": "3b53c9f9ce34e48d113cef404a827f14fec0ecca095ce7fe9d681633e3ac7b43",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/sse-session-cookie.ts",
+      "output": "browser-and-research/browser-automation/browse/src/sse-session-cookie.ts",
+      "base_sha256": "c230f55664d620d9b06c6c821f020db96861cf061bc3270d22c0b300f1997dd0",
+      "final_sha256": "c230f55664d620d9b06c6c821f020db96861cf061bc3270d22c0b300f1997dd0",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/stealth.ts",
+      "output": "browser-and-research/browser-automation/browse/src/stealth.ts",
+      "base_sha256": "da603efa16b7f74401c5810ac11c93764afa4087bfcb00c38be223d0f7fc42c2",
+      "final_sha256": "da603efa16b7f74401c5810ac11c93764afa4087bfcb00c38be223d0f7fc42c2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/tab-session.ts",
+      "output": "browser-and-research/browser-automation/browse/src/tab-session.ts",
+      "base_sha256": "1133d463a4b0c576d95d240914f5e2a69e6f74c081358beaf6fe11ac36435a9a",
+      "final_sha256": "1133d463a4b0c576d95d240914f5e2a69e6f74c081358beaf6fe11ac36435a9a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/telemetry.ts",
+      "output": "browser-and-research/browser-automation/browse/src/telemetry.ts",
+      "base_sha256": "40aa0cbdc11c74bb66492120ecfeef129a1d4b2d189983e574619b647add58f7",
+      "final_sha256": "40aa0cbdc11c74bb66492120ecfeef129a1d4b2d189983e574619b647add58f7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/terminal-agent-control.ts",
+      "output": "browser-and-research/browser-automation/browse/src/terminal-agent-control.ts",
+      "base_sha256": "f8f5488dea542398a32d1945597ff957d2fb089835a7177793cf15544662ca9c",
+      "final_sha256": "f8f5488dea542398a32d1945597ff957d2fb089835a7177793cf15544662ca9c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/terminal-agent.ts",
+      "output": "browser-and-research/browser-automation/browse/src/terminal-agent.ts",
+      "base_sha256": "ed1fa45ce56d37fd5e59b7143fa7242d94cc3bc0bc4016175745a1484f7242bf",
+      "final_sha256": "ed1fa45ce56d37fd5e59b7143fa7242d94cc3bc0bc4016175745a1484f7242bf",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/token-registry.ts",
+      "output": "browser-and-research/browser-automation/browse/src/token-registry.ts",
+      "base_sha256": "cbfad667cd214f2074e6b1f3b49ce3e3de797c758038db3e23aea9a7d72325fc",
+      "final_sha256": "cbfad667cd214f2074e6b1f3b49ce3e3de797c758038db3e23aea9a7d72325fc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/tunnel-denial-log.ts",
+      "output": "browser-and-research/browser-automation/browse/src/tunnel-denial-log.ts",
+      "base_sha256": "b3e0f3e1beeda1104a81fb595a563a95298e58c64098d116363363857c48a9b8",
+      "final_sha256": "b3e0f3e1beeda1104a81fb595a563a95298e58c64098d116363363857c48a9b8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/url-validation.ts",
+      "output": "browser-and-research/browser-automation/browse/src/url-validation.ts",
+      "base_sha256": "b14f7fed19ad14d11f814d7706125fdfb26ea0c059736028ac628778cf583ebf",
+      "final_sha256": "b14f7fed19ad14d11f814d7706125fdfb26ea0c059736028ac628778cf583ebf",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/welcome.html",
+      "output": "browser-and-research/browser-automation/browse/src/welcome.html",
+      "base_sha256": "30f13c356992933886db8ca239be21dfcbc868f289603746c1a9750abf1b8bbc",
+      "final_sha256": "30f13c356992933886db8ca239be21dfcbc868f289603746c1a9750abf1b8bbc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/write-commands.ts",
+      "output": "browser-and-research/browser-automation/browse/src/write-commands.ts",
+      "base_sha256": "b7aab8a3618c75c1a523bc3e810350f87a9e34fe815439a47f39f27914f1a892",
+      "final_sha256": "b7aab8a3618c75c1a523bc3e810350f87a9e34fe815439a47f39f27914f1a892",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "browse/src/xvfb.ts",
+      "output": "browser-and-research/browser-automation/browse/src/xvfb.ts",
+      "base_sha256": "9c40862dad6722a5e4c2b9f1ba30d8a237bb5d7635b2e66495730e5d43d8fe4d",
+      "final_sha256": "03c83c216d0f0f70d0ef9c8732b00cadd61a1164edddbfe40aeea4d25a3b0255",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "open-gstack-browser/SKILL.md",
+      "output": "browser-and-research/browser-session/connect-chrome/SKILL.md",
+      "base_sha256": "3b1ec55c969c65ce39b2fc62280a0b5fd13dfa9f36e91091e764ec92c7956d7f",
+      "final_sha256": "035a012e5744724165ffbdc6f19c1410e20602cf3bb30ea67ba568cca4980d39",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "open-gstack-browser/SKILL.md",
+      "output": "browser-and-research/browser-session/open-rig-browser/SKILL.md",
+      "base_sha256": "3b1ec55c969c65ce39b2fc62280a0b5fd13dfa9f36e91091e764ec92c7956d7f",
+      "final_sha256": "7a7455daf8ee8fb88165d2691474b6a2cd5217628937ad5a3df6f8c0ac25cb32",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "pair-agent/SKILL.md",
+      "output": "browser-and-research/remote-pairing/pair-agent/SKILL.md",
+      "base_sha256": "862878b6eb0c0a2f90b82d5df653fcafd12fa94d94411e7a6f7da4784055cff8",
+      "final_sha256": "9f5168613291a83a8694e60745dc090ff10189ee0426cbdc4cc42e018d775b96",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "scrape/SKILL.md",
+      "output": "browser-and-research/web-extraction/scrape/SKILL.md",
+      "base_sha256": "d6cdaf259e07fe45fd8032e1f4f4d6c13ba1278552a827787ec5b869658ddf32",
+      "final_sha256": "45fb195bce7192a8aa9dc7ba9db30cdb33447232954a290f1e7f498a6820d85f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-fix/SKILL.md",
+      "output": "debugging/ios-repair/ios-fix/SKILL.md",
+      "base_sha256": "eb62408ae682f4cf1c36d4f14f05df0b715d54df28a5f3371aee2f15b283ccb7",
+      "final_sha256": "bd44474565847760c4d6331c5946fc2ff273a85c8d51458e6dbc91309ca98067",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "investigate/SKILL.md",
+      "output": "debugging/root-cause-analysis/investigate/SKILL.md",
+      "base_sha256": "2defbbb725bf73c4ad8ca5ec26612813ffde936522c257953ec73e85c801b66a",
+      "final_sha256": "c4c2eb26d1f3100b8dcb4743fcfce1a2a5a5972803d3c11178ca6315e16c3af2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "setup-deploy/SKILL.md",
+      "output": "delivery-and-operations/deploy-configuration/setup-deploy/SKILL.md",
+      "base_sha256": "309652ff88a292d5ea07dac0c8049aea448a82c5c196b335eae55433b6704cc5",
+      "final_sha256": "cd7e374fdc5c0c1d31ccb04cb21e1a730ddc13f567fdc766d11ba77945e98974",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-clean/SKILL.md",
+      "output": "delivery-and-operations/ios-debug-instrumentation/ios-clean/SKILL.md",
+      "base_sha256": "a3c28496fcf0cd1976473361ce2f49df9c0a12331a42461bffc8d28b703eecd8",
+      "final_sha256": "b1379384df1f3fb3279d6efbb308f8b944a27316aa173cd3a3fa0afa4edd4c5b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-sync/SKILL.md",
+      "output": "delivery-and-operations/ios-debug-instrumentation/ios-sync/SKILL.md",
+      "base_sha256": "1f15f0ef90b3e7940b8b0537cc9b348c48ccaa5a06bbc6ea6ba1aa78d6da4ba1",
+      "final_sha256": "d27fc42ed33dfa176ec4d7ce8ff70c644695a767f972376c09aecfaa9a214d9f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "land-and-deploy/SKILL.md",
+      "output": "delivery-and-operations/land-and-deploy/land-and-deploy/SKILL.md",
+      "base_sha256": "3ac8d6bf35f3ab181a228a75199675286bed16917890a6929f31fb31325ae980",
+      "final_sha256": "eddf9a0b60e81067ee376eef17bdca3db38888f1b0d1c51d0c99be6b98f4677d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "canary/SKILL.md",
+      "output": "delivery-and-operations/post-deploy-canary/canary/SKILL.md",
+      "base_sha256": "fb060baca45523ccc9e501222086f9d1a6ade706f53abd5f251d5a2f72a387a7",
+      "final_sha256": "745a78ac0c13d9a3e002b671d7038e903b6b8fe7f8cd4988e861bd5cf80d6dfb",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "landing-report/SKILL.md",
+      "output": "delivery-and-operations/release-queue/landing-report/SKILL.md",
+      "base_sha256": "536b7f56304273a4747e97dfaf7ca90fe8fbcfb7e3c4640c943a896eff537917",
+      "final_sha256": "9707d8754aee29cec9dfbdd2239ed4ed5ce98b189b7840b4755dacfb8f4ae7b7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/SKILL.md",
+      "output": "delivery-and-operations/release-shipping/ship/SKILL.md",
+      "base_sha256": "550e4a1aa1f8af9b1aec86d6f287b9f5cf9049ae993f034abef7fc2506afb169",
+      "final_sha256": "48cff7d89c5293b60cc22575922cd7a23f64feb3820a86d355f02abe7090fc71",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/adversarial.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/adversarial.md",
+      "base_sha256": "1567dcf5f971dc91710b8342617f521935081e6f33570799ca1b84c1d7f22db0",
+      "final_sha256": "1567dcf5f971dc91710b8342617f521935081e6f33570799ca1b84c1d7f22db0",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/changelog.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/changelog.md",
+      "base_sha256": "f70c31afb13f2e4df31c1166dd9963758cb39a942cf83e86a48b29f6e4da91da",
+      "final_sha256": "f70c31afb13f2e4df31c1166dd9963758cb39a942cf83e86a48b29f6e4da91da",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/greptile.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/greptile.md",
+      "base_sha256": "cdcd70c86c384fcbea0ee36dacf6b4444e3b31b6989c5251978240a4a6c3b2e6",
+      "final_sha256": "cdcd70c86c384fcbea0ee36dacf6b4444e3b31b6989c5251978240a4a6c3b2e6",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/manifest.json",
+      "output": "delivery-and-operations/release-shipping/ship/sections/manifest.json",
+      "base_sha256": "5a125e093f09c409141555a29f4f5bc079a497fb68d445fb7ae0634734c8bbd1",
+      "final_sha256": "5a125e093f09c409141555a29f4f5bc079a497fb68d445fb7ae0634734c8bbd1",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/plan-completion.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/plan-completion.md",
+      "base_sha256": "632269561aec5763dae0771fc534323f11956c4c4a98f63beda63ba2bf6c60e3",
+      "final_sha256": "632269561aec5763dae0771fc534323f11956c4c4a98f63beda63ba2bf6c60e3",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/pr-body.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/pr-body.md",
+      "base_sha256": "5b348f7372ce7f03723f74bbc3aa86f7a25fa324ca1977b1d805f18c72e9b78c",
+      "final_sha256": "5b348f7372ce7f03723f74bbc3aa86f7a25fa324ca1977b1d805f18c72e9b78c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/review-army.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/review-army.md",
+      "base_sha256": "26c6b32f8dccd47fa390abeae006da8cc6c855b5effd35bde122f8c7f64f9fba",
+      "final_sha256": "26c6b32f8dccd47fa390abeae006da8cc6c855b5effd35bde122f8c7f64f9fba",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/test-coverage.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/test-coverage.md",
+      "base_sha256": "97e9534cbcbf2abc89d74f65dffb92f725e4ab38e949f938e09b50fd59a2fc36",
+      "final_sha256": "97e9534cbcbf2abc89d74f65dffb92f725e4ab38e949f938e09b50fd59a2fc36",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ship/sections/tests.md",
+      "output": "delivery-and-operations/release-shipping/ship/sections/tests.md",
+      "base_sha256": "8fea28ac0259c9cab806220b2df560b04b15551b0a64a7c0627a66ae3640d1a6",
+      "final_sha256": "8fea28ac0259c9cab806220b2df560b04b15551b0a64a7c0627a66ae3640d1a6",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "gstack-upgrade/SKILL.md",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/SKILL.md",
+      "base_sha256": "665bfb5420962269a5dd88b4f63c3cb753bd6926b29d7474157b0c05263dd2d8",
+      "final_sha256": "88d2dc9211a4d0fde84965d14cf3ade7eca63f164982ebb863ec88527f1f7928",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v0.15.2.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v0.15.2.0.sh",
+      "base_sha256": "754476e8f123db670e3511a5f6dc7a864a8f7ae2e9d0dce0b3087a977c5a0e88",
+      "final_sha256": "754476e8f123db670e3511a5f6dc7a864a8f7ae2e9d0dce0b3087a977c5a0e88",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v0.16.2.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v0.16.2.0.sh",
+      "base_sha256": "9209ea173ebbce693c7d7c6608a89fb06d0920d54a4420f68abe0d4636ace0e7",
+      "final_sha256": "9209ea173ebbce693c7d7c6608a89fb06d0920d54a4420f68abe0d4636ace0e7",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.0.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.0.0.0.sh",
+      "base_sha256": "917cd762f1695e0ad4166a9973cc4c8e649a6d23440c873e285b6fc33ab44e02",
+      "final_sha256": "917cd762f1695e0ad4166a9973cc4c8e649a6d23440c873e285b6fc33ab44e02",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.1.3.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.1.3.0.sh",
+      "base_sha256": "9b23902851bd50fd273b46b90af399969933ed75569082e90b47174ecd958593",
+      "final_sha256": "9b23902851bd50fd273b46b90af399969933ed75569082e90b47174ecd958593",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.17.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.17.0.0.sh",
+      "base_sha256": "ce6b5231dcf02aad8000dc420aecfcbc4d52449162e731aa5bddf8fad9b42559",
+      "final_sha256": "ce6b5231dcf02aad8000dc420aecfcbc4d52449162e731aa5bddf8fad9b42559",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.27.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.27.0.0.sh",
+      "base_sha256": "d0e740f9620e116e003547634a1c31a24107dfe20671d992484410c7293c09da",
+      "final_sha256": "d0e740f9620e116e003547634a1c31a24107dfe20671d992484410c7293c09da",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.37.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.37.0.0.sh",
+      "base_sha256": "f34cb6deb0ea50c1f2520caac748493c37721cfbc81a0f9cc012000b59ce7a4b",
+      "final_sha256": "f34cb6deb0ea50c1f2520caac748493c37721cfbc81a0f9cc012000b59ce7a4b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.38.1.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.38.1.0.sh",
+      "base_sha256": "10e13a012945397501351f1016f70e06a4ad9909cfa7a66c5bca51e557e87228",
+      "final_sha256": "10e13a012945397501351f1016f70e06a4ad9909cfa7a66c5bca51e557e87228",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.40.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.40.0.0.sh",
+      "base_sha256": "a40644d29e3e3ad8e1fb94d8bc7ba32fb8cd7e6b757a3d9b69fe570051d04054",
+      "final_sha256": "a40644d29e3e3ad8e1fb94d8bc7ba32fb8cd7e6b757a3d9b69fe570051d04054",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "gstack-upgrade/migrations/v1.58.0.0.sh",
+      "output": "delivery-and-operations/rig-upgrade/rig-upgrade/migrations/v1.58.0.0.sh",
+      "base_sha256": "3d005b68467eb8847dc4d0ee867fde28e5de84ba6944536d1f1d04d7ca294267",
+      "final_sha256": "3d005b68467eb8847dc4d0ee867fde28e5de84ba6944536d1f1d04d7ca294267",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "design-consultation/SKILL.md",
+      "output": "design-and-experience/design-consultation/design-consultation/SKILL.md",
+      "base_sha256": "68f17af83756f834cc20e572b8e4d08b56814eb3d0cc174908b87d48a0b5b980",
+      "final_sha256": "36ea4a6c720a2d4d3938d4f308fb27cd4024512bfbf41a689667e06d119564c9",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-consultation/sections/manifest.json",
+      "output": "design-and-experience/design-consultation/design-consultation/sections/manifest.json",
+      "base_sha256": "10fc74f9e2a792191f3db445940ae1bf6fbedbfdb2079b6d89d020d30a3b86fe",
+      "final_sha256": "10fc74f9e2a792191f3db445940ae1bf6fbedbfdb2079b6d89d020d30a3b86fe",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-consultation/sections/proposal-and-preview.md",
+      "output": "design-and-experience/design-consultation/design-consultation/sections/proposal-and-preview.md",
+      "base_sha256": "431fb075e1463f13e2583b6d6b71bd44a794c5caa87ea90afc003f42981c34ed",
+      "final_sha256": "431fb075e1463f13e2583b6d6b71bd44a794c5caa87ea90afc003f42981c34ed",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-shotgun/SKILL.md",
+      "output": "design-and-experience/design-exploration/design-shotgun/SKILL.md",
+      "base_sha256": "d3326c34eac43f2d0b79033c40c182567ac387a7d5b898495dd48328cf7b5b7e",
+      "final_sha256": "d303a0bb83f18f638cf6e55c1315cfffabff2c0a10c5ccac215626f3d8720c33",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-html/SKILL.md",
+      "output": "design-and-experience/interface-production/design-html/SKILL.md",
+      "base_sha256": "d429b82e27ff94c8f65c1aa7fe79ab58ea44cd0ce5c8ef3d6dd4c99fa227daec",
+      "final_sha256": "ccc1bf5f94bbe850d83ac9f64fcdd5665edd7ab9cef5e3150fa12821ebe4e306",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-html/vendor/pretext.js",
+      "output": "design-and-experience/interface-production/design-html/vendor/pretext.js",
+      "base_sha256": "c85e755d86d33718e66978d18a2733eb5d11cf44747f58846bd390ed0d6f24e7",
+      "final_sha256": "c85e755d86d33718e66978d18a2733eb5d11cf44747f58846bd390ed0d6f24e7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-design-review/SKILL.md",
+      "output": "design-and-experience/ios-visual-review/ios-design-review/SKILL.md",
+      "base_sha256": "6ca2b8bef694f02491e5aff1fc6e96987e025a0eca5d493ccffa3395f0a60244",
+      "final_sha256": "652ef53462796cfd289b9f91287e279857a6940f82757357f30855d3a9b1e0a8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "design-review/SKILL.md",
+      "output": "design-and-experience/visual-review/design-review/SKILL.md",
+      "base_sha256": "a0348ae4d33c9358ef334bedeaf1eee7e03cbaada67cc716ecbedca6ef57419d",
+      "final_sha256": "b72d5906eff19713cd560441ab83a4e4bad8f6874942fdd139596bf6b6275716",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "codex/SKILL.md",
+      "output": "implementation-and-orchestration/delegated-coding/codex/SKILL.md",
+      "base_sha256": "684527cfc7db105706edbd6f02e8e36f530fd77b44bd30532b721a0a6a1bbf62",
+      "final_sha256": "1a77a81ad234d55f0dbbf0e949ba193771cfeefc09ad66fc1ffeee50cf262025",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "skillify/SKILL.md",
+      "output": "implementation-and-orchestration/skill-authoring/skillify/SKILL.md",
+      "base_sha256": "c86ad88fd57367c6eff07a18017bfff01549f82351cb2d5b49130ce8d65dea7d",
+      "final_sha256": "721f3619d1402351cfbb2a6162012740e07b5ed6815ef724bd0c67b327fce5c1",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "AGENTS.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/AGENTS.md",
+      "base_sha256": "f99da320227255b975cc7e323b5f8b02766663d2bda4c954f11397613b691b51",
+      "final_sha256": "057c6ee3c623574bccbcc9849534e59e3eca6921c1c5e70793364bd0be5411fe",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ARCHITECTURE.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/ARCHITECTURE.md",
+      "base_sha256": "bafdc1174ac00f04bebea9536fb50f724de4ed8e254a8eed4371c42389bbd1dc",
+      "final_sha256": "bafdc1174ac00f04bebea9536fb50f724de4ed8e254a8eed4371c42389bbd1dc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "BROWSER.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/BROWSER.md",
+      "base_sha256": "2aea60cc8d83b4149b5702708aa626a3cbb8555a8c03958ef1e48924f95d7242",
+      "final_sha256": "2aea60cc8d83b4149b5702708aa626a3cbb8555a8c03958ef1e48924f95d7242",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "CLAUDE.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/CLAUDE.md",
+      "base_sha256": "885f1bd1d0d68a19e9753faba2f865fec096288a173a211b8ba67ed10b10df2d",
+      "final_sha256": "885f1bd1d0d68a19e9753faba2f865fec096288a173a211b8ba67ed10b10df2d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "DESIGN.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/DESIGN.md",
+      "base_sha256": "50996a3476967aa9ed0bd811b9a12cde89592b0d640122e2d0512dd1cb7f2db5",
+      "final_sha256": "50996a3476967aa9ed0bd811b9a12cde89592b0d640122e2d0512dd1cb7f2db5",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ETHOS.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/ETHOS.md",
+      "base_sha256": "220cb1d87d919f62d7553a3a6cd936d9465acbee3f3a880ee15df443a6d318aa",
+      "final_sha256": "220cb1d87d919f62d7553a3a6cd936d9465acbee3f3a880ee15df443a6d318aa",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "README.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/README.md",
+      "base_sha256": "ee898d92e97ec545ee4c8eead92232d1d76118519cef37b0f8844ea9ab44701b",
+      "final_sha256": "8f9e33977de6fe019632d99ec0e773590c9a0d99990ce27f6a9641240cd6efd2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "SKILL.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/SKILL.md",
+      "base_sha256": "0281b0e13fbfbfd28447bc13fb490d112207dd013b089218d90b73c6e51ddd67",
+      "final_sha256": "ef68795c803ca3e446c1ec3395097266d0aeaf65997db9b3970864599ea68133",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "USING_GBRAIN_WITH_GSTACK.md",
+      "output": "implementation-and-orchestration/workflow-routing/_core/USING_brain_WITH_rig.md",
+      "base_sha256": "753351cf292addedbecac38e5789762d38ad98ade5ccc9e02009fee9ad2d30ee",
+      "final_sha256": "7539295dbe2c398e895625f35e90a8b8e9779520e53e7e2a4f9ece7af59ff221",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "VERSION",
+      "output": "implementation-and-orchestration/workflow-routing/_core/VERSION",
+      "base_sha256": "a05442e1220521c44bac111462a2a311da807c141cbefba49249f2e8599f44bb",
+      "final_sha256": "a05442e1220521c44bac111462a2a311da807c141cbefba49249f2e8599f44bb",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "context-restore/SKILL.md",
+      "output": "knowledge-and-documentation/context-handoff/context-restore/SKILL.md",
+      "base_sha256": "2f354856680c6b9f3447ce31089ebeaf34bb73ed9d31009b85b1da1ed21fd210",
+      "final_sha256": "6eb7eaf142f08737162530d034bf3a47b22ab2a2202ea487cdfe92c8eb61414e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "context-save/SKILL.md",
+      "output": "knowledge-and-documentation/context-handoff/context-save/SKILL.md",
+      "base_sha256": "97e1250bd533eda35447a320f1433e221c5c4dde40108bb1cd8d9ff36196d772",
+      "final_sha256": "2ef8724db8e2a1aa288abcd9036bf3d934b053757a92dbef264cbb24fcd3352b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/SKILL.md",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/SKILL.md",
+      "base_sha256": "fb96b39277274ed7601a022e562855c7930d5592dbba32e66664e2c8cd9f9719",
+      "final_sha256": "c469473ae730299940b5c8d478b309b3f60a58a1df959177c3bbf28e85e0893f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/browseClient.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/browseClient.ts",
+      "base_sha256": "945c0b4671e095da92f4f8249ddd0dfef4769b9108ba4e7f25accc4b1b78f797",
+      "final_sha256": "945c0b4671e095da92f4f8249ddd0dfef4769b9108ba4e7f25accc4b1b78f797",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/cli.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/cli.ts",
+      "base_sha256": "e6d1edcbbf44c013b5bb11731182c1c8e03526469946860387da3c6e72f60b94",
+      "final_sha256": "e6d1edcbbf44c013b5bb11731182c1c8e03526469946860387da3c6e72f60b94",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/commands.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/commands.ts",
+      "base_sha256": "30b436aa1883a8cb96d73de7ca0c18f8bc92e82ab1c2df14144a0eb53d78b02b",
+      "final_sha256": "30b436aa1883a8cb96d73de7ca0c18f8bc92e82ab1c2df14144a0eb53d78b02b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/diagram-prepass.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/diagram-prepass.ts",
+      "base_sha256": "8ddbd814c807fec8f572d6cc4422f8ed94707865d6ba13dd7ccd2f498538748f",
+      "final_sha256": "8ddbd814c807fec8f572d6cc4422f8ed94707865d6ba13dd7ccd2f498538748f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/image-policy.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/image-policy.ts",
+      "base_sha256": "ad5787b652bff8258e69c31f68cfdde5f1372cd73c9ed11ab113aec118fc966c",
+      "final_sha256": "ad5787b652bff8258e69c31f68cfdde5f1372cd73c9ed11ab113aec118fc966c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/image-size.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/image-size.ts",
+      "base_sha256": "46a97f49c01fa205aa138d9e6f4797fea027f5b1cefcc67c29e53c53cacef898",
+      "final_sha256": "46a97f49c01fa205aa138d9e6f4797fea027f5b1cefcc67c29e53c53cacef898",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/orchestrator.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/orchestrator.ts",
+      "base_sha256": "b75b311989a6345296a98f910b7742d91d3637736f720430f275ea59bccc618b",
+      "final_sha256": "b75b311989a6345296a98f910b7742d91d3637736f720430f275ea59bccc618b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/pdftotext.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/pdftotext.ts",
+      "base_sha256": "fce5f058abece40d9408742dcaa23c4968f494504a1c7ee27583b8ccc61c3b8e",
+      "final_sha256": "fce5f058abece40d9408742dcaa23c4968f494504a1c7ee27583b8ccc61c3b8e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/print-css.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/print-css.ts",
+      "base_sha256": "84da3a40dfbf014789974ab2d0e3a07a3d73c60fa3a8497b3fe04d762739e02e",
+      "final_sha256": "84da3a40dfbf014789974ab2d0e3a07a3d73c60fa3a8497b3fe04d762739e02e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/render.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/render.ts",
+      "base_sha256": "0c617ca2e343137f9176822a791271fc516912248582d3af6614894436ab71a7",
+      "final_sha256": "0c617ca2e343137f9176822a791271fc516912248582d3af6614894436ab71a7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/setup.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/setup.ts",
+      "base_sha256": "b893d76f5a735726f8c2a26a90c95e100da5e5fbe6a3469c4d00056fa3aec300",
+      "final_sha256": "b893d76f5a735726f8c2a26a90c95e100da5e5fbe6a3469c4d00056fa3aec300",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/smartypants.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/smartypants.ts",
+      "base_sha256": "fbfe696b4b38e10268bdd54199b0c453e1edc721ee0091ab5c7a9f3e4f7b548c",
+      "final_sha256": "fbfe696b4b38e10268bdd54199b0c453e1edc721ee0091ab5c7a9f3e4f7b548c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "make-pdf/src/types.ts",
+      "output": "knowledge-and-documentation/document-publishing/make-pdf/src/types.ts",
+      "base_sha256": "a9be8a41fe9f1bc6641931fcced948e958b9e57eef840fad929fe2e9a6a503dd",
+      "final_sha256": "a9be8a41fe9f1bc6641931fcced948e958b9e57eef840fad929fe2e9a6a503dd",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "document-generate/SKILL.md",
+      "output": "knowledge-and-documentation/documentation/document-generate/SKILL.md",
+      "base_sha256": "a28b2695736188015cab004212746f60a04cd4443bbff24c60723742cb742f27",
+      "final_sha256": "0fa9e0cadb8b4acf18cf3e256e17b9041bdae77453e2a1ec1751e122656546b8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "document-release/SKILL.md",
+      "output": "knowledge-and-documentation/documentation/document-release/SKILL.md",
+      "base_sha256": "2ea98ab592f8ac73b360549f98bcd912d15dde118d0754ff0602a3afed368f12",
+      "final_sha256": "8ed00e10cbaa477b1fd4ecc3be44d4d38850d8099efc23eac596d82dae0e0c99",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "document-release/sections/manifest.json",
+      "output": "knowledge-and-documentation/documentation/document-release/sections/manifest.json",
+      "base_sha256": "af61719374ff012d55e7a44cf093fb9a34229c4d34ab5115965df1e5a822ddde",
+      "final_sha256": "af61719374ff012d55e7a44cf093fb9a34229c4d34ab5115965df1e5a822ddde",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "document-release/sections/release-body.md",
+      "output": "knowledge-and-documentation/documentation/document-release/sections/release-body.md",
+      "base_sha256": "d16e66a949f90580d8ff528e39ce6a38e07cbecbeaebb186336fc95212113d07",
+      "final_sha256": "d16e66a949f90580d8ff528e39ce6a38e07cbecbeaebb186336fc95212113d07",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "learn/SKILL.md",
+      "output": "knowledge-and-documentation/project-memory/learn/SKILL.md",
+      "base_sha256": "32ec51afedbc942fcf6f61116a4d362677a0fca9ea906550479603f12fc1759f",
+      "final_sha256": "420711e5a7e24478e5034fe89559c8fd8dab1fb4f5642fcb20e4fc4b610fd8db",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "setup-gbrain/SKILL.md",
+      "output": "knowledge-and-documentation/project-memory/setup-brain/SKILL.md",
+      "base_sha256": "85b764f3635e7714f270113a24cb70147af5097fa9b8b21fd21a9fe9556f5508",
+      "final_sha256": "671cd4994780b88f9b975ae824e2bbc0a81c6cdf4ff11af7d93e348539d8cad4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "setup-gbrain/memory.md",
+      "output": "knowledge-and-documentation/project-memory/setup-brain/memory.md",
+      "base_sha256": "193dd59194c57ddc6fd0a80981fbc3a427e74a49f499777b16acc6f7c5d0e17c",
+      "final_sha256": "193dd59194c57ddc6fd0a80981fbc3a427e74a49f499777b16acc6f7c5d0e17c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "sync-gbrain/SKILL.md",
+      "output": "knowledge-and-documentation/project-memory/sync-brain/SKILL.md",
+      "base_sha256": "589618c4625fa15fa0d4899ca2dd430b35c03d9c57aeb31fc12ceee3c483d4af",
+      "final_sha256": "6232a88c280be4ddb5ea9d4cdd63bd8b0db52af65f73a9f1b63d5dd123ff8495",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "retro/SKILL.md",
+      "output": "knowledge-and-documentation/retrospective/retro/SKILL.md",
+      "base_sha256": "67fe434f566fb22a39d0a027f5a61c324df945aedc7d8599af3cfeec7a35750e",
+      "final_sha256": "b11f659bbfd20023d434089cb6eb056e3b5fecd8d99ce97a7232836e055b37f8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "diagram/SKILL.md",
+      "output": "knowledge-and-documentation/technical-diagrams/diagram/SKILL.md",
+      "base_sha256": "30b41ea21a84685ba3fc5f0179f628929ea30dcdf1bcee59dd6b745a659f0fd1",
+      "final_sha256": "9a28cc5082ea2cbbdaea49ad4638d5234b0f177e9b5dfaea1b6265cd230ec836",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "office-hours/SKILL.md",
+      "output": "requirements/intent-discovery/office-hours/SKILL.md",
+      "base_sha256": "298495cf6cb3ad01919859bb8eaf3d2e12fab13d77cd9aeb9fcb658c23331467",
+      "final_sha256": "4deaa50a0713de60ad710e07c95bfc95d2f59273ea0f4ac64b20f848a4181ae5",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "office-hours/sections/design-and-handoff.md",
+      "output": "requirements/intent-discovery/office-hours/sections/design-and-handoff.md",
+      "base_sha256": "e36a26dba3a364705885008dd3bcad62d5514feb0fac02a9c743ecf921cb1901",
+      "final_sha256": "e36a26dba3a364705885008dd3bcad62d5514feb0fac02a9c743ecf921cb1901",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "office-hours/sections/manifest.json",
+      "output": "requirements/intent-discovery/office-hours/sections/manifest.json",
+      "base_sha256": "c1e57ba1865089e0996375cb22926ac433bd75c00dd296efccb9ad66a8eec32b",
+      "final_sha256": "c1e57ba1865089e0996375cb22926ac433bd75c00dd296efccb9ad66a8eec32b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-tune/SKILL.md",
+      "output": "requirements/question-calibration/plan-tune/SKILL.md",
+      "base_sha256": "7491fcfd504ea79a7038b20ae03c890a1a25444214b0da433c7cf9d29c5071ce",
+      "final_sha256": "de7c7be214232c2c5cf61284fa3663c597a5c1a9b27a97c57cdeca7dc967e41d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/SKILL.md",
+      "output": "review/code-and-pull-request/review/SKILL.md",
+      "base_sha256": "206723131a18e1de9a2dd6898cb1affc885277ed23de4a20b622be17e24eb238",
+      "final_sha256": "936c67609c3cc1d6be8fd04b3a4a431a946cadf7b989a4b739501f562f89f0a1",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/checklist.md",
+      "output": "review/code-and-pull-request/review/checklist.md",
+      "base_sha256": "94c4113ece2a139ef55727c74cfb72571b61ed991924a041626ca24d5ef474a1",
+      "final_sha256": "94c4113ece2a139ef55727c74cfb72571b61ed991924a041626ca24d5ef474a1",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/design-checklist.md",
+      "output": "review/code-and-pull-request/review/design-checklist.md",
+      "base_sha256": "1f20b4fe8c6ad26e1b6329c31ce616c5d2bc008d82f7f3d0519e9739cfdfde94",
+      "final_sha256": "1f20b4fe8c6ad26e1b6329c31ce616c5d2bc008d82f7f3d0519e9739cfdfde94",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/greptile-triage.md",
+      "output": "review/code-and-pull-request/review/greptile-triage.md",
+      "base_sha256": "67527885b7bf4ef253bf4de4ae34833b5009c58c7dfcb52c3e560b229eaef70c",
+      "final_sha256": "67527885b7bf4ef253bf4de4ae34833b5009c58c7dfcb52c3e560b229eaef70c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/api-contract.md",
+      "output": "review/code-and-pull-request/review/specialists/api-contract.md",
+      "base_sha256": "263d23ac119dd601d315c191dbdbd503d47c00264c9c0ca81959559ca11d4e95",
+      "final_sha256": "263d23ac119dd601d315c191dbdbd503d47c00264c9c0ca81959559ca11d4e95",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/data-migration.md",
+      "output": "review/code-and-pull-request/review/specialists/data-migration.md",
+      "base_sha256": "b6fd9eb229002ea598f8fe9ff53b1cd8821e3bd37a7aa7b07b5526556c71ebca",
+      "final_sha256": "b6fd9eb229002ea598f8fe9ff53b1cd8821e3bd37a7aa7b07b5526556c71ebca",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/maintainability.md",
+      "output": "review/code-and-pull-request/review/specialists/maintainability.md",
+      "base_sha256": "7d945a69e0763fd1be26ffdff65f1088cab555d80630ed4ad44313e5e6623036",
+      "final_sha256": "7d945a69e0763fd1be26ffdff65f1088cab555d80630ed4ad44313e5e6623036",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/performance.md",
+      "output": "review/code-and-pull-request/review/specialists/performance.md",
+      "base_sha256": "545c294ae53638b4c8524e8cde08246a4ce3b5c287ec7c44e27f5556a3b0e8cc",
+      "final_sha256": "545c294ae53638b4c8524e8cde08246a4ce3b5c287ec7c44e27f5556a3b0e8cc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/red-team.md",
+      "output": "review/code-and-pull-request/review/specialists/red-team.md",
+      "base_sha256": "9ea05149f5b13d6a19ecec26285142d09d259cf80a515af828abdd1f43320427",
+      "final_sha256": "9ea05149f5b13d6a19ecec26285142d09d259cf80a515af828abdd1f43320427",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/security.md",
+      "output": "review/code-and-pull-request/review/specialists/security.md",
+      "base_sha256": "d0dc1cf0f1c7450507cfc663a67624cbcd5d4cfd0258a3bfeb51dba6f09c7df2",
+      "final_sha256": "d0dc1cf0f1c7450507cfc663a67624cbcd5d4cfd0258a3bfeb51dba6f09c7df2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "review/specialists/testing.md",
+      "output": "review/code-and-pull-request/review/specialists/testing.md",
+      "base_sha256": "3fd6dc5d802fd112f75934c4c168c3f03e25275b70e1e403eb670cbf7447e4e7",
+      "final_sha256": "3fd6dc5d802fd112f75934c4c168c3f03e25275b70e1e403eb670cbf7447e4e7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "health/SKILL.md",
+      "output": "review/code-health/health/SKILL.md",
+      "base_sha256": "2fb00f413361210c0fcd38e7f9d622d5107490ea462f78dd96f2d99a3fb0e39a",
+      "final_sha256": "8b1c6c7bf85c159a096c434e72dc8b3ccd9c75c82a1db94edb2f8b2bbf6cf194",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "devex-review/SKILL.md",
+      "output": "review/developer-experience/devex-review/SKILL.md",
+      "base_sha256": "c5dcbd0c2785ad512bfa8144ec6d46d10ed7fb513f14f69056e03156f849d58f",
+      "final_sha256": "7a89d3642510dda529290a929e12fc79b7d3489fe3839b035147aa2ffdf8a36d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "careful/SKILL.md",
+      "output": "safety-and-security/destructive-action-guard/careful/SKILL.md",
+      "base_sha256": "92c8fb554f963db5b075f33b1287782e5a723c22e1c2f1059991ffb04ef6b0d7",
+      "final_sha256": "a11f2d270ec21f1c009ccc754dfc24b3eff6870d56c465bc64bd1672fa5fefdf",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "careful/bin/check-careful.sh",
+      "output": "safety-and-security/destructive-action-guard/careful/bin/check-careful.sh",
+      "base_sha256": "fe53d11286260acbec5b7967e6e7c8f4d71caf9df9fe4ba02ddeadf5eecc3192",
+      "final_sha256": "33de1a81852cfb110940cb2669b6cda80127929813309931290c0ceb6d373e83",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "freeze/SKILL.md",
+      "output": "safety-and-security/edit-scope-control/freeze/SKILL.md",
+      "base_sha256": "fe27e9f202bd3b85a8c7a9f280b50aa471dbb2e7969673756b97bc56fa4632f4",
+      "final_sha256": "09429bb6838b00438402f1600268cb36b5c2c92e9578163bc4ffc9a9c9205082",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "freeze/bin/check-freeze.sh",
+      "output": "safety-and-security/edit-scope-control/freeze/bin/check-freeze.sh",
+      "base_sha256": "1d7de87318c5d89b03aa72400a0fad195281c918f4f8e6ad493c51513f35ad8f",
+      "final_sha256": "1d7de87318c5d89b03aa72400a0fad195281c918f4f8e6ad493c51513f35ad8f",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "guard/SKILL.md",
+      "output": "safety-and-security/edit-scope-control/guard/SKILL.md",
+      "base_sha256": "2317e8e16f0f509114964a9632947e6b8106a8a9120e382a7ab5b7b610d6df43",
+      "final_sha256": "a09b5542f8804e9cac862adae92dfb4fa4aa39185affa7008a2a930d00234fbe",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "unfreeze/SKILL.md",
+      "output": "safety-and-security/edit-scope-control/unfreeze/SKILL.md",
+      "base_sha256": "dcbe00937e4fc3ae40331e306cc08ebbe256a57b3e9bb2767ccbf2b8c73ef10a",
+      "final_sha256": "1ced55ccd52e1ec3aefeca4557ab8079d47f75d119542cc5214c637dc50cb439",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "cso/ACKNOWLEDGEMENTS.md",
+      "output": "safety-and-security/security-review/cso/ACKNOWLEDGEMENTS.md",
+      "base_sha256": "9988a37eb79023ad162f52c5eacb4a77d0654d912a3a7555914bbb3dcd4a4815",
+      "final_sha256": "9988a37eb79023ad162f52c5eacb4a77d0654d912a3a7555914bbb3dcd4a4815",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "cso/SKILL.md",
+      "output": "safety-and-security/security-review/cso/SKILL.md",
+      "base_sha256": "80a82a007320434a2a69c4d11becd714d9e4fadd45b3ee7046e90b9c938b0605",
+      "final_sha256": "03088e2bcc29b69aa9aa7fa5f37608f28a45e6f1ea46b9093fee196e482bd851",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "cso/sections/audit-phases.md",
+      "output": "safety-and-security/security-review/cso/sections/audit-phases.md",
+      "base_sha256": "2daaa7134ec5765e8f9e35fe6342f4cfc9e4f0fb7bed994f63f8ac80a440d27e",
+      "final_sha256": "2daaa7134ec5765e8f9e35fe6342f4cfc9e4f0fb7bed994f63f8ac80a440d27e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "cso/sections/manifest.json",
+      "output": "safety-and-security/security-review/cso/sections/manifest.json",
+      "base_sha256": "ab3ab1be1b6ae1540c02eec56ffef837ab7b7cd1ca38afb6cda8a33c8a40bec2",
+      "final_sha256": "ab3ab1be1b6ae1540c02eec56ffef837ab7b7cd1ca38afb6cda8a33c8a40bec2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "spec/SKILL.md",
+      "output": "specification-and-planning/executable-specification/spec/SKILL.md",
+      "base_sha256": "684ef779cce5270fecd124b8cbb9b5c8a5556fde3ad5160a67b625b677be37f9",
+      "final_sha256": "e56dd6ee3eee143de8b438262871059a46b6dc05a176704b2efaf56f49660428",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "autoplan/SKILL.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/autoplan/SKILL.md",
+      "base_sha256": "d2d2c19df5a48884bcacca272ef712bb1cb558081c4279d061b7387b5e403cd5",
+      "final_sha256": "38cd438cd9567dd2210ece0fa11deacb92c8ec5af7da8fc0c1e4d5ecc88d0df3",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-ceo-review/SKILL.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-ceo-review/SKILL.md",
+      "base_sha256": "14725479c8f30093583d5fa2d5df8450e5a545aaa0b8dfd9350d8ef7823fdcd2",
+      "final_sha256": "f1681145a5065c683e40361120ad4a269083b17ba1a6d7687dcdf7ee521f8be9",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-ceo-review/sections/manifest.json",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-ceo-review/sections/manifest.json",
+      "base_sha256": "98faec95fcc43dfbce23220140c00bf37070a440a8f1b33c7f22dee154330767",
+      "final_sha256": "98faec95fcc43dfbce23220140c00bf37070a440a8f1b33c7f22dee154330767",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-ceo-review/sections/review-sections.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-ceo-review/sections/review-sections.md",
+      "base_sha256": "fc77e50889dcf8afd02b87a883a64e8ea51decef39c21e447a2206ad19699937",
+      "final_sha256": "fc77e50889dcf8afd02b87a883a64e8ea51decef39c21e447a2206ad19699937",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-design-review/SKILL.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-design-review/SKILL.md",
+      "base_sha256": "03d3a18e4a29e027c301d91e1990616b5266ce9b4a1d1711aaa44ce228c60084",
+      "final_sha256": "a0cb8be9470e721e9054760be5fc5d7d9a7048f11773fdfdc758cfee3a089200",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-design-review/sections/manifest.json",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-design-review/sections/manifest.json",
+      "base_sha256": "44742375975493558a0f1e6bb0356e54508051d3e8d7024716e393ff5cd81081",
+      "final_sha256": "44742375975493558a0f1e6bb0356e54508051d3e8d7024716e393ff5cd81081",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-design-review/sections/review-sections.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-design-review/sections/review-sections.md",
+      "base_sha256": "1a3be229ef7d9f26fba2bd5c9a92055ce18b2d6de41d3b066f441407c634b8c2",
+      "final_sha256": "1a3be229ef7d9f26fba2bd5c9a92055ce18b2d6de41d3b066f441407c634b8c2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-devex-review/SKILL.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-devex-review/SKILL.md",
+      "base_sha256": "7aebc7cb9c25a7dccbcc1ba5ea6518fade9c7ddb106d56df82abc4aef5fdb8b7",
+      "final_sha256": "2f81af01cb458c7fac394e2e07904d2f6bab1b6765464cd0e8f4595544f8d068",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-devex-review/dx-hall-of-fame.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-devex-review/dx-hall-of-fame.md",
+      "base_sha256": "eb6479dcd14a34624429ec311203b6d0f5f4629e682cac2dd889a6142272df2b",
+      "final_sha256": "eb6479dcd14a34624429ec311203b6d0f5f4629e682cac2dd889a6142272df2b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-devex-review/sections/manifest.json",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-devex-review/sections/manifest.json",
+      "base_sha256": "347037cbd99eb79e91496619f69158758aeaaeb4cceb5024882f54b341055be4",
+      "final_sha256": "347037cbd99eb79e91496619f69158758aeaaeb4cceb5024882f54b341055be4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-devex-review/sections/review-sections.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-devex-review/sections/review-sections.md",
+      "base_sha256": "44893969b33cb934ab46aba1bb65438a3f162520a6423d781b623975194ab635",
+      "final_sha256": "44893969b33cb934ab46aba1bb65438a3f162520a6423d781b623975194ab635",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-eng-review/SKILL.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-eng-review/SKILL.md",
+      "base_sha256": "60263863dde24ba37eba6fdafd35dc372d64a8632cf8fd3aa511c343f408eede",
+      "final_sha256": "e246b66a379119d96d6e8a68edb228dd65d2938806a0907579ed450d236fff0c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-eng-review/sections/manifest.json",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-eng-review/sections/manifest.json",
+      "base_sha256": "ae22ffdad3b5f473f41aa86be86db478f5682bb069992c8a405906b1b2d2b780",
+      "final_sha256": "ae22ffdad3b5f473f41aa86be86db478f5682bb069992c8a405906b1b2d2b780",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "plan-eng-review/sections/review-sections.md",
+      "output": "specification-and-planning/multi-perspective-plan-review/plan-eng-review/sections/review-sections.md",
+      "base_sha256": "6995450828f3b2b510ca7aaebde4fe1c767269bb93aa899b77fa876d530c5325",
+      "final_sha256": "6995450828f3b2b510ca7aaebde4fe1c767269bb93aa899b77fa876d530c5325",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "benchmark-models/SKILL.md",
+      "output": "testing/agent-evaluation/benchmark-models/SKILL.md",
+      "base_sha256": "255b5b7b70dacea7144525786e3efc17c50678ab499afe2b09b97d707b305363",
+      "final_sha256": "4c01668f3ae2279d7d1507dc8da6819026e439f70de0a14d597dd565aecd8a91",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/SKILL.md",
+      "output": "testing/ios-quality-assurance/ios-qa/SKILL.md",
+      "base_sha256": "e7f6b1353cc8d84bd529ab312bf72c2ce049e88555d45332112a115ff65dbdac",
+      "final_sha256": "7557de2e5d47ae4352c0f1c33a305381ea0e01dc6039e709e5264c71425879d8",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/allowlist.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/allowlist.ts",
+      "base_sha256": "143bc005a17af83c71c390430de5c9edb1533df77828f031df8a1e947a8a4786",
+      "final_sha256": "143bc005a17af83c71c390430de5c9edb1533df77828f031df8a1e947a8a4786",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/audit.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/audit.ts",
+      "base_sha256": "0553bdf4c418de7a15916f8682b7a98a5a4f8987b66d5de057d30193c269df2b",
+      "final_sha256": "0553bdf4c418de7a15916f8682b7a98a5a4f8987b66d5de057d30193c269df2b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/auth-mint.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/auth-mint.ts",
+      "base_sha256": "fdbc0f8023096f2c6806874857116b0900d2d3703ae0adcc3cb0e926f012a6da",
+      "final_sha256": "fdbc0f8023096f2c6806874857116b0900d2d3703ae0adcc3cb0e926f012a6da",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/cli-mint.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/cli-mint.ts",
+      "base_sha256": "f2aa775eafa661a34f5cb26dd2dbae396547283d8212e09031e3a35f13f9fca3",
+      "final_sha256": "f2aa775eafa661a34f5cb26dd2dbae396547283d8212e09031e3a35f13f9fca3",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/devicectl.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/devicectl.ts",
+      "base_sha256": "f3639b8d355cb5f14dcb569ae0c97d576c3ec6af920b0e0e0daf62436f85566f",
+      "final_sha256": "6380dd895d20b941bc3147e7c105c79c5a8ad79b8cf65da5eae8ff233472938a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/index.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/index.ts",
+      "base_sha256": "17bd2639e2981a66eaf2f76b81a640a75bcd24c6cc87d1971548a0d6e8852d16",
+      "final_sha256": "cc1380fa5583a0f25b3b446c5aa28dcee6cafc81571d0f525456ad0df0ea289b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/proxy.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/proxy.ts",
+      "base_sha256": "92f649ac9c1cb686332af0c2d3f1ff365680a167dfb2d9c1ea6822cce896cd91",
+      "final_sha256": "92f649ac9c1cb686332af0c2d3f1ff365680a167dfb2d9c1ea6822cce896cd91",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/session-tokens.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/session-tokens.ts",
+      "base_sha256": "78fee52b526a132aa15fb15245da4b45ee47fb67ff0c367322f91a63e7745f8a",
+      "final_sha256": "78fee52b526a132aa15fb15245da4b45ee47fb67ff0c367322f91a63e7745f8a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/single-instance.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/single-instance.ts",
+      "base_sha256": "ba0162f01662700a9dd93443f444a97053709f62c9025121d3df32b59a00a1d4",
+      "final_sha256": "803a880f76e018e2cdfad49a45ee92090a4d37fb7778d97fe95b02389190b613",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/tailscale-localapi.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/tailscale-localapi.ts",
+      "base_sha256": "ce591c1e90deca14d2636f00850489987bd80f50e88db1a30b1de90d86cb2bb2",
+      "final_sha256": "ce591c1e90deca14d2636f00850489987bd80f50e88db1a30b1de90d86cb2bb2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/tunnel-bootstrap.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/tunnel-bootstrap.ts",
+      "base_sha256": "6122df8437c869c1f074b48dab0d8f658012fb788ee0d22477f152ac84859b4f",
+      "final_sha256": "eddac0ff945aa0fcdfa14c25874ca34e86f3e2ee84ef3a6962bf8f6692e0426f",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/daemon/src/types.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/daemon/src/types.ts",
+      "base_sha256": "50022de0f1544408f55eaec2db6ce7080a0c8becf02491e563125bcb64968c2d",
+      "final_sha256": "50022de0f1544408f55eaec2db6ce7080a0c8becf02491e563125bcb64968c2d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/docs/tailscale-acl-example.md",
+      "output": "testing/ios-quality-assurance/ios-qa/docs/tailscale-acl-example.md",
+      "base_sha256": "61e18a57e1404444d193686a7169e95af600d07cb268997ccead2297b5a4e91c",
+      "final_sha256": "61e18a57e1404444d193686a7169e95af600d07cb268997ccead2297b5a4e91c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/scripts/gen-accessors-tool/Package.swift",
+      "output": "testing/ios-quality-assurance/ios-qa/scripts/gen-accessors-tool/Package.swift",
+      "base_sha256": "184e247b4249c5d1a7e4278cf5460c0961dc5c2ab9b07a5033f35cfba5556755",
+      "final_sha256": "604a1d8d51d62c6316d48c8a4812c9fad7d0af653a07400c80613494ee4d5f94",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/scripts/gen-accessors-tool/Sources/GenAccessors/main.swift",
+      "output": "testing/ios-quality-assurance/ios-qa/scripts/gen-accessors-tool/Sources/GenAccessors/main.swift",
+      "base_sha256": "a74b6d9bc8d8eb423b99217a32f0cd2311cc9d9551044963517d9a1f140f8faa",
+      "final_sha256": "c70c93e8c0a0ba50f29d3555ef4c04cfc52d9547ca4be6f7ddcd319f7a1c6f00",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/scripts/gen-accessors.test.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/scripts/gen-accessors.test.ts",
+      "base_sha256": "934897dbc5569a6969410c30a02dbdb6f244373ed7b6edc1c37d95d668e9222d",
+      "final_sha256": "9e83abd00c515d7c0b4b6576c0b9df28a199de5267b58ee606f143eb3355b6db",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/scripts/gen-accessors.ts",
+      "output": "testing/ios-quality-assurance/ios-qa/scripts/gen-accessors.ts",
+      "base_sha256": "25574027805b339eba698980c4234e895d01b139d96a46ed25ca8a8225749b26",
+      "final_sha256": "24ef322d7ea4212947a0c6a0e184458ff642fe7f29c1ddf77ad5589b25bff0c9",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/Bridges.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/Bridges.swift.template",
+      "base_sha256": "38ffae07fc44fa26f3474a20e30f509bbe4821e54e27aced1df4d3eed126ee1d",
+      "final_sha256": "458aea3179cf77714ce08b2b3f845f8d6fb82fd0810b72282e83307af8c2f130",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/DebugBridgeManager.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/DebugBridgeManager.swift.template",
+      "base_sha256": "2a30007bc27d8142321173170e71b2e51aab3f42f0d7c5c0b138ca7f23451032",
+      "final_sha256": "f50bdd708c1876a8559e4ed3712778bb2f418205f6d5a77f7fee26372af83977",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/DebugBridgeTouch.h.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/DebugBridgeTouch.h.template",
+      "base_sha256": "706bb9f8883f95f1d3a238e9cadc6cf4097130e4ad7d9c3880ad7b12c6e43cb7",
+      "final_sha256": "a3b7dc0392fc66dcaa01f07e723cadb7ae723a5a3d1d0c4eb69bbe136f73a34a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/DebugBridgeTouch.m.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/DebugBridgeTouch.m.template",
+      "base_sha256": "8a558cfc2b2648ff4c736b2c2951467bd26fe9f0abc24bf0e319fe147c6f0d95",
+      "final_sha256": "44e3de8d9521060466e69e5f990c3743e9320e2606cac87361313986116f91d5",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/DebugBridgeWiring.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/DebugBridgeWiring.swift.template",
+      "base_sha256": "c12e0ff275d6f644a723a7f274645acf2cef9213d17d55e4c6a27d50c39ce281",
+      "final_sha256": "c3cb3b33977e9ef6486967466df3b958c845f36cd345d52c1ed4d16886297442",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/DebugOverlay.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/DebugOverlay.swift.template",
+      "base_sha256": "c7fb4e32fa34980715b408c6b8e066573458418198c7f881ee4628c7d97cfe0e",
+      "final_sha256": "c7fb4e32fa34980715b408c6b8e066573458418198c7f881ee4628c7d97cfe0e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/Package.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/Package.swift.template",
+      "base_sha256": "dbd6a1dd2644e9468a745118992ce5e40ba3edb14c97de1166298877b4253aef",
+      "final_sha256": "173914f74c50f7b9e6faedbd37a6e39569a870a630d183934f78eac5cbf980fc",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/StateAccessor.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/StateAccessor.swift.template",
+      "base_sha256": "9b5fd44853ccc8befe645d8a8f2c9abb164d0c17d28e3ca040ddc27181a84991",
+      "final_sha256": "b8bb88771f0dda5ec7d76a6e992e288f2c65eadc246dbb993da63335ed2fe459",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "ios-qa/templates/StateServer.swift.template",
+      "output": "testing/ios-quality-assurance/ios-qa/templates/StateServer.swift.template",
+      "base_sha256": "d96cf673c1b79c8cc52c3e5c798557411105aa9e33a10aa463e9559207358ef2",
+      "final_sha256": "16b0d1890351b88bdb5d69a376f8cf36b5e0cc63b8218900ff4cead9e299aeb1",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "benchmark/SKILL.md",
+      "output": "testing/performance-regression/benchmark/SKILL.md",
+      "base_sha256": "ee7802d151599f9cac52aa02e17ed1a923e9fb7878f1c2652824d6fb3b9931a5",
+      "final_sha256": "aa42271c26dae00747e2727636db71d0a4103b6b35a78de6a5a7d4164f812e8b",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "qa/SKILL.md",
+      "output": "testing/web-quality-assurance/qa/SKILL.md",
+      "base_sha256": "1bad225e415d9fe4921a5b21e606b97916121c0c0732c31d1d38b0b5301a4fd6",
+      "final_sha256": "2ccbd2a5757b655561755f3e5562e827d97bbee0915eb09a271a342809bc623d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "qa/references/issue-taxonomy.md",
+      "output": "testing/web-quality-assurance/qa/references/issue-taxonomy.md",
+      "base_sha256": "dbb99950047ddfe6ecc235958b072f713b13cb7af20dcff2773a0bbd11209b12",
+      "final_sha256": "dbb99950047ddfe6ecc235958b072f713b13cb7af20dcff2773a0bbd11209b12",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "qa/templates/qa-report-template.md",
+      "output": "testing/web-quality-assurance/qa/templates/qa-report-template.md",
+      "base_sha256": "b5bef88a00dbca382bee82ebf08f297b8d67878b55312bfe64a14d52595f6111",
+      "final_sha256": "b5bef88a00dbca382bee82ebf08f297b8d67878b55312bfe64a14d52595f6111",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "qa-only/SKILL.md",
+      "output": "testing/web-quality-assurance/qa-only/SKILL.md",
+      "base_sha256": "3d124f2cb5755ee1bef8292beba6140cb1695d11b824f9f98fb0a6564a67769c",
+      "final_sha256": "2bda51166837a57c74b7084217739bb2d7e5e45cf3ff3eee8ea3fc976f0ed524",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "bin/chrome-cdp",
+      "output": "plumbing/bin/chrome-cdp",
+      "base_sha256": "f94eecc77bf4ce9d8136d6380f2f198b27b3deb8f9448b1c2836a2fcd96e6c66",
+      "final_sha256": "f94eecc77bf4ce9d8136d6380f2f198b27b3deb8f9448b1c2836a2fcd96e6c66",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/dev-setup",
+      "output": "plumbing/bin/dev-setup",
+      "base_sha256": "1becc7e71a50c44ca8e1e44cffa392a029996c9b3ca65bb226a740e480d273e5",
+      "final_sha256": "1becc7e71a50c44ca8e1e44cffa392a029996c9b3ca65bb226a740e480d273e5",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/dev-teardown",
+      "output": "plumbing/bin/dev-teardown",
+      "base_sha256": "8d075f00f052daea888ea3bd9d8f99356586d297234ec99a8ce3d85a989fab76",
+      "final_sha256": "8d075f00f052daea888ea3bd9d8f99356586d297234ec99a8ce3d85a989fab76",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-analytics",
+      "output": "plumbing/bin/rig-analytics",
+      "base_sha256": "b31a6d3083250a5dbbf2bd584a8158526670a029e99740a1266ae31be620cecc",
+      "final_sha256": "b31a6d3083250a5dbbf2bd584a8158526670a029e99740a1266ae31be620cecc",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-artifacts-init",
+      "output": "plumbing/bin/rig-artifacts-init",
+      "base_sha256": "3d2661427b40b24048b2c1dec0e93d1c910bacb7b363f4e4603dc4e5a4cb6f26",
+      "final_sha256": "3d2661427b40b24048b2c1dec0e93d1c910bacb7b363f4e4603dc4e5a4cb6f26",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-artifacts-url",
+      "output": "plumbing/bin/rig-artifacts-url",
+      "base_sha256": "9d00f4012c0df428fa7113829870405a07999537a0f549290d7ddaedbfca9323",
+      "final_sha256": "9d00f4012c0df428fa7113829870405a07999537a0f549290d7ddaedbfca9323",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-cache",
+      "output": "plumbing/bin/rig-brain-cache",
+      "base_sha256": "3ec5184d94bf891f94d0149b197579779d0f7344a85e6f011feed776b31c31da",
+      "final_sha256": "757fe0435666bedd1205b666a08b94ca8ff0eb7c1b05791f0fca5d37e2f9c088",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-consumer",
+      "output": "plumbing/bin/rig-brain-consumer",
+      "base_sha256": "b63c9a74c698026857dfa5027799004d7d123ba9ac68a2b2cde1cfeb254805e0",
+      "final_sha256": "b63c9a74c698026857dfa5027799004d7d123ba9ac68a2b2cde1cfeb254805e0",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-context-load.ts",
+      "output": "plumbing/bin/rig-brain-context-load.ts",
+      "base_sha256": "25ba5ba70305fa8a21e689df1f9d2294651cf944c87e5fc8c462eb758c33a3fd",
+      "final_sha256": "94c35a0c0ae1b3f0d1839c3cd89b73fd3365a3b863889f30e91e49241a04b51d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-detect",
+      "base_sha256": null,
+      "final_sha256": "e89208014a2f393dbef298f7aeb59c8fbb858fa2704657a0fbd6abf378c81284",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-enqueue",
+      "output": "plumbing/bin/rig-brain-enqueue",
+      "base_sha256": "a31f5a0428eb524688f715254500015e489a1ef11e9f559c9402467cf7081dbe",
+      "final_sha256": "a31f5a0428eb524688f715254500015e489a1ef11e9f559c9402467cf7081dbe",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-install",
+      "base_sha256": null,
+      "final_sha256": "5a1d082a06a13199b7ce72d42e0fbf04c360e4e6899e1b9a73be2311cfff6160",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-lib.sh",
+      "base_sha256": null,
+      "final_sha256": "c4b4569b477f8711f476edf5ef7700cfef7cdec94e9e0d8236db7c37f3d495f7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-mcp-verify",
+      "base_sha256": null,
+      "final_sha256": "9dcd8ad79dbba210786c8f758402022ae68e8de733653bed01f90fee198c9961",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-consumer",
+      "output": "plumbing/bin/rig-brain-reader",
+      "base_sha256": "b63c9a74c698026857dfa5027799004d7d123ba9ac68a2b2cde1cfeb254805e0",
+      "final_sha256": "b63c9a74c698026857dfa5027799004d7d123ba9ac68a2b2cde1cfeb254805e0",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-repo-policy",
+      "base_sha256": null,
+      "final_sha256": "cf8001618f276f606cd24789773fd96a5fc7c775079230358c23d36c78a3f61c",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-restore",
+      "output": "plumbing/bin/rig-brain-restore",
+      "base_sha256": "ee76fc0164205b8926aacb6c3137f9d03cff965f5a10a4aaccc120a12ca1b6dd",
+      "final_sha256": "ee76fc0164205b8926aacb6c3137f9d03cff965f5a10a4aaccc120a12ca1b6dd",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-source-wireup",
+      "base_sha256": null,
+      "final_sha256": "63b19dadfcebfa9d17d6d0745ce1970bc9cfec0422ce810cf9e7bb7878b57dd3",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-supabase-provision",
+      "base_sha256": null,
+      "final_sha256": "f0ea1f885e62da8a3aa9016ed7d6fdf8f619db93159b8bbe8319640f9a0b13c4",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-supabase-verify",
+      "base_sha256": null,
+      "final_sha256": "62685de16b23770af34c53b744f4e84b34d47c9b2f7449cd07c5a2d3b279ea78",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-brain-sync",
+      "output": "plumbing/bin/rig-brain-sync",
+      "base_sha256": "04ba575b323abdb6dc39cc5b6f5949fbf2e97aea8a44e984240a11ce474b1b66",
+      "final_sha256": "04ba575b323abdb6dc39cc5b6f5949fbf2e97aea8a44e984240a11ce474b1b66",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-brain-sync.ts",
+      "base_sha256": null,
+      "final_sha256": "44e7efb54bfc5a7e0e6edd784a07211863a498f95c42db818284012ddf83b86a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "bin/gstack-brain-uninstall",
+      "output": "plumbing/bin/rig-brain-uninstall",
+      "base_sha256": "2483ca5330fba1105cae260dd6da894383e70b4768654a79c0e4975c53ae9b74",
+      "final_sha256": "2483ca5330fba1105cae260dd6da894383e70b4768654a79c0e4975c53ae9b74",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-builder-profile",
+      "output": "plumbing/bin/rig-builder-profile",
+      "base_sha256": "b15c5472578c14ff1e1389a4e3ad6a61f3a0b1edf9a890c9e12ac5452a96edfe",
+      "final_sha256": "b15c5472578c14ff1e1389a4e3ad6a61f3a0b1edf9a890c9e12ac5452a96edfe",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-codex-probe",
+      "output": "plumbing/bin/rig-codex-probe",
+      "base_sha256": "df0bf6843d125bca9879c9de161bb445e4ae92012ffe152c6b614968decd2dd3",
+      "final_sha256": "df0bf6843d125bca9879c9de161bb445e4ae92012ffe152c6b614968decd2dd3",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-codex-session-import",
+      "output": "plumbing/bin/rig-codex-session-import",
+      "base_sha256": "85bdb70f2c431587023bc4e3542799e887ef14592183c32c427b3b15f73b07eb",
+      "final_sha256": "85bdb70f2c431587023bc4e3542799e887ef14592183c32c427b3b15f73b07eb",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-community-dashboard",
+      "output": "plumbing/bin/rig-community-dashboard",
+      "base_sha256": "5ed0054b12dc30f03689625b707af1cf87fc5333eef23c3c3e3e74cbe4b2efdf",
+      "final_sha256": "5ed0054b12dc30f03689625b707af1cf87fc5333eef23c3c3e3e74cbe4b2efdf",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-config",
+      "output": "plumbing/bin/rig-config",
+      "base_sha256": "89eebd97afd734244c1b3ba1d6d217f3d5a1959da9dc94a94946fb365b3157d7",
+      "final_sha256": "5855a6f63807a6e7ba8e9d6ab238195ac3bfe3791a35a83acc5d1bb96fbeeb48",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-decision-log",
+      "output": "plumbing/bin/rig-decision-log",
+      "base_sha256": "5da2c54f09dd9cb5401f1f685c14c98edaca6f1168b00e73d20241faa93aaeae",
+      "final_sha256": "5da2c54f09dd9cb5401f1f685c14c98edaca6f1168b00e73d20241faa93aaeae",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-decision-search",
+      "output": "plumbing/bin/rig-decision-search",
+      "base_sha256": "0b9041fc39010861ad1aa500f69de994a05d46d6e8412e6491f98e621d9583d2",
+      "final_sha256": "0b9041fc39010861ad1aa500f69de994a05d46d6e8412e6491f98e621d9583d2",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-detach",
+      "output": "plumbing/bin/rig-detach",
+      "base_sha256": "fc62ca5efac6a750333b0970a513b905c4dcd5971d3a9f10c0286d65e8f4669d",
+      "final_sha256": "f8f94958aa0ad0b53bcda921952ae97b864c176de6a82a7cb4e74d1492ba992e",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-developer-profile",
+      "output": "plumbing/bin/rig-developer-profile",
+      "base_sha256": "4d6ca0ed7dc4227d0809206dff625f15cc77fbd75db5f80a4a32995dca0f9747",
+      "final_sha256": "4d6ca0ed7dc4227d0809206dff625f15cc77fbd75db5f80a4a32995dca0f9747",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-diff-scope",
+      "output": "plumbing/bin/rig-diff-scope",
+      "base_sha256": "539685e3a31f2095df4d2768ac7235f1df4c6aeee4dc337885921fc5373bcfab",
+      "final_sha256": "539685e3a31f2095df4d2768ac7235f1df4c6aeee4dc337885921fc5373bcfab",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-distill-apply",
+      "output": "plumbing/bin/rig-distill-apply",
+      "base_sha256": "686a32173fec34fe8382fe8ac72421f0c509c6e3641b35749f92c5ba2728c6a7",
+      "final_sha256": "686a32173fec34fe8382fe8ac72421f0c509c6e3641b35749f92c5ba2728c6a7",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-distill-free-text",
+      "output": "plumbing/bin/rig-distill-free-text",
+      "base_sha256": "e357ebf2ad0500dbfd427409350b6478c29ee4d4d2a769c0778fb8fbccbf3cc1",
+      "final_sha256": "e9ce0441e715466fb74cb47a8a1a860c2dfbeb51239dc9560b1a9f0e239d6081",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-extension",
+      "output": "plumbing/bin/rig-extension",
+      "base_sha256": "6412bcedb8d3639d1b00eb755ecde2f6039752b53faf5ab484036ffe04960c7b",
+      "final_sha256": "6412bcedb8d3639d1b00eb755ecde2f6039752b53faf5ab484036ffe04960c7b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-first-task-detect",
+      "output": "plumbing/bin/rig-first-task-detect",
+      "base_sha256": "44b1a9597188aab68d64c0bd0dc753bf2e2cd036eab8b657674e059d4fa2977e",
+      "final_sha256": "44b1a9597188aab68d64c0bd0dc753bf2e2cd036eab8b657674e059d4fa2977e",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-global-discover.ts",
+      "output": "plumbing/bin/rig-global-discover.ts",
+      "base_sha256": "64bf66384b5336909a472addf5762be752d9773d04b8310ba1b956645b80f0ed",
+      "final_sha256": "64bf66384b5336909a472addf5762be752d9773d04b8310ba1b956645b80f0ed",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "bin/gstack-ios-qa-daemon",
+      "output": "plumbing/bin/rig-ios-qa-daemon",
+      "base_sha256": "9fd4a9d82f15097905de469b0a81ae7b122a2c75cb9bf75994115432bf2145b1",
+      "final_sha256": "9fd4a9d82f15097905de469b0a81ae7b122a2c75cb9bf75994115432bf2145b1",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-ios-qa-mint",
+      "output": "plumbing/bin/rig-ios-qa-mint",
+      "base_sha256": "a0248a85891b3ff67104c2e1bbfc9c2b05a581c9a80b269ec8c4ff4c86db877a",
+      "final_sha256": "a0248a85891b3ff67104c2e1bbfc9c2b05a581c9a80b269ec8c4ff4c86db877a",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": null,
+      "output": "plumbing/bin/rig-ios-qa-regen",
+      "base_sha256": null,
+      "final_sha256": "9ed82a6242f576ad563c1aed8ecefb6266968c0a7406f8de056216695af018a1",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-jsonl-merge",
+      "output": "plumbing/bin/rig-jsonl-merge",
+      "base_sha256": "308765ee9328ecb55c2437862dc3d51d7b983d1a24dcd84bae6fc4ef49bfb21a",
+      "final_sha256": "308765ee9328ecb55c2437862dc3d51d7b983d1a24dcd84bae6fc4ef49bfb21a",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-learnings-log",
+      "output": "plumbing/bin/rig-learnings-log",
+      "base_sha256": "8dd2031f355d3d16458d1358429ae9c124ea12f6c50df7ab680a220bd53c2b57",
+      "final_sha256": "8dd2031f355d3d16458d1358429ae9c124ea12f6c50df7ab680a220bd53c2b57",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-learnings-search",
+      "output": "plumbing/bin/rig-learnings-search",
+      "base_sha256": "280278c1b0183133ffde75be176ca987f83ad7b7772f471ef27611e91b9e9769",
+      "final_sha256": "280278c1b0183133ffde75be176ca987f83ad7b7772f471ef27611e91b9e9769",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-memory-ingest.ts",
+      "output": "plumbing/bin/rig-memory-ingest.ts",
+      "base_sha256": "76b852f525a7a3ccec42fdda4bd2bfe7d6ed1fbbaded9c1594149ea200442eb7",
+      "final_sha256": "3cba0201374c41cba1d776eec4870bf9dbc50a1098ae10d13d1dff9d5cc2974e",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "bin/gstack-model-benchmark",
+      "output": "plumbing/bin/rig-model-benchmark",
+      "base_sha256": "0a6404d600d115e5d07f55c97380d77969ca7cb83a3b19654b700afd9e0bdf2b",
+      "final_sha256": "0a6404d600d115e5d07f55c97380d77969ca7cb83a3b19654b700afd9e0bdf2b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-next-version",
+      "output": "plumbing/bin/rig-next-version",
+      "base_sha256": "e08510c9cc6574b245f8d661a8a2e786a9115769741e4c2896b8978054d0811b",
+      "final_sha256": "e08510c9cc6574b245f8d661a8a2e786a9115769741e4c2896b8978054d0811b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-open-url",
+      "output": "plumbing/bin/rig-open-url",
+      "base_sha256": "db5e9f9436eb2c37038c6e28c5de50b31637fa9b61eddf23f6f44d827d07525b",
+      "final_sha256": "db5e9f9436eb2c37038c6e28c5de50b31637fa9b61eddf23f6f44d827d07525b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-patch-names",
+      "output": "plumbing/bin/rig-patch-names",
+      "base_sha256": "ddcb26d660c8f8017a9552dd7c5821c23e84c50244b32bdbbc746f6ef3548696",
+      "final_sha256": "ddcb26d660c8f8017a9552dd7c5821c23e84c50244b32bdbbc746f6ef3548696",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-paths",
+      "output": "plumbing/bin/rig-paths",
+      "base_sha256": "b6dfe5830369822f616a057ffc5389397285b0088798fcde43723600efb8c7a1",
+      "final_sha256": "b6dfe5830369822f616a057ffc5389397285b0088798fcde43723600efb8c7a1",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-platform-detect",
+      "output": "plumbing/bin/rig-platform-detect",
+      "base_sha256": "6791390b7145815a34b720de68a67810dfa465f4fa2a9169eeb99ee95784ea9d",
+      "final_sha256": "6791390b7145815a34b720de68a67810dfa465f4fa2a9169eeb99ee95784ea9d",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-pr-title-rewrite.sh",
+      "output": "plumbing/bin/rig-pr-title-rewrite.sh",
+      "base_sha256": "7f7e2d15d7102f81f2f196cab8a0a62852844df8c1f5afaad24a908b01922600",
+      "final_sha256": "7f7e2d15d7102f81f2f196cab8a0a62852844df8c1f5afaad24a908b01922600",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-question-log",
+      "output": "plumbing/bin/rig-question-log",
+      "base_sha256": "5af6e8c38a6af012518f7c04cd9de931dd134c3709bed5a1926bb0d2d1b3465e",
+      "final_sha256": "5af6e8c38a6af012518f7c04cd9de931dd134c3709bed5a1926bb0d2d1b3465e",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-question-preference",
+      "output": "plumbing/bin/rig-question-preference",
+      "base_sha256": "16a2f6bca2dacf0af0ec09f8559de6a39fad3d6e392c02d8ef3a10c52fd29d77",
+      "final_sha256": "afa9c83a98d40603e7969c74b645160e614a501180b52c907dd9b714807d3d91",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-redact",
+      "output": "plumbing/bin/rig-redact",
+      "base_sha256": "5f1c0312f4a6a3d7bcdc6441db4f07049ea59f3c800067a55285be3ed8c8b028",
+      "final_sha256": "5f1c0312f4a6a3d7bcdc6441db4f07049ea59f3c800067a55285be3ed8c8b028",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-redact-prepush",
+      "output": "plumbing/bin/rig-redact-prepush",
+      "base_sha256": "8a79df5b5f4c3e6e1bd36162fbad177cfe529eb4f0ef85027e25be6c09728ddd",
+      "final_sha256": "8a79df5b5f4c3e6e1bd36162fbad177cfe529eb4f0ef85027e25be6c09728ddd",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-relink",
+      "output": "plumbing/bin/rig-relink",
+      "base_sha256": "1fe17745dd09ca122795db173af588cd269e4a3aefcab200d167e3deb8cae696",
+      "final_sha256": "1fe17745dd09ca122795db173af588cd269e4a3aefcab200d167e3deb8cae696",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-repo-mode",
+      "output": "plumbing/bin/rig-repo-mode",
+      "base_sha256": "9ce6984468adcb1c94ad91eacad1d6b16789dd4af59513f312f447be031a03bb",
+      "final_sha256": "647cd41148197d1a89eabed51a48cd49da3d6cc0ff114293ed396387fe0fc7df",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-review-log",
+      "output": "plumbing/bin/rig-review-log",
+      "base_sha256": "a9631f23995486e6a86d572b7caba97ab9f7451eb827ee867000b8b0961dfb1a",
+      "final_sha256": "a9631f23995486e6a86d572b7caba97ab9f7451eb827ee867000b8b0961dfb1a",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-review-read",
+      "output": "plumbing/bin/rig-review-read",
+      "base_sha256": "70549cac16102c2cb46d7c8153b13c07532340c64fe0d2de07eefaa4eb66b75a",
+      "final_sha256": "70549cac16102c2cb46d7c8153b13c07532340c64fe0d2de07eefaa4eb66b75a",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-security-dashboard",
+      "output": "plumbing/bin/rig-security-dashboard",
+      "base_sha256": "42e397705748fb823998b3a23d0d90c65b3882b1199fa1a5080a7ed91b95afe1",
+      "final_sha256": "42e397705748fb823998b3a23d0d90c65b3882b1199fa1a5080a7ed91b95afe1",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-session-kind",
+      "output": "plumbing/bin/rig-session-kind",
+      "base_sha256": "7b74d31167089551da3bebdbab69e1cb330b96036c1a8f6b55ecddcb954bf07f",
+      "final_sha256": "7b74d31167089551da3bebdbab69e1cb330b96036c1a8f6b55ecddcb954bf07f",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-session-update",
+      "output": "plumbing/bin/rig-session-update",
+      "base_sha256": "46b91f4208322913329407a31b4af1ca2709ad3b826866cb9b37f5b669739de2",
+      "final_sha256": "46b91f4208322913329407a31b4af1ca2709ad3b826866cb9b37f5b669739de2",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-settings-hook",
+      "output": "plumbing/bin/rig-settings-hook",
+      "base_sha256": "ba6e6470e8bbab03cdb50fd5496b4f3f2352cda2e3f6bcc12d10ba929df110e3",
+      "final_sha256": "ba6e6470e8bbab03cdb50fd5496b4f3f2352cda2e3f6bcc12d10ba929df110e3",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-slug",
+      "output": "plumbing/bin/rig-slug",
+      "base_sha256": "c4e4419159bbf6fdfa9e29eaf63ef643958700a58fceb861f8084acae8339d3b",
+      "final_sha256": "c4e4419159bbf6fdfa9e29eaf63ef643958700a58fceb861f8084acae8339d3b",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-specialist-stats",
+      "output": "plumbing/bin/rig-specialist-stats",
+      "base_sha256": "fa44cbcf520247dd709b80860cf74d40939f820cf5332e042435ec6742eabd78",
+      "final_sha256": "fa44cbcf520247dd709b80860cf74d40939f820cf5332e042435ec6742eabd78",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-taste-update",
+      "output": "plumbing/bin/rig-taste-update",
+      "base_sha256": "7648f30212b08f4573206df5f5a5805c579b06e1403dc74bbb4565982369c0e7",
+      "final_sha256": "7648f30212b08f4573206df5f5a5805c579b06e1403dc74bbb4565982369c0e7",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-team-init",
+      "output": "plumbing/bin/rig-team-init",
+      "base_sha256": "82408725689686801542c89c4f998794d771547bf5463cf64e2589cc3e81d99e",
+      "final_sha256": "82408725689686801542c89c4f998794d771547bf5463cf64e2589cc3e81d99e",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-telemetry-log",
+      "output": "plumbing/bin/rig-telemetry-log",
+      "base_sha256": "6d7c3ec774e5bb933fb5404099b32bb5f1068ca49a5687b41c943ea6e32a6c69",
+      "final_sha256": "6d7c3ec774e5bb933fb5404099b32bb5f1068ca49a5687b41c943ea6e32a6c69",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-telemetry-sync",
+      "output": "plumbing/bin/rig-telemetry-sync",
+      "base_sha256": "498b75d84ad49e3e96bf0c8e0aa0062e1d177c067c2ae43771f8a63b6c3a2488",
+      "final_sha256": "498b75d84ad49e3e96bf0c8e0aa0062e1d177c067c2ae43771f8a63b6c3a2488",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-timeline-log",
+      "output": "plumbing/bin/rig-timeline-log",
+      "base_sha256": "017a7cffbe2f1a6c3d5eb0c170d2a5f258c22f68e84a1fab7a074b85d7de9100",
+      "final_sha256": "017a7cffbe2f1a6c3d5eb0c170d2a5f258c22f68e84a1fab7a074b85d7de9100",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-timeline-read",
+      "output": "plumbing/bin/rig-timeline-read",
+      "base_sha256": "df09096dcac608fdee57696c3fb5854e844152219cf9b01d11b421dd9e48ddd5",
+      "final_sha256": "df09096dcac608fdee57696c3fb5854e844152219cf9b01d11b421dd9e48ddd5",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-uninstall",
+      "output": "plumbing/bin/rig-uninstall",
+      "base_sha256": "65cece35164e7472b26ddf1185191dd4ad288abc06943c342e1fca286b1de0bf",
+      "final_sha256": "65cece35164e7472b26ddf1185191dd4ad288abc06943c342e1fca286b1de0bf",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-update-check",
+      "output": "plumbing/bin/rig-update-check",
+      "base_sha256": "4fdb28acc8e2e5bd0ed29add4c73ffa6d381d4adea8cf0340f65c321b2a167be",
+      "final_sha256": "4fdb28acc8e2e5bd0ed29add4c73ffa6d381d4adea8cf0340f65c321b2a167be",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "bin/gstack-version-bump",
+      "output": "plumbing/bin/rig-version-bump",
+      "base_sha256": "470a7939ddceb91cdd59bb311db19cc4752d2472f3b89ac43675dc58fe66eeff",
+      "final_sha256": "470a7939ddceb91cdd59bb311db19cc4752d2472f3b89ac43675dc58fe66eeff",
+      "rename": true,
+      "mode": 493
+    },
+    {
+      "upstream": "lib/bin-context.ts",
+      "output": "plumbing/lib/bin-context.ts",
+      "base_sha256": "a95581e591a688790b4743d42a4cf438c81b95a4437a9f6f86dbc2763708ac3a",
+      "final_sha256": "a95581e591a688790b4743d42a4cf438c81b95a4437a9f6f86dbc2763708ac3a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gbrain-exec.ts",
+      "output": "plumbing/lib/brain-exec.ts",
+      "base_sha256": "13ec3b283d7017808ec83d7dc926d1f70cdfc1d7ea4649f8c18baec67bf027ba",
+      "final_sha256": "b9a44c6859c44415d7ca7e06749984174630e8e613e3eb3c4bc751985a35a8d7",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gbrain-guards.ts",
+      "output": "plumbing/lib/brain-guards.ts",
+      "base_sha256": "679b3d0efd9a67f7d61f535bfb5e74e2e71925a667dc8d6a5a926e4030269a3b",
+      "final_sha256": "b3c48d56721e5778ce172181bc873fdcbbc9cd90f01eb3356a1a01378bc289ef",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gbrain-local-status.ts",
+      "output": "plumbing/lib/brain-local-status.ts",
+      "base_sha256": "98281586c14b6515d10cd302325e32b11a79f55970ba32f5734470c7d475323e",
+      "final_sha256": "b392c8820fc8927bce27f6d4f7c1375b5253f4f7cc5a6bce55b484372ca31c78",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gbrain-sources.ts",
+      "output": "plumbing/lib/brain-sources.ts",
+      "base_sha256": "e164ef2f09fa3e4822c47937b9fc35c504edd78d0162f78e93a8c8be401cc6de",
+      "final_sha256": "6424ce76713441a66b0c5e823600f0782e4dce639b38d2ddeba713ae066f26c9",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/conductor-env-shim.ts",
+      "output": "plumbing/lib/conductor-env-shim.ts",
+      "base_sha256": "1ac004d7f0e3175af199f66ea5d080d14836fb321ad023515ce4e18531dbb2dd",
+      "final_sha256": "1ac004d7f0e3175af199f66ea5d080d14836fb321ad023515ce4e18531dbb2dd",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/README.md",
+      "output": "plumbing/lib/diagram-render/README.md",
+      "base_sha256": "d7e0f7e3f27a30c90c2e3abe04439fb92740661d8253ef4528d98c38de650fc4",
+      "final_sha256": "d7e0f7e3f27a30c90c2e3abe04439fb92740661d8253ef4528d98c38de650fc4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/THIRD-PARTY-LICENSES.md",
+      "output": "plumbing/lib/diagram-render/THIRD-PARTY-LICENSES.md",
+      "base_sha256": "ad2d0997c63293b7f0820106bad8d4555d5c8a7fefda50f9b9ceb2dcf7a88391",
+      "final_sha256": "ad2d0997c63293b7f0820106bad8d4555d5c8a7fefda50f9b9ceb2dcf7a88391",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/bun.lock",
+      "output": "plumbing/lib/diagram-render/bun.lock",
+      "base_sha256": "cbe12c5ed965743fe74455a4e3b65ac95ecfe04f4194083c7eeaeee8175ae355",
+      "final_sha256": "cbe12c5ed965743fe74455a4e3b65ac95ecfe04f4194083c7eeaeee8175ae355",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/package.json",
+      "output": "plumbing/lib/diagram-render/package.json",
+      "base_sha256": "271b02f5948e208d20f829b04561bccc5afc17fdcb51e2e7f2ba8ddc7ea6135a",
+      "final_sha256": "271b02f5948e208d20f829b04561bccc5afc17fdcb51e2e7f2ba8ddc7ea6135a",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/scripts/build.ts",
+      "output": "plumbing/lib/diagram-render/scripts/build.ts",
+      "base_sha256": "4db758d54ec502196515aa3daa122bf7619dabd211c85f1a59e194963d03924c",
+      "final_sha256": "4db758d54ec502196515aa3daa122bf7619dabd211c85f1a59e194963d03924c",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/diagram-render/src/entry.ts",
+      "output": "plumbing/lib/diagram-render/src/entry.ts",
+      "base_sha256": "661ba04c0f90534639fe4140c189da377108704a91dd4ce49dceee2b0ef997ae",
+      "final_sha256": "661ba04c0f90534639fe4140c189da377108704a91dd4ce49dceee2b0ef997ae",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/is-conductor.ts",
+      "output": "plumbing/lib/is-conductor.ts",
+      "base_sha256": "6a26bad4a98ceff0073757add64271b2db34ddd80e22268af826ebda66d39b67",
+      "final_sha256": "6a26bad4a98ceff0073757add64271b2db34ddd80e22268af826ebda66d39b67",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/jsonl-store.ts",
+      "output": "plumbing/lib/jsonl-store.ts",
+      "base_sha256": "f744614e52c849c4c87908915b4ad3e089254df41a279b2f04c89be552148661",
+      "final_sha256": "f744614e52c849c4c87908915b4ad3e089254df41a279b2f04c89be552148661",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/redact-audit-log.ts",
+      "output": "plumbing/lib/redact-audit-log.ts",
+      "base_sha256": "89d1412709355072cd2fb4fec1548c406ef5a36ede81b7de9197a7a6884d4ab4",
+      "final_sha256": "89d1412709355072cd2fb4fec1548c406ef5a36ede81b7de9197a7a6884d4ab4",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/redact-engine.ts",
+      "output": "plumbing/lib/redact-engine.ts",
+      "base_sha256": "d73ba349dbcb07c54c43f6d31787d5349b50d97713a23db6598e64f5248a1060",
+      "final_sha256": "d73ba349dbcb07c54c43f6d31787d5349b50d97713a23db6598e64f5248a1060",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/redact-patterns.ts",
+      "output": "plumbing/lib/redact-patterns.ts",
+      "base_sha256": "342540c3a2a5d47b75bd088a07da37c8867199db831aa99ef50fb8e206f0ec4f",
+      "final_sha256": "85bffb387d4fef0608ae2fc223e4f60fd59ad884077d83be3ac6b3e0895fec62",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gstack-decision-semantic.ts",
+      "output": "plumbing/lib/rig-decision-semantic.ts",
+      "base_sha256": "472d1946edf85a05f7bbede589d645757ad33af31fa545ec5efb0bc45b01503b",
+      "final_sha256": "71b8db10ec7b7ae6f1ef4d5500a479a44ab8117494f243ccadde6fe5e47c3884",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gstack-decision.ts",
+      "output": "plumbing/lib/rig-decision.ts",
+      "base_sha256": "bbe95ccfc9e31cb97fa35661063d4a0de810f9859a5d0e5bf50a5704c9b594cb",
+      "final_sha256": "bbe95ccfc9e31cb97fa35661063d4a0de810f9859a5d0e5bf50a5704c9b594cb",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/gstack-memory-helpers.ts",
+      "output": "plumbing/lib/rig-memory-helpers.ts",
+      "base_sha256": "1f4a8be14f590382523a543393638353b9c1df7e8f5fa1745bb1f1a04517b769",
+      "final_sha256": "044fcf25bdf313ca73fe1b06d1660b08912487200687788f33de33598d00123d",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/staging-guard.ts",
+      "output": "plumbing/lib/staging-guard.ts",
+      "base_sha256": "1aee3cbecc6653548190e3386f69b75352365807a5dbb834088da310f41b97e2",
+      "final_sha256": "1aee3cbecc6653548190e3386f69b75352365807a5dbb834088da310f41b97e2",
+      "rename": true,
+      "mode": 420
+    },
+    {
+      "upstream": "lib/worktree.ts",
+      "output": "plumbing/lib/worktree.ts",
+      "base_sha256": "80d8e98fe1422dd4e35934ce0b749517f5e3e555de9676fbbbff64eadcd0e613",
+      "final_sha256": "80d8e98fe1422dd4e35934ce0b749517f5e3e555de9676fbbbff64eadcd0e613",
+      "rename": true,
+      "mode": 420
+    }
+  ],
+  "local_patches": [
+    {
+      "id": "RIG-135.2",
+      "file": "patches/135.2-browser-skill-commands.patch",
+      "sha256": "b8c28dff32e57d8c34a23cab5ecd13082b8a179100e01e9db0978f8dfab8f1c6",
+      "purpose": "Kill skill scripts by process group so forked descendants die; adds the Rig-authored src/process-tree.ts."
+    },
+    {
+      "id": "RIG-135.3",
+      "file": "patches/135.3-xvfb.patch",
+      "sha256": "2f839d5d24f92d752a43586cc423f0041d4fdf058f6131fde9faf0af840b37a8",
+      "purpose": "Spawn Xvfb detached and stop it by process group."
+    },
+    {
+      "id": "RIG-135.1",
+      "file": "patches/135.1-cookie-import-browser.patch",
+      "sha256": "7b511f789e5b4c641d5e936ab3af997e67434688363cd94d82f65e3b34bd4876",
+      "purpose": "Kill the whole Chromium tree on every cookie-import exit path; extends process-tree.ts."
+    },
+    {
+      "id": "rig-shelf-overlay",
+      "file": "patches/shelf-overlay.patch",
+      "sha256": "47fee37a550de33bb626b4bd8d82dde7f034d1fc81b14d2790ca837d5e6354a1",
+      "purpose": "Required Rig frontmatter, neutralized illustrative strings and compatibility deltas. Verify upstream base bytes first."
+    }
+  ],
+  "patches_note": "Process cleanup patches first, then all other necessary modifications. Null upstream is an explicit Rig addition."
+}

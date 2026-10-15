@@ -1,6 +1,6 @@
 # development.code-quality.lint-format — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for lint format. The minimal boundary for lint format checks format_command (nonempty): format command must name the concrete repository contract.. Binding checks: lint-format-formatter-clean.
+Grade: minimal. Assurance remains Policy grade. Minimal — formatter cleanliness establishes a non-vacuous policy boundary for lint format. The minimal boundary for lint format checks format_command (nonempty): format command must name the concrete repository contract.. Binding checks: lint-format-formatter-clean.
 
 Start from a repository-owned command or existing native check that can observe code-quality.lint-format; bind it to the input named in `rig-services/development.code-quality.lint-format.json` and preserve the check's failure status. When adopting this in an existing repository, connect lint format to the command that inspects format_command and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside code-quality.lint-format as a failure.
 

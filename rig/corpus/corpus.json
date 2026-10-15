@@ -2,18 +2,36 @@
   "schema_version": 1,
   "name": "rig-corpus",
   "description": "The one Rig corpus. Everything a repository receives is projected from here by rig/lib/project.js; nothing is authored twice.",
-  "skill_order": ["grilling", "product-design", "implementation", "execution", "tdd", "debugging", "code-review", "onboarding"],
+  "skill_order": [
+    "grilling",
+    "product-design",
+    "implementation",
+    "router",
+    "execution",
+    "tdd",
+    "debugging",
+    "code-review",
+    "onboarding"
+  ],
   "skills": {
     "grilling": "rig/corpus/skills/grilling/SKILL.md",
     "product-design": "rig/corpus/skills/product-design/SKILL.md",
     "implementation": "skills/rig/SKILL.md",
+    "router": "rig/corpus/skills/router/SKILL.md",
     "execution": "rig/corpus/skills/execution/SKILL.md",
     "tdd": "rig/corpus/skills/tdd/SKILL.md",
     "debugging": "rig/corpus/skills/debugging/SKILL.md",
     "code-review": "rig/corpus/skills/code-review/SKILL.md",
     "onboarding": "rig/corpus/skills/onboarding/SKILL.md"
   },
-  "workflows": ["rig", "rig-review", "rig-audit", "rig-debt", "rig-gain", "rig-help"],
+  "workflows": [
+    "rig",
+    "rig-review",
+    "rig-audit",
+    "rig-debt",
+    "rig-gain",
+    "rig-help"
+  ],
   "adapters": {
     "pointer": "rig/corpus/projections/adapters/pointer.md",
     "cursor": "rig/corpus/projections/adapters/cursor.mdc",
@@ -25,10 +43,11 @@
     "implementation": "The implementation skill is also the Rig plugin component that plugin hosts load as skills/rig/SKILL.md. The corpus names that file as its single copy instead of duplicating it."
   },
   "external_sources": {
-    "services": "rig/catalog/services",
+    "services": "rig/corpus/services",
     "shelf": "rig/catalog/skills",
     "plumbing": "rig/catalog/plumbing",
     "baseline": "rig/catalog/baseline",
-    "reason": "The signed oracle pins these source paths and their bytes (AT-PB-1, AT-PB-3, AT-ADV licence checks). They move to rig/corpus/ in the same change that re-signs those cases; see wiki/specs/close-everything/candidate-amendments/03-central-corpus.md."
+    "reason": "Legacy catalogue bytes remain only for frozen compatibility assertions until the owner applies the final amendment bundle. Active delivery reads the canonical corpus.",
+    "catalogue": "rig/corpus/catalogue.json"
   }
 }

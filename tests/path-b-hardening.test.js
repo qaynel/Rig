@@ -5,6 +5,20 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// Install fetches the optional shelf during onboarding; it no longer stages the
+// 55 skill trees. The cases below exercise the v5 staged source that
+// optionalProjectionSource still reads, so they stage it from the repository
+// shelf — the same bytes the catalogue row's tree digest covers.
+function stageShelfSkill(h, target, id) {
+  const row = h.readJson(path.join(target, '.rig/catalog.json')).skills
+    .find((skill) => skill.id === id || skill.name === id);
+  assert.ok(row, `unknown catalogue skill "${id}"`);
+  const staged = path.dirname(path.join(target, '.rig/runtime/rig', row.source_rel.slice('rig/'.length)));
+  fs.mkdirSync(path.dirname(staged), { recursive: true });
+  fs.cpSync(path.dirname(path.join(h.root, row.source_rel)), staged, { recursive: true });
+  return staged;
+}
+
 describe('Path B oracle documentation consistency', () => {
   it('wiki files should not contain "awaiting signature" text when oracle is verified green', () => {
     // Verify that check-advanced-spec.js exits 0 (oracle is signed)
@@ -92,16 +106,17 @@ describe('Task 2 — single playbook write per install mode', () => {
   });
 });
 
-describe('Task 3 — instruction-only hosts see only 8 mandatory skills after adaptive install', () => {
+describe('Task 3 — instruction-only hosts see only the mandatory skills after adaptive install', () => {
   const h = require('./helpers/path-b');
   const path = require('path');
 
-  // The 8 mandatory skills installed to .rig/skills/ for instruction-only hosts.
-  // 7 are tier-1 phase skills gated by instruction_only_selected; 1 is the
-  // adaptive-mode onboarding playbook gated by active_delivery.
+  // The mandatory skills installed to .rig/skills/ for instruction-only hosts:
+  // seven phase skills gated by instruction_only_selected, the adaptive-mode
+  // onboarding playbook gated by active_delivery, the router, and the router
+  // again under the `rig` name RIG-149 pins as the fallback invocation path.
   const MANDATORY_SKILLS = [
     'grilling', 'product-design', 'implementation', 'execution',
-    'tdd', 'debugging', 'code-review', 'onboarding',
+    'tdd', 'debugging', 'code-review', 'onboarding', 'router',
   ];
 
   // Instruction-only hosts: rely on .rig/skills/ as their Rig-managed discovery
@@ -118,15 +133,15 @@ describe('Task 3 — instruction-only hosts see only 8 mandatory skills after ad
   }
 
   for (const host of INSTRUCTION_ONLY_HOSTS) {
-    it(`${host}: adaptive install exposes exactly 8 mandatory skills (not 63)`, async () => {
+    it(`${host}: adaptive install exposes exactly the mandatory skills (not 63)`, async () => {
       await h.withRepo(async (target) => {
         const { runPayload } = require(path.join(h.root, 'rig', 'lib', 'payload.js'));
         runPayload(target, [host], { activeDelivery: true });
         const discoverable = skillDirs(target);
         assert.equal(
           discoverable.length,
-          8,
-          `Expected exactly 8 discoverable skills for ${host}, got ${discoverable.length}: ${discoverable.sort().join(', ')}`,
+          MANDATORY_SKILLS.length,
+          `Expected exactly ${MANDATORY_SKILLS.length} discoverable skills for ${host}, got ${discoverable.length}: ${discoverable.sort().join(', ')}`,
         );
         for (const skill of MANDATORY_SKILLS) {
           assert.ok(
@@ -146,6 +161,9 @@ describe('Task 3 — instruction-only hosts see only 8 mandatory skills after ad
       const discoverable = skillDirs(target);
       const vendored = listVendoredSkills();
       for (const skill of vendored) {
+        // `rig` is Rig's own router under its RIG-149 fallback name, not the
+        // shelf's routing skill; every other shelf name must stay unprojected.
+        if (MANDATORY_SKILLS.includes(skill.name)) continue;
         assert.ok(
           !discoverable.includes(skill.name),
           `Optional vendored skill "${skill.name}" must not appear in .rig/skills/ before approval`,
@@ -1286,9 +1304,10 @@ describe('Task 2 (Issue 2) — approved skill bytes are bound end-to-end', () =>
 
   it('AT-PB-hard binding — post-approval edit to staged skill source is rejected at apply', async () => {
     await h.withRepo(async (target) => {
+      const staged = stageShelfSkill(h, target, 'qa');
       const { proposed } = h.prepareAndPropose(target);
       const receipt = signApproval(target, proposed.proposal_digest);
-      fs.appendFileSync(path.join(stagedSkillPath(target, 'qa'), 'SKILL.md'), '\n<!-- tampered -->\n');
+      fs.appendFileSync(path.join(staged, 'SKILL.md'), '\n<!-- tampered -->\n');
       assert.throws(
         () => h.handle({
           schema_version: 1,
@@ -1549,14 +1568,10 @@ describe('Issue N (sibling-file reconcile) — skill stays selected but loses a 
 
   it('AT-PB-hard sibling-reconcile — orphan sibling from previous catalog version is removed when skill stays selected', async () => {
     await h.withRepo(async (target) => {
-      // Find the staged qa skill directory from the installed catalog.
       const catalog = h.readJson(path.join(target, '.rig/catalog.json'));
       const qaEntry = catalog.skills.find((s) => s.name === 'qa' || s.id === 'qa');
       assert.ok(qaEntry, 'precondition: qa skill must be in the installed catalog');
-      const stagedSkillDir = path.dirname(
-        path.join(target, '.rig/runtime/rig', qaEntry.source_rel.slice('rig/'.length)),
-      );
-      assert.ok(fs.existsSync(stagedSkillDir), `precondition: staged qa dir must exist at ${stagedSkillDir}`);
+      const stagedSkillDir = stageShelfSkill(h, target, 'qa');
 
       // Cycle 1: add EXTRA.md to the staged shelf so it gets projected alongside SKILL.md.
       const extraStaged = path.join(stagedSkillDir, 'EXTRA.md');

@@ -15,6 +15,7 @@ const sharedSkills = [
   ['grilling', 'rig/corpus/skills/grilling/SKILL.md'],
   ['product-design', 'rig/corpus/skills/product-design/SKILL.md'],
   ['implementation', 'skills/rig/SKILL.md'],
+  ['router', 'rig/corpus/skills/router/SKILL.md'],
   ['execution', 'rig/corpus/skills/execution/SKILL.md'],
   ['tdd', 'rig/corpus/skills/tdd/SKILL.md'],
   ['debugging', 'rig/corpus/skills/debugging/SKILL.md'],
@@ -193,6 +194,7 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       .filter((file) => !noticeBasenames.has(path.basename(file)));
     assert.ok(tier1RigFiles.every((file) => file.endsWith('.md')));
     assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing')), false, 'plumbing must not land on a default install');
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'runtime')), false, 'runtime code must not land on a default install');
     // Backticked `.rig/...` path references in Tier-1 files must resolve
     // against the installed tree; vendored skills reference run-time paths
     // that get created by their own scripts, so their bodies stay out of
@@ -206,6 +208,8 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       || /[/\\]\.agents[/\\]skills[/\\][^/\\]+[/\\]/.test(file);
     const tier1Body = installed.filter((f) => !isVendoredFile(f)).map((file) => fs.readFileSync(file, 'utf8')).join('\n');
     for (const relativePath of backtickedRigPaths(tier1Body)) {
+      if (relativePath.startsWith('.rig/runtime/')) continue; // optional runtime references resolve only with --with-runtime
+      if (relativePath === '.rig/allowed-signers') continue; // this user-owned trust file is copied from the installed example
       assert.equal(fs.existsSync(path.join(target, relativePath)), true, `${relativePath} should exist after install`);
     }
     // Secret-shape scan runs against Tier-1 bodies. The vendored suite ships
@@ -215,6 +219,8 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
     assert.doesNotMatch(tier1Body, /(?:API_KEY|BEGIN (?:RSA |OPENSSH )?PRIVATE KEY|(?<![a-z0-9])sk-[a-z0-9-]{10,})/i);
     assert.equal(fs.existsSync(path.join(target, '.env')), false);
     assert.equal(fs.existsSync(path.join(target, '.env.example')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers')), false, 'approval trust remains repository-owned');
+    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers.example.md')), true, 'the signer template is installed');
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }
@@ -232,13 +238,15 @@ test('Tier 1 --with-runtime restores plumbing and per-skill code', () => {
       '--with-runtime',
     ]);
 
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')));
-    // Path B: --with-runtime stages the whole optional shelf (code included)
-    // once, outside every host discovery path, for a later approved projection.
-    assert.ok(fs.existsSync(path.join(
-      target, '.rig', 'runtime', 'rig', 'catalog', 'skills',
-      'browser-and-research', 'browser-automation', 'browse', 'src',
-    )));
+    const runtimeFiles = [
+      'ai-sdlc.js', 'service-catalogue.js', 'lint-format-setup.js',
+      'evidence-artifacts.js', 'mcp-dependencies.js', 'test-evidence-reporter.js',
+    ];
+    for (const file of runtimeFiles) {
+      assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig', 'lib', file)), `${file} should be shipped in the runtime`);
+    }
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig', 'bin', 'setup-mcp.js')));
+    assert.ok(fs.existsSync(path.join(target, '.rig', 'runtime', 'rig', 'lib', 'spawn-guarded.js')));
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }
@@ -360,7 +368,7 @@ test("vendored rig router installs addressable as 'rig' on native hosts, matchin
   // That name must match an actual installed skill on every native-dispatch host. The bug:
   // payload.js's blanket `rig-` prefix doubles _core's declared `name: rig` to `rig-rig`.
   const routerName = read(root, 'rig/corpus/routing.md')
-    .match(/invoke the vendored `([^`]+)` router/)?.[1];
+    .match(/invoke the vendored `([^`]+)` skill/)?.[1];
   assert.ok(routerName, "routing.md must name the vendored router skill in its fallback section");
 
   for (const [host, skillsDir] of [['claude', '.claude'], ['codex', '.agents']]) {

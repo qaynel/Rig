@@ -1,0 +1,7 @@
+{
+  "attack_scenarios": [
+    "malformed token"
+  ],
+  "containment_scope": "isolated test deployment",
+  "use_real_customer_data": false
+}

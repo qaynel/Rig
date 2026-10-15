@@ -1,0 +1,11 @@
+{
+  "typecheck_command": [
+    "npm",
+    "run",
+    "typecheck"
+  ],
+  "checked_components": [
+    "src"
+  ],
+  "ignore_type_errors": false
+}

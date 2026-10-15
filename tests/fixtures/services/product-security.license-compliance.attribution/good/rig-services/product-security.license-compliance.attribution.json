@@ -1,0 +1,9 @@
+{
+  "notice_paths": [
+    "THIRD_PARTY_NOTICES"
+  ],
+  "attributed_components": [
+    "library@1.0.0"
+  ],
+  "remove_required_notices": false
+}

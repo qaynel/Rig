@@ -1,0 +1,7 @@
+{
+  "documented_symbols": [],
+  "parameters": [
+    "raw: serialized record"
+  ],
+  "failure_contract": "throws on malformed records"
+}

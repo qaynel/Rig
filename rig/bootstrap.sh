@@ -93,9 +93,11 @@ else
   echo "Installing Rig into $TARGET_ROOT"
 fi
 
-HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" OPENCLAW_MCP="$OPENCLAW_MCP" OPENCLAW_CONFIG_PATH="${OPENCLAW_PATH:-${OPENCLAW_CONFIG_PATH:-}}" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
+HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" OPENCLAW_MCP="$OPENCLAW_MCP" SETUP_MCP="${SETUP_MCP:-0}" OPENCLAW_CONFIG_PATH="${OPENCLAW_PATH:-${OPENCLAW_CONFIG_PATH:-}}" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
 const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
 const { registerOpenClawMcp } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'openclaw-mcp'));
+const { setupMcp } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'mcp-dependencies'));
+const { MCP_HOSTS } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'mcp-hosts'));
 const hosts = process.env.HOSTS_EXPLICIT === '1'
   ? process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
   : undefined;
@@ -127,7 +129,10 @@ try {
   result = runPayload(process.env.TARGET_ROOT, hosts, {
     releaseTag: process.env.RIG_RELEASE_TAG || undefined,
     activeDelivery: process.env.ACTIVE_DELIVERY === '1',
-    afterPayload: ({ writeFile }) => {
+    afterPayload: ({ writeFile, hosts: installedHosts }) => {
+      const mcpConfigured = process.env.OPENCLAW_MCP === '1'
+        || installedHosts.some(({ id }) => MCP_HOSTS[id]?.emission === 'emitted');
+      if (process.env.SETUP_MCP === '1' && mcpConfigured) setupMcp(process.env.TARGET_ROOT, { writeFile });
       if (process.env.OPENCLAW_MCP === '1') {
         openclaw = registerOpenClawMcp(process.env.TARGET_ROOT, { writeFile });
       }

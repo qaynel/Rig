@@ -2,6 +2,8 @@
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+// Installed uninstall removes its own runtime; load cleanup before removal.
+const { cleanupEvidence, writeEvidence } = require('./evidence-artifacts');
 const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
@@ -274,7 +276,9 @@ function uninstall(target, opts = {}) {
   ]));
   const bestEffort = [];
   const bestEffortDetails = [];
-  const removed = [];
+  const setupRecovery = require('./lint-format-setup').recoverSetup(target, records);
+  bestEffort.push(...setupRecovery.conflicts);
+  const removed = [...setupRecovery.removed];
   const deletedRels = [];
   const preservePrefixes = [];
   let stopped = false;
@@ -330,6 +334,8 @@ function uninstall(target, opts = {}) {
   // best-effort shim still needs it for a later retry.
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
+    if (setupRecovery.handled.includes(record.path)) continue;
+    if (setupRecovery.protectedPaths.includes(record.path)) continue;
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
     // An *applied* journalled delete already restored absence for this path.
     // There is nothing left to reclaim, and routing it through the attribution
@@ -487,14 +493,30 @@ function uninstall(target, opts = {}) {
     best_effort_details: bestEffortDetails,
     at: new Date().toISOString(),
   };
-  const evidenceDir = path.join(target, 'reports/rig');
-  fs.mkdirSync(evidenceDir, { recursive: true });
-  fs.writeFileSync(path.join(evidenceDir, 'last-uninstall.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   let purgeList = [];
   if (opts.purge) {
-    purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
+    // A seed is user-owned after editing. Only the unchanged, newly-created
+    // network policy can restore its original absence during scoped cleanup.
+    for (const record of latestOperations(manifest.records)) {
+      if (record.transaction_kind !== 'user_seed' || record.path !== '.rig/network-policy.json'
+          || record.preimage_digest !== null) continue;
+      const seed = containedPath(target, record.path);
+      if (!fs.existsSync(seed)) continue;
+      const st = fs.lstatSync(seed);
+      if (!st.isFile() || st.isSymbolicLink() || st.nlink !== 1
+          || currentDigest(seed) !== (record.digest || record.desired_digest)) bestEffort.push(record.path);
+      else { fs.unlinkSync(seed); removed.push(record.path); }
+    }
+    purgeList = ['reports/rig', 'journal-owned runtime evidence'];
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
-    for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
+    bestEffort.push(...cleanupEvidence(target));
+    // AT-UNINSTALL-3: reports survive a plain uninstall; an explicit purge is
+    // the user's authorization to drop the whole report scope, tracked or not.
+    const reports = containedPath(target, 'reports/rig');
+    if (fs.existsSync(reports)) fs.rmSync(reports, { recursive: true, force: true });
+    pruneEmptyParents(target, 'reports/rig');
+  } else {
+    writeEvidence(target, 'reports/rig/last-uninstall.json', `${JSON.stringify(evidence, null, 2)}\n`);
   }
   if (bestEffort.length === 0) {
     const mfile = containedPath(target, MANIFEST_REL);

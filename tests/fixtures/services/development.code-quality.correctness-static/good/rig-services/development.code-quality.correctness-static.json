@@ -1,0 +1,11 @@
+{
+  "analyzer_command": [
+    "npm",
+    "run",
+    "analyze"
+  ],
+  "enabled_rules": [
+    "null-dereference"
+  ],
+  "ignore_analyzer_failure": false
+}

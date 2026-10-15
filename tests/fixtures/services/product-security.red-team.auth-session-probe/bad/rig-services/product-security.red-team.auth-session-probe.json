@@ -1,0 +1,7 @@
+{
+  "session_cases": [],
+  "protected_routes": [
+    "/account"
+  ],
+  "accept_revoked_session": false
+}

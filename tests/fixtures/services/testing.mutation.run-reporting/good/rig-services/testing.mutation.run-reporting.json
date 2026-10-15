@@ -1,0 +1,9 @@
+{
+  "reported_outcomes": [
+    "killed",
+    "survived",
+    "timeout"
+  ],
+  "input_revision": "a1b2c3d",
+  "publish_raw_secrets": false
+}

@@ -1,0 +1,8 @@
+{
+  "trace_propagation": [
+    "http",
+    "queue"
+  ],
+  "sampling_policy": "bounded-head-sampling",
+  "record_sensitive_payloads": false
+}

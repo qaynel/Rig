@@ -1,0 +1,5 @@
+{
+  "storage_classes": [],
+  "retention_days": 30,
+  "delete_before_retention": false
+}

@@ -34,24 +34,12 @@ function jsonText(value) {
 }
 
 function atomicWrite(target, rel, contents) {
-  const file = containedPath(target, rel);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.tmp`;
-  let fd;
-  try {
-    fd = fs.openSync(temporary, 'wx', 0o600);
-  } catch (error) {
-    if (error.code === 'EEXIST') {
-      fail(`onboarding temp file already exists (EEXIST); remove ${temporary} to recover`);
-    }
-    throw error;
-  }
-  try {
-    fs.writeSync(fd, contents);
-  } finally {
-    fs.closeSync(fd);
-  }
-  fs.renameSync(temporary, file);
+  require('./evidence-artifacts').writeEvidence(
+    target,
+    rel,
+    contents,
+    (temp, mode) => fs.openSync(temp, 'wx', mode),
+  );
 }
 
 function readJson(file, label) {
@@ -199,11 +187,12 @@ function validateUpstreamFetch(rows) {
   if (!Array.isArray(rows) || !rows.length || rows.length > 8) fail('proposal upstream_fetch must list 1 to 8 fetches');
   const seen = new Set();
   return rows.map((row) => {
-    exactKeys(row, new Set(['id', 'tar_sha256']), 'upstream fetch');
+    exactKeys(row, new Set(['id', 'tar_sha256', 'metadata_sha256']), 'upstream fetch');
     if (typeof row.id !== 'string' || !/^[a-z0-9][a-z0-9-]{0,40}$/.test(row.id) || seen.has(row.id)) fail('upstream fetch id is invalid or repeated');
     seen.add(row.id);
     if (typeof row.tar_sha256 !== 'string' || !DIGEST_RE.test(row.tar_sha256)) fail('upstream fetch tar_sha256 is not a SHA-256 digest');
-    return { id: row.id, tar_sha256: row.tar_sha256 };
+    if (typeof row.metadata_sha256 !== 'string' || !DIGEST_RE.test(row.metadata_sha256)) fail('upstream metadata digest is not a SHA-256 digest');
+    return { id: row.id, tar_sha256: row.tar_sha256, metadata_sha256: row.metadata_sha256 };
   }).sort((a, b) => a.id.localeCompare(b.id));
 }
 
@@ -211,7 +200,7 @@ function validateUpstreamFetch(rows) {
 // digest rows the proposal freezes. It is a callback, not an argument, because
 // the binding is derived from the sorted selection and must land inside the
 // digested body: what the approver signs has to include the bytes.
-function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
+function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], bindServices = () => ({})) {
   exactKeys(input, new Set([
     'inventory_digest', 'catalog_digest', 'capabilities', 'selected_skills', 'grafts', 'owned_files', 'critical_decisions',
     // Accepted so a stored proposal can be resubmitted verbatim, never read:
@@ -222,6 +211,7 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     'projection_script',
     // Optional list of pinned third-party fetches to perform at apply.
     'upstream_fetch',
+    'selected_services', 'service_bindings',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -242,6 +232,10 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     critical_decisions: input.critical_decisions.map(validateDecision).sort((a, b) => a.id.localeCompare(b.id)),
     ...(input.projection_script === undefined ? {} : { projection_script: validateScriptSlot(input.projection_script) }),
     ...(input.upstream_fetch === undefined ? {} : { upstream_fetch: validateUpstreamFetch(input.upstream_fetch) }),
+    ...(input.selected_services === undefined ? {} : {
+      selected_services: input.selected_services,
+      service_bindings: bindServices(input.selected_services),
+    }),
   };
   return { digest: sha256(canonical(body)), ...body };
 }

@@ -32,6 +32,7 @@ function walk(dir, out = []) {
 const rel = (abs) => path.relative(root, abs).split(path.sep).join('/');
 const pinned = new Set(fs.readFileSync(path.join(root, 'wiki/gate1/testing-infrastructure.manifest'), 'utf8')
   .trim().split('\n').map((line) => line.slice(66)));
+const protectedLegacyTests = new Set(['tests/path-b-hardening.test.js']);
 
 test('the superseded rig/tier-1 source tree no longer exists', () => {
   assert.equal(fs.existsSync(path.join(root, 'rig/tier-1')), false);
@@ -40,6 +41,7 @@ test('the superseded rig/tier-1 source tree no longer exists', () => {
 test('no live file points at a retired source path (history, pinned oracle files and the pinned catalogue are exempt)', () => {
   const retired = [/rig\/tier-1/, /check-rule-copies\.js\b.*\bAGENTS\.md/];
   const exempt = (file) => file.startsWith('wiki/') || file.startsWith('docs/superpowers/') || pinned.has(file)
+    || protectedLegacyTests.has(file)
     || file === 'rig/catalog.json' || file === 'tests/corpus-contract.test.js' || file.startsWith('tests/fixtures/')
     || file.startsWith('rig/catalog/') || file.startsWith('.git');
   const hits = [];

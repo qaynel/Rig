@@ -1,6 +1,6 @@
 {
   "name": "rig-agent-toolbox",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "private": true,
   "description": "A curated, host-agnostic markdown toolbox for coding agents.",
   "keywords": ["rig", "agent", "skills", "claude", "cursor"],

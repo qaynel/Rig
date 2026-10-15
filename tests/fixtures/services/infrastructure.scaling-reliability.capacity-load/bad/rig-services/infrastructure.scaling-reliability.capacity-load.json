@@ -1,0 +1,5 @@
+{
+  "load_workload": "",
+  "slo_latency_ms": 250,
+  "unbounded_load_duration": false
+}

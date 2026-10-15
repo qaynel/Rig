@@ -99,6 +99,7 @@ than two viable paths.
 | `rig-debugging` | Investigating a failure, flaky behavior, performance regression, or unknown root cause. |
 | `rig-code-review` | Reviewing a diff, PR, branch, or proposed change. Report only. |
 | `rig-onboarding` | Rig is installed but not yet adapted to this repository, or the adaptation must be revisited. |
+| `rig-router` | A request mentions Rig without naming a specific Rig skill. |
 
 Do not substitute a nearby skill for the named owner. Debugging discovers why;
 TDD drives a known behavior change; review judges an existing diff.
@@ -106,7 +107,7 @@ TDD drives a known behavior change; review judges an existing diff.
 ## Fallback to the router
 
 If a request does not match any skill above and the user has not named a
-specific vendored skill, invoke the vendored `rig` router (the `/rig`
+specific vendored skill, invoke the vendored `rig-router` skill (the
 switchboard shipped from the swallowed suite) before answering ad-hoc. The
 router either dispatches to the right vendored skill or hands the turn back for
 a direct answer; either way the routing is recorded. Never answer a

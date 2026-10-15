@@ -112,7 +112,7 @@ async function fetchUpstream(id, options) {
 
     let entries;
     try {
-      entries = readTar(tar);
+      entries = readTar(tar, { ignoredLinks: meta.archive.ignored_links || {} });
     } catch (error) {
       return fail('archive-invalid', error.message);
     }

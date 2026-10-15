@@ -1,0 +1,5 @@
+{
+  "failover_trigger": "primary health unavailable",
+  "fencing_strategy": "single-writer-lease",
+  "allow_split_brain": false
+}

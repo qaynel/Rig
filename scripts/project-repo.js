@@ -17,7 +17,7 @@ const { loadCorpus } = require('../rig/lib/corpus');
 const { project } = require('../rig/lib/project');
 
 const ROOT = path.join(__dirname, '..');
-const GENERATED_SKILL_ROOTS = ['.claude/skills/rig-', '.agents/skills/rig-', '.agents/workflows/'];
+const GENERATED_SKILL_ROOTS = ['.claude/skills/rig-', '.agents/skills/rig-', '.claude/skills/rig/', '.agents/skills/rig/', '.agents/workflows/'];
 
 function generatedFiles(root = ROOT) {
   const selection = { delivery: 'active', hosts: ['claude', 'codex', 'antigravity'] };

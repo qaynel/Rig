@@ -1,0 +1,7 @@
+{
+  "allowed_licenses": [],
+  "restricted_licenses": [
+    "AGPL-3.0-only"
+  ],
+  "ignore_license_conflicts": false
+}

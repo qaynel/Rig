@@ -68,6 +68,12 @@ function goldenInventory(name) {
   return { flat, trees: config.trees };
 }
 
+function isIntendedDifference(rel, entries) {
+  return entries.some((entry) => rel === entry.path
+    || (entry.path.endsWith('/') && rel.startsWith(entry.path))
+    || (entry.path.endsWith('*') && rel.startsWith(entry.path.slice(0, -1))));
+}
+
 function load() {
   const { loadCorpus } = require('../rig/lib/corpus');
   const { projectAll } = require('../rig/lib/project');
@@ -96,10 +102,8 @@ for (const name of Object.keys(golden.configs)) {
     for (const prefix of new Set([...Object.keys(actual.trees), ...Object.keys(expected.trees)])) {
       if (JSON.stringify(actual.trees[prefix]) !== JSON.stringify(expected.trees[prefix])) diffs.add(prefix);
     }
-    const allowed = new Set(intended.differences
-      .filter((entry) => entry.configs === '*' || entry.configs.includes(name))
-      .map((entry) => entry.path));
-    const unexplained = [...diffs].filter((rel) => !allowed.has(rel)).sort();
+    const allowed = intended.differences.filter((entry) => entry.configs === '*' || entry.configs.includes(name));
+    const unexplained = [...diffs].filter((rel) => !isIntendedDifference(rel, allowed)).sort();
     assert.deepEqual(unexplained, [], `${name}: projection differs from v5 outside the intended-differences list`);
   });
 }
@@ -122,7 +126,7 @@ test('every intended difference names a reason and actually occurs', () => {
     assert.ok(entry.reason && entry.reason.length > 20, `${entry.path}: a written reason is required`);
     const hit = [...occurred].some((key) => {
       const [name, rel] = key.split('\0');
-      return rel === entry.path && (entry.configs === '*' || entry.configs.includes(name));
+      return isIntendedDifference(rel, [entry]) && (entry.configs === '*' || entry.configs.includes(name));
     });
     assert.ok(hit, `${entry.path}: listed as an intended difference but projection matches v5 (remove the stale exemption)`);
   }
@@ -190,15 +194,13 @@ for (const name of Object.keys(golden.configs)) {
       runPayload(target, selection.hosts, { activeDelivery: selection.delivery === 'active' });
       const actual = inventory(diskFiles(target));
       const expected = goldenInventory(name);
-      const allowed = new Set(intended.differences
-        .filter((entry) => entry.configs === '*' || entry.configs.includes(name))
-        .map((entry) => entry.path));
+      const allowed = intended.differences.filter((entry) => entry.configs === '*' || entry.configs.includes(name));
       const diffs = [];
       for (const rel of new Set([...Object.keys(actual.flat), ...Object.keys(expected.flat)])) {
-        if (actual.flat[rel] !== expected.flat[rel] && !allowed.has(rel)) diffs.push(rel);
+        if (actual.flat[rel] !== expected.flat[rel] && !isIntendedDifference(rel, allowed)) diffs.push(rel);
       }
       for (const prefix of new Set([...Object.keys(actual.trees), ...Object.keys(expected.trees)])) {
-        if (JSON.stringify(actual.trees[prefix]) !== JSON.stringify(expected.trees[prefix]) && !allowed.has(prefix)) diffs.push(prefix);
+        if (JSON.stringify(actual.trees[prefix]) !== JSON.stringify(expected.trees[prefix]) && !isIntendedDifference(prefix, allowed)) diffs.push(prefix);
       }
       assert.deepEqual(diffs.sort(), []);
     } finally {

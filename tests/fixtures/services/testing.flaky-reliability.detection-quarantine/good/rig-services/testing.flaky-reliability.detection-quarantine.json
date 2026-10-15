@@ -1,0 +1,9 @@
+{
+  "flaky_cases": [
+    "slow websocket reconnect"
+  ],
+  "quarantine_owners": [
+    "realtime"
+  ],
+  "silent_quarantine": false
+}

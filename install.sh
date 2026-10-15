@@ -11,6 +11,9 @@ TARGET_DIR="${PWD}"
 OPENCLAW_MCP=0
 HOSTS=
 HOSTS_EXPLICIT=0
+CANDIDATE_ARTIFACT=
+CANDIDATE_SHA=
+CANDIDATE_DIGEST=
 
 usage() {
   cat <<'EOF'
@@ -21,6 +24,9 @@ released tarball locally, and runs the bundled bootstrap. The remote payload
 is written to disk before any script executes.
 
 Options:
+  --candidate-artifact <path>  Local exact-commit archive (requires SHA and digest)
+  --candidate-sha <sha>        Full 40-character commit SHA
+  --candidate-digest <sha256>  SHA-256 of the archive bytes
   --version <tag>   Install a specific release (default: latest)
   --target <path>   Repository to install into (default: current directory)
   --hosts <list>    Explicit comma-separated hosts (replaces detection)
@@ -44,6 +50,15 @@ require_value() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --candidate-artifact|--candidate-sha|--candidate-digest)
+      require_value "$1" "${2:-}"
+      case "$1" in
+        --candidate-artifact) CANDIDATE_ARTIFACT=$2 ;;
+        --candidate-sha) CANDIDATE_SHA=$2 ;;
+        --candidate-digest) CANDIDATE_DIGEST=$2 ;;
+      esac
+      shift 2
+      ;;
     --version)
       require_value "$1" "${2:-}"
       VERSION="$2"
@@ -89,6 +104,7 @@ need() {
 
 need curl
 need tar
+need node
 
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
@@ -102,7 +118,30 @@ resolve_tag() {
   fi
 }
 
-TAG="$(resolve_tag)"
+if [ -n "$CANDIDATE_ARTIFACT$CANDIDATE_SHA$CANDIDATE_DIGEST" ]; then
+  need node
+  node - "$CANDIDATE_ARTIFACT" "$CANDIDATE_SHA" "$CANDIDATE_DIGEST" <<'NODE'
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const { gunzipSync } = require('node:zlib');
+const { spawnSync } = require('node:child_process');
+const [archive, sha, digest] = process.argv.slice(2);
+if (!archive || !/^[a-f0-9]{40}$/.test(sha) || !/^[a-f0-9]{64}$/.test(digest)) {
+  console.error('install.sh: candidate requires archive, full commit SHA and SHA-256 digest'); process.exit(2);
+}
+const bytes = fs.readFileSync(archive);
+if (crypto.createHash('sha256').update(bytes).digest('hex') !== digest) {
+  console.error('install.sh: candidate archive digest mismatch'); process.exit(1);
+}
+const commit = spawnSync('git', ['get-tar-commit-id'], { input: gunzipSync(bytes), encoding: 'utf8' });
+if (commit.status !== 0 || commit.stdout.trim() !== sha) {
+  console.error('install.sh: candidate archive commit mismatch'); process.exit(1);
+}
+NODE
+  TAG="candidate-${CANDIDATE_SHA}"
+else
+  TAG="$(resolve_tag)"
+fi
 if [ -z "$TAG" ]; then
   echo "install.sh: could not resolve release tag" >&2
   exit 1
@@ -123,7 +162,18 @@ URL="https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
 EXTRACT_DIR="${WORKDIR}/source"
 
 echo "install.sh: downloading ${TAG} to ${TARBALL}"
-curl -fsSL "$URL" -o "$TARBALL"
+if [ -n "$CANDIDATE_ARTIFACT" ]; then
+  cp "$CANDIDATE_ARTIFACT" "$TARBALL"
+else
+  curl -fsSL "$URL" -o "$TARBALL"
+fi
+
+# Emit downloaded-byte identity for candidate and post-publication evidence.
+node - "$TARBALL" <<'NODE'
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+console.log(`install.sh: archive-sha256=${crypto.createHash('sha256').update(fs.readFileSync(process.argv[2])).digest('hex')}`);
+NODE
 
 # Bytes are on disk; extract and execute the local bootstrap.
 mkdir "$EXTRACT_DIR"
@@ -145,4 +195,4 @@ set -- "${SRC_DIR}/rig/bootstrap.sh" --target "$TARGET_DIR" --with-runtime
 if [ "$OPENCLAW_MCP" = 1 ]; then
   set -- "$@" --openclaw-mcp
 fi
-RIG_RELEASE_TAG="$TAG" exec "$@"
+SETUP_MCP=1 RIG_RELEASE_TAG="$TAG" "$@"

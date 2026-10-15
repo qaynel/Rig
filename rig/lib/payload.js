@@ -595,7 +595,7 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
     const installedHostIds = [...new Set(selected)].sort();
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag, hosts: installedHostIds }, null, 2)}\n`);
   }
-  if (afterPayload) afterPayload({ writeFile });
+  if (afterPayload) afterPayload({ writeFile, hosts: hostEntries });
   writeFile.finish();
   return { hosts: hostEntries, writes: writeFile.appliedCount() - writesBefore };
 }

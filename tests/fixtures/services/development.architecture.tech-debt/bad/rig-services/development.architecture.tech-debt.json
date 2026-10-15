@@ -1,0 +1,9 @@
+{
+  "debt_items": [],
+  "owners": [
+    "platform"
+  ],
+  "exit_criteria": [
+    "single parser with compatibility checks"
+  ]
+}

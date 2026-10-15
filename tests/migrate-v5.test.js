@@ -129,6 +129,7 @@ test('uninstall after migration restores the complete pre-install inventory, ign
   assert.equal(result.status, 'removed', JSON.stringify(result));
   // The uninstall evidence file is this session's own output; remove only it.
   fs.rmSync(path.join(target, 'reports/rig/last-uninstall.json'), { force: true });
+  fs.rmSync(path.join(target, '.rig/evidence-artifacts.json'), { force: true });
   assert.deepEqual(inventory(target), before);
 }));
 
@@ -394,6 +395,7 @@ test('a repository installed by the real v5 installer migrates to a fresh-instal
       } finally { fs.rmSync(fresh, { recursive: true, force: true }); }
       assert.equal(uninstall(target).status, 'removed');
       fs.rmSync(path.join(target, 'reports/rig/last-uninstall.json'), { force: true });
+      fs.rmSync(path.join(target, '.rig/evidence-artifacts.json'), { force: true });
       // .rig/network-policy.json is the user's policy seed; uninstall keeps it by design.
       assert.deepEqual(inventory(target), active ? { ...before, '.rig/network-policy.json': inventory(target)['.rig/network-policy.json'] } : before);
     });

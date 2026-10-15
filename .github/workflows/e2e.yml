@@ -1,0 +1,82 @@
+name: clean-install-e2e
+on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '35 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Exact commit SHA to verify (empty resolves qa-prod once)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Exact candidate or QA commit SHA'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'qa-prod' }}
+          persist-credentials: false
+      - id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  install:
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact commit with fresh dependency downloads
+        env:
+          CANDIDATE_SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/clean-install-e2e.js --sha "$CANDIDATE_SHA" --out "$RUNNER_TEMP/e2e-evidence.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clean-install-${{ needs.resolve.outputs.sha }}-${{ matrix.os }}
+          path: ${{ runner.temp }}/e2e-evidence.json
+          if-no-files-found: error
+  public-tag:
+    if: github.event_name == 'release'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download and verify the published tag through the public installer
+        env:
+          PUBLIC_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/clean-install-e2e.js --tag "$PUBLIC_TAG" --out "$RUNNER_TEMP/public-tag-evidence.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-tag-${{ github.event.release.tag_name }}-${{ matrix.os }}
+          path: ${{ runner.temp }}/public-tag-evidence.json
+          if-no-files-found: error

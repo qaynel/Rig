@@ -4,7 +4,6 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { listVendoredSkills } = require('./skills');
 const { gateOpen, selectionFlags, isLitter, NEUTRAL } = require('./project');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -59,10 +58,7 @@ function loadCorpus(selection = {}, root = ROOT) {
     else if (row.op === 'copy_tree') addTree(row.from);
   }
 
-  const shelf = listVendoredSkills().map((skill) => ({ name: skill.name, dir: path.posix.dirname(skill.source_rel) }));
-  for (const skill of shelf) addTree(skill.dir, (rel) => flags.active || rel.endsWith('.md'));
-
-  return { root, files, manifest, descriptor, shelf };
+  return { root, files, manifest, descriptor };
 }
 
 module.exports = { ROOT, CORPUS_REL, loadCorpus };

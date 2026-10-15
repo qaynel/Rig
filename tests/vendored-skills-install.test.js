@@ -1,129 +1,48 @@
-#!/usr/bin/env node
 'use strict';
 
-const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const test = require('node:test');
 const { runPayload } = require('../rig/lib/payload');
-const { listVendoredSkills } = require('../rig/lib/skills');
 
 function withTempTarget(fn) {
-  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-vendored-install-'));
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-shelf-delivery-'));
   try { return fn(target); } finally { fs.rmSync(target, { recursive: true, force: true }); }
 }
 
-const vendored = listVendoredSkills();
+const CORE = [
+  'rig-code-review', 'rig-debugging', 'rig-execution', 'rig-grilling',
+  'rig-implementation', 'rig-onboarding', 'rig-product-design', 'rig-router', 'rig-tdd',
+];
 
-function installedName(skillName, prefix) {
-  const stem = prefix.replace(/-$/, '');
-  return (prefix && skillName === stem) ? skillName : `${prefix}${skillName}`;
+function discovered(target) {
+  return fs.readdirSync(path.join(target, '.agents/skills'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(target, '.agents/skills', entry.name, 'SKILL.md')))
+    .map(({ name }) => name)
+    .sort();
 }
 
-test('vendored skills install under .claude/skills/<installed-name>/ with rewritten frontmatter and notice', () => {
-  withTempTarget((target) => {
-    runPayload(target, ['claude']);
-    for (const skill of vendored) {
-      const name = installedName(skill.name, 'rig-');
-      const skillMd = path.join(target, '.claude', 'skills', name, 'SKILL.md');
-      assert.ok(fs.existsSync(skillMd), `missing ${skillMd}`);
-      const body = fs.readFileSync(skillMd, 'utf8');
-      assert.match(body, new RegExp(`^name: ${name}\\s*$`, 'm'), `frontmatter name should be ${name}`);
-    }
-    assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'LICENSE.upstream')));
-    assert.ok(fs.existsSync(path.join(target, '.claude', 'skills', 'UPSTREAM.md')));
-  });
-});
-
-test('vendored skills install under .agents/skills/<installed-name>/ for codex hosts', () => {
+test('default install projects mandatory skills only and carries no runtime code', () => {
   withTempTarget((target) => {
     runPayload(target, ['codex']);
-    for (const skill of vendored) {
-      const name = installedName(skill.name, 'rig-');
-      const skillMd = path.join(target, '.agents', 'skills', name, 'SKILL.md');
-      assert.ok(fs.existsSync(skillMd), `missing ${skillMd}`);
-      const body = fs.readFileSync(skillMd, 'utf8');
-      assert.match(body, new RegExp(`^name: ${name}\\s*$`, 'm'));
-    }
-    assert.ok(fs.existsSync(path.join(target, '.agents', 'skills', 'LICENSE.upstream')));
-    assert.ok(fs.existsSync(path.join(target, '.agents', 'skills', 'UPSTREAM.md')));
+    assert.deepEqual(discovered(target), CORE);
+    assert.equal(fs.existsSync(path.join(target, '.agents/skills/rig-browse')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/runtime')), false);
   });
 });
 
-test('instruction-only hosts get the neutral .rig/skills/<name>/ layout with frontmatter matching the installed dir', () => {
+test('active install pins fetch metadata without staging the optional shelf', () => {
   withTempTarget((target) => {
-    runPayload(target, ['gemini']);
-    for (const skill of vendored) {
-      const skillMd = path.join(target, '.rig', 'skills', skill.name, 'SKILL.md');
-      assert.ok(fs.existsSync(skillMd), `missing ${skillMd}`);
-      const body = fs.readFileSync(skillMd, 'utf8');
-      assert.match(body, new RegExp(`^name: ${skill.name}\\s*$`, 'm'), `neutral install preserves declared name for ${skill.name}`);
-    }
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'skills', 'LICENSE.upstream')));
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'skills', 'UPSTREAM.md')));
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'skills', 'README.md')));
+    runPayload(target, ['codex'], { activeDelivery: true });
+    assert.deepEqual(discovered(target), CORE);
+    assert.ok(fs.existsSync(path.join(target, '.rig/upstream/gstack-shelf.json')));
+    const stagedSkills = fs.existsSync(path.join(target, '.rig/runtime/rig/catalog/skills'))
+      ? fs.readdirSync(path.join(target, '.rig/runtime/rig/catalog/skills'), { recursive: true })
+        .filter((file) => path.basename(file) === 'SKILL.md')
+      : [];
+    assert.equal(stagedSkills.length, 0, 'catalogue metadata remains, but vendored skills do not');
+    assert.equal(fs.existsSync(path.join(target, '.agents/skills/rig-browse')), false);
   });
-});
-
-test('plumbing tree lands under .rig/plumbing only with --with-runtime', () => {
-  withTempTarget((target) => {
-    runPayload(target, ['claude'], { activeDelivery: true });
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')));
-    assert.ok(fs.existsSync(path.join(target, '.rig', 'plumbing', 'lib')));
-    const binEntries = fs.readdirSync(path.join(target, '.rig', 'plumbing', 'bin'));
-    assert.ok(binEntries.length > 0, 'plumbing/bin must not be empty');
-  });
-});
-
-test('plumbing tree is absent on a default install', () => {
-  withTempTarget((target) => {
-    runPayload(target, ['claude']);
-    assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing', 'bin')), false);
-  });
-});
-
-test('vendored skill count and unique names match listVendoredSkills', () => {
-  assert.equal(vendored.length, 55);
-  assert.equal(new Set(vendored.map((s) => s.name)).size, 55);
-});
-
-test('default install lands vendored skills as markdown only; --with-runtime stages the shelf with its code', () => {
-  withTempTarget((target) => {
-    runPayload(target, ['claude']);
-    const browseSrc = path.join(target, '.claude', 'skills', 'rig-browse', 'src');
-    assert.equal(fs.existsSync(browseSrc), false, 'default install must not land skill source code');
-  });
-  withTempTarget((target) => {
-    // The adaptive install keeps host discovery to the mandatory skills and
-    // stages the complete shelf — code included — under .rig/runtime instead.
-    runPayload(target, ['claude'], { activeDelivery: true });
-    assert.equal(
-      fs.existsSync(path.join(target, '.claude', 'skills', 'rig-browse')),
-      false,
-      'adaptive install must not project optional skills before approval',
-    );
-    const staged = path.join(
-      target, '.rig', 'runtime', 'rig', 'catalog', 'skills',
-      'browser-and-research', 'browser-automation', 'browse', 'src',
-    );
-    assert.ok(fs.existsSync(staged), '--with-runtime must stage the shelf with its source code');
-  });
-});
-
-test('.tmpl files and TODOS-format.md never land, in either mode', () => {
-  for (const activeDelivery of [false, true]) {
-    withTempTarget((target) => {
-      runPayload(target, ['claude'], { activeDelivery });
-      const skillsRoot = path.join(target, '.claude', 'skills');
-      const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-        const file = path.join(dir, entry.name);
-        return entry.isDirectory() ? walk(file) : [file];
-      });
-      for (const file of walk(skillsRoot)) {
-        assert.ok(!file.endsWith('.tmpl'), `${file} should not land`);
-        assert.notEqual(path.basename(file), 'TODOS-format.md', `${file} should not land`);
-      }
-    });
-  }
 });

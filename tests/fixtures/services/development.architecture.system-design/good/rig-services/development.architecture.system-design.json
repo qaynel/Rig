@@ -1,0 +1,12 @@
+{
+  "components": [
+    "api",
+    "database"
+  ],
+  "trust_boundaries": [
+    "external input enters api"
+  ],
+  "failure_modes": [
+    "database unavailable"
+  ]
+}

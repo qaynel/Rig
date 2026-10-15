@@ -1,6 +1,6 @@
 # development.code-quality.lint-format — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for lint format; it does not widen ownership beyond code-quality.lint-format. For lint format, inspect these context signals: lint_command. Binding checks: lint-format-linter-clean.
+Grade: mid (Context target). Assurance remains Policy grade. Mid addition — linter cleanliness adds repository context for lint format; it does not widen ownership beyond code-quality.lint-format. For lint format, inspect these context signals: lint_command. Binding checks: lint-format-linter-clean.
 
 Trace the verdict to the existing repository's lint format convention, then name the source path or command that establishes it. For lint format, inspect the repository's actual spec, source, test, or configuration for lint_command; if none governs that evidence, record the gap instead of inferring a convention. For lint format, keep code-quality.typecheck, correctness-static-analysis, complexity-static, code-quality.code-review outside its verdict.
 

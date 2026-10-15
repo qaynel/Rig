@@ -2,6 +2,96 @@
   "comment": "Differences between project() and the v5 installer output (tests/fixtures/v5-install-golden.json). Each entry names the path (or bulk tree prefix), the configs it applies to ('*' for all), and a written reason of at least a sentence. A stale entry fails the parity test.",
   "differences": [
     {
+      "path": ".rig/skills/",
+      "configs": "*",
+      "reason": "The optional third-party skill shelf is fetched and verified during onboarding now, so its former default-install files are intentionally absent from the canonical corpus projection."
+    },
+    {
+      "path": ".claude/skills/rig-*",
+      "configs": ["default/claude", "default/all"],
+      "reason": "Optional upstream skills are fetched only after onboarding approval; their previous Claude discovery directories are intentionally absent from the default install."
+    },
+    {
+      "path": ".agents/skills/rig-*",
+      "configs": ["default/codex", "default/antigravity", "default/all"],
+      "reason": "Optional upstream skills are fetched only after onboarding approval; their previous Codex and Antigravity discovery directories are intentionally absent from the default install."
+    },
+    {
+      "path": ".claude/skills/rig/",
+      "configs": ["default/claude", "default/all"],
+      "reason": "The optional upstream skill named rig is fetched only after onboarding approval; its previous Claude discovery directory is intentionally absent from the default install."
+    },
+    {
+      "path": ".agents/skills/rig/",
+      "configs": ["default/codex", "default/antigravity", "default/all"],
+      "reason": "The optional upstream skill named rig is fetched only after onboarding approval; its previous shared agent discovery directory is intentionally absent from the default install."
+    },
+    {
+      "path": ".claude/skills/rig-router/SKILL.md",
+      "configs": ["active/claude", "active/all"],
+      "reason": "Active native installs now ship the canonical Rig router skill from the corpus so the documented fallback resolves to an installed skill."
+    },
+    {
+      "path": ".agents/skills/rig-router/SKILL.md",
+      "configs": ["active/codex", "active/antigravity", "active/all"],
+      "reason": "Active native installs now ship the canonical Rig router skill from the corpus so the documented fallback resolves to an installed skill."
+    },
+    {
+      "path": ".claude/skills/LICENSE.upstream",
+      "configs": ["default/claude", "default/all", "active/claude", "active/all"],
+      "reason": "The upstream licence is now retained with pinned fetch metadata and fetched bytes instead of copied into the Claude discovery directory."
+    },
+    {
+      "path": ".claude/skills/UPSTREAM.md",
+      "configs": ["default/claude", "default/all", "active/claude", "active/all"],
+      "reason": "The upstream provenance notice now travels with pinned fetch metadata and fetched bytes instead of being copied into the Claude discovery directory."
+    },
+    {
+      "path": ".agents/skills/LICENSE.upstream",
+      "configs": ["default/codex", "default/antigravity", "default/all", "active/codex", "active/antigravity", "active/all"],
+      "reason": "The upstream licence is now retained with pinned fetch metadata and fetched bytes instead of copied into the shared agent discovery directory."
+    },
+    {
+      "path": ".agents/skills/UPSTREAM.md",
+      "configs": ["default/codex", "default/antigravity", "default/all", "active/codex", "active/antigravity", "active/all"],
+      "reason": "The upstream provenance notice now travels with pinned fetch metadata and fetched bytes instead of being copied into the shared agent discovery directory."
+    },
+    {
+      "path": ".rig/runtime/rig/bin/setup-mcp.js",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "The active payload now includes the MCP dependency setup entrypoint beside the guarded runtime libraries; v5 did not ship this runtime helper."
+    },
+    {
+      "path": ".rig/standards/",
+      "configs": "*",
+      "reason": "The central corpus now includes the shipped AI development and delivery standards; these files did not exist in the v5 install output."
+    },
+    {
+      "path": ".rig/plumbing/",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "Active runtime delivery includes plumbing scripts under the new central corpus layout; v5 did not stage this runtime directory."
+    },
+    {
+      "path": ".rig/upstream/gstack-shelf.json",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "Active delivery includes pinned shelf resource metadata so onboarding can fetch the selected upstream content and verify its digest."
+    },
+    {
+      "path": ".rig/upstream/patches/shelf-overlay.patch",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "Active delivery includes the pinned local shelf overlay used to patch fetched bytes before onboarding installs them."
+    },
+    {
+      "path": ".rig/runtime/rig/catalog/",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "Active delivery retains the compatibility runtime catalog while the new authored catalogue moves into the central corpus and selection flow."
+    },
+    {
+      "path": ".rig/runtime/rig/corpus/",
+      "configs": ["active/none", "active/claude", "active/codex", "active/antigravity", "active/cursor", "active/windsurf", "active/cline", "active/kiro", "active/gemini", "active/copilot", "active/codewhale", "active/opencode", "active/all"],
+      "reason": "Active delivery ships the central corpus runtime metadata and catalogue source needed by onboarding and selected service execution; v5 had no corpus runtime tree."
+    },
+    {
       "path": ".rig/onboarding/README.md",
       "configs": "*",
       "reason": "Intended delivery change (03 slice 3): the agent's step-by-step unpacking instructions now ship inside the installed corpus; v5 had no such file."

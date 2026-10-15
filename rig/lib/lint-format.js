@@ -900,6 +900,7 @@ function supportStatus(components) {
 }
 
 module.exports = {
+  ...require('./lint-format-setup'),
   discoverComponents,
   recommendTooling,
   discoverCommands,
@@ -914,6 +915,8 @@ module.exports = {
   resolveScope,
   spawnTask,
   runReadOnly,
+  snapshotDir,
+  diffSnapshots,
   runAutofix,
   planCi,
   buildReport,
