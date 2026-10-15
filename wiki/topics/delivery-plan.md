@@ -169,4 +169,9 @@ filed as a trace rather than a receipt: under locked decision 5 a digest-bound
 receipt is written by the wrapper, not by the agent that performed the review.
 [fresh review](../reasoning/2026-08-22-mvp-release-review.md)
 
-<!-- Reviewed 2026-09-08 for wiki-maintenance freshness after the authority-hardening SOW. -->
+Step 8 is now the v6.0.0 closeout, planned and tracked in
+`wiki/specs/close-everything/task-list.md` rather than in this table; it
+resumed from [the close-everything transcript](../reasoning/2026-10-13-close-everything-resume-transcript.md)
+and promotes to `qa-prod` on exact-commit automated evidence (North star 11).
+
+<!-- Reviewed 2026-10-15 for wiki-maintenance freshness after the v6.0.0 closeout. -->
