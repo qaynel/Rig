@@ -132,7 +132,7 @@ test('AT-SHAPE-6 all 115 leaves are authored at their declared grade', () => {
     const text = fs.readFileSync(file, 'utf8');
     if (service.id !== 'development.code-quality.lint-format') {
       assert.match(text, /Policy(?:-| )grade/i, file);
-      assert.match(text, /generic baseline|not repository-tailored|not tailored/i, file);
+      assert.doesNotMatch(text, /generic baseline|not repository-tailored|not tailored/i, file);
     }
     assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
   }
@@ -921,10 +921,16 @@ test('AT-LF-20 a plan approval authorizes exactly one execution', () => {
   const executePlan = api('lint-format.js', 'executePlan');
   h.withRepo((target) => {
     const planned = planExecution({ target, commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] }] });
-    const approval = { plan_digest: planned.plan_digest };
-    const first = executePlan(planned, approval);
+    // Two independent approval objects derived from the same signed approval:
+    // the in-memory `used` flag set on the first cannot reach the second, so
+    // only the durable on-disk one-use record can reject the second execution.
+    const signed = { plan_digest: planned.plan_digest };
+    const firstApproval = { ...signed };
+    const secondApproval = { ...signed };
+    const first = executePlan(planned, firstApproval);
     assert.equal(first.status, 'executed');
-    const second = executePlan(planned, approval);
+    assert.equal(secondApproval.used, undefined, 'the second approval must not share the first approval\'s in-memory flag');
+    const second = executePlan(planned, secondApproval);
     assert.notEqual(second.status, 'executed');
   });
 });
