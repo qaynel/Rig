@@ -36,7 +36,7 @@ still the one mandated read. This is the layer under it.
 | **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 69 | [Review receipts](../topics/review-receipts.md) (70) · [Delivery plan](../topics/delivery-plan.md) (45) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
 | **Propose a workflow, product, or architecture change** | [Rig router](../../rig/corpus/routing.md) | — | Route to the named skill; read the relevant Gate 1 intent and Gate 2 technical design before proposing changes |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 56 | [Status](../status.md) (130) for what is true right now |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 56 | [Status](../status.md) (131) for what is true right now |
 
 ---
 

@@ -1395,6 +1395,15 @@ and `.rig/network-policy.json`, both user-owned in §4.2 — are not manifest
 entries and survive. `uninstall --purge` removes them too, and prints the
 complete list of what it will delete before deleting anything.
 
+For complete removal without discarding pre-existing user reports,
+`--purge-generated` uses the evidence ownership ledger: it restores recorded
+preimages and removes only unchanged generated evidence and the unchanged,
+newly created network-policy seed. Unowned reports and edited evidence survive. Both public
+uninstall forms share this implementation. `--purge` retains its whole-scope
+report deletion; requesting both modes refuses before writes. The clean-install
+E2E uses generated-only cleanup and still compares every baseline file and mode.
+[Removal reconciliation](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)
+
 ### 7.7 Per-host install documentation
 
 Gate 1 (GA-1) scopes "per-host install documentation" into Tier 2 Advanced:

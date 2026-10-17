@@ -19,6 +19,7 @@ function parseArgs(argv) {
     else if (argv[i] === '--manifest') args.manifest = argv[++i];
     else if (argv[i] === '--uninstall') args.uninstall = true;
     else if (argv[i] === '--purge') args.purge = true;
+    else if (argv[i] === '--purge-generated') args.purgeGenerated = true;
     else throw new Error(`rig: unknown argument "${argv[i]}"`);
   }
   return args;
@@ -28,8 +29,8 @@ function main() {
   const argv = process.argv.slice(2);
   if (argv[0] === '--help' || argv[0] === 'help') {
     console.log(`Rig commands: ${[...ADVANCED, 'lint-setup'].join(', ')}
-Legacy install: --target <repo> --manifest <config.json>; removal: --target <repo> --uninstall [--purge]
-Command flags: --target --input --out --hosts --host --manifest --review --plan --approval --menu --service --inspection --dry-run --purge --policy --proposal --replacement --identity --challenge --action
+Legacy install: --target <repo> --manifest <config.json>; removal: --target <repo> --uninstall [--purge | --purge-generated]
+Command flags: --target --input --out --hosts --host --manifest --review --plan --approval --menu --service --inspection --dry-run --purge --purge-generated --policy --proposal --replacement --identity --challenge --action
 Lint setup: lint-setup --input <request.json>; request action=propose or apply, target, proposal and separate approval.`);
     return;
   }
@@ -51,7 +52,7 @@ Lint setup: lint-setup --input <request.json>; request action=propose or apply, 
     throw new Error('rig: --target <dir> is required and must exist');
   }
   if (args.uninstall) {
-    const result = uninstall(args.target, { purge: args.purge === true }) || { best_effort: [] };
+    const result = uninstall(args.target, { purge: args.purge === true, purgeGenerated: args.purgeGenerated === true }) || { best_effort: [] };
     if ((result.best_effort || []).length) {
       const retained = (result.best_effort_details || []).length
         ? result.best_effort_details

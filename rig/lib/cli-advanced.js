@@ -93,6 +93,7 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'uninstall') {
     const result = uninstall(target, {
       purge: argv.includes('--purge'),
+      purgeGenerated: argv.includes('--purge-generated'),
       beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
     });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

@@ -13,7 +13,7 @@ and the AI development standards (`ai-sdlc.md`, what counts as evidence).
 
 - **The release gate runs the sequence in order and stops at the first unmet
   step.** `node scripts/check-deployment-gate.js --receipt <path>` proves, in
-  this order: the signed oracle verifies, the working tree is clean, the review
+  this order: the signed oracle verifies, the working tree is clean, the
   full repository gate actually passes without changing publishable files,
   review receipt covers the frozen acceptance cases and binds to the current
   implementation, technical design and catalogue, the changelog names the current version,

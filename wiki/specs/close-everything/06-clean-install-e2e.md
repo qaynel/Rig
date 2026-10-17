@@ -75,11 +75,13 @@ and nonzero counts are retained from installed onboarding state.
 The public installer runs real `npm ci` in an isolated temporary staging
 folder and journals downloaded dependency files plus `.rig/mcp-server.json`.
 The E2E launches that descriptor and completes `rig_instructions` over stdio.
-`--uninstall --purge` now means scoped evidence cleanup: named runtime evidence
-retains its original bytes and mode in an ownership ledger, and cleanup
-restores the preimage or removes newly created evidence only when attributable.
-Unrelated reports and changed evidence remain. This replaces whole-directory
-report deletion.
+`--uninstall --purge-generated` requests scoped evidence cleanup: named runtime
+evidence retains original bytes and mode in an ownership ledger, and cleanup
+restores the preimage or removes unchanged newly created evidence only when
+attributable. Unrelated reports and changed evidence remain. The existing
+`--purge` flag still explicitly removes the complete reports scope under the
+frozen contract; E2E must not request that while asserting original report
+preservation. Both flags together refuse before writes.
 
 The reusable E2E workflow resolves one SHA and checks Linux/macOS. The
 read-only release-eligibility workflow requires that SHA to be current QA both

@@ -58,3 +58,10 @@ readiness for the current bytes.
 The [full-gate/network reproduction](../reasoning/2026-10-17-qa-readiness-network-reproduction.md)
 records the first signed run's five failures and the verified-mirror retry.
 No release is claimed from the earlier focused passes.
+
+The [scoped-removal design](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)
+records a green full gate followed by a real exact-SHA uninstall preservation
+failure, and the minimal correction that preserves the signed purge behavior.
+
+The [removal checkpoint](../reasoning/2026-10-17-qa-readiness-scoped-removal-checkpoint.md)
+records focused and provisional E2E passes and the candidate-freeze coordination.

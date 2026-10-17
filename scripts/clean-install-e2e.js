@@ -115,7 +115,7 @@ async function main() {
       assert.ok(checks?.executed_count > 0, 'selected service must execute nonzero check IDs');
       assert.ok(checks.results.some(r => r.service_id === 'development.documentation.onboarding-docs' && r.executed_checks?.includes('onboarding-docs-source-code-boundary')), 'approved named check ID must actually execute');
       evidence.scenarios.push({ scenario, selected_services: selected, service_checks: checks, mcp_tool: 'rig_instructions', baseline_files: Object.keys(before).length });
-      run(cli, ['--target', target, '--uninstall', '--purge'], { env });
+      run(cli, ['--target', target, '--uninstall', '--purge-generated'], { env });
       assert.deepEqual(inventory(target), before, `${scenario}: complete inventory and bytes after uninstall`);
     }
     evidence.status = 'pass';

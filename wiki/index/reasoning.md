@@ -9,6 +9,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-17 | done | [2026-10-17-retire-the-duplicate-services-catalogue](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md) | [the-catalogue, delivery-plan, central-corpus] | [retire rig/catalog.json and rig/catalog/services in favour of rig/corpus] | — |
 | 2026-10-17 | superseded | [2026-10-17-qa-readiness-verification-start](../reasoning/2026-10-17-qa-readiness-verification-start.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-signed-candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-scoped-removal-design](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-scoped-removal-checkpoint](../reasoning/2026-10-17-qa-readiness-scoped-removal-checkpoint.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-review-corrections](../reasoning/2026-10-17-qa-readiness-review-corrections.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-owner-signed](../reasoning/2026-10-17-qa-readiness-owner-signed.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-owner-request](../reasoning/2026-10-17-qa-readiness-owner-request.md) | the-overhaul | — | — |
@@ -60,7 +62,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-14 | current | [2026-10-14-closure-evidence-gate-wired](../reasoning/2026-10-14-closure-evidence-gate-wired.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-e2e-sha-blocked](../reasoning/2026-10-14-closure-e2e-sha-blocked.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-e2e-script-candidate](../reasoning/2026-10-14-closure-e2e-script-candidate.md) | the-overhaul, testing-strategy | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-e2e-scoped-purge](../reasoning/2026-10-14-closure-e2e-scoped-purge.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-e2e-scoped-purge](../reasoning/2026-10-14-closure-e2e-scoped-purge.md) | distribution-and-release, the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-e2e-provisional-green](../reasoning/2026-10-14-closure-e2e-provisional-green.md) | distribution-and-release, the-overhaul | — | — |
 | 2026-10-14 | current → 2026-10-14-closure-e2e-provisional-final2 | [2026-10-14-closure-e2e-provisional-final3](../reasoning/2026-10-14-closure-e2e-provisional-final3.md) | distribution-and-release | — | — |
 | 2026-10-14 | superseded → 2026-10-14-closure-e2e-provisional-final | [2026-10-14-closure-e2e-provisional-final2](../reasoning/2026-10-14-closure-e2e-provisional-final2.md) | distribution-and-release | — | — |

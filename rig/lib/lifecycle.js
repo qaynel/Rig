@@ -264,6 +264,7 @@ function dropEmptyOrWrite(abs, stripped) {
 }
 
 function uninstall(target, opts = {}) {
+  if (opts.purge && opts.purgeGenerated) throw new Error('rig: choose either --purge or --purge-generated');
   const manifest = readManifest(target);
   const latestByPath = new Map();
   for (const record of latestOperations(manifest.records)) {
@@ -494,7 +495,7 @@ function uninstall(target, opts = {}) {
     at: new Date().toISOString(),
   };
   let purgeList = [];
-  if (opts.purge) {
+  if (opts.purge || opts.purgeGenerated) {
     // A seed is user-owned after editing. Only the unchanged, newly-created
     // network policy can restore its original absence during scoped cleanup.
     for (const record of latestOperations(manifest.records)) {
@@ -507,14 +508,15 @@ function uninstall(target, opts = {}) {
           || currentDigest(seed) !== (record.digest || record.desired_digest)) bestEffort.push(record.path);
       else { fs.unlinkSync(seed); removed.push(record.path); }
     }
-    purgeList = ['reports/rig', 'journal-owned runtime evidence'];
+    purgeList = [...(opts.purge ? ['reports/rig'] : []), 'journal-owned runtime evidence'];
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
     bestEffort.push(...cleanupEvidence(target));
-    // AT-UNINSTALL-3: reports survive a plain uninstall; an explicit purge is
-    // the user's authorization to drop the whole report scope, tracked or not.
-    const reports = containedPath(target, 'reports/rig');
-    if (fs.existsSync(reports)) fs.rmSync(reports, { recursive: true, force: true });
-    pruneEmptyParents(target, 'reports/rig');
+    if (opts.purge) {
+      // AT-UNINSTALL-3: only explicit broad purge authorizes deleting all reports.
+      const reports = containedPath(target, 'reports/rig');
+      if (fs.existsSync(reports)) fs.rmSync(reports, { recursive: true, force: true });
+      pruneEmptyParents(target, 'reports/rig');
+    }
   } else {
     writeEvidence(target, 'reports/rig/last-uninstall.json', `${JSON.stringify(evidence, null, 2)}\n`);
   }

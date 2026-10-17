@@ -7,6 +7,8 @@ This page is generated from current reasoning traces. Read the linked trace for 
 ## Current
 
 - **2026-10-17 — [2026-10-17-qa-readiness-signed-candidate](reasoning/2026-10-17-qa-readiness-signed-candidate.md)**: Owner signature now verifies; all 53 release-evidence regression tests pass and the candidate is being frozen for the full gate and authorized final review.
+- **2026-10-17 — [2026-10-17-qa-readiness-scoped-removal-design](reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)**: Exact-commit E2E exposes destructive full-purge semantics; generated-only cleanup will reuse the evidence ledger while retaining the frozen full-purge contract.
+- **2026-10-17 — [2026-10-17-qa-readiness-scoped-removal-checkpoint](reasoning/2026-10-17-qa-readiness-scoped-removal-checkpoint.md)**: Generated-only removal passes focused and provisional E2E checks; exact-byte evidence awaits candidate freeze and concurrent documentation coordination.
 - **2026-10-17 — [2026-10-17-qa-readiness-review-corrections](reasoning/2026-10-17-qa-readiness-review-corrections.md)**: Independent review's base-binding and cross-platform digest defects reproduce red and now pass; code-suite run was deliberately interrupted for these fixes.
 - **2026-10-17 — [2026-10-17-qa-readiness-owner-signed](reasoning/2026-10-17-qa-readiness-owner-signed.md)**: Owner reports completing the requested test-command amendment signing ceremony.
 - **2026-10-17 — [2026-10-17-qa-readiness-owner-request](reasoning/2026-10-17-qa-readiness-owner-request.md)**: Owner requests holistic QA and production readiness with Luna agents, documentation cleanup, trace compaction, adaptive onboarding and justified issue dispositions.
@@ -49,7 +51,6 @@ This page is generated from current reasoning traces. Read the linked trace for 
 - **2026-10-14 — [2026-10-14-closure-evidence-gate-wired](reasoning/2026-10-14-closure-evidence-gate-wired.md)**: The coherence check now invokes the executed proving-test evidence gate.
 - **2026-10-14 — [2026-10-14-closure-e2e-sha-blocked](reasoning/2026-10-14-closure-e2e-sha-blocked.md)**: Exact-SHA clean-install E2E cannot start while the shared checkout contains unrelated uncommitted work.
 - **2026-10-14 — [2026-10-14-closure-e2e-script-candidate](reasoning/2026-10-14-closure-e2e-script-candidate.md)**: An unsigned test:e2e package-script amendment is ready while the pinned scripts remain unchanged.
-- **2026-10-14 — [2026-10-14-closure-e2e-scoped-purge](reasoning/2026-10-14-closure-e2e-scoped-purge.md)**: Purge now preserves pre-existing reports, verified through the real uninstall lifecycle.
 - **2026-10-14 — [2026-10-14-closure-e2e-provisional-green](reasoning/2026-10-14-closure-e2e-provisional-green.md)**: A disposable candidate archive passed both real clean-install scenarios on macOS, with exact-SHA evidence deferred until final commit.
 - **2026-10-14 — [2026-10-14-closure-e2e-provisional-final3](reasoning/2026-10-14-closure-e2e-provisional-final3.md)**: The latest full clean-install E2E candidate archive passes both customer scenarios and is recorded as provisional.
 - **2026-10-14 — [2026-10-14-closure-e2e-mcp-setup-wired](reasoning/2026-10-14-closure-e2e-mcp-setup-wired.md)**: The public installer now runs the shipped MCP dependency setup through the install journal before optional global registration.

@@ -50,11 +50,20 @@ Remove Rig's journaled files and managed instruction sections:
 .rig/bin/rig uninstall --target /path/to/repository
 ```
 
-To also remove Rig's recorded state and installed catalogue data, pass the
-optional `--purge` flag:
+To also clean Rig-generated evidence while restoring original report files,
+use generated-only cleanup:
+
+```sh
+.rig/bin/rig uninstall --target /path/to/repository --purge-generated
+```
+
+To deliberately delete the complete `reports/rig/` scope as well, including
+existing reports, use full purge:
 
 ```sh
 .rig/bin/rig uninstall --target /path/to/repository --purge
 ```
 
-Uninstall preserves repository files and edits that are not owned by Rig.
+Normal uninstall and generated-only cleanup preserve unrelated repository
+files and user edits. Full purge explicitly deletes report history; choose one
+purge mode, not both.

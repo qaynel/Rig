@@ -205,10 +205,10 @@ run or a committed fix, not by transcript claims.
 - [x] T-6.1 Installer accepts a candidate artifact with SHA-256 + Git archive
   commit verification. Prove: `node --test tests/e2e/installer-artifact.test.js`.
 - [x] T-6.2 Scoped evidence cleanup preserves pre-existing reports and ignored
-  files. Prove: `node --test tests/e2e/scoped-evidence.test.js`.
+  files. Prove: `node --test tests/scoped-evidence.test.js`.
 - [x] T-6.3 `scripts/clean-install-e2e.js`, `.github/workflows/e2e.yml` and
   `release-eligibility.yml` exist and are read-only/no-write permissioned.
-- [x] T-6.4 One complete local run is green and archived under `.context/`:
+- [ ] T-6.4 One complete local run is green and archived under `.context/`:
   real `npm ci`, real MCP `rig_instructions` call, ephemeral-key approval,
   selected service with nonzero executed check IDs, full before/after
   inventory comparison (ignored/untracked included). Labelled provisional.
@@ -322,7 +322,7 @@ run or a committed fix, not by transcript claims.
   it spawns a 30-minute ephemeral reviewer, and a `fail` burns one of the two
   attempts RIG-124 allows. The owner already selected `claude-opus-5` and
   authorized the agent to run it after signing; no new model decision is needed.
-- [x] T-10.6 `npm test` green locally (the only full-gate run, right before push).
+- [ ] T-10.6 `npm test` green locally (the only full-gate run, right before push).
   Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
   pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
   (`.context/npm-test-final7.log`,
@@ -347,9 +347,9 @@ run or a committed fix, not by transcript claims.
 
 ## Progress count
 
-Done: 76. Open: 10. The owner signature and test:e2e pin are verified.
-The agent is renewing full-gate and review evidence; exact-candidate CI,
-branch-protection verification (API returns 403), QA promotion, publication,
-public-download checks and tracker closure remain ordered release work.
-Owner decisions are recorded in `owner-questionnaire.md`; none is being re-asked.
+Done: 74. Open: 12. The owner signature is verified.
+The full gate passed on f5f2ba70, but exact-SHA E2E found a real existing-report
+preservation failure after full purge. T-6.4 and T-10.6 are reopened for the
+scoped-cleanup fix and renewed exact-byte evidence. Final review, CI and
+ordered QA/publication/tracker work remain pending.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.
