@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: Exact-commit E2E exposes destructive full-purge semantics; generated-only cleanup will reuse the evidence ledger while retaining the frozen full-purge contract.
 ---
 

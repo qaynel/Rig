@@ -68,14 +68,19 @@ function main() {
     }
   }
 
-  // The two MCP entrypoints are byte-identical by design (I-C-4). The frozen
-  // oracle pins that only for index.js, so instructions.js would drift unseen.
-  // shortcut: partial trees (this gate's own fixtures copy rig/ without rig-mcp/)
-  // are skipped rather than reported; drop the guard if the pair ever moves.
-  const pair = ['rig-mcp/instructions.js', 'rig/mcp-runtime/instructions.js'].map((rel) => path.join(root, rel));
-  if (pair.every((file) => fs.existsSync(file))) {
-    const [mcp, runtime] = pair.map((file) => digestOf(fs.readFileSync(file)));
-    if (mcp !== runtime) problems.push('rig-mcp/instructions.js and rig/mcp-runtime/instructions.js must be byte-identical; edit both in one commit');
+  // The installed runtime is copied from the authoring MCP package, so source
+  // and dependency metadata must match.
+  // rig: partial gate fixtures omit rig-mcp; once present, every pair is required.
+  const parityPairs = [
+    ['rig-mcp/instructions.js', 'rig/mcp-runtime/instructions.js'],
+    ['rig-mcp/package.json', 'rig/mcp-runtime/package.json'],
+    ['rig-mcp/package-lock.json', 'rig/mcp-runtime/package-lock.json'],
+  ];
+  for (const pair of parityPairs) {
+    const files = pair.map((rel) => path.join(root, rel));
+    if (!fs.existsSync(path.join(root, 'rig-mcp'))) continue;
+    const [source, runtime] = files.map((file) => digestOf(fs.readFileSync(file)));
+    if (source !== runtime) problems.push(`${pair[0]} and ${pair[1]} must be byte-identical; edit both in one commit`);
   }
 
   const skill = fs.readFileSync(path.join(root, 'skills/rig/SKILL.md'), 'utf8');

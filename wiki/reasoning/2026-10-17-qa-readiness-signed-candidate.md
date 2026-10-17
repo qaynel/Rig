@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: Owner signature now verifies; all 53 release-evidence regression tests pass and the candidate is being frozen for the full gate and authorized final review.
 ---
 

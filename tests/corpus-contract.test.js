@@ -86,6 +86,23 @@ test('the shipped rule-copy gate now proves reproducibility and uniqueness, not 
   assert.doesNotMatch(source, /rig\/tier-1|stripFrontmatter/);
 });
 
+test('the installed MCP runtime dependency metadata cannot drift from rig-mcp', () => {
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-mcp-metadata-'));
+  try {
+    for (const dir of ['rig', 'rig-mcp', 'scripts', 'skills', '.claude', '.agents', '.cursor', '.windsurf', '.clinerules', '.kiro', '.github', '.opencode', 'antigravity-plugin']) {
+      if (fs.existsSync(path.join(root, dir))) fs.cpSync(path.join(root, dir), path.join(copy, dir), { recursive: true });
+    }
+    for (const file of ['AGENTS.md', 'package.json']) fs.copyFileSync(path.join(root, file), path.join(copy, file));
+    const script = path.join(copy, 'scripts/check-rule-copies.js');
+    const baseline = spawnSync(process.execPath, [script], { encoding: 'utf8' });
+    assert.equal(baseline.status, 0, baseline.stderr);
+    fs.appendFileSync(path.join(copy, 'rig/mcp-runtime/package-lock.json'), '\n');
+    const result = spawnSync(process.execPath, [script], { encoding: 'utf8' });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /rig-mcp\/package-lock\.json and rig\/mcp-runtime\/package-lock\.json/);
+  } finally { fs.rmSync(copy, { recursive: true, force: true }); }
+});
+
 test('a drifted generated twin fails the gate and names the file', () => {
   const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-contract-'));
   try {

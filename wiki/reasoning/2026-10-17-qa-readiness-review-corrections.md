@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: Independent review's base-binding and cross-platform digest defects reproduce red and now pass; code-suite run was deliberately interrupted for these fixes.
 ---
 

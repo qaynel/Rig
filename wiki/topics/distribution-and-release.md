@@ -70,3 +70,9 @@ step.
 
 The [health and docs checkpoint](../reasoning/2026-10-17-qa-readiness-health-and-docs.md)
 records corrected lockfile commands, runner setup and final instruction alignment.
+
+The [shipped-dependency audit](../reasoning/2026-10-17-qa-readiness-shipped-dependencies.md)
+records the stale installed MCP lock and the correction to health coverage.
+
+The [latest checks checkpoint](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md)
+records a green advisory full gate, clean shipped dependencies and the docs handoff wait.

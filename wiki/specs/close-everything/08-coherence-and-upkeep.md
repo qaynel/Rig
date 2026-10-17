@@ -54,9 +54,11 @@ Each finding is either fixed or turned into a check below.
   execution jobs remain read-only. Bind reports to failing SHA/run and avoid
   duplicate issues. Scheduled workflows run from the default branch: QA
   validation uses manual dispatch with an explicit QA ref.
-- **Dependency drift:** the production dependency package, `rig-mcp`, must
-  have no high or critical advisories (`npm --prefix rig-mcp audit --omit=dev`)
-  and its lockfile must be in sync (`npm ci --prefix rig-mcp --dry-run`).
+- **Dependency drift:** both production dependency packages, `rig-mcp` and
+  the installed `rig/mcp-runtime` copy, must
+  have no high or critical advisories (`npm --prefix <package> audit --omit=dev`)
+  and their lockfiles must be in sync (`npm ci --prefix <package> --dry-run`).
+  The existing parity guard keeps their package manifests and locks identical.
   Root and `pi-extension` have no dependencies or lockfiles, so neither
   `npm audit` nor `npm ci` applies there.
 - **Runner setup:** every Ubuntu workflow executing the full gate enables and

@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: Generated-only removal passes focused and provisional E2E checks; exact-byte evidence awaits candidate freeze and concurrent documentation coordination.
 ---
 

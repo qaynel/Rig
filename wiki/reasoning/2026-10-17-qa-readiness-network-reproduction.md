@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: The full signed gate reports five failures; four are upstream timeouts and all 115 catalogue cases pass, so the retry uses a freshly downloaded digest-verified mirror.
 ---
 

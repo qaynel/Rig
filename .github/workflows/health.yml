@@ -56,13 +56,15 @@ jobs:
         env:
           HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
         run: node scripts/clean-install-e2e.js --sha "$HEALTH_SHA" --out "$RUNNER_TEMP/e2e-evidence.json"
-      # Only rig-mcp has dependencies; root and pi-extension use Node built-ins.
+      # Root and pi-extension use Node built-ins; both MCP dependency trees ship.
       - name: Dependency audit
         run: |
           npm --prefix rig-mcp audit --omit=dev --audit-level=high
+          npm --prefix rig/mcp-runtime audit --omit=dev --audit-level=high
       - name: Lockfile dry runs
         run: |
           npm ci --prefix rig-mcp --dry-run --ignore-scripts
+          npm ci --prefix rig/mcp-runtime --dry-run --ignore-scripts
       - name: Wiki budget
         run: node --test tests/wiki-budget.test.js
   report:

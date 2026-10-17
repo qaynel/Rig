@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: superseded
 summary: Deployment regression checks reject self-validating review evidence and unexecuted full gates; archive audit restores two required source paths.
 ---
 

@@ -33,10 +33,10 @@ still the one mandated read. This is the layer under it.
 | **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (68) · [Action evaluator](../topics/action-evaluator.md) (42) |
 | **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 39 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
 | **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 398 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
-| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 72 | [Review receipts](../topics/review-receipts.md) (70) · [Delivery plan](../topics/delivery-plan.md) (45) |
+| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 78 | [Review receipts](../topics/review-receipts.md) (70) · [Delivery plan](../topics/delivery-plan.md) (45) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
 | **Propose a workflow, product, or architecture change** | [Rig router](../../rig/corpus/routing.md) | — | Route to the named skill; read the relevant Gate 1 intent and Gate 2 technical design before proposing changes |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 56 | [Status](../status.md) (133) for what is true right now |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 56 | [Status](../status.md) (127) for what is true right now |
 
 ---
 

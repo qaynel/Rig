@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul, distribution-and-release
 decisions:
-status: current
+status: superseded
 summary: Health command reproduction finds missing-lockfile failures; workflows now target real dependencies and match full-gate runner setup, while live docs are reconciled.
 ---
 

@@ -71,3 +71,9 @@ records corrected lockfile commands, runner setup and final instruction alignmen
 
 The [owner confirmation](../reasoning/2026-10-17-qa-readiness-concurrent-docs.md)
 identifies concurrent documentation work; final evidence waits for its write freeze.
+
+The [shipped-dependency audit](../reasoning/2026-10-17-qa-readiness-shipped-dependencies.md)
+records the stale installed MCP lock and the correction to health coverage.
+
+The [latest checks checkpoint](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md)
+records a green advisory full gate, clean shipped dependencies and the docs handoff wait.
