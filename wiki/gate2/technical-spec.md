@@ -1392,14 +1392,16 @@ removed the `advisory` tier outright — and they are outside the surfaces
 manifest records. Accumulated run reports under `reports/rig/`, run history,
 and post-install configuration the user filled in themselves — `rig.json`
 and `.rig/network-policy.json`, both user-owned in §4.2 — are not manifest
-entries and survive. `uninstall --purge` removes them too, and prints the
-complete list of what it will delete before deleting anything.
+entries and survive ordinary uninstall. Explicit `uninstall --purge` removes
+the complete `reports/rig/` scope and journal-owned generated evidence;
+user-edited policy/configuration remains user-owned. The command exposes the
+purge scope separately from normal journal reversal.
 
 For complete removal without discarding pre-existing user reports,
 `--purge-generated` uses the evidence ownership ledger: it restores recorded
 preimages and removes only unchanged generated evidence and the unchanged,
-newly created network-policy seed. Unowned reports and edited evidence survive. Both public
-uninstall forms share this implementation. `--purge` retains its whole-scope
+newly created network-policy seed. Unowned reports and edited evidence survive.
+Both public uninstall forms share this implementation. `--purge` retains its whole-scope
 report deletion; requesting both modes refuses before writes. The clean-install
 E2E uses generated-only cleanup and still compares every baseline file and mode.
 [Removal reconciliation](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)

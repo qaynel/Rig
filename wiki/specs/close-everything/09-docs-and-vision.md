@@ -7,8 +7,8 @@ docs describe the shipped product.
 
 - **README:** what Rig is, the one install command, what happens next (your
   agent unpacks the corpus and you approve the proposal), and what you get.
-  There is no per-host support matrix (North star 1). The 19-host list moves,
-  if anywhere, to a "known projectors" reference page.
+  There is no per-host support matrix; host inventory is not product scope or
+  a test frame.
 - **Install guide:** a fresh repo, an existing repo with agent config, upgrade
   from v5, and uninstall.
 - **Troubleshooting:** every named refusal or coverage-gap message the product

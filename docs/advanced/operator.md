@@ -3,11 +3,14 @@
 ## Workflow
 
 ```text
-inspect -> host review -> recommend -> user selection (rig.json)
-  -> plan -> apply -> check
+rig-onboarding: inspect -> propose useful capabilities -> user approves exact proposal -> apply -> check
 ```
 
-Remediation is separate and requires an explicit proposal digest approval.
+The repository's host agent uses local context to choose relevant capabilities,
+including optional services and grades. The mandatory safety baseline remains
+installed regardless of that selection. The user reviews and approves the exact
+proposal before repository files change. Remediation is separate and requires
+an explicit proposal-digest approval.
 
 ## Public install
 
@@ -20,7 +23,14 @@ its summary is approved.
 `install.sh` and `rig/bootstrap.sh` remain subordinate compatibility and
 diagnostic paths. The public launcher always enables the active runtime.
 
-## CLI
+## Legacy configurator CLI (compatibility path)
+
+The manifest-based `materialize` commands remain for compatibility with existing
+integrations. New onboarding should use `rig-onboarding` as described above;
+do not turn the legacy `select` command into a second user-facing service picker.
+This compatibility path stores an explicit service manifest in `rig.json`.
+
+## Legacy CLI reference
 
 From a source checkout use `node rig/materialize.js`; from a tagged release
 install use `.rig/bin/rig` with the same arguments. The installed command is

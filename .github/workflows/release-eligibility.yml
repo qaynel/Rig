@@ -57,7 +57,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci --no-audit --no-fund
+      # Match the full-gate runner capability used by test.yml.
+      - name: Enable rootless network namespaces
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
       - name: Require a changelog entry for the release version
         run: |
           version=$(node -p "require('./package.json').version")

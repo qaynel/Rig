@@ -54,9 +54,14 @@ Each finding is either fixed or turned into a check below.
   execution jobs remain read-only. Bind reports to failing SHA/run and avoid
   duplicate issues. Scheduled workflows run from the default branch: QA
   validation uses manual dispatch with an explicit QA ref.
-- **Dependency drift:** `npm audit --omit=dev` must have no high or critical
-  advisories across the three packages. Lockfiles must be in sync
-  (`npm ci --dry-run`).
+- **Dependency drift:** the production dependency package, `rig-mcp`, must
+  have no high or critical advisories (`npm --prefix rig-mcp audit --omit=dev`)
+  and its lockfile must be in sync (`npm ci --prefix rig-mcp --dry-run`).
+  Root and `pi-extension` have no dependencies or lockfiles, so neither
+  `npm audit` nor `npm ci` applies there.
+- **Runner setup:** every Ubuntu workflow executing the full gate enables and
+  verifies the rootless network namespace used by the ungranted-task boundary,
+  matching the main test workflow. The full gate prepares its own dependencies.
 - **Release discipline:**
   - one version authority (already `check-versions.js`)
   - a `CHANGELOG.md` entry required for each tag

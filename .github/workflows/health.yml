@@ -43,7 +43,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci --no-audit --no-fund
+      # Match the full-gate runner capability used by test.yml.
+      - name: Enable rootless network namespaces
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
       - name: Full repository gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,16 +56,13 @@ jobs:
         env:
           HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
         run: node scripts/clean-install-e2e.js --sha "$HEALTH_SHA" --out "$RUNNER_TEMP/e2e-evidence.json"
+      # Only rig-mcp has dependencies; root and pi-extension use Node built-ins.
       - name: Dependency audit
         run: |
-          npm audit --omit=dev --audit-level=high
           npm --prefix rig-mcp audit --omit=dev --audit-level=high
-          npm --prefix pi-extension audit --omit=dev --audit-level=high
       - name: Lockfile dry runs
         run: |
-          npm ci --dry-run --ignore-scripts
           npm ci --prefix rig-mcp --dry-run --ignore-scripts
-          npm ci --prefix pi-extension --dry-run --ignore-scripts
       - name: Wiki budget
         run: node --test tests/wiki-budget.test.js
   report:

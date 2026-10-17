@@ -7,13 +7,15 @@ Part of the [master plan](00-master-plan.md). **This is the spine.** Subplans
 capabilities live in the corpus and ship from it; compatible duplicate merges
 may reduce the published service count. The user's agent unpacks it by following
 clear onboarding instructions that ship inside the corpus. Never scope or test
-per host.
+per host. The snapshot and plan below are retained for implementation history;
+for current product behavior, use the [corpus router](../../../rig/corpus/routing.md),
+[onboarding flow](../../topics/onboarding-flow.md), and [catalogue](../../topics/the-catalogue.md).
 
 Design source: [2026-09-08 brainstorm](../../reasoning/2026-09-08-dynamic-offboarding-architecture-brainstorm.md),
 plus two feasibility results. Unknown-host projection by an agent worked for
 Cursor and Zed. An agent-written deterministic projection script also worked.
 
-## Current state (051a819c)
+## Historical baseline (commit `051a819c`, before the corpus migration)
 
 - **Skills are triplicated.** Each one exists in `rig/tier-1/skills/`,
   `.claude/skills/`, and `.agents/skills/`. The repo-root rule body

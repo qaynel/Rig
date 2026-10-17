@@ -16,7 +16,9 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-17 | current | [2026-10-17-qa-readiness-owner-request](../reasoning/2026-10-17-qa-readiness-owner-request.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-network-reproduction](../reasoning/2026-10-17-qa-readiness-network-reproduction.md) | the-overhaul | — | — |
 | 2026-10-17 | superseded | [2026-10-17-qa-readiness-inventory](../reasoning/2026-10-17-qa-readiness-inventory.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-health-and-docs](../reasoning/2026-10-17-qa-readiness-health-and-docs.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-gate-and-compaction](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-concurrent-docs](../reasoning/2026-10-17-qa-readiness-concurrent-docs.md) | the-overhaul | — | — |
 | 2026-10-17 | historical | [2026-10-17-closeout-ticket-and-issue-attachment](../reasoning/2026-10-17-closeout-ticket-and-issue-attachment.md) | [delivery-plan] | [] | — |
 | 2026-10-17 | current | [2026-10-17-change-management-policy-and-doc-deduplication](../reasoning/2026-10-17-change-management-policy-and-doc-deduplication.md) | delivery-plan, distribution-and-release, onboarding-flow | — | interdependency |
 | 2026-10-17 | current | [2026-10-17-august-reasoning-archive-compaction](../reasoning/2026-10-17-august-reasoning-archive-compaction.md) | agent-working-conventions | — | interdependency |

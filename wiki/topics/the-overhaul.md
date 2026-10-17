@@ -65,3 +65,9 @@ failure, and the minimal correction that preserves the signed purge behavior.
 
 The [removal checkpoint](../reasoning/2026-10-17-qa-readiness-scoped-removal-checkpoint.md)
 records focused and provisional E2E passes and the candidate-freeze coordination.
+
+The [health and docs checkpoint](../reasoning/2026-10-17-qa-readiness-health-and-docs.md)
+records corrected lockfile commands, runner setup and final instruction alignment.
+
+The [owner confirmation](../reasoning/2026-10-17-qa-readiness-concurrent-docs.md)
+identifies concurrent documentation work; final evidence waits for its write freeze.

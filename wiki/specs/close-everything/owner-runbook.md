@@ -28,7 +28,7 @@ the sequence is retained here so an interrupted session can resume.
 ## 2. Full gate on the final bytes
 
 ```sh
-npm test   # ~45 minutes; must exit 0
+npm test   # must exit 0
 ```
 
 ## 3. Review receipt, Opus 5, bound to those bytes
@@ -40,8 +40,8 @@ node scripts/review-receipt.js \
   --implementation-root . \
   --base origin/qa-prod \
   --model claude-opus-5 \
-  --author-context v6.0.0-closeout \
-  --out .context/review-receipt-v6.0.0.json
+  --author-context v6.0.0-qa-readiness-2026-10-17 \
+  --out .context/qa-readiness-final-review.json
 ```
 
 The target is the current technical design; the deployment checker independently
@@ -50,6 +50,10 @@ must live outside the tree or in an ignored path (`.context/` is
 ignored): the implementation digest hashes every publishable file, so a receipt
 committed into the repository changes the bytes it claims to describe. Keep the
 file — step 7 needs its contents.
+
+The interrupted pre-fix review used this same context and output path; its
+failed-attempt counter is 1. Preserve it: one further attempt remains under
+the existing cap. Do not change the context or delete the counter to retry.
 
 Supply the wrapper's output unchanged. The workflow validates its bindings and
 coverage; it does not authenticate its producer. Control release dispatch and
@@ -86,7 +90,7 @@ Required checks green on the exact head SHA first.
 SHA=$(gh api repos/qaynel/Rig/branches/qa-prod --jq .commit.sha)
 gh workflow run exact-qa-release-eligibility -R qaynel/Rig \
   -f sha="$SHA" \
-  -f receipt="$(cat .context/review-receipt-v6.0.0.json)"
+  -f receipt="$(cat .context/qa-readiness-final-review.json)"
 gh run watch -R qaynel/Rig "$(gh run list -R qaynel/Rig -w exact-qa-release-eligibility -L1 --json databaseId --jq '.[0].databaseId')"
 ```
 

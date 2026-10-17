@@ -67,3 +67,6 @@ step.
 - The 2026-10 closeout evidence is indexed from the
   [current status](../status.md) and
   [close-everything delivery plan](../specs/close-everything/statement-of-work.md).
+
+The [health and docs checkpoint](../reasoning/2026-10-17-qa-readiness-health-and-docs.md)
+records corrected lockfile commands, runner setup and final instruction alignment.

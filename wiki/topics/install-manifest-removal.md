@@ -49,9 +49,11 @@ legacy Basic MCP leftovers. The journal is retained while best-effort files
 remain and is deleted last in both ordinary and purge modes. Preimage
 backups, install-id, and shared hook writes are journaled so they reverse.
 The shipping `uninstall` command writes removal evidence. Reports and
-user-owned policy files survive ordinary removal; `--purge` lists
-reports/run history before deleting those usage artifacts and still
-preserves the user policy.
+user-owned policy files survive ordinary removal. `--purge-generated` restores
+ledger-recorded preimages and removes unchanged generated evidence, preserving
+unowned reports and edits; `--purge` additionally deletes the complete
+`reports/rig/` scope. Both preserve edited user policy.
+[Generated-only cleanup](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)
 
 Uninstall resolves every ordinary journal path through the symlink-aware
 containment guard before applying its install-namespace allow-list, so an

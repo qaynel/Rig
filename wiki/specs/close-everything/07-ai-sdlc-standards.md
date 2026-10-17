@@ -17,9 +17,12 @@ an item from intent to merged:
 3. Turn the acceptance into tests that fail first. The human signs and the
    tests are frozen.
 4. Build test-first, with the smallest diff.
-5. Independent review.
-6. Run the full gate.
-7. Trackers and docs are updated in the same change.
+5. Freeze the final candidate and run the full repository gate against those bytes.
+6. Have an independent reviewer assess that exact candidate; any fix requires
+   fresh test and review evidence.
+7. Update docs and candidate tracker declarations in the same change. Close
+   issues only after the release tag is published and the public tagged-download
+   smoke test passes.
 
 It also includes the **definition of done**: fix + proving test + docs agree +
 trackers in sync + reviewed. Every item uses it, including future ones.
