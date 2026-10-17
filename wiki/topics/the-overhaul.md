@@ -54,3 +54,7 @@ The [owner signing reply](../reasoning/2026-10-17-qa-readiness-owner-signed.md)
 and [verified signed candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md)
 supersede the earlier signing blocker. Earlier passing results do not establish
 readiness for the current bytes.
+
+The [full-gate/network reproduction](../reasoning/2026-10-17-qa-readiness-network-reproduction.md)
+records the first signed run's five failures and the verified-mirror retry.
+No release is claimed from the earlier focused passes.
