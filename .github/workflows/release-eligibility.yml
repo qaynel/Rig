@@ -6,6 +6,10 @@ on:
         description: 'Exact QA commit to prove (must equal current qa-prod head)'
         required: true
         type: string
+      receipt:
+        description: 'Review receipt JSON for this exact commit (contents of the file review-receipt.js wrote)'
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
@@ -35,6 +39,11 @@ jobs:
   eligibility:
     needs: [resolve, health]
     runs-on: ubuntu-latest
+    # check-coherence compares declared tracker transitions against live issues
+    # and refuses to skip that comparison in CI.
+    permissions:
+      contents: read
+      issues: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,6 +58,17 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           grep -Eq "^## \\[${version}\\]([[:space:]]|$)" CHANGELOG.md
+      - name: Prove the change-management sequence in order
+        env:
+          # The receipt is written on the authoring box and passed in here. It
+          # cannot live in the repository: the implementation digest it binds
+          # hashes every publishable file, so committing it would change them.
+          RECEIPT_JSON: ${{ inputs.receipt }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$RECEIPT_JSON" > "$RUNNER_TEMP/review-receipt.json"
+          node scripts/check-deployment-gate.js --receipt "$RUNNER_TEMP/review-receipt.json"
+
       - name: Record exact-SHA health and clean-install evidence
         env:
           PROVED_SHA: ${{ needs.resolve.outputs.sha }}

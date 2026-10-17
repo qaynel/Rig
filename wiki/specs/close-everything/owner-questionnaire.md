@@ -6,6 +6,19 @@ full gate and was pushed to PR #153 (`qa-prod` ← `vaibhav-kodiyan/universal-is
 Every agent-side closeout task is finished. What is left needs either a
 decision only the owner can make or a credential/click this box does not have.
 
+## Answered 2026-10-17
+
+| Q | Owner's answer | Applied |
+| --- | --- | --- |
+| Q1 | Fire the receipt with Opus 5 | After the re-signature, because `gate1.sig` is itself part of the bytes the receipt binds |
+| Q2 | Apply the pin amendment | `test:e2e` is in `package.json` and the signed snapshot; awaiting one `approve-gate1.js` run |
+| Q3 | Make `gate1-pin` a required check | Owner's click (403 here); now also step 6 of the change-management policy |
+| Q4 | Close after QA promotion and the tag | T-1.6, T-1.7 and T-10.8 reordered |
+| Q5 | "Do not leave them" — compact the very old traces | Subagent compacting the 120 August 2026 traces into themed archives |
+| Q6 | Remove the host-count wording and the old warnings; state how dynamic onboarding works | `docs/agent-portability.md` rewritten; host counts gone from every live doc |
+
+The questions as they were put, for the record:
+
 ## Decisions
 
 ### Q1 — Who fires the T-10.5 review receipt, and with which model?

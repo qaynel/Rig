@@ -180,4 +180,15 @@ catalogue is gone and `test.yml` now hands the suite a read-only tracker token,
 which was the single failure in the workflow's run on `8288742a`.
 [Retiring the duplicate](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md)
 
-<!-- Reviewed 2026-10-17 for wiki-maintenance freshness after retiring the duplicate catalogue. -->
+
+## Change management is a shipped policy (2026-10-17)
+
+The owner's rule — "if I am instructing you on something twice, it's a skill,
+it's a policy" — turned the release checklist into a standard the corpus ships:
+`rig/corpus/standards/change-management.md`, enforced by
+`scripts/check-deployment-gate.js` and run against the exact QA head by
+`.github/workflows/release-eligibility.yml`. Nine ordered steps, no reordering,
+and no evidence carried across a code change. See
+[[2026-10-17-change-management-policy-and-doc-deduplication]].
+
+<!-- Reviewed 2026-10-17 -->

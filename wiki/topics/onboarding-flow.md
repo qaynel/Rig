@@ -490,3 +490,12 @@ removed (`--tier 1` is accepted but deprecated; other values are rejected).
 <!-- Reviewed 2026-09-08 for wiki-maintenance freshness after the authority-hardening SOW. -->
 
 Closure work in progress: [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md).
+
+## The install/adaptation split, stated plainly in the docs (2026-10-17)
+
+`docs/agent-portability.md` no longer opens on a tier heading or a host count.
+It separates installing the corpus (deterministic entrypoints for the hosts a
+repository already has) from adapting it (the user's own agent reads the shipped
+onboarding instructions, inspects the repository and proposes the smallest
+graft, which the user approves). The markdown-only paragraph is gone. See
+[[2026-10-17-change-management-policy-and-doc-deduplication]].

@@ -89,7 +89,7 @@ findings but never writes the binding receipt. Only a run without `--interim`
 produces the receipt the gate relies on, and it should use the model the
 release designates.
 
-Legacy Basic path is unchanged:
+Direct payload materialization, for a prepared manifest:
 
 ```sh
 node rig/materialize.js --target <repo> --manifest <basic-config.json>

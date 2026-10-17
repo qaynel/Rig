@@ -51,8 +51,8 @@ sh install.sh --version v6.0.0 --target /path/to/repository
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-`--hosts` 없이 실행하면 Rig은 19개 호스트 레지스트리를 기준으로 기존 호스트
-설정을 기계적으로 감지하고, 없는 호스트 트리는 설치하지 않는다. 쉼표로
+`--hosts` 없이 실행하면 Rig은 저장소에 이미 있는 호스트 설정을 기계적으로
+감지하고, 없는 호스트 트리는 만들지 않는다. 쉼표로
 구분한 목록으로 그 선택을 명시적으로 좁히거나 덮어쓸 수 있다:
 
 ```sh

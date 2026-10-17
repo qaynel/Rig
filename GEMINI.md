@@ -47,6 +47,11 @@ the Rig skills it routes to for each phase.
 
 ## Delivery SOP
 
+Releases follow `rig/corpus/standards/change-management.md` — one ordered
+sequence from candidate freeze to tracker closure, enforced by
+`node scripts/check-deployment-gate.js --receipt <path>`. Do not reorder it and
+do not carry evidence across a code change.
+
 Follow `rig/corpus/standards/delivery-sop.md` for multi-step changes. The live
 closeout artifacts are in `wiki/specs/close-everything/` (`task-list.md`,
 `agent-prompt.md`).

@@ -57,9 +57,11 @@ run or a committed fix, not by transcript claims.
 - [x] T-1.5 GitHub Phase A (create `redesign` label, reopen #78–80, create
   RIG-155/156 issues, label #62/#63/#42/#43). Owner runs after re-auditing.
 - [ ] 🔒 T-1.6 GitHub Phase B closures (verified-fixed #127/#130/#138, redesign
-  deferrals as not planned, corrective comments on #125/#126).
+  deferrals as not planned, corrective comments on #125/#126). Owner's answer
+  2026-10-17: closures run after QA promotion and the tag, per step 8 of
+  `rig/corpus/standards/change-management.md`.
 - [ ] 🔒 T-1.7 GitHub Phase C closures after the fixes reach QA (#69, #70, #78–80,
-  #108–110, RIG-155 issue).
+  #108–110, RIG-155 issue). Same ordering: after QA promotion and the tag.
 - [x] T-1.8 After T-1.5, record the new RIG-155/156 issue numbers in
   `wiki/Tickets.md` and the ticket files and update `tracker-transitions.json`.
   Prove: `node --test tests/ticket-traceability.test.js tests/coherence.test.js`.
@@ -214,12 +216,12 @@ run or a committed fix, not by transcript claims.
   (commit the work first so the SHA contains it).
 - [x] T-6.5 Deliberate-breakage evidence: a bad lockfile entry and a missing
   corpus file each make the E2E go red; record both in a trace.
-- [ ] 🔒 T-6.6 `npm run test:e2e` entrypoint. `package.json` scripts are pinned by
-  `wiki/gate1/package-scripts.json`: add the script, file the pin change as a
-  candidate amendment, and keep `npm test` unchanged until the owner applies it.
-  Agent side done: the amendment is written
-  (`candidate-amendments/06-e2e/package-scripts.md`). Nothing can move without a
-  re-signature, so this is owner-only — see Q2 of `owner-questionnaire.md`.
+- [ ] 🔒 T-6.6 `npm run test:e2e` entrypoint. Applied on the owner's 2026-10-17
+  instruction: `test:e2e` is in `package.json` and in the signed snapshot
+  `wiki/gate1/package-scripts.json`, `npm test` unchanged. The oracle now
+  reports the pin delta and refuses until the owner re-signs:
+  `node scripts/approve-gate1.js --confirm-digest-delta d8d481d59a1915eb034a41033123e2efcd6cfebe219801028eb4bbf1b0b2c77c`.
+  The box ticks on that signature.
 - [ ] 🔒 T-6.7 Green Linux and macOS runs on the exact candidate SHA (needs push).
   Partly done: the macOS and Linux `descendants-*` jobs are green on `8288742a`.
   The `test` workflow on that SHA failed only on `check-coherence` refusing to
@@ -242,6 +244,13 @@ run or a committed fix, not by transcript claims.
 - [x] T-7.6 `CLAUDE.md` and `GEMINI.md` point at the standards and the Delivery
   SOP instead of restating them (the SOP section added with this list satisfies
   this; verify no duplicate restatement remains).
+- [x] T-7.7 Change-management policy, on the owner's 2026-10-17 instruction that
+  a twice-given instruction is a policy: `rig/corpus/standards/change-management.md`
+  holds the ordered release sequence, `scripts/check-deployment-gate.js` enforces
+  it and stops at the first unmet step, and
+  `.github/workflows/release-eligibility.yml` runs it against the exact QA head.
+  Accept: a stale receipt, a dirty tree or a missing changelog entry each block.
+  Prove: `node --test tests/deployment-gate.test.js` (6 pass).
 
 ## WP8 — Coherence and upkeep (subplan 08)
 
@@ -327,12 +336,17 @@ run or a committed fix, not by transcript claims.
   `qa-prod` it reports without blocking. The de-duplication commit `ba123844` is
   pushed (2026-10-17) and is the PR head; confirming its checks and the
   `gate1-pin` requirement are the owner's two remaining steps.
-- [ ] 🔒 T-10.8 Tracker closures on delivery; QA promotion on exact-SHA automated
-  evidence; tag and release; public tagged-download smoke test.
+- [ ] 🔒 T-10.8 QA promotion on exact-SHA automated evidence; tag and release;
+  then tracker closures and the public tagged-download smoke test — in that
+  order, per steps 7–8 of `rig/corpus/standards/change-management.md`. Nothing
+  closes before the tag exists, so no task is left open against a closed issue.
+  The promotion dispatch now also proves the change-management sequence:
+  `exact-qa-release-eligibility` takes the review receipt JSON as an input and
+  runs `node scripts/check-deployment-gate.js` against the exact QA head.
 
 ## Progress count
 
-Done: 73. Open: 12, all of them blocked on the owner: 10 are owner-only
+Done: 74. Open: 12, all of them blocked on the owner: 10 are owner-only
 (🔒 credentials, clicks or a signature), T-10.5 needs the owner's model choice
 and T-9.7 waits on the published tag. The agent has nothing in flight.
 Open decisions are collected in `owner-questionnaire.md`.

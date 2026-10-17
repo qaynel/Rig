@@ -178,3 +178,13 @@ gaps for bad digests or unavailable upstream, licence kept — and the retired
 release, any other value is rejected.
 ([fetch](../reasoning/2026-10-13-corpus-03-slice4-upstream-fetch.md) ·
 [contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md))
+
+## Change management is a shipped policy (2026-10-17)
+
+The owner's rule — "if I am instructing you on something twice, it's a skill,
+it's a policy" — turned the release checklist into a standard the corpus ships:
+`rig/corpus/standards/change-management.md`, enforced by
+`scripts/check-deployment-gate.js` and run against the exact QA head by
+`.github/workflows/release-eligibility.yml`. Nine ordered steps, no reordering,
+and no evidence carried across a code change. See
+[[2026-10-17-change-management-policy-and-doc-deduplication]].

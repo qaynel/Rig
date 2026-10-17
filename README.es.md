@@ -53,8 +53,8 @@ El bootstrap detecta los hosts existentes de forma mecánica:
 sh rig/bootstrap.sh --target /path/to/repository
 ```
 
-Sin `--hosts`, Rig detecta mecánicamente la configuración de host existente en
-el registro de 19 hosts y no instala ningún árbol de host ausente. Limita o
+Sin `--hosts`, Rig detecta mecánicamente la configuración de host que ya
+existe en el repositorio y no crea ningún árbol de host ausente. Limita o
 sobrescribe esa selección explícitamente con una lista separada por comas:
 
 ```sh
