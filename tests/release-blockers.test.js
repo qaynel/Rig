@@ -71,7 +71,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
   const run = spawnSync(process.execPath, [
     path.join(root, 'scripts/review-receipt.js'),
     '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
-    '--catalogue', path.join(root, 'rig/catalog.json'),
+    '--catalogue', path.join(root, 'rig/corpus/catalogue.json'),
     '--implementation-root', root,
     '--base', 'origin/implement-advanced-a-la-carte-catalogue',
     '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
@@ -782,9 +782,8 @@ test('a bare repository receives the neutral skills, catalogue, and safety runti
     for (const rel of [
       '.rig/bin/rig',
       '.rig/runtime/rig/materialize.js',
-      '.rig/runtime/rig/catalog.json',
       '.rig/runtime/rig/catalog/baseline/check.js',
-      '.rig/runtime/rig/catalog/services/development/code-quality/lint-format/minimal.md',
+      '.rig/runtime/rig/corpus/services/development/code-quality/lint-format/minimal.md',
       '.rig/runtime/rig/lib/policy.js',
       '.rig/runtime/rig/lib/enforcement.js',
       '.rig/runtime/rig/lib/lifecycle.js',
@@ -811,7 +810,7 @@ test('the active MCP runtime reads its packaged canonical Rig instructions', () 
 
 test('catalogue packs contain service-specific policy and check contracts', () => {
   const root = path.join(__dirname, '..');
-  const catalog = JSON.parse(fs.readFileSync(path.join(root, 'rig/catalog.json'), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(path.join(root, 'rig/corpus/catalogue.json'), 'utf8'));
   const bodiesSeen = new Map();
 
   for (const service of catalog.services) {
@@ -1138,7 +1137,7 @@ test('review wrapper output validates without schema translation', () => {
     const run = spawnSync(process.execPath, [
       path.join(root, 'scripts/review-receipt.js'),
       '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
-      '--catalogue', path.join(root, 'rig/catalog.json'),
+      '--catalogue', path.join(root, 'rig/corpus/catalogue.json'),
       '--implementation-root', root,
       '--base', 'origin/implement-advanced-a-la-carte-catalogue',
       '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
@@ -1152,7 +1151,7 @@ test('review wrapper output validates without schema translation', () => {
     const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
     assert.equal(validateReviewReceipt(receipt, {
       technical_spec_digest: sha256(fs.readFileSync(path.join(root, 'wiki/gate2/technical-spec.md'))),
-      catalogue_digest: catalogueDigest(path.join(root, 'rig/catalog.json')),
+      catalogue_digest: catalogueDigest(path.join(root, 'rig/corpus/catalogue.json')),
       implementation_digest: implementationDigest(root).digest,
       implementation_base: 'origin/implement-advanced-a-la-carte-catalogue',
       acceptance_ids: ids,
@@ -1214,7 +1213,7 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
       .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md')))
       .map((entry) => entry.name);
     assert.deepEqual(neutralSkills, ['onboarding']);
-    assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/catalog/services')));
+    assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/corpus/services')));
     assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/lib/policy.js')));
     const inspection = path.join(installTarget, 'inspection.json');
     const runtime = spawnSync(path.join(installTarget, '.rig/bin/rig'), [

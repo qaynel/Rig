@@ -193,13 +193,6 @@
       "gate": "active_delivery"
     },
     {
-      "op": "copy",
-      "from": "rig/catalog.json",
-      "to": ".rig/runtime/rig/catalog.json",
-      "host": "neutral",
-      "gate": "active_delivery"
-    },
-    {
       "op": "copy_tree",
       "from": "rig/lib",
       "to": ".rig/runtime/rig/lib",
@@ -238,13 +231,6 @@
       "op": "copy_tree",
       "from": "rig/catalog/baseline",
       "to": ".rig/runtime/rig/catalog/baseline",
-      "host": "neutral",
-      "gate": "active_delivery"
-    },
-    {
-      "op": "copy_tree",
-      "from": "rig/catalog/services",
-      "to": ".rig/runtime/rig/catalog/services",
       "host": "neutral",
       "gate": "active_delivery"
     },

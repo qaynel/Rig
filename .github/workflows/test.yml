@@ -13,6 +13,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # check-coherence compares the declared tracker transitions against the
+    # live issue list and refuses to skip that comparison in CI.
+    permissions:
+      contents: read
+      issues: read
     steps:
       - uses: actions/checkout@v4
 
@@ -42,3 +47,5 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

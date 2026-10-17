@@ -90,7 +90,9 @@ run or a committed fix, not by transcript claims.
   Prove: `node --test tests/spawn-guard-allowlist.test.js tests/spawn-guarded.test.js`.
 - [ ] 🔒 T-2.9 Windows and Linux process-cleanup CI jobs
   (`.github/workflows/browse-process-cleanup.yml`) pass on a pushed branch.
-  Windows behaviour and the Linux-only Xvfb test are unproven until this runs.
+  Done in CI, owner's to tick: `browse-process-cleanup` is green on
+  `8288742a` for `descendants-windows`, `descendants-linux` and
+  `descendants-macos` (PR #153 checks, 2026-10-16).
 - [x] T-2.10 Patches to fetched third-party browse code are exercised on fetched
   pinned bytes. Prove: `node --test tests/upstream-shelf.test.js tests/upstream-onboarding.test.js` (2 + 5 pass).
 
@@ -216,6 +218,10 @@ run or a committed fix, not by transcript claims.
   `wiki/gate1/package-scripts.json`: add the script, file the pin change as a
   candidate amendment, and keep `npm test` unchanged until the owner applies it.
 - [ ] 🔒 T-6.7 Green Linux and macOS runs on the exact candidate SHA (needs push).
+  Partly done: the macOS and Linux `descendants-*` jobs are green on `8288742a`.
+  The `test` workflow on that SHA failed only on `check-coherence` refusing to
+  skip the tracker comparison without a token; `test.yml` now passes
+  `github.token` to the suite, so the next push settles it.
 - [ ] 🔒 T-6.8 Post-publication tagged-download smoke test.
 
 ## WP7 — AI development standards (subplan 07)
@@ -287,10 +293,12 @@ run or a committed fix, not by transcript claims.
   every finding fixed or answered in writing. Use `/security-review`.
 - [x] T-10.2 Independent code review (`rig-code-review`, report-only) of the full
   diff; every finding fixed or answered in writing.
-- [ ] T-10.3 Assemble the single owner amendment bundle from all candidate
+- [x] T-10.3 Assemble the single owner amendment bundle from all candidate
   folders: moved paths, service wording, removed APIs, package scripts,
   verifier counts, manifest entries, RIG-146, AT-PB-1/3, AT-HOST-5, trace targets.
-  Tick = bundle is complete and each item's advisory run is green.
+  Closed by delivery: the owner applied the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
+  AT-PB-3 amendments and re-signed (see T-10.4). The one candidate left
+  unapplied is the `test:e2e` package script, which stays open as T-6.6.
 - [ ] 🔒 T-10.4 Owner applies the bundle and runs `node scripts/approve-gate1.js` once.
   Done in the tree, owner's to tick: `tests/advanced-oracle.test.js` and
   `tests/path-b-catalog.test.js` carry the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
@@ -305,12 +313,19 @@ run or a committed fix, not by transcript claims.
   Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
   pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
   (`.context/npm-test-final7.log`,
-  `wiki/reasoning/2026-10-15-closure-full-gate-green.md`).
+  `wiki/reasoning/2026-10-15-closure-full-gate-green.md`). Re-run on 2026-10-17
+  against the de-duplicated tree
+  (`wiki/reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md`).
 - [ ] 🔒 T-10.7 Push, single PR to `qa-prod`, required CI green (`gate1-pin` included).
+  Push and PR done by the owner: PR #153 `qa-prod` ← `vaibhav-kodiyan/universal-issues-closure`.
+  Left on this box: re-push the de-duplication commit, confirm `test` green
+  (it needed the tracker token fix), and make `gate1-pin` a *required* status
+  check on `qa-prod` — today it is documented as required on `prod` only, so on
+  `qa-prod` it reports without blocking.
 - [ ] 🔒 T-10.8 Tracker closures on delivery; QA promotion on exact-SHA automated
   evidence; tag and release; public tagged-download smoke test.
 
 ## Progress count
 
-Done: 72. Open: 13, of which 9 are owner-only (🔒) and 4 are the agent's.
+Done: 73. Open: 12, of which 9 are owner-only (🔒) and 3 are the agent's.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.

@@ -38,7 +38,8 @@ function implementationDigest(root) {
 function catalogueDigest(catalogPath) {
   const catalogBytes = fs.readFileSync(catalogPath);
   const catalog = JSON.parse(catalogBytes);
-  const rigRoot = path.dirname(catalogPath);
+  // Fragment paths are relative to `rig/`; the catalogue itself lives in `rig/corpus/`.
+  const rigRoot = path.resolve(path.dirname(catalogPath), '..');
   const fragments = [...new Set((catalog.services || []).flatMap((service) => [
     ...Object.values(service.fragments || {}),
     ...Object.values(service.slices || {}).map((slice) => slice && slice.fragment).filter(Boolean),

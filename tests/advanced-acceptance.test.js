@@ -320,8 +320,8 @@ test('AT-P2 safe-by-construction — alias of AT-BASE-1/2', () => {
 });
 
 test('AT-P3 MECE spot-checks on catalogue scope-map', () => {
-  const catalogPath = path.join(__dirname, '..', 'rig', 'catalog.json');
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  const catalogPath = path.join(__dirname, '..', 'rig', 'corpus', 'catalogue.json');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const services = catalog.services || catalog.entries || [];
   const owns = new Map();

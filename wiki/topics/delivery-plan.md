@@ -174,4 +174,10 @@ Step 8 is now the v6.0.0 closeout, planned and tracked in
 resumed from [the close-everything transcript](../reasoning/2026-10-13-close-everything-resume-transcript.md)
 and promotes to `qa-prod` on exact-commit automated evidence (North star 11).
 
-<!-- Reviewed 2026-10-15 for wiki-maintenance freshness after the v6.0.0 closeout. -->
+Step 8 note, 2026-10-17: the QA-prod candidate is PR #153. The branch carries
+one further change after the closeout commits — the duplicate services
+catalogue is gone and `test.yml` now hands the suite a read-only tracker token,
+which was the single failure in the workflow's run on `8288742a`.
+[Retiring the duplicate](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md)
+
+<!-- Reviewed 2026-10-17 for wiki-maintenance freshness after retiring the duplicate catalogue. -->

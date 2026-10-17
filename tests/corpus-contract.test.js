@@ -42,7 +42,7 @@ test('no live file points at a retired source path (history, pinned oracle files
   const retired = [/rig\/tier-1/, /check-rule-copies\.js\b.*\bAGENTS\.md/];
   const exempt = (file) => file.startsWith('wiki/') || file.startsWith('docs/superpowers/') || pinned.has(file)
     || protectedLegacyTests.has(file)
-    || file === 'rig/catalog.json' || file === 'tests/corpus-contract.test.js' || file.startsWith('tests/fixtures/')
+    || file === 'rig/corpus/catalogue.json' || file === 'tests/corpus-contract.test.js' || file.startsWith('tests/fixtures/')
     || file.startsWith('rig/catalog/') || file.startsWith('.git');
   const hits = [];
   for (const abs of walk(root)) {

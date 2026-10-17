@@ -110,4 +110,11 @@ a licensing and provenance decision, not a cleanup: its upstream notices cover
 6.9M bytes of third-party skills, so a mass `rig-*` rename would re-badge work
 without reducing the maintenance burden. [Scope measurement](../reasoning/2026-09-05-overhaul-scope-measurements.md)
 
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+There is now exactly one services catalogue. The pre-corpus `rig/catalog.json`
+and its 805 untailored fragments under `rig/catalog/services/` were deleted on
+2026-10-17: every one of those paths already existed under `rig/corpus/`, with
+tailored content, and both trees were shipping as `active_delivery` copies.
+`rig/corpus/catalogue.json` plus `rig/corpus/services/` is the canonical pair the
+signed oracle digests. [Retiring the duplicate](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md)
+
+<!-- Reviewed 2026-10-17 after retiring the duplicate services catalogue. -->

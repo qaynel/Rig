@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-17 | done | [2026-10-17-retire-the-duplicate-services-catalogue](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md) | [the-catalogue, delivery-plan, central-corpus] | [retire rig/catalog.json and rig/catalog/services in favour of rig/corpus] | — |
 | 2026-10-15 | current | [2026-10-15-router-single-name](../reasoning/2026-10-15-router-single-name.md) | the-overhaul, catalogue-contract | — | — |
 | 2026-10-15 | current | [2026-10-15-closure-full-gate-green](../reasoning/2026-10-15-closure-full-gate-green.md) | the-overhaul, release-readiness | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-wiki-budget](../reasoning/2026-10-14-closure-wiki-budget.md) | the-overhaul, testing-strategy, trust-and-failure-boundaries | — | — |

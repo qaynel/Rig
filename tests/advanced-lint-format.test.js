@@ -20,7 +20,7 @@ const {
 } = require('./helpers/advanced');
 
 const SERVICE_ID = 'development.code-quality.lint-format';
-const catalogPath = path.join(root, 'rig', 'catalog.json');
+const catalogPath = path.join(root, 'rig', 'corpus', 'catalogue.json');
 
 function lintFormatEntry() {
   const catalog = readJson(catalogPath);

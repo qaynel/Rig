@@ -18,8 +18,8 @@ function flattenExpected(fixture) {
 }
 
 test('every frozen leaf has identity + cumulative grade fragments on disk', () => {
-  const catalogPath = path.join(root, 'rig', 'catalog.json');
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  const catalogPath = path.join(root, 'rig', 'corpus', 'catalogue.json');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const byId = Object.fromEntries(
     (catalog.services || catalog.entries || []).map((s) => [s.id, s]),

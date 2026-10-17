@@ -43,7 +43,7 @@ const reviewerDriver = arg('reviewer') || 'claude';
 if (!['claude', 'codex'].includes(reviewerDriver)) fail('--reviewer must be claude or codex');
 const outPath = arg('out') || fail('--out is required');
 const authorContext = arg('author-context') || fail('--author-context is required');
-const cataloguePath = arg('catalogue') || 'rig/catalog.json';
+const cataloguePath = arg('catalogue') || 'rig/corpus/catalogue.json';
 const implementationRoot = arg('implementation-root') || fail('--implementation-root is required');
 const implementationBase = arg('base') || fail('--base is required');
 const gate1Paths = (arg('gate1') || '').split(',').filter(Boolean);

@@ -15,7 +15,7 @@ const expectedPath = path.join(
   'advanced',
   'expected-catalogue-ids.json',
 );
-const catalogPath = path.join(root, 'rig', 'catalog.json');
+const catalogPath = path.join(root, 'rig', 'corpus', 'catalogue.json');
 
 function flattenExpected(expected) {
   const ids = [];
@@ -46,8 +46,8 @@ test('expected-ID inventory fixture is well-formed and unique', () => {
   );
 });
 
-test('rig/catalog.json exists and matches expected-ID inventory', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+test('rig/corpus/catalogue.json exists and matches expected-ID inventory', () => {
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const services = catalog.services || catalog.entries || [];
   const actual = services.map((s) => s.id).sort();
@@ -56,7 +56,7 @@ test('rig/catalog.json exists and matches expected-ID inventory', () => {
 });
 
 test('strict grade growth: maximal ⊃ mid ⊃ minimal check IDs', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   for (const service of catalog.services || catalog.entries || []) {
     const checks = service.checks || {};
@@ -160,7 +160,7 @@ test('authored service gate rejects known boilerplate and near-duplicate bodies'
 });
 
 test('MECE scope-map spot checks (Gate 1 AT-P3)', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const services = catalog.services || catalog.entries || [];
   const owns = new Map();
