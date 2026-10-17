@@ -214,9 +214,12 @@ run or a committed fix, not by transcript claims.
   (commit the work first so the SHA contains it).
 - [x] T-6.5 Deliberate-breakage evidence: a bad lockfile entry and a missing
   corpus file each make the E2E go red; record both in a trace.
-- [ ] T-6.6 `npm run test:e2e` entrypoint. `package.json` scripts are pinned by
+- [ ] 🔒 T-6.6 `npm run test:e2e` entrypoint. `package.json` scripts are pinned by
   `wiki/gate1/package-scripts.json`: add the script, file the pin change as a
   candidate amendment, and keep `npm test` unchanged until the owner applies it.
+  Agent side done: the amendment is written
+  (`candidate-amendments/06-e2e/package-scripts.md`). Nothing can move without a
+  re-signature, so this is owner-only — see Q2 of `owner-questionnaire.md`.
 - [ ] 🔒 T-6.7 Green Linux and macOS runs on the exact candidate SHA (needs push).
   Partly done: the macOS and Linux `descendants-*` jobs are green on `8288742a`.
   The `test` workflow on that SHA failed only on `check-coherence` refusing to
@@ -321,11 +324,16 @@ run or a committed fix, not by transcript claims.
   Left on this box: re-push the de-duplication commit, confirm `test` green
   (it needed the tracker token fix), and make `gate1-pin` a *required* status
   check on `qa-prod` — today it is documented as required on `prod` only, so on
-  `qa-prod` it reports without blocking.
+  `qa-prod` it reports without blocking. The de-duplication commit `ba123844` is
+  pushed (2026-10-17) and is the PR head; confirming its checks and the
+  `gate1-pin` requirement are the owner's two remaining steps.
 - [ ] 🔒 T-10.8 Tracker closures on delivery; QA promotion on exact-SHA automated
   evidence; tag and release; public tagged-download smoke test.
 
 ## Progress count
 
-Done: 73. Open: 12, of which 9 are owner-only (🔒) and 3 are the agent's.
+Done: 73. Open: 12, all of them blocked on the owner: 10 are owner-only
+(🔒 credentials, clicks or a signature), T-10.5 needs the owner's model choice
+and T-9.7 waits on the published tag. The agent has nothing in flight.
+Open decisions are collected in `owner-questionnaire.md`.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.
