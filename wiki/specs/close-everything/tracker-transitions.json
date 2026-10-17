@@ -884,6 +884,48 @@
         "state": "CLOSED",
         "stateReason": "NOT_PLANNED"
       }
+    },
+    {
+      "id": "RIG-157",
+      "ticket": "RIG-157.md",
+      "state": "open",
+      "issue": 154,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-158",
+      "ticket": "RIG-158.md",
+      "state": "open",
+      "issue": 155,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
+    },
+    {
+      "id": "RIG-159",
+      "ticket": "RIG-159.md",
+      "state": "open",
+      "issue": 156,
+      "github_from": {
+        "state": "OPEN",
+        "stateReason": null
+      },
+      "github_to": {
+        "state": "OPEN",
+        "stateReason": null
+      }
     }
   ]
 }

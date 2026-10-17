@@ -16,6 +16,21 @@ kanban-plugin: board
 	**Status:** OPEN (2026-08-31; GitHub #152 created 2026-10-14) — deferred, low priority — carved out of [[RIG-153]] on close · [Solution](tickets/RIG-156.md)
 	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub #152 is labeled `redesign`; close as not planned after QA delivery · **Delivery:** none (not a delivered fix)
 	**Class:** MEASUREMENT / PROCESS. Run the frozen RIG-153 instrument to produce a post-fix per-axis profile against the +12/100 baseline. Deferred: the six hygiene tests already prove the RIG-148..152 defect shapes are fixed, so a re-baseline now would just flip the G2 gate; the interesting run is after adaptive integration (prune-to-stack, reconcile-with-existing-config) is built — a Path B question. Blockers: no clean in-workspace target copy, unpinned Rig SHA, human-operated judge, model pin string source. Hold until Path A + Path B are fully decided. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
+- [ ] **RIG-157 — Automated QA-to-production promotion gate and weekly health check**
+	**Delivery state (RIG-157):** open
+	**Status:** OPEN (2026-10-17; GitHub #154) — closeout ticket for branch work that had none · [Solution](tickets/RIG-157.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E and 10 review-sign-ship) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Class:** PROMOTION / RELEASE SAFETY. QA-to-production promotion rests on automated checks of the exact QA commit: automated health and a real-download clean-install check, with no outside-repository manual install gate (north star 11).
+- [ ] **RIG-158 — Coherence and test-evidence checks keep code, docs, corpus and tracker in sync**
+	**Delivery state (RIG-158):** open
+	**Status:** OPEN (2026-10-17; GitHub #155) — closeout ticket for branch work that had none · [Solution](tickets/RIG-158.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 08 coherence and upkeep) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Class:** COHERENCE / UPKEEP. A horizontal coherence check and a test-evidence check run in the CI gate, including the declared tracker-transition table compared against live GitHub state.
+- [ ] **RIG-159 — Ship Rig's AI-SDLC and delivery standards inside the corpus**
+	**Delivery state (RIG-159):** open
+	**Status:** OPEN (2026-10-17; GitHub #156) — closeout ticket for branch work that had none · [Solution](tickets/RIG-159.md)
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 07 AI-SDLC standards) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Class:** STANDARDS / CORPUS. The AI-SDLC and delivery standards Rig uses on itself ship in the corpus; a standard is offered as enforced only when its check ships with it.
 - [ ] **RIG-145 — runReadOnly batch-aborts the command list on isolation-unavailable where runGrade marks per command**
 	**Delivery state (RIG-145):** open
 	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking; latent (no non-test caller yet) · [Solution](tickets/RIG-145.md)
