@@ -167,7 +167,7 @@ values first (`git ls-files -s` → `chmod`), then `npm test`:
   grade-evidence case — all `network_isolation_unavailable` from
   `unshare --user --map-root-user --net` being denied in this sandbox. None
   touches onboarding, wiki-maintenance, or gate1 code. Independently confirms
-  [2026-08-28 linux-network-isolation-ci](2026-08-28-linux-network-isolation-ci.md).
+  [2026-08-28 linux-network-isolation-ci](../archive/2026-08/shell-trust-and-capability-policy.md).
 
 `AT-PB-10`'s closed failure set is complete: all nine hard-failure codes plus
 both growth warnings exist in `rig/lib/onboarding-check.js` (or

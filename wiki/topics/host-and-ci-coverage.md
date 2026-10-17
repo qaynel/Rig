@@ -19,7 +19,7 @@ That installed runner now enforces its per-binding resource ceilings and
 declared network state through the same canonical implementation as local
 checks. Raised ceilings and required network access require a committed
 per-service execution-policy grant; legacy undeclared network use remains
-visible during the additive rollout. [Capability close-out](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
+visible during the additive rollout. [Capability close-out](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 Teardown derives the exact provider artifact paths from this same registry, but
 does not treat the editable install journal as proof that a pipeline file or an
@@ -28,19 +28,18 @@ GitHub workflow is removed as a whole file. An existing GitHub workflow keeps
 its user bytes; uninstall removes only the exact pointer line the adapter
 appended. Common GitLab, CircleCI, Jenkins, Buildkite, and Azure pipeline files,
 and other files inside provider directories, are retained as best-effort.
-[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
-[Intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+[Safety follow-up](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[Intent-owner safety ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI managed-line ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI path-identity ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI realpath ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 Provider evidence is a first-wire matrix that seeds compatible user config,
 plans with separate approval, applies twice, preserves the sentinel, and checks
 the repository command at the provider path. Unknown CI markers remain
 byte-identical and unverified until a supported provider is selected.
 
-Host discovery still uses the 19-host registry and exact marker provenance.
-The withdrawn verified/unverified tier is absent from registry state. Each host
+Host discovery uses the registry and exact marker provenance. Each host
 has separate `instruction`, `native_skill`, `shell_hook`, `web_hook`,
 `mcp_hook`, and `mcp_config` contracts that name its vendor path, event, input
 schema, matcher, denial/exit behavior, namespace, merge boundary, and
@@ -76,15 +75,15 @@ Hermes is a first-class host surface, not a candidate to prune: the root
 including the `.venv`/pandas-backed benchmark import — is part of the supported
 `npm test` run, not a thing to deprecate or relocate.
 
-Subagent mode propagation (RIG-106) is researched per host, not inferred:
+Subagent mode propagation (RIG-106) follows researched host capabilities:
 Claude, Codex/vscode-codex, and Copilot/Copilot CLI have a confirmed subagent
 lifecycle hook that can inject context, and all three are wired
 (`hooks/claude-codex-hooks.json`, `hooks/copilot-hooks.json` ->
-`hooks/rig-subagent.js`, tested in `tests/hooks.test.js`). Every other host in
-the 19-host roster is recorded N/A for a specific, evidenced reason — no
+`hooks/rig-subagent.js`, tested in `tests/hooks.test.js`). Other hosts are
+recorded N/A for a specific, evidenced reason — no
 subagent-scoped hook event, a subagent hook that can only gate/observe rather
 than inject, or no hook mechanism at all — see host-coverage-spec §3.1a and
-[the disposition trace](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md).
+[the disposition trace](../archive/2026-08/host-coverage-and-mcp-wiring.md).
 
 MCP disposition is unified (RIG-103/RIG-104, 2026-08-24; descriptor parity
 RIG-128/134.1, 2026-08-25): `rig/lib/mcp-hosts.js` derives one
@@ -110,16 +109,7 @@ JSON5, or a primitive in the dotted path so user bytes stay unchanged
 MCP entries are evaluated through the same `evaluateAction` engine and the
 same active policy as shell/web, recorded on the install receipt — MCP is not
 an enforcement bypass. See
-[reasoning](../reasoning/2026-08-24-rig-104-mcp-unification.md).
-
-OpenClaw's active MCP surface has since been verified as the user-global
-`~/.openclaw/openclaw.json` JSON5 configuration, managed through `openclaw
-mcp set`. The intent owner requested a clearly warned, explicit install opt-in
-for the bundled `rig-mcp` server. Its complete amended oracle is now drafted:
-the default install remains untouched, the selected path uses a per-clone
-server name plus the native CLI, and uninstall keeps the runtime if it cannot
-remove the global entry. The matching installer test is red until the owner
-signs the new contract. [Intent record](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md)
+[reasoning](../archive/2026-08/host-coverage-and-mcp-wiring.md).
 
 Antigravity MCP is first-class manual setup by owner decision (RIG-105), not an
 automatic global write. Onboarding renders the exact selected stdio
@@ -134,11 +124,13 @@ The repository template remains empty and explanatory while upstream CLI issue
 - Frozen host/CI intent: [business specification](../gate1/business-spec.md)
 - Working contracts: [technical specification](../gate2/technical-spec.md#11-host-and-ci-coverage-one-uniform-path)
 - Captured provider research: [host/CI reference](../sources/reference/host-ci-capability-verification.raw.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- Hermes first-class ruling: [intent-owner trace](../reasoning/2026-08-20-hermes-first-class.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- Hermes first-class ruling: [intent-owner trace](../archive/2026-08/host-coverage-and-mcp-wiring.md)
+- Current QA/prod sequence: [deployment policy](../../rig/corpus/standards/change-management.md)
 
 ## Remaining work
 
 No CI-provider or shared-host-contract implementation blocker from the
-production findings remains. Fresh release review still judges the final bytes
-together with the rest of the product.
+production findings remains. The owner's package-scripts re-sign now verifies;
+final tests, review and required CI still need to prove the current candidate.
+See the [QA/prod checkpoint](the-overhaul.md).

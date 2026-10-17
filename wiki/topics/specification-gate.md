@@ -43,12 +43,12 @@ amended it to 83 exact IDs and a 14-file manifest. The owner has signed those
 amended bytes, and the verifier now confirms the signature and every manifested
 digest before code tests run. The frozen Path B tests therefore authorize and
 bound implementation; they are never implementation-editable.
-[Path B acceptance oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) ·
+[Path B acceptance oracle](../archive/2026-08/path-a-and-path-b-onboarding.md) ·
 [implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
 
 D23's original ruling — why a permanently-red 114-leaf check would have defeated
 the point of the gate, and why filling those leaves with placeholder content was
 rejected rather than scoping the check — is recorded in the
-[originating trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md).
+[originating trace](../archive/2026-08/gate-model-and-the-one-lock.md).
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->

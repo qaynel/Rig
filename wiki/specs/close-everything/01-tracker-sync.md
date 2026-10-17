@@ -1,64 +1,71 @@
 # 01 — Tracker sync
 
-Part of the [master plan](00-master-plan.md). **Goal:** GitHub issues, the
-wiki board (`wiki/Tickets.md`), and each ticket file (`wiki/tickets/RIG-*.md`)
-agree with the code, item by item. Reality wins: if the board is ahead of the
-code, revert the card; if a GitHub issue was closed too early, reopen it.
+Part of the [master plan](00-master-plan.md). Goal: GitHub issues, the wiki
+board (`wiki/Tickets.md`), and ticket files (`wiki/tickets/RIG-*.md`) agree
+with code and release evidence.
 
-**Local half done 2026-10-13** ([trace](../../reasoning/2026-10-13-close-everything-tracker-sync-local.md)):
-the [redesign backlog](../redesign-backlog.md) exists, the board and ticket files
-are reconciled, and the GitHub writes are prepared but not run in
-[github-actions-pending](github-actions-pending.md). The table below is the
-pre-sync audit.
+## Current state (read-only audit, 2026-10-17)
 
-## Current state (audited 2026-10-13 at 051a819c)
+The board and ticket files are reconciled to the candidate. GitHub Phase A is
+complete: `redesign` exists and is on the five deferred issues, #78–80 are
+reopened, and RIG-155/#151 plus RIG-156/#152 exist. No delivered issue has been
+closed for this release yet. The current issue-by-issue state and guarded
+commands are in [github-actions-pending.md](github-actions-pending.md); the
+declared source for expected current and target states is
+[`tracker-transitions.json`](tracker-transitions.json).
 
-| Item | GitHub | Board | Ticket file | Reality | Action |
-|---|---|---|---|---|---|
-| RIG-148 | closed #125 | OPEN | — | fixed (`ensureGitignoreBlock`) | board → Done, checked |
-| RIG-149 | closed #126 | OPEN | — | fixed (router installs as `rig`) | board → Done, checked |
-| RIG-150 | open #127 | Done, unchecked | OPEN | fixed (13/13 green) | close #127 with test names; ticket → Done |
-| RIG-153 | open #130 | Done, unchecked | DONE | shipped instrument | close #130 |
-| RIG-154 | open #138 | Done, unchecked | CLOSED | shipped PR #140 | close #138 |
-| RIG-135.1–.3 | closed as COMPLETED #78–80 | closed "Not Planned" | — | not fixed; reason below the bar | reopen #78–80; fixed in [02](02-bug-fixes.md) |
-| RIG-155 | none | OPEN | OPEN | not built | open a GitHub issue; fixed in [06](06-clean-install-e2e.md) |
-| RIG-156 | none | OPEN | OPEN | never started | create issue, then close with `redesign` and backlog link |
-| RIG-116, 122, 130, 133 | open | various | various | never started | label `redesign`, close as not planned with a link to the backlog page |
-| RIG-122 | — | duplicated card | — | — | remove duplicate |
-| every Done card | — | `- [ ]` | — | — | check `- [x]` |
+The owner chose to run tracker closures only after exact-SHA QA promotion, tag
+and release publication, and the public tagged-download smoke test. Until that
+sequence passes, leave delivered and redesign issues open. This follows the
+[change-management policy](../../../rig/corpus/standards/change-management.md)
+and the owner's [Q4 answer](owner-questionnaire.md).
 
-## Approach
+| Work | Current disposition | Next step |
+|---|---|---|
+| Phase A setup | Complete and confirmed by live read-only audit | No repeat writes |
+| Delivered issues | Open until QA, release tag, and tagged-download smoke pass | Close as completed with promoted QA SHA and exact proving test |
+| Redesign issues: RIG-116, 122, 130, 133, 156 | Open with `redesign` label | Close as not planned with item-specific reason and backlog link |
+| #125 / RIG-148 | Already closed completed; old comment is stale | Add one marked correction with final implementation and test evidence |
+| #126 / RIG-149 | Already closed completed; implementation noted, test evidence missing | Add one marked final evidence comment |
 
-1. **Redesign backlog page.** Create `wiki/specs/redesign-backlog.md` with one
-   section per deferred item: what it is, why it is deferred ("never started;
-   owner deferred to the redesign, 2026-10-13"), and links to its ticket and
-   any analysis. Give RIG-156 a GitHub issue so every backlog item has one.
-2. **Board edits.** Reconcile already-shipped work immediately. Work on this
-   branch stays open with a declared ready-for-QA state until it reaches QA.
-   Record disposition, proving evidence, and target commit separately from
-   delivery state. Deferred work uses the redesign disposition, not fixed.
-3. **GitHub edits, in two phases:**
-   - **Now:** reopen #78–80 with a comment explaining why. Create the RIG-155
-     and RIG-156 issues. Add the `redesign` label to the five deferred items.
-   - **At ship ([10](10-review-sign-ship.md)):** close each fixed or deferred
-     issue with a comment naming the proving test, commit, or backlog entry.
-     Close newly fixed issues only after the corresponding commit reaches QA.
-     Close verified previously shipped items and redesign deferrals when their
-     evidence/disposition is recorded. Validate the declared state transition
-     before merge and the live tracker state after QA delivery.
-4. The **sync check** in [08](08-coherence-and-upkeep.md) makes this
-   permanent.
+The five redesign rationales are listed in the [redesign backlog](../redesign-backlog.md)
+and repeated in the guarded closure instructions. The `redesign` label records
+the deferral; the issue body alone is not the closure justification. Every
+closed issue must have a comment that names a test, promoted commit, or the
+backlog entry as appropriate.
 
 ## Acceptance
 
-- For every `RIG-*` id, the GitHub state, board lane, and ticket-file status
-  agree. The sync check from 08 passes.
-- Every closed issue has a closing comment naming a test, commit, or backlog
-  entry.
-- No GitHub issue is closed with reason COMPLETED unless a fix shipped.
-- The redesign backlog page lists exactly RIG-116, 122, 130, 133, and 156.
+- For every RIG ID, issue state, board lane, ticket-file state, and declared
+  transition match release reality.
+- Delivered work is closed as completed only after its exact proving commit is
+  in the release; each close comment names the QA SHA and a test.
+- The five never-started items are closed as not planned, retain the
+  `redesign` label, and have specific owner-deferral reasons linked to the
+  backlog.
+- No issue is closed before QA promotion, release tag publication, and a
+  passing public tagged-download smoke test.
+- The coherence check verifies the declared tracker transitions against GitHub
+  and the local tickets.
 
-## Risks
+## Historical pre-sync snapshot (2026-10-13, HEAD `051a819c`)
 
-- GitHub writes are public and immediate. Phase-1 writes are limited to
-  reopen, create, and label actions, all reversible.
+This table is retained as an audit record only. Its actions are superseded by
+the current state and post-release procedure above; do not execute them.
+
+| Item | GitHub then | Local board/ticket then | Finding then |
+|---|---|---|---|
+| RIG-148 / #125 | Closed completed | Board OPEN | Later board reconciliation found the fix delivered; the old issue comment is now known stale |
+| RIG-149 / #126 | Closed completed | Board OPEN | Later board reconciliation found the router fix delivered |
+| RIG-150 / #127 | Open | Done, unchecked / ticket OPEN | Fix had evidence but issue closure was pending |
+| RIG-153 / #130 | Open | Done, unchecked / ticket DONE | Instrument was delivered; issue closure was pending |
+| RIG-154 / #138 | Open | Done, unchecked / ticket CLOSED | Bootstrap fix shipped; issue closure was pending |
+| RIG-135.1–.3 / #78–80 | Closed completed | Board said Not Planned | Findings were not fixed; Phase A reopened them |
+| RIG-155 | No issue | Board and ticket OPEN | Later created as #151 |
+| RIG-156 | No issue | Board and ticket OPEN | Later created as #152 and labeled `redesign` |
+| RIG-116, 122, 130, 133 | Open | Mixed local lanes | Later labeled `redesign`; closure waits for post-release step |
+
+The original 2026-10-13 local reconciliation is recorded in
+[the tracker-sync trace](../../reasoning/2026-10-13-close-everything-tracker-sync-local.md).
+The subsequent audit and exact closeout sequence are maintained in
+[github-actions-pending.md](github-actions-pending.md).

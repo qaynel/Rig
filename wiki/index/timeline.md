@@ -149,7 +149,7 @@ clean Policy pass, and one major finding exposes conflicting rules for
 lower-grade lint-format in an existing Rig CI job. Both return narrowly to
 product design. The minor finding names residual implementation-test risk but
 no current text defect. Gate 2 stays a candidate; see [status](../status.md).
-[Re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+[Re-trace trace](../archive/2026-08/lint-format-vertical-slice.md)
 [Round-4 receipt](../sources/reviews/gate2-v0.6-round4.review.json)
 
 `rig-product-design` then corrects both accepted findings (**v0.7**,
@@ -165,10 +165,10 @@ Round 6 reviews v0.9 and fails; v0.10 (`69c38149…`) corrects the Slice 2
 release-test scoping, freeze timing, and recovery-test claim issues. The
 round-5 and round-6 receipts are both void for v0.10; the remaining round-5
 findings still need product-design resolution before freeze.
-[Correction trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)
-[D22 trace](../reasoning/2026-08-21-evidence-only-lint-format-ci.md)
-[D23 trace](../reasoning/2026-08-21-gate2-v0.9-at-shape-6-retrace.md)
-[Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md)
+[Correction trace](../archive/2026-08/gate-model-and-the-one-lock.md)
+[D22 trace](../archive/2026-08/lint-format-vertical-slice.md)
+[D23 trace](../archive/2026-08/gate-model-and-the-one-lock.md)
+[Round-6 correction trace](../archive/2026-08/gate-model-and-the-one-lock.md)
 
 ## 2026-08-21 — the gate collapses to one, the suite is swallowed, and D24 turns the release broad
 
@@ -178,8 +178,8 @@ Three things land the same day, in this order.
 infrastructure — is frozen under a single signature before code. The technical
 spec is checked for presence, never locked; the code adapts to it. Implementation
 is no longer blocked by a second freeze, only by the signature.
-[intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) ·
-[escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md)
+[intent](../archive/2026-08/gate-model-and-the-one-lock.md) ·
+[escape hatch](../archive/2026-08/gate-model-and-the-one-lock.md)
 
 **Commit `ff7cea5` swallows the upstream skill suite.** 55 skills plus `bin`/`lib`
 plumbing are vendored into `rig/catalog/skills` and `rig/catalog/plumbing`,
@@ -215,8 +215,8 @@ Recorded rather than left implicit: under D24 the agent authors the content
 the property Rig exists to prove.** It is reversible one leaf at a time by
 promotion under the ordinary gate, which is roadmap step 8. If D24 completes,
 D23's one-release exception is retired by the approved Gate 1 amendment.
-[ruling](../reasoning/2026-08-21-mvp-agent-discretion-build.md) ·
-[owner approval](../reasoning/2026-08-21-d24-owner-approval.md) ·
+[ruling](../archive/2026-08/release-install-and-distribution.md) ·
+[owner approval](../archive/2026-08/gate-model-and-the-one-lock.md) ·
 [roadmap](../specs/mvp-roadmap.md)
 
 ---
@@ -291,7 +291,7 @@ acceptance target and pass/fail evidence contract.
 The annotated tag `v5.0.0` and the GitHub latest release are published on
 `9d1ea45ea4876b300fbfe964d46319188ff2f09d`, the bytes bound by the passing
 independent review receipt. [[RIG-120]] is Done.
-[Ceremony cut](../reasoning/2026-08-29-v5.0.0-tag.md)
+[Ceremony cut](../archive/2026-08/release-install-and-distribution.md)
 
 ---
 

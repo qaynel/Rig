@@ -21,7 +21,7 @@ G7–G9 define TDD, debugging and independent review; AD-18 drives the executabl
 
 ## Lessons retained
 
-- Test the installed path as well as library seams; the fresh-checkout MCP prerequisite is recorded in the [AT-HOME-1 closeout](../reasoning/2026-08-31-rig-154-close-out.md).
+- Test the installed path as well as library seams; the fresh-checkout MCP prerequisite is recorded in the [AT-HOME-1 closeout](../archive/2026-08/review-receipts-and-test-infrastructure.md).
 - Reproducibility checks must vary the external factor that can drift; see the [tree-digest test](../reasoning/2026-09-02-catalogue-tree-digest-reproducibility.md).
 - Fault injection must match the current recovery boundary, and a separate test should catch real regressions the frozen oracle misses. The review sequence is summarized in [test ratchets](../reasoning/2026-09-03-onboarding-hardening-oracle-review.md) and the [review/context-burn finding](../reasoning/2026-09-04-structural-workflow-fix-design.md).
 
@@ -34,6 +34,6 @@ Implementation-authored acceptance, title-only evidence, trusting exit status, f
 - Frozen oracle: [Gate 1 acceptance](../gate1/acceptance.md)
 - Traceability: [Gate 2 §13–14](../gate2/technical-spec.md#13-acceptance-traceability)
 - Captured sources: [testing pipeline](../sources/reference/testing-pipeline-vision.raw.md), [mutation taxonomy](../sources/reference/mutation-testing-taxonomy.raw.md)
-- Fixture prerequisite: [AT-HOME-1](../reasoning/2026-08-30-development-process-handoff.md)
+- Fixture prerequisite: [AT-HOME-1](../archive/2026-08/wiki-and-agent-working-conventions.md)
 
 The current executed-test evidence gate is called by check-coherence.js; its remaining failures are recorded in the linked current-state trace above. The final gate is npm test, reserved for the release task that requires it.

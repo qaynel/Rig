@@ -269,7 +269,7 @@ process lived long enough to write.
 after the reviewer spawn returns, so a spawn killed by its own `TIMEOUT_MS`
 exits the process before the write and silently grants an extra, uncounted
 retry. Found investigating a red RIG-120 gate run;
-[[2026-08-26-rig124-cap-lost-update]].
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-cap-lost-update]].
 
 **How to check:** force the reviewer spawn in
 `tests/release-blockers.test.js` to hang past a short test-supplied timeout

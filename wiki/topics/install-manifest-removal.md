@@ -69,11 +69,11 @@ existing workflow, and only for that append-managed write. Common GitLab,
 CircleCI, Jenkins, Buildkite, and Azure pipeline files, other files inside
 provider directories, lexical path aliases, unique-path symlinks, and forged
 managed-line records are retained as named best-effort cases.
-[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
-[Intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+[Safety follow-up](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[Intent-owner safety ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI managed-line ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI path-identity ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI realpath ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 ## Why
 
@@ -87,12 +87,12 @@ beyond the selected target.
 - Frozen lifecycle intent: [business specification](../gate1/business-spec.md)
 - Working mechanism: [technical specification](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
 - Original lifecycle ruling: [advanced grilling](../sources/logs/advanced-grilling.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- Safety follow-up: [reasoning trace](../reasoning/2026-08-28-rig120-safety-followup.md)
-- Editable-journal ruling: [intent-owner trace](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-- CI managed-line ruling: [reasoning trace](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-- CI path-identity ruling: [reasoning trace](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-- CI realpath ruling: [reasoning trace](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- Safety follow-up: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- Editable-journal ruling: [intent-owner trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI managed-line ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI path-identity ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI realpath ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 ## A recorded absence is not something to reclaim
 

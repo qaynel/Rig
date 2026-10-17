@@ -63,7 +63,7 @@ angle:
 
 **This is not a theoretical reading.** Grilling note 2 records the diagnosing
 session itself asking the intent owner a question whose answer was already
-written in `wiki/reasoning/2026-08-31-path-b-adapt-scope.md` and
+written in `wiki/archive/2026-08/path-a-and-path-b-onboarding.md` and
 `2026-08-30-office-hours-path-a-path-b-scoping.md`. The owner's response —
 *"just from the name, you should have gone to the wiki... this is the exact
 reason why wiki had to be there"* — is the defect reproducing inside the

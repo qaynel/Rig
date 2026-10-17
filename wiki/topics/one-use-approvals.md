@@ -46,10 +46,10 @@ The lint-format plan/execute flow is a second consumption site. Branch
 persistence, so the flag did not survive the process boundary a real
 plan/execute flow crosses. It was one instance of a larger pattern, not an
 isolated bug: see [guarantee sharding](../mistakes/guarantee-sharding.md) and
-[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md).
 
 Fixed in `rig/lib/lint-format.js`'s `executePlan`/`consumePlanApproval`
-([reasoning trace](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md),
+([reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md),
 closes [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93)): consumption
 is now a clone-local file at
 `target/.rig/lint-format/executions/<sha256(plan_digest)>.json`, created with

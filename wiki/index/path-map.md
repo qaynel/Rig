@@ -32,10 +32,9 @@ editable subordinate docs were corrected when their bytes next moved.
 
 This is deliberate, and it is the correct trade.
 
-- **Gate 1 is frozen and digest-pinned.** `business-spec.md` and `acceptance.md`
-  currently hash to `07afa02f…` and `1d9b7a4…`, and those values are pinned in
-  Gate 2's header. Editing one character to fix a link would change the digest
-  and require a real return to grilling.
+- **Gate 1 is frozen and digest-pinned.** Editing even a link changes the
+  oracle and requires a filled unfreeze request and human re-sign. Read current
+  hashes from the verifier; the migration-time hashes are historical.
 - **Gate 2 is editable while candidate.** Its old layout links were corrected in
   v0.10 while the candidate digest was already moving for round-6 findings.
 - **Decision logs, captured references, review receipts, and superseded designs
@@ -45,8 +44,8 @@ This is deliberate, and it is the correct trade.
 Digests were verified byte-identical immediately after the move; Gate 2 has
 moved since as part of normal candidate revision.
 
-**When each becomes editable:** Gate 1's links can only be corrected by a
-genuine return to grilling. Preserved sources stay as written.
+**When each becomes editable:** Gate 1's links can only be corrected through
+the human unfreeze/re-sign ceremony. Preserved sources stay as written.
 
 ## Paths inside Gate 2 that name artifacts
 
@@ -60,7 +59,9 @@ roots and must not be recreated.
 Updated in the same change: the three root READMEs, `AGENTS.md`, `CLAUDE.md`,
 `GEMINI.md`, the six byte-checked host rule copies, current code/test source
 comments, the secret-hygiene test's Gate 1 path, current subordinate specs, and
-the editable `docs/superpowers/` spec-gate plan.
+the then-editable `docs/superpowers/` spec-gate plan. That superseded plan was
+removed during the 6.0.0 cleanup; [the retirement map](../../docs/superpowers/README.md)
+names its current authorities and checks.
 
 Nothing in `scripts/` or `package.json` hardcodes the old paths.
 
@@ -80,12 +81,12 @@ record.
 |---|---|
 | `[[2026-08-24-rig120-review-round2-findings]]` | `tickets/RIG-133.md` |
 | `[[2026-08-25-branch-code-review-snapshot]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md`, `tickets/RIG-129.md` |
-| `[[2026-08-25-escaping-the-quadratic]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md`, `tickets/RIG-129.md`, `tickets/RIG-130.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
-| `[[2026-08-25-prev5-classification-and-migration-pattern]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md`, `tickets/RIG-125.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md`, `tickets/RIG-134.md` |
+| `[[2026-08-25-escaping-the-quadratic]]` | `archive/2026-08/release-install-and-distribution.md`, `tickets/RIG-129.md`, `tickets/RIG-130.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
+| `[[2026-08-25-prev5-classification-and-migration-pattern]]` | `archive/2026-08/release-install-and-distribution.md`, `tickets/RIG-125.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md`, `tickets/RIG-134.md` |
 | `[[2026-08-25-rig120-review-round3-receipt]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md` |
 | `[[2026-08-25-rig120-round3-finding-map]]` | `tickets/RIG-125.md`, `tickets/RIG-126.md`, `tickets/RIG-127.md`, `tickets/RIG-128.md` |
 | `[[2026-08-25-semantic-model-assessment]]` | `tickets/RIG-125.md`, `tickets/RIG-129.md`, `tickets/RIG-130.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
-| `[[2026-08-25-structural-investigation-session-record]]` | `reasoning/2026-08-25-prev5-gate-runbook-and-classification.md` |
+| `[[2026-08-25-structural-investigation-session-record]]` | `archive/2026-08/release-install-and-distribution.md` |
 | `[[2026-08-25-structural-nondeterminism-root-cause]]` | `tickets/RIG-125.md`, `tickets/RIG-130.md`, `tickets/RIG-131.md`, `tickets/RIG-132.md`, `tickets/RIG-133.md` |
 | `[[2026-08-25-why-each-pass-finds-new-issues]]` | `tickets/RIG-125.md`, `tickets/RIG-132.md` |
 

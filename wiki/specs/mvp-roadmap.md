@@ -1,17 +1,22 @@
 ---
-status: active
+status: historical
 checked: 2026-08-22
 owner: rig-product-design
 ---
 
 # The MVP roadmap
 
+Historical v5 delivery record. Current work follows the [6.0.0 task
+list](close-everything/task-list.md) and [change-management
+policy](../../rig/corpus/standards/change-management.md); old rollout and
+whole-shelf instructions below are not current installation guidance.
+
 > **This file is a map, not a rulebook.** The documents that actually decide
 > anything are [`gate1/acceptance.md`](../gate1/acceptance.md) and
 > [`gate2/technical-spec.md`](../gate2/technical-spec.md). If this file
 > disagrees with either, they are right and this file is wrong. The ruling this
 > roadmap executes is
-> [D24](../reasoning/2026-08-21-mvp-agent-discretion-build.md).
+> [D24](../archive/2026-08/release-install-and-distribution.md).
 
 Checked against the files on **2026-08-22**.
 
@@ -112,7 +117,7 @@ name `rig`, satisfying the frozen oracle's 55-count without a re-sign.
 `sh rig/bootstrap.sh` (no `--with-runtime`) installs every `SKILL.md` but no
 per-skill code or the `.rig/plumbing` tree — same `active_delivery` gate as the
 runtime engine. `.tmpl` build inputs and `TODOS-format.md` never land, in
-either mode. See the [lean-install protocol](../reasoning/2026-08-23-lean-install-protocol.md).
+either mode. See the [lean-install protocol](../archive/2026-08/release-install-and-distribution.md).
 
 `install.sh` is present, works on macOS, resolves either `--version` or `latest`
 against the GitHub API, downloads to a temp path before executing, and refuses

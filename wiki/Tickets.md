@@ -15,7 +15,7 @@ kanban-plugin: board
 	**Delivery state (RIG-156):** redesign
 	**Status:** OPEN (2026-08-31; GitHub #152 created 2026-10-14) — deferred, low priority — carved out of [[RIG-153]] on close · [Solution](tickets/RIG-156.md)
 	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub #152 is labeled `redesign`; close as not planned after QA delivery · **Delivery:** none (not a delivered fix)
-	**Class:** MEASUREMENT / PROCESS. Run the frozen RIG-153 instrument to produce a post-fix per-axis profile against the +12/100 baseline. Deferred: the six hygiene tests already prove the RIG-148..152 defect shapes are fixed, so a re-baseline now would just flip the G2 gate; the interesting run is after adaptive integration (prune-to-stack, reconcile-with-existing-config) is built — a Path B question. Blockers: no clean in-workspace target copy, unpinned Rig SHA, human-operated judge, model pin string source. Hold until Path A + Path B are fully decided. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
+	**Class:** MEASUREMENT / PROCESS. Run the frozen RIG-153 instrument to produce a post-fix per-axis profile against the +12/100 baseline. Deferred: the six hygiene tests already prove the RIG-148..152 defect shapes are fixed, so a re-baseline now would just flip the G2 gate; the interesting run is after adaptive integration (prune-to-stack, reconcile-with-existing-config) is built — a Path B question. Blockers: no clean in-workspace target copy, unpinned Rig SHA, human-operated judge, model pin string source. Hold until Path A + Path B are fully decided. [[archive/2026-08/path-a-and-path-b-onboarding|2026-08-31-rig-153-close-option-b-deferred]]
 - [ ] **RIG-157 — Automated QA-to-production promotion gate and weekly health check**
 	**Delivery state (RIG-157):** open
 	**Status:** OPEN (2026-10-17; GitHub #154) — closeout ticket for branch work that had none · [Solution](tickets/RIG-157.md)
@@ -108,7 +108,7 @@ kanban-plugin: board
 - [x] **RIG-137 — Production monkey-patch in net.Server.listen weakens network trust**
 	**Delivery state (RIG-137):** delivered
 	**Status:** COMPLETE (2026-08-28) — GitHub #91 — Option A landed: monkey-patch deleted (`8ad5825`), `AT-LF-22` rewritten async, oracle re-signed and verifies on HEAD · [Solution](tickets/RIG-137.md)
-	**Class:** CODE QUALITY / TRUST BOUNDARY. Board was left OPEN/blocked after the re-sign and implementation actually landed; corrected 2026-08-28 triage. Trace: [[reasoning/2026-08-27-at-lf-22-monkey-patch]].
+	**Class:** CODE QUALITY / TRUST BOUNDARY. Board was left OPEN/blocked after the re-sign and implementation actually landed; corrected 2026-08-28 triage. Trace: [[archive/2026-08/shell-trust-and-capability-policy|2026-08-27-at-lf-22-monkey-patch]].
 - [x] **RIG-143 — runGrade runs approved commands with no network isolation**
 	**Delivery state (RIG-143):** delivered
 	**Status:** COMPLETE (2026-08-28) — GitHub #111 closed (#102/#107) — implementation and AT-PROC-1d acceptance test green · [Solution](tickets/RIG-143.md)
@@ -226,12 +226,12 @@ kanban-plugin: board
 	**Delivery state (RIG-154):** delivered
 	**Status:** CLOSED (2026-08-31) — GitHub #138 (still open; closes at ship) — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
 	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #138 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
-	**Done:** `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent`; `tests/rig-mcp-bootstrap.test.js::CI relies on the root pretest bootstrap instead of a duplicate install step`; `manual: fresh-clone npm test exit 0 with AT-HOME-1 green, recorded in [[reasoning/2026-08-31-rig-154-close-out.md]]`. Follow-up [[RIG-155]] (real-`npm` clean-container E2E).
+	**Done:** `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent`; `tests/rig-mcp-bootstrap.test.js::CI relies on the root pretest bootstrap instead of a duplicate install step`; `manual: fresh-clone npm test exit 0 with AT-HOME-1 green, recorded in [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-31-rig-154-close-out]]`. Follow-up [[RIG-155]] (real-`npm` clean-container E2E).
 - [x] **RIG-153 — No frozen instrument exists to measure adaptation quality**
 	**Delivery state (RIG-153):** delivered
 	**Status:** DONE (2026-08-31) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
 	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #130 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
-	**Done:** option A delivered and frozen (`592f4eed`). `tests/installed-router-hygiene.test.js` — all six RIG-148→152 defect-shape blocks green (`RIG-124.2 …`, `RIG-151 …`, `RIG-152 …`, `RIG-150 …`, `RIG-149 — the routing fallback projects the skill it names on native hosts`, `RIG-148 — manifest writes a gitignore block for Rig-owned install paths`); `wiki/specs/adaptation-measurement-rubric.md` frozen (2 gates, 3 equal-weight axes, per-axis profile, clean-checkout procedure, pinned dated model). The re-baseline run (option B) is carved out as [[RIG-156]], deferred. [[reasoning/2026-08-31-rig-153-close-option-b-deferred]]
+	**Done:** option A delivered and frozen (`592f4eed`). `tests/installed-router-hygiene.test.js` — all six RIG-148→152 defect-shape blocks green (`RIG-124.2 …`, `RIG-151 …`, `RIG-152 …`, `RIG-150 …`, `RIG-149 — the routing fallback projects the skill it names on native hosts`, `RIG-148 — manifest writes a gitignore block for Rig-owned install paths`); `wiki/specs/adaptation-measurement-rubric.md` frozen (2 gates, 3 equal-weight axes, per-axis profile, clean-checkout procedure, pinned dated model). The re-baseline run (option B) is carved out as [[RIG-156]], deferred. [[archive/2026-08/path-a-and-path-b-onboarding|2026-08-31-rig-153-close-option-b-deferred]]
 - [x] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
 	**Delivery state (RIG-150):** delivered
 	**Status:** DONE (2026-08-31) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)

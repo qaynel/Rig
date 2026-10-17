@@ -1,6 +1,7 @@
 # Rig 6.0.0 — statement of work
 
-**Date:** 2026-10-13. **State:** planning deliverable; product work pending.
+**Date:** 2026-10-13; reconciled 2026-10-17. **State:** release candidate;
+signed-oracle verification passes; exact-byte release evidence pending.
 **Objective:** ship the coherent closure release defined in the
 [specification sheet](specification-sheet.md), through one branch and one PR to
 `qa-prod`, then promote to `prod`. The [master ledger](00-master-plan.md)
@@ -11,7 +12,7 @@ fees and commercial commitments have not been agreed.
 
 | Work package | Deliverable | Completion evidence | Detailed plan |
 |---|---|---|---|
-| Reconcile the backlog | Accurate issue/board/ticket mapping, verified prior fixes, reopened premature closures and one redesign backlog. | Every item has a disposition and evidence; candidate transitions are valid and final live states agree after QA delivery. | [Tracker sync](01-tracker-sync.md) |
+| Reconcile the backlog | Accurate issue/board/ticket mapping, verified prior fixes, reopened premature closures and one redesign backlog. | Every item has a disposition and evidence; candidate transitions are valid and final live states agree after publication and smoke testing. | [Tracker sync](01-tracker-sync.md) |
 | Resolve concrete bugs | Eight fixes covering uninstall, command permissions, durable approval evidence, diagnostics and process cleanup. | Each behavior reproduces red before the fix and passes afterward; fetched third-party patches are exercised. | [Bug fixes](02-bug-fixes.md) |
 | Establish the corpus | One canonical `rig/corpus/`, shared projections, agent onboarding instructions, pinned upstream metadata and a resumable v5 upgrade. | Projection/write-contract parity, exact removal, preserved user content, safe script boundaries and already-onboarded upgrade cases. | [Central corpus](03-central-corpus.md) |
 | Finish catalogue capabilities | Specific guidance, detection, executable checks, good/bad fixtures and onboarding hooks for all original capabilities; compatible documented merges where justified. | Installed selection/approval/binding/check evidence, nonzero executed checks, all-grade and dependency-slice proofs, explicit tool gaps. | [Catalogue services](04-catalogue-services.md) |
@@ -35,15 +36,18 @@ fees and commercial commitments have not been agreed.
    run the final coherence sweep and prepare candidate tracker transitions.
 5. Resolve security/code-review findings and present the exact protected-file
    amendment bundle. The owner applies it and signs once. Agents never sign.
-6. Obtain fresh review evidence bound to the final bytes; run the local full
-   gate and exact-candidate install E2E. Open the single PR to `qa-prod` with
+6. Run the local full gate, then obtain fresh review evidence bound to the final
+   bytes and exact-candidate install E2E. Use the single PR to `qa-prod` with
    required CI and signature checks green.
-7. Deliver the checked changes to QA and reconcile actual issue closures with
-   test/commit/backlog evidence. Newly fixed issues close only after delivery;
-   verified prior fixes and redesign dispositions can reconcile earlier.
+7. Deliver the checked changes to QA. Keep tracker closures prepared until the
+   tag and post-publication smoke test, per the owner's 2026-10-17 answer and
+   the change-management policy. Earlier verified fixes and redesign items
+   follow that same closure order.
 8. Promote the exact QA commit after automated health/full-gate/coherence and
    real-download E2E pass. Publish the matching tag/release and verify the
    public tagged installer. No outside-repository manual install gate applies.
+   Only then close trackers with the delivered SHA, proving tests or written
+   redesign rationale.
 
 Use one commit per coherent slice, focused test runs in the implementation
 loop, and reasoning traces at subplan boundaries and at least every three

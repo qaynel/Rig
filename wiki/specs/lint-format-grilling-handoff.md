@@ -23,13 +23,13 @@ re-freezing Gate 1 at 68 cases — see [status](../status.md). What remains of
 Stage B is step 6, the intent owner's physical signature over the new digest;
 Stage C (handing the frozen, signed intent to `rig-product-design`) follows.
 The immutable audit is
-[`lint-format-production-grilling-audit.md`](../reasoning/2026-08-20-lint-format-production-grilling-audit.md);
+[`lint-format-production-grilling-audit.md`](../archive/2026-08/lint-format-vertical-slice.md);
 the current production map is [`lint-format-roadmap.md`](lint-format-roadmap.md).
 
 ## Start here
 
 1. Read [`../Home.md`](../Home.md), [`../status.md`](../status.md),
-   [`../../rig/tier-1/routing.md`](../../rig/tier-1/routing.md), and the full
+   [`../../rig/corpus/routing.md`](../../rig/corpus/routing.md), and the full
    `rig-grilling` skill before acting.
 2. Read the closed-decisions table and every linked intent-owner trace below.
    Do not reopen or re-ask a closed decision. If a decision genuinely must
@@ -82,28 +82,28 @@ Gate 1 (D21, 68 cases). Remaining: the intent owner's signature (Stage B step
 
 The intent-owner traces for these rulings are:
 
-- [`vertical-lint-format-production.md`](../reasoning/2026-08-20-vertical-lint-format-production.md)
-- [`lint-format-hybrid-plus.md`](../reasoning/2026-08-20-lint-format-hybrid-plus.md)
-- [`lint-format-open-ecosystem.md`](../reasoning/2026-08-20-lint-format-open-ecosystem.md)
-- [`lint-format-whole-repository.md`](../reasoning/2026-08-20-lint-format-whole-repository.md)
-- [`lint-format-semantic-discovery.md`](../reasoning/2026-08-20-lint-format-semantic-discovery.md)
-- [`linting-harness-capability-model.md`](../reasoning/2026-08-20-linting-harness-capability-model.md)
-- [`universal-capability-model-leaf-first.md`](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
-- [`lint-format-partial-coverage.md`](../reasoning/2026-08-20-lint-format-partial-coverage.md)
-- [`lint-format-plan-bound-execution.md`](../reasoning/2026-08-20-lint-format-plan-bound-execution.md)
-- [`lint-format-untrusted-task-execution.md`](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
-- [`lint-format-read-only-guarantee.md`](../reasoning/2026-08-21-lint-format-read-only-guarantee.md)
-- [`lint-format-check-scope.md`](../reasoning/2026-08-21-lint-format-check-scope.md)
-- [`lint-format-autofix.md`](../reasoning/2026-08-21-lint-format-autofix.md)
-- [`lint-format-ci-behavior.md`](../reasoning/2026-08-21-lint-format-ci-behavior.md)
-- [`lint-format-command-drift.md`](../reasoning/2026-08-21-lint-format-command-drift.md)
-- [`lint-format-output-privacy.md`](../reasoning/2026-08-21-lint-format-output-privacy.md)
-- [`lint-format-failure-semantics.md`](../reasoning/2026-08-21-lint-format-failure-semantics.md)
-- [`lint-format-lifecycle.md`](../reasoning/2026-08-21-lint-format-lifecycle.md)
-- [`lint-format-support-claim.md`](../reasoning/2026-08-21-lint-format-support-claim.md)
+- [`vertical-lint-format-production.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-hybrid-plus.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-open-ecosystem.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-whole-repository.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-semantic-discovery.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`linting-harness-capability-model.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`universal-capability-model-leaf-first.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-partial-coverage.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-plan-bound-execution.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-untrusted-task-execution.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-read-only-guarantee.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-check-scope.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-autofix.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-ci-behavior.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-command-drift.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-output-privacy.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-failure-semantics.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-lifecycle.md`](../archive/2026-08/lint-format-vertical-slice.md)
+- [`lint-format-support-claim.md`](../archive/2026-08/lint-format-vertical-slice.md)
 
 Questions 1–3 were reconciled from existing authority in
-[`lint-format-grilling-release-contract.md`](../reasoning/2026-08-20-lint-format-grilling-release-contract.md).
+[`lint-format-grilling-release-contract.md`](../archive/2026-08/lint-format-vertical-slice.md).
 
 ## Handoff script — author the acceptance, re-freeze Gate 1
 

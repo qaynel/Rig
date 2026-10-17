@@ -1,5 +1,9 @@
 # Owner questionnaire — v6.0.0 QA-prod promotion
 
+Historical questionnaire and answer record. The current ordered commands and
+signature requirement live in [owner-runbook.md](owner-runbook.md); the blocked
+table and branch SHAs below describe the earlier snapshot, not current evidence.
+
 Filed 2026-10-17, after the de-duplication commit `ba123844` went green on the
 full gate and was pushed to PR #153 (`qa-prod` ← `vaibhav-kodiyan/universal-issues-closure`).
 

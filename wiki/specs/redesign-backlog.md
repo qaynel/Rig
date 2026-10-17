@@ -46,7 +46,7 @@ Reason for every entry: **never started; owner deferred to the redesign,
   for Coding and never started.
 - **Links:** ticket [RIG-130](../tickets/RIG-130.md) · GitHub #43. The ticket's
   own analysis citations are known-broken; see
-  [reinvestigation](../reasoning/2026-08-26-rig125-130-132-133-reinvestigation.md).
+  [reinvestigation](../archive/2026-08/review-receipts-and-test-infrastructure.md).
 
 ## RIG-133 — Freeze the properties and a case generator, not 68 samples
 
@@ -67,7 +67,7 @@ Reason for every entry: **never started; owner deferred to the redesign,
 - **Links:** ticket [RIG-156](../tickets/RIG-156.md) · instrument
   [RIG-153](../tickets/RIG-153.md) ·
   [rubric](adaptation-measurement-rubric.md) ·
-  [close-out](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) ·
+  [close-out](../archive/2026-08/path-a-and-path-b-onboarding.md) ·
   GitHub: none yet, to be created so every backlog item has one (pending owner
   approval, see
   [github-actions-pending](close-everything/github-actions-pending.md)).

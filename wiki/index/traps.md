@@ -64,7 +64,7 @@ subcommand), so this isn't "dead code vs. shipped code" — it's **two live
 shipped paths, independently hand-copied, silently drifting**. A test written
 against `rig/lib/checks.js` alone (exactly what the two AT-PROC tests earlier
 in this same session did) proves nothing about `.rig/bin/check.js`. Full
-trace: [[reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment]].
+trace: [[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig120-symlink-escape-and-checks-realpath-containment]].
 
 The generalized form of this trap, three recurrences in: **"is this reachable"
 is not one question, it's one question per copy.** A file-required check
@@ -76,14 +76,14 @@ and write the regression test against the actual copied bytes (or a
 temp-directory materialization of them), not the dev-time source module.
 
 **Correction on the fix, 2026-08-29 (same day, owner sign-off on
-[[reasoning/2026-08-29-rig144-capability-policy-grilling]]):** my first
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig144-capability-policy-grilling]]):** my first
 instinct after finding the duplicate was to keep both hand-maintained copies
 and add a parity/drift test between them. The owner rejected that
 explicitly: "a drift test changes silent divergence into divergence noticed
 by CI... the defect class still exists." A test that detects re-divergence
 is still accepting that divergence is possible; it's a safety net under a
 mistake, not a fix for it. The actual fix, applied the same session
-([[reasoning/2026-08-29-rig144-capability-policy-sign-off]]): extract the
+([[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig144-capability-policy-sign-off]]): extract the
 duplicated logic into one canonical module (`rig/lib/check-runner.js`) both
 callers `require()`, so there is exactly one implementation and "keeping
 them in sync" is no longer a task anyone can forget to do. Write the "two
@@ -247,16 +247,16 @@ gone by the time the tickets were committed elsewhere. The tickets read as
 complete and well-sourced; the citations are dead. Before trusting a `[[...]]`
 citation on a freshly-landed ticket, confirm the target file exists on disk,
 not just that the ticket prose reads as if it does. See
-[[2026-08-26-rig125-130-132-133-reinvestigation]].
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-reinvestigation]].
 
 ## A dead citation can hide behind an ordinary markdown link, not just `[[...]]`
 
-The first pass at [[2026-08-26-rig125-130-132-133-reinvestigation]] grepped only
+The first pass at [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-reinvestigation]] grepped only
 for `[[...]]` wiki-links and missed two dead sources in RIG-132 cited as
 `[text](../sources/reference/foo.raw.md)` — plain markdown links to files that
 also don't exist. When auditing citations for a ticket, grep both link forms;
 checking one and concluding "citations verified" is a false clean bill. See
-[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding A.
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding A.
 
 ## A ticket's own headline number can silently disagree with its own breakdown
 
@@ -267,7 +267,7 @@ that follows is consistent with 124 (`C(124,2)=7,626`), not with 203
 other. Nothing about this required the missing citations to catch — arithmetic
 in a ticket is exactly as checkable as code, and is not checked by default just
 because it reads confidently. See
-[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding D.
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]] Finding D.
 
 ## A partially applied control must never report as enabled
 

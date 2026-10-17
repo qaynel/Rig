@@ -29,7 +29,7 @@ separate traces. The runnable cases synthesised from it are drafted in
 Governing sources: the closed-decisions table in
 [`lint-format-grilling-handoff.md`](lint-format-grilling-handoff.md), the
 immutable
-[`lint-format-production-grilling-audit.md`](../reasoning/2026-08-20-lint-format-production-grilling-audit.md),
+[`lint-format-production-grilling-audit.md`](../archive/2026-08/lint-format-vertical-slice.md),
 and the `GA-` rows in [`../index/decisions.md`](../index/decisions.md).
 
 ---

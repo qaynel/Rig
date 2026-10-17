@@ -44,7 +44,7 @@ source the agent consults *during* work, records reasoning traces in
 (learn from past failures instead of repeating them), and uses to resume
 interrupted sessions.
 
-A4: (Fact, verified from `wiki/reasoning/2026-08-31-path-b-adapt-scope.md`
+A4: (Fact, verified from `wiki/archive/2026-08/path-a-and-path-b-onboarding.md`
 and `2026-08-30-office-hours-path-a-path-b-scoping.md`, not asked as
 recall.) PR #143's original scope was Path B from the Path A/Path B split
 decided in office hours 2026-08-30: Path A = concrete install-bug fixes +
@@ -221,7 +221,7 @@ footprint**, **small commit count including review commits**, and
 2. **A4 process failure (self-caught, worth carrying forward).** On
    A4, the resuming/prior agent initially asked the user a question
    whose answer was a documented fact in
-   `wiki/reasoning/2026-08-31-path-b-adapt-scope.md` and
+   `wiki/archive/2026-08/path-a-and-path-b-onboarding.md` and
    `2026-08-30-office-hours-path-a-path-b-scoping.md`, instead of
    looking it up. The user called this out explicitly: *"you shouldn't
    have asked me about rig, the pull request 143 — just from the name,

@@ -21,7 +21,7 @@ states: timeout, cancellation, missing dependency, signal termination, partial
 output, and command not found. Evidence assurance comes from rerunnable local
 evidence; its separately approved CI graft is a repository enforcement surface,
 not a prerequisite that makes the local grade unreachable.
-[v0.11 correction](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md)
+[v0.11 correction](../archive/2026-08/gate-model-and-the-one-lock.md)
 
 ## Why it is this way
 
@@ -51,7 +51,7 @@ false green or disclosure paths. [Rejected approaches](../index/rejected.md)
 - Frozen outcome rules: [Gate 1 §2 and acceptance](../gate1/business-spec.md)
 - Binding and report schemas: [Gate 2 §9](../gate2/technical-spec.md#9-runnable-services-and-reports)
 - Testing vision: [captured reference](../sources/reference/testing-pipeline-vision.raw.md)
-- Partial lint-format coverage ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-partial-coverage.md)
+- Partial lint-format coverage ruling: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 ## What is still open
 
@@ -74,7 +74,7 @@ planned command runs, fails the check, and reports the exact changed paths with
 before/after evidence. It does not auto-restore the pre-check state — that can
 clobber concurrent user work and erase the forensic record of a misbehaving
 tool — and it does not let the check continue.
-[reasoning trace](../reasoning/2026-08-21-lint-format-read-only-guarantee.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Lint-format checks are diff-scoped by default (`GA-28`): ordinary runs inspect
 only each component's changed files. The user may ask for a wider scope —
@@ -84,7 +84,7 @@ working directory, so Rig never grades generated or vendored files the
 repository told its tools to skip. This carries the per-service run-scope
 precedent (`GA-4c`) into lint-format's interactive default; the whole-scope
 enforcement run belongs to the CI-behavior decision.
-[reasoning trace](../reasoning/2026-08-21-lint-format-check-scope.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Autofix is a distinct mutating action, never folded into a read-only check
 (`GA-29`). Rig runs it only when the user explicitly invokes a specific fix
@@ -92,7 +92,7 @@ command under its own separate approval, offers it for both formatting and safe
 lint fixes, and re-verifies by re-running the read-only check rather than
 assuming success. Resulting changes land as ordinary uncommitted working-tree
 edits the user owns; Rig never commits them or claims ownership of the source.
-[reasoning trace](../reasoning/2026-08-21-lint-format-autofix.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 The Evidence level enforces lint-format in CI, running whole-scope at the gate
 — the enforcement counterpart to the diff-scoped interactive default above
@@ -101,7 +101,7 @@ taking the pipeline over; when no CI exists or the provider is unsupported, Rig
 proposes a pipeline as an explicit, separately approved, user-chosen-provider
 plan. A pipeline Rig does not understand is preserved and reported, never
 silently edited or replaced.
-[reasoning trace](../reasoning/2026-08-21-lint-format-ci-behavior.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Lint-format output is failure-centric, local, and redacted (`GA-32`). Reports
 stay on the producing host, keep failures, vacuous runs, and coverage gaps, and
@@ -111,7 +111,7 @@ host-rooted sensitive data, stripped on the producing host before output leaves
 it. Reports do not dump raw tool output — they explain each finding to the user
 as a clear, actionable item: what is going wrong and what to do about it. Secret
 content reaches the agent only on explicit opt-in.
-[reasoning trace](../reasoning/2026-08-21-lint-format-output-privacy.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Not every check reaches a clean pass or fail, and each messy ending is its own
 truthful state (`GA-33`). Timeout, user cancellation, missing dependency,
@@ -120,7 +120,7 @@ a distinct, reported, non-passing result — never collapsed into "pass," never
 silently swallowed. A generic "failed" is rejected for losing the actionable
 cause, and treating inconclusive ends as non-blocking is rejected as false
 green. A check that could not reach a verdict states exactly why.
-[reasoning trace](../reasoning/2026-08-21-lint-format-failure-semantics.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Lint-format lifecycle follows the frozen install-manifest and removal contract
 (`GA-34`): a repeated install is an idempotent resume that claims no protection
@@ -128,7 +128,7 @@ until complete, and removal reverses exactly what Rig's manifest recorded it
 created — generated CI, configuration, and managed blocks — touching nothing
 else. Source fixes the user invoked through autofix are the user's own edits
 and always survive uninstall.
-[reasoning trace](../reasoning/2026-08-21-lint-format-lifecycle.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 The claim the whole leaf is measured against — when Rig may say lint-format is
 "production-supported" — is evidence-backed and per component (`GA-35`). A single
@@ -143,6 +143,6 @@ gap. Claiming whole-repository support just because the leaf installed somewhere
 and refusing to ever claim support at all, are both rejected — the first lets
 install success masquerade as coverage, the second discards the customer-facing
 promise the leaf exists to earn.
-[reasoning trace](../reasoning/2026-08-21-lint-format-support-claim.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Closure work in progress: [2026-10-13-catalogue-04-discovery](../reasoning/2026-10-13-catalogue-04-discovery.md).

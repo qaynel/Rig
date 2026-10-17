@@ -46,8 +46,8 @@ The owner has now selected plan-time disclosure: the enabling proposal shows
 the irreversible third-party warning, and activation must confirm its exact
 digest through the verified policy approval. Status repeats the warning while
 enabled.
-[Gate 2 re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
-[Owner interaction decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
+[Gate 2 re-trace trace](../archive/2026-08/lint-format-vertical-slice.md)
+[Owner interaction decision](../archive/2026-08/host-coverage-and-mcp-wiring.md)
 [Status](../status.md)
 
 The shipping history scanner selects only Gitleaks or TruffleHog from `PATH`,
@@ -65,4 +65,4 @@ information, or other host-rooted sensitive data; Rig strips all of it on the
 producing host before any output leaves that machine, making the producing host
 the redaction boundary. Matched secret content still reaches the agent only on
 explicit opt-in.
-[reasoning trace](../reasoning/2026-08-21-lint-format-output-privacy.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)

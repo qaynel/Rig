@@ -24,7 +24,7 @@ the four questions the record genuinely cannot answer are listed there too.
 Inputs: [[2026-09-04-structural-workflow-fix-grilling]] (owner answers A–G),
 [[2026-09-04-landscape-research-in-flight]] (measurements + sources),
 [[2026-09-04-structural-workflow-fix-design]] (the workflow fix already
-designed), [[2026-08-30-rig-product-vision-and-tiered-adaptive-install]].
+designed), [[archive/2026-08/what-rig-is-product-direction-and-dsh|2026-08-30-rig-product-vision-and-tiered-adaptive-install]].
 
 ---
 

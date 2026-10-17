@@ -1,32 +1,56 @@
-# The overhaul
+# QA and production closeout
 
-The current hub is a compact route into the immutable workstream evidence.
-[Wiki-budget trace](../reasoning/2026-10-14-closure-wiki-budget.md)
+This page points to the current closeout record. September's overhaul work is
+history; it is not a live set of open product decisions. The settled direction
+remains one central corpus with agent-led, repository-aware onboarding. See
+[What Rig is](what-rig-is.md) and [Onboarding flow](onboarding-flow.md).
 
-**The 2026-09 workstream:** diagnosis, product strategy, architecture findings, and rejected approaches. October owner decisions govern delivery.
+## Current release checkpoint
 
-## September diagnosis
+The release candidate is `6.0.0`. Follow the ordered
+[deployment policy](../../rig/corpus/standards/change-management.md) and the
+[closeout task list](../specs/close-everything/task-list.md); old green results
+do not carry across a change to the candidate bytes.
 
-The workstream began with three connected concerns: PR #143's costly delivery loop, Rig's product position, and a repository much larger than its product. The central diagnosis was a mandatory write path paired with an optional, unbounded wiki read path. The owner reproduced that context gap during the grilling. The original evidence and the historical proposal for a bounded read path remain in the [structural workflow fix](../reasoning/2026-09-04-structural-workflow-fix-design.md), [grilling answers](../reasoning/2026-09-04-structural-workflow-fix-grilling.md), and [closed-loop design](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md).
+The owner re-signed the package-scripts amendment on 2026-10-17.
+`node scripts/check-advanced-spec.js` verifies 16 files and 95 acceptance cases.
+The full gate and fresh review receipt are now being renewed on the final
+candidate bytes.
+The [owner's answers](../reasoning/2026-10-17-change-management-policy-and-doc-deduplication.md)
+record this approval sequence.
 
-Product positioning, market evidence, and the September recommendation are preserved in [landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md) and [finished-product design](../reasoning/2026-09-04-finished-product-design.md). Architecture measurements and deletion findings are in those source traces. Earlier tradeoffs and rejected approaches stay archived there; October's settled decisions are authoritative for this release.
+After the signed oracle verifies, the remaining release steps are:
 
-## Current delivery
+1. Run `npm test` and create a fresh review receipt against the same final
+   bytes.
+2. Deliver the candidate through the existing QA PR with `gate1-pin` required,
+   then run automated health and real-download clean-install checks against the
+   exact QA commit.
+3. Promote and tag the verified commit. Close fixed and redesign issues only
+   after QA promotion and the tag, with the recorded disposition.
 
-The [specification sheet](../specs/close-everything/specification-sheet.md), [SOW](../specs/close-everything/statement-of-work.md), and [task list](../specs/close-everything/task-list.md) govern the closeout. The owner decisions are fixed in [CLAUDE.md](../../CLAUDE.md) and the linked answer traces. The compact ledger below links current evidence; details remain in the immutable traces.
+The policy is the operational checklist; the task list holds per-item evidence
+and owner-only actions. Do not use the earlier October 14 closure traces as
+evidence for the present candidate: they document earlier bytes and runs.
 
-| Area | Current state and evidence |
-| --- | --- |
-| Process and corpus | Spawn guard passes ([trace](../reasoning/2026-10-14-closure-spawn-guard.md)); process cleanup now has Linux, Windows, and macOS runner jobs ([platform CI](../reasoning/2026-10-14-closure-platform-ci.md)); projection parity passes ([trace](../reasoning/2026-10-14-closure-corpus-parity.md)); retired source cleared ([trace](../reasoning/2026-10-14-closure-retired-source-cleared.md)); one MCP disposition table, with the oracle's `materializeSelectedHosts` restored as a read-only reader over it ([table](../reasoning/2026-10-14-closure-mcp-table.md), [restore](../reasoning/2026-10-14-closure-signed-gate-reconcile.md)); runtime payload completeness and native router installation now pass ([trace](../reasoning/2026-10-14-closure-runtime-router-complete.md)); shelf candidate and removal ([amendment](../reasoning/2026-10-14-closure-shelf-amendment.md), [implementation](../reasoning/2026-10-14-closure-shelf-removal.md)). |
-| Catalogue | Service guidance covers 115 entries; its no-boilerplate and no-identical-file checks pass ([green sweep](../reasoning/2026-10-14-closure-coherence-green.md)). Matrix and authorship gate pass ([trace](../reasoning/2026-10-14-closure-authorship-complete.md)); detector, runner, grade, and merge outcomes ([detection](../reasoning/2026-10-14-closure-detection.md), [runner](../reasoning/2026-10-14-closure-runner-nonpasses.md), [selection](../reasoning/2026-10-14-closure-grade-selection.md), [merges](../reasoning/2026-10-14-closure-no-service-merges.md)). Onboarding guidance and frozen-test candidates ([onboarding](../reasoning/2026-10-14-closure-onboarding-service-offers.md), [amendments](../reasoning/2026-10-14-closure-catalogue-candidates.md)). |
-| Lint/format and E2E | Installed setup proof passes and no frozen lint amendment is needed ([setup](../reasoning/2026-10-14-closure-installed-lint-setup.md), [amendment check](../reasoning/2026-10-14-closure-no-lint-amendment.md)). The complete clean-install E2E passes locally against a temporary candidate archive; exact branch-SHA CI remains post-freeze ([E2E proof](../reasoning/2026-10-14-closure-e2e-provisional-final.md), [entrypoint amendment](../reasoning/2026-10-14-closure-e2e-script-candidate.md)). |
-| Standards and coherence | Test-evidence gate is wired ([trace](../reasoning/2026-10-14-closure-evidence-gate-wired.md)); CLAUDE/GEMINI link to canonical standards ([trace](../reasoning/2026-10-14-closure-standards-links.md)). The existing coherence test is the repository entrypoint; ticket evidence and all 63 declared tracker transitions now pass the one-time sweep ([green proof](../reasoning/2026-10-14-closure-coherence-green.md)). |
-| User docs | README presents the 6.0.0 product and onboarding flow without a host matrix; install and troubleshooting guides cover install states and named refusals/gaps; the one-page vision records the shipped product and deferred redesign topics; translated editions are marked lagging. The public README flow awaits publication of the v6.0.0 tag ([tag finding](../reasoning/2026-10-14-closure-readme-clone-tag-missing.md), [install guide](../reasoning/2026-10-14-closure-install-guide.md), [troubleshooting](../reasoning/2026-10-14-closure-troubleshooting.md), [vision](../reasoning/2026-10-14-closure-vision.md), [translation](../reasoning/2026-10-14-closure-translations-lagging.md)). |
-| Release upkeep | Weekly health workflow is implemented ([trace](../reasoning/2026-10-14-closure-health-workflow.md)); all package audits and dry-runs pass ([trace](../reasoning/2026-10-14-closure-dependency-audit-green.md)); 6.0.0 changelog is required for eligibility after exact-SHA health ([trace](../reasoning/2026-10-14-closure-changelog-eligibility.md)); active version manifests now agree on 6.0.0 ([version trace](../reasoning/2026-10-14-closure-version-bump.md)). |
-| Security review | Installer, sandboxed projection, service command, MCP, and secret-handling boundaries reviewed with no open actionable finding ([trace](../reasoning/2026-10-14-closure-security-review.md)). |
-| Code review | Four-axis review findings were fixed or answered: CI token/permissions and patch-file secret scanning were corrected; clean-machine installation now waits only for the owner-published release tag ([report](../reasoning/2026-10-14-closure-code-review.md), [disposition](../reasoning/2026-10-14-closure-review-findings-resolved.md)). |
-| Owner amendment bundle | The owner's signature verifies, but it signs the oracle **as it was**: the candidate amendments are not in the signed bytes, so the gate is red until they are applied and re-signed. The batch is down to four cases — AT-HOST-5 was withdrawn (its API is restored), and the path-b hardening test proved unpinned and was corrected directly ([reconciliation](../reasoning/2026-10-14-closure-signed-gate-reconcile.md), [candidate evidence](../reasoning/2026-10-14-closure-candidate-advisories.md)). T-10.3 stays open until script candidates receive owner-applied advisory runs and final trace targets are checked ([bundle](../specs/close-everything/candidate-amendments/owner-bundle.md), [frozen-test amendment](../reasoning/2026-10-14-closure-frozen-test-amendment.md)). |
+## September workstream record
 
-The local owner-ticket sync is recorded in the [tracker sync trace](../reasoning/2026-10-13-close-everything-tracker-sync-local.md). The September source set and the wiki's maintenance constraints are indexed in the [quick reference](../index/quick-reference.md) and [wiki maintenance sweep](../reasoning/2026-09-04-wiki-maintenance-sweep.md). The current status page is generated from traces.
+The 2026-09 workstream diagnosed a costly delivery loop, product-positioning
+questions, and an unbounded wiki read path. Its evidence and rejected approaches
+remain in the [structural workflow design](../reasoning/2026-09-04-structural-workflow-fix-design.md),
+[grilling answers](../reasoning/2026-09-04-structural-workflow-fix-grilling.md),
+[closed-loop design](../reasoning/2026-09-02-closed-loop-workflow-and-context-realignment.md),
+and [finished-product design](../reasoning/2026-09-04-finished-product-design.md).
+These are historical sources, not open decisions for the 6.0.0 closeout.
 
-Earlier closure attempts and decisions: [task-list/SOP](../reasoning/2026-10-14-closure-task-list-and-sop.md) · [parity attempt](../reasoning/2026-10-14-closure-corpus-parity-attempt.md) · [retired-source checks](../reasoning/2026-10-14-closure-retired-source-check.md) · [matrix history](../reasoning/2026-10-14-closure-matrix-rerun.md) · [authorship progress](../reasoning/2026-10-14-closure-matrix-progress.md) · [matrix blockers](../reasoning/2026-10-14-closure-matrix-blocked.md) · [authorship gate](../reasoning/2026-10-14-closure-authorship-gate.md).
+## Current-session evidence
+
+The [owner request](../reasoning/2026-10-17-qa-readiness-owner-request.md) resumes
+the approved closeout. Evidence: [inventory](../reasoning/2026-10-17-qa-readiness-inventory.md),
+[gate and compaction repairs](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md),
+[verification start](../reasoning/2026-10-17-qa-readiness-verification-start.md),
+and [independent review corrections](../reasoning/2026-10-17-qa-readiness-review-corrections.md).
+The [owner signing reply](../reasoning/2026-10-17-qa-readiness-owner-signed.md)
+and [verified signed candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md)
+supersede the earlier signing blocker. Earlier passing results do not establish
+readiness for the current bytes.

@@ -134,9 +134,9 @@ that key.
 Whether a host's subagent hook (if any) can *inject* context, not merely
 observe or gate subagent creation — loading the active Rig mode requires
 injection. Full per-host evidence and citations:
-[reasoning/2026-08-24-subagent-mode-propagation-disposition.md](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md),
+[reasoning/2026-08-24-subagent-mode-propagation-disposition.md](../archive/2026-08/host-coverage-and-mcp-wiring.md),
 corrected by
-[reasoning/2026-08-24-subagent-disposition-corrections.md](../reasoning/2026-08-24-subagent-disposition-corrections.md)
+[reasoning/2026-08-24-subagent-disposition-corrections.md](../archive/2026-08/host-coverage-and-mcp-wiring.md)
 (Hermes rebucketed, Pi/Kiro/Copilot refined).
 
 | Host | Subagent hook | Can inject context | Disposition |
@@ -168,7 +168,7 @@ emits `.omp/mcp.json`; a pre-existing user-owned file is preserved with
 migration guidance (AT-HOST-5), covered for both paths, not only the
 catalogue path's `direct-require` test. See
 [host-and-ci-coverage](../topics/host-and-ci-coverage.md) and the
-[landing reasoning](../reasoning/2026-08-24-rig-104-mcp-unification.md) for
+[landing reasoning](../archive/2026-08/host-coverage-and-mcp-wiring.md) for
 the two other divergences this reconciled (OpenClaw's actual key/path, and
 codewhale's documented repo-write override of its raw `user_global` scope).
 

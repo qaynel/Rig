@@ -18,6 +18,12 @@ case, `unresolved: []`, and no blocker finding. Missing, extra, stale, failing,
 or unresolved reviews fail closed. The wrapper validates the reviewer result
 before it writes a receipt, so an incomplete file is never release evidence.
 
+The release operator supplies the unchanged file produced by the wrapper.
+Workflow dispatch access and custody of that file are trusted operational
+inputs: JSON validation checks content bindings, not who produced the file.
+The implementation digest uses Git's canonical executable/non-executable modes
+so identical publishable bytes reproduce across checkout umasks and platforms.
+
 The reviewer supplies semantic verdicts and findings only. The wrapper can
 launch Claude or Codex as an ephemeral read-only driver; driver choice changes
 neither the prompt nor receipt contract. It computes digests, creates the fresh
@@ -44,7 +50,7 @@ unchanged from before RIG-124.
 **RIG-124.1 is now Done (2026-08-26):** the cap-scoping fix and the
 reviewer process-group fix both landed with named regression tests; a killed
 or timed-out reviewer spawn is persisted before the cap is evaluated. See
-[[2026-08-26-rig124-cap-lost-update]].
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-cap-lost-update]].
 
 ## Authorities and sources
 
@@ -52,9 +58,9 @@ or timed-out reviewer spawn is persisted before the cap is evaluated. See
 - Working mechanism: [technical specification](../gate2/technical-spec.md)
 - Historical receipts: [review sources](../sources/reviews/)
 - Latest rejected implementation review: [v0.16 failed review](../sources/reviews/a-la-carte-v0.16-implementation.failed.review.json)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- PR review binding: [owner decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
-- Re-review cap / interim passes: [RIG-124](../tickets/RIG-124.md), [implementation trace](../reasoning/2026-08-25-rig124-implementation.md), token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- PR review binding: [owner decision](../archive/2026-08/host-coverage-and-mcp-wiring.md)
+- Re-review cap / interim passes: [RIG-124](../tickets/RIG-124.md), [implementation trace](../archive/2026-08/review-receipts-and-test-infrastructure.md), token-burn source: [investigation](../archive/2026-08/wiki-and-agent-working-conventions.md)
 
 ## Remaining work
 

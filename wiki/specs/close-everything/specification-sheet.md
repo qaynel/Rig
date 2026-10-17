@@ -1,7 +1,9 @@
 # Rig 6.0.0 — specification sheet
 
-**Date:** 2026-10-13. **State:** reviewed amendments applied; implementation
-pending. This is a working specification, not a newly signed acceptance oracle.
+**Date:** 2026-10-13; delivery order reconciled 2026-10-17. **State:** release
+candidate; the owner-signed test:e2e amendment verifies and current-byte
+release evidence remains required. This is a working specification,
+not a newly signed acceptance oracle.
 **Delivery:** one branch, one PR to `qa-prod`, followed by promotion to `prod`.
 **Companion:** [Statement of work](statement-of-work.md).
 
@@ -81,7 +83,9 @@ failure set. The authoritative `npm test` stays fail-closed. Only the owner
 applies the final protected-file bundle and signs it.
 
 Use focused tests per implementation slice. After the final metadata and owner
-bundle, produce a fresh wrapper-authored review receipt and run `npm test`.
+bundle, run `npm test`, then produce a fresh wrapper-authored review receipt
+targeting `wiki/gate2/technical-spec.md`. The deployment checker independently
+validates its design/catalogue digests and complete frozen-case coverage.
 Clean-install E2E uses the exact candidate archive/SHA through the public
 installer path, real dependency downloads, an MCP stdio tool call, approved
 onboarding, selected service checks and scoped uninstall verification. A
@@ -93,7 +97,8 @@ change invalidates affected evidence and requires fresh verification.
 Completion requires all included capabilities proved through their shipping
 path, current docs and trackers reconciled, no unexplained review findings,
 the final signed gate green, and automated promotion evidence for the actual
-QA commit. Named coverage gaps remain honest gaps, not successful assurance.
+QA commit. Tracker closures follow the published tag and passing download smoke
+test. Named coverage gaps remain honest gaps, not successful assurance.
 
 The owner-directed redesign backlog is exactly RIG-116, RIG-122, RIG-130,
 RIG-133 and RIG-156. Close those issues as not planned with the `redesign` label

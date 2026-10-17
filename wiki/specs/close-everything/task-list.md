@@ -216,12 +216,10 @@ run or a committed fix, not by transcript claims.
   (commit the work first so the SHA contains it).
 - [x] T-6.5 Deliberate-breakage evidence: a bad lockfile entry and a missing
   corpus file each make the E2E go red; record both in a trace.
-- [ ] 🔒 T-6.6 `npm run test:e2e` entrypoint. Applied on the owner's 2026-10-17
-  instruction: `test:e2e` is in `package.json` and in the signed snapshot
-  `wiki/gate1/package-scripts.json`, `npm test` unchanged. The oracle now
-  reports the pin delta and refuses until the owner re-signs:
-  `node scripts/approve-gate1.js --confirm-digest-delta d8d481d59a1915eb034a41033123e2efcd6cfebe219801028eb4bbf1b0b2c77c`.
-  The box ticks on that signature.
+- [x] 🔒 T-6.6 `npm run test:e2e` entrypoint. Applied on the owner's 2026-10-17
+  instruction and re-signed by the owner in this session. The package script
+  and signed snapshot agree; `node scripts/check-advanced-spec.js` passes
+  (16 files, 95 cases). No test command was bypassed or weakened.
 - [ ] 🔒 T-6.7 Green Linux and macOS runs on the exact candidate SHA (needs push).
   Partly done: the macOS and Linux `descendants-*` jobs are green on `8288742a`.
   The `test` workflow on that SHA failed only on `check-coherence` refusing to
@@ -250,7 +248,8 @@ run or a committed fix, not by transcript claims.
   it and stops at the first unmet step, and
   `.github/workflows/release-eligibility.yml` runs it against the exact QA head.
   Accept: a stale receipt, a dirty tree or a missing changelog entry each block.
-  Prove: `node --test tests/deployment-gate.test.js` (6 pass).
+  Prove: `node --test tests/deployment-gate.test.js` (12 pass, 2026-10-17;
+  includes full-gate execution, receipt coverage/base and portable digest regressions).
 
 ## WP8 — Coherence and upkeep (subplan 08)
 
@@ -309,10 +308,11 @@ run or a committed fix, not by transcript claims.
   folders: moved paths, service wording, removed APIs, package scripts,
   verifier counts, manifest entries, RIG-146, AT-PB-1/3, AT-HOST-5, trace targets.
   Closed by delivery: the owner applied the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
-  AT-PB-3 amendments and re-signed (see T-10.4). The one candidate left
-  unapplied is the `test:e2e` package script, which stays open as T-6.6.
-- [ ] 🔒 T-10.4 Owner applies the bundle and runs `node scripts/approve-gate1.js` once.
-  Done in the tree, owner's to tick: `tests/advanced-oracle.test.js` and
+  AT-PB-3 amendments and re-signed (see T-10.4). The later `test:e2e` package
+  script amendment is also applied and signed (T-6.6).
+- [x] 🔒 T-10.4 Owner applies the bundle and runs `node scripts/approve-gate1.js` once.
+  Owner reported signing complete on 2026-10-17; verification passes.
+  `tests/advanced-oracle.test.js` and
   `tests/path-b-catalog.test.js` carry the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
   AT-PB-3 amendments, and `check-advanced-spec` verifies the re-signed manifest
   (16 files, 95 cases, principal `gate1-owner`).
@@ -320,7 +320,8 @@ run or a committed fix, not by transcript claims.
   `node scripts/review-receipt.js --target <spec> --implementation-root .
   --base origin/qa-prod --model <id> --out <receipt> --author-context <id>`:
   it spawns a 30-minute ephemeral reviewer, and a `fail` burns one of the two
-  attempts RIG-124 allows, so the owner picks the model and fires it.
+  attempts RIG-124 allows. The owner already selected `claude-opus-5` and
+  authorized the agent to run it after signing; no new model decision is needed.
 - [x] T-10.6 `npm test` green locally (the only full-gate run, right before push).
   Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
   pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
@@ -337,7 +338,7 @@ run or a committed fix, not by transcript claims.
   pushed (2026-10-17) and is the PR head; confirming its checks and the
   `gate1-pin` requirement are the owner's two remaining steps.
 - [ ] 🔒 T-10.8 QA promotion on exact-SHA automated evidence; tag and release;
-  then tracker closures and the public tagged-download smoke test — in that
+  then the public tagged-download smoke test and tracker closures — in that
   order, per steps 7–8 of `rig/corpus/standards/change-management.md`. Nothing
   closes before the tag exists, so no task is left open against a closed issue.
   The promotion dispatch now also proves the change-management sequence:
@@ -346,8 +347,9 @@ run or a committed fix, not by transcript claims.
 
 ## Progress count
 
-Done: 74. Open: 12, all of them blocked on the owner: 10 are owner-only
-(🔒 credentials, clicks or a signature), T-10.5 needs the owner's model choice
-and T-9.7 waits on the published tag. The agent has nothing in flight.
-Open decisions are collected in `owner-questionnaire.md`.
+Done: 76. Open: 10. The owner signature and test:e2e pin are verified.
+The agent is renewing full-gate and review evidence; exact-candidate CI,
+branch-protection verification (API returns 403), QA promotion, publication,
+public-download checks and tracker closure remain ordered release work.
+Owner decisions are recorded in `owner-questionnaire.md`; none is being re-asked.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.

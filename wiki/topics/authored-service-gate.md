@@ -47,9 +47,9 @@ repository coverage.
 
 - Frozen service obligation: [acceptance](../gate1/acceptance.md)
 - Working authored-service contract: [technical specification](../gate2/technical-spec.md#56-authored-service-gate)
-- D24 ruling: [intent-owner trace](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- D23, the one-release exception D24 later retired: [intent-owner trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md)
+- D24 ruling: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- D23, the one-release exception D24 later retired: [intent-owner trace](../archive/2026-08/gate-model-and-the-one-lock.md)
 
 ## Remaining work
 

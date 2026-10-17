@@ -7,7 +7,16 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-17 | done | [2026-10-17-retire-the-duplicate-services-catalogue](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md) | [the-catalogue, delivery-plan, central-corpus] | [retire rig/catalog.json and rig/catalog/services in favour of rig/corpus] | — |
+| 2026-10-17 | superseded | [2026-10-17-qa-readiness-verification-start](../reasoning/2026-10-17-qa-readiness-verification-start.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-signed-candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-review-corrections](../reasoning/2026-10-17-qa-readiness-review-corrections.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-owner-signed](../reasoning/2026-10-17-qa-readiness-owner-signed.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-owner-request](../reasoning/2026-10-17-qa-readiness-owner-request.md) | the-overhaul | — | — |
+| 2026-10-17 | superseded | [2026-10-17-qa-readiness-inventory](../reasoning/2026-10-17-qa-readiness-inventory.md) | the-overhaul | — | — |
+| 2026-10-17 | current | [2026-10-17-qa-readiness-gate-and-compaction](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md) | the-overhaul | — | — |
 | 2026-10-17 | historical | [2026-10-17-closeout-ticket-and-issue-attachment](../reasoning/2026-10-17-closeout-ticket-and-issue-attachment.md) | [delivery-plan] | [] | — |
+| 2026-10-17 | current | [2026-10-17-change-management-policy-and-doc-deduplication](../reasoning/2026-10-17-change-management-policy-and-doc-deduplication.md) | delivery-plan, distribution-and-release, onboarding-flow | — | interdependency |
+| 2026-10-17 | current | [2026-10-17-august-reasoning-archive-compaction](../reasoning/2026-10-17-august-reasoning-archive-compaction.md) | agent-working-conventions | — | interdependency |
 | 2026-10-15 | current | [2026-10-15-router-single-name](../reasoning/2026-10-15-router-single-name.md) | the-overhaul, catalogue-contract | — | — |
 | 2026-10-15 | current | [2026-10-15-closure-full-gate-green](../reasoning/2026-10-15-closure-full-gate-green.md) | the-overhaul, release-readiness | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-wiki-budget](../reasoning/2026-10-14-closure-wiki-budget.md) | the-overhaul, testing-strategy, trust-and-failure-boundaries | — | — |
@@ -24,14 +33,14 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-14 | current | [2026-10-14-closure-service-guidance](../reasoning/2026-10-14-closure-service-guidance.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-security-review](../reasoning/2026-10-14-closure-security-review.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-runtime-router-complete](../reasoning/2026-10-14-closure-runtime-router-complete.md) | the-overhaul, onboarding-flow | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-runtime-proof-blocked](../reasoning/2026-10-14-closure-runtime-proof-blocked.md) | the-overhaul | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-runtime-payload-blocked](../reasoning/2026-10-14-closure-runtime-payload-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-runtime-proof-blocked](../reasoning/2026-10-14-closure-runtime-proof-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-runtime-payload-blocked](../reasoning/2026-10-14-closure-runtime-payload-blocked.md) | the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-runner-nonpasses](../reasoning/2026-10-14-closure-runner-nonpasses.md) | the-overhaul, the-catalogue, trust-and-failure-boundaries | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-review-findings-resolved](../reasoning/2026-10-14-closure-review-findings-resolved.md) | the-overhaul, distribution-and-release | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-retired-source-cleared](../reasoning/2026-10-14-closure-retired-source-cleared.md) | the-overhaul, the-catalogue | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-retired-source-check](../reasoning/2026-10-14-closure-retired-source-check.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-retired-source-cleared](../reasoning/2026-10-14-closure-retired-source-cleared.md) | the-overhaul, the-catalogue | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-retired-source-check](../reasoning/2026-10-14-closure-retired-source-check.md) | the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-readme-install-404](../reasoning/2026-10-14-closure-readme-install-404.md) | the-overhaul, distribution-and-release | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-readme-coherence-blocked](../reasoning/2026-10-14-closure-readme-coherence-blocked.md) | the-overhaul, distribution-and-release | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-readme-coherence-blocked](../reasoning/2026-10-14-closure-readme-coherence-blocked.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-readme-clone-tag-missing](../reasoning/2026-10-14-closure-readme-clone-tag-missing.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-platform-ci](../reasoning/2026-10-14-closure-platform-ci.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-owner-bundle-incomplete](../reasoning/2026-10-14-closure-owner-bundle-incomplete.md) | the-overhaul, distribution-and-release | — | — |
@@ -40,8 +49,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-14 | current | [2026-10-14-closure-no-lint-amendment](../reasoning/2026-10-14-closure-no-lint-amendment.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-mcp-table](../reasoning/2026-10-14-closure-mcp-table.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-matrix-rerun](../reasoning/2026-10-14-closure-matrix-rerun.md) | the-overhaul, the-catalogue, testing-strategy | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-matrix-progress](../reasoning/2026-10-14-closure-matrix-progress.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-matrix-blocked](../reasoning/2026-10-14-closure-matrix-blocked.md) | the-overhaul, the-catalogue, testing-strategy | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-matrix-progress](../reasoning/2026-10-14-closure-matrix-progress.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-matrix-blocked](../reasoning/2026-10-14-closure-matrix-blocked.md) | the-overhaul, the-catalogue, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-installed-lint-setup](../reasoning/2026-10-14-closure-installed-lint-setup.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-install-guide](../reasoning/2026-10-14-closure-install-guide.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-health-workflow](../reasoning/2026-10-14-closure-health-workflow.md) | the-overhaul, testing-strategy, distribution-and-release | — | — |
@@ -57,24 +66,24 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-14 | superseded | [2026-10-14-closure-e2e-provisional-final](../reasoning/2026-10-14-closure-e2e-provisional-final.md) | distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-e2e-mcp-setup-wired](../reasoning/2026-10-14-closure-e2e-mcp-setup-wired.md) | distribution-and-release, the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-e2e-local-blocked](../reasoning/2026-10-14-closure-e2e-local-blocked.md) | the-overhaul, distribution-and-release | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-e2e-faults-red](../reasoning/2026-10-14-closure-e2e-faults-red.md) | distribution-and-release, the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-e2e-faults-red](../reasoning/2026-10-14-closure-e2e-faults-red.md) | distribution-and-release, the-overhaul | — | — |
 | 2026-10-14 | superseded → 2026-10-14-closure-e2e-faults-red | [2026-10-14-closure-e2e-breakage-unproven](../reasoning/2026-10-14-closure-e2e-breakage-unproven.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-detection](../reasoning/2026-10-14-closure-detection.md) | the-overhaul, the-catalogue, onboarding-flow | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-dependency-audit-red](../reasoning/2026-10-14-closure-dependency-audit-red.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-dependency-audit-green](../reasoning/2026-10-14-closure-dependency-audit-green.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-corpus-parity](../reasoning/2026-10-14-closure-corpus-parity.md) | the-overhaul, install-manifest-removal | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-corpus-parity-attempt](../reasoning/2026-10-14-closure-corpus-parity-attempt.md) | the-overhaul | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-coherence-sweep-blocked](../reasoning/2026-10-14-closure-coherence-sweep-blocked.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-corpus-parity-attempt](../reasoning/2026-10-14-closure-corpus-parity-attempt.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-coherence-sweep-blocked](../reasoning/2026-10-14-closure-coherence-sweep-blocked.md) | the-overhaul, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-coherence-green](../reasoning/2026-10-14-closure-coherence-green.md) | the-overhaul, catalogue-contract, distribution-and-release | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-coherence-gate-red](../reasoning/2026-10-14-closure-coherence-gate-red.md) | the-overhaul, testing-strategy | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-coherence-entrypoint-blocked](../reasoning/2026-10-14-closure-coherence-entrypoint-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-coherence-gate-red](../reasoning/2026-10-14-closure-coherence-gate-red.md) | the-overhaul, testing-strategy | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-coherence-entrypoint-blocked](../reasoning/2026-10-14-closure-coherence-entrypoint-blocked.md) | the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-code-review](../reasoning/2026-10-14-closure-code-review.md) | the-overhaul, distribution-and-release | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-changelog-eligibility](../reasoning/2026-10-14-closure-changelog-eligibility.md) | the-overhaul, distribution-and-release | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-catalogue-guidance-proof-blocked](../reasoning/2026-10-14-closure-catalogue-guidance-proof-blocked.md) | the-overhaul | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-catalogue-guidance-proof-blocked](../reasoning/2026-10-14-closure-catalogue-guidance-proof-blocked.md) | the-overhaul | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-catalogue-candidates](../reasoning/2026-10-14-closure-catalogue-candidates.md) | the-overhaul, the-catalogue, authored-service-gate | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-candidate-advisories](../reasoning/2026-10-14-closure-candidate-advisories.md) | the-overhaul, catalogue-contract | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-authorship-proof](../reasoning/2026-10-14-closure-authorship-proof.md) | the-overhaul, authored-service-gate, testing-strategy | — | — |
-| 2026-10-14 | current | [2026-10-14-closure-authorship-proof-progress](../reasoning/2026-10-14-closure-authorship-proof-progress.md) | the-overhaul, authored-service-gate, testing-strategy | — | — |
+| 2026-10-14 | superseded | [2026-10-14-closure-authorship-proof-progress](../reasoning/2026-10-14-closure-authorship-proof-progress.md) | the-overhaul, authored-service-gate, testing-strategy | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-authorship-gate](../reasoning/2026-10-14-closure-authorship-gate.md) | the-overhaul, authored-service-gate, the-catalogue | — | — |
 | 2026-10-14 | current | [2026-10-14-closure-authorship-complete](../reasoning/2026-10-14-closure-authorship-complete.md) | the-overhaul, the-catalogue, authored-service-gate, testing-strategy | — | — |
 | 2026-10-13 | current | [2026-10-13-standards-shipped-checks](../reasoning/2026-10-13-standards-shipped-checks.md) | onboarding-flow, install-manifest-removal, testing-strategy, agent-working-conventions | — | interdependency |
@@ -101,7 +110,6 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-13 | current | [2026-10-13-close-everything-review-owner-merges](../reasoning/2026-10-13-close-everything-review-owner-merges.md) | the-overhaul | — | review, decision, catalogue-compatibility |
 | 2026-10-13 | current | [2026-10-13-close-everything-review-owner-fetch](../reasoning/2026-10-13-close-everything-review-owner-fetch.md) | the-overhaul | — | review, decision, third-party-skills |
 | 2026-10-13 | current | [2026-10-13-close-everything-review-owner-corpus-root](../reasoning/2026-10-13-close-everything-review-owner-corpus-root.md) | the-overhaul | — | review, decision, corpus |
-| 2026-10-13 | historical | [2026-10-13-close-everything-resume-transcript](../reasoning/2026-10-13-close-everything-resume-transcript.md) | the-overhaul | — | — |
 | 2026-10-13 | current | [2026-10-13-close-everything-reality-audit](../reasoning/2026-10-13-close-everything-reality-audit.md) | the-overhaul, agent-working-conventions | — | audit, tracker-sync |
 | 2026-10-13 | current | [2026-10-13-close-everything-plan-v2](../reasoning/2026-10-13-close-everything-plan-v2.md) | the-overhaul, agent-working-conventions | — | plan, self-review, handoff |
 | 2026-10-13 | current | [2026-10-13-close-everything-plan-review](../reasoning/2026-10-13-close-everything-plan-review.md) | the-overhaul | — | review, plan-amendment, pending-owner-input |
@@ -200,123 +208,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue2-bytebinding](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md) | onboarding-flow, user-presence-approvals, trust-and-failure-boundaries | — | trap |
 | 2026-09-01 | historical | [2026-09-01-path-b-hardening-issue1-approval](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md) | user-presence-approvals, trust-and-failure-boundaries | — | trap, interdependency |
 | 2026-09-01 | historical | [2026-09-01-path-b-hardening-binding-validation](../reasoning/2026-09-01-path-b-hardening-binding-validation.md) | onboarding-flow, trust-and-failure-boundaries | — | trap |
-| 2026-08-31 | historical | [2026-08-31-routing-md-adaptation-not-transform](../reasoning/2026-08-31-routing-md-adaptation-not-transform.md) | onboarding-flow, what-rig-is | — | interdependency |
-| 2026-08-31 | historical | [2026-08-31-routing-hygiene-traceability-fix](../reasoning/2026-08-31-routing-hygiene-traceability-fix.md) | testing-strategy, onboarding-flow | — | — |
-| 2026-08-31 | historical | [2026-08-31-routing-hygiene-oracle](../reasoning/2026-08-31-routing-hygiene-oracle.md) | onboarding-flow, testing-strategy | — | — |
-| 2026-08-31 | superseded | [2026-08-31-routing-hygiene-implementation](../reasoning/2026-08-31-routing-hygiene-implementation.md) | onboarding-flow, testing-strategy | — | — |
-| 2026-08-31 | historical | [2026-08-31-routing-hygiene-design](../reasoning/2026-08-31-routing-hygiene-design.md) | onboarding-flow, testing-strategy | — | interdependency |
-| 2026-08-31 | historical → 2026-08-31-routing-hygiene-implementation | [2026-08-31-routing-hygiene-close-out](../reasoning/2026-08-31-routing-hygiene-close-out.md) | onboarding-flow, testing-strategy | — | — |
-| 2026-08-31 | superseded | [2026-08-31-rig-154-fresh-checkout-npm-test-design](../reasoning/2026-08-31-rig-154-fresh-checkout-npm-test-design.md) | testing-strategy | — | interdependency, trap |
-| 2026-08-31 | historical → 2026-08-31-rig-154-fresh-checkout-npm-test-design | [2026-08-31-rig-154-close-out](../reasoning/2026-08-31-rig-154-close-out.md) | testing-strategy | — | interdependency, trap |
-| 2026-08-31 | historical | [2026-08-31-rig-153-instrument-spec](../reasoning/2026-08-31-rig-153-instrument-spec.md) | testing-strategy, onboarding-flow, what-rig-is | — | — |
-| 2026-08-31 | historical | [2026-08-31-rig-153-close-option-b-deferred](../reasoning/2026-08-31-rig-153-close-option-b-deferred.md) | testing-strategy, onboarding-flow, what-rig-is | — | interdependency |
-| 2026-08-31 | historical | [2026-08-31-rig-148-gitignore-oracle](../reasoning/2026-08-31-rig-148-gitignore-oracle.md) | graft-mechanics, install-manifest-removal | — | oracle, rig-148 |
-| 2026-08-31 | historical | [2026-08-31-post-install-rig-onboarding-skill](../reasoning/2026-08-31-post-install-rig-onboarding-skill.md) | onboarding-flow | — | — |
-| 2026-08-31 | historical | [2026-08-31-path-b-technical-spec](../reasoning/2026-08-31-path-b-technical-spec.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-product-direction](../reasoning/2026-08-31-path-b-product-direction.md) | onboarding-flow, what-rig-is | — | interdependency |
-| 2026-08-31 | superseded | [2026-08-31-path-b-oracle-checkpoint](../reasoning/2026-08-31-path-b-oracle-checkpoint.md) | onboarding-flow, what-rig-is, testing-strategy | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-follow-up-decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | historical | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
-| 2026-08-31 | historical → 2026-08-31-path-b-oracle-checkpoint | [2026-08-31-path-b-acceptance-oracle](../reasoning/2026-08-31-path-b-acceptance-oracle.md) | onboarding-flow, what-rig-is, testing-strategy, gate1-signing, specification-gate, delivery-plan | — | interdependency, trap |
-| 2026-08-30 | historical | [2026-08-30-routing-sop](../reasoning/2026-08-30-routing-sop.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
-| 2026-08-30 | historical | [2026-08-30-path-a-bug-investigation](../reasoning/2026-08-30-path-a-bug-investigation.md) | onboarding-flow, graft-mechanics | — | trap, interdependency |
-| 2026-08-30 | historical | [2026-08-30-office-hours-path-a-path-b-scoping](../reasoning/2026-08-30-office-hours-path-a-path-b-scoping.md) | onboarding-flow, distribution-and-release, what-rig-is | — | trap, interdependency |
-| 2026-08-30 | historical → wiki/status.md | [2026-08-30-generated-wiki-summary-design](../reasoning/2026-08-30-generated-wiki-summary-design.md) | agent-working-conventions | — | interdependency |
-| 2026-08-30 | historical | [2026-08-30-development-process-handoff](../reasoning/2026-08-30-development-process-handoff.md) | gate1-signing, agent-working-conventions, testing-strategy | — | interdependency |
-| 2026-08-30 | historical | [2026-08-30-adaptation-eval-claude-task-master](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md) | what-rig-is, onboarding-flow, the-catalogue | GA-36 | interdependency, trap |
-| 2026-08-29 | historical | [2026-08-29-v5.0.0-tag](../reasoning/2026-08-29-v5.0.0-tag.md) | distribution-and-release, delivery-plan, review-receipts | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig144-execution-policy-design](../reasoning/2026-08-29-rig144-execution-policy-design.md) | policy-model, trust-and-failure-boundaries | AD-39, GA-38 | — |
-| 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-sign-off](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md) | trust-and-failure-boundaries | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig144-capability-policy-grilling](../reasoning/2026-08-29-rig144-capability-policy-grilling.md) | — | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-symlink-escape-and-checks-realpath-containment](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md) | trust-and-failure-boundaries | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-fresh-review-v2-handoff](../reasoning/2026-08-29-rig120-fresh-review-v2-handoff.md) | trust-and-failure-boundaries, host-and-ci-coverage, review-receipts | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-fresh-review-fails-shipping-path-bypass](../reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass.md) | trust-and-failure-boundaries | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-force-rereview-fail](../reasoning/2026-08-29-rig120-force-rereview-fail.md) | trust-and-failure-boundaries, host-and-ci-coverage | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-close-out-handoff](../reasoning/2026-08-29-rig120-close-out-handoff.md) | — | — | — |
-| 2026-08-29 | historical | [2026-08-29-rig120-capability-policy-close-out](../reasoning/2026-08-29-rig120-capability-policy-close-out.md) | policy-model, trust-and-failure-boundaries, host-and-ci-coverage | AD-39, GA-38 | — |
-| 2026-08-28 | historical | [2026-08-28-runReadOnly-memory-ceiling-unavailable-clean](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md) | trust-and-failure-boundaries | — | — |
-| 2026-08-28 | historical | [2026-08-28-runGrade-network-isolation-grilling](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md) | trust-and-failure-boundaries, testing-strategy | — | — |
-| 2026-08-28 | historical | [2026-08-28-rig137-option-a-scope](../reasoning/2026-08-28-rig137-option-a-scope.md) | trust-and-failure-boundaries | — | — |
-| 2026-08-28 | historical | [2026-08-28-rig120-safety-followup](../reasoning/2026-08-28-rig120-safety-followup.md) | install-manifest-removal, trust-and-failure-boundaries, user-global-writes, host-and-ci-coverage | — | — |
-| 2026-08-28 | historical | [2026-08-28-linux-network-isolation-ci](../reasoning/2026-08-28-linux-network-isolation-ci.md) | trust-and-failure-boundaries, host-and-ci-coverage | — | — |
-| 2026-08-28 | historical | [2026-08-28-editable-journal-is-not-ownership-proof](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md) | install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage | D11 | — |
-| 2026-08-28 | historical | [2026-08-28-ci-realpath-is-the-mutation-object](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md) | install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage | D11 | — |
-| 2026-08-28 | historical | [2026-08-28-ci-path-identity-is-the-mutation-object](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md) | install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage | D11 | — |
-| 2026-08-28 | historical | [2026-08-28-ci-managed-line-is-not-ownership-proof](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md) | install-manifest-removal, trust-and-failure-boundaries, host-and-ci-coverage | D11 | — |
-| 2026-08-27 | historical | [2026-08-27-wiki-code-sync-at-lf-24](../reasoning/2026-08-27-wiki-code-sync-at-lf-24.md) | trust-and-failure-boundaries, gate1-signing, delivery-plan, testing-strategy | none | — |
-| 2026-08-27 | historical | [2026-08-27-rig138-139-140-shell-trust-fix](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md) | trust-and-failure-boundaries, one-use-approvals, testing-strategy | — | — |
-| 2026-08-27 | historical | [2026-08-27-guarantee-sharding-mistake](../reasoning/2026-08-27-guarantee-sharding-mistake.md) | trust-and-failure-boundaries, one-use-approvals, testing-strategy | — | — |
-| 2026-08-27 | historical | [2026-08-27-at-lf-22-monkey-patch](../reasoning/2026-08-27-at-lf-22-monkey-patch.md) | — | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig135-scope-expansion](../reasoning/2026-08-26-rig135-scope-expansion.md) | rig-135-subprocess-cleanup | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig125-130-132-133-reinvestigation](../reasoning/2026-08-26-rig125-130-132-133-reinvestigation.md) | agent-working-conventions | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig125-130-132-133-committed-evidence-reevaluation](../reasoning/2026-08-26-rig125-130-132-133-committed-evidence-reevaluation.md) | agent-working-conventions, testing-strategy, review-receipts | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig124-timeout-duration-investigation](../reasoning/2026-08-26-rig124-timeout-duration-investigation.md) | review-receipts | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig124-cap-lost-update](../reasoning/2026-08-26-rig124-cap-lost-update.md) | review-receipts | — | — |
-| 2026-08-26 | historical | [2026-08-26-rig115-shell-trust-guarantees](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md) | trust-and-failure-boundaries, gate1-signing | GA-37, D28 | — |
-| 2026-08-26 | historical | [2026-08-26-review-round-code-level-findings](../reasoning/2026-08-26-review-round-code-level-findings.md) | enforcement-and-git-dispatch-wiring, host-and-ci-coverage, testing-strategy, distribution-and-release | — | — |
-| 2026-08-25 | historical | [2026-08-25-token-burn-investigation](../reasoning/2026-08-25-token-burn-investigation.md) | agent-working-conventions | — | — |
-| 2026-08-25 | historical | [2026-08-25-rig124-implementation](../reasoning/2026-08-25-rig124-implementation.md) | review-receipts, agent-working-conventions | RIG-124 | — |
-| 2026-08-25 | historical | [2026-08-25-prev5-gate-runbook-and-classification](../reasoning/2026-08-25-prev5-gate-runbook-and-classification.md) | distribution-and-release, host-and-ci-coverage, onboarding-flow, review-receipts, testing-strategy | owner approved RIG-134 Option A (classify all, fix observable, defer debt) | — |
-| 2026-08-24 | historical | [2026-08-24-ticket-burndown](../reasoning/2026-08-24-ticket-burndown.md) | — | — | — |
-| 2026-08-24 | historical | [2026-08-24-subagent-mode-propagation-disposition](../reasoning/2026-08-24-subagent-mode-propagation-disposition.md) | host-and-ci-coverage | — | — |
-| 2026-08-24 | historical | [2026-08-24-subagent-disposition-corrections](../reasoning/2026-08-24-subagent-disposition-corrections.md) | host-and-ci-coverage | — | — |
-| 2026-08-24 | historical | [2026-08-24-rig-104-mcp-unification](../reasoning/2026-08-24-rig-104-mcp-unification.md) | host-and-ci-coverage | — | — |
-| 2026-08-24 | historical | [2026-08-24-rig-101-host-expansion-openclaw-conflict](../reasoning/2026-08-24-rig-101-host-expansion-openclaw-conflict.md) | — | — | — |
-| 2026-08-24 | historical | [2026-08-24-process-doctrine-and-one-lock](../reasoning/2026-08-24-process-doctrine-and-one-lock.md) | the-two-gates, specification-gate, catalogue-contract, testing-strategy, graft-mechanics | D25, D26, D27 | — |
-| 2026-08-24 | historical | [2026-08-24-openclaw-global-mcp-opt-in-request](../reasoning/2026-08-24-openclaw-global-mcp-opt-in-request.md) | user-global-writes, host-and-ci-coverage | — | — |
-| 2026-08-24 | historical | [2026-08-24-long-task-checkpointing](../reasoning/2026-08-24-long-task-checkpointing.md) | agent-working-conventions | — | — |
-| 2026-08-24 | historical | [2026-08-24-grilling-five-open-decisions](../reasoning/2026-08-24-grilling-five-open-decisions.md) | catalogue-contract, authored-service-gate, lint-format-roadmap, distribution-and-release, the-mvp-roadmap | (pending owner ruling — D25+ to be assigned on sign-off) | — |
-| 2026-08-23 | historical | [2026-08-23-triage-disclosure-and-pr-review](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md) | drift-and-secret-controls, review-receipts | AD-35, AD-36 | — |
-| 2026-08-23 | historical | [2026-08-23-production-release-blockers](../reasoning/2026-08-23-production-release-blockers.md) | install-manifest-removal, distribution-and-release, the-catalogue, authored-service-gate, host-and-ci-coverage, review-receipts | — | — |
-| 2026-08-23 | historical | [2026-08-23-lean-install-protocol](../reasoning/2026-08-23-lean-install-protocol.md) | distribution-and-release, the-catalogue, install-manifest-removal | AD-37 | — |
-| 2026-08-23 | historical | [2026-08-23-dsh-routes-to-models-not-hosts](../reasoning/2026-08-23-dsh-routes-to-models-not-hosts.md) | what-rig-is | — | — |
-| 2026-08-23 | historical | [2026-08-23-dsh-envy-and-the-audience-fork](../reasoning/2026-08-23-dsh-envy-and-the-audience-fork.md) | what-rig-is | — | — |
-| 2026-08-23 | historical | [2026-08-23-dsh-delivery-medium-not-moat](../reasoning/2026-08-23-dsh-delivery-medium-not-moat.md) | what-rig-is | GA-36 | — |
-| 2026-08-23 | historical | [2026-08-23-beta-safety-posture](../reasoning/2026-08-23-beta-safety-posture.md) | what-rig-is, the-catalogue, distribution-and-release | — | — |
-| 2026-08-22 | historical | [2026-08-22-mvp-release-review](../reasoning/2026-08-22-mvp-release-review.md) | distribution-and-release, the-catalogue, install-manifest-removal, host-and-ci-coverage, testing-strategy, delivery-plan | — | — |
-| 2026-08-22 | historical | [2026-08-22-gate2-v0.12-d24-retrace](../reasoning/2026-08-22-gate2-v0.12-d24-retrace.md) | specification-gate, delivery-plan, onboarding-flow, distribution-and-release, authored-service-gate, the-catalogue | AD-13, AD-18, AD-24, AD-28, AD-31 | — |
-| 2026-08-21 | historical | [2026-08-21-one-gate-streamlining-intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md) | the-two-gates, what-rig-is | — | — |
-| 2026-08-21 | historical | [2026-08-21-one-gate-escape-hatch-resolved](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md) | the-two-gates | — | — |
-| 2026-08-21 | historical | [2026-08-21-mvp-agent-discretion-build](../reasoning/2026-08-21-mvp-agent-discretion-build.md) | the-catalogue, authored-service-gate, delivery-plan, onboarding-flow, distribution-and-release | D24 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-support-claim](../reasoning/2026-08-21-lint-format-support-claim.md) | services-and-reports, the-catalogue | GA-35 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-read-only-guarantee](../reasoning/2026-08-21-lint-format-read-only-guarantee.md) | trust-and-failure-boundaries, services-and-reports | GA-27 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-output-privacy](../reasoning/2026-08-21-lint-format-output-privacy.md) | services-and-reports, drift-and-secret-controls | GA-32 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-lifecycle](../reasoning/2026-08-21-lint-format-lifecycle.md) | install-manifest-removal, services-and-reports | GA-34 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-failure-semantics](../reasoning/2026-08-21-lint-format-failure-semantics.md) | services-and-reports, trust-and-failure-boundaries | GA-33 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-command-drift](../reasoning/2026-08-21-lint-format-command-drift.md) | trust-and-failure-boundaries, onboarding-flow | GA-31 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-ci-behavior](../reasoning/2026-08-21-lint-format-ci-behavior.md) | host-and-ci-coverage, services-and-reports | GA-30 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-check-scope](../reasoning/2026-08-21-lint-format-check-scope.md) | services-and-reports, onboarding-flow | GA-28 | — |
-| 2026-08-21 | historical | [2026-08-21-lint-format-autofix](../reasoning/2026-08-21-lint-format-autofix.md) | trust-and-failure-boundaries, services-and-reports | GA-29 | — |
-| 2026-08-21 | historical | [2026-08-21-gate2-v0.9-at-shape-6-retrace](../reasoning/2026-08-21-gate2-v0.9-at-shape-6-retrace.md) | authored-service-gate, specification-gate | D23 | — |
-| 2026-08-21 | historical | [2026-08-21-gate2-v0.7-round4-corrections](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md) | catalogue-contract, host-and-ci-coverage | AD-32 | — |
-| 2026-08-21 | historical | [2026-08-21-gate2-v0.11-carried-review-corrections](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md) | services-and-reports, sanitation-and-remediation, policy-signer-recovery | AD-8, AD-30, AD-32 | — |
-| 2026-08-21 | historical | [2026-08-21-gate2-v0.10-round6-corrections](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md) | authored-service-gate, policy-signer-recovery, review-receipts, specification-gate | AD-24, AD-30, AD-31 | — |
-| 2026-08-21 | historical | [2026-08-21-gate2-lint-format-retrace](../reasoning/2026-08-21-gate2-lint-format-retrace.md) | the-catalogue, catalogue-contract, delivery-plan, host-and-ci-coverage, policy-signer-recovery, drift-and-secret-controls | AD-32, AD-33, AD-34, AD-26, AD-30 | — |
-| 2026-08-21 | historical | [2026-08-21-evidence-only-lint-format-ci](../reasoning/2026-08-21-evidence-only-lint-format-ci.md) | host-and-ci-coverage, testing-strategy | D22 | — |
 | 2026-08-21 | historical | [2026-08-21-d24-owner-approval](../reasoning/2026-08-21-d24-owner-approval.md) | the-two-gates, authored-service-gate, delivery-plan, distribution-and-release, gate1-signing | D24 | — |
-| 2026-08-21 | historical | [2026-08-21-at-shape-6-one-release-exception](../reasoning/2026-08-21-at-shape-6-one-release-exception.md) | authored-service-gate, specification-gate | D23 | — |
-| 2026-08-20 | historical | [2026-08-20-vertical-lint-format-production](../reasoning/2026-08-20-vertical-lint-format-production.md) | the-catalogue, delivery-plan, authored-service-gate | GA-15, AD-31 | — |
-| 2026-08-20 | historical | [2026-08-20-universal-capability-model-leaf-first](../reasoning/2026-08-20-universal-capability-model-leaf-first.md) | what-rig-is, the-catalogue, catalogue-contract, authored-service-gate | GA-23 | — |
-| 2026-08-20 | historical | [2026-08-20-resolve-at-install-1](../reasoning/2026-08-20-resolve-at-install-1.md) | install-manifest-removal, delivery-plan, testing-strategy | AD-10 | — |
-| 2026-08-20 | historical | [2026-08-20-product-spirit-hybrid](../reasoning/2026-08-20-product-spirit-hybrid.md) | what-rig-is, the-catalogue, delivery-plan | GA-17 | — |
-| 2026-08-20 | historical | [2026-08-20-packaged-forward-deployed-harness](../reasoning/2026-08-20-packaged-forward-deployed-harness.md) | what-rig-is, the-catalogue, onboarding-flow, delivery-plan | — | — |
-| 2026-08-20 | historical | [2026-08-20-linting-harness-capability-model](../reasoning/2026-08-20-linting-harness-capability-model.md) | catalogue-contract, authored-service-gate | GA-22 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-whole-repository](../reasoning/2026-08-20-lint-format-whole-repository.md) | catalogue-contract, onboarding-flow | GA-20 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-untrusted-task-execution](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md) | onboarding-flow, trust-and-failure-boundaries | GA-26 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-semantic-discovery](../reasoning/2026-08-20-lint-format-semantic-discovery.md) | catalogue-contract, onboarding-flow | GA-21 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-production-grilling-audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md) | the-catalogue, delivery-plan, authored-service-gate | — | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-production-context](../reasoning/2026-08-20-lint-format-production-context.md) | the-catalogue, delivery-plan, authored-service-gate | — | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-plan-bound-execution](../reasoning/2026-08-20-lint-format-plan-bound-execution.md) | onboarding-flow, trust-and-failure-boundaries | GA-25 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-partial-coverage](../reasoning/2026-08-20-lint-format-partial-coverage.md) | catalogue-contract, onboarding-flow, services-and-reports | GA-24 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-open-ecosystem](../reasoning/2026-08-20-lint-format-open-ecosystem.md) | the-catalogue, catalogue-contract, onboarding-flow | GA-19 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-hybrid-plus](../reasoning/2026-08-20-lint-format-hybrid-plus.md) | the-catalogue, catalogue-contract, authored-service-gate | GA-16 | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-grilling-release-contract](../reasoning/2026-08-20-lint-format-grilling-release-contract.md) | the-catalogue, delivery-plan, authored-service-gate | — | — |
-| 2026-08-20 | historical | [2026-08-20-lint-format-confirmations](../reasoning/2026-08-20-lint-format-confirmations.md) | authored-service-gate, catalogue-contract | — | — |
-| 2026-08-20 | historical | [2026-08-20-hermes-first-class](../reasoning/2026-08-20-hermes-first-class.md) | host-and-ci-coverage | — | — |
-| 2026-08-20 | historical | [2026-08-20-first-attempt-retrospective](../reasoning/2026-08-20-first-attempt-retrospective.md) | delivery-plan, the-catalogue, what-rig-is | — | — |
-| 2026-08-20 | historical | [2026-08-20-communication-rule](../reasoning/2026-08-20-communication-rule.md) | — | — | — |
-| 2026-08-20 | historical | [2026-08-20-cleanup-survey-decisions](../reasoning/2026-08-20-cleanup-survey-decisions.md) | testing-strategy, delivery-plan, distribution-and-release, the-catalogue | — | — |
-| 2026-08-19 | historical | [2026-08-19-wiki-design](../reasoning/2026-08-19-wiki-design.md) | what-rig-is, the-two-gates, delivery-plan | — | — |
-| 2026-08-19 | historical | [2026-08-19-product-direction-review](../reasoning/2026-08-19-product-direction-review.md) | what-rig-is, the-catalogue, delivery-plan | — | — |
-| 2026-08-19 | historical | [2026-08-19-lint-format-vertical-slice](../reasoning/2026-08-19-lint-format-vertical-slice.md) | delivery-plan, the-catalogue | — | — |

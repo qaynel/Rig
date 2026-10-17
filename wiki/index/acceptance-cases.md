@@ -26,7 +26,7 @@ implemented and green — see [status](../status.md).
 `AT-PB-1`–`AT-PB-10`, taking the set to **83**. Their 55 direct checks are red
 before implementation (54 product failures plus one green catalogue-preservation
 guard). The oracle covering this amendment was signed 2026-09-01.
-[Path B acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+[Path B acceptance-oracle trace](../archive/2026-08/path-a-and-path-b-onboarding.md)
 
 **Amended 2026-09-03, onboarding hardening:** eight concrete adversarial cases
 and four recurrence-prevention cases, `AT-HD-1`–`AT-HD-12`, take the set to
