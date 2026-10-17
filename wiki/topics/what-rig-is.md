@@ -54,3 +54,12 @@ taxonomy is kept only in the archive for historical reference.
 - Technical design: [Gate 2](../gate2/technical-spec.md)
 - Current QA/prod checkpoint: [closeout](the-overhaul.md)
 - Archived product-origin discussion: [August product direction](../archive/2026-08/what-rig-is-product-direction-and-dsh.md)
+
+## Public documentation
+
+The [product overview](../../docs/vision.md), [architecture](../../docs/architecture.md)
+and [installation guide](../../docs/install.md) explain the approved adaptation,
+managed additions, and installed safety baseline. Rig source-release signing
+and deployment checks are separate from installed target controls.
+[Overhaul record](../reasoning/2026-10-17-documentation-overhaul.md) ·
+[Review corrections](../reasoning/2026-10-17-documentation-review-corrections.md)

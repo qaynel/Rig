@@ -61,12 +61,14 @@ function main() {
       process.exit(1);
     }
     const result = runBinding(serviceId, binding, args.scope, repoRoot);
+    for (const diagnostic of result.diagnostics || (result.diagnostic ? [result.diagnostic] : [])) {
+      process.stderr.write(renderDiagnostic(serviceId, diagnostic));
+    }
     if (result.error || result.status !== 0) {
       const message = result.reason || result.stderr || result.stdout || `${serviceId} failed`;
       process.stderr.write(message.endsWith('\n') ? message : `${message}\n`);
       process.exit(result.status || 1);
     }
-    if (result.diagnostic) process.stderr.write(renderDiagnostic(serviceId, result.diagnostic));
   }
 }
 

@@ -288,7 +288,7 @@ These are implementation constraints, not suggestions:
 | AD-34 | **Lint-format execution is plan-bound and read-only by construction** (§9.4). Selection authorizes nothing; only an exact-digest-approved plan authorizes its listed read-only commands, directories, and components, disclosed as untrusted code with `shell: false` not presented as safety. Diff-scoped by default in the component's working directory honoring its ignore rules; a read-only check that mutates the tree is detected, halted, evidenced, and never auto-restored; autofix is a separately approved mutating action re-verified by re-running the check; command drift halts before running; every abnormal ending is its own distinct non-passing state. |
 | AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
-| AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. Without it they do not invoke OpenClaw or require npm. With it they print the global-path/blast-radius disclosure, preflight `openclaw`, `node`, and `npm`, copy `rig-mcp/` into the target runtime, run `npm ci --omit=dev --ignore-scripts` against its committed lockfile, and then call `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
+| AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. The default install does not invoke OpenClaw or require npm. A separate explicit `SETUP_MCP=1` migration request may install the bundled runtime after a v5 upgrade when the selected host emits MCP configuration; fresh installs and non-emitting hosts skip this migration-only request, which does not write OpenClaw configuration. `--openclaw-mcp` prints the global-path/blast-radius disclosure, preflights `openclaw`, `node`, and `npm`, copies `rig-mcp/` into the target runtime, runs `npm ci --omit=dev --ignore-scripts` against its committed lockfile, then calls `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
 | AD-39 | The non-interactive check runner reads elevated execution authority only from a committed, target-owned `.rig/execution-policy.json`, never from environment or a prompt. It is a separate authority from generated `.rig/service-bindings.json`: bindings request `network: "required"`, `timeout_ms`, or `memory_limit_mb`; policy grants are keyed by the exact service ID and set the maximum permitted raised timeout/memory and network grant. Missing, malformed, uncommitted, or insufficient authority refuses that command. `network: "none"` needs no elevated grant and is isolated; an undeclared network state remains a visibly reported compatibility state. The initial schema is `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
 
 ### 2.1 Rejected approaches
@@ -1279,6 +1279,22 @@ interactive acknowledgement or a host-quality claim. The default path never
 requires OpenClaw or npm and never creates its global configuration.
 
 ### 7.6 Install manifest, resume, and removal
+
+**v5 migration and requested setup.** Migration transaction JSON guards the
+final path and creates `.rig-migration.json.tmp` exclusively at the repository
+root, outside the `.rig` parent it protects. A collision is a recoverable
+refusal before migration payload writes; an interrupted complete temp is
+adopted only when its bytes match the recomputed plan, and a post-publication
+same-inode temp link is removed during resume. After migration, the public
+default still avoids optional MCP dependencies. An explicit `SETUP_MCP=1`
+migration request installs the runtime without touching OpenClaw only when the
+upgraded host emits MCP configuration; non-emitting hosts and fresh installs
+skip this migration-only setup request. Explicit `--openclaw-mcp` installs the
+runtime and registers OpenClaw. Descriptor,
+runtime, and global-registration writes join the existing ownership ledger. A
+setup or registration failure is nonzero and retryable; a failed new OpenClaw
+registration clears its pending ledger entry only after confirming the server
+is absent or the exact attempted entry was removed.
 
 **One rule.** A mutation is recorded **at the time it is made**, not
 reconstructed afterwards. Removal that has to infer what install did will

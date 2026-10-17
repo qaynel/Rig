@@ -1,9 +1,10 @@
 # Rig
 
-Rig is a toolbox for coding agents. It provides a shared set of workflow
-instructions, a mandatory agent safety baseline, and an à-la-carte catalogue
-of engineering services. You choose the services and assurance grades that
-fit your repository; Rig does not install fixed capability tiers.
+Rig is a toolbox for coding agents. It provides shared workflow instructions,
+a mandatory agent-technology safety baseline, and an à-la-carte catalogue of
+engineering services. Your repository's agent inspects the project and proposes
+relevant services and grades; you review and approve the exact adaptation. Rig
+does not install fixed capability tiers.
 
 ## Install
 
@@ -39,20 +40,20 @@ Install Rig as a native Hermes plugin (`plugin.yaml`). It injects the active
 mode through `pre_llm_call`, registers `/rig` mode switching, and exposes the
 skills as `rig:<skill>`.
 
-## What happens next
+## After install
 
 In your agent, invoke `rig-onboarding`. It inspects the repository and prepares
-a proposed adaptation. Review and approve that proposal before it changes the
-repository. You can then select catalogue services and grades for the project.
+a proposed adaptation, including any relevant catalogue services and grades.
+Review and approve that proposal before it changes the repository; there is no
+separate service-picker step.
 
-Rig grafts the selected guidance onto the repository's existing agent setup.
-The result is a focused workflow toolkit, a safety baseline, and only the
-engineering services you selected. Installation does not run onboarding or
-apply an adaptation automatically.
+## Where to go next
 
-## Learn more
+**Installing Rig** — Step-by-step setup with commands and explanations. → [Installation guide](docs/install.md)
 
-- [Install and upgrade guide](docs/install.md)
-- [Operator guide](docs/advanced/operator.md)
-- [Product vision](docs/vision.md)
-- [Rig project knowledge](wiki/agent-primer.md)
+**Understanding the product** — What Rig does for your team and why. → [Product overview](docs/vision.md)
+
+**Understanding the architecture** — How Rig works under the hood, with diagrams. → [Architecture](docs/architecture.md)
+
+**Going deeper** — Per-host entrypoints, MCP config, advanced operator guide.
+→ [Host portability](docs/agent-portability.md) · [Operator guide](docs/advanced/operator.md) · [Project wiki](wiki/agent-primer.md)

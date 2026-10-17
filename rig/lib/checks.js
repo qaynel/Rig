@@ -225,10 +225,13 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
         reason: 'No service binding is installed',
         fix_context: ['coverage_gap'],
       });
-      return { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
+      const missingBinding = { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
+      return diagnostics ? { ...missingBinding, stderr: `${diagnostics}${missingBinding.stderr}` } : missingBinding;
     }
     const result = runBinding(serviceId, binding, scope, target);
-    if (result.diagnostic) diagnostics += renderDiagnostic(serviceId, result.diagnostic);
+    for (const diagnostic of result.diagnostics || (result.diagnostic ? [result.diagnostic] : [])) {
+      diagnostics += renderDiagnostic(serviceId, diagnostic);
+    }
     if (result.error || result.status !== 0) {
       failedEarlier = serviceId;
       const reason = result.reason || result.stderr || result.stdout || String(result.error || 'non-zero exit');

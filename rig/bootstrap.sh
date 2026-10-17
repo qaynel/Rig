@@ -94,7 +94,9 @@ else
 fi
 
 HOSTS="$HOSTS" HOSTS_EXPLICIT="$HOSTS_EXPLICIT" ACTIVE_DELIVERY="$ACTIVE_DELIVERY" OPENCLAW_MCP="$OPENCLAW_MCP" SETUP_MCP="${SETUP_MCP:-0}" OPENCLAW_CONFIG_PATH="${OPENCLAW_PATH:-${OPENCLAW_CONFIG_PATH:-}}" RIG_RELEASE_TAG="${RIG_RELEASE_TAG:-}" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
-const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const { runPayload, journalWriter } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
 const { registerOpenClawMcp } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'openclaw-mcp'));
 const { setupMcp } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'mcp-dependencies'));
 const { MCP_HOSTS } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'mcp-hosts'));
@@ -102,11 +104,46 @@ const hosts = process.env.HOSTS_EXPLICIT === '1'
   ? process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean)
   : undefined;
 const { detectInstall, migrate } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'migrate'));
+const MCP_SETUP_PENDING = '.rig/mcp-setup-pending.json';
 let result;
 let openclaw = null;
+function finalizeMcp(writeFile, { mcpConfigured = true, setupRequested = true } = {}) {
+  if (setupRequested && process.env.SETUP_MCP === '1' && process.env.OPENCLAW_MCP !== '1' && mcpConfigured) {
+    writeFile(process.env.TARGET_ROOT, MCP_SETUP_PENDING, `${JSON.stringify({ version: 1 })}\n`);
+    try {
+      setupMcp(process.env.TARGET_ROOT, { writeFile });
+      writeFile.remove(process.env.TARGET_ROOT, MCP_SETUP_PENDING);
+    } catch (error) {
+      writeFile.finish();
+      throw error;
+    }
+  }
+  if (process.env.OPENCLAW_MCP === '1') {
+    openclaw = registerOpenClawMcp(process.env.TARGET_ROOT, { writeFile });
+  }
+}
 // An existing v5 install (or an interrupted migration) is upgraded through the
 // journaled, resumable migration, never overwritten in place.
 const existing = detectInstall(process.env.TARGET_ROOT);
+if (existing.kind === 'current' && fs.existsSync(require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING))) {
+  const writer = journalWriter(process.env.TARGET_ROOT);
+  const marker = writer.latest(MCP_SETUP_PENDING);
+  const markerBytes = fs.readFileSync(require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING));
+  const markerDigest = crypto.createHash('sha256').update(markerBytes).digest('hex');
+  if (marker?.state !== 'applied' || marker.digest !== markerDigest) {
+    console.error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
+    process.exit(1);
+  }
+  try {
+    setupMcp(process.env.TARGET_ROOT, { writeFile: writer });
+    writer.remove(process.env.TARGET_ROOT, MCP_SETUP_PENDING, markerDigest);
+    writer.finish();
+  } catch (error) {
+    writer.finish();
+    console.error(error.message);
+    process.exit(1);
+  }
+}
 if (existing.kind === 'v5' || existing.kind === 'resume') {
   const report = migrate(process.env.TARGET_ROOT, {
     ...(hosts ? { hosts } : {}),
@@ -123,6 +160,16 @@ if (existing.kind === 'v5' || existing.kind === 'resume') {
   for (const row of report.retained) console.log(`  retained: ${row.path} (${row.reason})`);
   console.log(`  onboarding state: ${report.onboarding_state.status}`);
   if (report.onboarding_state.status === 'invalidated') console.log('  your selections were preserved; re-run rig-onboarding to propose and approve them against the new bytes');
+  try {
+    const writer = journalWriter(process.env.TARGET_ROOT);
+    const mcpConfigured = report.hosts.some((id) => MCP_HOSTS[id]?.emission === 'emitted');
+    finalizeMcp(writer, { mcpConfigured });
+    writer.finish();
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  if (openclaw) console.log(`  openclaw: registered ${openclaw.name} in ${openclaw.path}`);
   process.exit(0);
 }
 try {
@@ -130,12 +177,10 @@ try {
     releaseTag: process.env.RIG_RELEASE_TAG || undefined,
     activeDelivery: process.env.ACTIVE_DELIVERY === '1',
     afterPayload: ({ writeFile, hosts: installedHosts }) => {
-      const mcpConfigured = process.env.OPENCLAW_MCP === '1'
-        || installedHosts.some(({ id }) => MCP_HOSTS[id]?.emission === 'emitted');
-      if (process.env.SETUP_MCP === '1' && mcpConfigured) setupMcp(process.env.TARGET_ROOT, { writeFile });
-      if (process.env.OPENCLAW_MCP === '1') {
-        openclaw = registerOpenClawMcp(process.env.TARGET_ROOT, { writeFile });
-      }
+      const mcpConfigured = installedHosts.some(({ id }) => MCP_HOSTS[id]?.emission === 'emitted');
+      // rig: fresh public installs keep npm opt-in; SETUP_MCP is the migration
+      // compatibility request, while global setup is explicitly --openclaw-mcp.
+      finalizeMcp(writeFile, { mcpConfigured, setupRequested: false });
     },
   });
 } catch (error) {

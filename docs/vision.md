@@ -1,52 +1,33 @@
-# Rig 6.0.0
+# What is Rig?
 
-Rig is a shared toolbox for people who use coding agents in existing software
-repositories. It gives an agent a common engineering workflow and lets the
-repository owner choose additional services for the work the project needs.
-Rig starts from the repository's current instructions and tools; it does not
-assume every project should look the same.
+Rig is a shared engineering toolbox that gives your coding agents a consistent, safe, and governable workflow. It installs from a central library of instructions into your existing repository and lets you choose exactly the services your project needs — nothing more.
 
-## What ships
+## The problem
 
-Rig's rules, skills, standards, onboarding instructions, and service catalogue
-have one canonical home in `rig/corpus/`. Install places that corpus and its
-active runtime in the repository. The project's own agent inspects the existing
-setup, proposes the smallest useful adaptation, and explains the selected
-services and their coverage limits. A human reviews and approves the exact
-proposal before Rig applies journaled changes. The agent then checks the
-result. Installation does not run onboarding or change repository-owned files
-by itself.
+Coding agents left to their own defaults are inconsistent: every developer gets a slightly different process, safety checks vary, and there is no audit trail. As teams scale agent use, governance becomes a manual burden. Rig solves this by giving every agent the same baseline and letting a human stay in control of what gets added.
 
-The 6.0.0 catalogue contains 115 completed service leaves across development,
-testing, product security, and infrastructure. A project selects services and
-assurance grades à la carte; there are no fixed capability packages. Services
-reuse available tools. If a tool, input, or applicable surface is missing,
-Rig reports a named gap rather than claiming the check passed.
+## How it works
 
-Third-party skills selected during onboarding are fetched from pinned upstream
-revisions. Rig verifies archive and file digests, keeps the required licence,
-applies pinned local patches, and records provenance. A missing or changed
-upstream resource remains an explicit gap. Agent-written projectors require
-human approval and a verifiable filesystem and network sandbox.
+1. **Install.** Run the installer once. Rig's central library lands under `.rig/`, with host entrypoints alongside it. User content is preserved; Rig adds managed `.gitignore` lines and, after onboarding approval, marked instruction sections.
+2. **Review the proposal.** Your coding agent (Claude, Copilot, Cursor, and others) runs `rig-onboarding`, inspects your project, and proposes the smallest useful set of changes, including relevant services and grades from the 115-service catalogue. You review and approve that exact adaptation.
+3. **Apply and check.** The agent applies the approved adaptation and records its state under `.rig/state.json`. Each selected service reports what it can verify and names missing tools or coverage gaps. Later changes to the selection go through an updated proposal.
 
-## Who it is for
+## What you get
 
-Rig is for teams that want their coding agents to follow a repeatable
-engineering process while preserving the repository's existing authorities.
-It is useful when a team needs to add a specific workflow guarantee, tool check,
-or service without replacing its current instructions or installing an
-unrequested bundle.
+- **Workflow consistency.** Every agent follows the same engineering process, regardless of who runs it or which AI model powers it.
+- **A mandatory safety baseline.** Rig includes default-on controls for sanitation, drift prevention, secret handling, network/tool policy, and git/CI floors. You can disable individual controls; Rig reports what did not run. Onboarding approval covers the proposed adaptation.
+- **À la carte services.** 115 catalogue entries across development, testing, security, and infrastructure — select only what applies to your project.
+- **Works with your setup.** Rig starts from your existing instructions and tools. It does not replace them or require you to restructure your repository.
 
-## What comes after this release
+Rig's own source releases also use an owner-signed acceptance oracle and deployment checks. Those release scripts and workflows are not installed into your repository and do not guarantee human approval of every later project change.
 
-The owner has deferred five never-started initiatives to a separate redesign:
-promoting more catalogue leaves beyond Policy assurance, deciding whether the
-wiki knowledge system should become a service family, adding memory to the
-review loop, changing how the acceptance oracle is authored, and re-baselining
-the adaptation score ([redesign backlog](../wiki/specs/redesign-backlog.md)).
-These are future decisions, not missing parts of 6.0.0.
-This release does not promise a per-host rollout or automatic installation of
-external scanners and cloud tools.
+## What Rig is not
 
-See the [install guide](install.md), [troubleshooting](troubleshooting.md), and
-[operator guide](advanced/operator.md) for the shipped workflow.
+- **Not a model or AI system.** Rig does not provide an AI. It works with the agent your team already uses.
+- **Not a fixed bundle.** Rig does not install capability packages. Every service is selected deliberately; nothing runs unrequested.
+- **Not a second infrastructure.** Rig reuses the tools already in your repository. Missing tools are reported as named gaps, not silently skipped.
+
+## Learn more
+
+- [Architecture](architecture.md) — how the pieces connect, with diagrams
+- [Installation guide](install.md) — step-by-step setup

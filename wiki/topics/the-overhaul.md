@@ -45,6 +45,32 @@ These are historical sources, not open decisions for the 6.0.0 closeout.
 
 ## Current-session evidence
 
+The [Review Received request](../reasoning/2026-10-17-review-received-request.md)
+started the final report-only review. Its
+[findings](../reasoning/2026-10-17-review-received-findings.md) withhold approval:
+migration can overwrite an outside file, upgrades skip MCP setup, eligibility
+omits macOS proof and successful named checks lose network warnings. The PR
+head also has failing wiki-index CI; local corrections remain uncommitted.
+The [delivery result](../reasoning/2026-10-17-review-received-delivery.md)
+records 39 focused passes and HTTP 403 on review/comment publication; no PR
+approval was submitted.
+The [acceptance handoff](../specs/close-everything/review-received-resolution.md)
+defines observable resolution checks and the final approval checklist for all
+four findings; its [owner request](../reasoning/2026-10-17-review-received-acceptance-handoff.md)
+does not mark any finding fixed.
+The [resolution progress trace](../reasoning/2026-10-17-review-received-resolution-progress.md)
+records red-green fixes for network diagnostic preservation and exact-SHA
+Linux/macOS eligibility; migration and upgrade finalization remain in flight.
+The [resolution findings trace](../reasoning/2026-10-17-review-received-resolution-findings.md)
+records focused red-green regressions for all four findings and the remaining
+exact-candidate and owner-controlled evidence.
+The [verification trace](../reasoning/2026-10-17-review-received-resolution-verification.md)
+records current focused-suite results, independent re-review, and remaining
+final-candidate and owner-only gates.
+The [full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
+records a green full local gate after fixing the fresh-install MCP regression;
+exact candidate and QA evidence remain outstanding.
+
 The [owner request](../reasoning/2026-10-17-qa-readiness-owner-request.md) resumes
 the approved closeout. Evidence: [inventory](../reasoning/2026-10-17-qa-readiness-inventory.md),
 [gate and compaction repairs](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md),
@@ -77,3 +103,34 @@ records the stale installed MCP lock and the correction to health coverage.
 
 The [latest checks checkpoint](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md)
 records a green advisory full gate, clean shipped dependencies and the docs handoff wait.
+
+The [final documentation review](../reasoning/2026-10-17-final-documentation-review.md)
+withholds merge approval pending factual documentation corrections and final-byte evidence.
+
+The [documentation overhaul](../reasoning/2026-10-17-documentation-overhaul.md)
+records the original audience-focused rewrite. The
+[review corrections](../reasoning/2026-10-17-documentation-review-corrections.md)
+address its nine factual and metadata findings. The completed local verification
+is recorded below; merge approval still needs exact-candidate delivery evidence.
+
+The [documentation verification checkpoint](../reasoning/2026-10-17-documentation-review-verification.md)
+records passing focused checks and the full-suite run in progress. Release
+requirements remain unchanged.
+
+The [suite-wait checkpoint](../reasoning/2026-10-17-documentation-review-waiting-for-suite.md)
+records the still-running catalogue and upstream verification at 11:41 UTC.
+
+The [verified-mirror checkpoint](../reasoning/2026-10-17-documentation-review-verified-mirror.md)
+records interruption of the direct-download test run and a full retry using
+rehashed pinned upstream bytes through the supported mirror path.
+
+The [completed documentation verification](../reasoning/2026-10-17-documentation-review-resolved.md)
+records all nine findings resolved and the full suite green: 1074 main passes,
+two skips, 15 secret tests, 15 Pi-extension tests and six MCP tests. The run uses
+the supported digest-verified pinned upstream mirror. Candidate freeze/commit,
+exact-SHA install evidence, the reserved final receipt and pushed-head checks
+remain before merge.
+
+The [late review resolution trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records the follow-up migration, MCP retry, and exact-SHA verification fixes,
+with final-byte and QA delivery evidence still pending.

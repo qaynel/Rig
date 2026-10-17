@@ -14,7 +14,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 
 const { runPayload, journalWriter } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
@@ -27,6 +27,7 @@ const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const V6_ONLY = ['.rig/onboarding/README.md', '.rig/onboarding/unpack.md'];
 const V6_ONLY_ACTIVE = [...V6_ONLY, '.rig/upstream/README.md', '.rig/upstream/gstack.json',
   '.rig/upstream/patches/135.1-cookie-import-browser.patch', '.rig/upstream/patches/135.2-browser-skill-commands.patch', '.rig/upstream/patches/135.3-xvfb.patch'];
+const MIGRATION_TMP_REL = '.rig-migration.json.tmp';
 
 function withTarget(fn) {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-migrate-'));
@@ -248,6 +249,45 @@ test('interruption at every step is recoverable: a rerun completes to the same r
   }
 });
 
+test('migration resumes a complete temporary record left by process interruption', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const crash = spawnSync(process.execPath, ['-e', [
+    "const fs = require('node:fs');",
+    "const { migrate } = require(process.argv[1]);",
+    "fs.linkSync = () => process.exit(73);",
+    "migrate(process.argv[2], { releaseTag: 'v5.0.0' });",
+  ].join('\n'), path.join(root, 'rig/lib/migrate.js'), target], { encoding: 'utf8' });
+  assert.equal(crash.status, 73, crash.stderr);
+  const tmp = path.join(target, MIGRATION_TMP_REL);
+  assert.ok(fs.existsSync(tmp), 'interruption leaves the fully written transaction record');
+  assert.equal(JSON.parse(fs.readFileSync(tmp, 'utf8')).version, 1);
+  const resumed = migrate(target, { releaseTag: 'v5.0.0' });
+  assert.equal(resumed.status, 'migrated');
+  assert.equal(fs.existsSync(tmp), false, 'resume removes the temporary hard link');
+  assert.equal(detectInstall(target).kind, 'current');
+}));
+
+test('migration resume cleans the temporary hard link left after publication', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const crash = spawnSync(process.execPath, ['-e', [
+    "const fs = require('node:fs');",
+    "const { migrate } = require(process.argv[1]);",
+    "const link = fs.linkSync;",
+    "fs.linkSync = (...args) => { link(...args); process.exit(74); };",
+    "migrate(process.argv[2], { releaseTag: 'v5.0.0' });",
+  ].join('\n'), path.join(root, 'rig/lib/migrate.js'), target], { encoding: 'utf8' });
+  assert.equal(crash.status, 74, crash.stderr);
+  const tmp = path.join(target, MIGRATION_TMP_REL);
+  assert.ok(fs.existsSync(path.join(target, MIGRATION_REL)));
+  assert.ok(fs.existsSync(tmp), 'the crash lands after final link publication');
+  const resumed = migrate(target, { releaseTag: 'v5.0.0' });
+  assert.equal(resumed.status, 'migrated');
+  assert.equal(fs.existsSync(tmp), false, 'resume removes only the same-inode published temp link');
+  assert.equal(detectInstall(target).kind, 'current');
+}));
+
 test('an edit made while a migration is interrupted is a conflict on resume, not an overwrite', () => withTarget((target) => {
   userRepo(target);
   installV5(target);
@@ -418,6 +458,293 @@ test('bootstrap.sh on a v5 repository runs the migration; on a conflict it exits
   assert.equal(detectInstall(target).kind, 'current');
 }));
 
+test('public v5 bootstrap upgrade finalizes MCP, retries setup, registers OpenClaw, and uninstalls owned additions', { timeout: 60000 }, () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-migrate-mcp-'));
+  const target = path.join(fixture, 'repository');
+  const bin = path.join(fixture, 'bin');
+  const home = path.join(fixture, 'home');
+  const config = path.join(home, '.openclaw/openclaw.json');
+  const failNpm = path.join(fixture, 'fail-npm');
+  const failOpenclaw = path.join(fixture, 'fail-openclaw');
+  const failOpenclawShow = path.join(fixture, 'fail-openclaw-show');
+  try {
+    fs.mkdirSync(target, { recursive: true });
+    fs.mkdirSync(bin);
+    userRepo(target);
+    installV5(target, { hosts: ['claude'], active: true });
+    fs.mkdirSync(path.dirname(config), { recursive: true });
+    fs.writeFileSync(config, JSON.stringify({ user: true, mcp: { servers: { keep: { command: 'keep' } } } }, null, 2) + '\n');
+    fs.writeFileSync(failNpm, 'fail once\n');
+    fs.writeFileSync(path.join(bin, 'npm'), [
+      '#!/bin/sh',
+      '[ ! -f "$RIG_TEST_FAIL_NPM" ] || { echo "simulated npm unavailable" >&2; exit 9; }',
+      '[ "$RIG_TEST_REAL_NPM" != 1 ] || exec "$RIG_REAL_NPM" "$@"',
+      'dest=$PWD',
+      'while [ "$#" -gt 0 ]; do if [ "$1" = "--prefix" ]; then dest=$2; shift 2; else shift; fi; done',
+      'mkdir -p "$dest"',
+      'cp -R "$RIG_TEST_MCP_NODE_MODULES" "$dest/node_modules"',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'openclaw'), [
+      '#!/usr/bin/env node',
+      "const fs = require('node:fs');",
+      "const path = require('node:path');",
+      'const [, , group, action, name, value] = process.argv;',
+      "if (group !== 'mcp' || !['show', 'set', 'unset'].includes(action)) process.exit(2);",
+      "const file = process.env.OPENCLAW_CONFIG_PATH;",
+      "if (action === 'set' && process.env.RIG_TEST_FAIL_OPENCLAW && fs.existsSync(process.env.RIG_TEST_FAIL_OPENCLAW)) { fs.rmSync(process.env.RIG_TEST_FAIL_OPENCLAW); fs.writeFileSync(process.env.RIG_TEST_FAIL_OPENCLAW_SHOW, '2'); process.stderr.write('simulated OpenClaw registration failure\\n'); process.exit(8); }",
+      "if (action === 'show' && fs.existsSync(process.env.RIG_TEST_FAIL_OPENCLAW_SHOW)) { const n = Number(fs.readFileSync(process.env.RIG_TEST_FAIL_OPENCLAW_SHOW, 'utf8')); if (n <= 1) fs.rmSync(process.env.RIG_TEST_FAIL_OPENCLAW_SHOW); else fs.writeFileSync(process.env.RIG_TEST_FAIL_OPENCLAW_SHOW, String(n - 1)); process.stderr.write('simulated OpenClaw show failure\\n'); process.exit(9); }",
+      "const config = JSON.parse(fs.readFileSync(file, 'utf8'));",
+      'config.mcp ??= {}; config.mcp.servers ??= {};',
+      "if (action === 'show' && name === '--json') { process.stdout.write(JSON.stringify(config.mcp.servers)); process.exit(0); }",
+      "if (action === 'set') config.mcp.servers[name] = JSON.parse(value);",
+      "else if (action === 'unset') delete config.mcp.servers[name];",
+      "fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\\n');",
+      '',
+    ].join('\n'), { mode: 0o755 });
+    const env = {
+      ...process.env,
+      HOME: home,
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      OPENCLAW_CONFIG_PATH: config,
+      RIG_TEST_FAIL_NPM: failNpm,
+      RIG_TEST_FAIL_OPENCLAW: failOpenclaw,
+      RIG_TEST_FAIL_OPENCLAW_SHOW: failOpenclawShow,
+      SETUP_MCP: '1',
+    };
+    if (process.env.RIG_TEST_REAL_NPM === '1') {
+      env.RIG_TEST_REAL_NPM = '1';
+      env.RIG_REAL_NPM = execFileSync('which', ['npm'], { encoding: 'utf8' }).trim();
+      env.npm_config_cache = path.join(fixture, 'npm-cache');
+    } else {
+      env.RIG_TEST_MCP_NODE_MODULES = path.join(root, 'rig-mcp/node_modules');
+    }
+    const bootstrap = (...args) => spawnSync('sh', [path.join(root, 'rig/bootstrap.sh'), '--target', target, ...args], { encoding: 'utf8', env });
+    const failed = bootstrap();
+    assert.notEqual(failed.status, 0, 'dependency failure must fail the public upgrade command');
+    assert.match(failed.stderr, /npm ci failed for MCP runtime.*simulated npm unavailable/s);
+    assert.equal(detectInstall(target).kind, 'current', 'the migration can finish before retryable finalization');
+    assert.equal(fs.existsSync(path.join(target, '.rig/mcp-server.json')), false);
+    const setupMarker = path.join(target, '.rig/mcp-setup-pending.json');
+    const ownedMarker = fs.readFileSync(setupMarker);
+    fs.writeFileSync(setupMarker, '{"version":2}\n');
+    const editedMarker = bootstrap();
+    assert.notEqual(editedMarker.status, 0);
+    assert.match(editedMarker.stderr, /refusing unowned or edited \.rig\/mcp-setup-pending\.json/);
+    assert.equal(fs.readFileSync(setupMarker, 'utf8'), '{"version":2}\n', 'edited marker bytes are preserved');
+    fs.writeFileSync(setupMarker, ownedMarker);
+
+    fs.rmSync(failNpm);
+    const setupOnly = bootstrap();
+    assert.equal(setupOnly.status, 0, setupOnly.stderr);
+    assert.ok(fs.existsSync(path.join(target, '.rig/mcp-server.json')));
+    assert.ok(fs.existsSync(path.join(target, '.rig/runtime/rig-mcp/node_modules/@modelcontextprotocol/sdk')));
+    const setupProbe = spawnSync(process.execPath, ['-e', [
+      "import fs from 'node:fs';",
+      "import { Client } from '@modelcontextprotocol/sdk/client/index.js';",
+      "import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';",
+      "const descriptor = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));",
+      "const c = new Client({ name: 'upgrade-setup-only-test', version: '1' });",
+      "await c.connect(new StdioClientTransport({ command: descriptor.command, args: descriptor.args, cwd: process.argv[2] }));",
+      "const r = await c.callTool({ name: 'rig_instructions', arguments: { mode: 'full' } });",
+      "if (!r.content?.[0]?.text) throw new Error('rig_instructions returned no text');",
+      'await c.close();',
+    ].join('\n'), path.join(target, '.rig/mcp-server.json'), target], { cwd: path.join(target, '.rig/runtime/rig-mcp'), encoding: 'utf8', env });
+    assert.equal(setupProbe.status, 0, setupProbe.stderr);
+    assert.equal(fs.readFileSync(config, 'utf8'), JSON.stringify({ user: true, mcp: { servers: { keep: { command: 'keep' } } } }, null, 2) + '\n');
+
+    fs.writeFileSync(failOpenclaw, 'fail once\n');
+    const registrationFailed = bootstrap('--openclaw-mcp');
+    assert.notEqual(registrationFailed.status, 0, 'registration failure must fail the public upgrade command');
+    assert.match(registrationFailed.stderr, /simulated OpenClaw registration failure/);
+    assert.deepEqual(JSON.parse(fs.readFileSync(config, 'utf8')).mcp.servers, { keep: { command: 'keep' } });
+    assert.equal(fs.existsSync(failOpenclawShow), false, 'the failed status probes were consumed');
+    const pendingLedger = JSON.parse(fs.readFileSync(path.join(target, '.rig/global-writes.json'), 'utf8'));
+    assert.equal(pendingLedger.entries.find((entry) => entry.kind === 'openclaw-mcp').state, 'pending');
+    fs.writeFileSync(failNpm, 'fail retry setup\n');
+    const setupRetryFailed = bootstrap('--openclaw-mcp');
+    assert.notEqual(setupRetryFailed.status, 0);
+    assert.match(setupRetryFailed.stderr, /npm ci failed for MCP runtime.*simulated npm unavailable/s);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(target, '.rig/global-writes.json'), 'utf8')).entries.find((entry) => entry.kind === 'openclaw-mcp').state, 'pending');
+    fs.rmSync(failNpm);
+    const upgraded = bootstrap('--openclaw-mcp');
+    assert.equal(upgraded.status, 0, upgraded.stderr);
+    assert.ok(fs.existsSync(path.join(target, '.rig/mcp-server.json')));
+    assert.ok(fs.existsSync(path.join(target, '.rig/runtime/rig-mcp/node_modules/@modelcontextprotocol/sdk')));
+    const manifest = fs.readFileSync(path.join(target, '.rig/install-manifest.jsonl'), 'utf8');
+    assert.match(manifest, /"path":"\.rig\/mcp-server\.json"/);
+    assert.match(manifest, /"path":"\.rig\/runtime\/rig-mcp\/node_modules\//);
+    const configAfter = JSON.parse(fs.readFileSync(config, 'utf8'));
+    assert.equal(configAfter.user, true);
+    assert.deepEqual(configAfter.mcp.servers.keep, { command: 'keep' });
+    const rigServers = Object.entries(configAfter.mcp.servers).filter(([name]) => name.startsWith('rig-'));
+    assert.equal(rigServers.length, 1);
+    assert.deepEqual(rigServers[0][1], {
+      command: 'node', args: [path.join(target, '.rig/runtime/rig-mcp/index.js')],
+    });
+
+    const probe = spawnSync(process.execPath, ['-e', [
+      "import fs from 'node:fs';",
+      "import { Client } from '@modelcontextprotocol/sdk/client/index.js';",
+      "import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';",
+      "const descriptor = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));",
+      "const c = new Client({ name: 'upgrade-test', version: '1' });",
+      "await c.connect(new StdioClientTransport({ command: descriptor.command, args: descriptor.args, cwd: process.argv[2] }));",
+      "const r = await c.callTool({ name: 'rig_instructions', arguments: { mode: 'full' } });",
+      "if (!r.content?.[0]?.text) throw new Error('rig_instructions returned no text');",
+      'await c.close();',
+    ].join('\n'), path.join(target, '.rig/mcp-server.json'), target], { cwd: path.join(target, '.rig/runtime/rig-mcp'), encoding: 'utf8', env });
+    assert.equal(probe.status, 0, probe.stderr);
+
+    const retried = bootstrap('--openclaw-mcp');
+    assert.equal(retried.status, 0, retried.stderr);
+    assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(config, 'utf8')).mcp.servers).filter((name) => name.startsWith('rig-')), [rigServers[0][0]]);
+    const previous = { PATH: process.env.PATH, HOME: process.env.HOME, OPENCLAW_CONFIG_PATH: process.env.OPENCLAW_CONFIG_PATH };
+    Object.assign(process.env, { PATH: env.PATH, HOME: env.HOME, OPENCLAW_CONFIG_PATH: env.OPENCLAW_CONFIG_PATH });
+    let removed;
+    try { removed = uninstall(target); }
+    finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key]; else process.env[key] = value;
+      }
+    }
+    assert.equal(removed.status, 'removed', removed.best_effort_details?.join('\n'));
+    const afterUninstall = JSON.parse(fs.readFileSync(config, 'utf8'));
+    assert.deepEqual(afterUninstall.mcp.servers, { keep: { command: 'keep' } });
+    assert.equal(fs.existsSync(path.join(target, '.rig/mcp-server.json')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/runtime/rig-mcp/node_modules')), false);
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test('migration skips setup-only MCP dependencies for a non-emitting host', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target, { hosts: ['generic'], active: true });
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-migrate-generic-'));
+  try {
+    const bin = path.join(fixture, 'bin');
+    const npmLog = path.join(fixture, 'npm.log');
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nprintf called >> "$RIG_TEST_NPM_LOG"\n', { mode: 0o755 });
+    const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, RIG_TEST_NPM_LOG: npmLog, SETUP_MCP: '1' };
+    const result = spawnSync('sh', [path.join(root, 'rig/bootstrap.sh'), '--target', target], { encoding: 'utf8', env });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.existsSync(npmLog), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/mcp-server.json')), false);
+  } finally { fs.rmSync(fixture, { recursive: true, force: true }); }
+}));
+
+test('public bootstrap refuses an unowned MCP retry marker before running npm', () => withTarget((target) => {
+  userRepo(target);
+  runPayload(target, ['claude']);
+  const marker = path.join(target, '.rig/mcp-setup-pending.json');
+  fs.writeFileSync(marker, '{"version":1}\n');
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-unowned-mcp-marker-'));
+  const npmLog = path.join(bin, 'npm.log');
+  fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nprintf called >> "$RIG_TEST_NPM_LOG"\nexit 0\n', { mode: 0o755 });
+  const result = spawnSync('sh', [path.join(root, 'rig/bootstrap.sh'), '--target', target, '--hosts', 'claude'], {
+    encoding: 'utf8',
+    env: { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, SETUP_MCP: '1', RIG_TEST_NPM_LOG: npmLog },
+  });
+  try {
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /refusing unowned or edited \.rig\/mcp-setup-pending\.json/);
+    assert.equal(fs.existsSync(npmLog), false, 'an unowned marker cannot trigger dependency setup');
+    assert.equal(fs.readFileSync(marker, 'utf8'), '{"version":1}\n');
+  } finally { fs.rmSync(bin, { recursive: true, force: true }); }
+}));
+
+test('public installer disables setup-only MCP on fresh install but preserves explicit v5 upgrade request', () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-install-mcp-opt-in-'));
+  try {
+    const staging = path.join(fixture, 'staging', 'Rig-v5.0.0');
+    const archive = path.join(fixture, 'rig-v5.0.0.tar.gz');
+    const bin = path.join(fixture, 'bin');
+    const target = path.join(fixture, 'repository');
+    const npmLog = path.join(fixture, 'npm.log');
+    fs.mkdirSync(staging, { recursive: true });
+    fs.mkdirSync(bin);
+    fs.mkdirSync(target);
+    fs.mkdirSync(path.join(target, '.claude'));
+    fs.writeFileSync(path.join(target, '.claude/CLAUDE.md'), '# Existing Claude instructions\n');
+    for (const rel of ['rig', '.agents', '.claude', 'skills']) {
+      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true });
+    }
+    fs.cpSync(path.join(root, 'rig-mcp'), path.join(staging, 'rig-mcp'), {
+      recursive: true,
+      filter(source) { return path.basename(source) !== 'node_modules'; },
+    });
+    const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(staging), path.basename(staging)], { encoding: 'utf8' });
+    assert.equal(packed.status, 0, packed.stderr);
+    fs.writeFileSync(path.join(bin, 'curl'), [
+      '#!/bin/sh',
+      'while [ "$#" -gt 0 ]; do if [ "$1" = "-o" ]; then cp "$RIG_TEST_ARCHIVE" "$2"; exit 0; fi; shift; done',
+      'exit 1',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), [
+      '#!/bin/sh',
+      'printf called >> "$RIG_TEST_NPM_LOG"',
+      '[ ! -f "$RIG_TEST_FAIL_NPM" ] || exit 9',
+      '[ "$RIG_TEST_REAL_NPM" != 1 ] || exec "$RIG_REAL_NPM" "$@"',
+      'dest=$PWD',
+      'while [ "$#" -gt 0 ]; do if [ "$1" = "--prefix" ]; then dest=$2; shift 2; else shift; fi; done',
+      'mkdir -p "$dest"',
+      'cp -R "$RIG_TEST_MCP_NODE_MODULES" "$dest/node_modules"',
+      '',
+    ].join('\n'), { mode: 0o755 });
+    const failNpm = path.join(fixture, 'fail-npm');
+    fs.writeFileSync(failNpm, 'fail once\n');
+    const env = {
+      ...process.env,
+      PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+      RIG_TEST_ARCHIVE: archive,
+      RIG_TEST_NPM_LOG: npmLog,
+      RIG_TEST_FAIL_NPM: failNpm,
+      RIG_TEST_MCP_NODE_MODULES: path.join(root, 'rig-mcp/node_modules'),
+      SETUP_MCP: '1',
+    };
+    if (process.env.RIG_TEST_REAL_NPM === '1') {
+      env.RIG_TEST_REAL_NPM = '1';
+      env.RIG_REAL_NPM = execFileSync('which', ['npm'], { encoding: 'utf8' }).trim();
+      env.npm_config_cache = path.join(fixture, 'npm-cache');
+    }
+    const installed = spawnSync('/bin/dash', [path.join(root, 'install.sh'), '--version', 'v5.0.0', '--target', target], { encoding: 'utf8', env });
+    assert.equal(installed.status, 0, installed.stderr);
+    assert.equal(fs.existsSync(npmLog), false, 'ordinary public install must not invoke npm');
+    assert.equal(fs.existsSync(path.join(target, '.rig/mcp-server.json')), false);
+
+    const upgradeTarget = path.join(fixture, 'v5-repository');
+    fs.mkdirSync(upgradeTarget);
+    userRepo(upgradeTarget);
+    installV5(upgradeTarget, { hosts: ['claude'], active: true });
+    const upgraded = spawnSync('/bin/dash', [path.join(root, 'install.sh'), '--version', 'v5.0.0', '--target', upgradeTarget], { encoding: 'utf8', env });
+    assert.notEqual(upgraded.status, 0, upgraded.stderr);
+    assert.match(upgraded.stderr, /npm ci failed for MCP runtime/);
+    assert.ok(fs.existsSync(path.join(upgradeTarget, '.rig/mcp-setup-pending.json')));
+    fs.rmSync(failNpm);
+    const retried = spawnSync('/bin/dash', [path.join(root, 'install.sh'), '--version', 'v5.0.0', '--target', upgradeTarget], { encoding: 'utf8', env });
+    assert.equal(retried.status, 0, retried.stderr);
+    assert.ok(fs.existsSync(path.join(upgradeTarget, '.rig/mcp-server.json')));
+    assert.equal(fs.existsSync(path.join(upgradeTarget, '.rig/mcp-setup-pending.json')), false);
+    const setupProbe = spawnSync(process.execPath, ['-e', [
+      "import fs from 'node:fs';",
+      "import { Client } from '@modelcontextprotocol/sdk/client/index.js';",
+      "import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';",
+      "const descriptor = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));",
+      "const c = new Client({ name: 'public-installer-upgrade-test', version: '1' });",
+      "await c.connect(new StdioClientTransport({ command: descriptor.command, args: descriptor.args, cwd: process.argv[2] }));",
+      "const r = await c.callTool({ name: 'rig_instructions', arguments: { mode: 'full' } });",
+      "if (!r.content?.[0]?.text) throw new Error('rig_instructions returned no text');",
+      'await c.close();',
+    ].join('\n'), path.join(upgradeTarget, '.rig/mcp-server.json'), upgradeTarget], {
+      cwd: path.join(upgradeTarget, '.rig/runtime/rig-mcp'), encoding: 'utf8', env,
+    });
+    assert.equal(setupProbe.status, 0, setupProbe.stderr);
+  } finally { fs.rmSync(fixture, { recursive: true, force: true }); }
+});
+
 test('the rig migrate command plans without writing (--dry-run), then migrates, and exits non-zero on refusal', () => withTarget((target) => {
   userRepo(target);
   installV5(target);
@@ -575,3 +902,208 @@ test('bookkeeping paths are contained too: a symlinked journal, backup dir or tr
     } finally { fs.rmSync(outside, { recursive: true, force: true }); }
   });
 });
+
+test('migration plan temp symlinks refuse without changing external, dangling, or internal referents', () => {
+  for (const kind of ['external', 'dangling', 'internal']) withTarget((target) => {
+    userRepo(target);
+    installV5(target);
+    const outside = kind === 'external' ? outsideDir() : null;
+    const tmp = path.join(target, MIGRATION_TMP_REL);
+    let referent;
+    try {
+      if (kind === 'external') {
+        referent = path.join(outside, 'sentinel');
+        fs.writeFileSync(referent, 'external sentinel bytes\n', { mode: 0o640 });
+        fs.symlinkSync(referent, tmp);
+      } else if (kind === 'dangling') {
+        referent = path.join(target, 'dangling-referent');
+        fs.symlinkSync(referent, tmp);
+      } else {
+        referent = path.join(target, 'user-file');
+        fs.writeFileSync(referent, 'internal sentinel bytes\n', { mode: 0o640 });
+        fs.symlinkSync(referent, tmp);
+      }
+      const before = inventory(target);
+      const externalBefore = outside && treeOf(outside);
+      const modeBefore = kind === 'external' ? fs.statSync(referent).mode & 0o777 : null;
+      const result = migrate(target, { releaseTag: 'v5.0.0' });
+      assert.equal(result.status, 'refused', JSON.stringify(result));
+      assert.equal(result.recoverable, true);
+      assert.deepEqual(inventory(target), before, `${kind}: migration did not write payload or replace the temp link`);
+      if (outside) {
+        assert.deepEqual(treeOf(outside), externalBefore, 'external sentinel inventory is unchanged');
+        assert.equal(fs.readFileSync(referent, 'utf8'), 'external sentinel bytes\n');
+        assert.equal(fs.statSync(referent).mode & 0o777, modeBefore);
+      }
+      if (kind === 'dangling') assert.equal(fs.existsSync(referent), false, 'dangling referent was not created');
+      if (kind === 'internal') assert.equal(fs.readFileSync(referent, 'utf8'), 'internal sentinel bytes\n');
+    } finally { if (outside) fs.rmSync(outside, { recursive: true, force: true }); }
+  });
+});
+
+test('a pre-existing regular migration temp file is preserved and refuses the migration', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const tmp = path.join(target, MIGRATION_TMP_REL);
+  fs.writeFileSync(tmp, 'unrelated temp bytes\n', { mode: 0o640 });
+  const before = inventory(target);
+  const modeBefore = fs.statSync(tmp).mode & 0o777;
+  const result = migrate(target, { releaseTag: 'v5.0.0' });
+  assert.equal(result.status, 'refused', JSON.stringify(result));
+  assert.deepEqual(inventory(target), before, 'no payload writes and collision file preserved');
+  assert.equal(fs.readFileSync(tmp, 'utf8'), 'unrelated temp bytes\n');
+  assert.equal(fs.statSync(tmp).mode & 0o777, modeBefore);
+}));
+
+test('migration temp creation is exclusive across a symlink substitution race', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const outside = outsideDir();
+  const sentinel = path.join(outside, 'sentinel');
+  const tmp = path.join(target, MIGRATION_TMP_REL);
+  fs.writeFileSync(sentinel, 'race sentinel bytes\n', { mode: 0o640 });
+  const before = inventory(target);
+  const outsideBefore = treeOf(outside);
+  const originalOpenSync = fs.openSync;
+  let substituted = false;
+  fs.openSync = function (file, flags, ...args) {
+    if (!substituted && String(file).endsWith('migration.json.tmp')) {
+      substituted = true;
+      fs.symlinkSync(sentinel, tmp);
+    }
+    return originalOpenSync.call(this, file, flags, ...args);
+  };
+  try {
+    const result = migrate(target, { releaseTag: 'v5.0.0' });
+    assert.equal(substituted, true, 'test inserted the link immediately before exclusive create');
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.deepEqual(inventory(target), { ...before, [MIGRATION_TMP_REL]: `link:${sentinel}` });
+    assert.deepEqual(treeOf(outside), outsideBefore);
+    assert.equal(fs.readFileSync(sentinel, 'utf8'), 'race sentinel bytes\n');
+    assert.equal(fs.statSync(sentinel).mode & 0o777, 0o640);
+  } finally {
+    fs.openSync = originalOpenSync;
+    fs.rmSync(outside, { recursive: true, force: true });
+  }
+}));
+
+test('migration refuses a parent-directory symlink substitution before writing outside', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const outside = outsideDir();
+  const parent = path.join(target, '.rig');
+  const movedParent = path.join(target, '.rig-original');
+  const before = inventory(target);
+  const outsideBefore = treeOf(outside);
+  const originalOpenSync = fs.openSync;
+  let substituted = false;
+  fs.openSync = function (file, flags, ...args) {
+    if (!substituted && String(file).endsWith('migration.json.tmp')) {
+      substituted = true;
+      fs.renameSync(parent, movedParent);
+      fs.symlinkSync(outside, parent);
+    }
+    return originalOpenSync.call(this, file, flags, ...args);
+  };
+  let result;
+  try {
+    result = migrate(target, { releaseTag: 'v5.0.0' });
+  } finally {
+    fs.openSync = originalOpenSync;
+    fs.unlinkSync(parent);
+    fs.renameSync(movedParent, parent);
+  }
+  try {
+    assert.equal(substituted, true);
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.deepEqual(inventory(target), before, 'migration leaves the repository unchanged');
+    assert.deepEqual(treeOf(outside), outsideBefore, 'parent swap cannot create an outside migration record');
+  } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+}));
+
+test('migration refuses a parent-directory symlink substitution at final publication', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const outside = outsideDir();
+  const parent = path.join(target, '.rig');
+  const movedParent = path.join(target, '.rig-original');
+  const externalTmp = path.join(outside, 'migration.json.tmp');
+  const finalPath = path.join(outside, 'migration.json');
+  const originalLinkSync = fs.linkSync;
+  let injected = false;
+  let outsideBeforeLink;
+  fs.linkSync = function (source, destination) {
+    if (!injected && path.basename(String(destination)) === 'migration.json') {
+      injected = true;
+      fs.renameSync(parent, movedParent);
+      fs.symlinkSync(outside, parent);
+      fs.writeFileSync(externalTmp, 'unrelated outside bytes\n', { mode: 0o640 });
+      outsideBeforeLink = treeOf(outside);
+    }
+    return originalLinkSync.call(this, source, destination);
+  };
+  let result;
+  try {
+    result = migrate(target, { releaseTag: 'v5.0.0' });
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.deepEqual(treeOf(outside), outsideBeforeLink);
+    assert.equal(fs.readFileSync(externalTmp, 'utf8'), 'unrelated outside bytes\n');
+  } finally {
+    fs.linkSync = originalLinkSync;
+    fs.unlinkSync(parent);
+    fs.rmSync(path.join(target, MIGRATION_TMP_REL), { force: true });
+    fs.renameSync(movedParent, parent);
+  }
+  try {
+    assert.equal(injected, true);
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.equal(result.recoverable, true);
+    assert.deepEqual(treeOf(outside), outsideBeforeLink, 'publication does not move or replace the outside sentinel');
+    assert.equal(fs.readFileSync(externalTmp, 'utf8'), 'unrelated outside bytes\n');
+    assert.equal(fs.existsSync(finalPath), false, 'no migration record appears outside the repository');
+  } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+}));
+
+test('migration refuses a parent swap at temporary unlink without touching outside bytes', () => withTarget((target) => {
+  userRepo(target);
+  installV5(target);
+  const outside = outsideDir();
+  const parent = path.join(target, '.rig');
+  const movedParent = path.join(target, '.rig-original');
+  const externalTmp = path.join(outside, 'migration.json.tmp');
+  const originalUnlinkSync = fs.unlinkSync;
+  let injected = false;
+  let outsideBefore;
+  fs.unlinkSync = function (file, ...args) {
+    if (!injected && String(file).endsWith('migration.json.tmp')) {
+      injected = true;
+      fs.renameSync(parent, movedParent);
+      fs.symlinkSync(outside, parent);
+      fs.writeFileSync(externalTmp, 'unrelated outside bytes\n', { mode: 0o640 });
+      outsideBefore = treeOf(outside);
+    }
+    return originalUnlinkSync.call(this, file, ...args);
+  };
+  let result;
+  try {
+    result = migrate(target, { releaseTag: 'v5.0.0' });
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.deepEqual(treeOf(outside), outsideBefore);
+    assert.equal(fs.readFileSync(externalTmp, 'utf8'), 'unrelated outside bytes\n');
+    assert.equal(fs.existsSync(path.join(target, MIGRATION_TMP_REL)), false, 'the owned root temp is removed');
+  } finally {
+    fs.unlinkSync = originalUnlinkSync;
+    fs.unlinkSync(parent);
+    fs.rmSync(path.join(target, MIGRATION_TMP_REL), { force: true });
+    fs.rmSync(path.join(movedParent, MIGRATION_REL), { force: true });
+    fs.renameSync(movedParent, parent);
+  }
+  try {
+    assert.equal(injected, true);
+    assert.equal(result.status, 'refused', JSON.stringify(result));
+    assert.equal(result.recoverable, true);
+    assert.deepEqual(treeOf(outside), outsideBefore);
+    assert.equal(fs.readFileSync(externalTmp, 'utf8'), 'unrelated outside bytes\n');
+    assert.equal(fs.statSync(externalTmp).mode & 0o777, 0o640);
+  } finally { fs.rmSync(outside, { recursive: true, force: true }); }
+}));

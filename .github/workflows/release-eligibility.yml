@@ -36,8 +36,15 @@ jobs:
       issues: write
     with:
       ref: ${{ needs.resolve.outputs.sha }}
+  e2e:
+    needs: resolve
+    uses: ./.github/workflows/e2e.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
   eligibility:
-    needs: [resolve, health]
+    needs: [resolve, health, e2e]
     runs-on: ubuntu-latest
     # check-coherence compares declared tracker transitions against live issues
     # and refuses to skip that comparison in CI.

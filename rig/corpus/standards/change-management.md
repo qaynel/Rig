@@ -81,6 +81,17 @@ goes to the owner.
 changelog carries an entry for the version being released. Trackers describe
 the state actually being shipped.
 
+### 5a. Documentation is current
+
+Any feature, behaviour change, or architectural change visible to users updates
+`docs/` in the same change set. A release that adds, changes, or removes
+user-facing behaviour without a corresponding docs update does not pass this
+step. The changelog entry names the docs files updated.
+
+This step is a human check: confirm that `docs/install.md`, `docs/vision.md`,
+and `docs/architecture.md` reflect the current release. The deployment checker
+does not automate this step; a future amendment will add the script check.
+
 ### 6. Push, one PR, required checks green on the exact head
 
 One branch, one PR to the QA branch. Required status checks — including the

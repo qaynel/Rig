@@ -27,8 +27,16 @@ capabilities a repository needs. See the [onboarding flow](onboarding-flow.md).
 
 The launcher is POSIX `sh` compatible, restricts release-tag input before URL
 and path use, and records the resolved tag in the append-only install journal.
-The installed runtime provides journaled apply and removal; optional global
-MCP registration remains an explicit step.
+The default install does not run npm or create the optional MCP runtime,
+including on a v5 upgrade. An explicit `SETUP_MCP=1` migration request installs
+the runtime on a v5 upgrade only when the selected host emits MCP configuration;
+fresh installs and non-emitting hosts skip it. `--openclaw-mcp` is the opt-in to
+install that runtime and register it globally. The installed runtime provides
+journaled apply and removal. The
+[public-upgrade retry trace](../reasoning/2026-10-17-review-received-resolution-public-upgrade.md)
+records the recovery behavior; the
+[documentation clarification trace](../reasoning/2026-10-17-review-received-resolution-mcp-emission-docs.md)
+records the emitted-host condition.
 
 ## Release controls
 
@@ -36,12 +44,23 @@ The release process is the ordered policy shipped in
 [`rig/corpus/standards/change-management.md`](../../rig/corpus/standards/change-management.md).
 It binds a review receipt, checks and release evidence to the exact candidate
 bytes. QA-to-production promotion runs only against the exact QA commit and
-requires automated health plus the real-download clean-install check.
+requires automated health plus the reusable real-download clean-install matrix
+on both Ubuntu and macOS. Eligibility depends on that matrix result and
+supplies it the same resolved SHA as health; the post-publication tagged-
+download smoke remains a separate later step.
+The exact-SHA E2E compares the downloaded archive tree with the checked-out
+commit and passes the archive and extracted-tree digests to the public
+installer, which verifies both before executing the bootstrap.
 [`release-eligibility.yml`](../../.github/workflows/release-eligibility.yml)
 enforces the promotion evidence; [`health.yml`](../../.github/workflows/health.yml)
 runs scheduled and manual health checks and reports one issue per failing SHA.
 Any change after evidence is gathered re-enters the sequence at its full-gate
 step.
+The [Review Received full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
+records the earlier local full-suite run and the still-pending final-candidate
+verification. The [late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records the exact-SHA archive/tree checks and the owner-controlled Linux/macOS
+workflow evidence that remains open.
 
 ## Evidence
 
@@ -54,9 +73,10 @@ step.
   that fetched bytes, rather than a vendored fallback, supply optional skills.
 - The clean-install E2E workflow checks fresh and configured repositories,
   real MCP traffic, an approved service check, and journaled uninstall.
-- `scripts/check-deployment-gate.js` rejects stale evidence, an unclean tree,
-  missing required checks or release documentation, and any sequence that
-  skips a policy step.
+- The deployment checker automates the signed-oracle, clean-tree, full-test,
+  review-receipt, changelog/version, and tracker-coherence gates. Documentation
+  accuracy and QA branch-protection requirements are separate owner checks;
+  the script does not inspect either one.
 
 ## Authorities and history
 

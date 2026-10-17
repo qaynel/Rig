@@ -70,3 +70,13 @@ for provenance in the [August onboarding archive](../archive/2026-08/path-a-and-
 The onboarding flow is implemented. QA-to-production readiness is governed by
 the exact-commit checks in the [change-management policy](../../rig/corpus/standards/change-management.md)
 and the [release eligibility workflow](../../.github/workflows/release-eligibility.yml).
+
+The [documentation corrections](../reasoning/2026-10-17-documentation-review-corrections.md)
+align the install guide, product overview, diagrams and translations with this
+single proposal/approval flow. Services and grades are selected in the proposal;
+`.rig/state.json` records onboarding state. `rig.json` describes the legacy
+configurator, not a second picker after approval.
+
+The [late review resolution trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records that default public installs and v5 upgrades do not install optional MCP
+dependencies; that requires the explicit OpenClaw opt-in.

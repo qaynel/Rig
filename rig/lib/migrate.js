@@ -35,6 +35,7 @@ const { projectAll } = require('./project');
 const { REGISTRY } = require('./host-capabilities');
 
 const MIGRATION_REL = '.rig/migration.json';
+const MIGRATION_TMP_REL = '.rig-migration.json.tmp';
 const BACKUP_REL = '.rig/migration-backup';
 const V6_MARKER = '.rig/onboarding/README.md';
 const RELEASE_REL = '.rig/release.json';
@@ -307,9 +308,123 @@ function atomicJson(target, rel, value) {
   guard(target, rel);
   const abs = containedPath(target, rel);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  const tmp = `${abs}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(tmp, abs);
+  // rig: keep the exclusive temp beside the repository, outside `.rig`, so a
+  // substituted `.rig` parent cannot redirect temp cleanup into user data.
+  const tmpRel = MIGRATION_TMP_REL;
+  const tmp = path.join(target, tmpRel);
+  const recordBytes = Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+  guard(target, tmpRel);
+  const parentAbs = path.dirname(abs);
+  const parentRel = path.dirname(rel);
+  const parentStat = fs.lstatSync(parentAbs);
+  const assertParent = () => {
+    let current;
+    try { current = fs.lstatSync(parentAbs); } catch { current = null; }
+    if (!current || !current.isDirectory() || current.isSymbolicLink() ||
+        current.dev !== parentStat.dev || current.ino !== parentStat.ino) {
+      refuse('conflicts', `${parentRel} changed while preparing the migration record`, {
+        conflicts: [{ path: parentRel, reason: 'parent-changed', detail: 'the migration record parent changed during the write' }],
+      });
+    }
+  };
+  let fd;
+  let resumedTemp = false;
+  try {
+    // rig: the fixed root-level temp makes interrupted plans easy to find;
+    // exclusive create refuses collisions and symlink races.
+    fd = fs.openSync(tmp, 'wx');
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    // rig: only adopt a complete, byte-identical record left by interruption;
+    // arbitrary regular files and links remain protected collisions.
+    try {
+      fd = fs.openSync(tmp, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+      const stat = fs.fstatSync(fd);
+      const current = fs.lstatSync(tmp);
+      const bytes = fs.readFileSync(fd);
+      if (!stat.isFile() || current.isSymbolicLink() || current.dev !== stat.dev || current.ino !== stat.ino || !bytes.equals(recordBytes)) {
+        fs.closeSync(fd);
+        fd = undefined;
+        refuse('conflicts', `${tmpRel} already exists; remove or recover it before retrying`, {
+          conflicts: [{ path: tmpRel, reason: 'temp-exists', detail: 'the migration will not overwrite an unrelated temporary file' }],
+        });
+      }
+      resumedTemp = true;
+    } catch (resumeError) {
+      if (fd !== undefined) fs.closeSync(fd);
+      if (resumeError.code === 'ENOENT' || resumeError.code === 'ELOOP') {
+        refuse('conflicts', `${tmpRel} changed while checking an interrupted migration record`, {
+          conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the temporary record was substituted during recovery' }],
+        });
+      }
+      throw resumeError;
+    }
+  }
+  const openedStat = fs.fstatSync(fd);
+  try {
+    assertParent();
+    const currentTmp = fs.lstatSync(tmp);
+    if (!currentTmp.isFile() || currentTmp.isSymbolicLink() || currentTmp.dev !== openedStat.dev || currentTmp.ino !== openedStat.ino) {
+      refuse('conflicts', `${tmpRel} changed while preparing the migration record`, {
+        conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the exclusively created temporary file was substituted' }],
+      });
+    }
+    if (!resumedTemp) fs.writeFileSync(fd, recordBytes);
+  } catch (error) {
+    fs.closeSync(fd);
+    let currentTmp;
+    try { currentTmp = fs.lstatSync(tmp); } catch { currentTmp = null; }
+    if (currentTmp?.isFile() && !currentTmp.isSymbolicLink() && currentTmp.dev === openedStat.dev && currentTmp.ino === openedStat.ino) {
+      fs.unlinkSync(tmp);
+    }
+    throw error;
+  }
+  fs.closeSync(fd);
+  let linked = false;
+  let linkedStat = null;
+  try {
+    assertParent();
+    const currentTmp = fs.lstatSync(tmp);
+    if (!currentTmp.isFile() || currentTmp.isSymbolicLink() || currentTmp.dev !== openedStat.dev || currentTmp.ino !== openedStat.ino) {
+      refuse('conflicts', `${tmpRel} changed before the migration record could be committed`, {
+        conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the exclusively created temporary file was substituted' }],
+      });
+    }
+    // rig: link-then-unlink makes publication no-clobber and lets us detect
+    // and remove our own destination if the parent is swapped at commit time.
+    fs.linkSync(tmp, abs);
+    linked = true;
+    linkedStat = fs.lstatSync(abs);
+    assertParent();
+    const published = fs.lstatSync(abs);
+    if (!published.isFile() || published.isSymbolicLink() || published.dev !== openedStat.dev || published.ino !== openedStat.ino) {
+      refuse('conflicts', `${rel} changed before the migration record could be committed`, {
+        conflicts: [{ path: rel, reason: 'record-changed', detail: 'the migration record destination was substituted' }],
+      });
+    }
+    fs.unlinkSync(tmp);
+    assertParent();
+  } catch (error) {
+    if (linked) {
+      let published;
+      try { published = fs.lstatSync(abs); } catch { published = null; }
+      if (linkedStat && published?.isFile() && !published.isSymbolicLink() && published.dev === linkedStat.dev && published.ino === linkedStat.ino) {
+        fs.unlinkSync(abs);
+      }
+    }
+    let currentTmp;
+    try { currentTmp = fs.lstatSync(tmp); } catch { currentTmp = null; }
+    if (currentTmp?.isFile() && !currentTmp.isSymbolicLink() && currentTmp.dev === openedStat.dev && currentTmp.ino === openedStat.ino) {
+      fs.unlinkSync(tmp);
+    }
+    try { assertParent(); } catch (parentError) { throw parentError; }
+    if (error.code === 'EPERM' || error.code === 'ENOTSUP') {
+      refuse('conflicts', `${tmpRel} could not be published safely; use a filesystem that supports hard links`, {
+        conflicts: [{ path: tmpRel, reason: 'atomic-publish-unavailable', detail: error.message }],
+      });
+    }
+    throw error;
+  }
 }
 
 function backup(target, rel, digest) {
@@ -427,6 +542,15 @@ function migrate(target, opts = {}) {
       const claimed = { ...body };
       delete claimed.phase;
       if (saved.version !== 1 || sha256(JSON.stringify(claimed)) !== digest) refuse('migration-corrupt', `${MIGRATION_REL} does not match its own digest; delete it to start over`);
+      const tempPath = containedPath(target, MIGRATION_TMP_REL);
+      if (fs.existsSync(tempPath)) {
+        const tempStat = fs.lstatSync(tempPath);
+        const finalStat = fs.lstatSync(persisted);
+        if (!tempStat.isFile() || tempStat.isSymbolicLink() || tempStat.dev !== finalStat.dev || tempStat.ino !== finalStat.ino) {
+          refuse('migration-temp-conflict', `${MIGRATION_TMP_REL} is not the published migration record's temporary link; remove or recover it before retrying`);
+        }
+        fs.unlinkSync(tempPath);
+      }
       const staged = stage(target, saved.hosts, saved.delivery, saved.to_tag);
       planned = { ...claimed, plan_digest: digest, staged };
     } else {

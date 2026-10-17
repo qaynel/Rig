@@ -6,6 +6,17 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-17 | superseded → 2026-10-17-review-received-resolution-findings | [2026-10-17-review-received-resolution-verification](../reasoning/2026-10-17-review-received-resolution-verification.md) | the-overhaul, review-receipts, trust-and-failure-boundaries, distribution-and-release | — | review, verification |
+| 2026-10-17 | historical → 2026-10-17-review-received-resolution-late-findings.md | [2026-10-17-review-received-resolution-public-upgrade](../reasoning/2026-10-17-review-received-resolution-public-upgrade.md) | distribution-and-release | — | — |
+| 2026-10-17 | superseded | [2026-10-17-review-received-resolution-progress](../reasoning/2026-10-17-review-received-resolution-progress.md) | the-overhaul, review-receipts | — | review, implementation |
+| 2026-10-17 | current → 2026-10-17-review-received-resolution-public-upgrade.md | [2026-10-17-review-received-resolution-mcp-emission-docs](../reasoning/2026-10-17-review-received-resolution-mcp-emission-docs.md) | distribution-and-release | — | — |
+| 2026-10-17 | historical | [2026-10-17-review-received-resolution-late-findings](../reasoning/2026-10-17-review-received-resolution-late-findings.md) | the-overhaul, review-receipts, trust-and-failure-boundaries, distribution-and-release, onboarding-flow | — | review, migration, exact-sha, retry |
+| 2026-10-17 | current → 2026-10-17-review-received-resolution-verification | [2026-10-17-review-received-resolution-full-gate](../reasoning/2026-10-17-review-received-resolution-full-gate.md) | the-overhaul, review-receipts, trust-and-failure-boundaries | — | review, verification |
+| 2026-10-17 | superseded → 2026-10-17-review-received-resolution-progress | [2026-10-17-review-received-resolution-findings](../reasoning/2026-10-17-review-received-resolution-findings.md) | the-overhaul, review-receipts, trust-and-failure-boundaries, distribution-and-release | — | review, implementation |
+| 2026-10-17 | historical | [2026-10-17-review-received-request](../reasoning/2026-10-17-review-received-request.md) | the-overhaul, review-receipts | — | review |
+| 2026-10-17 | historical → 2026-10-17-review-received-request | [2026-10-17-review-received-findings](../reasoning/2026-10-17-review-received-findings.md) | the-overhaul, review-receipts | — | review, trap |
+| 2026-10-17 | current → 2026-10-17-review-received-findings | [2026-10-17-review-received-delivery](../reasoning/2026-10-17-review-received-delivery.md) | the-overhaul, review-receipts | — | review |
+| 2026-10-17 | current | [2026-10-17-review-received-acceptance-handoff](../reasoning/2026-10-17-review-received-acceptance-handoff.md) | the-overhaul, review-receipts | — | review |
 | 2026-10-17 | done | [2026-10-17-retire-the-duplicate-services-catalogue](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md) | [the-catalogue, delivery-plan, central-corpus] | [retire rig/catalog.json and rig/catalog/services in favour of rig/corpus] | — |
 | 2026-10-17 | superseded | [2026-10-17-qa-readiness-verification-start](../reasoning/2026-10-17-qa-readiness-verification-start.md) | the-overhaul | — | — |
 | 2026-10-17 | superseded | [2026-10-17-qa-readiness-signed-candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md) | the-overhaul | — | — |
@@ -21,7 +32,13 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-17 | superseded | [2026-10-17-qa-readiness-gate-and-compaction](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-concurrent-docs](../reasoning/2026-10-17-qa-readiness-concurrent-docs.md) | the-overhaul | — | — |
 | 2026-10-17 | current | [2026-10-17-qa-readiness-checks-await-docs](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md) | the-overhaul, distribution-and-release | — | — |
-| 2026-10-17 | historical | [2026-10-17-documentation-overhaul](../reasoning/2026-10-17-documentation-overhaul.md) | — | — | — |
+| 2026-10-17 | historical | [2026-10-17-final-documentation-review](../reasoning/2026-10-17-final-documentation-review.md) | the-overhaul | — | — |
+| 2026-10-17 | historical | [2026-10-17-documentation-review-waiting-for-suite](../reasoning/2026-10-17-documentation-review-waiting-for-suite.md) | the-overhaul | — | documentation, verification |
+| 2026-10-17 | historical | [2026-10-17-documentation-review-verified-mirror](../reasoning/2026-10-17-documentation-review-verified-mirror.md) | the-overhaul | — | documentation, verification |
+| 2026-10-17 | historical | [2026-10-17-documentation-review-verification](../reasoning/2026-10-17-documentation-review-verification.md) | the-overhaul | — | documentation, verification |
+| 2026-10-17 | current → 2026-10-17-documentation-review-verified-mirror | [2026-10-17-documentation-review-resolved](../reasoning/2026-10-17-documentation-review-resolved.md) | the-overhaul | — | documentation, verification |
+| 2026-10-17 | historical | [2026-10-17-documentation-review-corrections](../reasoning/2026-10-17-documentation-review-corrections.md) | what-rig-is, onboarding-flow, the-overhaul | — | documentation, review-response |
+| 2026-10-17 | historical | [2026-10-17-documentation-overhaul](../reasoning/2026-10-17-documentation-overhaul.md) | what-rig-is, the-overhaul | — | documentation |
 | 2026-10-17 | historical | [2026-10-17-closeout-ticket-and-issue-attachment](../reasoning/2026-10-17-closeout-ticket-and-issue-attachment.md) | [delivery-plan] | [] | — |
 | 2026-10-17 | current | [2026-10-17-change-management-policy-and-doc-deduplication](../reasoning/2026-10-17-change-management-policy-and-doc-deduplication.md) | delivery-plan, distribution-and-release, onboarding-flow | — | interdependency |
 | 2026-10-17 | current | [2026-10-17-august-reasoning-archive-compaction](../reasoning/2026-10-17-august-reasoning-archive-compaction.md) | agent-working-conventions | — | interdependency |

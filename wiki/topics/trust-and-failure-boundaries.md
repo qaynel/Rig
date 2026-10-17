@@ -132,9 +132,19 @@ The CI/git-floor runner now has a matching capability boundary design: all
 commands receive timeout and memory ceilings; explicit network denial is
 isolated, explicit network access and raised ceilings need a committed
 per-service grant, and an undeclared network state remains visibly diagnostic
-during the compatibility rollout. A host that cannot enforce a promised
+during the compatibility rollout. Bare, named, and component-command bindings
+retain unique warnings through successful and failed service runs, and the
+reporting caller emits each warning once. A host that cannot enforce a promised
 control, malformed policy bytes, or policy that is not committed is a named
 refusal rather than a downgrade. [Execution-policy design](../archive/2026-08/shell-trust-and-capability-policy.md)
+The [Review Received resolution trace](../reasoning/2026-10-17-review-received-resolution-findings.md)
+records named/component diagnostic propagation through later failures and the
+installed caller.
+The [verification trace](../reasoning/2026-10-17-review-received-resolution-verification.md)
+records the full focused run and independent re-review of migration and
+diagnostic failure boundaries.
+The [full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
+records the full repository result after preserving the fresh-install MCP gate.
 
 RIG-115's per-AT-LF-case branches sharded this section's guarantees rather
 than proving them whole: the symlink-containment check (AT-LF-21/24) was
@@ -396,3 +406,7 @@ with a test that crashes one proposal, abandons it, and applies a second,
 unrelated proposal against a drifted repo — checked-verified to fail against
 the pre-fix unscoped form and pass against the fix. See
 [review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
+
+The [Review Received late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records migration temp collision recovery, parent-swap containment, and MCP
+retry-marker ownership checks.

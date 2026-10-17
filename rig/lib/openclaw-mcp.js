@@ -131,7 +131,8 @@ function registerOpenClawMcp(target, opts = {}) {
     && entry.install_id === id && entry.server_key === name);
   const servers = openClawServers();
   if (owned) {
-    if (owned.path !== configPath() || !hasExpectedServer(servers, owned)) {
+    const absentPendingRetry = owned.state === 'pending' && !Object.hasOwn(servers, name);
+    if (owned.path !== configPath() || (!hasExpectedServer(servers, owned) && !absentPendingRetry)) {
       throw new Error(`rig: refusing to overwrite changed OpenClaw server ${name}`);
     }
   } else if (Object.hasOwn(servers, name)) {
@@ -153,7 +154,7 @@ function registerOpenClawMcp(target, opts = {}) {
   }, opts.writeFile);
   const restoreLedger = () => {
     if (owned) {
-      writeLedger(target, { ...owned, state: 'applied' }, opts.writeFile);
+      writeLedger(target, owned, opts.writeFile);
     } else {
       removeLedgerEntry(target, { kind: 'openclaw-mcp', path: configPath(), install_id: id }, opts.writeFile);
     }
@@ -169,9 +170,16 @@ function registerOpenClawMcp(target, opts = {}) {
     shell: false,
   });
   if (set.status !== 0) {
-    const rollback = owned
-      ? spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0
-      : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
+    let rollback;
+    if (owned) {
+      rollback = spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0;
+    } else {
+      let serversAfterFailure;
+      try { serversAfterFailure = openClawServers(); } catch { serversAfterFailure = null; }
+      rollback = serversAfterFailure && !Object.hasOwn(serversAfterFailure, name)
+        ? true
+        : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
+    }
     if (rollback) restoreLedger();
     throw new Error(`rig: openclaw mcp set failed: ${set.stderr || set.stdout}`);
   }

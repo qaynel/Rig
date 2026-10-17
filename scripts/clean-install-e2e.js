@@ -27,7 +27,17 @@ function inventory(dir, prefix = '') {
   }
   return out;
 }
+function treeDigest(dir) {
+  const files = inventory(dir);
+  return sha256(JSON.stringify(Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)))));
+}
 function json(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+function archiveRoot(dir) {
+  const roots = fs.readdirSync(dir).map((name) => path.join(dir, name));
+  assert.equal(roots.length, 1, 'source archive must contain one top-level directory');
+  assert.ok(fs.lstatSync(roots[0]).isDirectory());
+  return roots[0];
+}
 function fixtureApproval(work, target, planDigest) {
   // rig: scheduled authority is deliberately limited to this process's two
   // disposable directories. Never use the owner's release signing key.
@@ -46,16 +56,36 @@ async function main() {
   const env = { ...process.env, npm_config_cache: path.join(work, 'empty-npm-cache'), GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
   const checkoutSha = run('git', ['rev-parse', 'HEAD']);
   const evidence = { schema_version: 1, checkout_sha: checkoutSha, sha: opts.sha || run('git', ['rev-parse', 'HEAD']), node: process.version, os: { platform: process.platform, release: os.release(), arch: process.arch }, registry: run('npm', ['config', 'get', 'registry'], { env }), scenarios: [] };
+  let candidateUrl = null;
   assert.match(evidence.sha, /^[a-f0-9]{40}$/);
   evidence.provisional = evidence.sha !== checkoutSha || Boolean(run('git', ['status', '--porcelain']));
   try {
     let archive = opts.artifact;
     if (!opts.tag && !archive) {
       assert.equal(run('git', ['status', '--porcelain']), '', 'Commit final candidate bytes before exact-SHA E2E');
-      archive = path.join(work, 'candidate.tar.gz');
-      run('git', ['archive', '--format=tar.gz', '--prefix=rig-candidate/', '-o', archive, evidence.sha]);
+      const repo = process.env.RIG_REPO || 'qaynel/Rig';
+      candidateUrl = `https://github.com/${repo}/archive/${evidence.sha}.tar.gz`;
+      archive = path.join(work, 'downloaded-candidate.tar.gz');
+      run('curl', ['-fsSL', candidateUrl, '-o', archive], { env });
+      evidence.archive_source_url = candidateUrl;
+      evidence.archive_downloaded_sha = evidence.sha;
+      evidence.archive_digest = sha256(fs.readFileSync(archive));
+
+      // Compare the remotely fetched exact-SHA archive with Git's archive of
+      // the same checked-out commit before exercising the public installer.
+      const localArchive = path.join(work, 'checkout-candidate.tar.gz');
+      const remoteTree = path.join(work, 'remote-tree');
+      const localTree = path.join(work, 'local-tree');
+      fs.mkdirSync(remoteTree);
+      fs.mkdirSync(localTree);
+      run('git', ['archive', '--format=tar.gz', '--prefix=rig-candidate/', '-o', localArchive, evidence.sha]);
+      run('tar', ['-xzf', archive, '-C', remoteTree]);
+      run('tar', ['-xzf', localArchive, '-C', localTree]);
+      assert.deepEqual(inventory(archiveRoot(remoteTree)), inventory(archiveRoot(localTree)),
+        'downloaded source tree must match the exact checked-out commit');
+      evidence.archive_tree_digest = treeDigest(archiveRoot(localTree));
     }
-    if (archive) evidence.archive_digest = sha256(fs.readFileSync(archive));
+    if (archive && !evidence.archive_digest) evidence.archive_digest = sha256(fs.readFileSync(archive));
     if (opts.tag) evidence.tag = opts.tag;
     run('ssh-keygen', ['-t', 'ed25519', '-N', '', '-C', 'disposable-clean-install@rig', '-f', path.join(work, 'fixture-key')]);
     const [type, key] = fs.readFileSync(path.join(work, 'fixture-key.pub'), 'utf8').trim().split(/\s+/);
@@ -78,7 +108,9 @@ async function main() {
       // the baseline and must survive uninstall.
       fs.writeFileSync(path.join(target, 'README.md'), '# Example\n## Setup\nRun npm install.\n## Run\nRun node app.js.\n## Check\nRun node --test.\n');
       const before = inventory(target);
-      const installArgs = opts.tag ? ['--version', opts.tag] : ['--candidate-artifact', path.resolve(archive), '--candidate-sha', evidence.sha, '--candidate-digest', evidence.archive_digest];
+      const installArgs = opts.tag ? ['--version', opts.tag] : candidateUrl
+        ? ['--candidate-url', candidateUrl, '--candidate-sha', evidence.sha, '--candidate-digest', evidence.archive_digest, '--candidate-tree-digest', evidence.archive_tree_digest]
+        : ['--candidate-artifact', path.resolve(archive), '--candidate-sha', evidence.sha, '--candidate-digest', evidence.archive_digest];
       const installed = run('sh', [path.join(root, 'install.sh'), ...installArgs, '--target', target, '--hosts', 'codex'], { env });
       const downloadedDigest = installed.match(/archive-sha256=([a-f0-9]{64})/)?.[1];
       assert.ok(downloadedDigest, 'installer must identify downloaded archive bytes');

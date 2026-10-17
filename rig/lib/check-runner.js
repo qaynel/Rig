@@ -247,6 +247,23 @@ function classifyRunnerFailure(result, checkId, command) {
 function runBinding(serviceId, binding, scope, target) {
   let executedCount = 0;
   const executedChecks = [];
+  const diagnostics = new Set();
+  const recordDiagnostics = (result) => {
+    for (const diagnostic of result.diagnostics || (result.diagnostic ? [result.diagnostic] : [])) {
+      diagnostics.add(diagnostic);
+    }
+  };
+  const withDiagnostics = (result) => ({
+    ...result,
+    diagnostics: [...diagnostics],
+    ...(diagnostics.size ? { diagnostic: diagnostics.values().next().value } : {}),
+  });
+  const failedCheck = (checkId, result) => withDiagnostics({
+    ...result,
+    checkId,
+    executed_count: executedCount,
+    executed_checks: [...executedChecks],
+  });
   const checks = binding.checks && Object.entries(binding.checks);
   if (!checks) {
     const argv = binding[scope] || binding.repo;
@@ -254,22 +271,24 @@ function runBinding(serviceId, binding, scope, target) {
       return { status: 1, kind: 'coverage_gap', reason: `No argv binding for scope ${scope}` };
     }
     const [command, ...rest] = argv;
-    return runConfiguredArgv(serviceId, target, command, rest, target, binding);
+    const result = runConfiguredArgv(serviceId, target, command, rest, target, binding);
+    recordDiagnostics(result);
+    return withDiagnostics(result);
   }
 
   for (const [checkId, check] of checks) {
     if (!check || typeof check !== 'object') {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` };
+      return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` });
     }
     if (check.native_service) {
       const result = require('./service-catalogue').runNativeService(check.native_service, target);
       executedCount += result.executed_count || 0;
       if (result.executed_count) executedChecks.push(checkId);
-      if (result.status !== 0) return { ...result, checkId, executed_count: executedCount, executed_checks: executedChecks };
+      if (result.status !== 0) return withDiagnostics({ ...result, checkId, executed_count: executedCount, executed_checks: executedChecks });
       continue;
     }
     if (check.coverage_gap) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${check.coverage_gap}` };
+      return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${check.coverage_gap}` });
     }
     for (const rel of check.required_paths || []) {
       let abs;
@@ -279,19 +298,19 @@ function runBinding(serviceId, binding, scope, target) {
         abs = null;
       }
       if (!abs) {
-        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required path` };
+        return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required path` });
       }
       if (!fs.existsSync(abs)) {
-        return { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing ${rel}` };
+        return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing ${rel}` });
       }
     }
     if (check.fix && (!Array.isArray(check.fix) || !check.fix.length)) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` };
+      return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` });
     }
     if (check.commands) {
       for (const commandBinding of check.commands) {
         if (!Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
-          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` };
+          return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` });
         }
         let cwd;
         try {
@@ -299,34 +318,36 @@ function runBinding(serviceId, binding, scope, target) {
             ? fs.realpathSync(target)
             : containedPath(target, commandBinding.cwd);
         } catch {
-          return { status: 1, kind: 'coverage_gap', reason: `${checkId}: component cwd escapes repository` };
+          return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: component cwd escapes repository` });
         }
         const [command, ...rest] = commandBinding.argv;
         const result = runConfiguredArgv(serviceId, target, command, rest, cwd, binding, check, commandBinding);
+        recordDiagnostics(result);
         if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
         const classified = classifyRunnerFailure(result, checkId, command);
-        if (classified.error || classified.status !== 0) return { ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks };
+        if (classified.error || classified.status !== 0) return withDiagnostics({ ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks });
       }
       continue;
     }
     const argv = check[scope] || check.repo;
     if (!argv) continue;
     if (!Array.isArray(argv) || !argv.length) {
-      return { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` };
+      return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` });
     }
     const [command, ...rest] = argv;
     const readOnly = check.read_only ? require('./lint-format') : null;
     const before = readOnly?.snapshotDir(target);
     const result = runConfiguredArgv(serviceId, target, command, rest, target, binding, check);
+    recordDiagnostics(result);
     if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
     if (readOnly) {
       const changed = readOnly.diffSnapshots(before, readOnly.snapshotDir(target));
-      if (changed.length) return { status: 1, kind: 'mutated', reason: 'read-only service command changed repository files', changed_paths: changed, checkId, executed_count: executedCount, executed_checks: executedChecks };
+      if (changed.length) return withDiagnostics({ status: 1, kind: 'mutated', reason: 'read-only service command changed repository files', changed_paths: changed, checkId, executed_count: executedCount, executed_checks: executedChecks });
     }
     const classified = classifyRunnerFailure(result, checkId, command);
-    if (classified.error || classified.status !== 0) return { ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks };
+    if (classified.error || classified.status !== 0) return withDiagnostics({ ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks });
   }
-  return { status: 0, stdout: '', stderr: '', executed_count: executedCount, executed_checks: executedChecks };
+  return withDiagnostics({ status: 0, stdout: '', stderr: '', executed_count: executedCount, executed_checks: executedChecks });
 }
 
 module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic };

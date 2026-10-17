@@ -64,7 +64,36 @@ or timed-out reviewer spawn is persisted before the cap is evaluated. See
 
 ## Remaining work
 
+The [Review Received request](../reasoning/2026-10-17-review-received-request.md)
+asks for final review and PR approval. The
+[report-only findings](../reasoning/2026-10-17-review-received-findings.md)
+withhold approval for three high defects and a network-warning regression.
+The dirty candidate and failing pushed-head CI precede the reserved binding
+review. The PR author's connected account cannot supply GitHub self-approval.
+The [delivery result](../reasoning/2026-10-17-review-received-delivery.md)
+records that GitHub denied both review and comment publication with HTTP 403;
+the report exists locally and no approval was created.
+The [resolution criteria](../specs/close-everything/review-received-resolution.md)
+give the fixing agent per-finding checks and evidence requirements, followed
+by the approval checklist. See the
+[handoff request](../reasoning/2026-10-17-review-received-acceptance-handoff.md).
+The [resolution progress trace](../reasoning/2026-10-17-review-received-resolution-progress.md)
+records that network diagnostic preservation and exact-SHA Linux/macOS
+eligibility are red-green verified while migration and upgrade setup remain in
+flight.
+The [resolution findings trace](../reasoning/2026-10-17-review-received-resolution-findings.md)
+records the regression evidence and the remaining exact-candidate and review
+receipt requirements.
+The [verification trace](../reasoning/2026-10-17-review-received-resolution-verification.md)
+records the passing focused suite and unresolved owner-controlled release gates.
+The [full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
+records the green local full gate and remaining exact-candidate/owner review steps.
+
 The `v5.0.0` receipt is
 [`rig-120-v5.0.0-2026-08-29-fresh.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.review.json):
 `verdict: pass`, no unresolved cases, bound to the tagged commit. Historical
 receipts remain historical because they bind older bytes.
+
+The [late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records follow-up report-only defects, their acceptance regressions, and the
+owner-controlled evidence still required before the PR can close.
