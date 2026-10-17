@@ -507,10 +507,17 @@ the default install no longer wrote `.rig/mcp-server.json`. Adding the explicit
 opt-in then exposed a clone-local identity sidecar in the full inventory; the
 fixture now seeds that identity as pre-existing repository state before
 comparing bytes. `node --test tests/release-eligibility-workflow.test.js`
-passes, and the corrected harness passed both scenarios with real downloads
-and actual MCP calls using a local archive of `85a24ec4` (provisional because
-the harness itself was still uncommitted). Rerun on the next clean commit and
-record the evidence file before closing this candidate criterion.
+passes. Both scenarios then passed against committed candidates using local
+Git archives; the retained earlier result `.context/e2e-fff3a6b2.json` is
+`provisional: false` for its recorded SHA. The final candidate rerun is
+retained at `.context/final-candidate-e2e.json` with archive
+`.context/final-candidate.tar.gz`. Both scenarios record real dependency
+downloads, MCP handshake and `rig_instructions`, the approved service check,
+and byte-inventory equality after uninstall. This is exact-commit local-archive
+evidence, not a GitHub remote-download or Linux/macOS workflow result. The
+focused real-npm public v5 upgrade test log is `.context/final-candidate-upgrade.log`.
+The full verification record, including the final SHA and commands, is
+`.context/final-candidate-verification.txt`.
 
 ## Conditions for approval
 
@@ -518,15 +525,15 @@ Follow the ordered [change-management policy](../../../rig/corpus/standards/chan
 Completing these findings permits renewed review; approval still requires the
 reviewer's assessment and the existing release evidence.
 
-- [ ] Each finding has passing regression evidence and a written resolution
+- [x] Each finding has passing regression evidence and a written resolution
   tied to the final candidate. All four criteria groups above are satisfied.
-- [ ] Commit the complete candidate, including documentation corrections and
+- [x] Commit the complete candidate, including documentation corrections and
   regenerated wiki indexes. The working tree is clean; no concurrent writer
   changes publishable bytes during verification.
-- [ ] `node scripts/check-advanced-spec.js` verifies the signed oracle. Run
+- [x] `node scripts/check-advanced-spec.js` verifies the signed oracle. Run
   `npm test` on the final bytes and retain the complete successful log.
-  Focused test passes do not replace this gate.
-- [ ] Obtain exact-commit clean-install evidence, including the upgrade MCP
+  Full-suite result is retained in `.context/npm-test-final.log`.
+- [x] Obtain exact-commit clean-install evidence, including the upgrade MCP
   scenario above. Provisional dirty-tree snapshots and earlier commits do not
   count. Record the commit SHA, commands, results and artifact locations.
 - [ ] Obtain a fresh passing wrapper-authored review receipt on those same
@@ -534,7 +541,7 @@ reviewer's assessment and the existing release evidence.
   attempt state (one prior failure); use the already designated reviewer.
   Do not reset the counter, fabricate a receipt or consume the remaining
   binding attempt during implementation.
-- [ ] Versions, tracker declarations, changelog, documentation, generated wiki
+- [x] Versions, tracker declarations, changelog, documentation, generated wiki
   indexes, budgets, size hints and rule copies pass their existing checks.
 - [ ] Through the owner-controlled delivery process, push the same candidate
   to the existing PR and require green checks on its exact head, including

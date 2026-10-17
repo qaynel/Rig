@@ -2,7 +2,7 @@
 date: 2026-10-17
 source: agent
 topics: distribution-and-release
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-resolution-mcp-emission-docs.md
 summary: The exact-SHA clean-install harness now explicitly opts into MCP through disposable OpenClaw state.
 ---

@@ -65,7 +65,10 @@ verification. The [late findings trace](../reasoning/2026-10-17-review-received-
 records the exact-SHA archive/tree checks and the owner-controlled Linux/macOS
 workflow evidence that remains open.
 The [clean-install harness trace](../reasoning/2026-10-17-review-received-resolution-clean-install.md)
-records the explicit MCP opt-in and disposable OpenClaw fixture.
+records the explicit MCP opt-in and disposable OpenClaw fixture. The
+[exact-candidate E2E trace](../reasoning/2026-10-17-review-received-resolution-exact-e2e.md)
+records the passing local-archive E2E and real-npm public-upgrade evidence,
+with the distinction from GitHub-hosted Linux/macOS checks.
 
 ## Evidence
 
