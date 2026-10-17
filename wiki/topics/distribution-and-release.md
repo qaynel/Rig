@@ -50,7 +50,10 @@ supplies it the same resolved SHA as health; the post-publication tagged-
 download smoke remains a separate later step.
 The exact-SHA E2E compares the downloaded archive tree with the checked-out
 commit and passes the archive and extracted-tree digests to the public
-installer, which verifies both before executing the bootstrap.
+installer, which verifies both before executing the bootstrap. Since the
+default path no longer installs optional MCP dependencies, this E2E explicitly
+opts into MCP through a fake OpenClaw CLI and isolated config under its
+disposable HOME. It runs real dependency downloads and an MCP tool call.
 [`release-eligibility.yml`](../../.github/workflows/release-eligibility.yml)
 enforces the promotion evidence; [`health.yml`](../../.github/workflows/health.yml)
 runs scheduled and manual health checks and reports one issue per failing SHA.
@@ -61,6 +64,8 @@ records the earlier local full-suite run and the still-pending final-candidate
 verification. The [late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
 records the exact-SHA archive/tree checks and the owner-controlled Linux/macOS
 workflow evidence that remains open.
+The [clean-install harness trace](../reasoning/2026-10-17-review-received-resolution-clean-install.md)
+records the explicit MCP opt-in and disposable OpenClaw fixture.
 
 ## Evidence
 

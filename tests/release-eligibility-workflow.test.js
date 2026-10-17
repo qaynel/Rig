@@ -44,6 +44,11 @@ test('release eligibility requires exact-SHA Linux/macOS clean-install E2E befor
   assert.match(e2eScript, /'--candidate-url', candidateUrl/,
     'the installer exercises the fetched archive rather than a local substitute');
   assert.match(e2eScript, /'--candidate-tree-digest', evidence\.archive_tree_digest/);
+  assert.match(e2eScript, /'--openclaw-mcp'\], \{ env \}\)/,
+    'real MCP traffic must be an explicit opt-in and use the disposable OpenClaw fixture');
+  assert.match(e2eScript, /OPENCLAW_CONFIG_PATH: openclawConfig/);
+  assert.match(e2eScript, /rev-parse', '--git-path', 'rig'/,
+    'clean-install inventories include the clone-local identity as pre-existing state');
   assert.match(installer, /candidate URL must be the exact-SHA GitHub archive/);
   assert.match(installer, /curl -fsSL "\$CANDIDATE_URL"/);
   assert.match(installer, /candidate extracted-tree digest mismatch/);

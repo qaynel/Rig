@@ -53,7 +53,35 @@ function fixtureApproval(work, target, planDigest) {
 async function main() {
   const opts = Object.fromEntries(process.argv.slice(2).reduce((a, item, i, all) => item.startsWith('--') ? [...a, [item.slice(2), all[i + 1]]] : a, []));
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-clean-e2e-'));
-  const env = { ...process.env, npm_config_cache: path.join(work, 'empty-npm-cache'), GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
+  const bin = path.join(work, 'bin');
+  const home = path.join(work, 'home');
+  const openclawConfig = path.join(home, '.openclaw', 'openclaw.json');
+  fs.mkdirSync(bin);
+  fs.mkdirSync(path.dirname(openclawConfig), { recursive: true });
+  fs.writeFileSync(openclawConfig, JSON.stringify({ mcp: { servers: { keep: { command: 'keep' } } } }, null, 2) + '\n');
+  fs.writeFileSync(path.join(bin, 'openclaw'), [
+    '#!/usr/bin/env node',
+    "const fs = require('node:fs');",
+    "const [, , group, action, name, value] = process.argv;",
+    "if (group !== 'mcp' || !['show', 'set', 'unset'].includes(action)) process.exit(2);",
+    'const file = process.env.OPENCLAW_CONFIG_PATH;',
+    "const config = JSON.parse(fs.readFileSync(file, 'utf8'));",
+    'config.mcp ??= {}; config.mcp.servers ??= {};',
+    "if (action === 'show' && name === '--json') { process.stdout.write(JSON.stringify(config.mcp.servers)); process.exit(0); }",
+    "if (action === 'set') config.mcp.servers[name] = JSON.parse(value);",
+    "else if (action === 'unset') delete config.mcp.servers[name];",
+    "fs.writeFileSync(file, JSON.stringify(config, null, 2) + '\\n');",
+    '',
+  ].join('\n'), { mode: 0o755 });
+  const env = {
+    ...process.env,
+    HOME: home,
+    PATH: `${bin}${path.delimiter}${process.env.PATH}`,
+    OPENCLAW_CONFIG_PATH: openclawConfig,
+    npm_config_cache: path.join(work, 'empty-npm-cache'),
+    GIT_CONFIG_GLOBAL: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+  };
   const checkoutSha = run('git', ['rev-parse', 'HEAD']);
   const evidence = { schema_version: 1, checkout_sha: checkoutSha, sha: opts.sha || run('git', ['rev-parse', 'HEAD']), node: process.version, os: { platform: process.platform, release: os.release(), arch: process.arch }, registry: run('npm', ['config', 'get', 'registry'], { env }), scenarios: [] };
   let candidateUrl = null;
@@ -93,6 +121,9 @@ async function main() {
       const target = path.join(work, scenario);
       fs.mkdirSync(target);
       run('git', ['init', '-q', target], { env });
+      const cloneState = path.resolve(target, run('git', ['rev-parse', '--git-path', 'rig'], { cwd: target, env }));
+      fs.mkdirSync(cloneState, { recursive: true });
+      fs.writeFileSync(path.join(cloneState, 'install-id'), `e2e-${scenario}\n`);
       fs.mkdirSync(path.join(target, '.rig'));
       fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `disposable-clean-install@rig ${type} ${key}\n`);
       if (scenario === 'existing') {
@@ -111,12 +142,13 @@ async function main() {
       const installArgs = opts.tag ? ['--version', opts.tag] : candidateUrl
         ? ['--candidate-url', candidateUrl, '--candidate-sha', evidence.sha, '--candidate-digest', evidence.archive_digest, '--candidate-tree-digest', evidence.archive_tree_digest]
         : ['--candidate-artifact', path.resolve(archive), '--candidate-sha', evidence.sha, '--candidate-digest', evidence.archive_digest];
-      const installed = run('sh', [path.join(root, 'install.sh'), ...installArgs, '--target', target, '--hosts', 'codex'], { env });
+      const installed = run('sh', [path.join(root, 'install.sh'), ...installArgs, '--target', target, '--hosts', 'codex', '--openclaw-mcp'], { env });
       const downloadedDigest = installed.match(/archive-sha256=([a-f0-9]{64})/)?.[1];
       assert.ok(downloadedDigest, 'installer must identify downloaded archive bytes');
       if (evidence.archive_digest) assert.equal(downloadedDigest, evidence.archive_digest);
       else evidence.archive_digest = downloadedDigest;
       assert.ok(fs.existsSync(path.join(target, '.rig/routing.md')));
+      assert.deepEqual(json(openclawConfig).mcp.servers.keep, { command: 'keep' });
       const descriptor = json(path.join(target, '.rig/mcp-server.json'));
       const sdk = path.join(target, '.rig/runtime/rig-mcp/node_modules/@modelcontextprotocol/sdk/dist/esm');
       const [{ Client }, { StdioClientTransport }] = await Promise.all([import(pathToFileURL(path.join(sdk, 'client/index.js')).href), import(pathToFileURL(path.join(sdk, 'client/stdio.js')).href)]);
@@ -149,6 +181,7 @@ async function main() {
       evidence.scenarios.push({ scenario, selected_services: selected, service_checks: checks, mcp_tool: 'rig_instructions', baseline_files: Object.keys(before).length });
       run(cli, ['--target', target, '--uninstall', '--purge-generated'], { env });
       assert.deepEqual(inventory(target), before, `${scenario}: complete inventory and bytes after uninstall`);
+      assert.deepEqual(json(openclawConfig).mcp.servers, { keep: { command: 'keep' } }, `${scenario}: unrelated OpenClaw server survives`);
     }
     evidence.status = 'pass';
   } catch (error) { evidence.status = 'fail'; evidence.failure = error.message; throw error; }

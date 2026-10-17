@@ -6,8 +6,8 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
-- **2026-10-17 — [2026-10-17-review-received-resolution-mcp-emission-docs](reasoning/2026-10-17-review-received-resolution-mcp-emission-docs.md)**: Installer docs now state that migration-only MCP setup requires an emitted host and is ignored on fresh installs.
 - **2026-10-17 — [2026-10-17-review-received-resolution-full-gate](reasoning/2026-10-17-review-received-resolution-full-gate.md)**: The full local gate passed after restoring the fresh-install MCP host check; exact-commit, QA platform, review-receipt, and owner delivery evidence remain.
+- **2026-10-17 — [2026-10-17-review-received-resolution-clean-install](reasoning/2026-10-17-review-received-resolution-clean-install.md)**: The exact-SHA clean-install harness now explicitly opts into MCP through disposable OpenClaw state.
 - **2026-10-17 — [2026-10-17-review-received-delivery](reasoning/2026-10-17-review-received-delivery.md)**: Review Received is complete locally with four findings and 39 focused tests passing; GitHub denies review and comment publication with HTTP 403, so no approval was submitted.
 - **2026-10-17 — [2026-10-17-review-received-acceptance-handoff](reasoning/2026-10-17-review-received-acceptance-handoff.md)**: Owner requests agent-ready resolution criteria; all four Review Received findings now have observable checks, regression evidence requirements and a final approval checklist.
 - **2026-10-17 — [2026-10-17-qa-readiness-owner-signed](reasoning/2026-10-17-qa-readiness-owner-signed.md)**: Owner reports completing the requested test-command amendment signing ceremony.

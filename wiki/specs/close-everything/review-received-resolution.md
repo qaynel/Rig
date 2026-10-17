@@ -481,6 +481,37 @@ and uninstalls owned additions` pass in
 tests/migrate-v5.test.js`. Retry now requires an applied journal record whose
 digest matches the marker bytes, and removal supplies that expected digest.
 
+### Finding 16 — clean-install E2E assumes default MCP setup
+
+**Severity:** Medium. **Evidence:** `scripts/clean-install-e2e.js`, installer
+invocation and subsequent `.rig/mcp-server.json` use. The ordinary public
+install now skips optional MCP dependencies, so the required clean-install
+workflow failed before its MCP handshake instead of exercising the intended
+real-download scenario.
+
+Acceptance criteria:
+
+- [x] The E2E explicitly opts into MCP using `--openclaw-mcp` and confines
+  OpenClaw config and HOME to its disposable work directory.
+- [x] It preserves a pre-existing unrelated OpenClaw server and verifies that
+  uninstall removes only the Rig server.
+- [x] On a real dependency install, both fresh and existing repository
+  scenarios complete the MCP handshake/tool call, approved service check, and
+  byte-inventory uninstall comparison.
+- [x] Regression `release eligibility requires exact-SHA Linux/macOS
+  clean-install E2E before artifact` asserts the explicit option and isolated
+  config path.
+
+**Evidence / resolution:** the exact-candidate artifact run first failed because
+the default install no longer wrote `.rig/mcp-server.json`. Adding the explicit
+opt-in then exposed a clone-local identity sidecar in the full inventory; the
+fixture now seeds that identity as pre-existing repository state before
+comparing bytes. `node --test tests/release-eligibility-workflow.test.js`
+passes, and the corrected harness passed both scenarios with real downloads
+and actual MCP calls using a local archive of `85a24ec4` (provisional because
+the harness itself was still uncommitted). Rerun on the next clean commit and
+record the evidence file before closing this candidate criterion.
+
 ## Conditions for approval
 
 Follow the ordered [change-management policy](../../../rig/corpus/standards/change-management.md).

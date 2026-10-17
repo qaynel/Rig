@@ -2,7 +2,7 @@
 date: 2026-10-17
 source: review
 topics: distribution-and-release
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-resolution-public-upgrade.md
 summary: Installer docs now state that migration-only MCP setup requires an emitted host and is ignored on fresh installs.
 ---
