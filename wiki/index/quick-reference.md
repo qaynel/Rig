@@ -5,7 +5,7 @@ to do, read the "Read first" cell, and stop there unless it does not answer you.
 
 **This page is capped at 150 lines.** Keep only rows that can change a decision.
 
-Not a replacement for [the primer](../agent-primer.md) (62 lines), which is
+Not a replacement for [the primer](../agent-primer.md) (66 lines), which is
 still the one mandated read. This is the layer under it.
 
 ---
@@ -26,17 +26,17 @@ still the one mandated read. This is the layer under it.
 | I am about to… | Read first | Lines | Then, only if needed |
 |---|---|---|---|
 | **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 240 | [The two gates](../topics/the-two-gates.md) (113) · `gate1/` is frozen — never edit it |
-| **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 572 | [Graft mechanics](../topics/graft-mechanics.md) (107) · [Install manifest and removal](../topics/install-manifest-removal.md) (139) |
-| **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 144 | [Onboarding flow](../topics/onboarding-flow.md) (572) for the projection path |
-| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 185 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
-| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 105 | [Catalogue contract](../topics/catalogue-contract.md) (124) · [Services and reports](../topics/services-and-reports.md) (146) |
-| **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (63) · [Action evaluator](../topics/action-evaluator.md) (42) |
-| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 347 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
-| **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 410 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
-| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 92 | [Review receipts](../topics/review-receipts.md) (64) · [Delivery plan](../topics/delivery-plan.md) (167) |
+| **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 492 | [Graft mechanics](../topics/graft-mechanics.md) (117) · [Install manifest and removal](../topics/install-manifest-removal.md) (163) |
+| **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 144 | [Onboarding flow](../topics/onboarding-flow.md) (492) for the projection path |
+| **Edit a Tier 1 skill or rule** | [Agent working conventions](../topics/agent-working-conventions.md) | 192 | `rig/tier-1/routing.md` is the router; skills exist in three byte-identical copies — see the note below |
+| **Change the catalogue, skill shelf, or services** | [The catalogue](../topics/the-catalogue.md) | 120 | [Catalogue contract](../topics/catalogue-contract.md) (132) · [Services and reports](../topics/services-and-reports.md) (148) |
+| **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (68) · [Action evaluator](../topics/action-evaluator.md) (42) |
+| **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 39 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
+| **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 398 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
+| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 180 | [Review receipts](../topics/review-receipts.md) (64) · [Delivery plan](../topics/delivery-plan.md) (183) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
-| **Propose a workflow, product, or architecture change** | [The overhaul](../topics/the-overhaul.md) | 274 | The live workstream, its rejected options, and the five open decisions that gate it |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 169 | [Status](../status.md) (30) for what is true right now |
+| **Propose a workflow, product, or architecture change** | [The overhaul](../topics/the-overhaul.md) | 32 | The live workstream, its rejected options, and the five open decisions that gate it |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 170 | [Status](../status.md) (136) for what is true right now |
 
 ---
 
