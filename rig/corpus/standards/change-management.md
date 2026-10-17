@@ -14,7 +14,9 @@ and the AI development standards (`ai-sdlc.md`, what counts as evidence).
 - **The release gate runs the sequence in order and stops at the first unmet
   step.** `node scripts/check-deployment-gate.js --receipt <path>` proves, in
   this order: the signed oracle verifies, the working tree is clean, the review
-  receipt binds to the current bytes, the changelog names the current version,
+  full repository gate actually passes without changing publishable files,
+  review receipt covers the frozen acceptance cases and binds to the current
+  implementation, technical design and catalogue, the changelog names the current version,
   and the tracker/coherence gate passes. It prints the whole checklist with the
   first failure named, and exits non-zero. An enforced installation wires it
   into the workflow that promotes a candidate; Rig wires it into
@@ -46,6 +48,10 @@ batched signature, not one per change.
 from an earlier tree is not evidence. The fast focused test command belongs to
 the inner loop and never substitutes for this.
 
+The deployment checker executes `npm test` itself and rejects a run that changes
+publishable files. A receipt path alone never proves that tests ran. Promotion
+also repeats the gate in the exact-QA health workflow.
+
 ### 4. A review receipt binds to those exact bytes
 
 `node scripts/review-receipt.js` with no `--interim`, started fresh. The
@@ -54,6 +60,11 @@ timestamp, so a receipt cannot be back-dated or re-pointed. A receipt whose
 `implementation_digest` does not match the current tree is stale and does not
 count. Every finding is fixed or answered in writing before the sequence
 continues.
+
+The authorized release operator passes the wrapper's output unchanged. Receipt
+validation checks current bindings and coverage; it does not authenticate the
+producer. Workflow-dispatch permissions and receipt custody remain operational
+controls, not assurances provided by JSON fields.
 
 Write the receipt outside the tree it binds, or into an ignored path. The
 implementation digest hashes every publishable file, so a receipt committed —

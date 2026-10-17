@@ -204,25 +204,8 @@ try {
   fail(`reviewer json did not parse: ${e.message}`);
 }
 
-// The optimistic write above already recorded this attempt as a failure.
-// Only a confirmed pass clears the cap; a fail (or anything short of pass)
-// leaves the count in place.
-if (reported.verdict !== 'fail' && existsSync(attemptsPath)) {
-  unlinkSync(attemptsPath);
-}
-
-if (interim) {
-  const findings = reported.findings || [];
-  const blockers = findings.filter((f) => f.severity === 'blocker').length;
-  console.log(
-    `review-receipt: interim pass — no receipt written\n` +
-      `  target   ${targetPath} (${targetDigest.slice(0, 12)})\n` +
-      `  reviewer ${model}\n` +
-      `  verdict  ${reported.verdict} — ${findings.length} finding(s), ${blockers} blocker(s), ` +
-      `${(reported.unresolved || []).length} unresolved`
-  );
-  if (findings.length) console.log(JSON.stringify(findings, null, 2));
-  process.exit(reported.verdict === 'fail' ? 1 : 0);
+if (!['pass', 'fail'].includes(reported.verdict)) {
+  fail('reviewer returned an invalid verdict');
 }
 
 const receipt = {
@@ -264,6 +247,21 @@ try {
   fail(`reviewer returned an invalid or failing receipt: ${error.message}`);
 }
 
+if (interim) {
+  const findings = reported.findings || [];
+  const blockers = findings.filter((f) => f.severity === 'blocker').length;
+  console.log(
+    `review-receipt: interim pass — no receipt written\n` +
+      `  target   ${targetPath} (${targetDigest.slice(0, 12)})\n` +
+      `  reviewer ${model}\n` +
+      `  verdict  ${reported.verdict} — ${findings.length} finding(s), ${blockers} blocker(s), ` +
+      `${(reported.unresolved || []).length} unresolved`
+  );
+  if (findings.length) console.log(JSON.stringify(findings, null, 2));
+  if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
+  process.exit(0);
+}
+
 // The receipt is assembled here. Only case verdicts, the global verdict,
 // findings, and unresolved items come from the reviewer.
 writeFileSync(
@@ -274,6 +272,8 @@ writeFileSync(
     2
   )}\n`
 );
+
+if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
 
 const findings = reported.findings || [];
 const blockers = findings.filter((f) => f.severity === 'blocker').length;

@@ -9,8 +9,9 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
-const { implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
+const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
 
 function arg(name, fallback = null) {
   const i = process.argv.indexOf(`--${name}`);
@@ -32,10 +33,11 @@ function steps(root, receiptPath) {
     }],
     ['2. the signed oracle verifies', () => node('check-advanced-spec.js')],
     ['3. the full gate is green on these bytes', () => {
-      // npm test is minutes long and already its own required job; this step is
-      // proved by the caller, and step 4 binds the bytes it ran against.
       if (!receiptPath) return 'no --receipt, so nothing binds the gate run to these bytes';
-      return null;
+      const before = implementationDigest(root).digest;
+      const run = spawnSync('npm', ['test'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+      if (run.status !== 0) return `npm test exited ${run.status}: ${(run.error?.message || run.stderr || run.stdout || '').trim().slice(-4000)}`;
+      return implementationDigest(root).digest === before ? null : 'publishable files changed during npm test; freeze the candidate and rerun';
     }],
     ['4. a review receipt binds to the current bytes', () => {
       if (!fs.existsSync(receiptPath)) return `no receipt at ${receiptPath}`;
@@ -52,12 +54,16 @@ function steps(root, receiptPath) {
           + ' Re-run the review on the current bytes, and keep the receipt outside the repository or in an ignored path.';
       }
       try {
+        const spec = fs.readFileSync(path.join(root, 'wiki/gate2/technical-spec.md'));
+        const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
+        const acceptanceIds = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))];
+        if (!acceptanceIds.length) return 'no frozen acceptance cases found';
         validateReviewReceipt(receipt, {
-          technical_spec_digest: receipt.technical_spec_digest,
-          catalogue_digest: receipt.catalogue_digest,
+          technical_spec_digest: createHash('sha256').update(spec).digest('hex'),
+          catalogue_digest: catalogueDigest(path.join(root, 'rig/corpus/catalogue.json')),
           implementation_digest: current.digest,
-          implementation_base: receipt.implementation_base,
-          acceptance_ids: (receipt.verdicts || []).map((v) => v.id),
+          implementation_base: 'origin/qa-prod',
+          acceptance_ids: acceptanceIds,
         });
       } catch (error) {
         return `receipt rejected: ${error.message}`;

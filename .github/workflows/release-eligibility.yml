@@ -54,6 +54,10 @@ jobs:
           PROVED_SHA: ${{ needs.resolve.outputs.sha }}
         run: |
           test "$PROVED_SHA" = "$(git rev-parse HEAD)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
       - name: Require a changelog entry for the release version
         run: |
           version=$(node -p "require('./package.json').version")

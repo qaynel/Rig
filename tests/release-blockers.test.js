@@ -38,7 +38,7 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub }) {
+function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub, reported: reportOverride }) {
   const root = path.join(__dirname, '..');
   const bin = path.join(target, 'bin');
   if (!fs.existsSync(bin)) fs.mkdirSync(bin);
@@ -46,7 +46,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
   const invocationMarker = path.join(invocations, 'called');
   const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
   const ids = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))].sort();
-  const reported = JSON.stringify({
+  const reported = JSON.stringify(reportOverride || {
     verdict,
     verdicts: ids.map((id) => ({ id, verdict: verdict === 'fail' ? 'fail' : 'pass', note: 'stub' })),
     findings: verdict === 'fail' ? [{ severity: 'blocker', category: 'correctness', anchor: 'x', detail: 'stub failure' }] : [],
@@ -1266,6 +1266,31 @@ test('review-receipt cap is scoped per author-context and clears on a passing ve
 
     const again = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
     assert.equal(again.invocationCount, 1, 'a passing verdict resets the cap for later, unrelated review needs');
+  });
+});
+
+test('review-receipt keeps the retry cap when a pass report fails receipt validation', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const authorContext = 'release-attempt-invalid-pass';
+
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    const invalidPass = runReviewReceipt(target, {
+      verdict: 'pass',
+      authorContext,
+      out,
+      reported: { verdict: 'pass', verdicts: [], findings: [], unresolved: [] },
+    });
+    assert.notEqual(invalidPass.run.status, 0);
+    assert.match(invalidPass.run.stderr, /coverage mismatch/);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
+
+    const capped = runReviewReceipt(target, { verdict: 'pass', authorContext, out });
+    assert.notEqual(capped.run.status, 0);
+    assert.match(capped.run.stderr, /re-review cap reached/);
+    assert.equal(capped.invocationCount, 0);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
   });
 });
 

@@ -26,10 +26,13 @@ proving-test standard. A receipt from an older tree is not current evidence.
 3. Make the acceptance tests fail for the missing behavior. Have the human sign
    the oracle and freeze it; agents never change signed tests.
 4. Build test first with the smallest correct diff and reuse existing machinery.
-5. Have an independent reviewer assess the exact candidate.
-6. Run the full repository gate against the final bytes before delivery.
-7. Update docs and trackers in the same change. Mark actual delivery only after
-   it happened; candidate readiness is a separate state.
+5. Update docs and candidate tracker declarations in the same change, then
+   freeze the candidate and run the full repository gate against its final bytes.
+6. Have an independent reviewer assess that exact candidate. Any fix requires
+   fresh tests and review evidence, per `change-management.md`.
+7. Deliver through required checks and promotion, publish and verify the release,
+   then close trackers. Mark actual delivery only after it happened; candidate
+   readiness is a separate state.
 
 Rig's own frozen-oracle check, coherence gate and tracker checks may enforce
 these additional rules here. Offer them elsewhere as enforced only when their
