@@ -80,3 +80,8 @@ configurator, not a second picker after approval.
 The [late review resolution trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
 records that default public installs and v5 upgrades do not install optional MCP
 dependencies; that requires the explicit OpenClaw opt-in.
+
+The current closeout correction preserves pinned executable modes, validates
+the fetched provenance receipt during check, projects shared approved helpers
+only with an optional selection, and removes deselected service bindings from
+ordinary checks. [Remediation trace](../reasoning/2026-10-18-qa-closeout-remediation.md)

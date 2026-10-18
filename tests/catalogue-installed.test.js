@@ -4,9 +4,51 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const h = require('./helpers/path-b');
-const { loadCatalog } = require('../rig/lib/catalog');
+const { CATALOG_PATH, authorshipReport, loadCatalog } = require('../rig/lib/catalog');
 const { definition, detectService, runNativeService } = require('../rig/lib/service-catalogue');
 const { runBinding } = require('../rig/lib/check-runner');
+const { runChecks } = require('../rig/lib/checks');
+const { signApproval } = require('./helpers/path-b-approval');
+
+test('installed onboarding README and catalogue authorities describe the signed corpus', async () => {
+  await h.withRepo(target => {
+    const skillReadme = fs.readFileSync(path.join(target, '.rig/skills/README.md'), 'utf8');
+    assert.equal(skillReadme, fs.readFileSync(path.join(h.root, 'rig/catalog/skills/README.md'), 'utf8'));
+    assert.match(skillReadme, /source tree is the pinned reference for optional skills/i);
+    assert.match(skillReadme, /normal install\s+stages no optional skill tree/i);
+    assert.match(skillReadme, /person approves a selected skill[\s\S]*?fetches the pinned archive, verifies its digests and patches/i);
+    assert.match(skillReadme, /preserves pinned\s+executable modes/i);
+    assert.doesNotMatch(skillReadme, /Rig is markdown-only|skills are not yet wired|no runtime engines/i);
+    const sourceReadme = fs.readFileSync(path.join(h.root, 'rig/corpus/onboarding/README.md'), 'utf8');
+    const installedReadme = fs.readFileSync(path.join(target, '.rig/onboarding/README.md'), 'utf8');
+    assert.equal(installedReadme, sourceReadme);
+    assert.match(installedReadme, /human approves one exact\s+proposal before any repository-owned byte changes/i);
+    assert.match(installedReadme, /identity\.md.*Offer.*guidance fits the repository's\s+actual gap/i);
+    assert.match(installedReadme, /coverage ceiling/i);
+    assert.match(installedReadme, /They approve the exact proposal digest/i);
+
+    const catalog = loadCatalog();
+    assert.equal(path.relative(h.root, CATALOG_PATH), 'rig/corpus/catalogue.json');
+    assert.ok(catalog.services.length > 0);
+    assert.deepEqual(authorshipReport().failures, []);
+
+    const authoredGate = fs.readFileSync(path.join(h.root, 'wiki/topics/authored-service-gate.md'), 'utf8');
+    const catalogueContract = fs.readFileSync(path.join(h.root, 'wiki/topics/catalogue-contract.md'), 'utf8');
+    assert.match(authoredGate, /signed oracle checks the current service-specific corpus: AT-SHAPE-6 rejects\s+generic-baseline wording/i);
+    assert.match(authoredGate, /AT-PB-1 pins `rig\/corpus\/catalogue\.json` plus\s+its service definitions/i);
+    assert.match(catalogueContract, new RegExp(`signed AT-PB-1 oracle pins the active ${catalog.services.length}-service corpus at\\s+\`rig/corpus/catalogue\\.json\``, 'i'));
+    assert.match(catalogueContract, /signed AT-SHAPE-6 oracle rejects generic-baseline wording/i);
+    for (const [name, text] of [['authored-service gate', authoredGate], ['catalogue contract', catalogueContract]]) {
+      assert.match(text, /AT-SHAPE-6/i, `${name} names the authorship check`);
+      assert.match(text, /generic-baseline/i, `${name} records what the authorship check rejects`);
+      assert.match(text, /AT-PB-1/i, `${name} names the active-corpus pin`);
+      assert.match(text, /signed/i, `${name} identifies these as signed authorities`);
+      assert.match(text, /rig\/corpus\/catalogue\.json/i, `${name} names the active catalogue`);
+      assert.doesNotMatch(text, /unsigned owner (?:amendment|cases).*?(?:await|pass their advisory)/is,
+        `${name} does not describe current signed checks as unsigned or advisory`);
+    }
+  }, { install: true });
+});
 
 test('present malformed JSON service input stays discovered and repairable', async () => {
   const service = loadCatalog().services.find(row => row.id === 'development.documentation.api-reference');
@@ -95,6 +137,46 @@ test('signed onboarding binds and executes a selected documentation service', as
     fs.writeFileSync(path.join(target, 'README.md'), '# Project\n');
     const bad = h.handle({ schema_version: 1, action: 'check', target, expected_revision: result.checked.revision });
     assert.equal(bad.phase, 'failed');
+  }, { install: true });
+});
+
+test('approved service reselection removes inactive bindings and unedited guidance', async () => {
+  await h.withRepo(target => {
+    const id = 'development.documentation.onboarding-docs';
+    fs.writeFileSync(path.join(target, 'README.md'), '# Project\n\n## Setup\nRun npm install.\n\n## Run\nRun npm start.\n\n## Check\nRun npm test.\n');
+    h.applyAndCheck(target, { proposal: { selected_skills: [], capabilities: [], grafts: [], selected_services: { [id]: 'minimal' } } });
+    fs.appendFileSync(path.join(target, 'AGENTS.md'), '\nRepository context changed before reselection.\n');
+    const result = h.applyAndCheck(target, { proposal: { selected_skills: [], capabilities: [], grafts: [], selected_services: {} } });
+    assert.equal(result.checked.phase, 'checked');
+    assert.deepEqual(h.readJson(path.join(target, '.rig/service-bindings.json')), {});
+    assert.equal(fs.existsSync(path.join(target, `.rig/services/${id}.md`)), false);
+    assert.equal(runChecks(target).status, 0);
+  }, { install: true });
+});
+
+test('empty service reselection refuses a post-approval binding-file edit', async () => {
+  await h.withRepo(target => {
+    const id = 'development.documentation.onboarding-docs';
+    fs.writeFileSync(path.join(target, 'README.md'), '# Project\n\n## Setup\nRun npm install.\n\n## Run\nRun npm start.\n\n## Check\nRun npm test.\n');
+    h.applyAndCheck(target, { proposal: { selected_skills: [], capabilities: [], grafts: [], selected_services: { [id]: 'minimal' } } });
+    fs.appendFileSync(path.join(target, 'AGENTS.md'), '\nRepository context changed before reselection.\n');
+
+    const { proposed } = h.prepareAndPropose(target, { proposal: { selected_skills: [], capabilities: [], grafts: [], selected_services: {} } });
+    const approval = signApproval(target, proposed.proposal_digest);
+    const bindingsFile = path.join(target, '.rig/service-bindings.json');
+    const edited = Buffer.from('{"user":"keep this"}\n');
+    fs.writeFileSync(bindingsFile, edited, { mode: 0o600 });
+    fs.chmodSync(bindingsFile, 0o600);
+
+    assert.throws(() => h.handle({
+      schema_version: 1,
+      action: 'apply',
+      target,
+      expected_revision: proposed.revision,
+      approval,
+    }), /service-bindings\.json.*(?:preimage|ownership|stale)/i);
+    assert.deepEqual(fs.readFileSync(bindingsFile), edited);
+    assert.equal(fs.statSync(bindingsFile).mode & 0o777, 0o600);
   }, { install: true });
 });
 

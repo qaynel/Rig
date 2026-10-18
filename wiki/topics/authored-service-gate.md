@@ -1,13 +1,13 @@
 # The authored-service gate
 
-The completed corpus uses service-specific guidance and coverage ceilings.
-The frozen AT-SHAPE-6 wording assertion that requires generic-baseline text has
-an unsigned owner amendment at
-[`candidate-amendments/04-catalogue/AT-SHAPE-6.md`](../specs/close-everything/candidate-amendments/04-catalogue/AT-SHAPE-6.md).
-The AT-PB-1 byte pin likewise has a candidate to move from the compatibility
-catalogue to the active corpus catalogue and its 115 service definitions:
-[`candidate amendment`](../specs/close-everything/candidate-amendments/04-catalogue/AT-PB-1.md).
-[Candidate trace](../reasoning/2026-10-14-closure-catalogue-candidates.md)
+The signed oracle checks the current service-specific corpus: AT-SHAPE-6 rejects
+generic-baseline wording in authored fragments (lint-format retains its
+evidence-backed exception), and AT-PB-1 pins `rig/corpus/catalogue.json` plus
+its service definitions. The 2026-10-14 candidate amendments and their trace
+are historical records of the changes before they were signed:
+[`AT-SHAPE-6 candidate`](../specs/close-everything/candidate-amendments/04-catalogue/AT-SHAPE-6.md) ·
+[`AT-PB-1 candidate`](../specs/close-everything/candidate-amendments/04-catalogue/AT-PB-1.md) ·
+[candidate trace](../reasoning/2026-10-14-closure-catalogue-candidates.md).
 
 ## What it is
 
@@ -17,15 +17,13 @@ evidence targets. Presence alone is not authorship.
 
 ## Current implementation
 
-Every non-lint leaf is explicitly Policy-grade generic baseline practice and
-states that it is not tailored to the installing repository. Identity fragments
-name exact owned scopes, exclusions, applicability signals, disposition, and
-dependencies. Grade fragments name leaf-specific boundary,
-repository-context, and evidence-receipt checks. Each catalogue entry carries
-distinct minimal/mid/maximal acceptance targets with explicit given/pass/fail
-conditions. Slice fragments state the owned invariant and the checks they
-activate. Lint/format retains its separately authored Context and Evidence
-behavior.
+Every leaf has service-specific guidance, declared applicability and a named
+assurance ceiling. Identity fragments name exact owned scopes, exclusions,
+applicability signals, disposition, and dependencies. Grade fragments name
+leaf-specific boundary, repository-context, and evidence-receipt checks. Each
+catalogue entry carries distinct minimal/mid/maximal acceptance targets with
+explicit given/pass/fail conditions. Slice fragments state the owned invariant
+and the checks they activate.
 
 The deterministic gate opens every declared file and rejects missing or empty
 markdown, placeholders, the previous repeated boilerplate phrases, generic

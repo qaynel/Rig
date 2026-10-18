@@ -10960,3 +10960,15 @@ diff --git a/rig/catalog/skills/plumbing/lib/rig-memory-helpers.ts b/rig/catalog
  }
  
  // ── Public: withErrorContext ──────────────────────────────────────────────
+diff --git a/rig/catalog/skills/review/code-and-pull-request/review/design-checklist.md b/rig/catalog/skills/review/code-and-pull-request/review/design-checklist.md
+--- a/rig/catalog/skills/review/code-and-pull-request/review/design-checklist.md
++++ b/rig/catalog/skills/review/code-and-pull-request/review/design-checklist.md
+@@ -12,1 +12,1 @@
+-source <(~/.claude/skills/rig/bin/rig-diff-scope <base> 2>/dev/null)
++source <(.rig/plumbing/bin/rig-diff-scope <base> 2>/dev/null)
+diff --git a/rig/catalog/skills/review/code-and-pull-request/review/SKILL.md b/rig/catalog/skills/review/code-and-pull-request/review/SKILL.md
+--- a/rig/catalog/skills/review/code-and-pull-request/review/SKILL.md
++++ b/rig/catalog/skills/review/code-and-pull-request/review/SKILL.md
+@@ -1300,1 +1300,1 @@
+-source <(~/.claude/skills/rig/bin/rig-diff-scope <base> 2>/dev/null) || true
++source <(.rig/plumbing/bin/rig-diff-scope <base> 2>/dev/null) || true

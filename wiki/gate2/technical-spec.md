@@ -1,20 +1,12 @@
 # Tier 2 Advanced - Working Implementation Design v0.17
 
 > **Status: WORKING. Present, checked, and deliberately not frozen.** This
-> version is retraced to the D24/D28 one-gate oracle plus the Path B amendment,
-> with the signed Path B base at 83 cases and a 95-case onboarding-hardening
-> amendment signed by the intent owner (Phase 0 corrections). Phase 1
-> implementation of the AT-HD-* findings is in progress.
-> It supersedes v0.11's lint-format-only D21/D23 release boundary: all 115
-> catalogue leaves are release-blocking at declared Policy grade; all 55
-> vendored skills are wired by Rig name; onboarding activates only detected
-> or explicitly requested host trees; and named-tag `5.0.0` distribution
-> carries the upstream MIT notice and provenance without an endorsement
-> claim. The static Tier-1 path installs the neutral 55-skill set without a
-> runtime, while the hostless tagged-release path additionally installs the
-> catalogue and safety runtime; all six CI providers have additive adapters;
-> lifecycle and review evidence use one shipping schema. Lint-format retains
-> its evidenced Context and Evidence behavior.
+> version records the D24/D28 one-gate oracle and the Path B technical history.
+> It is a working design and may be revised as implementation learns; the
+> current 6.0.0 release amendment below supersedes older payload, version,
+> installation, and acceptance-traceability statements that conflict with the
+> signed owner decisions. Older 55-skill installed-shelf language is historical
+> and does not govern current delivery.
 >
 > There is one freeze: business intent, acceptance, and the deterministic
 > testing infrastructure are signed before production implementation. This
@@ -28,7 +20,8 @@
 | `business-spec.md` | `3b66c7705d293c14c43163945b60f9d190eb55c10d7246257fa7940dd8614375` |
 | `acceptance.md` | `34f427696e00c4c0cf6655425314f5f5e96c2d6dc6e3a184487b33f343ae4391` |
 
-The D28 amendment is signed into the oracle for the v5.0.0 release candidate.
+The D28 amendment was signed during the v5.0.0 release-candidate work; that
+version reference is historical and does not set the current release version.
 If either digest changes, this design is stale and every review receipt bound
 to it is void.
 
@@ -86,9 +79,30 @@ Neither closes the hole. They make it a change the intent owner sees rather
 than one they have to go looking for, which is the honest ceiling for a control
 whose verifier and trust root live on the same disk as the adversary.
 
-This document is the sole current technical approach for implementing the
+This document is the working technical approach for implementing the
 a-la-carte delivery model. It may be revised without re-signing, but a SOW,
 task list, coverage plan, or later ruling cannot supersede the signed oracle.
+
+### Current release amendment — 2026-10-18
+
+For the 6.0.0 release, the current payload is projected from the central
+`rig/corpus/`. Install stages **zero optional third-party skill trees** and
+projects the **nine mandatory native entry skills**. Pinned upstream metadata
+is shipped; an approved onboarding selection fetches the requested third-party
+source, verifies its digest, applies recorded patches, and projects only the
+selected resources. Do not restore the former install-time 55-skill shelf or
+offline-preparation contract. Those claims below are historical wherever they
+remain in legacy rationale or examples.
+
+The current release blockers are the signed 95-case oracle, the catalogue and
+safety checks, the central-corpus projections, exact-QA automated health and
+real-download Linux/macOS clean-install evidence, an eligible review receipt,
+and `npm test` on the exact candidate. Public `install rig` downloads the
+resolved release archive before execution. In `scripts/clean-install-e2e.js`,
+default `--sha <commit>` downloads the GitHub archive, checks its tree against
+the source commit, and passes archive/tree commitments to the public installer.
+Only explicit `--artifact` supplies a local archive; `--tag` remains the
+separate post-publication smoke test.
 
 - Gate 1 rationale: [`../sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md)
 - Shipped Basic mechanism being extended:
@@ -158,12 +172,13 @@ tree or an evidence-backed unsupported axis, and the exact reason is reported.
 Rig draws no verified-versus-unverified tier in output or data and proves every
 emitted axis with byte-landing tests.
 
-**The D24 release is broad and shallow.** Every one of the 115 leaves ships at
-Policy (`minimal`) with its grade and untailored-baseline status stated on the
-fragment's face. All 55 vendored skills are materialized and discoverable by
-their Rig names. Lint-format alone retains higher-grade Context/Evidence claims.
-Missing bindings remain named coverage gaps; D24 creates no generic success
-binding or silent skip.
+**The D24 catalogue is broad and shallow.** Every one of the 115 leaves ships
+at Policy (`minimal`) with its grade and untailored-baseline status stated on
+the fragment's face. Optional third-party skill trees are fetched only during
+approved onboarding; the install payload keeps pinned upstream metadata and
+projects nine mandatory native entry skills. Lint-format alone retains
+higher-grade Context/Evidence claims. Missing bindings remain named coverage
+gaps; D24 creates no generic success binding or silent skip.
 
 **Activation requires a present human, or it does not happen (D6).** Policy
 activation uses a verified host-native presence prompt where one exists,
@@ -278,7 +293,7 @@ These are implementation constraints, not suggestions:
 | AD-24 | **Treat every axis in the 19-host/six-provider roster and every one of the 115 leaves as an MVP release commitment.** Each selected emitted axis has a complete §11 contract and byte-landing proof; every leaf clears §5.6 at declared Policy grade. D24 retires D23's lint-format-only exception. An unsupported vendor axis emits nothing with evidence; an absent/unselected host emits nothing with detection provenance. |
 | AD-25 | Write user-global host configuration by append or namespaced additive merge only, never overwrite. Attribute every written entry to a repository identity from the **first** installation, using a generated ID stored clone-locally under `git rev-parse --git-path rig/`, with remote URL and repository realpath carried as entry metadata so removal reports name something a human recognises. The ID is never committed. Uninstall removes only the current repository's entries; reinstall replaces them in place. |
 | AD-26 | **Disclose the out-of-repository blast radius at install time, per `AT-HOME-1`.** The install line names any configuration written outside the repository. There is no per-host claim string in install output or run reports — no `verified` or `emitted` label, no "please report" invitation, no framing that draws a tier. The honest observation that Rig has not seen enforcement fire on any host is a statement about the product, its home is the host registry header, and a user who wants it reads it there. *(Amended v0.6:* "verified enforcement surface" — Gate 1 `AT-BASE-2`'s term for a host that exposes a mechanical hook — is a distinct third sense of `verified`, expressed internally as `emitted`/`gap`/`unsupported` and kept out of the banned user-facing per-host claim surfaces; §1 and §11.1 record the three-way split.)* |
-| AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell, because Rig's own default policy denies exactly that. The root tagged-release path invokes the static bootstrap with its explicit active-delivery gate so catalogue and safety runtime bytes land without changing local Tier 1's runtime-free contract. Delete the inherited npm publish workflow and move `package.json` to `5.0.0`, still `private`. |
+| AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell. Current 6.0.0 delivery projects the central corpus and nine mandatory native entry skills; optional third-party content is fetched only after approved onboarding. Delete the inherited npm publish workflow; keep the package `private`. |
 | AD-28 | Verify the complete oracle by signature, not repository process: recompute both Gate 1 digests and `testing-infrastructure.manifest`, verify the v2 namespaced SSHSIG message, then verify every sorted path/digest entry before product tests. Verify the signature, not the key class; the owner attests that separately. Run this verifier first in `npm test`, short-circuiting code tests, and provide `npm run test:code`. An unarmed checkout reports `Gate 1 unprotected` and continues; once `gate1.allowed-signers` exists, every missing/malformed/stale signature fails closed. |
 | AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
 | AD-30 | Recover a lost or compromised policy-activation signer only through a pre-registered recovery identity in `.rig/policy/recovery.allowed-signers`, verified as an SSHSIG security-key signature under namespace `rig-policy-recovery`. Registration requires an already-valid credential, records a registration receipt in `.rig/policy/trust.json`, and rejects a recovery key whose fingerprint matches an everyday signer. First signer setup offers three recovery identities; later signer setup offers to add more while any valid credential remains. Exhausting the everyday signer and every registered recovery identity is terminal for that policy trust state. Recovery side effects are applied only after a valid recovery receipt is committed. *(Amended v0.6/v0.11:* the `sk-*` class is **declared and disclosed**, not certified from the signature (D19); the registration user-verification ceremony — not the label — is what stops an agent holding a valid credential from registering a key it could later operate unattended, and a platform that cannot request user verification refuses registration with `user_verification_unavailable`.)* |
@@ -717,19 +732,18 @@ The ladder is metadata, not a second resolver. Each rung maps to a small,
 audited floor-slice bundle. Selecting a higher-rung service expands the exact
 earlier bundles. It never expands an entire group.
 
-### 5.5 Existing and vendored Rig skill reuse
+### 5.5 Existing Rig skill reuse and pinned upstream fetching
 
 When a service matches an existing Rig skill, its identity fragment references
 that skill as the implementation source. Catalogue overlays add grade/slice
 behavior without forking the base skill.
 
-The 55 vendored skills under `rig/catalog/skills/` join the same registry.
-Materialization enumerates their manifest metadata, validates unique Rig names,
-copies each complete skill directory plus `LICENSE.upstream` and `UPSTREAM.md`,
-and exposes only those names through each detected host's supported skill
-surface. Host discovery and skill discovery use the same selected-host set;
-no absent host tree is created to carry skills. A missing directory, duplicate
-name, invalid skill frontmatter, or omitted notice is a hard coverage gap.
+Pinned upstream metadata identifies optional third-party skills without
+installing their trees. An approved onboarding selection fetches the requested
+upstream bytes, verifies the pinned digest, applies recorded local patches, and
+projects only selected resources. Native host discovery is separate: install
+projects the nine mandatory entry skills, while optional skill projection
+requires an approved onboarding plan. No absent host tree is created.
 
 ### 5.6 Authored-service gate
 
@@ -1284,8 +1298,15 @@ requires OpenClaw or npm and never creates its global configuration.
 final path and creates `.rig-migration.json.tmp` exclusively at the repository
 root, outside the `.rig` parent it protects. A collision is a recoverable
 refusal before migration payload writes; an interrupted complete temp is
-adopted only when its bytes match the recomputed plan, and a post-publication
-same-inode temp link is removed during resume. After migration, the public
+adopted only when its bytes match the recomputed plan. After publication,
+resume recognizes a matching temporary record by bytes on both Linux hard-link
+and macOS clone paths. Migration retains the temp with the named
+`migration-temp-retained` recovery state: deleting a mutable pathname cannot
+atomically prove it still names the validated inode. Python 3 publishes through
+open source and destination directory descriptors, so a `.rig` parent swap
+cannot redirect publication; migration refuses when Python 3 or safe
+descriptor-relative publication is unavailable. Fresh installs do not invoke
+Python. After migration, the public
 default still avoids optional MCP dependencies. An explicit `SETUP_MCP=1`
 migration request installs the runtime without touching OpenClaw only when the
 upgraded host emits MCP configuration; non-emitting hosts and fresh installs
@@ -2412,12 +2433,12 @@ The catalogue path ships only when these checks pass in order:
    automatic onboarding emits only detected hosts, explicit opt-in is the only
    absent-host override, and each emitted axis passes its byte-landing test;
 6. all six CI providers pass their additive/bootstrap/unknown-config matrix;
-7. all 55 vendored skills are materialized under their unique Rig names and
-   every installed copy carries `LICENSE.upstream` and `UPSTREAM.md` without
-   an upstream-endorsement claim;
-8. a no-checkout fixture installs named-tag version `5.0.0` through a
+7. install stages zero optional third-party skill trees, carries pinned fetch
+   metadata, and projects the nine mandatory native entry skills; approved
+   onboarding fetches and verifies only selected upstream resources;
+8. a no-checkout fixture installs the current named release through a
    downloaded-before-execution root stub and records the resolved tag;
-9. legacy Basic and Tier 1 suites remain green, the fresh report-only release
+9. legacy CLI compatibility suites remain green, the fresh report-only release
    review is digest-pinned with no unresolved finding, and `npm test` passes
    on the same final source state.
 
@@ -2454,17 +2475,16 @@ versions — that is what "latest" means — but each install is afterwards
 identifiable, reproducible by name, and never sourced from a moving branch.
 
 **Release plumbing.** The inherited npm publish workflow is deleted: the
-package is `private`, so tagging a release would otherwise fail on a
-publish step that was never going to succeed. `package.json` moves to
-`5.0.0` and stays `private`. The repository's default branch is `prod`; no
-workflow may reference `main` or `master`.
+package is `private`, so tagging a release would otherwise fail on a publish
+step that was never going to succeed. The package stays `private`; the current
+release version is maintained by the release manifests. The repository's
+default branch is `prod`; no workflow may reference `main` or `master`.
 
-**Vendored payload.** The released archive and every materialized installation
-carry all 55 skill directories plus `rig/catalog/skills/LICENSE.upstream` and
-`rig/catalog/skills/UPSTREAM.md`. Skill registry generation fails on a missing
-directory, duplicate/invalid Rig name, or missing notice/provenance file. User-
-facing install output names the upstream source and MIT licence but makes no
-endorsement claim.
+**Pinned upstream metadata.** The source archive carries optional reference
+trees together with their upstream metadata and digests. A default installed
+payload stages zero optional trees. Approved onboarding fetches verify the
+metadata and recorded patches before selected content is projected; install
+projects nine mandatory native entry skills.
 
 ## 13. Acceptance Traceability
 
@@ -2530,7 +2550,7 @@ results rather than trusting an aggregate exit code.
 | AT-PRESENCE-2 | §8.4/AD-30 recovery uses only pre-registered, distinct `sk-*` SSHSIG recovery identities under `rig-policy-recovery`; registration requires an already-valid credential and recovery exhaustion is terminal for the current policy trust state. The `sk-*` class is declared and disclosed, not certified from the signature (D19); the user-verification registration ceremony is the product ceremony, while automation proves only the enforceable preconditions and disclosures around it. Authorized recovery writes a disclosed receipt before invalidating pending candidates, burning one-use approvals, or resetting evidence generations. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-2 recovery is pre-registered distinct and terminal`: First signer setup offers exactly three recovery identities and later valid signer setup offers to add more. Accept a recovery signed by a pre-registered distinct recovery key and assert the receipt, replacement signer, stale pending candidate, deleted prior one-use approvals, incremented evidence generations, and disclosed status. Reject ordinary confirmation, same-key recovery, a fresh post-loss key, a recovery key under the activation namespace, a missing registration receipt, and exhausted registered credentials with reason `recovery_credentials_exhausted`; assert none of those rejected attempts changes candidate bytes, approvals, evidence generations, or signer state. Assert the registration path records a valid pre-loss registration receipt, rejects fingerprint reuse and namespace confusion, and that `policy status` discloses each recovery credential's declared class so a weak registration is visible rather than passing as hardware-backed. Do not assert a hardware touch in `node --test`; per D19 no signature artifact proves that class. |
 | AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository; D25 makes OpenClaw an explicit flagged exception that is written only through its native CLI. | `tests/advanced-oracle.test.js` title `AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible`: Use the released installer against a temporary HOME plus fake `openclaw`, `npm`, and download commands. Assert the default installation calls neither OpenClaw nor npm and leaves the global config byte-identical. Assert `--openclaw-mcp` warns before calling `openclaw mcp set`, installs and starts the target runtime, uses one `rig-<install-id>` key, and preserves an unrelated server. Reinstall is key-identical. Uninstall calls `openclaw mcp unset` and preserves the unrelated server. |
 | AT-HOME-2 | §7.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | `tests/advanced-oracle.test.js` title `AT-HOME-2 global entries are attributed per repository`: Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
-| AT-DIST-1 | §12.4 root stub resolves and records a named tag, downloads before execution, installs private version `5.0.0`, all 55 unique Rig-named skills, and required MIT notice/provenance with no endorsement claim. `--openclaw-mcp` additionally ships the locked MCP runtime, but the default needs neither OpenClaw nor npm. | `tests/advanced-oracle.test.js` title `AT-DIST-1 stranger installs complete named-tag release`: run from a no-checkout git/curl/sh fixture; reject branches and remote piping; assert byte-stable repeat install, all 55 skills, both provenance files, no endorsement string, and no npm publish workflow. |
+| AT-DIST-1 | §12.4 root stub resolves and records a named tag and downloads before execution. The source catalogue retains 55 pinned upstream skill entries and notices, while install stages zero optional third-party trees and projects nine mandatory native entry skills; approved onboarding fetches only selected upstream content. | `tests/advanced-oracle.test.js` title `AT-DIST-1 stranger installs complete named-tag release`: assert the public stub shape, version format, 55 unique source catalogue entries and notices, and no npm publish workflow. Install staging and the nine mandatory skills are proved by the editable Path B install regressions. |
 | AT-INSTALL-1 | §7.6 append-only manifest with record-before-mutate ordering, `applied` supersede carrying the post-write digest, resume from the manifest, and the `complete: false` header that suppresses every protection claim. Teardown of a partial install is the §7.6 removal path, not a second one. | `tests/advanced-oracle.test.js` title `AT-INSTALL-1 interrupted installs resume without premature claims`: Interrupt an install at each write boundary — crash, signal, permission denial, and a full-disk write failure — and assert applied writes stay, the manifest records how far it got, and the install is marked incomplete. Assert no partially applied control is reported as enabled, installed, or protecting anything, in `policy status`, the install line, and a run report. Re-run and assert resume applies only what did not land, with no duplicated work and no restart. Separately uninstall the partial install and assert it is removed by the same teardown path. |
 | AT-UNINSTALL-1 | §7.6 reverse-`seq` walk over the manifest; owned files deleted, managed blocks stripped from files Rig only added to, chained hooks restored, user-global entries removed by `install_id` per §7.4; removal report names what went. | `tests/advanced-oracle.test.js` title `AT-UNINSTALL-1 uninstall removes exactly manifest-owned content`: Install across every surface at once — Rig's own files, a grafted `AGENTS.md`, a pre-commit hook, an `AT-CI-1` CI job, host configuration, and a user-global file — then uninstall and assert each is gone and every byte the user owns survives unchanged. Assert teardown order is the reverse of install by killing uninstall mid-run and asserting no hook references a removed target. Assert the report enumerates exactly what was removed. Deleting `.rig/` and declaring the repository clean must fail the case. |
 | AT-UNINSTALL-2 | §7.6 clone-local content-addressed preimage store, post-removal diff, and the verified-clean versus named-best-effort split. | `tests/advanced-oracle.test.js` title `AT-UNINSTALL-2 uninstall reports verified clean or named best effort`: Uninstall a repository whose touched files carry the user's own later edits and assert **verified clean**. Edit a managed block's markers away, uninstall, and assert **best-effort** with that exact file named and the result never called clean; do the same for a file another tool rewrote. Assert no preimage is ever written back over a current file, by seeding a post-install user edit and asserting it survives. Delete the clone-local store and assert removal degrades to best-effort and says so rather than claiming clean. |
@@ -2563,7 +2583,7 @@ results rather than trusting an aggregate exit code.
 | AT-LF-24 | §9.4 a repository-supplied symlink whose real target resolves outside the repository is refused for read, write, or working-directory use, never followed because its lexical path looks contained. | `tests/advanced-oracle.test.js` title `AT-LF-24 a repository symlink escaping the repository is refused`: a command targeting a path reached only through an escaping symlink is refused and reported as a boundary violation rather than executed against the real outside path. |
 | AT-PB-1 | [Path B F-1](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the eleven-family 63-skill membership, bounded metadata, recursive source layout, explicit aliases, unique canonical names, flat native projections, and the untouched governed-service boundary. | `tests/path-b-catalog.test.js` title `AT-PB-1 capability families index all 63 skills with exact membership`: snapshot the full membership and names; sibling `AT-PB-1` tests exercise recursive metadata, invalid aliases/metadata, collision handling, and the byte-frozen 115-service tree. |
 | AT-PB-2 | [Path B F-2](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the exact version-1 grammar, ownership classes, CAS/preimage rule, whole-current-section journal record, and section-only update/removal. | `tests/path-b-graft.test.js` title `AT-PB-2 create update and reapply own only a versioned graft section`: exercise create/no-op/update; sibling `AT-PB-2` tests cover one-of-many removal, CRLF/no-final-newline identity, malformed/stale/unsupported/link refusal, full-section journalling, and uninstall preservation. |
-| AT-PB-3 | [Path B F-3](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the deterministic installed catalogue, release-pinned non-discoverable source shelf, compact context, drift invalidation, and no-network refresh policy. | `tests/path-b-catalog.test.js` title `AT-PB-3 generated catalogue bytes are deterministic and content-addressed`: independently check ordering and the content digest; sibling `AT-PB-3` tests install the shelf once, keep optional skills out of discovery, require eight core/onboarding projections, prove offline prepare, reject stale catalogue proposals, and preserve a conflicting user-edited installed catalogue. |
+| AT-PB-3 | [Path B F-3](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the deterministic installed catalogue, pinned upstream fetch metadata, compact context, drift invalidation, and approved onboarding download of selected resources. | `tests/path-b-catalog.test.js` title `AT-PB-3 generated catalogue bytes are deterministic and content-addressed`: independently check ordering and the content digest; sibling `AT-PB-3` tests stage zero optional trees, keep optional skills out of native discovery, require nine mandatory native entry skills, verify approved fetch metadata, reject stale catalogue proposals, and preserve a conflicting user-edited installed catalogue. |
 | AT-PB-4 | [Path B F-4](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the five repository-local artifacts, strict state/proposal schemas, eight summary headings, CAS revisions, transitions, invalidation, resume, and derived Markdown. | `tests/path-b-state.test.js` title `AT-PB-4 prepare creates the complete machine state and deterministic reports under .rig`: assert initial schema and idempotent bytes; sibling `AT-PB-4` tests cover canonical summary/proposal binding, rejected partial writes, stale revisions/consent, and disk/state/report reconciliation. |
 | AT-PB-5 | [Path B F-5](../archive/2026-08/path-a-and-path-b-onboarding.md) defines the semantic playbook and critical predicate plus one `handleOnboarding` prepare/propose/apply/check union used by CLI and MCP, with exact-summary approval and no self-approval. | `tests/path-b-onboarding.test.js` title `AT-PB-5 prepare supplies bounded context without making semantic choices or repo writes`: prove mechanical preparation; sibling tests cover proposal immutability, unresolved decisions, summary-bound consent, selective marked apply, resume/idempotency, JSON CLI parity, MCP schema/annotations/parity, explicit invocation, and terminal truthfulness. |
 | AT-PB-6 | [Path B F-6](../archive/2026-08/path-a-and-path-b-onboarding.md) defines `install rig`, repeatable registry host mapping, always-on runtime delivery, explicit onboarding handoff, subordinate legacy paths, and no auto-trigger. | `tests/path-b-install.test.js` title `AT-PB-6 public grammar is install rig with repeatable host and no tiers`: assert the public surface; sibling `AT-PB-6` archive-install tests cover omitted/one/many host mapping, order/de-duplication, unknown-host pre-write refusal, runtime/catalog presence, preserved repo bytes, absent onboarding state, and exact next-step output. |
@@ -2634,10 +2654,10 @@ Write the stable sorted testing-infrastructure manifest, add
 The verifier accepts the unarmed preparation state only with the exact
 `Gate 1 unprotected` report; once armed it fails closed.
 
-This slice ends at the one manual step: the intent owner reviews the inferred
-55-skill inventory correction and all test bytes, records the signer identity
-and attested key class, and signs the exact v2 oracle message. Production slices
-do not start until it verifies.
+This slice ended at the one manual step: the intent owner reviewed the inferred
+55-skill inventory correction and all test bytes, recorded the signer identity
+and attested key class, and signed the exact v2 oracle message. The ceremony is
+complete; it is not a current release blocker.
 
 Verification:
 
@@ -2850,13 +2870,14 @@ Verification:
 node --test tests/advanced-install-resume.test.js tests/advanced-uninstall.test.js
 ```
 
-### Slice 13 - Distribution and vendored skills
+### Slice 13 - Distribution and approved upstream fetching
 
-Author the committed root `install.sh`, delete the inherited npm publish
-workflow, move `package.json` to `5.0.0`, and prove a stranger with only git,
-curl and sh can install into an empty repository from a released tag. Wire all
-55 vendored skills through the selected-host materializer and include their MIT
-notice/provenance in every installed copy.
+The historical 5.0.0 plan installed the 55-skill shelf directly. Current 6.0.0
+delivery keeps pinned fetch metadata, stages zero optional third-party trees,
+and projects nine mandatory native entry skills. Approved onboarding fetches
+selected upstream resources and verifies their digests. The public installer
+downloads a named release before execution; exact-SHA clean-install tests use
+the remote archive and compare its tree with the source commit.
 
 Verification:
 
@@ -3031,8 +3052,9 @@ may combine internal modules, but must preserve:
   presence floor;
 - user-global writes that append, attribute from the first install, and
   remove only their own repository's entries;
-- the install stub, version `5.0.0`, all 55 uniquely named vendored skills, the
-  upstream notice/provenance in every installed copy, and no publish workflow;
+- the install stub, current release version, zero staged optional third-party
+  trees, pinned fetch metadata, nine mandatory native entry skills, and no
+  publish workflow;
 - report behavior and B1 containment;
 - all frozen Gate 1 acceptance cases.
 
@@ -3042,7 +3064,11 @@ Implementation must not edit `business-spec.md`, `acceptance.md`,
 
 ## 17. Oracle and Release Readiness
 
-### 17.1 Oracle-signature prerequisites
+### 17.1 Historical oracle-signature prerequisites
+
+This checklist records the completed pre-implementation oracle ceremony. It is
+historical context, not a current release blocker; the signed oracle remains
+unchanged and must continue to verify.
 
 This working specification is never frozen. Production implementation waits
 only for the one signed oracle. Before the owner performs that ceremony:
@@ -3056,24 +3082,24 @@ only for the one signed oracle. Before the owner performs that ceremony:
    present technical approach, then short-circuits code tests on failure;
 4. `wiki/gate1/testing-infrastructure.manifest` is stable, sorted, and covers
    the verifier, acceptance tests, fixtures/helpers, and package script bytes;
-5. the owner reviews the inferred correction from 56 to the physically present
-   55 vendored skills, records a compliant signer identity/key-class statement,
-   and signs the exact `rig-oracle-freeze-v2` message.
+5. the owner reviewed the inferred correction from 56 to the then-physically
+   present 55 vendored skills, recorded a compliant signer identity/key-class
+   statement, and signed the exact `rig-oracle-freeze-v2` message.
 
 Once armed, a missing, malformed, stale, or wrong-namespace signature fails.
 The implementation context must not edit either Gate 1 file, the manifest, or
 any manifested test byte. A test defect is proposed to the key holder and
 requires a new signature.
 
-### 17.2 Release blockers
+### 17.2 Current release blockers
 
-These block advertising or tagging version `5.0.0`:
+These block advertising or tagging version `6.0.0`:
 
 1. all 115 leaves clear the unchanged signed `AT-SHAPE-6` target at declared
    Policy grade, with lint-format's higher-grade targets also green;
-2. all 55 vendored skills are uniquely named, materialized for each supported
-   selected-host skill surface, and accompanied by the approved MIT notice and
-   provenance in every installed copy;
+2. install stages zero optional third-party skill trees, carries pinned fetch
+   metadata, and projects the nine mandatory native entry skills; approved
+   onboarding fetches and verifies selected resources;
 3. automatic onboarding writes only detected host trees, explicit opt-in is
    the sole absent-host override, and the full 19-host/six-provider matrix has
    passing contract and byte-landing evidence;
@@ -3083,6 +3109,5 @@ These block advertising or tagging version `5.0.0`:
    catalogue digests with no unresolved finding;
 6. `npm test` passes on the exact release bytes with the oracle verifier first.
 
-Green legacy tests cannot remove any blocker. The owner-approved MIT ruling is
-complete; release evidence must prove its notice/provenance conditions are
-actually present.
+Green legacy tests cannot remove any blocker. The release evidence must prove
+the exact candidate and its QA checks.

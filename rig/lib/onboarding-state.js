@@ -200,7 +200,7 @@ function validateUpstreamFetch(rows) {
 // digest rows the proposal freezes. It is a callback, not an argument, because
 // the binding is derived from the sorted selection and must land inside the
 // digested body: what the approver signs has to include the bytes.
-function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], bindServices = () => ({})) {
+function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], bindServices = () => ({}), serviceOutputPreimages = () => ({})) {
   exactKeys(input, new Set([
     'inventory_digest', 'catalog_digest', 'capabilities', 'selected_skills', 'grafts', 'owned_files', 'critical_decisions',
     // Accepted so a stored proposal can be resubmitted verbatim, never read:
@@ -211,7 +211,7 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], b
     'projection_script',
     // Optional list of pinned third-party fetches to perform at apply.
     'upstream_fetch',
-    'selected_services', 'service_bindings',
+    'selected_services', 'service_bindings', 'service_output_preimages',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -235,6 +235,7 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], b
     ...(input.selected_services === undefined ? {} : {
       selected_services: input.selected_services,
       service_bindings: bindServices(input.selected_services),
+      service_output_preimages: serviceOutputPreimages(),
     }),
   };
   return { digest: sha256(canonical(body)), ...body };

@@ -107,6 +107,42 @@ const { detectInstall, migrate } = require(require('node:path').join(process.env
 const MCP_SETUP_PENDING = '.rig/mcp-setup-pending.json';
 let result;
 let openclaw = null;
+function mcpPendingStat() {
+  try { return fs.lstatSync(require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING)); }
+  catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+function requireOwnedMcpPending(writer) {
+  const markerPath = require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING);
+  const markerBytes = Buffer.from(`${JSON.stringify({ version: 1 })}\n`);
+  const pending = writer.latest(MCP_SETUP_PENDING);
+  if (pending?.state === 'pending' && pending.operation === 'create_owned' && pending.desired_digest === crypto.createHash('sha256').update(markerBytes).digest('hex')) {
+    writer(process.env.TARGET_ROOT, MCP_SETUP_PENDING, markerBytes, undefined, undefined, { exclusiveCreate: true });
+  }
+  const before = mcpPendingStat();
+  if (!before) return null;
+  if (!before.isFile() || before.isSymbolicLink()) {
+    throw new Error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
+  }
+  let fd;
+  let liveBytes;
+  try {
+    fd = fs.openSync(markerPath, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    const opened = fs.fstatSync(fd);
+    if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino) {
+      throw new Error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
+    }
+    liveBytes = fs.readFileSync(fd);
+  } catch (error) {
+    if (error.code === 'ELOOP') throw new Error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
+    throw error;
+  } finally { if (fd !== undefined) fs.closeSync(fd); }
+  const marker = writer.latest(MCP_SETUP_PENDING);
+  const markerDigest = crypto.createHash('sha256').update(liveBytes).digest('hex');
+  if (marker?.state !== 'applied' || marker.digest !== markerDigest) {
+    throw new Error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
+  }
+  return markerDigest;
+}
 function finalizeMcp(writeFile, { mcpConfigured = true, setupRequested = true } = {}) {
   if (setupRequested && process.env.SETUP_MCP === '1' && process.env.OPENCLAW_MCP !== '1' && mcpConfigured) {
     writeFile(process.env.TARGET_ROOT, MCP_SETUP_PENDING, `${JSON.stringify({ version: 1 })}\n`);
@@ -125,16 +161,17 @@ function finalizeMcp(writeFile, { mcpConfigured = true, setupRequested = true } 
 // An existing v5 install (or an interrupted migration) is upgraded through the
 // journaled, resumable migration, never overwritten in place.
 const existing = detectInstall(process.env.TARGET_ROOT);
-if (existing.kind === 'current' && fs.existsSync(require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING))) {
+if (existing.kind === 'current' && mcpPendingStat()) {
   const writer = journalWriter(process.env.TARGET_ROOT);
-  const marker = writer.latest(MCP_SETUP_PENDING);
-  const markerBytes = fs.readFileSync(require('node:path').join(process.env.TARGET_ROOT, MCP_SETUP_PENDING));
-  const markerDigest = crypto.createHash('sha256').update(markerBytes).digest('hex');
-  if (marker?.state !== 'applied' || marker.digest !== markerDigest) {
-    console.error(`rig: refusing unowned or edited ${MCP_SETUP_PENDING}`);
-    process.exit(1);
-  }
   try {
+    const markerDigest = requireOwnedMcpPending(writer);
+    const installedHosts = JSON.parse(fs.readFileSync(require('node:path').join(process.env.TARGET_ROOT, '.rig/release.json'), 'utf8')).hosts;
+    const mcpConfigured = Array.isArray(installedHosts) && installedHosts.some((id) => MCP_HOSTS[id]?.emission === 'emitted');
+    if (!mcpConfigured) {
+      writer.remove(process.env.TARGET_ROOT, MCP_SETUP_PENDING, markerDigest);
+      writer.finish();
+      process.exit(0);
+    }
     setupMcp(process.env.TARGET_ROOT, { writeFile: writer });
     writer.remove(process.env.TARGET_ROOT, MCP_SETUP_PENDING, markerDigest);
     writer.finish();
@@ -145,6 +182,26 @@ if (existing.kind === 'current' && fs.existsSync(require('node:path').join(proce
   }
 }
 if (existing.kind === 'v5' || existing.kind === 'resume') {
+  if (process.env.SETUP_MCP === '1' && process.env.OPENCLAW_MCP !== '1') {
+    const migrationHosts = hosts || JSON.parse(fs.readFileSync(require('node:path').join(process.env.TARGET_ROOT, '.rig/release.json'), 'utf8')).hosts;
+    const mcpConfigured = Array.isArray(migrationHosts) && migrationHosts.some((id) => MCP_HOSTS[id]?.emission === 'emitted');
+    if (mcpConfigured) {
+      const writer = journalWriter(process.env.TARGET_ROOT);
+      if (!mcpPendingStat()) {
+        writer(process.env.TARGET_ROOT, MCP_SETUP_PENDING, `${JSON.stringify({ version: 1 })}\n`, undefined, undefined, { exclusiveCreate: true });
+        writer.finish();
+      } else {
+        try {
+          requireOwnedMcpPending(writer);
+          writer.finish();
+        } catch (error) {
+          writer.finish();
+          console.error(error.message);
+          process.exit(1);
+        }
+      }
+    }
+  }
   const report = migrate(process.env.TARGET_ROOT, {
     ...(hosts ? { hosts } : {}),
     releaseTag: process.env.RIG_RELEASE_TAG || undefined,

@@ -7,6 +7,31 @@ remains one central corpus with agent-led, repository-aware onboarding. See
 
 ## Current release checkpoint
 
+The [follow-up implementation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-progress.md)
+records the in-flight bounded fixes and focused migration replacement checks.
+Integrated verification and the final-byte delivery sequence remain pending.
+The [migration integration checkpoint](../reasoning/2026-10-18-qa-closeout-followup-migration-integration.md)
+and [platform verification checkpoint](../reasoning/2026-10-18-qa-closeout-followup-platform-verification.md)
+record the projected-file protection fix, 49 passing macOS migration checks,
+and three passing Linux boundary checks. The final npm gate remains pending.
+The [candidate-preparation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-candidate-prep.md)
+records the report-only audits and installed skills README test correction.
+
+The [fix-verification checkpoint](../reasoning/2026-10-18-qa-closeout-fix-verification.md)
+checks the eight-item remediation. Its [bounded follow-up](../specs/close-everything/qa-prod-closeout-followup.md)
+retains only incomplete criteria: migration safety/recovery, documented helper
+paths, empty-selection output safety, current authorities and maintained checks.
+Approval remains withheld; verified fixes are not reopened.
+
+The repository-wide review has one active fixing-agent handoff:
+[QA prod closeout findings and criteria](../specs/close-everything/qa-prod-closeout-review.md).
+Eight grouped findings cover migration identity/replay, optional helper delivery,
+service deselection, upstream receipts, malformed global removal, health issue
+reporting and current guidance. Earlier review items are reconciled there;
+production-only promotion/tag evidence is separated from QA merge checks.
+The [consolidated verdict](../reasoning/2026-10-18-qa-closeout-consolidated-verdict.md)
+records coverage, passing samples and the remaining final-candidate sequence.
+
 The release candidate is `6.0.0`. Follow the ordered
 [deployment policy](../../rig/corpus/standards/change-management.md) and the
 [closeout task list](../specs/close-everything/task-list.md); old green results
@@ -134,3 +159,13 @@ remain before merge.
 The [late review resolution trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
 records the follow-up migration, MCP retry, and exact-SHA verification fixes,
 with final-byte and QA delivery evidence still pending.
+
+The [renewed review checkpoint](../reasoning/2026-10-18-review-received-renewed-review-start.md) records the uncommitted fix handoff and ongoing independent verification.
+
+The [repository-wide closeout request](../reasoning/2026-10-18-qa-closeout-review-request.md) asks for one consolidated set of findings and verifiable criteria for the fixing agent.
+
+The [broad review checkpoint](../reasoning/2026-10-18-qa-closeout-review-progress.md) records coverage, grouped reproductions and the distinction between QA merge and production-only evidence.
+
+The [managed-section correction](../reasoning/2026-10-18-qa-closeout-managed-section-correction.md) retracts a proposed code finding because the signed contract intentionally removes edited managed bodies; live documentation must match that behavior.
+
+The [temp-type boundary check](../reasoning/2026-10-18-qa-closeout-temp-type-check.md) adds a bounded FIFO-refusal criterion to the existing migration finding; the consolidated list remains eight groups.

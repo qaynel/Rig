@@ -203,7 +203,9 @@ function removeGlobalConfig(file, install_id) {
   } catch {
     return { removed: false };
   }
-  if (!current || !current.rig || !(install_id in current.rig)) return { removed: false };
+  if (!current || typeof current !== 'object' || Array.isArray(current)
+    || !current.rig || typeof current.rig !== 'object' || Array.isArray(current.rig)
+    || !Object.hasOwn(current.rig, install_id)) return { removed: false };
   delete current.rig[install_id];
   writeJson(file, current);
   return { removed: true };

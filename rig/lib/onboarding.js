@@ -14,7 +14,7 @@ const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
-const { bindServices, preflightServices, applyServices, checkServices } = require('./service-catalogue');
+const { bindServices, serviceOutputPreimages, preflightServices, applyServices, checkServices } = require('./service-catalogue');
 const { fetchUpstreamSync, loadUpstream } = require('./upstream-fetch');
 const { runProjectionScript, assertOutputOutsideProtected } = require('./projection-script');
 const {
@@ -265,7 +265,7 @@ function sourceFiles(root, prefix = '') {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
     const absolute = path.join(root, entry.name);
     if (entry.isDirectory()) files.push(...sourceFiles(absolute, rel));
-    else if (!entry.name.endsWith('.tmpl') && entry.name !== 'TODOS-format.md') files.push({ rel, bytes: fs.readFileSync(absolute) });
+    else if (!entry.name.endsWith('.tmpl') && entry.name !== 'TODOS-format.md') files.push({ rel, bytes: fs.readFileSync(absolute), mode: fs.statSync(absolute).mode & 0o777 });
   }
   return files;
 }
@@ -297,7 +297,32 @@ function optionalProjectionSource(target, skill, cache) {
     }
     files = cache.get(id);
   }
-  return [...files].filter(([output]) => output.startsWith(prefix)).map(([output, bytes]) => ({ rel: output.slice(prefix.length), bytes }));
+  const modes = new Map(meta.files.map((row) => [row.output, row.mode]));
+  return [...files].filter(([output]) => output.startsWith(prefix)).map(([output, bytes]) => ({ rel: output.slice(prefix.length), bytes, mode: modes.get(output) || 0o644 }));
+}
+
+function optionalSharedSource(target, cache) {
+  const id = 'gstack-shelf';
+  const meta = loadUpstream(id, containedPath(target, '.rig/upstream'));
+  const receiptPath = containedPath(target, `.rig/fetched/${id}/receipt.json`);
+  let files;
+  if (fs.existsSync(receiptPath)) {
+    files = new Map();
+    for (const row of meta.files.filter((row) => row.output.startsWith('plumbing/'))) {
+      const file = containedPath(target, `.rig/fetched/${id}/${row.output}`);
+      if (!fs.existsSync(file) || sha256(fs.readFileSync(file)) !== row.final_sha256) fail(`fetched shared helper "${row.output}" has changed; rebuild its proposal`);
+      files.set(row.output, fs.readFileSync(file));
+    }
+  } else {
+    if (!cache.has(id)) {
+      const result = fetchUpstreamSync(id, { metaDir: containedPath(target, '.rig/upstream'), licencePath: containedPath(target, '.rig/skills/LICENSE.upstream') });
+      if (result.status !== 'ok') fail(`upstream fetch refused (${result.gaps[0].code}): ${result.gaps[0].detail}`);
+      cache.set(id, result.files);
+    }
+    files = cache.get(id);
+  }
+  const modes = new Map(meta.files.map((row) => [row.output, row.mode]));
+  return [...files].filter(([output]) => output.startsWith('plumbing/')).map(([output, bytes]) => ({ rel: output.slice('plumbing/'.length), bytes, mode: modes.get(output) || 0o644 }));
 }
 
 function selectedCatalogSkills(catalog, selected) {
@@ -364,14 +389,21 @@ function planSkillProjections(target, catalog, selected, writer) {
     for (const scope of scopes) {
       const name = scopedSkillName(canonicalName, scope);
       const projected = projectSkillFiles({ files, dir: `${scope.root}/${name}`, declaredName: name });
-      projected.forEach(({ path: rel, bytes }, index) => {
+      projected.forEach(({ path: rel, bytes, mode }, index) => {
         if (writer) cleanProjection(target, writer, rel);
-        plans.push({ skill: skill.id, rel, bytes, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
+        plans.push({ skill: skill.id, rel, bytes, mode, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
         record(skill, files[index].rel, sha256(bytes));
         if (files[index].rel === 'SKILL.md') {
           rows.push({ skill: skill.id, host_scope: scope.host_scope, path: rel, sha256: sha256(bytes) });
         }
       });
+    }
+  }
+  if (skills.some((skill) => skill.source_kind === 'optional')) {
+    for (const file of optionalSharedSource(target, sourceCache)) {
+      const rel = `.rig/plumbing/${file.rel}`;
+      if (writer) cleanProjection(target, writer, rel);
+      plans.push({ skill: null, rel, bytes: file.bytes, mode: file.mode, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
     }
   }
   const digests = new Map([...projectedFiles].map(([id, entries]) => [id, projectedDigest(entries)]));
@@ -605,6 +637,7 @@ function propose(request) {
       proposed, state, sha256(Buffer.from(summary)),
       (selected) => skillBindings(request.target, catalog, selected),
       (selected) => bindServices(request.target, selected),
+      () => serviceOutputPreimages(request.target),
     );
     checkUpstreamPins(request.target, stored.upstream_fetch);
     const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
@@ -675,7 +708,7 @@ function planRemovals(target, state, projection, writer, catalog) {
     ...projection.projections.map((row) => row.path),
     ...projection.plans.map((plan) => plan.rel),
   ]);
-  const removals = { projections: [], grafts: [], unreconciled: [] };
+  const removals = { projections: [], services: [], grafts: [], unreconciled: [] };
   const seen = new Set();
   for (const row of previousProjections) {
     if (seen.has(row.path)) continue;
@@ -699,6 +732,18 @@ function planRemovals(target, state, projection, writer, catalog) {
       removals.projections.push({ path: rel, digest: live, root });
     }
   }
+  const desiredServices = new Set(Object.keys(state.proposal.service_bindings || {}));
+  for (const row of state.applied?.owned_files || []) {
+    if (!row.path.startsWith('.rig/services/') || !row.path.endsWith('.md')) continue;
+    const id = row.path.slice('.rig/services/'.length, -'.md'.length);
+    if (desiredServices.has(id)) continue;
+    const live = currentDigest(target, row.path);
+    if (live !== null && live !== row.sha256) {
+      removals.unreconciled.push({ path: row.path, detail: HAND_EDITED });
+      continue;
+    }
+    removals.services.push({ path: row.path, digest: live, root: '.rig/services' });
+  }
   const desiredGrafts = new Set(state.proposal.grafts.map((graft) => `${graft.path}\0${graft.capability}`));
   for (const row of state.applied?.grafts || []) {
     if (!desiredGrafts.has(`${row.path}\0${row.capability}`)) removals.grafts.push(row);
@@ -708,6 +753,13 @@ function planRemovals(target, state, projection, writer, catalog) {
 
 function applyRemovals(target, removals, writer, graftDigests) {
   for (const row of removals.projections) {
+    const result = typeof writer.remove === 'function'
+      ? writer.remove(target, row.path, row.digest)
+      : { removed: false };
+    if (result.removed) pruneEmptyDirs(target, row.path, row.root);
+    else removals.unreconciled.push({ path: row.path, detail: NOT_RIG_CREATED });
+  }
+  for (const row of removals.services) {
     const result = typeof writer.remove === 'function'
       ? writer.remove(target, row.path, row.digest)
       : { removed: false };
@@ -808,7 +860,7 @@ function apply(request) {
     const appliedOwnedFiles = [];
     try {
       for (const projectionFile of projection.plans) {
-        writer(request.target, projectionFile.rel, projectionFile.bytes, 0o644, projectionFile.ownership);
+        writer(request.target, projectionFile.rel, projectionFile.bytes, projectionFile.mode || 0o644, projectionFile.ownership);
       }
       for (const graft of state.proposal.grafts) {
         const expected = graftDigests.has(graft.path) ? graftDigests.get(graft.path) : graft.preimage_digest;
@@ -830,7 +882,8 @@ function apply(request) {
       for (const result of fetchedUpstreams) {
         for (const [output, bytes] of result.files) {
           const rel = fetchedRel(result.id, output);
-          writer(request.target, rel, bytes, 0o644, currentDigest(request.target, rel) === null ? 'create_owned' : 'replace_owned');
+          const pinned = result.receipt.files.find((file) => file.path === output);
+          writer(request.target, rel, bytes, pinned?.mode || 0o644, currentDigest(request.target, rel) === null ? 'create_owned' : 'replace_owned');
         }
         const receiptRel = fetchedRel(result.id, 'receipt.json');
         writer(request.target, receiptRel, `${JSON.stringify(result.receipt, null, 2)}\n`, 0o644, currentDigest(request.target, receiptRel) === null ? 'create_owned' : 'replace_owned');
@@ -875,6 +928,7 @@ function apply(request) {
         proposal_digest: state.proposal.digest,
         skills: projection.rows,
         projections: projection.projections,
+        projection_files: projection.plans.map((file) => ({ path: file.rel, sha256: sha256(file.bytes), mode: file.mode || 0o644 })),
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
         ...(fetchedUpstreams.length ? {
@@ -883,7 +937,8 @@ function apply(request) {
             revision: result.receipt.revision,
             tar_sha256: result.receipt.tar_sha256,
             receipt_path: fetchedRel(result.id, 'receipt.json'),
-            files: result.receipt.files.map((file) => ({ path: fetchedRel(result.id, file.path), sha256: file.sha256 })),
+            receipt_sha256: sha256(`${JSON.stringify(result.receipt, null, 2)}\n`),
+            files: result.receipt.files.map((file) => ({ path: fetchedRel(result.id, file.path), sha256: file.sha256, mode: file.mode })),
           })),
         } : {}),
         ...(slot ? {
@@ -949,6 +1004,11 @@ function reconcileApplied(target, state) {
       hardFailures.push(failure('state-incomplete', row.path, `selected skill "${row.skill}" is missing or has changed`));
     }
   }
+  for (const row of state.applied.projection_files || []) {
+    if (currentDigest(target, row.path) !== row.sha256 || (fs.statSync(containedPath(target, row.path)).mode & 0o777) !== row.mode) {
+      hardFailures.push(failure('state-incomplete', row.path, 'selected skill file is missing, changed, or has a changed mode'));
+    }
+  }
   // A ledger row only proves the SKILL.md still holds the bytes the ledger
   // itself echoed. Re-derive the whole projected tree and compare it to the
   // digest the approval was granted for, so an edited sibling — or a file
@@ -981,11 +1041,23 @@ function reconcileApplied(target, state) {
     if (!approved || approved.tar_sha256 !== upstream.tar_sha256) {
       hardFailures.push(failure('state-incomplete', '.rig/state.json', `applied upstream "${upstream.id}" is not the approved pin`));
     }
-    for (const file of [...upstream.files, { path: upstream.receipt_path, sha256: null }]) {
+    for (const file of [...upstream.files, { path: upstream.receipt_path, sha256: upstream.receipt_sha256 }]) {
       const live = currentDigest(target, file.path);
       if (live === null || (file.sha256 !== null && live !== file.sha256)) {
         hardFailures.push(failure('state-incomplete', file.path, `fetched upstream "${upstream.id}" file is missing or has changed`));
       }
+      if (file.mode !== undefined && live !== null && (fs.statSync(containedPath(target, file.path)).mode & 0o777) !== file.mode) {
+        hardFailures.push(failure('state-incomplete', file.path, `fetched upstream "${upstream.id}" file mode has changed`));
+      }
+    }
+    try {
+      const receipt = JSON.parse(fs.readFileSync(containedPath(target, upstream.receipt_path), 'utf8'));
+      if (receipt.id !== upstream.id || receipt.revision !== upstream.revision || receipt.tar_sha256 !== upstream.tar_sha256
+        || !Array.isArray(receipt.files) || receipt.files.some((file) => !upstream.files.some((expected) => expected.path === fetchedRel(upstream.id, file.path) && expected.sha256 === file.sha256 && expected.mode === file.mode))) {
+        hardFailures.push(failure('upstream-receipt-invalid', upstream.receipt_path, `fetched upstream "${upstream.id}" receipt does not match applied evidence`));
+      }
+    } catch {
+      hardFailures.push(failure('upstream-receipt-invalid', upstream.receipt_path, `fetched upstream "${upstream.id}" receipt is unreadable`));
     }
   }
   const scriptApplied = state.applied.projection_script;

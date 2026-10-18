@@ -991,7 +991,7 @@
       "source_kind": "optional",
       "required": false,
       "source_rel": "rig/catalog/skills/review/code-and-pull-request/review/SKILL.md",
-      "tree_digest": "a5049f62f835a1156cf3850e2fc938060233bd063f35440e14f66137cff0feae"
+      "tree_digest": "aaa3d41c53e5e6867ad641be5923410d1d9395a0870e263f7eba60b45c5ad6cb"
     },
     {
       "id": "rig-code-review",

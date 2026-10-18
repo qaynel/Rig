@@ -15,20 +15,20 @@ flag, which is per-host framing and is rescoped here per North star 1.
 
 A workflow, `.github/workflows/e2e.yml`, plus `npm run test:e2e`. It runs on a
 clean runner (no repo `node_modules`, no npm cache, no `.venv`), on a schedule,
-on manual dispatch, and as a required step before tagging a release. It does
-not run on every push: the RIG-154 design kept networked installs out of the
-unit suite.
+on manual dispatch, and as a required exact-QA-SHA check before promotion to
+production. The post-publication `--tag` smoke test remains separate. It does
+not run on every push: networked installs stay out of the unit suite.
 
 Steps:
 
 1. Create an empty git repo, plus a second fixture repo with existing agent
    config, to exercise grafting.
-2. Add and specify a candidate-artifact input to the public installer; it
-   currently downloads tags only. Pack the exact candidate commit, record its
-   archive digest, and exercise the same extract/bootstrap path with real
-   `npm ci` downloads. Keep the tagged public-download smoke test separate.
-   Release eligibility requires the candidate run at the exact reviewed SHA;
-   tag publication is followed by a public-download smoke test at that tag.
+2. Resolve one exact QA SHA, download its GitHub source archive, compare the
+   extracted tree with that source commit, and pass the archive/tree commitments
+   to the public installer. Run real `npm ci` downloads. Explicit `--artifact`
+   is for a supplied local archive; `--tag` is the separate post-publication
+   public-download smoke test. Eligibility requires the same exact SHA for
+   health and Linux/macOS clean-install checks.
 3. Assert install exits 0 and lays down the corpus `.rig/` plus the default
    projection.
 4. Start the installed MCP server the way the projection says to, and complete
@@ -53,16 +53,17 @@ Steps:
   the trace.
 - RIG-155 closes with a link to the run.
 
-## Implemented execution interface (candidate, 2026-10-13)
+## Implemented execution interface (candidate, 2026-10-18)
 
-`node scripts/clean-install-e2e.js --sha <commit> --out <evidence.json>` packs a
-clean exact commit with Git archive. An explicitly supplied `--artifact` uses
-that archive; the public installer requires `--candidate-artifact`,
-`--candidate-sha` and `--candidate-digest`, verifies SHA-256 and the Git archive
-commit header before extraction, and records the downloaded archive digest.
-An intermediate working-tree snapshot is labelled provisional in evidence and
-cannot satisfy release eligibility. `--tag <published-tag>` runs the separate
-public-download flow after publication.
+By default, `--sha <commit>` makes
+`node scripts/clean-install-e2e.js --sha <commit> --out <evidence.json>`
+download the GitHub source archive for the exact commit and compare the
+extracted tree with the checked-out source tree. It passes archive and tree
+commitments to the public installer, which verifies both before execution. An
+explicit `--artifact <path>` instead supplies a local archive and records that
+evidence source. An intermediate working-tree snapshot is labelled provisional
+and cannot satisfy release eligibility. `--tag <published-tag>` runs the
+separate public-download smoke test after publication.
 
 Scheduled approval creates a throwaway Ed25519 key in the disposable run
 folder and trusts its public half only in the two fixture repositories. The

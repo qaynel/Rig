@@ -115,3 +115,7 @@ policed by `scripts/check-rule-copies.js`.
 ([expand](../reasoning/2026-10-13-corpus-03-slice1-expand.md) ·
 [migrate](../reasoning/2026-10-13-corpus-03-slice2-migrate.md) ·
 [contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md))
+
+The closeout migration correction rejects hard-linked mutation targets and
+non-regular temporary collisions, and replay verifies the planned live state
+again before adoption or final-marker writes. [Remediation trace](../reasoning/2026-10-18-qa-closeout-remediation.md)

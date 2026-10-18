@@ -1302,7 +1302,7 @@
       "upstream": "review/SKILL.md",
       "output": "review/code-and-pull-request/review/SKILL.md",
       "base_sha256": "206723131a18e1de9a2dd6898cb1affc885277ed23de4a20b622be17e24eb238",
-      "final_sha256": "936c67609c3cc1d6be8fd04b3a4a431a946cadf7b989a4b739501f562f89f0a1",
+      "final_sha256": "be0661742a15bd1920e5abb57b87504e47a915144854365fb80d0238af3c3a45",
       "rename": true,
       "mode": 420
     },
@@ -1318,7 +1318,7 @@
       "upstream": "review/design-checklist.md",
       "output": "review/code-and-pull-request/review/design-checklist.md",
       "base_sha256": "1f20b4fe8c6ad26e1b6329c31ce616c5d2bc008d82f7f3d0519e9739cfdfde94",
-      "final_sha256": "1f20b4fe8c6ad26e1b6329c31ce616c5d2bc008d82f7f3d0519e9739cfdfde94",
+      "final_sha256": "93a1118358943c09c7995ec5ce337aba66b8bcacaa869845e11901a78b48d032",
       "rename": true,
       "mode": 420
     },
@@ -2665,7 +2665,7 @@
     {
       "id": "rig-shelf-overlay",
       "file": "patches/shelf-overlay.patch",
-      "sha256": "47fee37a550de33bb626b4bd8d82dde7f034d1fc81b14d2790ca837d5e6354a1",
+      "sha256": "d0557bba38113956fd30c8c98212c69dfc58299d6d7efc87a91cc372042e1801",
       "purpose": "Required Rig frontmatter, neutralized illustrative strings and compatibility deltas. Verify upstream base bytes first."
     }
   ],

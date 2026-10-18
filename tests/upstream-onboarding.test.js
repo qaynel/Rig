@@ -94,8 +94,12 @@ test('approved apply fetches, verifies, patches, journals the bytes, and check e
       assert.match(journal, /\.rig\/fetched\/gstack\/receipt\.json/);
       const checked = h.handle({ schema_version: 1, action: 'check', target, expected_revision: applied.revision });
       assert.deepEqual(checked.hard_failures, []);
+      fs.writeFileSync(path.join(target, '.rig/fetched/gstack/receipt.json'), 'not json\n');
+      const receiptFailed = h.handle({ schema_version: 1, action: 'check', target, expected_revision: checked.revision });
+      assert.equal(receiptFailed.hard_failures.some((failure) => failure.path.endsWith('/receipt.json')), true, 'a malformed upstream receipt is a checked failure');
+      fs.writeFileSync(path.join(target, '.rig/fetched/gstack/receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
       fs.appendFileSync(path.join(target, '.rig/fetched/gstack', xvfb), '// tampered\n');
-      const failed = h.handle({ schema_version: 1, action: 'check', target, expected_revision: checked.revision });
+      const failed = h.handle({ schema_version: 1, action: 'check', target, expected_revision: receiptFailed.revision });
       assert.equal(failed.hard_failures.some((failure) => failure.path.endsWith('xvfb.ts')), true);
     });
   }, { install: true });

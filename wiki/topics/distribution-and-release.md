@@ -70,6 +70,11 @@ records the explicit MCP opt-in and disposable OpenClaw fixture. The
 records the passing local-archive E2E and real-npm public-upgrade evidence,
 with the distinction from GitHub-hosted Linux/macOS checks.
 
+The [follow-up review fixes](../reasoning/2026-10-18-review-received-followup-fixes.md)
+record durable coverage for migration publication cleanup and interrupted
+upgrade MCP setup, along with the current upstream-fetch and exact-SHA E2E
+documentation contract.
+
 ## Evidence
 
 - `tests/path-b-install.test.js` runs the public installer against a tagged
@@ -104,3 +109,26 @@ records the stale installed MCP lock and the correction to health coverage.
 
 The [latest checks checkpoint](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md)
 records a green advisory full gate, clean shipped dependencies and the docs handoff wait.
+The [publication follow-up](../reasoning/2026-10-18-review-received-publication-followup.md)
+records that mutable-path deletion was removed while pre-link parent substitution
+still leaves Finding 17 open.
+The [directory-relative fix](../reasoning/2026-10-18-review-received-dirfd-fix.md)
+records the Python standard-library descriptor publication fix and the migration
+runtime requirement.
+The [cleanup follow-up](../reasoning/2026-10-18-review-received-cleanup-followup.md)
+extends descriptor-relative operations to migration temp cleanup and marker
+creation; final migration and repository gates remain unverified.
+The [recovery-boundaries trace](../reasoning/2026-10-18-review-received-recovery-boundaries.md)
+records safe handling of a replaced temp file and recovery of a pending MCP
+marker journal write.
+The [temp-retention trace](../reasoning/2026-10-18-review-received-temp-retention.md)
+records why a refused parent-path race keeps only the pinned transaction temp
+for recovery.
+The [final gate retry trace](../reasoning/2026-10-18-review-received-final-gate-retry.md)
+records synchronized generated wiki files and the pending final test run.
+The [full-gate trace](../reasoning/2026-10-18-review-received-full-gate-passed.md)
+records the passing local `npm test` suites and the remaining owner-controlled
+QA and review steps.
+
+The closeout correction makes healthy health runs non-mutating and renews the
+current installed guidance and delivery checks. [Remediation trace](../reasoning/2026-10-18-qa-closeout-remediation.md)

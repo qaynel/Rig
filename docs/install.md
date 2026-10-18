@@ -4,6 +4,7 @@
 
 - **Git** — to fetch the installer
 - **Node.js** — runs the Rig tooling
+- **Python 3** — required only to migrate an existing v5 installation; fresh installs do not use it
 - **A repository** — the project you want Rig installed into (existing or new)
 - `curl`, `tar`, and a POSIX shell
 
@@ -95,6 +96,11 @@ Any requested MCP dependency setup and explicit `--openclaw-mcp` registration
 finish as part of the upgrade command. The descriptor and dependencies are
 recorded for uninstall; if setup or registration fails, the command exits with
 an error and can be rerun after fixing the cause.
+
+Migration may report `migration-temp-retained` and leave
+`.rig-migration.json.tmp` in the repository root. This is a recovery copy:
+Rig preserves it because another process could replace the pathname during
+cleanup. Uninstall preserves it too; inspect it before any manual removal.
 
 ## Uninstall
 

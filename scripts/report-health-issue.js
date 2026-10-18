@@ -16,6 +16,10 @@ async function main() {
       || !['success', 'failure', 'cancelled'].includes(HEALTH_RESULT)) {
     throw new Error('health report is missing validated GitHub run context');
   }
+  if (HEALTH_RESULT === 'success') {
+    process.stdout.write(`health succeeded for ${HEALTH_SHA}; no failure issue created or reopened\n`);
+    return;
+  }
   const api = `https://api.github.com/repos/${GITHUB_REPOSITORY}/issues`;
   const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${GITHUB_TOKEN}`, 'X-GitHub-Api-Version': '2022-11-28' };
   const issues = [];

@@ -1297,7 +1297,7 @@ higher confidence.
 ### Detect stack and scope
 
 ```bash
-source <(~/.claude/skills/rig/bin/rig-diff-scope <base> 2>/dev/null) || true
+source <(.rig/plumbing/bin/rig-diff-scope <base> 2>/dev/null) || true
 # Detect stack for specialist context
 STACK=""
 [ -f Gemfile ] && STACK="${STACK}ruby "

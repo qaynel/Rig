@@ -573,6 +573,20 @@ test('RIG-127.11 uninstall leaves a corrupted global config byte-identical and r
   assert.equal(fs.readFileSync(globalFile, 'utf8'), corrupt);
 }));
 
+test('uninstall preserves every valid-but-wrong-shaped global namespace as best effort', () => withTarget((target) => {
+  for (const value of ['string', 7, true, [], null]) {
+    const globalFile = path.join(target, `global-${String(value)}.json`);
+    const body = `${JSON.stringify({ rig: value })}\n`;
+    fs.writeFileSync(globalFile, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), `${JSON.stringify({ entries: [{ kind: 'json-namespace', path: globalFile, install_id: 'repo-a' }] })}\n`);
+    const result = uninstall(target);
+    assert.ok(result.best_effort.includes(globalFile));
+    assert.equal(fs.readFileSync(globalFile, 'utf8'), body);
+    fs.rmSync(path.join(target, '.rig'), { recursive: true, force: true });
+  }
+}));
+
 function writeLegacyNamelessRecord(target, rel, preimage, file) {
   fs.writeFileSync(path.join(target, rel), file);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });

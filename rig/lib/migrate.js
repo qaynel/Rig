@@ -26,8 +26,10 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const { getSystemErrorName } = require('node:util');
 const { containedPath } = require('./path-safety');
 const { journalWriter, applyEntry, MANIFEST_REL } = require('./payload');
 const { loadCorpus } = require('./corpus');
@@ -69,6 +71,119 @@ function sha256(bytes) {
 
 function refuse(code, detail, extra) {
   throw new MigrationRefusal(code, detail, extra);
+}
+
+function linkAt(sourceRel, destinationName, rootFd, parentFd, expected) {
+  const program = [
+    'import errno, json, os, stat, sys',
+    'try:',
+    '    if os.link not in os.supports_dir_fd: raise OSError(errno.ENOTSUP, "os.link dir_fd support unavailable")',
+    '    fd = os.open(sys.argv[1], os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=3)',
+    '    try:',
+    '        info = os.fstat(fd)',
+    '        if not stat.S_ISREG(info.st_mode) or (info.st_dev, info.st_ino) != (int(sys.argv[3]), int(sys.argv[4])): raise OSError(errno.EBUSY, "migration temp changed before publication")',
+    '        # Link the opened inode, not the mutable source directory entry.',
+    '        if sys.platform.startswith("linux"):',
+    '            import ctypes',
+    '            libc = ctypes.CDLL(None, use_errno=True)',
+    '            if libc.linkat(fd, b"", 4, os.fsencode(sys.argv[2]), 0x1000) != 0: raise OSError(ctypes.get_errno(), os.strerror(ctypes.get_errno()))',
+    '        elif sys.platform == "darwin":',
+    '            import ctypes',
+    '            libc = ctypes.CDLL(None, use_errno=True)',
+    '            libc.fclonefileat.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]',
+    '            if libc.fclonefileat(fd, 4, os.fsencode(sys.argv[2]), 0) != 0: raise OSError(ctypes.get_errno(), os.strerror(ctypes.get_errno()))',
+    '        else: raise OSError(errno.ENOTSUP, "safe descriptor publication unsupported")',
+    '    finally: os.close(fd)',
+    'except OSError as error:',
+    '    print(json.dumps({"errno": error.errno, "message": str(error)}), file=sys.stderr)',
+    '    sys.exit(1)',
+  ].join('\n');
+  const result = spawnSync('python3', ['-I', '-c', program, sourceRel, destinationName, String(expected.dev), String(expected.ino)], {
+    stdio: ['ignore', 'ignore', 'pipe', rootFd, parentFd], encoding: 'utf8',
+  });
+  if (result.error) {
+    if (result.error.code === 'ENOENT') refuse('atomic-publish-unavailable', 'Python 3 is required to safely publish a migration record on this filesystem');
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    let detail = result.stderr || 'directory-relative hard-link publication failed';
+    try {
+      const failure = JSON.parse(result.stderr);
+      detail = failure.message;
+      if (failure.errno) {
+        const error = new Error(detail);
+        error.code = getSystemErrorName(-failure.errno);
+        throw error;
+      }
+    } catch (error) {
+      if (error.code) throw error;
+    }
+    throw new Error(detail);
+  }
+}
+
+function prepareTempAt(name, bytes, rootFd) {
+  const program = [
+    'import errno, json, os, stat, sys',
+    'name = sys.argv[1]',
+    'data = sys.stdin.buffer.read()',
+    'try:',
+    '    fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600, dir_fd=3)',
+    '    try:',
+    '        view = memoryview(data)',
+    '        while view: view = view[os.write(fd, view):]',
+    '        info = os.fstat(fd)',
+    '    finally: os.close(fd)',
+    'except FileExistsError:',
+    '    try:',
+    '        info = os.stat(name, dir_fd=3, follow_symlinks=False)',
+    '        if not stat.S_ISREG(info.st_mode): raise OSError(errno.EEXIST, "unrelated migration temp exists")',
+    '        fd = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=3)',
+    '        try:',
+    '            info = os.fstat(fd)',
+    '            existing = b""',
+    '            while True:',
+    '                block = os.read(fd, 65536)',
+    '                if not block: break',
+    '                existing += block',
+    '            if not stat.S_ISREG(info.st_mode) or existing != data: raise OSError(errno.EEXIST, "unrelated migration temp exists")',
+    '        finally: os.close(fd)',
+    '    except OSError as error:',
+    '        print(json.dumps({"errno": error.errno, "message": str(error)}), file=sys.stderr)',
+    '        sys.exit(1)',
+    'except OSError as error:',
+    '    print(json.dumps({"errno": error.errno, "message": str(error)}), file=sys.stderr)',
+    '    sys.exit(1)',
+    'print(json.dumps({"dev": info.st_dev, "ino": info.st_ino}))',
+  ].join('\n');
+  const result = spawnSync('python3', ['-I', '-c', program, name], {
+    input: bytes, stdio: ['pipe', 'pipe', 'pipe', rootFd], encoding: 'utf8',
+  });
+  if (result.error) {
+    if (result.error.code === 'ENOENT') refuse('atomic-publish-unavailable', 'Python 3 is required to safely publish a migration record on this filesystem');
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    let detail = result.stderr || 'directory-relative migration temp creation failed';
+    try {
+      const failure = JSON.parse(result.stderr);
+      detail = failure.message;
+      if ([17, 40, 62].includes(failure.errno)) {
+        refuse('conflicts', `${name} already exists; remove or recover it before retrying`, {
+          conflicts: [{ path: name, reason: failure.errno === 17 ? 'temp-exists' : 'temp-changed', detail }],
+        });
+      }
+    } catch (error) { if (error instanceof MigrationRefusal) throw error; }
+    throw new Error(detail);
+  }
+  return JSON.parse(result.stdout);
+}
+
+function requirePythonForAtomicPublication() {
+  const result = spawnSync('python3', ['-I', '-c', 'pass'], { stdio: 'ignore' });
+  if (result.error?.code === 'ENOENT' || result.status !== 0) {
+    refuse('atomic-publish-unavailable', 'Python 3 is required to safely publish a migration record on this filesystem');
+  }
 }
 
 function liveDigest(target, rel) {
@@ -151,7 +266,7 @@ function protectedPaths(target) {
       keep.add(`${path.posix.dirname(row.path)}/`);
     }
   }
-  for (const row of applied.owned_files || []) keep.add(row.path);
+  for (const row of [...(applied.owned_files || []), ...(applied.projection_files || [])]) keep.add(row.path);
   for (const row of applied.grafts || []) keep.add(row.path);
   for (const row of applied.upstream?.flatMap((u) => u.files) || []) keep.add(row.path);
   if (applied.projection_script) {
@@ -185,6 +300,18 @@ function symlinked(target, rel) {
 // each mutation, because a resumed migration runs long after it was planned.
 function guard(target, rel, detail = 'the path or a parent is a symlink; Rig will not write, move or delete through it') {
   if (symlinked(target, rel)) refuse('conflicts', `${rel} is a symlink`, { conflicts: [{ path: rel, reason: 'symlink', detail }] });
+  const abs = containedPathSafe(target, rel);
+  if (fs.existsSync(abs)) {
+    const stat = fs.lstatSync(abs);
+    if (stat.isFile() && stat.nlink > 1) {
+      if (rel === MIGRATION_REL && stat.nlink === 2) {
+        let temp;
+        try { temp = fs.lstatSync(path.join(target, MIGRATION_TMP_REL)); } catch { /* report the hard link below */ }
+        if (temp?.isFile() && !temp.isSymbolicLink() && temp.dev === stat.dev && temp.ino === stat.ino) return;
+      }
+      refuse('conflicts', `${rel} has a hard link`, { conflicts: [{ path: rel, reason: 'hard-link', detail: 'Rig will not mutate a file that aliases another path' }] });
+    }
+  }
 }
 
 // Where the migration keeps its own records. A link here would redirect the
@@ -267,7 +394,15 @@ function plan(target, opts) {
     const owned = journal.latest.get(rel);
     const old = owned && owned.state === 'applied' && isFileOwned(owned) ? (owned.digest || null) : null;
     if (entry.op === 'seed_user_file') { if (live === null) actions.push({ path: rel, action: 'write', old: null, new: newDigest, op: 'seed_user_file' }); continue; }
-    if (live === newDigest) { if (!owned || owned.digest !== newDigest) actions.push({ path: rel, action: 'adopt', old, new: newDigest }); continue; }
+    if (live === newDigest) {
+      const mode = fs.statSync(containedPath(target, rel)).mode & 0o777;
+      if (old !== null && owned.mode && mode !== owned.mode && mode !== entry.mode) {
+        conflicts.push({ path: rel, reason: 'edited-owned-file', detail: 'the owned file mode changed after installation' });
+      } else if (!owned || owned.digest !== newDigest || (entry.mode && mode !== entry.mode)) {
+        actions.push({ path: rel, action: 'adopt', old, new: newDigest });
+      }
+      continue;
+    }
     if (live === null) { actions.push({ path: rel, action: 'write', old, new: newDigest }); continue; }
     if (old !== null && live === old) { actions.push({ path: rel, action: 'write', old, new: newDigest, backup: true }); continue; }
     if (old !== null && newDigest === old) { keptEdited.push({ path: rel, reason: 'edited-owned-unchanged-upstream' }); continue; }
@@ -317,6 +452,23 @@ function atomicJson(target, rel, value) {
   const parentAbs = path.dirname(abs);
   const parentRel = path.dirname(rel);
   const parentStat = fs.lstatSync(parentAbs);
+  const directoryFlags = fs.constants.O_RDONLY | (fs.constants.O_DIRECTORY || 0);
+  const initialRoot = fs.lstatSync(target);
+  if (!initialRoot.isDirectory() || initialRoot.isSymbolicLink()) {
+    refuse('conflicts', 'repository root changed before migration publication', {
+      conflicts: [{ path: '.', reason: 'root-changed', detail: 'the migration target must remain the original directory' }],
+    });
+  }
+  const rootFd = fs.openSync(target, directoryFlags | (fs.constants.O_NOFOLLOW || 0));
+  const openedRoot = fs.fstatSync(rootFd);
+  if (openedRoot.dev !== initialRoot.dev || openedRoot.ino !== initialRoot.ino) {
+    fs.closeSync(rootFd);
+    refuse('conflicts', 'repository root changed before migration publication', {
+      conflicts: [{ path: '.', reason: 'root-changed', detail: 'the migration target changed while its directory descriptor opened' }],
+    });
+  }
+  try {
+  requirePythonForAtomicPublication();
   const assertParent = () => {
     let current;
     try { current = fs.lstatSync(parentAbs); } catch { current = null; }
@@ -328,60 +480,38 @@ function atomicJson(target, rel, value) {
     }
   };
   let fd;
-  let resumedTemp = false;
-  try {
-    // rig: the fixed root-level temp makes interrupted plans easy to find;
-    // exclusive create refuses collisions and symlink races.
-    fd = fs.openSync(tmp, 'wx');
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error;
-    // rig: only adopt a complete, byte-identical record left by interruption;
-    // arbitrary regular files and links remain protected collisions.
-    try {
-      fd = fs.openSync(tmp, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
-      const stat = fs.fstatSync(fd);
-      const current = fs.lstatSync(tmp);
-      const bytes = fs.readFileSync(fd);
-      if (!stat.isFile() || current.isSymbolicLink() || current.dev !== stat.dev || current.ino !== stat.ino || !bytes.equals(recordBytes)) {
-        fs.closeSync(fd);
-        fd = undefined;
-        refuse('conflicts', `${tmpRel} already exists; remove or recover it before retrying`, {
-          conflicts: [{ path: tmpRel, reason: 'temp-exists', detail: 'the migration will not overwrite an unrelated temporary file' }],
-        });
-      }
-      resumedTemp = true;
-    } catch (resumeError) {
-      if (fd !== undefined) fs.closeSync(fd);
-      if (resumeError.code === 'ENOENT' || resumeError.code === 'ELOOP') {
-        refuse('conflicts', `${tmpRel} changed while checking an interrupted migration record`, {
-          conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the temporary record was substituted during recovery' }],
-        });
-      }
-      throw resumeError;
+  const tempIdentity = prepareTempAt(tmpRel, recordBytes, rootFd);
+  try { fd = fs.openSync(tmp, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0)); }
+  catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ELOOP') {
+      refuse('conflicts', `${tmpRel} changed while checking an interrupted migration record`, {
+        conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the temporary record was substituted during recovery' }],
+      });
     }
+    throw error;
   }
   const openedStat = fs.fstatSync(fd);
   try {
     assertParent();
     const currentTmp = fs.lstatSync(tmp);
-    if (!currentTmp.isFile() || currentTmp.isSymbolicLink() || currentTmp.dev !== openedStat.dev || currentTmp.ino !== openedStat.ino) {
+    if (!currentTmp.isFile() || currentTmp.isSymbolicLink() || currentTmp.dev !== openedStat.dev || currentTmp.ino !== openedStat.ino ||
+        openedStat.dev !== tempIdentity.dev || openedStat.ino !== tempIdentity.ino) {
       refuse('conflicts', `${tmpRel} changed while preparing the migration record`, {
         conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the exclusively created temporary file was substituted' }],
       });
     }
-    if (!resumedTemp) fs.writeFileSync(fd, recordBytes);
+    if (!fs.readFileSync(fd).equals(recordBytes)) {
+      refuse('conflicts', `${tmpRel} already exists; remove or recover it before retrying`, {
+        conflicts: [{ path: tmpRel, reason: 'temp-exists', detail: 'the migration will not overwrite an unrelated temporary file' }],
+      });
+    }
   } catch (error) {
     fs.closeSync(fd);
-    let currentTmp;
-    try { currentTmp = fs.lstatSync(tmp); } catch { currentTmp = null; }
-    if (currentTmp?.isFile() && !currentTmp.isSymbolicLink() && currentTmp.dev === openedStat.dev && currentTmp.ino === openedStat.ino) {
-      fs.unlinkSync(tmp);
-    }
+    // Keep the temp on verification failure. A pathname check followed by
+    // unlinkat cannot prove that the directory entry still names our inode.
     throw error;
   }
   fs.closeSync(fd);
-  let linked = false;
-  let linkedStat = null;
   try {
     assertParent();
     const currentTmp = fs.lstatSync(tmp);
@@ -390,40 +520,48 @@ function atomicJson(target, rel, value) {
         conflicts: [{ path: tmpRel, reason: 'temp-changed', detail: 'the exclusively created temporary file was substituted' }],
       });
     }
-    // rig: link-then-unlink makes publication no-clobber and lets us detect
-    // and remove our own destination if the parent is swapped at commit time.
-    fs.linkSync(tmp, abs);
-    linked = true;
-    linkedStat = fs.lstatSync(abs);
+    // rig: Python's standard library exposes linkat through dir_fd; pin both
+    // directories so a parent swap cannot redirect publication through a path.
+    let parentFd;
+    try {
+      parentFd = fs.openSync(parentAbs, directoryFlags | (fs.constants.O_NOFOLLOW || 0));
+      const openedParent = fs.fstatSync(parentFd);
+      if (!openedParent.isDirectory() || openedParent.dev !== parentStat.dev || openedParent.ino !== parentStat.ino) {
+        refuse('conflicts', `${parentRel} changed before the migration record could be committed`, {
+          conflicts: [{ path: parentRel, reason: 'parent-changed', detail: 'the migration record parent changed before publication' }],
+        });
+      }
+      linkAt(tmpRel, path.basename(abs), rootFd, parentFd, openedStat);
+    } finally {
+      if (parentFd !== undefined) fs.closeSync(parentFd);
+    }
     assertParent();
     const published = fs.lstatSync(abs);
-    if (!published.isFile() || published.isSymbolicLink() || published.dev !== openedStat.dev || published.ino !== openedStat.ino) {
+    const publishedFromValidatedTemp = process.platform === 'linux'
+      ? published.dev === openedStat.dev && published.ino === openedStat.ino
+      : fs.readFileSync(abs).equals(recordBytes);
+    if (!published.isFile() || published.isSymbolicLink() || !publishedFromValidatedTemp) {
       refuse('conflicts', `${rel} changed before the migration record could be committed`, {
         conflicts: [{ path: rel, reason: 'record-changed', detail: 'the migration record destination was substituted' }],
       });
     }
-    fs.unlinkSync(tmp);
+    // rig: no pathname unlink can atomically prove inode ownership. Retain the
+    // temp as a recovery copy; a later attempt may only read it, never delete it.
     assertParent();
   } catch (error) {
-    if (linked) {
-      let published;
-      try { published = fs.lstatSync(abs); } catch { published = null; }
-      if (linkedStat && published?.isFile() && !published.isSymbolicLink() && published.dev === linkedStat.dev && published.ino === linkedStat.ino) {
-        fs.unlinkSync(abs);
-      }
-    }
-    let currentTmp;
-    try { currentTmp = fs.lstatSync(tmp); } catch { currentTmp = null; }
-    if (currentTmp?.isFile() && !currentTmp.isSymbolicLink() && currentTmp.dev === openedStat.dev && currentTmp.ino === openedStat.ino) {
-      fs.unlinkSync(tmp);
-    }
+    // Never unlink the published destination here: lstat followed by unlink
+    // is not atomic, so a swapped temp could delete unrelated data. Keeping
+    // our link is recoverable; the migration record is the resume point.
     try { assertParent(); } catch (parentError) { throw parentError; }
-    if (error.code === 'EPERM' || error.code === 'ENOTSUP') {
+    if (error.code === 'EPERM' || error.code === 'ENOTSUP' || error.code === 'EBUSY') {
       refuse('conflicts', `${tmpRel} could not be published safely; use a filesystem that supports hard links`, {
         conflicts: [{ path: tmpRel, reason: 'atomic-publish-unavailable', detail: error.message }],
       });
     }
     throw error;
+  }
+  } finally {
+    fs.closeSync(rootFd);
   }
 }
 
@@ -462,12 +600,15 @@ function execute(target, planned, opts) {
     tick(`write:${action.path}`);
     guard(target, action.path);
     const live = liveDigest(target, action.path);
-    if (action.action === 'write' && live !== null && live !== action.old && live !== action.new) {
+    if (live !== action.old && live !== action.new) {
       refuse('conflicts', `${action.path} changed while migrating`, { conflicts: [{ path: action.path, reason: 'edited-owned-file', detail: 'edited after the plan was made' }] });
     }
     if (action.backup && live === action.old) backup(target, action.path, action.old);
     const prior = writer.latest(action.path);
-    if (live === action.new && prior?.state === 'applied' && prior.digest === action.new) { result.adopted.push(action.path); continue; }
+    if (live === action.new && prior?.state === 'applied' && prior.digest === action.new &&
+        (!entry.mode || (fs.statSync(containedPath(target, action.path)).mode & 0o777) === entry.mode)) {
+      result.adopted.push(action.path); continue;
+    }
     writer(target, action.path, entry.bytes, entry.mode, action.op === 'seed_user_file' ? 'user_owned' : undefined,
       action.op === 'seed_user_file' ? { transaction_kind: 'user_seed' } : {});
     (action.action === 'adopt' ? result.adopted : result.written).push(action.path);
@@ -501,7 +642,11 @@ function writeMarker(target, planned) {
   const writer = journalWriter(target, { transactionOwner: `migrate:${planned.plan_digest}` });
   writer.begin();
   const prior = writer.latest(V6_MARKER);
-  if (!(liveDigest(target, V6_MARKER) === action.new && prior?.state === 'applied' && prior.digest === action.new)) {
+  const live = liveDigest(target, V6_MARKER);
+  if (live !== action.old && live !== action.new) {
+    refuse('conflicts', `${V6_MARKER} changed while migrating`, { conflicts: [{ path: V6_MARKER, reason: 'unowned-file', detail: 'edited after the plan was made' }] });
+  }
+  if (!(live === action.new && prior?.state === 'applied' && prior.digest === action.new)) {
     writer(target, V6_MARKER, entry.bytes, entry.mode);
   }
   writer.finish();
@@ -546,10 +691,10 @@ function migrate(target, opts = {}) {
       if (fs.existsSync(tempPath)) {
         const tempStat = fs.lstatSync(tempPath);
         const finalStat = fs.lstatSync(persisted);
-        if (!tempStat.isFile() || tempStat.isSymbolicLink() || tempStat.dev !== finalStat.dev || tempStat.ino !== finalStat.ino) {
-          refuse('migration-temp-conflict', `${MIGRATION_TMP_REL} is not the published migration record's temporary link; remove or recover it before retrying`);
+        if (!tempStat.isFile() || tempStat.isSymbolicLink() || !finalStat.isFile() ||
+            !fs.readFileSync(tempPath).equals(fs.readFileSync(persisted))) {
+          refuse('migration-temp-conflict', `${MIGRATION_TMP_REL} does not match the published migration record; it was preserved`);
         }
-        fs.unlinkSync(tempPath);
       }
       const staged = stage(target, saved.hosts, saved.delivery, saved.to_tag);
       planned = { ...claimed, plan_digest: digest, staged };
@@ -567,7 +712,13 @@ function migrate(target, opts = {}) {
     if (opts.onStep) opts.onStep('complete', -1);
     fs.rmSync(containedPath(target, MIGRATION_REL), { force: true });
     fs.rmSync(containedPath(target, BACKUP_REL), { recursive: true, force: true });
-    return summarize(planned, result, state);
+    let retainedTemp = false;
+    try { fs.lstatSync(path.join(target, MIGRATION_TMP_REL)); retainedTemp = true; }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+    return {
+      ...summarize(planned, result, state),
+      ...(retainedTemp ? { recovery: { code: 'migration-temp-retained', path: MIGRATION_TMP_REL } } : {}),
+    };
   } catch (error) {
     if (/follows an outside symlink|escapes target|unsafe repository path/.test(error.message)) {
       return {

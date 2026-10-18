@@ -152,7 +152,7 @@ async function fetchUpstream(id, options) {
       tar_sha256: meta.archive.tar_sha256,
       licence: { spdx: meta.licence.spdx, sha256: meta.licence.sha256 },
       patches: meta.local_patches.map(({ id: patchId, sha256: digest }) => ({ id: patchId, sha256: digest })),
-      files: [...files].map(([output, bytes]) => ({ path: output, sha256: sha256(bytes) })).sort((a, b) => a.path.localeCompare(b.path)),
+      files: [...files].map(([output, bytes]) => ({ path: output, sha256: sha256(bytes), mode: meta.files.find((row) => row.output === output).mode })).sort((a, b) => a.path.localeCompare(b.path)),
     };
     return { status: 'ok', id, files, receipt };
   } finally {

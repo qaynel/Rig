@@ -14,6 +14,10 @@ function digestAt(target, rel) {
   return fs.existsSync(file) ? sha256(fs.readFileSync(file)) : null;
 }
 
+function serviceOutputPreimages(target) {
+  return { '.rig/service-bindings.json': digestAt(target, '.rig/service-bindings.json') };
+}
+
 function serviceText(service, binding) {
   const parts = ['identity', ...(binding.grade ? GRADES.slice(0, GRADES.indexOf(binding.grade) + 1) : [])];
   const fragments = parts.map(part => service.fragments[part]);
@@ -125,6 +129,18 @@ function preflightServices(target, proposal, writer) {
   if (canonical(executable(recomputed)) !== canonical(executable(proposal.service_bindings))) {
     throw new Error('approved service bindings are stale');
   }
+  const sharedPreimages = proposal.service_output_preimages;
+  if (!sharedPreimages || Object.keys(sharedPreimages).length !== 1 || !Object.hasOwn(sharedPreimages, '.rig/service-bindings.json')) {
+    throw new Error('approved service output preimages are malformed');
+  }
+  for (const [rel, expected] of Object.entries(sharedPreimages)) {
+    const actual = digestAt(target, rel);
+    const resumed = require('./payload').journalResumeDigest(writer, rel);
+    if (actual !== expected && actual !== resumed) throw new Error(`${rel}: approved service output preimage is stale`);
+    if (actual !== null && writer?.latest?.(rel)?.digest !== actual && actual !== resumed) {
+      throw new Error(`${rel}: service output is not journal-proven Rig ownership`);
+    }
+  }
   for (const binding of Object.values(proposal.service_bindings)) for (const [rel, expected] of Object.entries(binding.output_preimages)) {
     const actual = digestAt(target, rel);
     const resumed = require('./payload').journalResumeDigest(writer, rel);
@@ -136,7 +152,7 @@ function preflightServices(target, proposal, writer) {
 }
 
 function applyServices(target, proposal, writer, currentDigest) {
-  if (proposal.selected_services === undefined || !Object.keys(proposal.selected_services).length) return [];
+  if (proposal.selected_services === undefined) return [];
   preflightServices(target, proposal, writer);
   const catalog = loadCatalog();
   const files = [];
@@ -221,4 +237,4 @@ function unsupportedNativeInput(input, reason) {
   };
 }
 
-module.exports = { definition, detectService, bindServices, preflightServices, applyServices, checkServices, runNativeService };
+module.exports = { definition, detectService, bindServices, serviceOutputPreimages, preflightServices, applyServices, checkServices, runNativeService };

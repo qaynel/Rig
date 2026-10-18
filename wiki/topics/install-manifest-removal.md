@@ -1,5 +1,13 @@
 # Install manifest and removal
 
+The [QA follow-up checkpoint](../reasoning/2026-10-18-qa-closeout-followup-progress.md)
+records that migration retains its temporary record with a named recovery state;
+pathname cleanup cannot atomically prove the entry still names the validated inode.
+The [integration checkpoint](../reasoning/2026-10-18-qa-closeout-followup-migration-integration.md)
+and [platform verification checkpoint](../reasoning/2026-10-18-qa-closeout-followup-platform-verification.md)
+record that migration protects approved projected files and that its maintained
+suite passes on macOS, with Linux publication and replacement cases also passing.
+
 The corpus parity run now compares every v5 configuration with explicitly
 explained path-family changes, and the real migration round trip restores the
 complete initial fixture inventory after removing only generated uninstall
@@ -33,8 +41,9 @@ payload, and CI mutations.
 
 Path B's `graft_managed` ownership records the named capability sections inside
 one existing Markdown instruction file, including each section's canonical
-content digest. Reversal removes only a digest-matching recorded section;
-unmanaged bytes and an edited managed body survive as best-effort preservation.
+content digest. Reversal removes recorded managed sections even if their managed
+body was edited; bytes outside valid recorded markers survive. Malformed or
+rewritten markers are preserved and reported as best-effort cases.
 [Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
 
 Removal walks the last record for each sequence in reverse. It deletes only

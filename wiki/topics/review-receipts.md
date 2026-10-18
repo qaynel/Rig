@@ -2,11 +2,24 @@
 
 ## What it is
 
+The [fix-verification checkpoint](../reasoning/2026-10-18-qa-closeout-fix-verification.md)
+checks the eight-item remediation. Its [bounded follow-up](../specs/close-everything/qa-prod-closeout-followup.md)
+retains only incomplete criteria: migration safety/recovery, documented helper
+paths, empty-selection output safety, current authorities and maintained checks.
+Approval remains withheld; verified fixes are not reopened.
+
 A release review receipt is wrapper-authored, report-only evidence from a fresh
 review context. It binds the exact technical-spec digest, a digest over the
 catalogue plus every referenced fragment, a deterministic digest of the exact
 PR implementation worktree and its base, the reviewer context and timestamp,
 one verdict per current acceptance case, findings, and unresolved cases.
+
+The [consolidated advisory verdict](../reasoning/2026-10-18-qa-closeout-consolidated-verdict.md)
+withholds approval for eight grouped findings. The
+[active acceptance handoff](../specs/close-everything/qa-prod-closeout-review.md)
+reconciles every earlier review and separates QA merge from later release
+operations. No binding wrapper attempt ran; the prior count and designated
+reviewer remain preserved.
 
 ## Validation
 
@@ -64,6 +77,15 @@ or timed-out reviewer spawn is persisted before the cap is evaluated. See
 
 ## Remaining work
 
+The [renewed candidate review](../reasoning/2026-10-17-review-received-final-candidate-review.md)
+withheld approval for two reproduced migration/upgrade defects and current
+design/documentation drift. The [follow-up fixes](../reasoning/2026-10-18-review-received-followup-fixes.md)
+record the fixes and regression seams; final-byte verification and owner-led
+review and release evidence remain separate. The reserved binding review
+attempt has not been consumed; review notes do not constitute a receipt. The
+[completed verdict](../reasoning/2026-10-18-review-received-candidate-verdict.md)
+remains the record for the prior candidate's evidence.
+
 The [Review Received request](../reasoning/2026-10-17-review-received-request.md)
 asks for final review and PR approval. The
 [report-only findings](../reasoning/2026-10-17-review-received-findings.md)
@@ -97,3 +119,31 @@ receipts remain historical because they bind older bytes.
 The [late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
 records follow-up report-only defects, their acceptance regressions, and the
 owner-controlled evidence still required before the PR can close.
+The [publication follow-up](../reasoning/2026-10-18-review-received-publication-followup.md)
+keeps Finding 17 open after identifying the remaining pre-link parent swap.
+The [directory-relative fix](../reasoning/2026-10-18-review-received-dirfd-fix.md)
+resolves that race and records the locally demonstrated findings; full release
+evidence and the new candidate receipt remain open.
+The [cleanup follow-up](../reasoning/2026-10-18-review-received-cleanup-followup.md)
+records root-pinned migration cleanup and exclusive no-follow MCP marker reads
+and writes, with full migration verification still running.
+The [recovery-boundaries trace](../reasoning/2026-10-18-review-received-recovery-boundaries.md)
+adds two red-green recovery regressions and records the real-download MCP
+retry evidence; the full migration and repository gates remain open.
+The [temp-retention trace](../reasoning/2026-10-18-review-received-temp-retention.md)
+records the corrected refusal expectation; the final full gate is rerunning.
+The [final gate retry trace](../reasoning/2026-10-18-review-received-final-gate-retry.md)
+records that generated wiki files are current before the final gate rerun.
+The [full-gate trace](../reasoning/2026-10-18-review-received-full-gate-passed.md)
+records 1,111 main tests, 15 Pi-extension tests and six MCP tests passing;
+exact-SHA evidence and the new candidate receipt remain open.
+
+The [renewed review checkpoint](../reasoning/2026-10-18-review-received-renewed-review-start.md) records the uncommitted fix handoff and ongoing independent verification.
+
+The [repository-wide closeout request](../reasoning/2026-10-18-qa-closeout-review-request.md) asks for one consolidated set of findings and verifiable criteria for the fixing agent.
+
+The [broad review checkpoint](../reasoning/2026-10-18-qa-closeout-review-progress.md) records coverage, grouped reproductions and the distinction between QA merge and production-only evidence.
+
+The [managed-section correction](../reasoning/2026-10-18-qa-closeout-managed-section-correction.md) retracts a proposed code finding because the signed contract intentionally removes edited managed bodies; live documentation must match that behavior.
+
+The [temp-type boundary check](../reasoning/2026-10-18-qa-closeout-temp-type-check.md) adds a bounded FIFO-refusal criterion to the existing migration finding; the consolidated list remains eight groups.

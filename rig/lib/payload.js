@@ -14,6 +14,12 @@ const MANIFEST_REL = '.rig/install-manifest.jsonl';
 
 function directWrite(target, rel, contents, mode) {
   const dst = containedPath(target, rel);
+  if (fs.existsSync(dst)) {
+    const stat = fs.lstatSync(dst);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) {
+      throw new Error(`rig: refusing to mutate unsafe payload path ${rel}`);
+    }
+  }
   fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.writeFileSync(dst, contents, mode ? { mode } : undefined);
   if (mode) fs.chmodSync(dst, mode);
@@ -425,13 +431,41 @@ function journalWriter(target, { transactionOwner = null } = {}) {
   };
 
   const write = (ignoredTarget, rel, contents, mode, ownershipOverride, details = {}) => {
+    const { exclusiveCreate = false, ...recordDetails } = details;
     const abs = containedPath(target, rel);
+    if (fs.existsSync(abs)) {
+      const stat = fs.lstatSync(abs);
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) {
+        throw new Error(`rig: refusing to mutate unsafe payload path ${rel}`);
+      }
+    }
     resolvePendingDelete(rel, abs);
     const desired = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
-    const before = fs.existsSync(abs) ? fs.readFileSync(abs) : null;
-    const currentMode = fs.existsSync(abs) ? fs.statSync(abs).mode & 0o777 : null;
     const desiredDigest = sha256(desired);
     const prior = latestByPath.get(rel);
+    let before;
+    let currentMode = null;
+    if (exclusiveCreate) {
+      try {
+        const inspected = fs.lstatSync(abs);
+        if (prior?.state !== 'pending' || prior.desired_digest !== desiredDigest || !inspected.isFile() || inspected.isSymbolicLink()) {
+          throw new Error(`rig: refusing to create existing path ${rel}`);
+        }
+        const fd = fs.openSync(abs, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+        try {
+          const opened = fs.fstatSync(fd);
+          if (!opened.isFile() || opened.dev !== inspected.dev || opened.ino !== inspected.ino) {
+            throw new Error(`rig: refusing to recover changed path ${rel}`);
+          }
+          before = fs.readFileSync(fd);
+          currentMode = opened.mode & 0o777;
+        } finally { fs.closeSync(fd); }
+        if (!before.equals(desired)) throw new Error(`rig: conflicting pending payload write: ${rel}`);
+      } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    } else {
+      before = fs.existsSync(abs) ? fs.readFileSync(abs) : null;
+      currentMode = fs.existsSync(abs) ? fs.statSync(abs).mode & 0o777 : null;
+    }
     if (prior?.state === 'applied' && prior.digest === desiredDigest && before?.equals(desired) && (!mode || currentMode === mode)) return;
 
     const ownership = ownershipOverride || (before ? 'replace_owned' : 'create_owned');
@@ -485,13 +519,19 @@ function journalWriter(target, { transactionOwner = null } = {}) {
         preimage_digest: preimageDigest,
         desired_digest: desiredDigest,
         mode: mode || null,
-        ...details,
+        ...recordDetails,
       };
       start();
       append(record);
     }
     start();
-    directWrite(target, rel, desired, mode);
+    if (exclusiveCreate) {
+      const fd = fs.openSync(abs, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW || 0), mode || 0o666);
+      try {
+        fs.writeFileSync(fd, desired);
+        if (mode) fs.fchmodSync(fd, mode);
+      } finally { fs.closeSync(fd); }
+    } else directWrite(target, rel, desired, mode);
     const applied = {
       ...record,
       state: 'applied',
@@ -510,6 +550,12 @@ function journalWriter(target, { transactionOwner = null } = {}) {
   // after — and `resolvePendingDelete` recovers either interruption.
   const remove = (ignoredTarget, rel, expectedDigest) => {
     const abs = containedPath(target, rel);
+    if (fs.existsSync(abs)) {
+      const stat = fs.lstatSync(abs);
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) {
+        throw new Error(`rig: refusing to delete unsafe payload path ${rel}`);
+      }
+    }
     if (resolvePendingDelete(rel, abs)) return { removed: true };
     const prior = latestByPath.get(rel);
     if (prior?.operation === 'delete_owned' && prior.state === 'applied' && !fs.existsSync(abs)) {
