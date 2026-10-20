@@ -55,7 +55,7 @@ node --test .context/2026-10-20-owner-candidate/tests/advanced-oracle.test.js \
 | Finding | Resolution | Evidence |
 | --- | --- | --- |
 | Frozen prose versus signed tests (AT-SHAPE-6, DIST-1, PB-3/6) | Owner amendment prepared; signature pending | Mirror run above |
-| Authored catalogue; executable versus convention declarations | All 115 identities declare their catalogue disposition; repeated cue blocks removed (0 remain); installed good/bad/grade matrix | `tests/catalogue-installed.test.js` (installed matrix: 115/115 services discriminate configuration across every grade); `tests/advanced-catalogue.test.js` |
+| Authored catalogue; executable versus convention declarations | All 115 identities declare their catalogue disposition; repeated cue blocks removed (0 remain); installed good/bad/grade matrix | `tests/catalogue-all-services.test.js` (installed matrix: 115/115 services discriminate configuration across every grade); `tests/advanced-catalogue.test.js` |
 | Policy status reported protected when disabled | Empty, switch-disabled, legacy network-disabled and malformed-category policies report unprotected with named reasons | `tests/advanced-baseline.test.js`, `tests/release-blockers.test.js`; `.context/binding-delta-runtime-probes.cjs` now reports `protected: false` for the legacy and malformed probes |
 | Host contract proofs were self-generated | Supported hooks Rig does not install are reported as available but not integrated; shared adapter no longer overwrites user files at five paths | `tests/advanced-hosts.test.js`, `tests/host-contract-parity.test.js`; candidate AT-HOST-1 inspects landed bytes for all 19 writers |
 | Plan digest used as consent identity | Per-approval nonce bound by SSHSIG; replay refused | Candidate AT-LF-20 |
