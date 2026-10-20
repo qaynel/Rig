@@ -68,9 +68,9 @@ function signedPlanApproval(target, planned) {
   if (!fs.existsSync(key)) {
     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
     assert.equal(generated.status, 0, generated.stderr);
-    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
     const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
-    fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `${identity} namespaces=\"rig-plan-approval\" ${publicKey}\n`);
+    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${identity} ${publicKey}\n`);
   }
   const challenge = createChallenge(planned);
   fs.writeFileSync(message, challenge.message);
@@ -208,7 +208,6 @@ test('AT-SHAPE-6 all 115 leaves are authored at their declared grade', () => {
     const text = fs.readFileSync(file, 'utf8');
     assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
     assert.doesNotMatch(text, /generic baseline|not repository-tailored|not tailored/i, file);
-    assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
   }
 });
 
@@ -220,13 +219,30 @@ test('AT-BASE-1 sanitation precedes profiling unless exactly disabled', () => {
 
 test('AT-BASE-2 one policy governs shell web and MCP surfaces', () => {
   const evaluate = api('enforcement.js', 'evaluateAction');
-  const policy = policyFixture();
-  for (const surface of ['shell', 'web', 'mcp']) {
-    const result = evaluate(policy, { surface, category: 'network_access', target: 'example.invalid' });
-    assert.equal(result.decision, 'deny');
-    assert.equal(result.rule, 'network_access');
+  const { validatePolicy, effectiveStatus, policyStatus } = require('../rig/lib/policy');
+  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
+  const categories = ['outbound_network', 'remote_content_execution', 'sensitive_environment_read', 'guardrail_bypass'];
+  assert.doesNotThrow(() => validatePolicy(shipped), 'the shipped default is a valid policy');
+  assert.equal(effectiveStatus(shipped).protected, true);
+  for (const surface of ['shell', 'web', 'mcp']) for (const category of categories) {
+    const result = evaluate(shipped, { surface, category, target: 'example.invalid' });
+    assert.equal(result.decision, 'deny', `${surface}/${category}`);
+    assert.equal(result.rule, category);
   }
-  assert.equal(evaluate(policyFixture({ enforcement: { web: false } }), { surface: 'web', category: 'network_access' }).decision, 'disabled');
+  const noWeb = JSON.parse(JSON.stringify(shipped)); noWeb.enforcement.web = false;
+  assert.equal(evaluate(noWeb, { surface: 'web', category: 'outbound_network' }).decision, 'disabled');
+  assert.equal(evaluate(noWeb, { surface: 'shell', category: 'outbound_network' }).decision, 'deny');
+  assert.equal(evaluate({ ...shipped, enabled: false }, { surface: 'mcp', category: 'outbound_network' }).decision, 'disabled');
+  // North star 12: a decision is a block only where a hook is integrated; the rest is a named gap.
+  h.withRepo((target) => {
+    const { surfaces } = policyStatus(target);
+    assert.equal(surfaces.git_pre_commit.state, 'integrated');
+    for (const surface of ['shell', 'web', 'mcp']) {
+      assert.equal(surfaces[surface].state, 'available_not_integrated', surface);
+      assert.match(surfaces[surface].claim, /nothing is blocked automatically/);
+      assert.match(surfaces[surface].setup, /policy evaluate/);
+    }
+  });
 });
 
 test('AT-BASE-3 structured active policy is authoritative and discoverable', () => {
@@ -254,10 +270,17 @@ test('AT-BASE-4 activation binds exact revision and current-session proposal aut
 
 test('AT-BASE-5 disabled controls stop blocking and status says unprotected', () => {
   const status = api('policy.js', 'effectiveStatus');
+  const evaluate = api('enforcement.js', 'evaluateAction');
   const result = status(policyFixture({ controls: { secrets: false }, enforcement: { shell: false } }));
   assert.equal(result.controls.secrets, 'disabled');
   assert.equal(result.enforcement.shell, 'disabled');
   assert.equal(result.protected, false);
+  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
+  const action = { surface: 'shell', category: 'outbound_network' };
+  assert.equal(evaluate(shipped, action).decision, 'deny', 'enabled: the restricted action is denied');
+  const released = JSON.parse(JSON.stringify(shipped)); released.enforcement.shell = false;
+  assert.equal(status(released).protected, false);
+  assert.equal(evaluate(released, action).decision, 'disabled', 'disabled: the same action stops being blocked');
 });
 
 test('AT-BASE-6 re-enable creates a fresh evidence epoch', () => {
@@ -670,7 +693,8 @@ test('AT-PRESENCE-1 activation refuses when no verified presence path exists', (
     const native = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'host-native', attestation: { verified: true } } };
     assert.throws(() => activatePolicy(target, proposal, { approval: native }), /cryptographic|unavailable/i);
     assert.deepEqual(fixtureBytes(policyDir), before, 'self-asserted native presence cannot activate');
-    fs.writeFileSync(path.join(policyDir, 'allowed-signers'), signer.line);
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${signer.identity} ${signer.publicKey}\n`);
     const approval = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity: signer.identity, signature: signer.sign(activationMessage(proposal), 'TEST-wrong-namespace') } };
     const configured = fixtureBytes(policyDir);
     assert.throws(() => activatePolicy(target, proposal, { approval }), /SSHSIG/);
@@ -694,75 +718,30 @@ test('AT-PRESENCE-1 activation refuses when no verified presence path exists', (
   }));
 });
 
-test('AT-PRESENCE-2 recovery is pre-registered distinct and terminal', () => {
+test('AT-PRESENCE-2 one trust root: only the Gate 1 key approves and no other signer mechanism exists', () => {
   const policy = require('../rig/lib/policy');
-  h.withTempDir('rig-policy-protocol-TEST-', (outside) => h.withRepo((target) => {
-    const owner = protocolTestSigner('TEST-everyday');
-    const recovery = protocolTestSigner('TEST-recovery', true);
-    const replacement = protocolTestSigner('TEST-replacement');
-    const approval = (challenge, signer, message, namespace = 'rig-policy-activation') => ({ challenge_digest: challenge.digest, identity: signer.identity, signature: signer.sign(message(challenge), namespace) });
-    const setup = policy.proposeSignerSetup(target, owner);
-    const dir = path.join(target, '.rig/policy');
-    assert.throws(() => policy.setupPolicySigner(target, setup, approval(setup, owner, policy.signerSetupMessage, 'TEST-wrong-namespace')), /verification|SSHSIG/i);
-    assert.equal(fs.existsSync(path.join(dir, 'trust.json')), false, 'invalid setup does not establish authority');
-    const first = policy.setupPolicySigner(target, setup, approval(setup, owner, policy.signerSetupMessage));
-    assert.equal(first.trust.signer.identity, owner.identity); assert.equal(first.recovery_offer.count, 3);
-    assert.equal(first.recovery_offer.add_more, false); assert.deepEqual(first.trust.recovery, []);
-    let before = fixtureBytes(dir);
-    assert.throws(() => policy.proposeRecovery(target, replacement, recovery.identity), /pre-registered|exhausted|terminal/i);
-    assert.throws(() => policy.proposeRecoveryRegistration(target, protocolTestSigner('TEST-software-recovery')), /security.key|sk-|user.verification/i);
-    assert.throws(() => policy.generateRecoveryCredential(target, { identity: recovery.identity, output: path.join(outside, 'TEST-unavailable') }, { generate: () => ({ status: 1, stderr: 'TEST platform: verify-required unsupported' }) }), /user_verification_unavailable/);
-    assert.equal(fs.existsSync(path.join(outside, 'TEST-unavailable')), false);
-    assert.equal(fs.existsSync(path.join(outside, 'TEST-unavailable.pub')), false);
-    assert.deepEqual(fixtureBytes(dir), before, 'unavailable or software recovery neither edits trust nor burns state');
-    const trustPath = path.join(dir, 'trust.json'); const validTrust = fs.readFileSync(trustPath);
-    const forged = JSON.parse(validTrust); forged.recovery.push({ identity: recovery.identity, fingerprint: 'SHA256:TEST-forged', declared_class: 'sk-ssh-ed25519@openssh.com', registration_receipt: { signed_before_loss: true } });
-    fs.writeFileSync(trustPath, JSON.stringify(forged)); const forgedBytes = fixtureBytes(dir);
-    assert.throws(() => policy.proposeRecovery(target, replacement, recovery.identity), /registration|chain|trust/i);
-    assert.deepEqual(fixtureBytes(dir), forgedBytes, 'caller-written registration cannot change authority or cause unilateral recovery');
-    fs.writeFileSync(trustPath, validTrust);
-    const registration = policy.generateRecoveryCredential(target, { identity: recovery.identity, output: path.join(outside, recovery.identity) }, {
-      generate: (program, argv) => {
-        assert.equal(program, 'ssh-keygen'); assert.ok(argv.includes('ed25519-sk')); assert.ok(argv.includes('verify-required'));
-        assert.equal(argv.includes('-Y'), false, 'Rig invokes generation only; all approval signing remains external');
-        fs.writeFileSync(`${argv[argv.indexOf('-f') + 1]}.pub`, recovery.public_key + '\n');
-        return { status: 0 };
-      },
-    });
-    before = fixtureBytes(dir);
-    const signedRegistration = approval(registration, owner, policy.registrationMessage);
-    assert.throws(() => policy.registerRecoveryCredential(target, registration, approval(registration, owner, policy.registrationMessage, 'rig-policy-recovery')), /verification|SSHSIG/i);
-    assert.deepEqual(fixtureBytes(dir), before, 'wrong registration namespace writes no authority');
-    const registered = policy.registerRecoveryCredential(target, registration, signedRegistration);
-    assert.equal(registered.trust.recovery.length, 1); assert.equal(registered.recovery_offer.add_more, true);
-    assert.equal(registered.trust.recovery[0].declared_class, 'sk-ssh-ed25519@openssh.com');
-    assert.throws(() => policy.registerRecoveryCredential(target, registration, signedRegistration), /stale|sequence|duplicate/i);
-    assert.throws(() => policy.proposeRecovery(target, owner, recovery.identity), /distinct/i);
-    assert.throws(() => policy.proposeRecovery(target, recovery, recovery.identity), /distinct/i);
-    const outstanding = policy.grantApproval(target, { category: 'network_access', target: 'https://TEST.invalid/' });
-    const pending = policy.proposePolicy(target, policyFixture(), { explicit_request: true });
-    const pendingApproval = { schema_version: 1, kind: 'policy-approval', proposal_digest: pending.digest, approval: { method: 'external-sshsig', identity: owner.identity, signature: owner.sign(policy.activationMessage(pending), 'rig-policy-activation') } };
-    fs.writeFileSync(path.join(target, '.rig/network-policy.json'), '# TEST current user candidate: preserve exact bytes\n', { mode: 0o640 });
-    const challenge = policy.proposeRecovery(target, replacement, recovery.identity);
-    const protectedBefore = fixtureBytes(path.join(target, '.rig'));
-    assert.throws(() => policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-activation')), /verification|SSHSIG/i);
-    assert.deepEqual(fixtureBytes(path.join(target, '.rig')), protectedBefore, 'failed recovery cannot burn approvals, stale edits, or advance epoch');
-    const recovered = policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-recovery'));
-    assert.equal(recovered.trust.signer.identity, replacement.identity); assert.deepEqual(recovered.trust.recovery, []);
-    assert.equal(recovered.trust.pending_candidate_status, 'stale_after_recovery'); assert.equal(recovered.trust.evidence_epoch, first.trust.evidence_epoch + 1);
-    assert.deepEqual(recovered.trust.approvals, []); assert.equal(fs.existsSync(outstanding.path), false);
-    assert.deepEqual(recovered.receipt.consequences, ['pending_candidate_marked_stale', 'one_use_approvals_burned', 'evidence_epoch_advanced']);
-    assert.equal(recovered.receipt.recovery_credential_declared_class, 'sk-ssh-ed25519@openssh.com');
-    assert.deepEqual(json(path.join(dir, 'recovery-receipt-1.json')), recovered.receipt);
-    assert.equal(fs.readFileSync(path.join(target, '.rig/network-policy.json'), 'utf8'), '# TEST current user candidate: preserve exact bytes\n');
-    assert.equal(fs.statSync(path.join(target, '.rig/network-policy.json')).mode & 0o777, 0o640);
-    assert.equal(policy.policyStatus(target).recovery.sequence, 1);
-    assert.throws(() => policy.activatePolicy(target, pending, { approval: pendingApproval }), /challenge-bound identity approval|verification|SSHSIG|allowed/i, 'recovery invalidates the pending everyday-signer authorization');
-    const terminal = fixtureBytes(path.join(target, '.rig'));
-    assert.throws(() => policy.proposeRecovery(target, owner, recovery.identity), /recovery_credentials_exhausted/);
-    assert.throws(() => policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-recovery')), /stale|exhausted/i);
-    assert.deepEqual(fixtureBytes(path.join(target, '.rig')), terminal, 'terminal refusal has no fallback or additional consequences');
-  }));
+  const { readTrustRoot } = require('../rig/lib/trust-root');
+  for (const retired of ['proposeSignerSetup', 'setupPolicySigner', 'registerRecoveryCredential', 'generateRecoveryCredential', 'proposeRecovery', 'recoverPolicy', 'recoverSigner']) {
+    assert.equal(policy[retired], undefined, `${retired} is retired`);
+  }
+  h.withRepo((target) => withTestSigner('rig-policy-activation', (owner) => withTestSigner('rig-policy-activation', (other) => {
+    const root = path.join(target, '.rig/trust/gate1.allowed-signers');
+    fs.mkdirSync(path.dirname(root), { recursive: true });
+    fs.writeFileSync(root, `${owner.identity} ${owner.publicKey}\n`);
+    assert.equal(readTrustRoot(target).identity, owner.identity);
+    const policyDir = path.join(target, '.rig/policy'); fs.mkdirSync(policyDir, { recursive: true });
+    // A repository writer plants the retired signer lists and trust record for another key.
+    for (const planted of [path.join(policyDir, 'allowed-signers'), path.join(target, '.rig/allowed-signers')]) fs.writeFileSync(planted, other.line);
+    fs.writeFileSync(path.join(policyDir, 'trust.json'), '{"schema_version":1,"chain":[],"signer":null,"recovery":[]}\n');
+    const proposal = policy.proposePolicy(target, Buffer.from('{"schema_version":1,"controls":{},"enforcement":{},"allow":[]}\n'), { explicit_request: true });
+    const approval = (signer, identity = owner.identity) => ({ schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity, signature: signer.sign(policy.activationMessage(proposal)) } });
+    const before = fixtureBytes(policyDir);
+    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other) }), /SSHSIG/);
+    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other, 'TEST-other-signer') }), /Gate 1 key holder/);
+    assert.deepEqual(fixtureBytes(policyDir), before, 'no other key, list, or record approves');
+    assert.equal(policy.activatePolicy(target, proposal, { approval: approval(owner) }).receipt.signer.identity, owner.identity);
+    assert.equal(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')), false, 'no recovery receipt can exist');
+  })));
 });
 
 test('AT-HOME-1 global writes append and disclose the exact path', () => {
@@ -1040,11 +1019,12 @@ test('AT-SECRET-1 matched secret content stays out of model context by default',
     const key = path.join(target, 'policy-test-key');
     const message = path.join(target, 'policy-approval-message');
     fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
     assert.equal(generated.status, 0, generated.stderr);
     fs.writeFileSync(
-      path.join(target, '.rig/policy/allowed-signers'),
-      `owner namespaces="rig-policy-activation" ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
+      path.join(target, '.rig/trust/gate1.allowed-signers'),
+      `owner ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
     );
     fs.writeFileSync(message, activationMessage(proposal));
     const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
@@ -1210,15 +1190,22 @@ test('AT-LF-11 a read-only check that mutates halts with preserved evidence', ()
 
 test('AT-LF-12 autofix is separately approved and rechecked without committing', () => {
   const fix = api('lint-format.js', 'runAutofix');
+  const planAutofix = api('lint-format.js', 'planAutofix');
   h.withRepo((target) => {
     fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
-    assert.throws(() => fix(target, { argv: [process.execPath, '-e', ''] }, null), /approval/);
-    const result = fix(target, {
+    const cmd = {
       argv: [process.execPath, '-e', "require('fs').writeFileSync('a.js','good\\n')"],
       verify: [process.execPath, '-e', "process.exit(require('fs').readFileSync('a.js','utf8')==='good\\n'?0:1)"],
-    }, { verified: true });
+    };
+    assert.throws(() => fix(target, cmd, null), /approval/);
+    assert.throws(() => fix(target, cmd, { verified: true }), /approval/);
+    assert.throws(() => fix(target, { argv: cmd.argv }, signedPlanApproval(target, planAutofix(target, cmd))), /verif/, 'a fix with no verifier never runs');
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n', 'refused approvals mutate nothing');
+    const result = fix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
     assert.equal(result.verification, 'pass');
     assert.match(require('node:child_process').execFileSync('git', ['status', '--porcelain'], { cwd: target, encoding: 'utf8' }), /a\.js/);
+    const failing = fix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] }, signedPlanApproval(target, planAutofix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] })));
+    assert.equal(failing.verification, 'fail', 'the real verifier result is reported, never skipped');
   });
 });
 

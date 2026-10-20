@@ -2,6 +2,14 @@
 
 ## What it is
 
+The [authorized retry](../reasoning/2026-10-20-trust-root-rereview-result.md)
+is **fail**: three major and six minor findings, no blockers, and no passing
+receipt. The preserved counter rose from five to six. The [authorization](../reasoning/2026-10-20-owner-authorized-trust-root-rereview.md)
+was used once. Approval remains withheld and no further attempt is authorized.
+The [provider-limit failure](../reasoning/2026-10-20-trust-root-binding-review-unavailable.md)
+and the reviews below concern earlier attempts. The [handoff](../specs/close-everything/2026-10-20-trust-root-review-handoff.md)
+lists bounded criteria for the unreproduced reviewer claims.
+
 The [authorized October 20 review result](../reasoning/2026-10-20-authorized-binding-review-result.md)
 is **fail**: four blocker, five major and three minor findings; no passing
 receipt, and three preserved failures. The [bounded finding-by-finding handoff](../specs/close-everything/2026-10-20-binding-review-handoff.md)

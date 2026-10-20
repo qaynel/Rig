@@ -586,43 +586,17 @@ without installer inference, is evidenced directly by `AT-PB-1` through
   an ordinary prompt, or treated as successful. Rig verifies signatures and
   specifies the signer interface; a design that ships a signing binary or
   stores key material fails this case.
-- **AT-PRESENCE-2 (lost policy signer: recovery is real, bounded, and
-  terminates) [D20].** *Given* the policy-activation signer from
-  `AT-PRESENCE-1` is lost or compromised, *when* the user attempts recovery,
-  *then* the recovery approval must clear the same live-human-act floor Gate 1
-  requires for its own protection (D10/D19) — an ordinary host-native
-  confirmation prompt does **not** satisfy this case, only a credential class
-  no agent on the user's machine could operate unattended does.
-
-  *And given* a candidate recovery credential, *when* Rig evaluates whether it
-  may authorise recovery, *then* it is accepted only if it is cryptographically
-  distinct from the everyday signing key, was registered as a recovery
-  credential while an already-valid credential was in force, and is not stored
-  anywhere the repository, Rig's own working state, or the agent can read
-  unattended. A design in which an agent designates a fresh key as the
-  recovery credential *after* asserting the everyday key is lost fails this
-  case, as does one that stores or derives the recovery credential from the
-  everyday key's material or location.
-
-  *And given* first-time signer setup, *when* it completes, *then* Rig offers
-  to generate a set of recovery credentials at that time, and makes the same
-  offer to add more every time signer setup is run again while a valid
-  credential still exists. *And given* the everyday signer and every
-  registered recovery credential are simultaneously unavailable, *when*
-  recovery is attempted, *then* it is **refused permanently** for that policy
-  trust state: no forced override, no undocumented reset command, and no
-  substitute fallback may be invented to route around the exhausted list. This
-  refusal is a terminal state, not a downgrade to a weaker check.
-
-  *And given* an authorised recovery completes, *then* its consequences —
-  invalidating pending policy edits, burning outstanding one-use approvals,
-  and resetting evidence-epoch tracking — take effect only as a result of that
-  authorisation and are recorded in a disclosed recovery receipt; a design in
-  which an agent triggers those consequences unilaterally by asserting
-  recovery is needed fails this case, and so does one that applies them
-  silently. This case is independent of `AT-GATE-2`: the Gate 1 integrity
-  signer (D10/D19) keeps no recovery path of its own, and nothing here creates
-  one for it.
+- **AT-PRESENCE-2 (one trust root: only the Gate 1 key approves) [D29].**
+  *Given* any approval Rig verifies — a plan approval, a lint-format plan or
+  setup approval, or a policy activation — *when* it is checked, *then* it
+  verifies against the Gate 1 key alone: an approval signed by any other key,
+  or under any other identity, is refused with no side effect. *And given* a
+  repository that carries another signer list, a trust record, or a recovery
+  registration, *then* none of them changes who may approve. *And given* the
+  Gate 1 key is lost, *then* Rig offers no recovery, rotation, signer setup, or
+  trust-on-first-use path; a design that adds any of them fails this case. The
+  Gate 1 signer keeps no recovery path of its own (D10/D19), and nothing here
+  creates one.
 - **AT-HOME-1 (global writes append, never overwrite) [D9, D25].** *Given* a host
   whose only configuration surface is user-global, *when* Rig writes it, *then*
   the write is an append or a namespaced additive merge; every pre-existing
@@ -803,7 +777,7 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   An unrecorded write, or an exclusion applied without approval, fails this
   case.
 - **AT-LF-7 (Policy level is observed).** *Given* changed files and executable command argv, *when* Policy runs, *then* it executes each command and reports changed files, actual exit status, output digest, and verdict. Caller-supplied result objects or requested grades cannot create a pass; malformed or unobserved commands are coverage gaps.
-- **AT-LF-8 (Context is cumulative and request-bound).** *Given* the same inputs plus a Context review created from `createGradeReviewRequest({ target, changed, commands })`, *then* Context includes all completed Policy steps and adds change understanding from a non-empty summary, an explicit pass/fail verdict, and structured violation findings. A pass requires no findings; a failing review reports failure and never reaches Evidence. Missing, contradictory, stale, or mismatched review is a coverage gap; Policy remains visible as completed.
+- **AT-LF-8 (Context is cumulative and request-bound).** *Given* the same inputs plus a Context review created for that target, those changes, and those commands, *then* Context includes all completed Policy steps and adds change understanding from a non-empty summary, an explicit pass/fail verdict, and structured violation findings. A pass requires no findings; a failing review reports failure and never reaches Evidence. Missing, contradictory, stale, or mismatched review is a coverage gap; Policy remains visible as completed.
 - **AT-LF-9 (Evidence is replayable).** *Given* a valid Context review, *then* Evidence independently re-executes Policy commands and compares each observed exit status and output digest, binds the receipt to input and review digests, and writes a verifiable receipt. Changed inputs or replay mismatch fail Evidence. Missing CI is reported as `not_installed` and does not fabricate Evidence. Completed grades are cumulative.
 - **AT-LF-10 (diff-scoped by default; ignore rules and working directory
   honored) [GA-28].** *Given* a covered component under the default scope,
@@ -820,7 +794,8 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
 - **AT-LF-12 (autofix is a separate, separately approved mutating action)
   [GA-29].** *Given* a completed read-only check, *then* no source is
   rewritten. *When* the user explicitly invokes a specific fix command under
-  its own approval, *then* Rig applies format and/or safe lint fixes,
+  its own signed, single-use approval bound to that exact fix, its verify
+  command and the target, and a verify command exists, *then* Rig applies format and/or safe lint fixes,
   re-verifies by re-running the check, and leaves the result as uncommitted
   working-tree edits the user owns. Autofix folded into the check,
   auto-committed, or run without its own approval fails this case.

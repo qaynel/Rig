@@ -6,12 +6,16 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-20 | current | [2026-10-20-trust-root-rereview-result](../reasoning/2026-10-20-trust-root-rereview-result.md) | review-receipts, the-overhaul | — | review, verification |
+| 2026-10-20 | current | [2026-10-20-trust-root-binding-review-unavailable](../reasoning/2026-10-20-trust-root-binding-review-unavailable.md) | review-receipts, the-overhaul | — | review, provider-limit |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-stronger-public-flow-proof](../reasoning/2026-10-20-qa-closeout-stronger-public-flow-proof.md) | the-overhaul, testing-strategy, policy-signer-recovery | — | qa-closeout, verification, recovery |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-runtime-and-host-remediation](../reasoning/2026-10-20-qa-closeout-runtime-and-host-remediation.md) | the-overhaul, testing-strategy, authored-service-gate | — | qa-closeout, verification, defect |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-resume-fixes](../reasoning/2026-10-20-qa-closeout-resume-fixes.md) | the-overhaul, testing-strategy, policy-signer-recovery | — | qa-closeout, migration, policy |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-owner-request](../reasoning/2026-10-20-qa-closeout-owner-request.md) | the-overhaul | — | qa-closeout, acceptance, verification |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-independent-findings](../reasoning/2026-10-20-qa-closeout-independent-findings.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, defect |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-evidence-inventory](../reasoning/2026-10-20-qa-closeout-evidence-inventory.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, owner-action |
+| 2026-10-20 | current | [2026-10-20-owner-authorized-trust-root-review](../reasoning/2026-10-20-owner-authorized-trust-root-review.md) | review-receipts, the-overhaul | — | review, authorization |
+| 2026-10-20 | current | [2026-10-20-owner-authorized-trust-root-rereview](../reasoning/2026-10-20-owner-authorized-trust-root-rereview.md) | review-receipts, the-overhaul | — | review, authorization |
 | 2026-10-20 | current | [2026-10-20-owner-authorized-binding-rereview](../reasoning/2026-10-20-owner-authorized-binding-rereview.md) | review-receipts, the-overhaul | — | review, authorization |
 | 2026-10-20 | current | [2026-10-20-one-trust-root-progress](../reasoning/2026-10-20-one-trust-root-progress.md) | gate1-signing, review-receipts | — | trust, progress |
 | 2026-10-20 | current | [2026-10-20-one-trust-root-owner-decision](../reasoning/2026-10-20-one-trust-root-owner-decision.md) | gate1-signing, user-presence-approvals, review-receipts | — | trust, signing, north-star |
