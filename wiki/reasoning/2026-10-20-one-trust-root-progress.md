@@ -79,3 +79,9 @@ AT-BASE-2/5 on shipped + real actions, AT-LF-8 observable wording, D24 heading,
 host-scope note, catalogue pin, duplicate assertion); mirror 87/87, unsigned
 verifier 16 files / 95 cases; mutation checks fail AT-BASE-2/5 and AT-LF-12.
 Next: wiki index, final-byte full runs, commit locally, exact-commit E2E.
+
+19:30 IST — final-byte runs on 2170cf87: live test:code 1158/1169 (red only on the
+8 frozen cases the owner batch changes + the unsigned-verifier check), Pi 15/15,
+MCP 6/6, exact-commit offline E2E pass (provisional false). Wiki budget fixed by
+folding D29 into the D20 row. Nothing pushed; binding review not run (counter 3).
+Owner next: apply+sign the batch, then explicit authorization for one review.

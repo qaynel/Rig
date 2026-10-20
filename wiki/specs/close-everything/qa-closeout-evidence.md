@@ -108,6 +108,20 @@ Defects found and fixed during this closeout, none of them bypassed:
 - Higher grades (Context, Evidence) for the 115 services still need separate
   observed review and replayable evidence; the catalogue claims Policy only.
 
+## Final-byte runs (candidate code commit `2170cf87`)
+
+| Run | Result |
+| --- | --- |
+| `npm run test:code` on the live tree | 1,158 of 1,169 pass; the 9 non-passes are the 8 frozen cases the batch changes (`AT-LF-12`, `AT-LF-14`, `AT-LF-20`, `AT-LF-24`, `AT-PB-1`, `AT-PRESENCE-1`, `AT-PRESENCE-2`, `AT-SECRET-1`) and the check that calls the unsigned verifier; secret scan, rule-copy and version checks 15/15 |
+| Pi extension / MCP server suites | 15/15 and 6/6 |
+| Amended oracle in the mirror (whole `tests/`) | see the amendment table above |
+| `scripts/clean-install-e2e.js` on `git archive` of the exact commit, offline | pass, `provisional: false`; evidence `.context/e2e-2170cf87….json` |
+| Migration suite (macOS) | `tests/migrate-v5.test.js` 50/50 inside the run above |
+
+The archive was built locally from the commit; the remote exact-SHA download
+needs the commit pushed, which is an owner step. Later commits on this branch
+touch wiki text only.
+
 ## Owner-only steps
 
 See the [owner runbook](owner-runbook.md): apply and sign the amendment,
