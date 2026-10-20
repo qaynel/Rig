@@ -58,8 +58,9 @@ setup approvals, and policy activation all verify against that file through
 `rig/lib/trust-root.js`. It must hold exactly one key; an approval whose
 identity is not that key's principal is refused. No other signer list, trust
 record, registration, or recovery path exists. A copy planted elsewhere in a
-repository changes nothing; the installed copy is a managed file, so editing it
-is drift. A fixture test that needs a different key replaces the file inside a
+repository changes nothing. The installed copy is written through the install
+journal, but no shipped check compares it to those bytes afterwards, so editing
+it is not detected drift; the residual described next applies. A fixture test that needs a different key replaces the file inside a
 disposable repository and restores the shipped bytes before uninstall.
 
 **The signers file is the trust root, and it sits inside what it protects.** A
@@ -177,16 +178,18 @@ Rig draws no verified-versus-unverified tier in output or data and proves every
 emitted axis with byte-landing tests.
 
 **The D24 catalogue is broad and shallow.** Every one of the 115 leaves ships
-at Policy (`minimal`) with its grade and untailored-baseline status stated on
-the fragment's face. Optional third-party skill trees are fetched only during
+at Policy (`minimal`) with its grade and evidence limit stated on the
+fragment's face in that service's own words. Optional third-party skill trees are fetched only during
 approved onboarding; the install payload keeps pinned upstream metadata and
 projects nine mandatory native entry skills. Lint-format alone retains
 higher-grade Context/Evidence claims. Missing bindings remain named coverage
 gaps; D24 creates no generic success binding or silent skip.
 
 **Activation requires a present human, or it does not happen (D6).** Policy
-activation uses a verified host-native presence prompt where one exists,
-otherwise a user-configured external signature. Where neither is available,
+activation is approved by a signature from the Gate 1 key. No host ships a
+presence attestation Rig can re-verify, so a host-native approval is refused
+and reported unavailable, never minted into a receipt the loader could not
+check. Where no Gate 1 signature is available,
 activation is refused and reported unavailable. It is never silently skipped,
 degraded to an ordinary confirmation, or treated as successful. Rig specifies
 the signer interface and verifies signatures; it ships no signing binary and
@@ -276,7 +279,7 @@ These are implementation constraints, not suggestions:
 | AD-17 | Reuse Basic's MCP resolver/renderers only for evidence-backed supported paths through the Infrastructure compatibility slice. Unsupported MCP, including `pi`, is retired from every legacy and catalogue emission path without deleting user-owned files. |
 | AD-18 | Drive implementation from a complete signed executable transcription of Gate 1. The oracle verifier runs before code correctness; `npm test` remains the full code gate. |
 | AD-19 | Validate candidate policy bytes strictly, hash the exact bytes with SHA-256, and keep the last activated bytes as a separate immutable snapshot. Unapproved edits are inert. Agents may write policy candidates only under an explicit current user request, of which session-scoped delegated edit mode is one form; delegation authorizes proposal authoring only, never activation, and is **never persisted** (D12), so a fresh session's claim to hold it is unverifiable by construction and refused. |
-| AD-20 | Prefer a verified host-native user-presence approval that attests the exact digest. Otherwise require an external SSHSIG signature verified through `ssh-keygen -Y verify` against a namespaced challenge. Where neither is available, **refuse activation and report it unavailable** — there is no third path. Both available methods produce one common, replay-resistant activation receipt. Rig never invokes a signing binary and never stores key material. |
+| AD-20 | Require an external SSHSIG signature by the Gate 1 key, verified through `ssh-keygen -Y verify` against a namespaced challenge. A host-native approval is accepted only where a host ships an attestation Rig can re-verify through the same loader; none does today, so it is **refused and reported unavailable** — there is no third path, and no receipt is minted that `loadActivePolicy` cannot verify. The one method produces one replay-resistant activation receipt. Rig never invokes a signing binary and never stores key material. |
 | AD-21 | Store one-use approvals clone-locally and uncommitted. Bind them to the complete normalized action and active policy, consume atomically before dispatch, and keep them valid only until used, changed, revoked, or expired by the native host; Rig adds no clock timeout. |
 | AD-22 | Evaluate one normalized action policy across shell, built-in web, and network-capable MCP adapters. Narrow permanent allowances are the default authoring path; explicit category-wide allowance and global enforcement disablement remain available. |
 | AD-23 | Integrate verified existing CI additively. With no CI, require explicit provider selection and exact plan approval before creating a minimal native pipeline. Unknown/malformed CI is preserved and fails visibly; verification requires a real first run. |
@@ -287,11 +290,11 @@ These are implementation constraints, not suggestions:
 | AD-28 | Verify the complete oracle by signature, not repository process: recompute both Gate 1 digests and `testing-infrastructure.manifest`, verify the v2 namespaced SSHSIG message, then verify every sorted path/digest entry before product tests. Verify the signature, not the key class; the owner attests that separately. Run this verifier first in `npm test`, short-circuiting code tests, and provide `npm run test:code`. An unarmed checkout reports `Gate 1 unprotected` and continues; once `gate1.allowed-signers` exists, every missing/malformed/stale signature fails closed. |
 | AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
 | AD-30 | **One trust root (D29).** Verify every approval — plan approvals, lint-format plan and setup approvals, policy activation — against the Gate 1 key shipped as `.rig/trust/gate1.allowed-signers` (`rig/lib/trust-root.js`), restricting the namespace per use. Exactly one key; the approval identity must be its principal. Delete the separate policy-signer setup, recovery registration, recovery, trust-on-first-use fallback, `trust.json`, `.rig/policy/allowed-signers`, `recovery.allowed-signers`, and the repository-local `.rig/allowed-signers`. |
-| AD-31 | **Author the D24 MVP broadly at Policy grade.** All 115 leaves are authored in one pass and all are release-blocking. Each fragment declares Policy and untailored baseline status; missing bindings remain coverage gaps. Sequential one-leaf authorship is suspended for this release and returns for post-beta Context/Evidence promotion. Lint-format alone retains its existing higher-grade vertical evidence. |
+| AD-31 | **Author the D24 MVP broadly at Policy grade.** All 115 leaves are authored in one pass and all are release-blocking. Each fragment states its Policy grade and evidence limit in service-specific words, never a repeated stock disclaimer; missing bindings remain coverage gaps. Sequential one-leaf authorship is suspended for this release and returns for post-beta Context/Evidence promotion. Lint-format alone retains its existing higher-grade vertical evidence. |
 | AD-32 | **Map Policy → Context → Evidence onto the cumulative `minimal/mid/maximal` dial** (§5.7). `minimal = Policy`, `mid = Context`, `maximal = Evidence`; the ladder inherits AD-4 cumulative composition and AT-SHAPE-3 grade-invariant identity unchanged. Commodity syntax/format/type/static output are inputs, not grades. The selected grade is the target and the ceiling: evaluate cheapest-deterministic-first; a lower-grade *failure* may short-circuit, but a clean lower-grade result continues through to the selected grade (Context runs every Policy check plus its understanding pass; Evidence runs every Context check plus its local verifiable-evidence work). Never exceed the grade, and never report assurance above the highest grade actually completed. Policy is the ceiling only when Policy itself is selected. §11.3's additive CI graft is the Evidence grade's repository enforcement surface, proposed and approved separately; CI absence cannot make the per-run Evidence verdict logically unreachable. The disposition is `executable` (AD-15). Universal method, but authored and proven only for lint-format now (GA-23). |
 | AD-33 | **Lint-format's unit of work is a repository component** (§5.8): whole-repository, open-ecosystem discovery derived from the repository (no fixed roster), semantic command binding by role with ambiguity returned to the user, hybrid-plus preservation of existing toolchains by default, user-approved partial-coverage exclusion of uncoverable components, and a per-component evidence-backed support claim whose whole-repository form is the AND over discovered non-excluded components. |
 | AD-34 | **Lint-format execution is plan-bound and read-only by construction** (§9.4). Selection authorizes nothing; only an exact-digest-approved plan authorizes its listed read-only commands, directories, and components, disclosed as untrusted code with `shell: false` not presented as safety. Diff-scoped by default in the component's working directory honoring its ignore rules; a read-only check that mutates the tree is detected, halted, evidenced, and never auto-restored; autofix is a separately approved mutating action re-verified by re-running the check; command drift halts before running; every abnormal ending is its own distinct non-passing state. |
-| AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a verified host-native or external-signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
+| AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a Gate 1 signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
 | AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. The default install does not invoke OpenClaw or require npm. A separate explicit `SETUP_MCP=1` migration request may install the bundled runtime after a v5 upgrade when the selected host emits MCP configuration; fresh installs and non-emitting hosts skip this migration-only request, which does not write OpenClaw configuration. `--openclaw-mcp` prints the global-path/blast-radius disclosure, preflights `openclaw`, `node`, and `npm`, copies `rig-mcp/` into the target runtime, runs `npm ci --omit=dev --ignore-scripts` against its committed lockfile, then calls `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
 | AD-39 | The non-interactive check runner reads elevated execution authority only from a committed, target-owned `.rig/execution-policy.json`, never from environment or a prompt. It is a separate authority from generated `.rig/service-bindings.json`: bindings request `network: "required"`, `timeout_ms`, or `memory_limit_mb`; policy grants are keyed by the exact service ID and set the maximum permitted raised timeout/memory and network grant. Missing, malformed, uncommitted, or insufficient authority refuses that command. `network: "none"` needs no elevated grant and is isolated; an undeclared network state remains a visibly reported compatibility state. The initial schema is `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
@@ -734,9 +737,11 @@ requires an approved onboarding plan. No absent host tree is created.
 All 115 leaves are release-blocking under D24. A complete leaf contains
 service-specific identity, owned scope, adjacent exclusions, applicability,
 explicit dependencies or `none`, cumulative grade behavior, disposition,
-checks, and acceptance evidence. Every D24-authored fragment declares itself
-Policy-grade generic baseline practice and explicitly says it is not tailored
-to the installing repository. Lint-format alone may retain Context and
+checks, and acceptance evidence. Every D24-authored fragment states its Policy grade and
+its evidence limit, meaning what its declared policy does and does not prove,
+in language specific to that service. A stock "generic baseline practice" or
+"not tailored" sentence repeated across leaves is the filler the gate below
+rejects, so no fragment carries one. Lint-format alone may retain Context and
 Evidence claims backed by its existing vertical evidence.
 
 The deterministic gate rejects `TODO`, `TBD`, known generic filler such as
@@ -819,7 +824,10 @@ before/after evidence without restoring over the changed file.
 
 The disposition is `executable` (AD-15): the commodity signals are real
 repo-adapted processes run under §9.4, attempted first, never a fabricated
-command. The leaf's catalogue entry (§5.2 `checks.{minimal,mid,maximal}`,
+command. A generic-success binding (`true`, `echo`, `process.exit(0)`, an empty
+command, or a shell or interpreter one-liner that only does the same) is a
+coverage gap wherever it appears: the disposition validator, the catalogue
+authorship gate, and the runner that executes installed bindings all reject it. The leaf's catalogue entry (§5.2 `checks.{minimal,mid,maximal}`,
 `disposition`) is re-authored to this ladder as part of leaf authoring; the
 current `convention`-marked, formatter/linter/CI-split entry is the superseded
 pre-freeze probe the roadmap already flags, and it must meet this contract, not
@@ -949,8 +957,7 @@ target and prints the staged command sequence. The default markdown-only
 bootstrap installs neither the shim nor runtime.
 
 The CLI remains argument parsing and orchestration. Domain logic stays under
-`rig/lib/`. Approval files contain a verified host-native attestation or
-external user-presence signature; a bare digest flag is never approval. There
+`rig/lib/`. Approval files carry an external user-presence signature by the Gate 1 key; a bare digest flag is never approval. There
 is no on-disk delegated policy-edit receipt to present either: per §8.3
 delegation lives in the session and nothing records it.
 
@@ -1369,7 +1376,9 @@ credentials.
 `complete: false` from the first record until the install's final record
 lands. While it is false, `policy status`, the install line, and every run
 report state that the install is incomplete and report no control as enabled,
-installed, or protecting anything.
+installed, or protecting anything. An install is interrupted only by a real
+failure (a crash, a signal, a permission or disk error); no caller-supplied
+parameter truncates one.
 
 **Resume, not restart.** Re-running a transition-install with an incomplete
 manifest resumes from it. Each `applied` record is verified against its
@@ -1401,7 +1410,12 @@ file or of an arbitrary line inside one. Only a dedicated Rig-named CI
 artifact is whole-file removable. The only CI managed-line removal is the
 exact pointer the GitHub adapter appends, and only for that append-managed
 write; a forged `managed_line`, `managed_block`, or `append_managed` record
-cannot strip other CI bytes. Common provider pipeline paths remain named
+cannot strip other CI bytes. The other five providers' merged job is the one
+further exception: the adapter journals the digest of each marked
+`rig-check:start`/`rig-check:end` region it inserted, and uninstall strips a
+region only when its current bytes still match a journaled digest, so the
+user's own pipeline is restored byte-for-byte and an edited region stays
+named best-effort. Common provider pipeline paths remain named
 best-effort even if a record calls them `create_owned` and its digest matches.
 Other files Rig exclusively owns are
 deleted. Files Rig only added to have their managed line or block
@@ -1645,18 +1659,19 @@ not consent to activate a policy.
 
 ### 8.4 User-presence approval and the one trust root
 
-Two approval methods produce the same receipt:
+One approval method produces the receipt:
 
-1. **Verified host-native approval, preferred.** The exact per-host contract
-   must prove that the host presents the digest to the user, records
-   affirmative user presence, binds repository identity and activation
-   sequence, and emits a non-replayable attestation that Rig can verify.
-2. **External user-presence signature, fallback.** A signer outside the
+1. **External user-presence signature by the Gate 1 key.** A signer outside the
    target repository signs the versioned activation message. Rig specifies
    the interface as SSHSIG and verifies it with `ssh-keygen -Y verify`
    against the Gate 1 trust root (`.rig/trust/gate1.allowed-signers`) under a
    domain-separating namespace.
    Rig never invokes a signing binary and never stores private material.
+2. **Host-native approval is reserved, and refused today.** It would need an
+   exact per-host contract proving the host presents the digest, records
+   affirmative presence, binds repository identity and sequence, and emits a
+   non-replayable attestation Rig can verify through the same loader. No host
+   ships one, so activation reports it unavailable and writes nothing.
 
 **When neither is available, activation is refused and reported unavailable.**
 Terminal state, not degraded success. The prior active bundle stays in force
@@ -1726,7 +1741,7 @@ Adapters discard only documented non-semantic vendor fields such as event
 IDs or timestamps. They retain the raw event digest as evidence. A changed
 bound field creates a different action digest and requires new approval.
 
-The same host-native-first/external-signature fallback approves a
+The same Gate 1 signature approves a
 domain-separated `approve-once` challenge. The approved envelope is stored
 clone-locally under the resolved Git-path `rig/approvals/`. Rig imposes no
 clock timeout: an approval remains pending until the action is used, a
@@ -2019,7 +2034,7 @@ approval on a successful execution and refuses the same approval on replay).
 `AT-LF-21` is now enforced at task spawn: working directories resolve through
 the same containment check as other repository paths, and the child
 environment is an explicit allowlist rather than inherited `process.env`.
-`AT-LF-22` is implemented in the approved-command paths (network isolation).
+`AT-LF-22` is implemented in the approved-command paths (network isolation): the wrapper is trusted only after a probe inside it observes a loopback connection denied (EPERM under the macOS profile, ENETUNREACH in a private Linux netns); otherwise the host reports `network_isolation_unavailable` and ungranted commands do not run.
 `AT-LF-23` is implemented (timeoutMs kill-and-report). `AT-LF-24` is
 implemented: `planExecution` resolves real paths before snapshotting and
 refuses a read whose target escapes the repository through a symlink. The
@@ -2461,11 +2476,11 @@ results rather than trusting an aggregate exit code.
 | AT-SHAPE-3 | Identity is grade-invariant; fragments/check sets are strict cumulative supersets. | `tests/advanced-oracle.test.js` title `AT-SHAPE-3 grades preserve identity and grow cumulatively`: Catalogue-wide 115-leaf grade set and identity test. |
 | AT-SHAPE-4 | Deterministic named-slice fixed point preserves explicit grades and cannot represent whole-group pulls. | `tests/advanced-oracle.test.js` title `AT-SHAPE-4 dependency resolution pulls only named slices`: Missing/lower-grade/transitive/cycle fixtures prove only exact slices are added. |
 | AT-SHAPE-5 | Executable is the default disposition and is attempted first (AD-15); `convention` is a fallback that must carry a service-specific named reason, and only `surfaceless` may be vacuous. | `tests/advanced-oracle.test.js` title `AT-SHAPE-5 every selected service reports one honest disposition`: Inject failing real process, convention verifier, valid vacuity, and missing/empty/`true`/`echo`/`process.exit(0)` bindings; separately prove a convention whose reason is generic, absent, or byte-repeated across services scores as a coverage gap. |
-| AT-SHAPE-6 | §5.6 authored fields, declared Policy/untailored status, anti-filler gate, exact 26/40/31/18 inventory, and fresh all-leaf semantic-review receipt. D24 retires D23. | `tests/advanced-oracle.test.js` title `AT-SHAPE-6 all 115 leaves are authored at their declared grade`: reject TODO/generic/repeated/missing content, missing grade/status declarations, false higher-grade claims, and stale/incomplete 115-leaf review receipts. |
+| AT-SHAPE-6 | §5.6 authored fields, declared Policy grade and evidence limit, anti-filler gate, exact 26/40/31/18 inventory, and fresh all-leaf semantic-review receipt. D24 retires D23. | `tests/advanced-oracle.test.js` title `AT-SHAPE-6 all 115 leaves are authored at their declared grade`: reject TODO/generic/repeated/missing content, missing grade/status declarations, false higher-grade claims, and stale/incomplete 115-leaf review receipts. |
 | AT-BASE-1 | Safe shipped policy runs sanitation first; an exactly activated disablement continues with disabled/not-run state and no verdict. | `tests/advanced-oracle.test.js` title `AT-BASE-1 sanitation precedes profiling unless exactly disabled`: Prove default ordering and separately prove approved disablement unlocks menu without clean/protected evidence. |
 | AT-BASE-2 | One evaluator and action envelope govern shell/web/MCP adapters; genuinely unsupported surfaces are explicit gaps and MCP is re-evaluated after preferred routing. | `tests/advanced-oracle.test.js` title `AT-BASE-2 one policy governs shell web and MCP surfaces`: Equivalent allow/deny actions across all three surfaces plus unsupported-axis and no-MCP-bypass fixtures. |
 | AT-BASE-3 | Install authoritative `.rig/network-policy.json`, explanatory `.rig/network-rules.md`, and pointers to both; enforcement reads active JSON only. | `tests/advanced-oracle.test.js` title `AT-BASE-3 structured active policy is authoritative and discoverable`: Conflicting prose cannot change a decision; every host instruction locates both artifacts. |
-| AT-BASE-4 | §8.3/§8.4 exact-byte digest, active snapshot, session-scoped and unpersisted proposal-authoring delegation, verified host-native or external user-presence approval, repository/sequence binding, and replay rejection. | `tests/advanced-oracle.test.js` title `AT-BASE-4 activation binds exact revision and current-session proposal authority`: Accept both activation paths; accept an agent proposal only under a current explicit request. Reject delegated edit as activation consent, byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, unsigned candidate, and base prompts that imply prior approval or delegation can authorize activation. **Assert no delegation grant is written anywhere** — scan the repository, the clone-local Rig directory, and every user-global surface after granting delegation — and assert a fresh session asserting delegated edit mode is refused. |
+| AT-BASE-4 | §8.3/§8.4 exact-byte digest, active snapshot, session-scoped and unpersisted proposal-authoring delegation, Gate 1 signature approval (host-native refused as unavailable), repository/sequence binding, and replay rejection. | `tests/advanced-oracle.test.js` title `AT-BASE-4 activation binds exact revision and current-session proposal authority`: Accept both activation paths; accept an agent proposal only under a current explicit request. Reject delegated edit as activation consent, byte edits, wrong repo/sequence, copied receipt, invalid signature, unverified prompt, unsigned candidate, and base prompts that imply prior approval or delegation can authorize activation. **Assert no delegation grant is written anywhere** — scan the repository, the clone-local Rig directory, and every user-global surface after granting delegation — and assert a fresh session asserting delegated edit mode is refused. |
 | AT-BASE-5 | Explicit independent control/surface leaves, group/global authoring expansion, actual unwiring/non-blocking, unrelated function continuity, and truthful status. | `tests/advanced-oracle.test.js` title `AT-BASE-5 disabled controls stop blocking and status says unprotected`: Disable one control, one surface, one category, then all enforcement; verify requested effects and every status label. |
 | AT-BASE-6 | Evidence keys include policy digest, control/surface, enablement generation, implementation, and inputs; disable invalidates and re-enable increments. | `tests/advanced-oracle.test.js` title `AT-BASE-6 re-enable creates a fresh evidence epoch`: A pre-disable pass cannot verify the re-enabled generation until a fresh run completes. |
 | AT-BASE-7 | §8.2: no schema key can express self-activation, unknown keys are rejected at activation step 1, and the approval requirement has no policy-driven branch around it. Not held in a second file or repository. | `tests/advanced-oracle.test.js` title `AT-BASE-7 policy schema cannot authorize agent self-activation`: Author policy revisions that purport to grant agent self-activation under plausible key spellings and assert each is rejected at validation and never becomes active. Assert that no activation path consults policy to decide whether approval is required, by mutating each policy field in turn and asserting the approval check still runs. Disable enforcement wholesale under `AT-BASE-5` and assert status reports unprotected rather than protected. Assert no separate invariant file or repository exists for this rule. |
@@ -2490,7 +2505,7 @@ results rather than trusting an aggregate exit code.
 | AT-CI-3 | CI runs all enabled repo controls and selected executable services that are repo-CI-applicable at their active grade, emits verdict plus counts and rule identities with no artifact upload (`AT-REPORT-1`), requests minimum permissions, uses no repo secrets, and repeats idempotently. | `tests/advanced-oracle.test.js` title `AT-CI-3 CI execution is safe idempotent and active-grade aware`: Parse/execute all six outputs; check effective binding manifest, active-grade CI applicability, permissions, no secrets, and zero second-apply diff. Assert no provider config contains an artifact-upload step for `reports/rig/` and that no job log line carries finding detail. |
 | AT-CI-4 | Unknown/malformed/collision config is byte-preserved/nonzero; every integrated or bootstrapped provider is proven by its byte-landing test on a fresh repo fixture. | `tests/advanced-oracle.test.js` title `AT-CI-4 unknown CI remains byte-identical and unverified until first run`: Reject fabricated/stale/local-only receipts; validate captured byte-landing fixtures for every emitted provider integration. |
 | AT-CLAIM-1 | AD-13/§6 discovers unambiguous host markers, activates exactly detected or explicit hosts, and routes all 19 hosts/six providers through one adapter contract. Absent hosts receive no tree. | `tests/advanced-oracle.test.js` title `AT-CLAIM-1 detected hosts only, whole roster reachable`: exercise every marker, mixed and bare repositories, ambiguous `AGENTS.md`, explicit absent-host opt-in, all roster entries, and exact per-axis byte landing. |
-| AT-PRESENCE-1 | §8.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-1 activation refuses when no verified presence path exists`: Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
+| AT-PRESENCE-1 | §8.4 terminal states: external SSHSIG by the Gate 1 key, or refusal reported unavailable (host-native included, until a host ships an attestation Rig can re-verify). Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-1 activation refuses when no verified presence path exists`: Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
 | AT-PRESENCE-2 | §8.4/AD-30 (D29): every approval verifies against the Gate 1 key shipped as `.rig/trust/gate1.allowed-signers` and no other; the separate policy-signer setup, recovery registration, recovery, trust-on-first-use, `trust.json` and repository-local signer lists do not exist. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-2 one trust root: only the Gate 1 key approves and no other signer mechanism exists`: Assert the retired policy functions are absent. Install a trust root holding one test key, plant another key in `.rig/policy/allowed-signers`, `.rig/allowed-signers` and a `trust.json`, and assert an approval signed by that other key is refused (SSHSIG failure under the root's identity, identity mismatch under another) with no change to policy bytes; assert the root's key activates, and that no recovery receipt can exist. |
 | AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository; D25 makes OpenClaw an explicit flagged exception that is written only through its native CLI. | `tests/advanced-oracle.test.js` title `AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible`: Use the released installer against a temporary HOME plus fake `openclaw`, `npm`, and download commands. Assert the default installation calls neither OpenClaw nor npm and leaves the global config byte-identical. Assert `--openclaw-mcp` warns before calling `openclaw mcp set`, installs and starts the target runtime, uses one `rig-<install-id>` key, and preserves an unrelated server. Reinstall is key-identical. Uninstall calls `openclaw mcp unset` and preserves the unrelated server. |
 | AT-HOME-2 | §7.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | `tests/advanced-oracle.test.js` title `AT-HOME-2 global entries are attributed per repository`: Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
@@ -2506,7 +2521,7 @@ results rather than trusting an aggregate exit code.
 | AT-LF-3 | §5.8 semantic command binding by role from manifests/tool-config/declared tasks; ambiguity becomes a `needs_user_choice` state that blocks apply for that component. | `tests/advanced-oracle.test.js` title `AT-LF-3 command discovery is semantic and ambiguity returns to the user`: bind a non-standard-named declared task; assert an ambiguous case halts for user choice; reliance on fixed script names or a silent guess fails. |
 | AT-LF-4 | §5.8/§6.5 the user deselects components and requests a non-default scope; the applied plan matches the user's choice, not the recommendation (`AT-P5`). | `tests/advanced-oracle.test.js` title `AT-LF-4 user component and scope choices override recommendations`: deselected components are absent and the requested scope is honored; a plan that reasserts the recommendation over the user's edit fails. |
 | AT-LF-5 | §9.4 plan-bound consent: selection runs nothing; only an exact-digest-approved plan authorizes its listed read-only commands/dirs/components; the untrusted-code boundary is disclosed and `shell: false` is not a safety claim. | `tests/advanced-oracle.test.js` title `AT-LF-5 selection authorizes no repository command`: assert zero execution before approval, only listed commands after, the disclosure present; any pre-approval execution, unlisted command, or `shell: false` safety claim fails. |
-| AT-LF-6 | §5.8/§7.6 apply journals every write at the time it is made; an uncoverable component is excluded only with user approval and reported as a visible unprotected gap; covered components install. | `tests/advanced-oracle.test.js` title `AT-LF-6 partial coverage requires exact exclusion approval and journals writes`: `advanced-lint-format-lifecycle.test.js` with `advanced-apply.test.js`: manifest records each write; excluded component named unprotected; an unrecorded write, or an exclusion without approval, fails. |
+| AT-LF-6 | §5.8/§7.6 apply journals every write at the time it is made; an uncoverable component is excluded only with user approval and reported as a visible unprotected gap; covered components install. | `tests/advanced-oracle.test.js` title `AT-LF-6 partial coverage requires exact exclusion approval and journals writes`: `lint-format-setup.test.js` with `advanced-apply.test.js`: manifest records each write; excluded component named unprotected; an unrecorded write, or an exclusion without approval, fails. |
 | AT-LF-7 | §5.7 Policy level (`minimal`), when it is the selected grade, governs the change and reports a real Policy-level result. | `tests/advanced-oracle.test.js` title `AT-LF-7 Policy grade produces a real changed-file verdict`: a real Policy verdict on the changed files; a placeholder or a silent higher-level run fails. |
 | AT-LF-8 | §5.7 Context (`mid`) is a strict cumulative superset of Policy — governance plus understanding the change (AD-4/AT-SHAPE-3 composition); a clean Policy pass never short-circuits the understanding pass. | `tests/advanced-oracle.test.js` title `AT-LF-8 Context is a cumulative superset and runs after clean Policy`: every Policy check still runs plus Context's understanding pass even when Policy passes cleanly; a Context grade that drops, swaps, or short-circuits after a clean Policy pass fails. |
 | AT-LF-9 | §5.7 Evidence (`maximal`) is a strict superset of Context and rests the verdict on verifiable evidence (re-runnable output/exit/reports bound to input digests), plus the §11.3 CI gate; a clean Context pass never short-circuits the evidence work. | `tests/advanced-oracle.test.js` title `AT-LF-9 Evidence is cumulative and verifiable without requiring a CI graft`: every Context check still runs plus a verifiable Evidence result even when Context passes cleanly; an Evidence pass backed only by an unverifiable agent assertion, or one that short-circuits after a clean Context pass, fails. |
@@ -2613,8 +2628,8 @@ node --test tests/advanced-spec-gate.test.js tests/advanced-acceptance.test.js
 ### Slice 2 - Catalogue disposition and authored-content gate
 
 Add explicit executable/convention/surfaceless metadata, real evidence targets,
-anti-filler/duplicate checks, exact inventory counts, Policy/untailored
-declarations, and the exact-digest all-leaf semantic review schema. All 115
+anti-filler/duplicate checks, exact inventory counts, Policy-grade and
+evidence-limit declarations, and the exact-digest all-leaf semantic review schema. All 115
 unauthored leaves remain failing product targets until Slice 14; no D23
 exception or expected-debt green path remains.
 
@@ -2635,12 +2650,12 @@ there.
 Verification:
 
 ```sh
-node --test tests/advanced-policy.test.js tests/advanced-config.test.js
+node --test tests/policy-active-bundle.test.js tests/trust-root.test.js tests/advanced-config.test.js
 ```
 
 ### Slice 4 - User-presence and one-use approval lifecycle
 
-Implement verified host-native-first/external-signature fallback, common
+Implement the Gate 1 signature approval (host-native refused as unavailable), common
 receipts (verified against the one Gate 1 trust root), clone/worktree-local
 approval storage, full action normalization, exclusive consumption,
 list/revoke, and native expiry handling. Repository/TTY self-authorization
@@ -2649,7 +2664,7 @@ remains impossible.
 Verification:
 
 ```sh
-node --test tests/advanced-policy.test.js tests/advanced-enforcement.test.js
+node --test tests/policy-active-bundle.test.js tests/guarantee-coverage.test.js
 ```
 
 ### Slice 5 - Cross-surface evaluator and policy-aware onboarding
@@ -2662,7 +2677,7 @@ sanitation order, approved sanitation disablement, and truthful gaps.
 Verification:
 
 ```sh
-node --test tests/advanced-enforcement.test.js tests/advanced-policy.test.js tests/advanced-recommend.test.js
+node --test tests/policy-active-bundle.test.js tests/advanced-recommend.test.js
 ```
 
 ### Slice 6 - Real sanitation remediation and policy-aware transaction
@@ -2682,7 +2697,7 @@ that suppresses every "protecting" claim while an install is in flight.
 Verification:
 
 ```sh
-node --test tests/advanced-plan.test.js tests/advanced-apply.test.js tests/advanced-graft.test.js tests/advanced-remediation.test.js tests/advanced-install-manifest.test.js
+node --test tests/advanced-plan.test.js tests/advanced-apply.test.js tests/advanced-graft.test.js tests/shipping-boundaries.test.js tests/trust-root-review-fixes.test.js
 ```
 
 ### Slice 7 - Policy-aware git/CI controls and evidence epochs
@@ -2742,8 +2757,8 @@ wholly `unsupported` host.
 Verification:
 
 ```sh
-node --test tests/advanced-hosts.test.js tests/advanced-host-detection.test.js \
-  tests/advanced-enforcement.test.js tests/basic-renderers.test.js tests/advanced-install-docs.test.js
+node --test tests/advanced-hosts.test.js tests/host-contract-parity.test.js \
+  tests/policy-active-bundle.test.js tests/basic-renderers.test.js
 ```
 
 ### Slice 10 - One-uniform-path CI adapters and bootstrap
@@ -2768,7 +2783,7 @@ Verification:
 
 ```sh
 node --test tests/advanced-ci-floor.test.js tests/advanced-apply.test.js \
-  tests/advanced-report-disclosure.test.js
+  tests/advanced-reports.test.js tests/shipping-boundaries.test.js
 ```
 
 ### Slice 11 - User-global writes, attribution, and install-line disclosure
@@ -2785,7 +2800,7 @@ host is the out-of-repo file line.
 Verification:
 
 ```sh
-node --test tests/advanced-global-writes.test.js tests/advanced-claims.test.js
+node --test tests/global-mcp-writes.test.js
 ```
 
 ### Slice 12 - Install resume and complete removal
@@ -2811,7 +2826,7 @@ it.
 Verification:
 
 ```sh
-node --test tests/advanced-install-resume.test.js tests/advanced-uninstall.test.js
+node --test tests/install-uninstall-roundtrip.test.js tests/trust-root-review-fixes.test.js
 ```
 
 ### Slice 13 - Distribution and approved upstream fetching
@@ -2826,7 +2841,7 @@ the remote archive and compare its tree with the source commit.
 Verification:
 
 ```sh
-node --test tests/advanced-distribution.test.js
+node --test tests/upstream-fetch.test.js tests/vendored-skills-install.test.js
 ```
 
 ### Slice 14 - Author all 115 service packs
@@ -2838,8 +2853,8 @@ existing Rig skills where identity matches, without copying filler. Run
 the independent exact-digest 115-leaf semantic/MECE review.
 
 **D24 suspends sequential authorship for this release.** Author in family
-batches at agent discretion, but every fragment states Policy and untailored
-baseline status, every missing binding is a named coverage gap, and no generated
+batches at agent discretion, but every fragment states its Policy grade and
+evidence limit in its own words, every missing binding is a named coverage gap, and no generated
 generic success binding is permitted. Post-beta Context/Evidence promotion
 returns to ordinary one-leaf review.
 

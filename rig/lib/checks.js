@@ -5,13 +5,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 // spawnSync-shaped results preserve the existing command-runner contract.
 const { writeReport } = require('./reports');
-const { loadCatalog, servicesOf } = require('./catalog');
+const { loadCatalog, servicesOf, conventionReasonGap } = require('./catalog');
 const { containedPath } = require('./path-safety');
 // runArgv/runBinding are the canonical implementation shared with the
 // installed CI/git-floor runner (rig/catalog/baseline/check.js) — see
 // GA-38. Do not re-implement containment or argv-execution logic here; a
 // hand-duplicated copy is exactly the defect class RIG-144 found and fixed.
-const { runArgv, runBinding, renderDiagnostic } = require('./check-runner');
+const { runArgv, runBinding, renderDiagnostic, genericSuccessBinding } = require('./check-runner');
 
 function loadBindings(target) {
   const file = path.join(target, '.rig', 'service-bindings.json');
@@ -104,11 +104,12 @@ function validateDisposition(disposition) {
     if (!Array.isArray(disposition.argv) || disposition.argv.length === 0) {
       throw new Error('executable disposition needs argv: coverage gap');
     }
+    const stub = genericSuccessBinding(disposition.argv);
+    if (stub) throw new Error(`executable disposition is a ${stub}: coverage gap`);
     return { kind: 'executable' };
   }
   if (kind === 'convention') {
-    const reason = disposition.reason || '';
-    if (!/repository|repo-specific|service-specific|tailored|convention:/i.test(reason)) {
+    if (conventionReasonGap(disposition.reason, disposition.service)) {
       throw new Error('convention disposition needs service-specific reason');
     }
     return { kind: 'convention' };

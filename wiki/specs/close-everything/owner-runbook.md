@@ -5,35 +5,35 @@ Every step the agent cannot do, in the order
 worktree unless a step says otherwise. Do not reorder: steps 3 and 4 must
 follow step 1, because the signature file is part of the bytes they bind.
 
-## 1. Apply and re-sign the batched Gate 1 amendment 🔒
+## 1. Apply and re-sign the second Gate 1 amendment 🔒
 
-Your earlier signature already ratified the binding-review amendment
-(`binding-review-owner.patch`); it is applied in the working tree and
-`wiki/gate1/gate1.sig` carries your signature. Do not re-apply it. The failed
-October 20 binding review and your one-trust-root decision (North star 13)
-need one more frozen delta, prepared as a single patch:
-[`one-trust-root-owner.patch`](candidate-amendments/one-trust-root-owner.patch).
-It changes five files: the oracle test, the catalogue pin test, the acceptance
-cases, the business specification, and the manifest digests. Read it before
-applying — each hunk is listed in the
-[evidence index](qa-closeout-evidence.md#the-owner-amendment-one-batch).
+Two earlier amendments are already applied and carry your signature
+(`binding-review-owner.patch` and `one-trust-root-owner.patch`). Do not
+re-apply them. The failed trust-root binding review needs one more frozen
+delta, prepared as a single patch:
+[`trust-root-review-owner.patch`](candidate-amendments/trust-root-review-owner.patch).
+It changes two files: `tests/advanced-oracle.test.js` (seven case bodies; no
+title changes, so the 95 acceptance cases are unchanged) and the manifest
+digest line for that file. Each hunk is listed in the
+[evidence index](qa-closeout-evidence.md#the-second-owner-amendment). It is
+needed because the shipped code no longer has the `interrupt_after` test lever
+or host-native policy minting that the old bodies of `AT-INSTALL-1`,
+`AT-LF-17` and `AT-PRESENCE-1` call, and because `AT-SHAPE-5`, `AT-CI-1`,
+`AT-UNINSTALL-1` and `AT-LF-22` were narrower than their trace rows.
 
 From the repository root:
 
 ```sh
-git apply --stat  wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
-git apply --check wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
-git apply         wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
+git apply --stat  wiki/specs/close-everything/candidate-amendments/trust-root-review-owner.patch
+git apply --check wiki/specs/close-everything/candidate-amendments/trust-root-review-owner.patch
+git apply         wiki/specs/close-everything/candidate-amendments/trust-root-review-owner.patch
 node scripts/check-advanced-spec.js        # fails only on the signature until you sign
-node --test tests/advanced-oracle.test.js tests/advanced-spec-gate.test.js tests/path-b-catalog.test.js
+node --test tests/advanced-oracle.test.js
 ```
 
-The patch already carries recomputed manifest digests; inspect
-`git diff -- wiki/gate1` and recompute any entry whose bytes you change. The
-corpus pin in `AT-PB-1` is the 1,042-file digest of the catalogue as authored;
-if you edit any `rig/corpus/services` file or `catalogue.json`, refresh it.
-The agent must not edit frozen files, run or simulate the signing ceremony, or
-supply a guessed digest.
+The patch already carries the recomputed manifest digest; inspect
+`git diff -- wiki/gate1`. The agent must not edit frozen files, run or
+simulate the signing ceremony, or supply a guessed digest.
 
 Run `node scripts/approve-gate1.js` yourself. Its first refusal prints the exact
 proposed oracle digest and the command with `--confirm-digest-delta`. Review
@@ -78,7 +78,7 @@ committed into the repository changes the bytes it claims to describe. Keep the
 file — step 7 needs its contents.
 
 The latest failed review used this same context and output path; its
-failed-attempt counter is **3**. Preserve it. The wrapper requires
+failed-attempt counter is **6**. Preserve it. The wrapper requires
 `--force-rereview` for another attempt, and the owner must explicitly
 authorize that exception after inspecting the remediated final candidate.
 Do not change the context or delete the counter to retry.

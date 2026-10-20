@@ -892,7 +892,7 @@ function install(target, opts = {}) {
   ];
   // lint-format's three binding artifacts are a service-owned transaction,
   // but share the repository lifecycle journal and its resume/CAS behavior.
-  const result = resumeInstall(target, { operations, interrupt_after: opts.interrupt_after });
+  const result = resumeInstall(target, { operations });
   return { supported: result.complete, manifest: { records: result.records } };
 }
 

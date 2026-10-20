@@ -89,6 +89,8 @@ function signedPlanApproval(target, plan, identity = 'rig-test-owner') {
 }
 
 const NOOP = [process.execPath, '-e', 'process.exit(0)'];
+// A binding that does something: generic-success stubs are coverage gaps (AD-15), so fixtures read the repository.
+const REAL_CHECK = "require('fs').readdirSync('.')";
 const approvedFix = (target, cmd) => runAutofix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
 
 test('AT-PROC-1a (AT-LF-20): signed approval replay is refused and a fresh approval can rerun the unchanged plan', () => {
@@ -428,7 +430,7 @@ test('AT-PROC-1u (2026-08-29 review): the undeclared network compatibility state
   withRepo((target) => {
     for (const runner of [runBinding, catalogCheck.runBinding]) {
       const result = runner('undeclared-network-service', {
-        repo: [process.execPath, '-e', ''],
+        repo: [process.execPath, '-e', REAL_CHECK],
       }, 'repo', target);
       assert.equal(result.status, 0);
       assert.equal(result.network_state, 'undeclared');
@@ -444,7 +446,7 @@ function installedCheckRun(env) {
     fs.cpSync(materializedCheckDir, dir, { recursive: true });
     fs.rmSync(path.join(dir, '.rig', 'bin', 'check-copies.js'), { force: true });
     fs.writeFileSync(path.join(dir, '.rig', 'service-bindings.json'), JSON.stringify({
-      'undeclared-network-service': { repo: [process.execPath, '-e', ''] },
+      'undeclared-network-service': { repo: [process.execPath, '-e', REAL_CHECK] },
     }));
     const cleanEnv = { ...process.env };
     delete cleanEnv.GITHUB_ACTIONS;
@@ -463,7 +465,7 @@ test('AT-PROC-1ad (RIG-147): the library runner stays silent on an undeclared ne
     console.warn = (...args) => warnings.push(args.join(' '));
     try {
       for (const runner of [runBinding, catalogCheck.runBinding]) {
-        runner('undeclared-network-service', { repo: [process.execPath, '-e', ''] }, 'repo', target);
+        runner('undeclared-network-service', { repo: [process.execPath, '-e', REAL_CHECK] }, 'repo', target);
       }
     } finally {
       console.warn = savedWarn;
@@ -493,7 +495,7 @@ test('AT-PROC-1af (RIG-147): interactive runChecks returns the undeclared-networ
   withRepo((target) => {
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig', 'service-bindings.json'), JSON.stringify({
-      'undeclared-network-service': { repo: [process.execPath, '-e', ''] },
+      'undeclared-network-service': { repo: [process.execPath, '-e', REAL_CHECK] },
     }));
     const result = runChecks(target, { scope: 'repo' });
     assert.equal(result.status, 0, result.stderr);
@@ -570,7 +572,7 @@ test('AT-PROC-1y (2026-08-29 review): the guarded Linux wrapper preserves missin
 test('AT-PROC-1z (2026-08-29 review): a materialized CI runner enforces the same capability floor', () => {
   withRepo((target) => {
     const binding = {
-      repo: [process.execPath, '-e', ''],
+      repo: [process.execPath, '-e', REAL_CHECK],
       timeout_ms: 10 * 60 * 1000 + 1,
     };
     const result = catalogCheck.runBinding('ci-floor-service', binding, 'repo', target);
@@ -1006,7 +1008,7 @@ test('AT-CAP-3 (RIG-144): explicit network denial is isolated, while an undeclar
         assert.equal(denied.network_state, 'none');
 
         const undeclared = runner('legacy-network-service', {
-          repo: [process.execPath, '-e', ''],
+          repo: [process.execPath, '-e', REAL_CHECK],
         }, 'repo', target);
         assert.equal(undeclared.status, 0);
         assert.equal(undeclared.network_state, 'undeclared');
@@ -1072,7 +1074,7 @@ test('AT-CAP-5 (RIG-144): malformed or unenforceable capability controls refuse 
       try {
         process.env.PATH = '';
         const unavailable = runner('denied-service', {
-          repo: [process.execPath, '-e', ''], network: 'none',
+          repo: [process.execPath, '-e', REAL_CHECK], network: 'none',
         }, 'repo', target);
         assert.equal(unavailable.status, 1);
         assert.equal(unavailable.kind, 'network_isolation_unavailable');

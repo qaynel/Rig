@@ -176,6 +176,11 @@ function removeGlobalMcp(entry) {
     return { removed: false };
   }
   const servers = current && current[entry.container_key];
+  // An entry an interrupted earlier uninstall already took out is done, not a user edit to preserve.
+  const plain = (value) => value && typeof value === 'object' && !Array.isArray(value);
+  if (plain(current) && (servers === undefined || (plain(servers) && !Object.hasOwn(servers, entry.server_key)))) {
+    return { removed: true, already_absent: true };
+  }
   if (!servers || !Object.hasOwn(servers, entry.server_key) || !sameJson(servers[entry.server_key], entry.value)) {
     return { removed: false };
   }

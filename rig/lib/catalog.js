@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { genericSuccessBinding } = require('./check-runner');
 
 const ROOT = path.join(__dirname, '..', '..');
 const CATALOG_PATH = path.join(ROOT, 'rig', 'corpus', 'catalogue.json');
@@ -172,6 +173,21 @@ const PLACEHOLDER = /TODO|TBD|Concrete convention|describes the .* service\. Thi
 const GENERIC_CHECK = /-(?:core|extended|thorough)$/;
 const LINT_FORMAT_ID = 'development.code-quality.lint-format';
 const KNOWN_AUTHORED_BOILERPLATE = /generic baseline practice|not repository-tailored|not tailored to the installing repository|Service-specific evidence cues:/i;
+// A convention reason must say something about this service: the bare keywords
+// the old check accepted, boilerplate, or one repeated phrase do not count.
+const CONVENTION_KEYWORDS = /repository|repo-specific|service-specific|tailored|convention:?/gi;
+
+function conventionReasonGap(reason, serviceId) {
+  const text = String(reason || '');
+  if (KNOWN_AUTHORED_BOILERPLATE.test(text) || PLACEHOLDER.test(text)) return 'boilerplate';
+  const words = text.replace(CONVENTION_KEYWORDS, ' ').toLowerCase().match(/[a-z][a-z-]{2,}/g) || [];
+  if (new Set(words).size < 5) return 'too little service-specific content';
+  const name = String(serviceId || '').split('.').pop();
+  const tokens = name.split('-').filter((token) => token.length > 3);
+  if (tokens.length && !tokens.some((token) => text.toLowerCase().includes(token))) return `does not mention ${name}`;
+  return null;
+}
+
 const BROKEN_AUTHORED_SENTENCE = /contract\.\.|\. is false\.|\.json\.\./i;
 const MAX_SHARED_BODY_FRACTION = 0.8;
 
@@ -296,6 +312,12 @@ function authorshipReport() {
     const disposition = service.disposition || null;
     if (!disposition || !['executable', 'convention', 'surfaceless'].includes(disposition.kind) || !disposition.reason) {
       failures.push({ id: service.id, reason: 'missing honest disposition contract' });
+    } else if (disposition.kind === 'executable') {
+      const stub = genericSuccessBinding(disposition.argv);
+      if (stub) failures.push({ id: service.id, reason: `executable disposition is a ${stub}` });
+    } else if (disposition.kind === 'convention') {
+      const gap = conventionReasonGap(disposition.reason, service.id);
+      if (gap) failures.push({ id: service.id, reason: `convention disposition ${gap}` });
     }
     const evidenceTargets = [];
     const seen = new Set();
@@ -332,6 +354,7 @@ function authorshipReport() {
 
 module.exports = {
   ROOT,
+  conventionReasonGap,
   CATALOG_PATH,
   GRADES,
   VERDICTS,

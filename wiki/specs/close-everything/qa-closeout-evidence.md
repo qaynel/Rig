@@ -11,7 +11,7 @@ test that exercises it at the real boundary, and the command that reproduces
 the result. Logs live under `.context/` (ignored) and are bound to the exact
 candidate commit by the final-byte runs listed at the end.
 
-## The owner amendment: one batch
+## The first two owner amendments (applied and signed)
 
 Your earlier signature ratified the binding-review amendment
 (`binding-review-owner.patch`); it is applied in the working tree and
@@ -21,10 +21,11 @@ resolution is that **your verified signature ratifies the exact signed
 amendment; the stale heading does not annul it**, and the heading is corrected
 in the batch below rather than through a separate ceremony.
 
-The failed October 20 review and your one-trust-root decision need one more
-frozen delta. It is prepared as one patch,
-[`one-trust-root-owner.patch`](candidate-amendments/one-trust-root-owner.patch),
-and is not applied: agents never edit frozen files or sign.
+The failed October 20 review and your one-trust-root decision needed one more
+frozen delta, [`one-trust-root-owner.patch`](candidate-amendments/one-trust-root-owner.patch).
+You applied and signed it (the oracle verifies as 16 files and 95 cases). The
+table below records what it changed; the review that followed produced the
+[second amendment](#the-second-owner-amendment).
 
 | Frozen change | Why |
 | --- | --- |
@@ -47,6 +48,51 @@ and is not applied: agents never edit frozen files or sign.
 
 Rebuild and re-verify the mirror with `python3 .context/build-owner-batch.py`
 (the script and mirror live in the ignored `.context/`).
+
+## The second owner amendment
+
+The authorized trust-root review failed (3 major, 6 minor; counter now 6,
+preserved). Every finding below is fixed in shipped code or the design, with
+editable regressions in `tests/trust-root-review-fixes.test.js` (14/14). Seven
+signed case bodies must change because the shipped code no longer has the lever
+or behavior they call, or because they were narrower than their trace rows.
+One patch, [`trust-root-review-owner.patch`](candidate-amendments/trust-root-review-owner.patch),
+changes `tests/advanced-oracle.test.js` and its manifest digest; no case title
+changes, so the 95 acceptance cases are unchanged. It is not applied: agents
+never edit frozen files or sign.
+
+| Frozen case | Change |
+| --- | --- |
+| `AT-SHAPE-5` | Rejects `true`, `echo`, `sh -c true`, `process.exit(0)` and the empty command, and a bare "service-specific" reason |
+| `AT-INSTALL-1` | The installer process is killed mid-write; policy status and the run report withhold protection while incomplete; resume finishes without clobbering unrelated data |
+| `AT-LF-17` | A real write failure (a directory where `binding.json` must go) interrupts the install instead of the removed flag |
+| `AT-PRESENCE-1` | A host-native approval is refused as unavailable even with a verifier that says yes, and writes nothing |
+| `AT-LF-22` | The child records the error it saw; the case passes only on a denied connection, or on the named `network_isolation_unavailable` |
+| `AT-CI-1` | All six providers: unrelated lines survive in order, the job is added, then uninstall removes it and restores the file byte-for-byte |
+| `AT-UNINSTALL-1` | One real install across Rig files, grafted `AGENTS.md`, the pre-commit hook, a CI job and a user-global entry; uninstall restores every user byte; killed mid-run it never leaves a hook pointing at a removed file; deleting `.rig/` cannot produce a clean claim |
+
+| Evidence | Result |
+| --- | --- |
+| Patch applies to the live frozen files | `git apply --check` passes |
+| Amended oracle against live product code (isolated mirror `.context/binding-review-2-candidate`) | 74/74; titles identical to the signed file |
+| Unsigned verifier on the live tree | 16 files, 95 cases |
+| Live gate before you apply it | red only on `AT-INSTALL-1`, `AT-LF-17`, `AT-PRESENCE-1` (their old bodies call the deleted lever and host-native minting) |
+
+Rebuild with `python3 .context/build-owner-batch-2.py` (ignored `.context/`).
+
+## Trust-root review findings (October 20 re-review, nine items)
+
+| # | Finding | Resolution | Evidence |
+| --- | --- | --- | --- |
+| 1 | Generic-success bindings accepted (major) | One detector in the shared runner (bare, `checks` and component bindings; wrappers, shell and interpreter one-liners); `validateDisposition`, the catalogue authorship gate and the installed runner all reject it; a convention reason needs real service content | `tests/trust-root-review-fixes.test.js`; mutation (detector off) fails 4 |
+| 2 | Install interruption was a shipped lever (major) | `interrupt_after` deleted. A process kill and a permission-denied write interrupt the install; status, install and run report withhold protection; resume finishes without touching unrelated data | same file; mutation (lever back) fails the no-flag test; `tests/shipping-boundaries.test.js` |
+| 3 | `AT-CI-1`, `AT-UNINSTALL-1` narrower than their rows (major) | Found real gaps and fixed them: the merged job was never removed for five of six providers; uninstall left an added trailing newline; a re-run after an interrupted uninstall called an already-removed global entry best-effort. Marked-region digests are journaled and stripped only on an exact match | regressions above; amendment cases |
+| 4 | Design named a drift detector that is not shipped | Design now states the honest ceiling: the installed root is journaled but no check compares it afterwards | design §4 trust-root paragraph |
+| 5 | Design required a sentence the gate rejects | Design now requires service-specific grade and evidence-limit wording; the stock disclaimer is the filler the gate rejects | design §5.6, AD-31 |
+| 6 | Design named test files that do not exist | Every named path now exists; a guard test fails if a named path goes missing | `finding 6` test |
+| 7 | Host-native receipt cannot be loaded | Refused as unavailable; no receipt the loader cannot verify is minted; no second trust root | regression; amended `AT-PRESENCE-1`; mutation fails |
+| 8 | Isolation accepted without a denied connection | A wrapper counts only after a probe inside it sees the connection denied; otherwise `network_isolation_unavailable`. Observed: macOS `EPERM` vs `ECONNREFUSED` unwrapped; Linux `ENETUNREACH` vs `ECONNREFUSED` (container run) | regression; mutation fails |
+| 9 | Reviewer could not run Bash | Not a product change; the reviewer must inspect the candidate with its own tools next time | handoff |
 
 ## Follow-up groups C1–C8
 
@@ -110,6 +156,20 @@ Defects found and fixed during this closeout, none of them bypassed:
   keeps working. A receipt the owner signed for an older policy can therefore
   be restored by a repository writer; no protected high-water mark exists
   inside a repository.
+- The catalogue `apply` command still accepts a plan approval whose
+  `verified: true` is a plain Boolean: the signed test helper writes that shape,
+  so closing it means changing the frozen helper and every case that uses it.
+  Onboarding, lint-format plan approvals, autofix and policy activation all
+  verify a Gate 1 signature. Recommended as its own change and review cycle.
+- A merged CI file whose user text lacked a final newline gains one on install
+  and keeps it on uninstall for the five merged providers; user lines are
+  otherwise restored byte-for-byte. A jenkins stage block cannot be removed when
+  the closing brace shares a line with other text (named best-effort).
+- The Linux network probe was observed only in a local container with relaxed
+  seccomp, not in remote CI. If a host's loopback stays up inside the wrapper,
+  isolation is reported unavailable rather than assumed.
+- Host-native policy approval is refused until a host ships an attestation Rig
+  can re-verify.
 - Shell, web and MCP network decisions are advisory until the user wires a host
   hook to `rig policy evaluate`; Rig reports that gap and claims no block.
 - Local CI-command proof does not prove a remote provider run.
@@ -133,5 +193,5 @@ touch wiki text only.
 ## Owner-only steps
 
 See the [owner runbook](owner-runbook.md): apply and sign the amendment,
-renew the full gate, authorize one more binding review attempt (the failed-attempt counter is 3 and is preserved), push, make
+renew the full gate, authorize one more binding review attempt (the failed-attempt counter is 6 and is preserved), push, make
 `gate1-pin` required, merge, prove the QA commit, promote, tag and close.

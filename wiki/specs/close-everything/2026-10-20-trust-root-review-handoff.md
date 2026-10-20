@@ -173,3 +173,12 @@ before another binding attempt.
 
 This review performed no implementation fixes, signing, commit, push, GitHub
 review, approval, or merge.
+
+## Resolution (added after the fixes)
+
+All nine items are resolved in shipped code or the design, and the seven signed
+case bodies they touch are prepared as one owner amendment, not applied. The
+per-finding table, the amendment table, the mutation checks and the honest
+limits are in the [evidence index](qa-closeout-evidence.md#trust-root-review-findings-october-20-re-review-nine-items).
+The failed-attempt counter stays at 6; another binding attempt still needs the
+owner's explicit authorization after the amendment is applied and signed.

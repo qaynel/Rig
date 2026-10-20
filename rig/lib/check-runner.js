@@ -239,6 +239,36 @@ function classifyRunnerFailure(result, checkId, command) {
   return result;
 }
 
+// AD-15: a binding that always succeeds proves nothing, so it is a coverage gap
+// rather than a pass. Names the stub when argv is one, else returns null.
+const STUB_COMMANDS = new Set(['true', ':', 'echo', 'printf', 'exit', 'noop']);
+const STUB_SEGMENT = /^\s*(?:true|:|exit(?:\s+0)?|(?:echo|printf)\b[^;&|]*|process\.exit\(\s*0?\s*\)|(?:sys\.)?exit\(\s*0?\s*\)|pass|console\.log\([^)]*\)|\(\)\s*=>\s*\{\s*\})?\s*$/;
+const WRAPPER_COMMANDS = new Set(['env', 'nice', 'nohup', 'command', 'time', 'sudo']);
+const SHELL_COMMANDS = new Set(['sh', 'bash', 'zsh', 'dash', 'ksh']);
+const EVAL_FLAGS = { node: ['-e', '--eval', '-p', '--print'], nodejs: ['-e', '--eval', '-p', '--print'], bun: ['-e', '--eval'], deno: ['eval'], python: ['-c'], python3: ['-c'], ruby: ['-e'], perl: ['-e'] };
+
+function isStubScript(script) {
+  return String(script).split(/;|&&|\|\|/).every((segment) => STUB_SEGMENT.test(segment));
+}
+
+function genericSuccessBinding(argv) {
+  if (!Array.isArray(argv) || argv.some((part) => typeof part !== 'string')) return 'malformed argv';
+  const [first, ...rest] = argv;
+  const name = path.basename(String(first || '')).replace(/\.(?:exe|cmd|bat)$/i, '').toLowerCase();
+  if (!name.trim()) return 'empty command';
+  if (STUB_COMMANDS.has(name)) return `generic-success command "${name}"`;
+  if (WRAPPER_COMMANDS.has(name)) {
+    // shortcut: only the value-taking flags of nice/sudo/env are skipped, so an exotic wrapper flag can hide a stub; widen if a real wrapper does.
+    const inner = rest.filter((part, i) => !part.startsWith('-') && !part.includes('=') && !/^-[nugCS]$/.test(rest[i - 1] || ''));
+    return inner.length ? genericSuccessBinding(inner) : `generic-success command "${name}" with nothing to run`;
+  }
+  const flags = SHELL_COMMANDS.has(name) ? ['-c'] : EVAL_FLAGS[name] || EVAL_FLAGS[name.replace(/[\d.]+$/, '')];
+  if (!flags) return null;
+  const at = rest.findIndex((part) => flags.includes(part) || (SHELL_COMMANDS.has(name) && /^-[a-z]*c$/.test(part)));
+  if (at === -1) return null;
+  return isStubScript(rest[at + 1] || '') ? `generic-success ${name} script` : null;
+}
+
 // Runs one service's binding (either a bare argv, or a `checks` map of named
 // sub-checks) against `target`, returning a normalized result:
 //   { status: 0 }                                    on success
@@ -293,6 +323,8 @@ function runBinding(serviceId, binding, scope, target) {
     if (!argv || !Array.isArray(argv) || !argv.length) {
       return { status: 1, kind: 'coverage_gap', reason: `No argv binding for scope ${scope}` };
     }
+    const bareStub = genericSuccessBinding(argv);
+    if (bareStub) return { status: 1, kind: 'coverage_gap', reason: `${bareStub} is not a check: coverage gap` };
     const [command, ...rest] = argv;
     const result = runConfiguredArgv(serviceId, target, command, rest, target, binding);
     recordDiagnostics(result);
@@ -335,6 +367,8 @@ function runBinding(serviceId, binding, scope, target) {
         if (!Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
           return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` });
         }
+        const componentStub = genericSuccessBinding(commandBinding.argv);
+        if (componentStub) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${componentStub} is not a check` });
         let cwd;
         try {
           cwd = !commandBinding.cwd || commandBinding.cwd === '.'
@@ -357,6 +391,8 @@ function runBinding(serviceId, binding, scope, target) {
     if (!Array.isArray(argv) || !argv.length) {
       return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` });
     }
+    const checkStub = genericSuccessBinding(argv);
+    if (checkStub) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${checkStub} is not a check` });
     const [command, ...rest] = argv;
     const readOnly = check.read_only ? require('./lint-format') : null;
     const before = readOnly?.snapshotDir(target);
@@ -373,4 +409,4 @@ function runBinding(serviceId, binding, scope, target) {
   return withDiagnostics({ status: 0, stdout: '', stderr: '', executed_count: executedCount, executed_checks: executedChecks });
 }
 
-module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic };
+module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic, genericSuccessBinding };

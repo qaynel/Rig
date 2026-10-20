@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-10-20 — [2026-10-20-trust-root-review-fixes-progress](reasoning/2026-10-20-trust-root-review-fixes-progress.md)**: Progress trace for fixing the nine findings of the failed trust-root binding review (started 20:05 IST).
 - **2026-10-20 — [2026-10-20-trust-root-rereview-result](reasoning/2026-10-20-trust-root-rereview-result.md)**: The one owner-authorized binding retry failed with three major and six minor findings; no receipt was written and the preserved counter is six.
 - **2026-10-20 — [2026-10-20-trust-root-binding-review-unavailable](reasoning/2026-10-20-trust-root-binding-review-unavailable.md)**: The additional authorized binding review could not complete because the reviewer hit its session limit; no verdict or receipt, and the preserved counter is five.
 - **2026-10-20 — [2026-10-20-qa-closeout-stronger-public-flow-proof](reasoning/2026-10-20-qa-closeout-stronger-public-flow-proof.md)**: Real host, grade, CI and removal candidate cases pass; signed recovery registration and historical signer verification are being integrated without hardware-proof claims.

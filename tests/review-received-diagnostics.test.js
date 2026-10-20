@@ -10,7 +10,7 @@ const { withRepo, writeJson } = require('./helpers/advanced');
 const { runBinding, renderDiagnostic } = require('../rig/lib/check-runner');
 const { runChecks } = require('../rig/lib/checks');
 
-const ok = [process.execPath, '-e', ''];
+const ok = [process.execPath, '-e', "require('fs').readdirSync('.')"];
 const fail = [process.execPath, '-e', 'process.exit(7)'];
 
 test('Review Received F4: successful named and component checks retain one compatibility diagnostic', () => {

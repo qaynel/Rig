@@ -8,7 +8,7 @@ const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
 const { removeOpenClawMcp } = require('./openclaw-mcp');
-const { PROVIDERS: CI_PROVIDERS, GITHUB_WORKFLOW_POINTER } = require('./ci-adapters');
+const { PROVIDERS: CI_PROVIDERS, GITHUB_WORKFLOW_POINTER, ciRegions, stripCiRegions } = require('./ci-adapters');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
@@ -22,6 +22,13 @@ const INSTALL_GRAFT_FILES = new Set([
   'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', '.gitignore',
 ]);
 const INSTALL_UNIQUE_CI_FILES = new Set([CI_PROVIDERS['github-actions'].file]);
+// Provider files Rig only ever merges a marked job into; never deleted wholesale.
+const MERGED_CI_FILES = new Set([
+  ...Object.values(CI_PROVIDERS).map((provider) => provider.file).filter((file) => !INSTALL_UNIQUE_CI_FILES.has(file)),
+  'azure-pipelines.yaml',
+]);
+const hasManagedRegions = (record) => record.ownership === 'merge_namespaced'
+  && Array.isArray(record.managed_regions) && record.managed_regions.length > 0;
 const INSTALL_HOOK_PATHS = new Set([
   '.git/hooks/pre-commit',
   '.git/hooks/pre-commit.rig-chained',
@@ -67,6 +74,7 @@ function isRigInstallPath(rel, record = {}) {
       && record.managed_line === GITHUB_WORKFLOW_POINTER)
       || (INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned');
   }
+  if (MERGED_CI_FILES.has(rel)) return hasManagedRegions(record);
   return INSTALL_TOP_LEVEL.has(top);
 }
 
@@ -121,6 +129,14 @@ function currentDigest(abs) {
   return fs.existsSync(abs) ? digestOf(fs.readFileSync(abs)) : null;
 }
 
+// The installers add one "\n" before an appended block when the user's file lacked a final newline.
+// Drop it again, but only when that restores the journaled preimage byte-for-byte.
+function withoutAddedSeparator(stripped, record) {
+  if (record.preimage_digest && stripped.endsWith('\n') && digestOf(Buffer.from(stripped)) !== record.preimage_digest
+      && digestOf(Buffer.from(stripped.slice(0, -1))) === record.preimage_digest) return stripped.slice(0, -1);
+  return stripped;
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -140,14 +156,9 @@ function resumeInstall(target, opts) {
   const byPath = new Map(latest.map((record) => [record.path, record]));
   let seq = latest.reduce((max, record) => Math.max(max, record.seq), 0);
   appendRecord(target, { kind: 'install_state', complete: false });
-  // rig: `interrupt_after` is a test-shaped hook still shipped in production;
-  // the fix pairs with the frozen oracle's `AT-INSTALL-1` case, which passes
-  // this parameter directly. Replace with an injected fault hook when that
-  // oracle case is re-signed.
-  const remaining = operations.filter((op) => byPath.get(op.path)?.state !== 'applied');
-  const limit = opts.interrupt_after !== undefined ? opts.interrupt_after : remaining.length;
-  let attempted = 0;
-  for (let i = 0; i < operations.length && attempted < limit; i += 1) {
+  // An install stops only when a real write fails or the process dies; the
+  // pending record and install_state:false it leaves are what the next run resumes.
+  for (let i = 0; i < operations.length; i += 1) {
     const op = operations[i];
     const abs = containedPath(target, op.path);
     const desired = Buffer.from(op.content);
@@ -159,7 +170,6 @@ function resumeInstall(target, opts) {
       }
       continue;
     }
-    attempted += 1;
     if (prior?.state === 'pending') {
       if (prior.desired_digest !== desiredDigest) {
         throw new Error(`resumeInstall: changed pending operation ${op.path}`);
@@ -463,6 +473,12 @@ function uninstall(target, opts = {}) {
         continue;
       }
     }
+    if (MERGED_CI_FILES.has(rel) && hasManagedRegions(record)) {
+      const stripped = stripCiRegions(fs.readFileSync(abs, 'utf8'), record.managed_regions);
+      if (stripped === null) bestEffort.push(record.path);
+      else { fs.writeFileSync(abs, stripped); removed.push(record.path); }
+      continue;
+    }
     const uniqueCi = INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned';
     const pointerStrip = rel.startsWith('.github/workflows/')
       && record.ownership === 'append_managed'
@@ -487,7 +503,7 @@ function uninstall(target, opts = {}) {
       deletedRels.push(rel);
     } else if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
-      const stripped = body.split('\n').filter((line) => line !== record.managed_line).join('\n');
+      const stripped = withoutAddedSeparator(body.split('\n').filter((line) => line !== record.managed_line).join('\n'), record);
       if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
@@ -509,7 +525,7 @@ function uninstall(target, opts = {}) {
         stripped = stripLegacyNamelessBlock(body, record);
       }
       if (stripped === body) bestEffort.push(record.path);
-      else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
+      else if (dropEmptyOrWrite(abs, withoutAddedSeparator(stripped, record)) === 'deleted') deletedRels.push(record.path);
       if (stripped !== body) removed.push(record.path);
     } else {
       const expected = record.digest || record.desired_digest || null;
@@ -639,7 +655,8 @@ function verifyRemoval(target, evidence) {
             const bytes = fs.readFileSync(abs);
             postimage = digestOf(bytes);
             const body = bytes.toString('utf8');
-            const managedRemains = record.managed_line ? body.split('\n').includes(record.managed_line)
+            const managedRemains = hasManagedRegions(record) ? ciRegions(body).some((region) => record.managed_regions.includes(region.digest))
+              : record.managed_line ? body.split('\n').includes(record.managed_line)
               : record.ownership === 'graft_managed'
                 ? (record.managed_grafts || []).some(({ capability }) => body.includes(`<!-- rig:graft capability="${capability}"`))
                 : record.managed_block || record.ownership === 'append_managed'

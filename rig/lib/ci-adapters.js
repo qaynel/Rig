@@ -1,6 +1,7 @@
 // Additive CI adapters for the six release providers.
 'use strict';
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { containedPath } = require('./path-safety');
@@ -81,6 +82,42 @@ function standalone(provider, spec = {}) {
   throw new Error(`unknown CI provider "${provider}"`);
 }
 
+// Rig's merged jobs sit between rig-check start/end comment lines. Removal is
+// attributed to the exact bytes Rig wrote: a region is stripped only when its
+// digest was journaled at install time, so user edits elsewhere are never touched.
+const REGION_START = /^[ \t]*(?:#|\/\/) rig-check:start$/;
+const REGION_END = /^[ \t]*(?:#|\/\/) rig-check:end$/;
+const regionDigest = (lines) => crypto.createHash('sha256').update(`${lines.join('\n')}\n`).digest('hex');
+
+function ciRegions(body) {
+  const lines = String(body).split('\n');
+  const regions = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!REGION_START.test(lines[i])) continue;
+    const end = lines.findIndex((line, j) => j > i && REGION_END.test(line));
+    if (end === -1) continue;
+    regions.push({ start: i, end, digest: regionDigest(lines.slice(i, end + 1)) });
+    i = end;
+  }
+  return regions;
+}
+
+// Returns the body without the journaled regions, or null when any is missing
+// or was edited (the caller then reports best effort and leaves the file alone).
+function stripCiRegions(body, digests) {
+  const lines = String(body).split('\n');
+  const wanted = new Set(digests);
+  const drop = new Set();
+  const found = new Set();
+  for (const region of ciRegions(body)) {
+    if (!wanted.has(region.digest)) continue;
+    found.add(region.digest);
+    for (let i = region.start; i <= region.end; i += 1) drop.add(i);
+  }
+  if (found.size !== wanted.size) return null;
+  return lines.filter((_, i) => !drop.has(i)).join('\n');
+}
+
 function insertAfter(body, heading, lines) {
   const match = new RegExp(`^${heading}:\\s*$`, 'm').exec(body);
   if (!match) return `${body}${body.endsWith('\n') ? '' : '\n'}${heading}:\n${lines.join('\n')}\n`;
@@ -119,7 +156,10 @@ function mergeExisting(provider, body, spec) {
     const block = [
       '    // rig-check:start', "    stage('Rig check') {", `      steps { sh '${CHECK}' }`, '    }', '    // rig-check:end',
     ].join('\n');
-    return `${body.slice(0, close)}${block}\n${body.slice(close)}`;
+    // Start the block on its own line so removal restores the closing brace's indentation.
+    const lineStart = body.lastIndexOf('\n', close) + 1;
+    const at = lineStart > 0 && !body.slice(lineStart, close).trim() ? lineStart : close;
+    return `${body.slice(0, at)}${block}\n${body.slice(at)}`;
   }
   if (provider === 'buildkite') return insertAfter(body, 'steps', [
     '  # rig-check:start', '  - label: "Rig check"', `    command: "${CHECK}"`, '  # rig-check:end',
@@ -205,7 +245,9 @@ function applyCiPlan(target, plan) {
       }
     }
   }
-  write(target, plan.artifact.relativePath, plan.artifact.contents, undefined, plan.artifact.ownership);
+  const merged = plan.artifact.ownership === 'merge_namespaced';
+  write(target, plan.artifact.relativePath, plan.artifact.contents, undefined, plan.artifact.ownership,
+    merged ? { managed_regions: ciRegions(plan.artifact.contents).map((region) => region.digest) } : undefined);
   write.finish();
   return { status: 'integrated', provider: plan.provider };
 }
@@ -217,5 +259,5 @@ function renderPipeline(providerId, spec) {
 module.exports = {
   PROVIDERS, REPORTS_UPLOAD, GITHUB_WORKFLOW_POINTER, detectProvider, detectUnknownCi,
   resolveAdapter, planCiIntegration, applyCiPlan, renderPipeline, githubActionsStandalone,
-  resolveProviderPath,
+  resolveProviderPath, ciRegions, stripCiRegions,
 };

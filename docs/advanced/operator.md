@@ -66,7 +66,7 @@ node rig/materialize.js host-review --target <repo> --inspection inspection.json
 node rig/materialize.js recommend --target <repo> --review review.json --out menu.json
 node rig/materialize.js select --menu menu.json --out <repo>/rig.json --service id=grade
 node rig/materialize.js plan --target <repo> --manifest <repo>/rig.json --review review.json --out plan.json
-# Approve the exact plan through a host-native attestation or an external signature.
+# Approve the exact plan with a signature by the Gate 1 key (no host-native approval exists yet).
 node rig/materialize.js apply --target <repo> --manifest <repo>/rig.json --review review.json --plan plan.json --approval approval.json
 .rig/bin/rig check --target <repo>
 ```

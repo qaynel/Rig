@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-20 | current | [2026-10-20-trust-root-review-fixes-progress](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) | gate1-signing, review-receipts | — | trust, progress |
 | 2026-10-20 | current | [2026-10-20-trust-root-rereview-result](../reasoning/2026-10-20-trust-root-rereview-result.md) | review-receipts, the-overhaul | — | review, verification |
 | 2026-10-20 | current | [2026-10-20-trust-root-binding-review-unavailable](../reasoning/2026-10-20-trust-root-binding-review-unavailable.md) | review-receipts, the-overhaul | — | review, provider-limit |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-stronger-public-flow-proof](../reasoning/2026-10-20-qa-closeout-stronger-public-flow-proof.md) | the-overhaul, testing-strategy, policy-signer-recovery | — | qa-closeout, verification, recovery |

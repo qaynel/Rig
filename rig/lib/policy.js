@@ -342,11 +342,11 @@ function validatePolicyApproval(approval, proposal, opts = {}) {
       message: activationMessage(proposal),
       signature: approval.approval.signature,
     });
-  } else if (method === 'host-native' && typeof opts.verifyHostAttestation === 'function') {
-    if (opts.verifyHostAttestation(approval.approval.attestation, activationMessage(proposal)) !== true) {
-      throw new Error('activatePolicy: host-native attestation verification failed');
-    }
-    signer = { method, identity: approval.approval.identity || null, declared_class: 'host-native' };
+  } else if (method === 'host-native') {
+    // No host ships an attestation this process can re-verify, and a receipt
+    // loadActivePolicy cannot re-verify is not an activation. Refuse (AT-PRESENCE-1's
+    // reported-unavailable state) instead of minting one only a test double accepts.
+    throw new Error('activatePolicy: host-native approval is unavailable (no attestation Rig can re-verify); sign with the Gate 1 key');
   } else {
     throw new Error('activatePolicy: cryptographically verified policy approval required');
   }
@@ -403,7 +403,6 @@ function activatePolicy(target, proposal, opts = {}) {
   if (!opts.approval) throw new Error('activatePolicy: disclosure-bound cryptographic approval required');
   const signer = validatePolicyApproval(opts.approval, proposal, {
     target,
-    verifyHostAttestation: opts.verifyHostAttestation,
   });
   const activeAbs = path.join(target, '.rig/policy/active.json');
   fs.mkdirSync(path.dirname(activeAbs), { recursive: true });
