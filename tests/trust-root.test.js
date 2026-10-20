@@ -115,3 +115,12 @@ test('the signer setup, recovery registration, recovery and TOFU mechanisms no l
   }
   assert.equal(fs.existsSync(path.join(root, 'rig/corpus/allowed-signers.example.md')), false);
 });
+
+test('a trust root row with options other than namespaces= is refused, not silently rewritten', () => withDir((dir) => {
+  const owner = keypair(dir, 'owner');
+  for (const option of ['cert-authority', 'valid-before="20200101"', 'principals="x"']) {
+    const target = path.join(dir, `repo-${option.split('=')[0]}`);
+    installRoot(target, `gate1-owner ${option} ${owner.publicKey}\n`);
+    assert.throws(() => readTrustRoot(target), /unsupported option/, option);
+  }
+}));

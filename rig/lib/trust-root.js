@@ -24,6 +24,10 @@ function readTrustRoot(target) {
   const fields = rows[0].split(/\s+/);
   const at = fields.findIndex((field, index) => index > 0 && KEY_TYPE.test(field));
   if (at < 1 || !fields[at + 1]) throw new Error(`the Gate 1 trust root ${TRUST_ROOT_REL} is malformed`);
+  // Only the namespaces= option is understood (it is replaced per request); cert-authority, expiry or any other option is refused rather than dropped.
+  if (fields.slice(1, at).some((option) => !/^namespaces="[^"]*"$/.test(option))) {
+    throw new Error(`the Gate 1 trust root ${TRUST_ROOT_REL} carries an unsupported option`);
+  }
   return { identity: fields[0], public_key: `${fields[at]} ${fields[at + 1]}` };
 }
 

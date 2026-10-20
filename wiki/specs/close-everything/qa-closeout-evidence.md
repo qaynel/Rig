@@ -101,7 +101,15 @@ Defects found and fixed during this closeout, none of them bypassed:
 
 - There is one trust root: the Gate 1 public key, shipped to every target as
   `.rig/trust/gate1.allowed-signers`. Losing that key is a deliberate dead end;
-  Rig adds no rotation, recovery or trust-on-first-use path (D29).
+  Rig adds no rotation, recovery or trust-on-first-use path (D29). The file
+  lives in the repository, so anyone who can write `.rig/trust/` can replace it;
+  Rig stores no protected copy, and the owner's decision accepts that. A trust
+  root row may carry only a `namespaces=` option; any other option is refused.
+- A policy activation receipt is bound to its repository path when it is
+  created, not when it is loaded, so a repository moved or cloned elsewhere
+  keeps working. A receipt the owner signed for an older policy can therefore
+  be restored by a repository writer; no protected high-water mark exists
+  inside a repository.
 - Shell, web and MCP network decisions are advisory until the user wires a host
   hook to `rig policy evaluate`; Rig reports that gap and claims no block.
 - Local CI-command proof does not prove a remote provider run.
