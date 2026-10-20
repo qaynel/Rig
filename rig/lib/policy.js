@@ -557,16 +557,33 @@ function publicSigner(value) {
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
-// SSHSIG blob: magic, version, publickey, namespace, reserved, hashalg, signature; an sk signature ends with flags and a counter.
-function sshsigSecurityKeyFlags(armored) {
+// SSHSIG blob: magic, version, publickey, namespace, reserved, hashalg, signature.
+// An sk signature is string type, string signature, byte flags, uint32 counter, with nothing after.
+// Fails closed: any other layout (including webauthn types) is refused rather than guessed at.
+function sshsigSecurityKeyFlags(armored, keyType) {
   const blob = Buffer.from(String(armored).replace(/-----[^-]+-----|\s/g, ''), 'base64');
   let offset = 10;
-  const read = () => { const length = blob.readUInt32BE(offset); offset += 4 + length; return blob.subarray(offset - length, offset); };
+  const read = () => {
+    const length = blob.readUInt32BE(offset);
+    if (offset + 4 + length > blob.length) throw new Error('truncated');
+    offset += 4 + length;
+    return blob.subarray(offset - length, offset);
+  };
   try {
+    if (blob.subarray(0, 6).toString() !== 'SSHSIG') throw new Error('magic');
     for (let i = 0; i < 4; i++) read();
     const signature = read();
-    return signature[signature.length - 5];
-  } catch { return 0; }
+    if (offset !== blob.length) throw new Error('trailing data');
+    let at = 0;
+    const field = () => { const length = signature.readUInt32BE(at); at += 4 + length; if (at > signature.length) throw new Error('truncated'); return signature.subarray(at - length, at); };
+    const type = field().toString();
+    if (type !== keyType || !/^sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)@openssh\.com$/.test(type)) throw new Error('signature type');
+    field();
+    if (signature.length - at !== 5) throw new Error('layout');
+    return signature[at];
+  } catch (err) {
+    throw new Error(`policy security-key approval signature is not a recognized sk layout (${err.message})`);
+  }
 }
 
 function verifyPublicApproval(signer, namespace, message, approval, challenge) {
@@ -577,7 +594,7 @@ function verifyPublicApproval(signer, namespace, message, approval, challenge) {
     fs.writeFileSync(file, `${signer.identity} namespaces="${namespace}" ${signer.public_key}\n`);
     const verified = verifySshsig({ allowedSigners: file, identity: signer.identity, namespace, message, signature: approval.signature });
     // ssh-keygen -Y verify cannot require user verification, and generation metadata is not proof of it.
-    if (signer.public_key.startsWith('sk-') && !(sshsigSecurityKeyFlags(approval.signature) & 0x04)) {
+    if (signer.public_key.startsWith('sk-') && !(sshsigSecurityKeyFlags(approval.signature, signer.public_key.split(/\s+/)[0]) & 0x04)) {
       throw new Error('policy security-key approval lacks the signed user-verification flag');
     }
     return verified;

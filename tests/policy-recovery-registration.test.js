@@ -203,3 +203,16 @@ test('losing only trust.json does not downgrade verification to the legacy signe
   assert.throws(() => api.policyStatus(target), /verified registration chain/);
   assert.throws(() => api.proposeSignerSetup(target, fixtureSigner('attacker')), /verified registration chain/);
 }));
+
+test('a security-key approval with trailing data or a mismatched signature type is refused', () => fixture(({ target, root }) => {
+  const owner = fixtureSigner('owner'), recovery = fixtureSigner('recovery', true), replacement = fixtureSigner('replacement');
+  setup(target, owner);
+  const registration = generate(target, root, recovery);
+  api.registerRecoveryCredential(target, registration, approval(registration, owner, api.registrationMessage));
+  const challenge = api.proposeRecovery(target, replacement, recovery.identity);
+  const good = recovery.sign(api.recoveryMessage(challenge), 'rig-policy-recovery');
+  const blob = Buffer.from(good.replace(/-----[^-]+-----|\s/g, ''), 'base64');
+  const armor = bytes => `-----BEGIN SSH SIGNATURE-----\n${bytes.toString('base64').match(/.{1,70}/g).join('\n')}\n-----END SSH SIGNATURE-----\n`;
+  const trailing = armor(Buffer.concat([blob, Buffer.from([1, 2, 3])]));
+  assert.throws(() => api.recoverPolicy(target, challenge, { challenge_digest: challenge.digest, identity: recovery.identity, signature: trailing }), /verification|recognized sk layout/);
+}));

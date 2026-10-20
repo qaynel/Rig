@@ -30,3 +30,5 @@ Update 12:50 IST: an automated security review of the first candidate flagged fi
 - Acknowledged: the first signer with no signer list is trusted on first use, and plan approvals verify against the repository-local `.rig/allowed-signers`. Both roots are repository-writable, as the earlier signer list was; an out-of-band pinned root is an owner product decision. It is recorded under the evidence page's honest limits.
 
 The earlier candidate commit is superseded; final-byte runs restart on the new commit.
+
+Update 13:10 IST: a second security review pass found that the user-verification check read the flags byte at a fixed offset from the end of the signature. It now parses the sk signature structurally (type string equal to the key type and one of the two accepted sk classes, signature string, one flags byte, a four-byte counter, nothing after) and refuses anything else with a named error instead of a sentinel. The previous final-byte runs were stopped and restart on the new commit.
