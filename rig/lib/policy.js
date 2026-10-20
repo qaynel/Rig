@@ -186,8 +186,8 @@ function policyStatus(target, { candidate, prose } = {}) {
   const triageEnabled = active?.secrets?.model_assisted_triage === true;
   let activationVerified = false;
   if (receipt && receipt.signer?.method === 'external-sshsig') {
-    const historicalSigner = trust?.chain.flatMap((event) => [event.challenge.signer, event.challenge.initial_authorizer, event.challenge.replacement_signer]).find((entry) => entry?.fingerprint === receipt.signer.fingerprint);
-    if (trust && !historicalSigner) throw new Error('policy activation signer is outside the verified trust chain');
+    const historicalSigner = trust ? receiptSigner(trust, receipt) : null;
+    if (trust && !historicalSigner) throw new Error('policy activation signer is outside the verified trust chain or was superseded');
     const verified = historicalSigner ? verifyPublicApproval(historicalSigner, 'rig-policy-activation', activationMessage({ digest: receipt.proposal_digest }), { challenge_digest: receipt.proposal_digest, identity: receipt.approval?.identity, signature: receipt.approval?.signature }, { digest: receipt.proposal_digest }) : verifySshsig({
       allowedSigners: path.join(target, '.rig/policy/allowed-signers'),
       identity: receipt.approval?.identity,
@@ -557,13 +557,30 @@ function publicSigner(value) {
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
+// SSHSIG blob: magic, version, publickey, namespace, reserved, hashalg, signature; an sk signature ends with flags and a counter.
+function sshsigSecurityKeyFlags(armored) {
+  const blob = Buffer.from(String(armored).replace(/-----[^-]+-----|\s/g, ''), 'base64');
+  let offset = 10;
+  const read = () => { const length = blob.readUInt32BE(offset); offset += 4 + length; return blob.subarray(offset - length, offset); };
+  try {
+    for (let i = 0; i < 4; i++) read();
+    const signature = read();
+    return signature[signature.length - 5];
+  } catch { return 0; }
+}
+
 function verifyPublicApproval(signer, namespace, message, approval, challenge) {
   if (!approval || approval.challenge_digest !== challenge.digest || approval.identity !== signer.identity) throw new Error('policy signer challenge-bound identity approval required');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-policy-verify-'));
   const file = path.join(dir, 'allowed');
   try {
     fs.writeFileSync(file, `${signer.identity} namespaces="${namespace}" ${signer.public_key}\n`);
-    return verifySshsig({ allowedSigners: file, identity: signer.identity, namespace, message, signature: approval.signature });
+    const verified = verifySshsig({ allowedSigners: file, identity: signer.identity, namespace, message, signature: approval.signature });
+    // ssh-keygen -Y verify cannot require user verification, and generation metadata is not proof of it.
+    if (signer.public_key.startsWith('sk-') && !(sshsigSecurityKeyFlags(approval.signature) & 0x04)) {
+      throw new Error('policy security-key approval lacks the signed user-verification flag');
+    }
+    return verified;
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
@@ -596,9 +613,30 @@ function trustPayload(challenge) {
   return payload;
 }
 
+function activeReceiptDigest(target) {
+  const receipt = readJson(path.join(target, '.rig/policy/activation-receipt.json'));
+  return receipt ? digest(JSON.stringify(receipt)) : null;
+}
+
+// A signer replaced by rotation or recovery may vouch only for the one receipt
+// that was active when the signed event recorded it, never for a later forgery.
+function receiptSigner(trust, receipt) {
+  const fingerprint = receipt.signer.fingerprint;
+  if (fingerprint === trust.signer.fingerprint) return trust.signer;
+  const receiptDigest = digest(JSON.stringify(receipt));
+  let signer = null;
+  for (const { challenge } of trust.chain) {
+    if (challenge.kind !== 'signer_setup' && challenge.kind !== 'signer_recovery') continue;
+    if (signer?.fingerprint === fingerprint && challenge.active_receipt_digest === receiptDigest) return signer;
+    signer = publicSigner(challenge.kind === 'signer_setup' ? challenge.signer : challenge.replacement_signer);
+  }
+  return null;
+}
+
 function verifiedTrust(target, optional = false) {
   const state = readJson(policyFile(target, 'trust.json'));
-  if (!state && optional) return null;
+  // commitTrust always writes recovery.allowed-signers beside trust.json; losing only trust.json must not downgrade to the legacy signer list.
+  if (!state && optional && !fs.existsSync(policyFile(target, 'recovery.allowed-signers'))) return null;
   if (!state || state.schema_version !== 1 || !Array.isArray(state.chain) || !state.chain.length) throw new Error('policy trust requires a cryptographically verified registration chain');
   let signer = null, recovery = [], previous = null, recoverySequence = 0;
   for (const [index, event] of state.chain.entries()) {
@@ -670,13 +708,14 @@ function initialAuthorizer(target) {
 function proposeSignerSetup(target, value) {
   const signer = publicSigner(value);
   const state = verifiedTrust(target, true);
-  return trustChallenge(target, 'signer_setup', { signer, initial_authorizer: state ? null : initialAuthorizer(target) });
+  return trustChallenge(target, 'signer_setup', { signer, initial_authorizer: state ? null : initialAuthorizer(target), active_receipt_digest: activeReceiptDigest(target) });
 }
 
 function setupPolicySigner(target, challenge, approval) {
   return withTrustLock(target, () => {
     if (challenge?.kind !== 'signer_setup') throw new Error('policy signer setup challenge required');
     const prior = assertCurrentChallenge(target, challenge);
+    if (challenge.active_receipt_digest !== activeReceiptDigest(target)) throw new Error('policy activation receipt changed since the signer challenge');
     if (!prior && JSON.stringify(challenge.initial_authorizer) !== JSON.stringify(initialAuthorizer(target))) throw new Error('policy configured initial authorizer changed');
     const state = { schema_version: 1, recovery: [], recovery_sequence: 0, evidence_epoch: 0, ...prior, signer: publicSigner(challenge.signer), chain: [...(prior?.chain || []), { challenge, approval }] };
     // Verify before any public key or trust state is installed.
@@ -738,13 +777,14 @@ function proposeRecovery(target, replacement, recoveryIdentity) {
   if (!match) throw new Error('proposeRecovery: recovery_credentials_exhausted: pre-registered recovery identity required');
   const signer = publicSigner(replacement);
   if (signer.fingerprint === state.signer.fingerprint || state.recovery.some((entry) => entry.fingerprint === signer.fingerprint)) throw new Error('proposeRecovery: replacement and recovery fingerprints must be distinct');
-  return trustChallenge(target, 'signer_recovery', { lost_signer_fingerprint: state.signer.fingerprint, replacement_signer: signer, replacement_signer_digest: digest(JSON.stringify(signer)), recovery_identity: recoveryIdentity, recovery_fingerprint: match.fingerprint, sequence: (state.recovery_sequence || 0) + 1, previous_recovery_receipt_digest: state.previous_recovery_receipt_digest || null });
+  return trustChallenge(target, 'signer_recovery', { lost_signer_fingerprint: state.signer.fingerprint, replacement_signer: signer, replacement_signer_digest: digest(JSON.stringify(signer)), recovery_identity: recoveryIdentity, recovery_fingerprint: match.fingerprint, sequence: (state.recovery_sequence || 0) + 1, previous_recovery_receipt_digest: state.previous_recovery_receipt_digest || null, active_receipt_digest: activeReceiptDigest(target) });
 }
 
 function recoverPolicy(target, challenge, approval) {
   return withTrustLock(target, () => {
     if (challenge?.kind !== 'signer_recovery') throw new Error('recoverPolicy: complete recovery challenge required');
     const state = assertCurrentChallenge(target, challenge);
+    if (challenge.active_receipt_digest !== activeReceiptDigest(target)) throw new Error('recoverPolicy: activation receipt changed since the recovery challenge');
     const match = state.recovery.find((entry) => entry.identity === challenge.recovery_identity && entry.fingerprint === challenge.recovery_fingerprint);
     const replacement = publicSigner(challenge.replacement_signer);
     if (!match) throw new Error('recoverPolicy: recovery_credentials_exhausted: credential is not pre-registered');

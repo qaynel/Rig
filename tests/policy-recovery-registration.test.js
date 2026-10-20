@@ -22,9 +22,9 @@ function fixtureSigner(identity, securityKey = false) {
   const type = securityKey ? 'sk-ssh-ed25519@openssh.com' : 'ssh-ed25519';
   const raw = publicKey.export({ format: 'der', type: 'spki' }).subarray(-32);
   const pub = Buffer.concat([str(type), str(raw), ...(securityKey ? [str('ssh:')] : [])]);
-  return { identity, public_key: `${type} ${pub.toString('base64')}`, sign(message, namespace) {
+  return { identity, public_key: `${type} ${pub.toString('base64')}`, sign(message, namespace, flagByte = 5) {
     const data = Buffer.concat([Buffer.from('SSHSIG'), str(namespace), str(''), str('sha512'), str(hash('sha512', message))]);
-    const flags = Buffer.from([5]), counter = uint(1);
+    const flags = Buffer.from([flagByte]), counter = uint(1);
     const input = securityKey ? Buffer.concat([hash('sha256', 'ssh:'), flags, counter, hash('sha256', data)]) : data;
     const signature = Buffer.concat([str(type), str(crypto.sign(null, input, privateKey)), ...(securityKey ? [flags, counter] : [])]);
     const blob = Buffer.concat([Buffer.from('SSHSIG'), uint(1), str(pub), str(namespace), str(''), str('sha512'), str(signature)]);
@@ -165,4 +165,41 @@ test('public policy CLI performs signed setup and discloses the signer and initi
   assert.equal(status.status, 0, status.stderr);
   assert.equal(JSON.parse(status.stdout).signer_declared_class, 'ssh-ed25519');
   assert.equal(fs.readdirSync(path.join(target, '.rig/policy')).some(name => /private|\.pub$|key$/.test(name)), false);
+}));
+
+test('a security-key recovery signature without the signed user-verification flag is refused without mutation', () => fixture(({ target, root }) => {
+  const owner = fixtureSigner('owner'), recovery = fixtureSigner('recovery', true), replacement = fixtureSigner('replacement');
+  setup(target, owner);
+  const registration = generate(target, root, recovery);
+  api.registerRecoveryCredential(target, registration, approval(registration, owner, api.registrationMessage));
+  const challenge = api.proposeRecovery(target, replacement, recovery.identity);
+  const before = fs.readFileSync(path.join(target, '.rig/policy/trust.json'));
+  // Flag 1 is user presence only; a touch without PIN or biometric verification.
+  const presenceOnly = { challenge_digest: challenge.digest, identity: recovery.identity, signature: recovery.sign(api.recoveryMessage(challenge), 'rig-policy-recovery', 1) };
+  assert.throws(() => api.recoverPolicy(target, challenge, presenceOnly), /user-verification/);
+  assert.deepEqual(fs.readFileSync(path.join(target, '.rig/policy/trust.json')), before);
+  assert.equal(api.recoverPolicy(target, challenge, approval(challenge, recovery, api.recoveryMessage, 'rig-policy-recovery')).trust.signer.identity, 'replacement');
+}));
+
+test('a receipt vouched for only by a superseded signer is refused once it differs from the receipt recorded at rotation', () => fixture(({ target }) => {
+  const owner = fixtureSigner('owner'), replacement = fixtureSigner('replacement');
+  setup(target, owner);
+  const proposed = api.proposePolicy(target, { enabled: true, controls: {}, enforcement: {} }, { explicit_request: true });
+  api.activatePolicy(target, proposed, { approval: { schema_version: 1, kind: 'policy-approval', proposal_digest: proposed.digest,
+    approval: { method: 'external-sshsig', identity: owner.identity, signature: owner.sign(api.activationMessage(proposed), 'rig-policy-activation') } } });
+  const rotation = api.proposeSignerSetup(target, replacement);
+  api.setupPolicySigner(target, rotation, approval(rotation, owner, api.signerSetupMessage));
+  assert.equal(api.policyStatus(target).active.enabled, true, 'the receipt active at rotation stays valid');
+  const receiptPath = path.join(target, '.rig/policy/activation-receipt.json');
+  const receipt = JSON.parse(fs.readFileSync(receiptPath));
+  fs.writeFileSync(receiptPath, JSON.stringify({ ...receipt, sequence: receipt.sequence + 1 }));
+  assert.throws(() => api.policyStatus(target), /superseded|outside the verified trust chain/);
+}));
+
+test('losing only trust.json does not downgrade verification to the legacy signer list', () => fixture(({ target }) => {
+  const owner = fixtureSigner('owner');
+  setup(target, owner);
+  fs.unlinkSync(path.join(target, '.rig/policy/trust.json'));
+  assert.throws(() => api.policyStatus(target), /verified registration chain/);
+  assert.throws(() => api.proposeSignerSetup(target, fixtureSigner('attacker')), /verified registration chain/);
 }));

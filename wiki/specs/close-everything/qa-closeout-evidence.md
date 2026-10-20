@@ -79,6 +79,15 @@ Defects found and fixed during this closeout, none of them bypassed:
 
 - Security-key recovery is proven against a synthetic authenticator protocol
   checked by the real OpenSSH verifier. No physical touch is claimed.
+- The first signer of a repository with no signer list is trusted on first use,
+  and plan approvals verify against the repository-local `.rig/allowed-signers`.
+  Both roots live in files a writer to the repository can change, exactly as the
+  earlier policy signer list did. An out-of-band pinned root is a product
+  decision for the owner, not something this candidate claims.
+- A superseded signer vouches only for the one activation receipt recorded in
+  its signed rotation or recovery event; security-key approvals must carry the
+  signed user-verification flag, which Rig checks itself because
+  `ssh-keygen -Y verify` cannot require it.
 - Local CI-command proof does not prove a remote provider run.
 - The remaining shared sentence in 86 service identities is a disposition line,
   not guidance; reviewers may still ask for more service-specific wording.

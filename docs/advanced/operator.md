@@ -103,7 +103,7 @@ three recovery identities. `recovery-key` runs OpenSSH `ed25519-sk` generation
 with required user verification outside the repository; if that is unavailable
 Rig refuses and never falls back to a software key. Registering a recovery
 credential is signed by the current signer, and rotations require the current
-signer. A caller-written registration is not trusted: authority is the
+signer. Recovery approvals must carry the signed user-verification flag. A caller-written registration is not trusted: authority is the
 reverified signed chain in `.rig/policy/`.
 
 Signer recovery uses the separate recovery namespace and trust store:
