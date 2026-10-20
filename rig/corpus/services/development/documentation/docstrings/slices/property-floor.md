@@ -1,11 +1,7 @@
 # development.documentation.docstrings — property-floor slice
 
-Policy grade slice. This slice bounds docstrings to documentation.docstrings. It uses `docstrings-slice-property-floor` and checks documented_symbols (nonempty): documented symbols must name the concrete repository contract..
+Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-For docstrings, choose a repository example that satisfies documented_symbols at the property-floor floor, plus a failure where documented symbols must name the concrete repository contract. is false. For docstrings, wire `property-floor` to `rig-services/development.documentation.docstrings.json` and keep its verdict on documented_symbols; missing evidence is a named gap, with ceiling docstrings configuration validation only; declared policy does not prove running docstrings behavior. Choose a repository-owned check that observes docstrings from rig-services/development.documentation.docstrings.json..
+Policy grade. The `docstrings-slice-property-floor` rule checks `documented_symbols` nonempty. Despite the slice name, this check does not establish content correctness or behavior; Native checks require nonempty documented_symbols, parameters, and failure_contract values in the JSON policy. They do not inspect source declarations or validate docstring text.
 
-Service-specific evidence cues:
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
-minimal: documented symbols — ["parseRecord"].
-mid: parameters — ["raw: serialized record"].
-maximal: failure contract — "throws on malformed records".
+The policy check does not exercise a property of the documentation itself. Compare declared symbols and parameter/failure details with public functions in the repository. The example symbol is illustrative, not discovered from source.

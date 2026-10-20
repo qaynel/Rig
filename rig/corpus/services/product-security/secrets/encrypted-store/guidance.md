@@ -15,4 +15,3 @@ minimal: secret store — "managed vault".
 mid: encryption at rest — "provider-managed-kms".
 
 maximal: store plaintext credentials — false.
-

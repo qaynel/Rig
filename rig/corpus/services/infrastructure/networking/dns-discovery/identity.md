@@ -1,15 +1,11 @@
 # infrastructure.networking.dns-discovery — identity
 
-Policy grade: dns discovery owns networking.dns-discovery. Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
+Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
 
-Keep neighboring networking services outside the dns discovery decision for networking.dns-discovery. Trace the verdict to the configured input at `rig-services/infrastructure.networking.dns-discovery.json`; malformed input is still attributed to that path.
+Policy grade: DNS discovery owns only `dns-discovery`. Publish stable service names with deliberate TTLs; hardcoded ephemeral addresses can leave clients using stale endpoints during failover.
 
-Disposition: convention. Anchor the review on the limit: dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Choose a repository-owned check that observes dns discovery from rig-services/infrastructure.networking.dns-discovery.json.
+The applicable surface is source-code with its declared input at `rig-services/infrastructure.networking.dns-discovery.json`; discovery preserves that path even when the JSON is malformed. The installed check evaluates the fields below, not live dns discovery behavior.
 
-Acceptance target: fixture:infrastructure.networking.dns-discovery:policy-boundary. Given source-code is present and networking.dns-discovery is selected, pass only when the repository binding evaluates networking.dns-discovery and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent networking concern.
+Disposition: executable configuration validation. Coverage ceiling: DNS configuration validation only. These predicates do not resolve names, query an authoritative server, or measure propagation and cache behavior.
 
-Service-specific evidence cues:
-Offer: Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
-minimal: service records — ["api.internal"].
-mid: ttl seconds — 60.
-maximal: hardcode ephemeral addresses — false.
+The good fixture at `tests/fixtures/services/infrastructure.networking.dns-discovery/good/rig-services/infrastructure.networking.dns-discovery.json` passes the declared predicates. The bad fixture at `tests/fixtures/services/infrastructure.networking.dns-discovery/bad/rig-services/infrastructure.networking.dns-discovery.json` demonstrates the service records boundary. No adjacent networking service is part of this decision.

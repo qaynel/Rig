@@ -1,15 +1,15 @@
 # testing.mutation.language-adapter — identity
 
-Policy grade: language adapter owns mutation.language-adapter. Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
+Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
 
-Keep neighboring mutation services outside the language adapter decision for mutation.language-adapter. Start from the configured input at `rig-services/testing.mutation.language-adapter.json`; malformed input is still attributed to that path.
+Policy grade. Declare which source extensions and compiler or parser command the mutation adapter can handle. A parse or compile error is a coverage gap, not a killed mutant or successful result.
 
-Disposition: convention. Trace the verdict to the limit: language adapter configuration validation only; declared policy does not prove running language adapter behavior. Choose a repository-owned check that observes language adapter from rig-services/testing.mutation.language-adapter.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.language-adapter:policy-boundary. Given source-code is present and mutation.language-adapter is selected, pass only when the repository binding evaluates mutation.language-adapter and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.language-adapter`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
-minimal: source extensions — [".js"].
-mid: compiler command — ["node","--check"].
-maximal: parse errors are success — false.
+Read `rig-services/testing.mutation.language-adapter.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `source_extensions` = `[".js"]`; mid adds `compiler_command` = `["node","--check"]`; maximal requires `parse_errors_are_success` = `false`.

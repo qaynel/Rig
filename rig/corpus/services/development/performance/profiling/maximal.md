@@ -1,13 +1,11 @@
 # development.performance.profiling — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for profiling. The evidence must preserve the workload, measured_metrics, optimize_without_measurement inputs that determined the result. Binding checks: profiling-evidence-receipt.
+Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.
 
-Trace the verdict to a second run against unchanged profiling inputs. Record the workload, measured_metrics, optimize_without_measurement inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this profiling result is stale. The ceiling remains: profiling configuration validation only; declared policy does not prove running profiling behavior. Choose a repository-owned check that observes profiling from rig-services/development.performance.profiling.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: profiling-source-code-boundary, profiling-performance-context, profiling-evidence-receipt.
 
-Acceptance target: fixture:development.performance.profiling:evidence-replay. Given the code-profiling binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.
-minimal: workload — "1000 item reads".
-mid: measured metrics — ["latency_ms","allocations"].
-maximal: optimize without measurement — false.
+Acceptance target: policy:development.performance.profiling:maximal:profiling-source-code-boundary+profiling-performance-context+profiling-evidence-receipt.
+
+Declared predicates: profiling-source-code-boundary: `workload` is nonempty (a string or array); profiling-performance-context: `measured_metrics` is nonempty (a string or array); profiling-evidence-receipt: `optimize_without_measurement` equals false.

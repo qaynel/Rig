@@ -15,4 +15,3 @@ minimal: authoritative sources — ["config/production.json"].
 mid: comparison schedule — "daily".
 
 maximal: silent drift acceptance — false.
-

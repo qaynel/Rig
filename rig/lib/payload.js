@@ -38,10 +38,13 @@ function seedUserFile(target, to, entry, writeFile = directWrite) {
 // The release-pinned skill catalogue. Rig owns `.rig/catalog.json`, so a copy
 // that no longer matches its own journal receipt was edited by the user: that
 // conflicts rather than being silently overwritten (F-3 §5.2).
-function installPinnedCatalog(target, to, pinned, writeFile = directWrite) {
+function installPinnedCatalog(target, to, pinned, writeFile = directWrite, requireOwnership = false) {
   const dst = containedPath(target, to);
   if (fs.existsSync(dst)) {
     const current = fs.readFileSync(dst);
+    if (requireOwnership && writeFile.latest?.(to)?.digest !== sha256(current)) {
+      throw new Error(`rig: ${to} conflicts with an unowned or edited host adapter; preserve it and resolve the collision before retrying`);
+    }
     if (!current.equals(pinned)) {
       const receipt = writeFile.latest ? writeFile.latest(to) : null;
       if (!receipt || receipt.digest !== sha256(current)) {
@@ -614,6 +617,7 @@ function applyEntry(target, entry, writeFile) {
   if (op === 'write') writeFile(target, entry.path, entry.bytes, entry.mode);
   else if (op === 'seed_user_file') seedUserFile(target, entry.path, entry, writeFile);
   else if (op === 'pinned_catalog') installPinnedCatalog(target, entry.path, entry.bytes, writeFile);
+  else if (op === 'pinned_adapter') installPinnedCatalog(target, entry.path, entry.bytes, writeFile, true);
   else if (op === 'ensure_line') ensureLine(target, entry.path, entry.line, writeFile);
   else if (op === 'ensure_gitignore_block') ensureGitignoreBlock(target, entry.lines, writeFile);
   else throw new Error(`rig: unknown projection op "${op}"`);

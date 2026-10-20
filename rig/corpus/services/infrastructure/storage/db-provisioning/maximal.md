@@ -1,13 +1,11 @@
 # infrastructure.storage.db-provisioning — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for db provisioning. The evidence must preserve the database_version, access_scope, public_database_endpoint inputs that determined the result. Binding checks: db-provisioning-evidence-receipt.
+Pin the database engine and restrict connectivity to its intended clients. Configuration conformance does not establish actual managed-service access controls.
 
-Trace the verdict to a second run against unchanged db provisioning inputs. Record the database_version, access_scope, public_database_endpoint inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this db provisioning result is stale. The ceiling remains: db provisioning configuration validation only; declared policy does not prove running db provisioning behavior. Choose a repository-owned check that observes db provisioning from rig-services/infrastructure.storage.db-provisioning.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: db-provisioning-source-code-boundary, db-provisioning-storage-context, db-provisioning-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.storage.db-provisioning:evidence-replay. Given the storage.db-provisioning binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Pin the database engine and restrict connectivity to its intended clients. Configuration conformance does not establish actual managed-service access controls.
-minimal: database version — "16".
-mid: access scope — "private-network".
-maximal: public database endpoint — false.
+Acceptance target: policy:infrastructure.storage.db-provisioning:maximal:db-provisioning-source-code-boundary+db-provisioning-storage-context+db-provisioning-evidence-receipt.
+
+Declared predicates: db-provisioning-source-code-boundary: `database_version` is nonempty (a string or array); db-provisioning-storage-context: `access_scope` is nonempty (a string or array); db-provisioning-evidence-receipt: `public_database_endpoint` equals false.

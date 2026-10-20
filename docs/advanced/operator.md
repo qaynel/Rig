@@ -12,6 +12,30 @@ installed regardless of that selection. The user reviews and approves the exact
 proposal before repository files change. Remediation is separate and requires
 an explicit proposal-digest approval.
 
+## Local lint and format grades
+
+After selecting the lint and format service at `mid` or `maximal`, run
+`.rig/bin/rig check --service development.code-quality.lint-format` in the
+installed repository. Rig runs the repository's read-only format and lint
+commands first. A clean run writes
+`reports/rig/lint-format-context-review-request.json` when a current Context
+review is needed.
+
+Have the repository agent review the listed changed files against the listed
+rule sources. Save the completed request as
+`.rig/lint-format/context-review.json`, adding a nonempty `summary`, an explicit
+`verdict` of `pass` or `fail`, and `findings` with `file`, `rule`, and `meaning`
+for each violation. The file and rule values must come from the request. A pass
+requires an empty findings list. A failed review reports its violations and
+stops before Evidence; a missing verdict or contradictory review is incomplete.
+Rerun the same check. A clean `mid` reports Context; `maximal` reruns the commands and writes
+`reports/rig/lint-format-evidence.json` only when their observed output and
+inputs match. A changed file, rule, or command makes the old review stale.
+This local receipt is independent of a separately approved CI integration.
+If any command changes source bytes or modes, Rig stops before launching the
+next command and reports the changed paths and before/after evidence. It leaves
+the changed files available for inspection.
+
 ## Public install
 
 Use `install rig [--host <host>]... [--target <repository>] [--version <tag>]`.
@@ -62,6 +86,26 @@ JSON carries the signer identity, armored signature, proposal digest, and
 confirmed disclosure digests; Rig verifies it against
 `.rig/policy/allowed-signers`. A JSON `verified: true` assertion is not accepted.
 
+Signer setup and recovery registration are signed ceremonies too. Rig only
+generates challenges and verifies signatures; it never holds a private key:
+
+```sh
+node rig/materialize.js policy signer-challenge --target <repo> --signer <signer.json> --out <challenge.json>
+node rig/materialize.js policy signer-setup --target <repo> --challenge <challenge.json> --approval <approval.json>
+node rig/materialize.js policy recovery-key --target <repo> --identity <recovery-id> --key-output </absolute/path/outside/repo> --out <challenge.json>
+node rig/materialize.js policy recovery-register --target <repo> --challenge <challenge.json> --approval <approval.json>
+```
+
+`signer.json` carries the signer `identity` and `public_key`. Setup is signed
+by the already-configured signer (or the single signer in an existing
+`allowed-signers` file) under namespace `rig-policy-activation`, and it offers
+three recovery identities. `recovery-key` runs OpenSSH `ed25519-sk` generation
+with required user verification outside the repository; if that is unavailable
+Rig refuses and never falls back to a software key. Registering a recovery
+credential is signed by the current signer, and rotations require the current
+signer. A caller-written registration is not trusted: authority is the
+reverified signed chain in `.rig/policy/`.
+
 Signer recovery uses the separate recovery namespace and trust store:
 
 ```sh
@@ -83,6 +127,12 @@ node rig/materialize.js uninstall --target <repo> --purge
 
 Purge prints its report/run-history deletion list before deleting those usage
 artifacts. The user-owned `.rig/network-policy.json` is preserved.
+The removal result and ordinary `reports/rig/last-uninstall.json` include
+`verification`: `verified_clean` means the recorded managed content is gone;
+`checked` and `counts` summarize every recorded path, and `differences` lists only paths with outside user edits or best-effort problems, with their preimage and final digests.
+Snapshots are evidence only and are never restored. Missing or corrupt
+preimages and unlocatable managed markers produce `best_effort` with named
+paths. Legacy teardown status `removed` alone is not a verification verdict.
 
 Release review uses `scripts/review-receipt.js`. Claude is the default reviewer;
 `--reviewer codex` uses a fresh ephemeral read-only Codex process with the same

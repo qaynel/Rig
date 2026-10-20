@@ -8,6 +8,16 @@ GitLab CI, CircleCI, Jenkins, Buildkite, and Azure Pipelines.
 
 ## Current implementation
 
+The [owner's host-hook ruling](../reasoning/2026-10-18-host-hook-honest-gap-owner-decision.md)
+requires a third, honest status for supported hooks that Rig does not install:
+available but not integrated. `emitted` requires a real host-consumed artifact
+and byte-landing proof; `unsupported` is reserved for vendor absence. The
+registry and the signed host acceptance cases are being reconciled to this
+decision.
+[Implementation checkpoint](../reasoning/2026-10-18-qa-host-gap-checkpoint.md):
+hook declarations now use the gap status, while instruction, native skill, and
+MCP output claims are being checked against their host writer paths.
+
 All six CI providers now render a provider-visible repository check and apply
 it through a bounded additive path. Compatible existing configuration keeps its
 unrelated bytes, approved absent-provider bootstrap creates the canonical file,
@@ -134,3 +144,6 @@ No CI-provider or shared-host-contract implementation blocker from the
 production findings remains. The owner's package-scripts re-sign now verifies;
 final tests, review and required CI still need to prove the current candidate.
 See the [QA/prod checkpoint](the-overhaul.md).
+The [maximal lint CI correction](../reasoning/2026-10-19-qa-closeout-ci-binding-correction.md)
+binds an approved CI artifact into the installed check while preserving a
+named gap when that separate approval is absent.

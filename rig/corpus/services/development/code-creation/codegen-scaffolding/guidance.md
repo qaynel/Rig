@@ -15,4 +15,3 @@ minimal: generator revision — "a1b2c3d".
 mid: generated paths — ["generated/client.js"].
 
 maximal: overwrite user files — false.
-

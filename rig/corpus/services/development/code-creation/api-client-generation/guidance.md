@@ -15,4 +15,3 @@ minimal: specification path — "openapi.json".
 mid: compatibility version — "1.0.0".
 
 maximal: unknown response policy — "fail-explicitly".
-

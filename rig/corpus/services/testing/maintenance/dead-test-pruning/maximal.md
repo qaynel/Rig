@@ -1,13 +1,11 @@
 # testing.maintenance.dead-test-pruning — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for dead test pruning. The evidence must preserve the obsolete_cases, replacement_evidence, delete_live_regressions inputs that determined the result. Binding checks: dead-test-pruning-evidence-receipt.
+Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.
 
-Tie acceptance to a second run against unchanged dead test pruning inputs. Record the obsolete_cases, replacement_evidence, delete_live_regressions inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this dead test pruning result is stale. The ceiling remains: dead test pruning configuration validation only; declared policy does not prove running dead test pruning behavior. Choose a repository-owned check that observes dead test pruning from rig-services/testing.maintenance.dead-test-pruning.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: dead-test-pruning-source-code-boundary, dead-test-pruning-maintenance-context, dead-test-pruning-evidence-receipt.
 
-Acceptance target: fixture:testing.maintenance.dead-test-pruning:evidence-replay. Given the maintenance.dead-test-pruning binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.
-minimal: obsolete cases — ["removed legacy endpoint"].
-mid: replacement evidence — ["new endpoint contract passes"].
-maximal: delete live regressions — false.
+Acceptance target: policy:testing.maintenance.dead-test-pruning:maximal:dead-test-pruning-source-code-boundary+dead-test-pruning-maintenance-context+dead-test-pruning-evidence-receipt.
+
+Declared predicates: dead-test-pruning-source-code-boundary: `obsolete_cases` is nonempty (a string or array); dead-test-pruning-maintenance-context: `replacement_evidence` is nonempty (a string or array); dead-test-pruning-evidence-receipt: `delete_live_regressions` equals false.

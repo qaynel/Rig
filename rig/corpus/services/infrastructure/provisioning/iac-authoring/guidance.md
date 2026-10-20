@@ -15,4 +15,3 @@ minimal: resource names — ["app-network"].
 mid: state backend — "encrypted-remote".
 
 maximal: apply without reviewed plan — false.
-

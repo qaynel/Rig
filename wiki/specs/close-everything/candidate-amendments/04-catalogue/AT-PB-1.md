@@ -15,17 +15,16 @@ this change in the single batched re-sign; agents never sign.
   in `rig/catalog.json` and `rig/catalog/services/`, so it does not pin the
   active corpus. Keep the compatibility copy unchanged and make the frozen
   oracle identify the current canonical bytes.
-- Applicable diff: [`owner-amendments.patch`](../owner-amendments.patch) — one
-  patch carries all four frozen-case amendments, applies cleanly to this tree
-  with `git apply`, and was proved green before signing (see the bundle).
+- Applicable diff: the current consolidated
+  [`binding-review-owner.patch`](../binding-review-owner.patch) supersedes the
+  older `owner-amendments.patch` for this case and carries it with the current
+  release, host, lint-grade, nonce, and namespace corrections.
 
 - Candidate pin calculation: SHA-256 over each sorted repository-relative path,
-  NUL, file bytes, NUL — 1,036 files — gives
-  `3e5bcd14a93904d6d808d74c6122799095d840f2e37ca50d900e9bf4418c19dd`
-  on this tree. **Correction, 2026-10-14:** the first recorded value
-  (`c28174db…`) predated the T-4.5/T-4.6 service-wording commits and no longer
-  matches, which is why the amendment is only valid against the exact bytes it
-  is signed with. Recompute before signing if any file under
-  `rig/corpus/services/` or `rig/corpus/catalogue.json` changes; the patch's
-  own assertion is the check.
+  NUL, file bytes, NUL — 1,042 files — gives
+  `759b7cc73baa241fb47a79cbd270244bc9d4229272ccb4973261d324bf2456f5`
+  on the catalogue bytes verified 2026-10-20. Earlier values, including
+  `3e5bcd14a93904d6d808d74c6122799095d840f2e37ca50d900e9bf4418c19dd`, are
+  stale. Recompute before signing if any file under `rig/corpus/services/` or
+  `rig/corpus/catalogue.json` changes; the patch's assertion is the check.
 - Frozen AT-PB-1 remains untouched until the owner applies this amendment.

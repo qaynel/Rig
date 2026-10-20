@@ -1,13 +1,13 @@
 # testing.mutation.mutant-generator — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for mutant generator; it does not widen ownership beyond mutation.mutant-generator. For mutant generator, inspect these context signals: target_paths. Binding checks: mutant-generator-mutation-context.
+Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
 
-Anchor the review on the existing repository's mutant generator convention, then name the source path or command that establishes it. For mutant generator, inspect the repository's actual spec, source, test, or configuration for target_paths; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the mutant generator decision for mutation.mutant-generator.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: mutant-generator-source-code-boundary, mutant-generator-mutation-context.
 
-Acceptance target: fixture:testing.mutation.mutant-generator:repository-context. Given mutation.mutant-generator has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `target_paths`. Review target paths against the repository source layout so generated edits stay inside the intended product code.
 
-Service-specific evidence cues:
-Offer: Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
-minimal: mutation operators — ["negate conditional"].
-mid: target paths — ["src/parser.js"].
-maximal: mutate test code — false.
+This remains configuration review. A value in `rig-services/testing.mutation.mutant-generator.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.mutant-generator:mid:mutant-generator-source-code-boundary+mutant-generator-mutation-context.
+
+Check: `mutant-generator-mutation-context`.

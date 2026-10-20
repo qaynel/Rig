@@ -15,4 +15,3 @@ minimal: components — ["api","database"].
 mid: trust boundaries — ["external input enters api"].
 
 maximal: failure modes — ["database unavailable"].
-

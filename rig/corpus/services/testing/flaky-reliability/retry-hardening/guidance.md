@@ -15,4 +15,3 @@ minimal: retryable failures — ["connection reset"].
 mid: maximum attempts — 3.
 
 maximal: retry assertion failures — false.
-

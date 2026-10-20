@@ -30,7 +30,7 @@ function main() {
   if (argv[0] === '--help' || argv[0] === 'help') {
     console.log(`Rig commands: ${[...ADVANCED, 'lint-setup'].join(', ')}
 Legacy install: --target <repo> --manifest <config.json>; removal: --target <repo> --uninstall [--purge | --purge-generated]
-Command flags: --target --input --out --hosts --host --manifest --review --plan --approval --menu --service --inspection --dry-run --purge --purge-generated --policy --proposal --replacement --identity --challenge --action
+Command flags: --target --input --out --hosts --host --manifest --review --plan --approval --menu --service --inspection --dry-run --purge --purge-generated --policy --proposal --replacement --identity --challenge --action --signer --key-output
 Lint setup: lint-setup --input <request.json>; request action=propose or apply, target, proposal and separate approval.`);
     return;
   }

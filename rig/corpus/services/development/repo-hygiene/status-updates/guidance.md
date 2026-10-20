@@ -15,4 +15,3 @@ minimal: completed — ["parser regression reproduced"].
 mid: in flight — ["shared boundary fix"].
 
 maximal: next action — "run parser regression".
-

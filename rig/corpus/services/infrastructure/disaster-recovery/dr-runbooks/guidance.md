@@ -15,4 +15,3 @@ minimal: recovery steps — ["restore database","verify application"].
 mid: exercise schedule — "quarterly".
 
 maximal: runbook without owner — false.
-

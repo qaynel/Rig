@@ -1,11 +1,9 @@
 # testing.mutation.mutant-generator — property-floor slice
 
-Policy grade slice. This slice bounds mutant generator to mutation.mutant-generator. It uses `mutant-generator-slice-property-floor` and checks mutation_operators (nonempty): mutation operators must name the concrete repository contract..
+Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
 
-For mutant generator, choose a repository example that satisfies mutation_operators at the property-floor floor, plus a failure where mutation operators must name the concrete repository contract. is false. For mutant generator, wire `property-floor` to `rig-services/testing.mutation.mutant-generator.json` and keep its verdict on mutation_operators; missing evidence is a named gap, with ceiling mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Choose a repository-owned check that observes mutant generator from rig-services/testing.mutation.mutant-generator.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
-minimal: mutation operators — ["negate conditional"].
-mid: target paths — ["src/parser.js"].
-maximal: mutate test code — false.
+This slice verifies the configured `mutation_operators` rule using `mutant-generator-slice-property-floor`. Generate semantic production-code mutations while leaving assertions unchanged.
+
+The accepted fixture contains `mutation_operators` = `["negate conditional"]`; the invalid fixture demonstrates the missing-field case. This checks policy shape only, not a property of generated mutants.

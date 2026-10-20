@@ -1,15 +1,11 @@
 # infrastructure.networking.load-balancer-ingress — identity
 
-Policy grade: load balancer ingress owns networking.load-balancer-ingress. Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
+Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
 
-Keep neighboring networking services outside the load balancer ingress decision for networking.load-balancer-ingress. Start from the configured input at `rig-services/infrastructure.networking.load-balancer-ingress.json`; malformed input is still attributed to that path.
+Policy grade: Load balancer ingress owns only `load-balancer-ingress`. Route requests only to healthy backends, bound their handling time, and keep administrative routes off public ingress.
 
-Disposition: convention. Trace the verdict to the limit: load balancer ingress configuration validation only; declared policy does not prove running load balancer ingress behavior. Choose a repository-owned check that observes load balancer ingress from rig-services/infrastructure.networking.load-balancer-ingress.json.
+The applicable surface is source-code with its declared input at `rig-services/infrastructure.networking.load-balancer-ingress.json`; discovery preserves that path even when the JSON is malformed. The installed check evaluates the fields below, not live load balancer ingress behavior.
 
-Acceptance target: fixture:infrastructure.networking.load-balancer-ingress:policy-boundary. Given source-code is present and networking.load-balancer-ingress is selected, pass only when the repository binding evaluates networking.load-balancer-ingress and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent networking concern.
+Disposition: executable configuration validation. Coverage ceiling: load balancer ingress configuration validation only. The checks do not send requests, probe backend health, or prove that a deployed load balancer enforces the route and timeout settings.
 
-Service-specific evidence cues:
-Offer: Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
-minimal: backend health path — "/health".
-mid: request timeout ms — 5000.
-maximal: expose admin route — false.
+The good fixture at `tests/fixtures/services/infrastructure.networking.load-balancer-ingress/good/rig-services/infrastructure.networking.load-balancer-ingress.json` passes the declared predicates. The bad fixture at `tests/fixtures/services/infrastructure.networking.load-balancer-ingress/bad/rig-services/infrastructure.networking.load-balancer-ingress.json` demonstrates the backend health path boundary. No adjacent networking service is part of this decision.

@@ -1,13 +1,11 @@
 # testing.test-data.fixtures-factories — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for fixtures factories. The evidence must preserve the fixture_defaults, explicit_variants, shared_mutable_state inputs that determined the result. Binding checks: fixtures-factories-evidence-receipt.
+Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.
 
-Anchor the review on a second run against unchanged fixtures factories inputs. Record the fixture_defaults, explicit_variants, shared_mutable_state inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this fixtures factories result is stale. The ceiling remains: fixtures factories configuration validation only; declared policy does not prove running fixtures factories behavior. Choose a repository-owned check that observes fixtures factories from rig-services/testing.test-data.fixtures-factories.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: fixtures-factories-source-code-boundary, fixtures-factories-test-data-context, fixtures-factories-evidence-receipt.
 
-Acceptance target: fixture:testing.test-data.fixtures-factories:evidence-replay. Given the test-data.fixtures-factories binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.
-minimal: fixture defaults — ["valid account"].
-mid: explicit variants — ["expired account"].
-maximal: shared mutable state — false.
+Acceptance target: policy:testing.test-data.fixtures-factories:maximal:fixtures-factories-source-code-boundary+fixtures-factories-test-data-context+fixtures-factories-evidence-receipt.
+
+Declared predicates: fixtures-factories-source-code-boundary: `fixture_defaults` is nonempty (a string or array); fixtures-factories-test-data-context: `explicit_variants` is nonempty (a string or array); fixtures-factories-evidence-receipt: `shared_mutable_state` equals false.

@@ -40,6 +40,11 @@ Before any scope, design, test, or support question, check it against this list.
 11. **QA-to-production promotion uses automated checks only on the exact QA commit.**
     Include automated health and real-download clean-install checks; no outside-repository manual install gate.
     `wiki/reasoning/2026-10-13-close-everything-review-owner-promotion.md`.
+12. **Report supported host hooks Rig does not install as available but not integrated.**
+    Reserve `emitted` for a real host-consumed artifact with byte-landing proof;
+    reserve `unsupported` for a vendor surface that does not exist. The gap is
+    explicit in the release contract rather than a speculative hook claim.
+    `wiki/reasoning/2026-10-18-host-hook-honest-gap-owner-decision.md`.
 
 When the owner states a product decision, add it here in the same change.
 

@@ -12,8 +12,10 @@ const {
   executableAvailable,
 } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
+const { verifySshsig } = require('./policy');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
 const { resumeInstall, uninstall: uninstallLifecycle } = require('./lifecycle');
+const { writeEvidence } = require('./evidence-artifacts');
 
 const ECOSYSTEM_SIGNALS = new Map([
   ['package.json', 'js'], ['pnpm-lock.yaml', 'js'], ['yarn.lock', 'js'],
@@ -338,10 +340,9 @@ function buildBinding(target, grade, ci = null) {
       : { commands: commands('lint') };
   }
   if (grade === 'maximal') {
-    const rootFormat = components.find((component) => component.root === '.')?.format;
-    checks['lint-format-ci-gate-and-explicit-fix'] = ci?.artifact && rootFormat?.argv
-      ? { required_paths: [ci.artifact.relativePath], fix: rootFormat.argv }
-      : { coverage_gap: ci?.artifact ? 'root component has no explicit formatter task' : 'no approved CI adapter was emitted' };
+    checks['lint-format-ci-gate-and-explicit-fix'] = {
+      coverage_gap: 'local Evidence uses rig check review and replay; CI enforcement requires a separately approved CI binding',
+    };
   }
   const unresolved = components.some((component) => component.excluded || requiredRoles(grade)
     .some((role) => component[role].status === 'needs_user_choice'));
@@ -435,16 +436,33 @@ function planExecution(input) {
   return { ...snapshot, plan_digest, authorized: false };
 }
 
-// Durable, clone-local one-use consumption: a JS-object `.used` flag only
-// lives for the calling process's lifetime, but plan/execute normally spans
-// two agent turns in two processes. State keyed by plan_digest on disk under
-// the target repo survives that boundary, and the exclusive ('wx') create is
-// atomic against two processes racing the same approval.
-function consumePlanApproval(target, plan) {
-  const recordPath = containedPath(target, path.join('.rig/lint-format/executions', `${digest(plan.plan_digest)}.json`));
+// Durable, clone-local one-use consumption: bind the marker to the signed
+// approval payload as well as the plan. A new signature can re-authorize an
+// unchanged plan; replaying the same signed approval still collides.
+function planApprovalMessage(planDigest, approvalId) {
+  return `rig-plan-approval\ndigest=${planDigest}\napproval_id=${approvalId}\n`;
+}
+
+function createPlanApprovalChallenge(plan) {
+  if (!plan || !/^[a-f0-9]{64}$/.test(plan.plan_digest || '')) {
+    throw new Error('createPlanApprovalChallenge: valid plan digest required');
+  }
+  const approval_id = crypto.randomBytes(32).toString('hex');
+  return {
+    schema_version: 1,
+    kind: 'plan-approval-challenge',
+    plan_digest: plan.plan_digest,
+    approval_id,
+    message: planApprovalMessage(plan.plan_digest, approval_id),
+  };
+}
+
+function consumePlanApproval(target, plan, approval) {
+  const approvalDigest = digest({ plan_digest: plan.plan_digest, approval_id: approval.approval_id });
+  const recordPath = containedPath(target, path.join('.rig/lint-format/executions', `${approvalDigest}.json`));
   fs.mkdirSync(path.dirname(recordPath), { recursive: true });
   try {
-    fs.writeFileSync(recordPath, `${JSON.stringify({ plan_digest: plan.plan_digest, executed_at: new Date().toISOString() }, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+    fs.writeFileSync(recordPath, `${JSON.stringify({ plan_digest: plan.plan_digest, approval_id: approval.approval_id, approval_digest: approvalDigest, executed_at: new Date().toISOString() }, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
     return true;
   } catch (error) {
     if (error.code === 'EEXIST') return false;
@@ -453,9 +471,24 @@ function consumePlanApproval(target, plan) {
 }
 
 function executePlan(plan, approval) {
-  if (!approval || approval.plan_digest !== plan.plan_digest) {
+  if (!plan || !plan.target || !Array.isArray(plan.commands)) throw new Error('executePlan: valid plan digest required');
+  const expectedDigest = digest({ target: plan.target, commands: plan.commands, selected: plan.selected === true });
+  if (expectedDigest !== plan.plan_digest) throw new Error('executePlan: plan digest mismatch');
+  if (!approval || approval.schema_version !== 1 || approval.kind !== 'plan-approval'
+    || approval.plan_digest !== plan.plan_digest || !/^[a-f0-9]{64}$/.test(approval.approval_id || '')) {
     throw new Error('executePlan: approval digest mismatch');
   }
+  const signed = approval.approval;
+  if (!signed || signed.method !== 'external-sshsig' || typeof signed.identity !== 'string' || typeof signed.signature !== 'string') {
+    throw new Error('executePlan: verified external SSHSIG approval required');
+  }
+  verifySshsig({
+    allowedSigners: containedPath(plan.target, '.rig/allowed-signers'),
+    identity: signed.identity,
+    namespace: 'rig-plan-approval',
+    message: planApprovalMessage(plan.plan_digest, approval.approval_id),
+    signature: signed.signature,
+  });
   if (approval.used) {
     return { status: 'not_authorized' };
   }
@@ -480,7 +513,7 @@ function executePlan(plan, approval) {
       }
     }
   }
-  if (!consumePlanApproval(plan.target, plan)) {
+  if (!consumePlanApproval(plan.target, plan, approval)) {
     return { status: 'not_authorized' };
   }
   approval.used = true;
@@ -606,27 +639,18 @@ function runCommand(argv, {
   };
 }
 
+function createGradeReviewRequest({ target, changed, commands }) {
+  return require('./lint-grade').createGradeReviewRequest({ target, changed, commands });
+}
+
 function runGrade({ target, grade, changed, commands, context, ci }) {
-  const gradeOrder = ['Policy', 'Context', 'Evidence'];
-  const map = { minimal: 1, mid: 2, maximal: 3 };
-  const gradeLevel = map[grade] || 1;
   const isolation = networkIsolationPrefix();
-  const executed = (commands || []).map((cmd) => {
-    if (!cmd.argv) return cmd.result ? { ...cmd, result: { ...cmd.result, source: 'legacy-result' } } : {
-      ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null },
-    };
-    if (!Array.isArray(cmd.argv) || !cmd.argv.length) {
-      return { ...cmd, result: { exit_code: 1, status: 'coverage_gap', output_digest: null } };
-    }
+  const execute = (cmd) => {
     let cwd;
     try {
-      cwd = target ? taskCwd(target, cmd.cwd) : (cmd.cwd || process.cwd());
-    } catch {
-      return { ...cmd, result: { exit_code: 1, status: 'boundary_violation', output_digest: null } };
-    }
-    if (!isolation && cmd.network !== true) {
-      return { ...cmd, result: { exit_code: 1, status: 'network_isolation_unavailable', output_digest: null } };
-    }
+      cwd = taskCwd(target, cmd.cwd);
+    } catch { return { exit_code: 1, status: 'boundary_violation', output_digest: digest('') }; }
+    if (!isolation && cmd.network !== true) return { exit_code: 1, status: 'network_isolation_unavailable', output_digest: digest('') };
     const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
       cwd,
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
@@ -635,33 +659,9 @@ function runGrade({ target, grade, changed, commands, context, ci }) {
       dependencies: cmd.dependencies,
       maxOutputBytes: cmd.max_output_bytes,
     });
-    return { ...cmd, result };
-  });
-  const anyFail = executed.some((cmd) => cmd.result.exit_code !== 0);
-  // Report the highest grade actually completed. Round-4's blocker correction
-  // requires cumulative-superset semantics: a mid/maximal run that failed at
-  // Policy reports 'Policy'; a clean run at maximal reports 'Evidence'.
-  const highestClean = anyFail ? 1 : gradeLevel;
-  const completed_grades = gradeOrder.slice(0, highestClean);
-  const steps = ['policy_checks'];
-  if (gradeLevel >= 2) steps.push('context_understanding');
-  if (gradeLevel >= 3) steps.push('evidence_capture');
-  const output_digest = executed
-    .map((cmd) => cmd.result && cmd.result.output_digest)
-    .filter(Boolean)[0] || null;
-  const evidence = {
-    output_digest,
-    input_digest: gradeLevel >= 3 ? digest({ changed: changed || [], commands: executed.map(({ role, argv, cwd }) => ({ role, argv, cwd })) }) : null,
+    return { ...result, cwd };
   };
-  const result = {
-    grade: gradeOrder[highestClean - 1],
-    verdict: anyFail ? 'fail' : 'pass',
-    files: changed || [],
-    evidence,
-    completed_grades,
-    steps,
-    commands: executed,
-  };
+  const result = require('./lint-grade').runGrade({ target, grade, changed, commands, context, execute });
   if (ci) result.ci_graft = ci.status === 'absent' ? 'not_installed' : ci.status;
   return result;
 }
@@ -815,11 +815,10 @@ function runAutofix(target, cmd, approval) {
   return { verification: 'skipped' };
 }
 
-function planCi({ grade, ci }) {
-  if (grade === 'maximal' && ci === 'existing') return { action: 'additive_merge' };
-  if (grade === 'maximal' && ci === 'absent') return { status: 'approval_required', action: 'awaiting_approval' };
-  if (grade === 'maximal' && ci === 'unknown') return { action: 'preserve_and_report' };
-  return { action: 'none' };
+function planCi({ grade, target, provider, approved, spec }) {
+  if (grade !== 'maximal') return { action: 'none' };
+  if (!target) return { status: 'coverage_gap', reason: 'repository target is required before selecting a CI adapter' };
+  return require('./ci-adapters').planCiIntegration(target, { provider, approved: approved === true, spec });
 }
 
 function buildReport({ results }) {
@@ -868,12 +867,16 @@ function install(target, opts = {}) {
       }, null, 2)}\n`,
     },
   ];
+  // lint-format's three binding artifacts are a service-owned transaction,
+  // but share the repository lifecycle journal and its resume/CAS behavior.
   const result = resumeInstall(target, { operations, interrupt_after: opts.interrupt_after });
   return { supported: result.complete, manifest: { records: result.records } };
 }
 
 function uninstall(target, manifest) {
   if (!manifest || !Array.isArray(manifest.records)) return { removed: false };
+  // The shared journal is the deletion authority; the returned install
+  // manifest is only a completion token and cannot narrow repository removal.
   return uninstallLifecycle(target);
 }
 
@@ -908,9 +911,11 @@ module.exports = {
   validateBindingSources,
   finalizeSelection,
   planExecution,
+  createPlanApprovalChallenge,
   executePlan,
   applyCoverage,
   runGrade,
+  createGradeReviewRequest,
   runCommand,
   resolveScope,
   spawnTask,

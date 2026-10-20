@@ -15,4 +15,3 @@ minimal: target versions — ["library@2.0.0"].
 mid: migration steps — ["replace removed API"].
 
 maximal: rollback available — true.
-

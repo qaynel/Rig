@@ -1,13 +1,11 @@
 # infrastructure.provisioning.environment-parity — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for environment parity. The evidence must preserve the environments, intentional_differences, unrecorded_differences_allowed inputs that determined the result. Binding checks: environment-parity-evidence-receipt.
+Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
 
-Inspect a second run against unchanged environment parity inputs. Record the environments, intentional_differences, unrecorded_differences_allowed inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this environment parity result is stale. The ceiling remains: environment parity configuration validation only; declared policy does not prove running environment parity behavior. Choose a repository-owned check that observes environment parity from rig-services/infrastructure.provisioning.environment-parity.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: environment-parity-source-code-boundary, environment-parity-provisioning-context, environment-parity-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.provisioning.environment-parity:evidence-replay. Given the provisioning.environment-parity binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
-minimal: environments — ["staging","production"].
-mid: intentional differences — ["instance count"].
-maximal: unrecorded differences allowed — false.
+Acceptance target: policy:infrastructure.provisioning.environment-parity:maximal:environment-parity-source-code-boundary+environment-parity-provisioning-context+environment-parity-evidence-receipt.
+
+Declared predicates: environment-parity-source-code-boundary: `environments` is nonempty (a string or array); environment-parity-provisioning-context: `intentional_differences` is nonempty (a string or array); environment-parity-evidence-receipt: `unrecorded_differences_allowed` equals false.

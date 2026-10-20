@@ -15,4 +15,3 @@ minimal: stages — ["build","test","deploy"].
 mid: required checks — ["test"].
 
 maximal: deploy after failed checks — false.
-

@@ -164,7 +164,7 @@ function projectionHelpers(corpus, flags) {
     },
     copy: (from, to) => copyEntry(corpus, from, to),
     adapter(name, to) {
-      return copyEntry(corpus, corpus.descriptor.adapters[name], to);
+      return { ...copyEntry(corpus, corpus.descriptor.adapters[name], to), op: 'pinned_adapter' };
     },
     nativeSkills(root) {
       return this.skillNames.map((name) => {

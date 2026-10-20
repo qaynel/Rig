@@ -171,7 +171,8 @@ const POLICY_GRADE = /Policy(?:-| )grade/i;
 const PLACEHOLDER = /TODO|TBD|Concrete convention|describes the .* service\. This authoring|enforces the Policy-grade checks declared in the catalogue|carries the shared invariant the parent service depends on/i;
 const GENERIC_CHECK = /-(?:core|extended|thorough)$/;
 const LINT_FORMAT_ID = 'development.code-quality.lint-format';
-const KNOWN_AUTHORED_BOILERPLATE = /generic baseline practice|not repository-tailored|not tailored to the installing repository/i;
+const KNOWN_AUTHORED_BOILERPLATE = /generic baseline practice|not repository-tailored|not tailored to the installing repository|Service-specific evidence cues:/i;
+const BROKEN_AUTHORED_SENTENCE = /contract\.\.|\. is false\.|\.json\.\./i;
 const MAX_SHARED_BODY_FRACTION = 0.8;
 
 function authoredBodiesReport(entries) {
@@ -181,6 +182,9 @@ function authoredBodiesReport(entries) {
     const body = String(entry.text || '').split(/\r?\n/).slice(1).join(' ').replace(/\s+/g, ' ').trim();
     if (KNOWN_AUTHORED_BOILERPLATE.test(body)) {
       failures.push({ id: entry.id, part: entry.part, reason: 'known boilerplate sentence' });
+    }
+    if (BROKEN_AUTHORED_SENTENCE.test(body)) {
+      failures.push({ id: entry.id, part: entry.part, reason: 'broken generated sentence' });
     }
     const normalized = body.toLowerCase();
     // rig: Eight-character overlap catches copied wording cheaply; it cannot identify semantic paraphrases. Upgrade to a semantic duplicate detector only if authored volume makes the gate miss paraphrased copies.

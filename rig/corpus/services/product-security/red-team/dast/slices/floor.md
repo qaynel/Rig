@@ -1,11 +1,7 @@
-# product-security.red-team.dast — floor and mutation-floor slice
+# product-security.red-team.dast — floor slice
 
-Policy grade slice. This slice bounds dast to red-team.dast. It uses `dast-slice-floor` and checks target_origin (nonempty): target origin must name the concrete repository contract..
+Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
 
-For dast, choose a repository example that satisfies target_origin at the floor and mutation-floor floor, plus a failure where target origin must name the concrete repository contract. is false. For dast, wire `floor and mutation-floor` to `rig-services/product-security.red-team.dast.json` and keep its verdict on target_origin; missing evidence is a named gap, with ceiling dast configuration validation only; declared policy does not prove running dast behavior. Choose a repository-owned check that observes dast from rig-services/product-security.red-team.dast.json..
+Policy grade. `dast-slice-floor` requires a nonempty `target_origin` value. It does not establish who controls that target or whether scanning is authorized.,Use only an origin explicitly approved for testing; the example loopback URL is illustrative, not a configured target for an actual scan. Both floor and mutation-floor map to this configuration rule (dast-slice-floor and dast-slice-mutation-floor); the latter name does not indicate runtime mutation.
 
-Service-specific evidence cues:
-Offer: Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
-minimal: target origin — "http://127.0.0.1:8080".
-mid: authorized scope — ["/api"].
-maximal: scan unapproved targets — false.
+Use only an origin explicitly approved for testing; the example loopback URL is illustrative, not a configured target for an actual scan.

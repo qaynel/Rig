@@ -15,4 +15,3 @@ minimal: service metrics — ["latency","errors","saturation"].
 mid: dashboard owner — "operations".
 
 maximal: omit error metrics — false.
-

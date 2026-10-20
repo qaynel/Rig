@@ -1,18 +1,15 @@
-# load balancer ingress
+# Load balancer ingress
 
 Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
 
-Owned scope: `networking.load-balancer-ingress`.
+Route requests only to healthy backends, bound their handling time, and keep administrative routes off public ingress.
 
-Offer: Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
+Owned scope: `load-balancer-ingress`.
 
-Input: `rig-services/infrastructure.networking.load-balancer-ingress.json`. Detection records the path even when its contents are malformed.
+Read the declared input at `rig-services/infrastructure.networking.load-balancer-ingress.json`; retain its path in diagnostics when the file is malformed so the user can repair the right configuration.
 
-Coverage ceiling: load balancer ingress configuration validation only; declared policy does not prove running load balancer ingress behavior. Select an approved repository-owned command to verify that behavior.
+Policy checks: backend health path is evaluated at minimal grade; `request_timeout_ms` is evaluated at mid; and `expose_admin_route` is evaluated at maximal.
 
-minimal: backend health path — "/health".
+Coverage ceiling: The checks validate the declared ingress configuration. They do not send requests, probe backend health, or prove that a deployed load balancer enforces the route and timeout settings.
 
-mid: request timeout ms — 5000.
-
-maximal: expose admin route — false.
-
+Set backend_health_path to the health endpoint used by the service, request_timeout_ms to the allowed request budget, and expose_admin_route to false for public ingress. The validator inspects JSON values; live routing and backend health require a separately approved runtime check.

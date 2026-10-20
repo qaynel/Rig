@@ -1,13 +1,11 @@
 # infrastructure.cost.rightsizing — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for rightsizing. The evidence must preserve the candidate_resources, minimum_headroom_percent, resize_without_workload_evidence inputs that determined the result. Binding checks: rightsizing-evidence-receipt.
+Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.
 
-Anchor the review on a second run against unchanged rightsizing inputs. Record the candidate_resources, minimum_headroom_percent, resize_without_workload_evidence inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this rightsizing result is stale. The ceiling remains: rightsizing configuration validation only; declared policy does not prove running rightsizing behavior. Choose a repository-owned check that observes rightsizing from rig-services/infrastructure.cost.rightsizing.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: rightsizing-source-code-boundary, rightsizing-cost-context, rightsizing-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.cost.rightsizing:evidence-replay. Given the cost.rightsizing binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.
-minimal: candidate resources — ["worker pool"].
-mid: minimum headroom percent — 20.
-maximal: resize without workload evidence — false.
+Acceptance target: policy:infrastructure.cost.rightsizing:maximal:rightsizing-source-code-boundary+rightsizing-cost-context+rightsizing-evidence-receipt.
+
+Declared predicates: rightsizing-source-code-boundary: `candidate_resources` is nonempty (a string or array); rightsizing-cost-context: `minimum_headroom_percent` is numeric and at least 20; rightsizing-evidence-receipt: `resize_without_workload_evidence` equals false.

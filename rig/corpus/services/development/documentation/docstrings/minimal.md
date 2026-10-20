@@ -1,13 +1,9 @@
 # development.documentation.docstrings — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for docstrings. The minimal boundary for docstrings checks documented_symbols (nonempty): documented symbols must name the concrete repository contract.. Binding checks: docstrings-source-code-boundary.
+Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-Inspect a repository-owned command or existing native check that can observe documentation.docstrings; bind it to the input named in `rig-services/development.documentation.docstrings.json` and preserve the check's failure status. When adopting this in an existing repository, connect docstrings to the command that inspects documented_symbols and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside documentation.docstrings as a failure.
+Grade: minimal. Assurance remains Policy grade. The native check `docstrings-source-code-boundary` evaluates `documented_symbols` nonempty. Example: `documented_symbols` = ["parseRecord"].
 
-Acceptance target: fixture:development.documentation.docstrings:policy-boundary. Given source-code is present and documentation.docstrings is selected, pass only when the repository binding evaluates documentation.docstrings and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent documentation concern. The ceiling is docstrings configuration validation only; declared policy does not prove running docstrings behavior. Choose a repository-owned check that observes docstrings from rig-services/development.documentation.docstrings.json..
+The fields declare which symbols, parameters, and failure behavior the policy expects to cover. The checks do not establish that any source docstring matches those declarations.
 
-Service-specific evidence cues:
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
-minimal: documented symbols — ["parseRecord"].
-mid: parameters — ["raw: serialized record"].
-maximal: failure contract — "throws on malformed records".
+Catalogue policy target: `policy:development.documentation.docstrings:minimal:docstrings-source-code-boundary`. It describes the policy condition; this service does not include a separate fixture for it. Native checks require nonempty documented_symbols, parameters, and failure_contract values in the JSON policy. They do not inspect source declarations or validate docstring text.

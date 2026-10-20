@@ -5,7 +5,20 @@
 The human-signed oracle covers business intent, acceptance, and manifested
 testing infrastructure. The owner re-signed the applied test:e2e package-script
 amendment on 2026-10-17; verification now passes for 16 files and 95 cases.
-Final tests and review still need evidence on the settled candidate bytes.
+The [binding review checkpoint](../reasoning/2026-10-18-qa-binding-review-remediation-start.md)
+found contradictions inside the signed prose and executable oracle after the
+candidate passed local tests. The owner must apply the prepared batch amendment
+and re-sign before a corrected candidate can receive a new binding review.
+The [unsigned amendment progress](../reasoning/2026-10-18-qa-review-remediation-progress.md)
+also records the approval-identity and signer-namespace gaps that require
+owner changes to frozen testing infrastructure.
+The [host-hook owner ruling](../reasoning/2026-10-18-host-hook-honest-gap-owner-decision.md)
+selects an explicit available-but-not-integrated gap; its frozen host cases
+must be amended and signed in the same batch.
+[Host implementation checkpoint](../reasoning/2026-10-18-qa-host-gap-checkpoint.md)
+records the hook correction and remaining frozen-oracle work.
+[Grade-receipt boundary](../reasoning/2026-10-18-qa-grade-receipt-boundary.md)
+sets the runtime evidence needed before AT-LF-7/8/9 can be amended.
 [Current readiness](../reasoning/2026-10-17-qa-readiness-inventory.md) ·
 [owner runbook](../specs/close-everything/owner-runbook.md)
 
@@ -55,3 +68,6 @@ record earlier corrections. Those historical signature states are superseded
 by the current verifier. The
 [package-script incident](../reasoning/2026-09-04-gate1-package-scripts-break-and-revert.md)
 explains why even test-command edits belong to the signed surface.
+The [October diagnostic](../reasoning/2026-10-19-qa-closeout-oracle-diagnostic.md)
+records the additional lint fixture updates needed in the current owner-only
+amendment before the next signature.

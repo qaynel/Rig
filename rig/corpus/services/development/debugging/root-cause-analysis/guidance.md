@@ -15,4 +15,3 @@ minimal: failure boundary — "parser rejects malformed record".
 mid: causal evidence — ["repro case fails at parser"].
 
 maximal: symptom only fix — false.
-

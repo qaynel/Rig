@@ -1,13 +1,11 @@
 # product-security.secrets.encrypted-store — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for encrypted store. The evidence must preserve the secret_store, encryption_at_rest, store_plaintext_credentials inputs that determined the result. Binding checks: encrypted-store-evidence-receipt.
+Keep secrets in an encrypted authority with identified key management. A declaration of encryption does not verify the deployed vault or grant access to its contents.
 
-Inspect a second run against unchanged encrypted store inputs. Record the secret_store, encryption_at_rest, store_plaintext_credentials inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this encrypted store result is stale. The ceiling remains: encrypted store configuration validation only; declared policy does not prove running encrypted store behavior. Choose a repository-owned check that observes encrypted store from rig-services/product-security.secrets.encrypted-store.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: encrypted-store-source-code-boundary, encrypted-store-secrets-context, encrypted-store-evidence-receipt.
 
-Acceptance target: fixture:product-security.secrets.encrypted-store:evidence-replay. Given the secrets.encrypted-store binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Keep secrets in an encrypted authority with identified key management. A declaration of encryption does not verify the deployed vault or grant access to its contents.
-minimal: secret store — "managed vault".
-mid: encryption at rest — "provider-managed-kms".
-maximal: store plaintext credentials — false.
+Acceptance target: policy:product-security.secrets.encrypted-store:maximal:encrypted-store-source-code-boundary+encrypted-store-secrets-context+encrypted-store-evidence-receipt.
+
+Declared predicates: encrypted-store-source-code-boundary: `secret_store` is nonempty (a string or array); encrypted-store-secrets-context: `encryption_at_rest` is nonempty (a string or array); encrypted-store-evidence-receipt: `store_plaintext_credentials` equals false.

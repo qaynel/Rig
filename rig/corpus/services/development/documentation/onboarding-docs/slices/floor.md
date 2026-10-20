@@ -1,11 +1,7 @@
 # development.documentation.onboarding-docs — floor and mutation-floor slice
 
-Policy grade slice. This slice bounds onboarding docs to documentation.onboarding-docs. It uses `onboarding-docs-slice-floor` and checks undefined (matches "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b"): Add a setup section that states the prerequisites and installation command..
+Offer when a new contributor cannot locate installation and execution instructions.
 
-For onboarding docs, choose a repository example that satisfies  at the floor and mutation-floor floor, plus a failure where Add a setup section that states the prerequisites and installation command. is false. For onboarding docs, wire `floor and mutation-floor` to `README.md` and keep its verdict on ; missing evidence is a named gap, with ceiling Checks documented setup, run and verification instructions; does not execute installation or prove that the instructions work on another machine..
+Policy grade. `onboarding-docs-slice-floor` and `onboarding-docs-slice-mutation-floor` match the README setup-heading pattern. The mutation-floor label does not indicate that README content is mutated.
 
-Service-specific evidence cues:
-Offer: Offer when a new contributor cannot locate installation and execution instructions.
-minimal: setup command — ["npm","install"].
-mid: run command — ["npm","start"].
-maximal: check command — ["npm","test"].
+The rule only checks for a recognizable heading. It does not validate prerequisites or the installation command under it.

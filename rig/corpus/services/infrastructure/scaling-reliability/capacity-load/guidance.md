@@ -15,4 +15,3 @@ minimal: load workload — "100 concurrent requests".
 mid: slo latency ms — 250.
 
 maximal: unbounded load duration — false.
-

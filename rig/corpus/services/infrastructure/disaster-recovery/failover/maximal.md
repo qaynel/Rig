@@ -1,13 +1,11 @@
 # infrastructure.disaster-recovery.failover — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for failover. The evidence must preserve the failover_trigger, fencing_strategy, allow_split_brain inputs that determined the result. Binding checks: failover-evidence-receipt.
+Define the trigger and fencing that keep failover from creating two writers. Redundant resources without split-brain protection are not a safe failover design.
 
-Anchor the review on a second run against unchanged failover inputs. Record the failover_trigger, fencing_strategy, allow_split_brain inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this failover result is stale. The ceiling remains: failover configuration validation only; declared policy does not prove running failover behavior. Choose a repository-owned check that observes failover from rig-services/infrastructure.disaster-recovery.failover.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: failover-source-code-boundary, failover-disaster-recovery-context, failover-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.disaster-recovery.failover:evidence-replay. Given the disaster-recovery.failover binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Define the trigger and fencing that keep failover from creating two writers. Redundant resources without split-brain protection are not a safe failover design.
-minimal: failover trigger — "primary health unavailable".
-mid: fencing strategy — "single-writer-lease".
-maximal: allow split brain — false.
+Acceptance target: policy:infrastructure.disaster-recovery.failover:maximal:failover-source-code-boundary+failover-disaster-recovery-context+failover-evidence-receipt.
+
+Declared predicates: failover-source-code-boundary: `failover_trigger` is nonempty (a string or array); failover-disaster-recovery-context: `fencing_strategy` is nonempty (a string or array); failover-evidence-receipt: `allow_split_brain` equals false.

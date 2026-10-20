@@ -1,5 +1,11 @@
 # Policy-signer recovery
 
+The [October 20 public-flow correction](../reasoning/2026-10-20-qa-closeout-stronger-public-flow-proof.md)
+adds signed setup and registration-chain verification that the prior in-memory
+oracle did not exercise. Protocol fixtures verify the enforceable cryptographic
+boundaries; they do not establish an authenticator touch. Integration checks
+are still in progress.
+
 ## What it is
 
 A lost everyday policy signer may be replaced only through a distinct,

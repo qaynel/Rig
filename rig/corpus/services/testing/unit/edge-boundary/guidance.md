@@ -15,4 +15,3 @@ minimal: boundary cases — ["empty input","maximum length"].
 mid: invalid cases — ["negative count"].
 
 maximal: normal only tests — false.
-

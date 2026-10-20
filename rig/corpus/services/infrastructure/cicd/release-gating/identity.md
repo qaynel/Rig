@@ -1,15 +1,9 @@
 # infrastructure.cicd.release-gating — identity
 
-Policy grade: release gating owns cicd.release-gating. Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.
+Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.
 
-Keep neighboring cicd services outside the release gating decision for cicd.release-gating. Use the configured input at `rig-services/infrastructure.cicd.release-gating.json`; malformed input is still attributed to that path.
+Policy grade: release gating owns the declared list of required release checks, the revision they checked, and the stale-result switch. A green result for one revision does not establish that another revision or rebuilt artifact passed.
 
-Disposition: convention. Start from the limit: release gating configuration validation only; declared policy does not prove running release gating behavior. Choose a repository-owned check that observes release gating from rig-services/infrastructure.cicd.release-gating.json.
+The native check reads `rig-services/infrastructure.cicd.release-gating.json`. It validates `required_gates` and `release_revision` as nonempty and requires `use_stale_gate_results` to be `false`. It does not run CI or verify a shipped artifact.
 
-Acceptance target: fixture:infrastructure.cicd.release-gating:policy-boundary. Given source-code is present and cicd.release-gating is selected, pass only when the repository binding evaluates cicd.release-gating and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent cicd concern.
-
-Service-specific evidence cues:
-Offer: Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.
-minimal: required gates — ["tests","artifact digest"].
-mid: release revision — "a1b2c3d".
-maximal: use stale gate results — false.
+Disposition: executable. Acceptance target: `policy:infrastructure.cicd.release-gating:minimal:release-gating-source-code-boundary`. Given the service JSON, pass when the selected grade's declared field check succeeds; fail when that field violates its check. The ceiling is release-gating configuration validation only.

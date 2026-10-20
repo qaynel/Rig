@@ -1,13 +1,11 @@
 # product-security.secrets.toy-relaxation — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for toy relaxation. The evidence must preserve the toy_scope, expires_after_days, permit_production_use inputs that determined the result. Binding checks: toy-relaxation-evidence-receipt.
+Limit any relaxed secret policy to disposable local experiments with an expiry. A toy exception must never extend to production or shared customer systems.
 
-Inspect a second run against unchanged toy relaxation inputs. Record the toy_scope, expires_after_days, permit_production_use inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this toy relaxation result is stale. The ceiling remains: toy relaxation configuration validation only; declared policy does not prove running toy relaxation behavior. Choose a repository-owned check that observes toy relaxation from rig-services/product-security.secrets.toy-relaxation.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: toy-relaxation-source-code-boundary, toy-relaxation-secrets-context, toy-relaxation-evidence-receipt.
 
-Acceptance target: fixture:product-security.secrets.toy-relaxation:evidence-replay. Given the secrets.toy-relaxation binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Limit any relaxed secret policy to disposable local experiments with an expiry. A toy exception must never extend to production or shared customer systems.
-minimal: toy scope — ["local disposable fixture"].
-mid: expires after days — 1.
-maximal: permit production use — false.
+Acceptance target: policy:product-security.secrets.toy-relaxation:maximal:toy-relaxation-source-code-boundary+toy-relaxation-secrets-context+toy-relaxation-evidence-receipt.
+
+Declared predicates: toy-relaxation-source-code-boundary: `toy_scope` is nonempty (a string or array); toy-relaxation-secrets-context: `expires_after_days` is numeric and at least 1; toy-relaxation-evidence-receipt: `permit_production_use` equals false.

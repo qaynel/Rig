@@ -1,13 +1,11 @@
 # infrastructure.container.service-mesh — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for service mesh. The evidence must preserve the mesh_services, transport_security, allow_plaintext_fallback inputs that determined the result. Binding checks: service-mesh-evidence-receipt.
+Enumerate mesh participants and require authenticated encrypted service traffic. Plaintext fallback undermines the declared mesh boundary and must not be implicit.
 
-Trace the verdict to a second run against unchanged service mesh inputs. Record the mesh_services, transport_security, allow_plaintext_fallback inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this service mesh result is stale. The ceiling remains: service mesh configuration validation only; declared policy does not prove running service mesh behavior. Choose a repository-owned check that observes service mesh from rig-services/infrastructure.container.service-mesh.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: service-mesh-source-code-boundary, service-mesh-container-context, service-mesh-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.container.service-mesh:evidence-replay. Given the container.service-mesh binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Enumerate mesh participants and require authenticated encrypted service traffic. Plaintext fallback undermines the declared mesh boundary and must not be implicit.
-minimal: mesh services — ["api","worker"].
-mid: transport security — "mutual-tls".
-maximal: allow plaintext fallback — false.
+Acceptance target: policy:infrastructure.container.service-mesh:maximal:service-mesh-source-code-boundary+service-mesh-container-context+service-mesh-evidence-receipt.
+
+Declared predicates: service-mesh-source-code-boundary: `mesh_services` is nonempty (a string or array); service-mesh-container-context: `transport_security` is nonempty (a string or array); service-mesh-evidence-receipt: `allow_plaintext_fallback` equals false.

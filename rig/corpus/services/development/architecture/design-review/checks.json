@@ -23,9 +23,9 @@
     "maximal": [
       {
         "field": "unresolved_tradeoffs",
-        "op": "minimum",
+        "op": "equals",
         "value": 0,
-        "reason": "unresolved tradeoffs must meet the configured minimum of 0."
+        "reason": "unresolved_tradeoffs must be zero; unresolved changes are not a clean policy."
       }
     ]
   },

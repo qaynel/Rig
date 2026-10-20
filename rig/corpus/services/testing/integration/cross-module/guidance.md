@@ -15,4 +15,3 @@ minimal: participating modules — ["orders","inventory"].
 mid: interaction cases — ["order reserves stock"].
 
 maximal: stub internal contracts — false.
-

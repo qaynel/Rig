@@ -1,15 +1,15 @@
 # testing.mutation.run-reporting — identity
 
-Policy grade: run reporting owns mutation.run-reporting. Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.
+Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.
 
-Keep neighboring mutation services outside the run reporting decision for mutation.run-reporting. Tie acceptance to the configured input at `rig-services/testing.mutation.run-reporting.json`; malformed input is still attributed to that path.
+Policy grade. Report killed, survived, and inconclusive outcomes against the exact input revision. Raw secrets in mutation inputs or output must not leave the producing environment.
 
-Disposition: convention. Read the limit: run reporting configuration validation only; declared policy does not prove running run reporting behavior. Choose a repository-owned check that observes run reporting from rig-services/testing.mutation.run-reporting.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.run-reporting:policy-boundary. Given source-code is present and mutation.run-reporting is selected, pass only when the repository binding evaluates mutation.run-reporting and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.run-reporting`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.
-minimal: reported outcomes — ["killed","survived","timeout"].
-mid: input revision — "a1b2c3d".
-maximal: publish raw secrets — false.
+Read `rig-services/testing.mutation.run-reporting.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. run reporting configuration validation only; declared policy does not prove running run reporting behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `reported_outcomes` = `["killed","survived","timeout"]`; mid adds `input_revision` = `"a1b2c3d"`; maximal requires `publish_raw_secrets` = `false`.

@@ -1,11 +1,7 @@
 # product-security.red-team.dast — property-floor slice
 
-Policy grade slice. This slice bounds dast to red-team.dast. It uses `dast-slice-property-floor` and checks target_origin (nonempty): target origin must name the concrete repository contract..
+Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
 
-For dast, choose a repository example that satisfies target_origin at the property-floor floor, plus a failure where target origin must name the concrete repository contract. is false. For dast, wire `property-floor` to `rig-services/product-security.red-team.dast.json` and keep its verdict on target_origin; missing evidence is a named gap, with ceiling dast configuration validation only; declared policy does not prove running dast behavior. Choose a repository-owned check that observes dast from rig-services/product-security.red-team.dast.json..
+Policy grade. `dast-slice-property-floor` checks that `target_origin` is configured. It cannot establish vulnerability findings or scope enforcement.,The maximal rule forbids scanning unapproved targets in policy; it does not constrain a scanner process by itself.The native check is `dast-slice-property-floor`.
 
-Service-specific evidence cues:
-Offer: Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
-minimal: target origin — "http://127.0.0.1:8080".
-mid: authorized scope — ["/api"].
-maximal: scan unapproved targets — false.
+The maximal rule forbids scanning unapproved targets in policy; it does not constrain a scanner process by itself.

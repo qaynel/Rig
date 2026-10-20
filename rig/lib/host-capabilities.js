@@ -17,56 +17,56 @@ const RESEARCHED_ON = '2026-07-25';
 
 const REGISTRY = {
   claude: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: 'CLAUDE.md', skills: '.claude/skills/', hooks: '.claude/settings.json', mcp: '.mcp.json' },
     evidence: { citation: 'https://docs.anthropic.com/en/docs/claude-code/hooks' },
   },
   codex: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: 'AGENTS.md', skills: 'skills/plugins', hooks: '.codex/config.toml', mcp: '.codex/config.toml', mcp_key: '[mcp_servers]' },
+    surfaces: { instruction: 'AGENTS.md', skills: '.agents/skills/', hooks: '.codex/config.toml', mcp: '.codex/config.toml', mcp_key: '[mcp_servers]' },
     evidence: { citation: 'https://developers.openai.com/codex/hooks' },
   },
   'vscode-codex': {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: 'AGENTS.md', skills: 'codex skills/plugins', hooks: '.codex/config.toml', mcp: '.codex/config.toml', mcp_key: '[mcp_servers]' },
+    surfaces: { instruction: 'AGENTS.md', skills: '.agents/skills/', hooks: '.codex/config.toml', mcp: '.codex/config.toml', mcp_key: '[mcp_servers]' },
     evidence: { citation: 'https://developers.openai.com/codex' },
   },
   cursor: {
     // Native skill and hook axes upgraded per 2026-07-25 report (reversal).
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: '.cursor/rules/*.mdc', skills: '.cursor/skills/', hooks: '.cursor/hooks.json', mcp: '.cursor/mcp.json' },
+    surfaces: { instruction: '.cursor/rules/rig.mdc', skills: '.cursor/skills/', hooks: '.cursor/hooks.json', mcp: '.cursor/mcp.json' },
     evidence: { citation: 'https://cursor.com/docs/skills; https://cursor.com/docs/agent/hooks' },
   },
   copilot: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: '.github/copilot-instructions.md', skills: 'Agent Skills', hooks: '.github/hooks/*.json', mcp: '.vscode/mcp.json', mcp_key: 'servers' },
     evidence: { citation: 'https://code.visualstudio.com/docs/agent-customization/overview' },
   },
   'copilot-cli': {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: '.github/copilot-instructions.md', skills: '.github/agents', hooks: '.github/hooks/*.json', mcp: '.github/mcp.json', mcp_key: 'mcpServers' },
     evidence: { citation: 'https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers' },
   },
   kiro: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
-    surfaces: { instruction: '.kiro/steering/*.md', skills: 'Powers/POWER.md', hooks: '.kiro/hooks/*.json', mcp: '.kiro/settings/mcp.json' },
+    surfaces: { instruction: '.kiro/steering/rig.md', skills: 'Powers/POWER.md', hooks: '.kiro/hooks/*.json', mcp: '.kiro/settings/mcp.json' },
     evidence: { citation: 'https://kiro.dev/docs/mcp' },
   },
   opencode: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: 'AGENTS.md', skills: '.opencode/agents/', hooks: '.opencode/plugins/', mcp: 'opencode.json', mcp_key: 'mcp' },
     evidence: { citation: 'https://opencode.ai/docs/mcp-servers' },
   },
   openclaw: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     // mcp path/key corrected to the shipped, tested shape (RIG-104): the
     // config lives at .openclaw/openclaw.json, not bare openclaw.json, and
@@ -77,56 +77,56 @@ const REGISTRY = {
     evidence: { citation: 'https://docs.openclaw.ai/plugins/bundles' },
   },
   antigravity: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     // rig: CLI issue #60 ignores `.antigravitycli/mcp_config.json`; IDE still
     // reads `.agents/mcp_config.json`. Shipped MCP setup is manual → HOME.
-    surfaces: { instruction: '.agents/rules/', skills: '.agents/skills/', hooks: '.agents/hooks.json', mcp: '.agents/mcp_config.json', mcp_key: 'mcpServers' },
+    surfaces: { instruction: '.agents/rules/rig.md', skills: '.agents/skills/', hooks: '.agents/hooks.json', mcp: '.agents/mcp_config.json', mcp_key: 'mcpServers' },
     evidence: { citation: 'https://antigravity.google/docs/hooks; https://antigravity.google/docs/mcp' },
   },
   gemini: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: 'GEMINI.md', skills: '.gemini/extensions/', hooks: '.gemini/settings.json', mcp: '.gemini/settings.json', mcp_key: 'mcpServers' },
     evidence: { citation: 'https://github.com/google-gemini/gemini-cli (docs/hooks, tools/mcp-server.md)' },
   },
   devin: {
     // devin = Devin CLI (committable .devin/ surface). Cloud Devin is out of scope.
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: 'AGENTS.md + .devin/config.json', skills: '.devin/skills/', hooks: '.devin/hooks.v1.json', mcp: '.devin/config.json', mcp_key: 'mcpServers' },
     evidence: { citation: 'https://docs.devin.ai/cli/extensibility/mcp/configuration' },
   },
   windsurf: {
     // windsurf = Devin Desktop (ex-Windsurf). MCP is user-global only.
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'user_global' },
-    surfaces: { instruction: '.devin/rules/', skills: '.windsurf/skills/', hooks: '.windsurf/hooks.json', mcp: '~/.codeium/windsurf/mcp_config.json' },
+    surfaces: { instruction: '.windsurf/rules/rig.md', skills: '.windsurf/skills/', hooks: '.windsurf/hooks.json', mcp: '~/.codeium/windsurf/mcp_config.json' },
     evidence: { citation: 'https://docs.windsurf.com/windsurf/cascade/hooks; https://docs.devin.ai/desktop/cascade/mcp' },
   },
   cline: {
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'user_global' },
-    surfaces: { instruction: '.clinerules', skills: '.cline/skills/', hooks: '.cline/hooks/', mcp: '~/.cline/data/settings/cline_mcp_settings.json' },
+    surfaces: { instruction: '.clinerules/rig.md', skills: '.cline/skills/', hooks: '.cline/hooks/', mcp: '~/.cline/data/settings/cline_mcp_settings.json' },
     evidence: { citation: 'https://docs.cline.bot/cline-cli/configuration' },
   },
   swival: {
-    // Hooks are startup/exit + command-middleware only — no edit-time gate.
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
+    // rig: command middleware can intercept shell commands; Rig does not configure it.
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'unsupported', mcp_hook: 'unsupported',
     mcp_config: { emission: 'emitted', scope: 'repo' },
     surfaces: { instruction: 'AGENTS.md', skills: '.swival/skills/', hooks: 'startup/exit + command_middleware', mcp: '.swival/mcp.json' },
     evidence: { citation: 'https://swival.dev/pages/mcp.html; https://swival.dev/pages/customization.html' },
   },
   codewhale: {
     // MCP + skills project-vs-global unresolved across reports -> advisory. Hooks are repo-scoped.
-    instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'emitted', web_hook: 'emitted', mcp_hook: 'emitted',
+    instruction: 'emitted', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'user_global' },
-    surfaces: { instruction: 'AGENTS.md + .codewhale/constitution.json', skills: '~/.deepseek/skills/', hooks: '.codewhale/hooks.toml', mcp: '~/.deepseek/mcp.json' },
+    surfaces: { instruction: 'AGENTS.md', skills: '~/.deepseek/skills/', hooks: '.codewhale/hooks.toml', mcp: '~/.deepseek/mcp.json' },
     evidence: { citation: 'https://github.com/Hmbown/CodeWhale/blob/main/config.example.toml' },
   },
   hermes: {
-    // Instruction is repo-scoped (AGENTS.md); hooks + MCP are user-global; skills repo-scope unclear.
-    instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
+    // Instruction is repo-scoped (AGENTS.md); shell pre_tool_call hooks are user-global; Rig writes neither.
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'not_integrated', web_hook: 'not_integrated', mcp_hook: 'not_integrated',
     mcp_config: { emission: 'emitted', scope: 'user_global' },
     surfaces: { instruction: 'AGENTS.md', skills: 'bundled/catalog (repo-scope unclear)', hooks: '~/.hermes/hooks/<n>/HOOK.yaml', mcp: '~/.hermes/config.yaml' },
     evidence: { citation: 'https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp' },
@@ -135,25 +135,25 @@ const REGISTRY = {
     // Skills use .agents/skills/. No hook file (extensions only). MCP is
     // available via the first-party pi-mcp-extension; Rig has no mergeable
     // first-party config file, so it does not auto-write.
-    instruction: 'emitted', native_skill: 'emitted', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
+    instruction: 'not_integrated', native_skill: 'not_integrated', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
     mcp_config: { emission: 'unsupported', scope: 'unsupported' },
     surfaces: { instruction: 'AGENTS.md / .pi/settings.json', skills: '.agents/skills/', hooks: 'extensions (.ts) only', mcp: null },
     evidence: { citation: 'https://pi.dev/packages/pi-mcp-extension' },
   },
   generic: {
-    instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
+    instruction: 'unsupported', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
     mcp_config: { emission: 'unsupported', scope: 'unsupported' },
     surfaces: { instruction: null },
   },
 };
 
 const DEFAULT_CAPABILITIES = {
-  instruction: 'emitted', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
+  instruction: 'unsupported', native_skill: 'unsupported', shell_hook: 'unsupported', web_hook: 'unsupported', mcp_hook: 'unsupported',
   mcp_config: { emission: 'unsupported', scope: 'unsupported' },
 };
 
 function getCapabilities(host) {
-  return REGISTRY[host] || DEFAULT_CAPABILITIES;
+  return Object.hasOwn(REGISTRY, host) ? REGISTRY[host] : DEFAULT_CAPABILITIES;
 }
 
 function materializeHostAdapters(target, host, writeFile = null) {
@@ -190,7 +190,9 @@ function materializeSelectedHosts(target, hostIds) {
     const mcp = contractFor(id, getCapabilities(id)).axes.mcp_config;
     results[id] = mcp.emission === 'unsupported'
       ? { mcp: { status: 'unsupported', guidance: 'MCP is unsupported for this host; its existing files are preserved unchanged.' } }
-      : { mcp: { status: mcp.config_scope, path: mcp.output.path, key: mcp.output.key } };
+      : mcp.emission === 'not_integrated'
+        ? { mcp: { status: 'not_integrated', guidance: mcp.gap } }
+        : { mcp: { status: mcp.config_scope, path: mcp.output.path, key: mcp.output.key } };
   }
   return results;
 }
@@ -251,7 +253,9 @@ function contractFor(id, caps) {
     shell_hook: caps.shell_hook,
     web_hook: caps.web_hook,
     mcp_hook: caps.mcp_hook,
-    mcp_config: mcp.emission || caps.mcp_config.emission,
+    mcp_config: mcp.emission === 'unsupported'
+      ? 'unsupported'
+      : mcp.autoWrite ? 'emitted' : 'not_integrated',
   };
   const axisPath = {
     instruction: surfaces.instruction ?? null,
@@ -260,11 +264,6 @@ function contractFor(id, caps) {
     web_hook: surfaces.hooks ?? null,
     mcp_hook: surfaces.hooks ?? null,
     mcp_config: mcp.file ?? surfaces.mcp ?? null,
-  };
-  const events = {
-    instruction: 'session-context-load', native_skill: 'native-skill-discovery',
-    shell_hook: 'before-shell-action', web_hook: 'before-web-action',
-    mcp_hook: 'before-mcp-action', mcp_config: 'mcp-server-discovery',
   };
   const axes = {};
   for (const axis of Object.keys(statuses)) {
@@ -276,6 +275,15 @@ function contractFor(id, caps) {
       };
       continue;
     }
+    if (statuses[axis] === 'not_integrated') {
+      axes[axis] = {
+        host: id, axis, emission: 'not_integrated',
+        gap: `Available but not integrated: Rig does not write a ${axis} adapter for this host.`,
+        supported_surface: axisPath[axis],
+        ...(axis === 'mcp_config' ? { auto_write: false, config_scope: mcp.config_scope || caps.mcp_config.scope } : {}),
+      };
+      continue;
+    }
     const format = /\.toml|\[mcp_servers\]/.test(axisPath[axis] || '') ? 'toml' : /\.md|\.mdc|AGENTS|CLAUDE|GEMINI/.test(axisPath[axis] || '') ? 'markdown' : 'json';
     axes[axis] = {
       host: id,
@@ -283,34 +291,17 @@ function contractFor(id, caps) {
       emission: 'emitted',
       config_scope: axis === 'mcp_config' ? (mcp.config_scope || caps.mcp_config.scope) : 'repo',
       ...(axis === 'mcp_config' ? { auto_write: Boolean(mcp.autoWrite) } : {}),
-      output: {
-        path: axisPath[axis], format, owned_namespace: `rig.${id}.${axis}`,
-        ...(axis === 'mcp_config' && mcp.key ? { key: mcp.key } : {}),
-        first_apply: 'additive_merge', repeat_apply: 'idempotent_replace_owned_namespace',
-        preserve: 'all bytes and values outside the owned namespace',
-      },
-      input: {
-        event: events[axis], schema_version: `${id}-${axis}-v1`,
-        matcher_fields: axis.endsWith('_hook') ? ['surface', 'category', 'target'] : ['path', 'digest'],
-      },
-      deny: {
-        payload: 'rig deny with category and rule', exit_or_process_behavior: 'native deny or nonzero exit',
-        category_field: 'category', rule_field: 'rule',
-      },
-      proceed: { native_user_presence: null, external_signature_fallback: 'rig-policy-activation SSHSIG' },
+      output: { path: axisPath[axis], format, ...(axis === 'mcp_config' ? { key: mcp.key } : {}) },
       evidence: {
         vendor: id, version: `surface-current-at-${RESEARCHED_ON}`, researched_on: RESEARCHED_ON,
         official_citation: caps.evidence?.citation || 'product-defined generic fallback',
         byte_landing_test: {
-          target: 'tests/advanced-hosts.test.js',
-          case: `${id} ${axis} byte landing`,
-          assertion: 'the exact contract bytes land at the exact receipt-owned path on a fresh target',
+          target: axis === 'mcp_config' ? 'tests/mcp-one-table.test.js' : 'tests/advanced-hosts.test.js',
+          case: `${id} ${axis} projected output path`,
+          assertion: 'the declared path is present in the real host projection or writer output',
         },
       },
     };
-    if (axis === 'mcp_config') axes[axis].output.key = surfaces.mcp_key || 'mcpServers';
-    axes[axis].evidence.adapter_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].output)).digest('hex');
-    axes[axis].evidence.fixture_digest = require('node:crypto').createHash('sha256').update(JSON.stringify(axes[axis].input)).digest('hex');
   }
   return {
     id,
@@ -336,11 +327,14 @@ function validateRegistryContracts() {
     }
     if (contract.path === undefined) failures.push({ id, field: 'path' });
     for (const [axis, axisContract] of Object.entries(contract.axes)) {
-      if (!['emitted', 'unsupported'].includes(axisContract.emission)) failures.push({ id, axis, field: 'emission' });
-      if (axisContract.emission === 'emitted' && (!axisContract.output || !axisContract.input || !axisContract.deny || !axisContract.proceed)) {
+      if (!['emitted', 'not_integrated', 'unsupported'].includes(axisContract.emission)) failures.push({ id, axis, field: 'emission' });
+      if (axisContract.emission === 'emitted' && (!axisContract.output?.path || !axisContract.evidence?.byte_landing_test)) {
         failures.push({ id, axis, field: 'complete emitted contract' });
       }
-      if (!axisContract.evidence?.official_citation) failures.push({ id, axis, field: 'evidence.official_citation' });
+      if (axisContract.emission === 'not_integrated' && (!axisContract.gap || axisContract.output || axisContract.input || axisContract.deny || axisContract.proceed || axisContract.evidence)) {
+        failures.push({ id, axis, field: 'honest integration gap' });
+      }
+      if (axisContract.emission !== 'not_integrated' && !axisContract.evidence?.official_citation) failures.push({ id, axis, field: 'evidence.official_citation' });
     }
     const documented = Object.values(contract.axes).some((axis) => axis.emission === 'emitted');
     if (documented && id !== 'generic' && !(caps.evidence && caps.evidence.citation)) {

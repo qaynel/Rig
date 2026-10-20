@@ -1,18 +1,13 @@
-# auth session probe
+# Authentication session probe
 
 Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
 
-Owned scope: `red-team.auth-session-probe`.
+Probe session expiry, logout, and revocation at protected routes. A session cookie can remain present after server-side access should have been revoked.
 
-Offer: Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
+Owned scope: `red-team.auth-session-probe`. Input: `rig-services/product-security.red-team.auth-session-probe.json`.
 
-Input: `rig-services/product-security.red-team.auth-session-probe.json`. Detection records the path even when its contents are malformed.
+The policy declares minimal `session_cases` = ["expiry","logout","revocation"]; mid `protected_routes` = ["/account"]; maximal `accept_revoked_session` = false. The native rules only check nonempty session_cases and protected_routes and require accept_revoked_session=false. They do not make requests or test authentication behavior.
 
-Coverage ceiling: auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Select an approved repository-owned command to verify that behavior.
+Choose routes that actually require authentication and cover the invalidation events supported by the application. These checks do not discover routes or session lifecycle behavior. For runtime assurance, test each declared case against each protected route: valid sessions retain intended access; expired, logged-out, and revoked sessions do not.
 
-minimal: session cases — ["expiry","logout","revocation"].
-
-mid: protected routes — ["/account"].
-
-maximal: accept revoked session — false.
-
+Use a test account and non-production environment; never probe another user’s session.

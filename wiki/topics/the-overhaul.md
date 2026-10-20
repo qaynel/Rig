@@ -7,15 +7,67 @@ remains one central corpus with agent-led, repository-aware onboarding. See
 
 ## Current release checkpoint
 
-The [follow-up implementation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-progress.md)
-records the in-flight bounded fixes and focused migration replacement checks.
-Integrated verification and the final-byte delivery sequence remain pending.
-The [migration integration checkpoint](../reasoning/2026-10-18-qa-closeout-followup-migration-integration.md)
-and [platform verification checkpoint](../reasoning/2026-10-18-qa-closeout-followup-platform-verification.md)
-record the projected-file protection fix, 49 passing macOS migration checks,
-and three passing Linux boundary checks. The final npm gate remains pending.
-The [candidate-preparation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-candidate-prep.md)
-records the report-only audits and installed skills README test correction.
+The [per-blocker acceptance evidence](../specs/close-everything/qa-closeout-evidence.md)
+indexes the maintained tests and commands for every blocker, the defects found
+and fixed on 2026-10-20, and the owner-only steps that remain.
+
+The [stronger public-flow checkpoint](../reasoning/2026-10-20-qa-closeout-stronger-public-flow-proof.md)
+records actual host/CI/grade/removal candidate proof and ongoing signed
+recovery registration integration. Final signed-byte evidence remains open.
+
+The [runtime and host remediation checkpoint](../reasoning/2026-10-20-qa-closeout-runtime-and-host-remediation.md)
+records corrected grade/status failures, the adapter-ownership regression,
+and stronger recovery/removal evidence still in flight.
+
+The [fresh independent findings](../reasoning/2026-10-20-qa-closeout-independent-findings.md)
+record passing migration checks on macOS and Linux alongside reproduced
+runtime and oracle-strength gaps that must be corrected before signing.
+
+The [October 20 owner request](../reasoning/2026-10-20-qa-closeout-owner-request.md)
+requires concrete acceptance evidence for every deployment blocker and exact
+owner steps. The [evidence inventory](../reasoning/2026-10-20-qa-closeout-evidence-inventory.md)
+records the completed red full run, fresh independent checks in flight, and
+the preserved signing and binding-review boundaries.
+
+The [October 19 resume](../reasoning/2026-10-19-qa-closeout-resume.md)
+confirms the attached follow-up is against an older commit: maintained closeout
+regressions cover its corrected migration, optional helper, reselection, and
+health-retry behaviors. Current work is the broader review remediation and
+owner-reviewable frozen-oracle amendment; final-byte checks remain open.
+[Integration checkpoint](../reasoning/2026-10-19-qa-closeout-integration-checkpoint.md):
+the signed-oracle verifier is green again; migration and host checks passed,
+while catalogue authoring and installed lint grades are still being integrated.
+[Grade and oracle checkpoint](../reasoning/2026-10-19-qa-closeout-grade-and-oracle-checkpoint.md):
+authorship fixes and focused grade/candidate checks exist; final corpus pin,
+architecture reconciliation, full gate and owner signature remain.
+[Candidate reconciliation](../reasoning/2026-10-19-qa-closeout-candidate-reconciliation.md):
+the corpus pin is frozen, title traceability and focused Policy checks pass;
+owner signing and final-byte evidence are still pending.
+
+The [host-hook owner answer](../reasoning/2026-10-18-host-hook-honest-gap-owner-decision.md)
+selects a named gap for supported hooks Rig does not install.
+
+The [semantic-service checkpoint](../reasoning/2026-10-18-qa-semantic-service-review.md)
+records the first 13 service reviews and the still-open higher-grade receipt.
+[Grade receipt checkpoint](../reasoning/2026-10-18-qa-grade-receipt-implementation-checkpoint.md)
+records local proof and the remaining installed-path gap.
+
+The [catalogue-alignment checkpoint](../reasoning/2026-10-18-qa-catalogue-alignment-checkpoint.md)
+records 115 dispositions and remaining authorship work.
+
+The [runtime-correction checkpoint](../reasoning/2026-10-18-qa-review-runtime-corrections.md)
+records honest Policy-only grade reporting, service disposition alignment, and
+authored-fragment cleanup. Frozen lint-format grade cases now need owner
+amendment before the full gate can be green again.
+
+The [remediation progress record](../reasoning/2026-10-18-qa-review-remediation-progress.md)
+tracks the tightened policy-status behavior and the unsigned owner amendment
+for release, catalogue, host-contract, approval, and verifier conflicts.
+The binding review counter remains at two failures; final-byte evidence and
+another review wait for the owner-signed amendment and explicit review approval.
+
+The [binding review checkpoint](../reasoning/2026-10-18-qa-binding-review-remediation-start.md)
+records the failed review of `f8140b72` and its two-attempt cap.
 
 The [fix-verification checkpoint](../reasoning/2026-10-18-qa-closeout-fix-verification.md)
 checks the eight-item remediation. Its [bounded follow-up](../specs/close-everything/qa-prod-closeout-followup.md)
@@ -39,8 +91,7 @@ do not carry across a change to the candidate bytes.
 
 The owner re-signed the package-scripts amendment on 2026-10-17.
 `node scripts/check-advanced-spec.js` verifies 16 files and 95 acceptance cases.
-The full gate and fresh review receipt are now being renewed on the final
-candidate bytes.
+The full gate and receipt must be renewed on final candidate bytes.
 The [owner's answers](../reasoning/2026-10-17-change-management-policy-and-doc-deduplication.md)
 record this approval sequence.
 
@@ -68,104 +119,11 @@ remain in the [structural workflow design](../reasoning/2026-09-04-structural-wo
 and [finished-product design](../reasoning/2026-09-04-finished-product-design.md).
 These are historical sources, not open decisions for the 6.0.0 closeout.
 
-## Current-session evidence
+## Earlier closeout evidence
 
-The [Review Received request](../reasoning/2026-10-17-review-received-request.md)
-started the final report-only review. Its
-[findings](../reasoning/2026-10-17-review-received-findings.md) withhold approval:
-migration can overwrite an outside file, upgrades skip MCP setup, eligibility
-omits macOS proof and successful named checks lose network warnings. The PR
-head also has failing wiki-index CI; local corrections remain uncommitted.
-The [delivery result](../reasoning/2026-10-17-review-received-delivery.md)
-records 39 focused passes and HTTP 403 on review/comment publication; no PR
-approval was submitted.
-The [acceptance handoff](../specs/close-everything/review-received-resolution.md)
-defines observable resolution checks and the final approval checklist for all
-four findings; its [owner request](../reasoning/2026-10-17-review-received-acceptance-handoff.md)
-does not mark any finding fixed.
-The [resolution progress trace](../reasoning/2026-10-17-review-received-resolution-progress.md)
-records red-green fixes for network diagnostic preservation and exact-SHA
-Linux/macOS eligibility; migration and upgrade finalization remain in flight.
-The [resolution findings trace](../reasoning/2026-10-17-review-received-resolution-findings.md)
-records focused red-green regressions for all four findings and the remaining
-exact-candidate and owner-controlled evidence.
-The [verification trace](../reasoning/2026-10-17-review-received-resolution-verification.md)
-records current focused-suite results, independent re-review, and remaining
-final-candidate and owner-only gates.
-The [full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
-records a green full local gate after fixing the fresh-install MCP regression;
-exact candidate and QA evidence remain outstanding.
-
-The [owner request](../reasoning/2026-10-17-qa-readiness-owner-request.md) resumes
-the approved closeout. Evidence: [inventory](../reasoning/2026-10-17-qa-readiness-inventory.md),
-[gate and compaction repairs](../reasoning/2026-10-17-qa-readiness-gate-and-compaction.md),
-[verification start](../reasoning/2026-10-17-qa-readiness-verification-start.md),
-and [independent review corrections](../reasoning/2026-10-17-qa-readiness-review-corrections.md).
-The [owner signing reply](../reasoning/2026-10-17-qa-readiness-owner-signed.md)
-and [verified signed candidate](../reasoning/2026-10-17-qa-readiness-signed-candidate.md)
-supersede the earlier signing blocker. Earlier passing results do not establish
-readiness for the current bytes.
-
-The [full-gate/network reproduction](../reasoning/2026-10-17-qa-readiness-network-reproduction.md)
-records the first signed run's five failures and the verified-mirror retry.
-No release is claimed from the earlier focused passes.
-
-The [scoped-removal design](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)
-records a green full gate followed by a real exact-SHA uninstall preservation
-failure, and the minimal correction that preserves the signed purge behavior.
-
-The [removal checkpoint](../reasoning/2026-10-17-qa-readiness-scoped-removal-checkpoint.md)
-records focused and provisional E2E passes and the candidate-freeze coordination.
-
-The [health and docs checkpoint](../reasoning/2026-10-17-qa-readiness-health-and-docs.md)
-records corrected lockfile commands, runner setup and final instruction alignment.
-
-The [owner confirmation](../reasoning/2026-10-17-qa-readiness-concurrent-docs.md)
-identifies concurrent documentation work; final evidence waits for its write freeze.
-
-The [shipped-dependency audit](../reasoning/2026-10-17-qa-readiness-shipped-dependencies.md)
-records the stale installed MCP lock and the correction to health coverage.
-
-The [latest checks checkpoint](../reasoning/2026-10-17-qa-readiness-checks-await-docs.md)
-records a green advisory full gate, clean shipped dependencies and the docs handoff wait.
-
-The [final documentation review](../reasoning/2026-10-17-final-documentation-review.md)
-withholds merge approval pending factual documentation corrections and final-byte evidence.
-
-The [documentation overhaul](../reasoning/2026-10-17-documentation-overhaul.md)
-records the original audience-focused rewrite. The
-[review corrections](../reasoning/2026-10-17-documentation-review-corrections.md)
-address its nine factual and metadata findings. The completed local verification
-is recorded below; merge approval still needs exact-candidate delivery evidence.
-
-The [documentation verification checkpoint](../reasoning/2026-10-17-documentation-review-verification.md)
-records passing focused checks and the full-suite run in progress. Release
-requirements remain unchanged.
-
-The [suite-wait checkpoint](../reasoning/2026-10-17-documentation-review-waiting-for-suite.md)
-records the still-running catalogue and upstream verification at 11:41 UTC.
-
-The [verified-mirror checkpoint](../reasoning/2026-10-17-documentation-review-verified-mirror.md)
-records interruption of the direct-download test run and a full retry using
-rehashed pinned upstream bytes through the supported mirror path.
-
-The [completed documentation verification](../reasoning/2026-10-17-documentation-review-resolved.md)
-records all nine findings resolved and the full suite green: 1074 main passes,
-two skips, 15 secret tests, 15 Pi-extension tests and six MCP tests. The run uses
-the supported digest-verified pinned upstream mirror. Candidate freeze/commit,
-exact-SHA install evidence, the reserved final receipt and pushed-head checks
-remain before merge.
-
-The [late review resolution trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
-records the follow-up migration, MCP retry, and exact-SHA verification fixes,
-with final-byte and QA delivery evidence still pending.
-
-The [renewed review checkpoint](../reasoning/2026-10-18-review-received-renewed-review-start.md) records the uncommitted fix handoff and ongoing independent verification.
-
-The [repository-wide closeout request](../reasoning/2026-10-18-qa-closeout-review-request.md) asks for one consolidated set of findings and verifiable criteria for the fixing agent.
-
-The [broad review checkpoint](../reasoning/2026-10-18-qa-closeout-review-progress.md) records coverage, grouped reproductions and the distinction between QA merge and production-only evidence.
-
-The [managed-section correction](../reasoning/2026-10-18-qa-closeout-managed-section-correction.md) retracts a proposed code finding because the signed contract intentionally removes edited managed bodies; live documentation must match that behavior.
-
-The [temp-type boundary check](../reasoning/2026-10-18-qa-closeout-temp-type-check.md) adds a bounded FIFO-refusal criterion to the existing migration finding; the consolidated list remains eight groups.
+October 17–18 traces record earlier documentation, migration, MCP and release
+checks. They remain discoverable through the [reasoning index](../index/reasoning.md)
+and are historical evidence for their recorded snapshots. They cannot certify
+this changed candidate. The active [follow-up](../specs/close-everything/qa-prod-closeout-followup.md)
+and [binding-review triage](../reasoning/2026-10-18-qa-binding-review-remediation-start.md)
+identify the current acceptance work; the deployment policy determines order.

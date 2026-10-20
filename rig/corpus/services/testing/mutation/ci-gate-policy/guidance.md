@@ -2,17 +2,11 @@
 
 Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-Owned scope: `mutation.ci-gate-policy`.
+Assurance remains Policy grade.
 
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
+Set a mutation score threshold and decide how inconclusive runs affect CI. Timeouts and unrun mutants cannot silently count as acceptable evidence.
 
-Input: `rig-services/testing.mutation.ci-gate-policy.json`. Detection records the path even when its contents are malformed.
+The policy input is `rig-services/testing.mutation.ci-gate-policy.json`. Keep its configuration visible to review: minimal supplies `minimum_score_percent` = `70`; mid adds `timeout_policy` = `"fail-inconclusive"`; maximal sets `allow_unrun_mutants` = `false`.
 
-Coverage ceiling: ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.
 
-minimal: minimum score percent — 70.
-
-mid: timeout policy — "fail-inconclusive".
-
-maximal: allow unrun mutants — false.
-
+The native check validates this service’s declared policy only; it does not run the service. For runtime assurance, run an approved repository-owned command and preserve its exit status.

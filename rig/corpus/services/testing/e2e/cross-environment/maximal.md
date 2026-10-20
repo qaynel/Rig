@@ -1,13 +1,11 @@
 # testing.e2e.cross-environment — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for cross environment. The evidence must preserve the environments, shared_cases, assume_platform_equivalence inputs that determined the result. Binding checks: cross-environment-evidence-receipt.
+Run the same behavioral cases in the required environments and record each result separately. One platform passing does not establish that filesystem or process semantics match another.
 
-Trace the verdict to a second run against unchanged cross environment inputs. Record the environments, shared_cases, assume_platform_equivalence inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this cross environment result is stale. The ceiling remains: cross environment configuration validation only; declared policy does not prove running cross environment behavior. Choose a repository-owned check that observes cross environment from rig-services/testing.e2e.cross-environment.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: cross-environment-source-code-boundary, cross-environment-e2e-context, cross-environment-evidence-receipt.
 
-Acceptance target: fixture:testing.e2e.cross-environment:evidence-replay. Given the e2e.cross-environment binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Run the same behavioral cases in the required environments and record each result separately. One platform passing does not establish that filesystem or process semantics match another.
-minimal: environments — ["linux","macos"].
-mid: shared cases — ["install and run"].
-maximal: assume platform equivalence — false.
+Acceptance target: policy:testing.e2e.cross-environment:maximal:cross-environment-source-code-boundary+cross-environment-e2e-context+cross-environment-evidence-receipt.
+
+Declared predicates: cross-environment-source-code-boundary: `environments` is nonempty (a string or array); cross-environment-e2e-context: `shared_cases` is nonempty (a string or array); cross-environment-evidence-receipt: `assume_platform_equivalence` equals false.

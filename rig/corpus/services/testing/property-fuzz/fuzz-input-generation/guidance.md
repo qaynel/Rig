@@ -15,4 +15,3 @@ minimal: input seeds — ["empty","unicode","truncated"].
 mid: reproduction seed — 42.
 
 maximal: unbounded input size — false.
-

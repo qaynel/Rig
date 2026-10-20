@@ -1,11 +1,7 @@
 # development.documentation.onboarding-docs — behavior-oracle slice
 
-Policy grade slice. This slice bounds onboarding docs to documentation.onboarding-docs. It uses `onboarding-docs-slice-behavior-oracle` and checks undefined (matches "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b"): Add a setup section that states the prerequisites and installation command..
+Offer when a new contributor cannot locate installation and execution instructions.
 
-For onboarding docs, choose a repository example that satisfies  at the behavior-oracle floor, plus a failure where Add a setup section that states the prerequisites and installation command. is false. For onboarding docs, wire `behavior-oracle` to `README.md` and keep its verdict on ; missing evidence is a named gap, with ceiling Checks documented setup, run and verification instructions; does not execute installation or prove that the instructions work on another machine..
+Policy grade. `onboarding-docs-slice-behavior-oracle` matches a setup heading in `README.md`; it does not exercise installation behavior.
 
-Service-specific evidence cues:
-Offer: Offer when a new contributor cannot locate installation and execution instructions.
-minimal: setup command — ["npm","install"].
-mid: run command — ["npm","start"].
-maximal: check command — ["npm","test"].
+Whether the instructions work can only be established by following them in a clean environment. This native check cannot distinguish accurate instructions from an empty or incorrect section beneath a matching heading.

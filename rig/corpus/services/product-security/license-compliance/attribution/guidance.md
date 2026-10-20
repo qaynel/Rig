@@ -15,4 +15,3 @@ minimal: notice paths — ["THIRD_PARTY_NOTICES"].
 mid: attributed components — ["library@1.0.0"].
 
 maximal: remove required notices — false.
-

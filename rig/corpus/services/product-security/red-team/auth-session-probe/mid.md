@@ -1,13 +1,9 @@
 # product-security.red-team.auth-session-probe — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for auth session probe; it does not widen ownership beyond red-team.auth-session-probe. For auth session probe, inspect these context signals: protected_routes. Binding checks: auth-session-probe-red-team-context.
+Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
 
-Read the existing repository's auth session probe convention, then name the source path or command that establishes it. For auth session probe, inspect the repository's actual spec, source, test, or configuration for protected_routes; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring red-team services outside the auth session probe decision for red-team.auth-session-probe.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: auth-session-probe-source-code-boundary, auth-session-probe-red-team-context.
 
-Acceptance target: fixture:product-security.red-team.auth-session-probe:repository-context. Given red-team.auth-session-probe has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent red team concern; fail when the result infers local convention without an inspectable source.
+Choose routes that actually require authentication and cover the invalidation events supported by the application. These checks do not discover routes or session lifecycle behavior. No repository-specific evidence source is supplied by this policy definition, and a nonempty value does not prove that the local boundary has been inspected.
 
-Service-specific evidence cues:
-Offer: Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
-minimal: session cases — ["expiry","logout","revocation"].
-mid: protected routes — ["/account"].
-maximal: accept revoked session — false.
+Catalogue policy target: `policy:product-security.red-team.auth-session-probe:mid:auth-session-probe-source-code-boundary+auth-session-probe-red-team-context`. The native rule establishes only that protected_routes is nonempty.

@@ -15,4 +15,3 @@ minimal: rto minutes — 30.
 mid: rpo minutes — 5.
 
 maximal: claim targets without exercise — false.
-

@@ -15,4 +15,3 @@ minimal: cost baseline — "weekly service spend".
 mid: deviation threshold percent — 25.
 
 maximal: ignore missing billing data — false.
-

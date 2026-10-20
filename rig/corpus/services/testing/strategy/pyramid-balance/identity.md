@@ -4,12 +4,8 @@ Policy grade: pyramid balance owns strategy.pyramid-balance. Place fast local co
 
 Keep neighboring strategy services outside the pyramid balance decision for strategy.pyramid-balance. Anchor the review on the configured input at `rig-services/testing.strategy.pyramid-balance.json`; malformed input is still attributed to that path.
 
-Disposition: convention. Inspect the limit: pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Choose a repository-owned check that observes pyramid balance from rig-services/testing.strategy.pyramid-balance.json.
+Disposition: executable. Inspect the limit: pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Choose a repository-owned check that observes pyramid balance from rig-services/testing.strategy.pyramid-balance.json.
 
-Acceptance target: fixture:testing.strategy.pyramid-balance:policy-boundary. Given source-code is present and strategy.pyramid-balance is selected, pass only when the repository binding evaluates strategy.pyramid-balance and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent strategy concern.
+Acceptance target: policy:testing.strategy.pyramid-balance:minimal:pyramid-balance-source-code-boundary.
 
-Service-specific evidence cues:
-Offer: Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
-minimal: unit suites — ["parser"].
-mid: integration suites — ["api database"].
-maximal: e2e only strategy — false.
+Declared predicates: pyramid-balance-source-code-boundary: `unit_suites` is nonempty (a string or array).

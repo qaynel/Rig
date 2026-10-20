@@ -15,4 +15,3 @@ minimal: tracked metrics — ["p95 latency"].
 mid: regression budget percent — 10.
 
 maximal: ignore threshold failure — false.
-

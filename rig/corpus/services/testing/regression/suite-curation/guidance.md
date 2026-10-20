@@ -15,4 +15,3 @@ minimal: retained suites — ["critical regression"].
 mid: retirement reasons — ["obsolete API removed"].
 
 maximal: remove without behavior owner — false.
-

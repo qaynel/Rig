@@ -15,4 +15,3 @@ minimal: peak requests per second — 100.
 mid: headroom percent — 30.
 
 maximal: ignore growth forecast — false.
-

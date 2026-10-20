@@ -1,15 +1,13 @@
 # development.documentation.adrs — identity
 
-Policy grade: adrs owns documentation.adrs. Record the chosen approach, credible alternatives and concrete consequences. A decision record should explain the tradeoff that shaped the system rather than restating the implementation.
+Record the chosen approach, credible alternatives and concrete consequences. A decision record should explain the tradeoff that shaped the system rather than restating the implementation.
 
-Keep neighboring documentation services outside the adrs decision for documentation.adrs. Anchor the review on the configured input at `rig-services/development.documentation.adrs.json`; malformed input is still attributed to that path.
+Policy grade. Capture the selected approach, credible alternatives, and concrete consequences. A useful decision record explains the tradeoff that shaped the system rather than restating implementation details.
 
-Disposition: convention. Inspect the limit: adrs configuration validation only; declared policy does not prove running adrs behavior. Choose a repository-owned check that observes adrs from rig-services/development.documentation.adrs.json.
+Applicable surface: source-code. Owned scope: `documentation.adrs`. Input: `rig-services/development.documentation.adrs.json`.
 
-Acceptance target: fixture:development.documentation.adrs:policy-boundary. Given source-code is present and documentation.adrs is selected, pass only when the repository binding evaluates documentation.adrs and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent documentation concern.
+Disposition: executable. Native checks validate only declared policy fields.
 
-Service-specific evidence cues:
-Offer: Record the chosen approach, credible alternatives and concrete consequences. A decision record should explain the tradeoff that shaped the system rather than restating the implementation.
-minimal: decision — "Use the existing journal for recovery".
-mid: alternatives — ["overwrite files directly"].
-maximal: consequences — ["recoverable preimages"].
+Native checks require nonempty decision, alternatives, and consequences values in the JSON policy. They do not inspect or validate the quality of any ADR in the repository.
+
+Configured examples (minimal: `decision` = "Use the existing journal for recovery"; mid: `alternatives` = ["overwrite files directly"]; maximal: `consequences` = ["recoverable preimages"]) describe expected policy only. They are not repository-derived fixtures.

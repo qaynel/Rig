@@ -1,13 +1,9 @@
 # development.documentation.api-reference — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for api reference; it does not widen ownership beyond documentation.api-reference. For api reference, inspect these context signals: error_responses. Binding checks: api-reference-documentation-context.
+Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
 
-Read the existing repository's api reference convention, then name the source path or command that establishes it. For api reference, inspect the repository's actual spec, source, test, or configuration for error_responses; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring documentation services outside the api reference decision for documentation.api-reference.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: api-reference-source-code-boundary, api-reference-documentation-context.
 
-Acceptance target: fixture:development.documentation.api-reference:repository-context. Given documentation.api-reference has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent documentation concern; fail when the result infers local convention without an inspectable source.
+Compare endpoints, response errors, and authentication requirements with the repository’s routes or OpenAPI contract. The example values are illustrative and are not evidence of the actual API. A nonempty policy value does not establish that repository context was inspected.
 
-Service-specific evidence cues:
-Offer: Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
-minimal: documented endpoints — ["/items"].
-mid: error responses — ["400 invalid input"].
-maximal: authentication documented — true.
+Catalogue policy target: `policy:development.documentation.api-reference:mid:api-reference-source-code-boundary+api-reference-documentation-context`. Its current policy check proves only that error_responses is nonempty.

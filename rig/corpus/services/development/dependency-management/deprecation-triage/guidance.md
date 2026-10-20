@@ -15,4 +15,3 @@ minimal: deprecated apis — ["legacyClient"].
 mid: replacement owners — ["platform"].
 
 maximal: ignore removal deadline — false.
-

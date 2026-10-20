@@ -1,13 +1,11 @@
 # infrastructure.provisioning.iac-authoring — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for iac authoring. The evidence must preserve the resource_names, state_backend, apply_without_reviewed_plan inputs that determined the result. Binding checks: iac-authoring-evidence-receipt.
+Declare infrastructure resources with a recoverable state backend and inspect the exact plan before applying. Configuration checks do not establish live infrastructure behavior.
 
-Read a second run against unchanged iac authoring inputs. Record the resource_names, state_backend, apply_without_reviewed_plan inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this iac authoring result is stale. The ceiling remains: iac authoring configuration validation only; declared policy does not prove running iac authoring behavior. Choose a repository-owned check that observes iac authoring from rig-services/infrastructure.provisioning.iac-authoring.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: iac-authoring-source-code-boundary, iac-authoring-provisioning-context, iac-authoring-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.provisioning.iac-authoring:evidence-replay. Given the provisioning.iac-authoring binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Declare infrastructure resources with a recoverable state backend and inspect the exact plan before applying. Configuration checks do not establish live infrastructure behavior.
-minimal: resource names — ["app-network"].
-mid: state backend — "encrypted-remote".
-maximal: apply without reviewed plan — false.
+Acceptance target: policy:infrastructure.provisioning.iac-authoring:maximal:iac-authoring-source-code-boundary+iac-authoring-provisioning-context+iac-authoring-evidence-receipt.
+
+Declared predicates: iac-authoring-source-code-boundary: `resource_names` is nonempty (a string or array); iac-authoring-provisioning-context: `state_backend` is nonempty (a string or array); iac-authoring-evidence-receipt: `apply_without_reviewed_plan` equals false.

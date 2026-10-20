@@ -1,13 +1,11 @@
 # infrastructure.scaling-reliability.autoscaling — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for autoscaling. The evidence must preserve the scaling_metric, maximum_replicas, scale_to_zero_without_wakeup inputs that determined the result. Binding checks: autoscaling-evidence-receipt.
+Choose a scaling signal and bound the replica count. Scaling to zero requires a working wakeup route; declaring a metric alone does not establish live scaling behavior.
 
-Tie acceptance to a second run against unchanged autoscaling inputs. Record the scaling_metric, maximum_replicas, scale_to_zero_without_wakeup inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this autoscaling result is stale. The ceiling remains: autoscaling configuration validation only; declared policy does not prove running autoscaling behavior. Choose a repository-owned check that observes autoscaling from rig-services/infrastructure.scaling-reliability.autoscaling.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: autoscaling-source-code-boundary, autoscaling-scaling-reliability-context, autoscaling-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.scaling-reliability.autoscaling:evidence-replay. Given the scaling-reliability.autoscaling binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Choose a scaling signal and bound the replica count. Scaling to zero requires a working wakeup route; declaring a metric alone does not establish live scaling behavior.
-minimal: scaling metric — "queue depth".
-mid: maximum replicas — 10.
-maximal: scale to zero without wakeup — false.
+Acceptance target: policy:infrastructure.scaling-reliability.autoscaling:maximal:autoscaling-source-code-boundary+autoscaling-scaling-reliability-context+autoscaling-evidence-receipt.
+
+Declared predicates: autoscaling-source-code-boundary: `scaling_metric` is nonempty (a string or array); autoscaling-scaling-reliability-context: `maximum_replicas` is numeric and at least 10; autoscaling-evidence-receipt: `scale_to_zero_without_wakeup` equals false.

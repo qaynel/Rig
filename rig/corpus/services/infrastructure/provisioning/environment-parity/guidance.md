@@ -15,4 +15,3 @@ minimal: environments — ["staging","production"].
 mid: intentional differences — ["instance count"].
 
 maximal: unrecorded differences allowed — false.
-

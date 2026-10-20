@@ -15,4 +15,3 @@ minimal: changed behaviors — ["owner is required"].
 mid: updated cases — ["reject missing owner"].
 
 maximal: tests follow output blindly — false.
-

@@ -1,11 +1,7 @@
 # infrastructure.networking.dns-discovery — floor and mutation-floor slice
 
-Policy grade slice. This slice bounds dns discovery to networking.dns-discovery. It uses `dns-discovery-slice-floor` and checks service_records (nonempty): service records must name the concrete repository contract..
+Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
 
-For dns discovery, choose a repository example that satisfies service_records at the floor and mutation-floor floor, plus a failure where service records must name the concrete repository contract. is false. For dns discovery, wire `floor and mutation-floor` to `rig-services/infrastructure.networking.dns-discovery.json` and keep its verdict on service_records; missing evidence is a named gap, with ceiling dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Choose a repository-owned check that observes dns discovery from rig-services/infrastructure.networking.dns-discovery.json..
+Policy grade slice for dns discovery. `dns-discovery-slice-floor` applies the same declared-field predicate as the minimal grade: service records must be nonempty. The floor rejects an empty service_records list; the good fixture supplies api.internal and the bad fixture removes every record.
 
-Service-specific evidence cues:
-Offer: Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
-minimal: service records — ["api.internal"].
-mid: ttl seconds — 60.
-maximal: hardcode ephemeral addresses — false.
+The mutation-floor alias uses this same check ID and condition; it does not add a separate mutation test. Input: `rig-services/infrastructure.networking.dns-discovery.json`. These predicates inspect the declared DNS configuration only. They do not resolve names, query an authoritative server, or measure propagation and cache behavior.

@@ -1,15 +1,15 @@
 # testing.mutation.score-metrics — identity
 
-Policy grade: score metrics owns mutation.score-metrics. Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
+Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
 
-Keep neighboring mutation services outside the score metrics decision for mutation.score-metrics. Anchor the review on the configured input at `rig-services/testing.mutation.score-metrics.json`; malformed input is still attributed to that path.
+Policy grade. Compute sensitivity from valid mutants and make denominator exclusions explicit. Including invalid mutants can distort the score without measuring test sensitivity.
 
-Disposition: convention. Inspect the limit: score metrics configuration validation only; declared policy does not prove running score metrics behavior. Choose a repository-owned check that observes score metrics from rig-services/testing.mutation.score-metrics.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.score-metrics:policy-boundary. Given source-code is present and mutation.score-metrics is selected, pass only when the repository binding evaluates mutation.score-metrics and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.score-metrics`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
-minimal: killed mutants — 8.
-mid: valid mutants — 10.
-maximal: include invalid mutants in score — false.
+Read `rig-services/testing.mutation.score-metrics.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `killed_mutants` = `8`; mid adds `valid_mutants` = `10`; maximal requires `include_invalid_mutants_in_score` = `false`.

@@ -15,4 +15,3 @@ minimal: transport — "stdio".
 mid: protocol revision — "2025-03-26".
 
 maximal: credentials in descriptor — false.
-

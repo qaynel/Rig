@@ -1,13 +1,9 @@
 # product-security.red-team.dast — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for dast. The evidence must preserve the target_origin, authorized_scope, scan_unapproved_targets inputs that determined the result. Binding checks: dast-evidence-receipt.
+Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
 
-Ground the decision in a second run against unchanged dast inputs. Record the target_origin, authorized_scope, scan_unapproved_targets inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this dast result is stale. The ceiling remains: dast configuration validation only; declared policy does not prove running dast behavior. Choose a repository-owned check that observes dast from rig-services/product-security.red-team.dast.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: dast-source-code-boundary, dast-red-team-context, dast-evidence-receipt.
 
-Acceptance target: fixture:product-security.red-team.dast:evidence-replay. Given the red-team.dast binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The native rules only check that target_origin and authorized_scope are nonempty and scan_unapproved_targets is false. They do not run a scanner or verify ownership or authorization of the target. A runtime scan requires explicit target authorization, scanner availability, and evidence that requests remained inside the approved origin and paths.
 
-Service-specific evidence cues:
-Offer: Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
-minimal: target origin — "http://127.0.0.1:8080".
-mid: authorized scope — ["/api"].
-maximal: scan unapproved targets — false.
+Catalogue policy target: `policy:product-security.red-team.dast:maximal:dast-source-code-boundary+dast-red-team-context+dast-evidence-receipt`. Its current rule proves only that scan_unapproved_targets equals false. It does not run or replay a red-team test.

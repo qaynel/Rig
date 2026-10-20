@@ -1,15 +1,13 @@
 # product-security.red-team.auth-session-probe — identity
 
-Policy grade: auth session probe owns red-team.auth-session-probe. Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
+Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
 
-Keep neighboring red-team services outside the auth session probe decision for red-team.auth-session-probe. Anchor the review on the configured input at `rig-services/product-security.red-team.auth-session-probe.json`; malformed input is still attributed to that path.
+Policy grade. Probe session expiry, logout, and revocation at protected routes. A session cookie can remain present after server-side access should have been revoked.
 
-Disposition: convention. Inspect the limit: auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Choose a repository-owned check that observes auth session probe from rig-services/product-security.red-team.auth-session-probe.json.
+Applicable surface: source-code. Owned scope: `red-team.auth-session-probe`. Input: `rig-services/product-security.red-team.auth-session-probe.json`.
 
-Acceptance target: fixture:product-security.red-team.auth-session-probe:policy-boundary. Given source-code is present and red-team.auth-session-probe is selected, pass only when the repository binding evaluates red-team.auth-session-probe and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern.
+Disposition: executable. The native checks validate policy configuration only; they do not demonstrate the promised red-team behavior.
 
-Service-specific evidence cues:
-Offer: Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
-minimal: session cases — ["expiry","logout","revocation"].
-mid: protected routes — ["/account"].
-maximal: accept revoked session — false.
+The native rules only check nonempty session_cases and protected_routes and require accept_revoked_session=false. They do not make requests or test authentication behavior.
+
+Configured examples: minimal `session_cases` = ["expiry","logout","revocation"]; mid `protected_routes` = ["/account"]; maximal `accept_revoked_session` = false. These are policy values, not results from an attack simulation or runtime probe.

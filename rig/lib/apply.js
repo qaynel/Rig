@@ -311,6 +311,15 @@ function applyPlan(target, manifest, review, plan, options = {}) {
         }
       }
       const ownership = ownershipOverride || (fs.existsSync(abs) ? 'replace_owned' : 'create_owned');
+      // rig: use the same journal writer so the backup precedes the mutation.
+      if (already?.state !== 'pending' && fs.existsSync(abs) && !rel.startsWith('.rig/preimages/')) {
+        const before = fs.readFileSync(abs);
+        const preimageRel = `.rig/preimages/${crypto.createHash('sha256').update(before).digest('hex')}`;
+        const preimage = containedPath(target, preimageRel);
+        if (!fs.existsSync(preimage)) writeOwned(preimageRel, before, 0o600, 'create_owned');
+        else if (!fs.lstatSync(preimage).isFile() || fs.lstatSync(preimage).isSymbolicLink()
+          || !fs.readFileSync(preimage).equals(before)) throw new Error(`apply: corrupt preimage ${preimageRel}`);
+      }
       const pending = already?.state === 'pending' ? already : {
         seq: ++seq,
         path: rel,
@@ -367,6 +376,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // containment/execution fix can no longer land in one runner and miss
     // the other.
     writeOwned('.rig/lib/check-runner.js', readSource('lib/check-runner.js'), 0o644);
+    writeOwned('.rig/lib/lint-grade.js', readSource('lib/lint-grade.js'), 0o644);
+    writeOwned('.rig/lib/evidence-artifacts.js', readSource('lib/evidence-artifacts.js'), 0o644);
     writeOwned('.rig/bin/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/hooks/secret-guard.sh', GUARD_SCRIPT, 0o755);
     writeOwned('.rig/catalog-routing.md', readSource('catalog/baseline/catalog-routing.md'));
@@ -419,6 +430,8 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     const ci = plannedProvider
       ? planCiIntegration(target, { provider: plannedProvider, approved: planNeedsCi && approvalVerified })
       : (plan.ci || planCiIntegration(target));
+    const ciArtifactSigned = ci.artifact && (Object.prototype.hasOwnProperty.call(plan.preimages || {}, ci.artifact.relativePath)
+      || (plan.operations || []).some((op) => op.path === ci.artifact.relativePath));
 
     // Services
     const bindings = {};
@@ -439,7 +452,7 @@ function applyPlan(target, manifest, review, plan, options = {}) {
               ...plan.lint_format,
               checks: {
                 ...plan.lint_format.checks,
-                ...(grade === 'maximal' && ci.artifact ? {
+                ...(grade === 'maximal' && ciArtifactSigned ? {
                   'lint-format-ci-gate-and-explicit-fix': {
                     required_paths: [ci.artifact.relativePath],
                     fix: plan.lint_format.components.find((component) => component.root === '.')?.format?.argv,
@@ -468,13 +481,9 @@ function applyPlan(target, manifest, review, plan, options = {}) {
     // CI adapter (verified only). The write is allowed only for a path the
     // signed plan listed — apply must not introduce a file the approver never
     // saw, and must not skip CAS for a path that was never in preimages.
-    if (ci.artifact) {
+    if (ciArtifactSigned) {
       const rel = ci.artifact.relativePath;
-      const signed = Object.prototype.hasOwnProperty.call(plan.preimages || {}, rel)
-        || (plan.operations || []).some((op) => op.path === rel);
-      if (signed) {
-        writeOwned(rel, ci.artifact.contents, undefined, ci.artifact.ownership);
-      }
+      writeOwned(rel, ci.artifact.contents, undefined, ci.artifact.ownership);
     }
 
     // Git hook dispatcher. `.git` is a file, not a directory, in a linked

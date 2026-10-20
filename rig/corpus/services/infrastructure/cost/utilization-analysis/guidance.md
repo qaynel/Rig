@@ -15,4 +15,3 @@ minimal: observed resources — ["cpu","memory"].
 mid: observation window days — 7.
 
 maximal: decide from single peak — false.
-

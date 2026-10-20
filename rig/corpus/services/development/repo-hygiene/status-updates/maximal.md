@@ -1,13 +1,11 @@
 # development.repo-hygiene.status-updates — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for status updates. The evidence must preserve the completed, in_flight, next_action inputs that determined the result. Binding checks: status-updates-evidence-receipt.
+Report observed progress, the work in flight and the next resolving action. Distinguish finished evidence from intended work so another contributor can resume accurately.
 
-Anchor the review on a second run against unchanged status updates inputs. Record the completed, in_flight, next_action inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this status updates result is stale. The ceiling remains: status updates configuration validation only; declared policy does not prove running status updates behavior. Choose a repository-owned check that observes status updates from rig-services/development.repo-hygiene.status-updates.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: status-updates-source-code-boundary, status-updates-repo-hygiene-context, status-updates-evidence-receipt.
 
-Acceptance target: fixture:development.repo-hygiene.status-updates:evidence-replay. Given the repo-hygiene.status-updates binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Report observed progress, the work in flight and the next resolving action. Distinguish finished evidence from intended work so another contributor can resume accurately.
-minimal: completed — ["parser regression reproduced"].
-mid: in flight — ["shared boundary fix"].
-maximal: next action — "run parser regression".
+Acceptance target: policy:development.repo-hygiene.status-updates:maximal:status-updates-source-code-boundary+status-updates-repo-hygiene-context+status-updates-evidence-receipt.
+
+Declared predicates: status-updates-source-code-boundary: `completed` is nonempty (a string or array); status-updates-repo-hygiene-context: `in_flight` is nonempty (a string or array); status-updates-evidence-receipt: `next_action` is nonempty (a string or array).

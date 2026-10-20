@@ -154,9 +154,10 @@ rest of this document is careful about: it is neither the withdrawn
 host/axis *tier* badge that §11.1 and AD-26 ban from install output, run
 reports, and per-host registry projections, nor the control/tool evidence status
 of §8.9 where `verified` means a leaf holds fresh current-epoch evidence. In
-§11.1's emission vocabulary a verified enforcement surface is simply an axis the
-vendor exposes and Rig `emit`s a contract for; where the vendor exposes nothing
-the axis is `unsupported` and the evaluator returns a `gap`. The word never
+§11.1's emission vocabulary distinguishes a vendor surface Rig has integrated
+(`emitted`), a vendor surface Rig has not integrated (`not_integrated`), and a
+surface the vendor lacks (`unsupported`). The latter two return a named `gap`.
+The word never
 reaches a user-facing surface as a per-host claim, so `AT-CLAIM-1`'s grep for it
 there still finds nothing. §11.1 records this three-way split once, at the point
 the tier was withdrawn.
@@ -279,7 +280,7 @@ These are implementation constraints, not suggestions:
 | AD-10 | Apply under an exclusive target lock with compare-and-swap preimages, baseline-first phases, the §7.6 append-only install manifest recording every write before it happens, and activation receipt last. A failed apply never rolls back: writes already recorded `applied` stay in place, the receipt (the final write) is absent, and re-running resumes from the manifest per `AT-INSTALL-1`. |
 | AD-11 | Materialize service prose once under `.rig/services/`; host surfaces get thin pointers only. |
 | AD-12 | Ship every default control's dormant implementation, but wire and execute only the independent controls and enforcement surfaces enabled by the active policy. Installed code is not evidence that a control ran. |
-| AD-13 | **One uniform adapter path; automatic activation only for detected hosts.** The registry carries bounded marker paths for all 19 hosts. Auto onboarding selects exactly the unambiguous markers present; shared generic files never select a host alone, and absent hosts receive no tree unless explicitly requested. Every emitted axis carries the same contract shape and byte-landing proof. `unsupported` axes emit nothing and cite the vendor absence. No verified/unverified tier exists in output or data. |
+| AD-13 | **One uniform adapter path; automatic activation only for detected hosts.** The registry carries bounded marker paths for all 19 hosts. Auto onboarding selects exactly the unambiguous markers present; shared generic files never select a host alone, and absent hosts receive no tree unless explicitly requested. Every emitted axis carries a contract and byte-landing proof for a host-consumed artifact. `not_integrated` names a vendor surface without a Rig adapter; `unsupported` cites vendor absence. Neither emits an artifact. No verified/unverified tier exists in output or data. |
 | AD-14 | Emit the complete catalogue menu; recommendations remain advisory and user selections win. |
 | AD-15 | Attempt every service as `executable` first; that is the default disposition, not one of three peers. Executable services require real repo-adapted argv bindings with `shell: false`. `convention` is a fallback that must carry a service-specific named reason why execution is not meaningful for that service in particular; a generic or repeated reason scores as a coverage gap. `surfaceless` must name the exact reason nothing can run. Missing, malformed, silent, no-op, or unreasoned bindings are nonzero coverage gaps. |
 | AD-16 | Write failed, vacuous, coverage-gap, disabled/unrun, activation-pending, and evidence-stale state where Gate 1 requires visibility. Routine current-epoch passes remain omitted from failure reports. |
@@ -290,9 +291,9 @@ These are implementation constraints, not suggestions:
 | AD-21 | Store one-use approvals clone-locally and uncommitted. Bind them to the complete normalized action and active policy, consume atomically before dispatch, and keep them valid only until used, changed, revoked, or expired by the native host; Rig adds no clock timeout. |
 | AD-22 | Evaluate one normalized action policy across shell, built-in web, and network-capable MCP adapters. Narrow permanent allowances are the default authoring path; explicit category-wide allowance and global enforcement disablement remain available. |
 | AD-23 | Integrate verified existing CI additively. With no CI, require explicit provider selection and exact plan approval before creating a minimal native pipeline. Unknown/malformed CI is preserved and fails visibly; verification requires a real first run. |
-| AD-24 | **Treat every axis in the 19-host/six-provider roster and every one of the 115 leaves as an MVP release commitment.** Each selected emitted axis has a complete §11 contract and byte-landing proof; every leaf clears §5.6 at declared Policy grade. D24 retires D23's lint-format-only exception. An unsupported vendor axis emits nothing with evidence; an absent/unselected host emits nothing with detection provenance. |
+| AD-24 | **Account for every axis in the 19-host/six-provider roster and every one of the 115 leaves at MVP release.** Each selected `emitted` axis has a complete §11 contract and byte-landing proof; `not_integrated` is a named release gap for a vendor surface without a Rig adapter; `unsupported` cites vendor absence. Every leaf clears §5.6 at declared Policy grade. D24 retires D23's lint-format-only exception. An absent/unselected host emits nothing with detection provenance. |
 | AD-25 | Write user-global host configuration by append or namespaced additive merge only, never overwrite. Attribute every written entry to a repository identity from the **first** installation, using a generated ID stored clone-locally under `git rev-parse --git-path rig/`, with remote URL and repository realpath carried as entry metadata so removal reports name something a human recognises. The ID is never committed. Uninstall removes only the current repository's entries; reinstall replaces them in place. |
-| AD-26 | **Disclose the out-of-repository blast radius at install time, per `AT-HOME-1`.** The install line names any configuration written outside the repository. There is no per-host claim string in install output or run reports — no `verified` or `emitted` label, no "please report" invitation, no framing that draws a tier. The honest observation that Rig has not seen enforcement fire on any host is a statement about the product, its home is the host registry header, and a user who wants it reads it there. *(Amended v0.6:* "verified enforcement surface" — Gate 1 `AT-BASE-2`'s term for a host that exposes a mechanical hook — is a distinct third sense of `verified`, expressed internally as `emitted`/`gap`/`unsupported` and kept out of the banned user-facing per-host claim surfaces; §1 and §11.1 record the three-way split.)* |
+| AD-26 | **Disclose the out-of-repository blast radius at install time, per `AT-HOME-1`.** The install line names any configuration written outside the repository. There is no per-host claim string in install output or run reports — no `verified` or `emitted` label, no "please report" invitation, no framing that draws a tier. The honest observation that Rig has not seen enforcement fire on any host is a statement about the product, its home is the host registry header, and a user who wants it reads it there. *(Amended v0.6:* "verified enforcement surface" — Gate 1 `AT-BASE-2`'s term for a host that exposes a mechanical hook — is distinct from the withdrawn tier badge and control evidence status. §11.1 expresses actual integration as `emitted`, missing integration as `not_integrated`, and vendor absence as `unsupported`.)* |
 | AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell. Current 6.0.0 delivery projects the central corpus and nine mandatory native entry skills; optional third-party content is fetched only after approved onboarding. Delete the inherited npm publish workflow; keep the package `private`. |
 | AD-28 | Verify the complete oracle by signature, not repository process: recompute both Gate 1 digests and `testing-infrastructure.manifest`, verify the v2 namespaced SSHSIG message, then verify every sorted path/digest entry before product tests. Verify the signature, not the key class; the owner attests that separately. Run this verifier first in `npm test`, short-circuiting code tests, and provide `npm run test:code`. An unarmed checkout reports `Gate 1 unprotected` and continues; once `gate1.allowed-signers` exists, every missing/malformed/stale signature fails closed. |
 | AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
@@ -427,7 +428,7 @@ Relevant existing seams:
 | `rig/lib/receipt.js` | Tracks Basic-owned MCP output | Reference during adoption; add a separate catalogue receipt. |
 | `rig/lib/plan.js` / `apply.js` | Typed plan, verified approval, lock, CAS, record-before-mutate journal, receipt last | Keep selected-service grafts on this transaction spine; pending records reconcile before new work. |
 | `rig/lib/checks.js` / generated `check.js` | Selected bindings run without a shell; missing generic Policy bindings are explicit nonzero coverage gaps | Keep source and installed outcomes aligned as further leaves earn repository adapters. |
-| `rig/lib/host-capabilities.js` | 19 entries, aggregate citations, and marker-only live hooks | Split by shell/web/MCP/approval axis; every axis emits through the same code path and each is proven by its own byte-landing test. |
+| `rig/lib/host-capabilities.js` | 19 entries; hook support includes unintegrated vendor surfaces | Keep one axis-local registry; emit only host-consumed artifacts with byte-landing proof and name every missing adapter as `not_integrated`. |
 | `rig/lib/ci-adapters.js` | Six provider render/apply paths, separate approval, additive preservation, journaled writes, and idempotent first-wire matrix | Retain provider-native bounded insertion and fail closed when a shape cannot be classified safely. |
 | `docs/agent-portability.md` | Actual host instruction/plugin surface | Starting evidence for the capability registry. |
 | `scripts/check-rule-copies.js` | Source-repo exact-copy guard | Pattern for target-local `.rig/sync-map.json` checking. |
@@ -823,6 +824,15 @@ Three failures this catches: reporting a Policy result as Evidence (over-claim),
 silently running above the selected grade (over-run), and stopping short of the
 selected grade on a clean lower-grade pass (under-run) — the cases
 `AT-LF-7`/`AT-LF-8`/`AT-LF-9` exist to prove do not happen.
+
+The local Context review is request-bound to file, rule-source and command
+digests. It requires a nonempty summary and an explicit `verdict: pass | fail`.
+Its structured findings name violations by file, rule and meaning: a pass has
+no findings; a failure has at least one and stops before Evidence replay.
+Missing or inconsistent outcomes leave Context incomplete. Every Policy and
+Evidence command is checked for source-byte and mode changes immediately after
+execution; mutation stops subsequent commands and returns exact path and
+before/after evidence without restoring over the changed file.
 
 The disposition is `executable` (AD-15): the commodity signals are real
 repo-adapted processes run under §9.4, attempted first, never a fabricated
@@ -2171,7 +2181,7 @@ fails `AT-LF-15`.
 | User-global file | Append or namespaced additive merge only; every pre-existing value survives byte-for-byte; entries attributed to the writing repository from the first install; removal touches only this repository's entries. |
 | Install identity | Generated, clone-local, never committed; a linked worktree is a distinct installation. |
 | Gate 1 integrity | Recomputed digests plus a namespaced SSHSIG signature verified against the listed signer identity; fail closed on a missing, malformed, or non-verifying signature when armed. The key's class is attested by the intent owner and is not checkable from the artifact (D19). No git dependency. |
-| Host emission | Every `{host, axis}` in the roster is emitted through one uniform path (§11.1); an `unsupported` axis emits nothing and cites the vendor absence; no code path skips a host. |
+| Host emission | Every `{host, axis}` has an explicit §11.1 disposition: `emitted` with host-consumed bytes and landing proof, `not_integrated` with a named adapter gap, or `unsupported` with cited vendor absence. |
 | Install stub | Fetches a released tag by name; downloads to a file before executing; never pipes network output to a shell. |
 | Test target | Every target named in §13 must exist and must report results; a missing file is a coverage gap, never a pass. Runner exit codes are not trusted alone, because `node --test` exits 0 for a target it could not find. |
 
@@ -2195,21 +2205,20 @@ axis-local entries for `instruction`, `native_skill`, `shell_hook`,
 `web_hook`, `mcp_hook`, and `mcp_config`. Git and CI remain separate
 deterministic surfaces.
 
-**Every `{host, axis}` in the roster is on one uniform emission path.** No
-axis is a second-class citizen carrying a degraded surface; no axis is a
-first-class citizen carrying a tier badge. Emitted axes all carry the same
-shape of contract and are proven the same way:
+**Every `{host, axis}` in the roster has an explicit disposition.** No axis
+carries a tier badge. An emitted axis must use a real host-consumed path and
+carry a byte-landing proof:
 
 | Emission | Meaning | Release-blocking? |
 |---|---|---|
 | emitted | The axis has a complete contract (below) and its byte-landing test lands the correct bytes on a fresh target. | Yes — a missing contract or a failing byte-landing test blocks release. |
+| not_integrated | The vendor exposes the surface, but Rig does not yet install an adapter the host consumes. The registry names the missing integration and emits a coverage gap. | Yes — the gap must be disclosed; it cannot count as installed enforcement. |
 | unsupported | The vendor exposes no surface at all for this axis. The registry cites the absence; nothing is emitted. | No. |
 
 There is no `verified` label, no `advertised` label, and no `advisory` tier on
-any host or axis: those two emissions are the whole vocabulary. An axis either
-has a complete contract and emits, or the vendor exposes no surface and it is
-`unsupported`; an instruction pointer standing in for a missing mechanism is
-not a third state. This host/axis emission vocabulary is distinct from the
+any host or axis: these three dispositions are the whole vocabulary. An
+instruction pointer or `.rig/host-contracts` declaration cannot turn a missing
+adapter into `emitted`. This host/axis emission vocabulary is distinct from the
 control/tool evidence status of §8.9 and §9.3, where `verified` legitimately
 means a control leaf holds fresh current-epoch evidence. The distinction the
 withdrawn tier drew — "we shipped this" versus "we have watched enforcement
@@ -2270,8 +2279,9 @@ Rules:
 - evidence is owned by one `{host, axis}` pair and cannot be reused as a
   host-level umbrella citation;
 - adapter/config byte changes invalidate the byte-landing test result;
-- an `unsupported` axis cites the vendor absence and emits nothing; this is
-  the only status permitted to emit nothing;
+- a `not_integrated` axis names the available vendor surface and missing Rig
+  adapter, emits no host artifact, and appears as a named coverage gap;
+- an `unsupported` axis cites vendor absence and emits no host artifact;
 - `mcp_config` additionally records `repo`, `user_global`, or `unsupported`.
   User-global emission uses the §7.4 attributed-append mechanism; a fabricated
   repo path is forbidden;
@@ -2284,9 +2294,9 @@ Rules:
 The current registry's aggregate citations and
 `.rig/hooks/semantic-review.hint.md` markers do **not** satisfy this
 contract. As of v0.12, no host axis holds a complete emitted
-bundle. Every axis moves to `emitted` as its contract is authored and its
-byte-landing test is added; the axes for which the vendor exposes no surface
-are `unsupported` from the outset.
+bundle. An axis moves to `emitted` only when its adapter writes a host-consumed
+artifact and its byte-landing test passes. Until then a vendor-supported axis
+is `not_integrated`; a vendor-absent axis is `unsupported`.
 
 The registry's header records — once, in prose — that Rig documents each
 surface but has not observed enforcement fire on any host. This statement
@@ -2528,7 +2538,7 @@ results rather than trusting an aggregate exit code.
 | AT-P1 | Same exhaustive typed graft evidence as AT-SHAPE-1; aliases must resolve to its real parameterized test. | `tests/advanced-oracle.test.js` title `AT-P1 no-blowout is proved by the real graft contract`: `AT-P1` runs the AT-SHAPE-1 target directly: 115 leaves x 3 grades against seeded user instructions/config, marker-bracketed writes with a manifest record whose digest matches the post-write file, and an unmarked/unrecorded write proven impossible by diffing the observed write set against the journal. No separate placeholder file backs `AT-P1`. |
 | AT-P2 | Aggregate safe-default, exact activation, disablement, cross-surface enforcement, truthful status, and re-enable behavior from AT-BASE-1..6. | `tests/advanced-oracle.test.js` title `AT-P2 safety remains user-controlled and truthfully reported`: One aggregate scenario invokes substantive baseline cases; no string-equality placeholder. |
 | AT-P3 | Global `owns` uniqueness, authored adjacent exclusions, frozen perf/load and secret-injection boundaries, plus semantic MECE receipt. | `tests/advanced-oracle.test.js` title `AT-P3 catalogue scope ownership is MECE`: Exact scope-map tests and per-adjacent-pair `mece=pass` at current catalogue digest. |
-| AT-P4 | One uniform emission path per §11.1: every `{host, axis}` in the roster is emitted through the same code path, proven by axis-local byte-landing tests, with `unsupported` the only status permitted to emit nothing. This is AT-CLAIM-1's mechanism, re-anchored after the tier's removal. | `tests/advanced-oracle.test.js` title `AT-P4 host and CI coverage is the uniform detected-host contract`: `AT-P4` runs the AT-CLAIM-1 target directly: installs across all 19 hosts and six providers, asserts every host receives its configuration through the same code path with byte sets differing only in the contract's named vendor-specific fields, and asserts no host/axis claim string (`verified`, `advertised`, `please report`) appears anywhere. No separate placeholder file backs `AT-P4`. |
+| AT-P4 | Every `{host, axis}` in §11.1 has an explicit disposition; only a real host-consumed artifact with axis-local byte-landing proof is `emitted`. A supported axis without an adapter is `not_integrated` and a named gap; vendor absence is `unsupported`. The current frozen case still encodes the old two-state claim and requires the owner amendment. | `tests/advanced-oracle.test.js` title `AT-P4 host and CI coverage is the uniform detected-host contract`: current signed target remains until the owner replaces it; the candidate must inspect emitted host files and named gaps. |
 | AT-P5 | `rig.json` owns leaf selection; the onboarding review starts with all four families visibly selected and persists only the explicitly confirmed/trimmed leaves. Activated policy separately owns permissions. | `tests/advanced-oracle.test.js` title `AT-P5 family default is explicit and trimmable`: accept all, trim a family, override recommendation/grade, and prove plan/apply follows the exact confirmed leaves and policy. |
 | AT-P6 | Authored-service gate plus executable-first honest disposition runner (AD-15); inventory alone cannot pass. | `tests/advanced-oracle.test.js` title `AT-P6 complete services reuse the real disposition and authorship evidence`: Iterate all 115 leaves, execute each declared evidence target or valid surfaceless predicate, and prove every convention-only fallback carries a service-specific named reason. |
 | AT-B1 | Enabled exact-copy control runs byte checker at enabled git/CI surfaces; approved disablement stops it and reports disabled. | `tests/advanced-oracle.test.js` title `AT-B1 exact-copy drift fails`: Drift duplicate under both scopes, then disable only that control without affecting others. |
@@ -2538,7 +2548,7 @@ results rather than trusting an aggregate exit code.
 | AT-B5 | Exact four-verdict mapping, blocker/uncertainty precedence, freshness validation, and no verdict when disabled. | `tests/advanced-oracle.test.js` title `AT-B5 adopt-time uncertainty quarantines`: Cover all verdicts, malformed/stale review, deterministic blocker, uncertainty, and disabled path. |
 | AT-B6 | Read-only typed proposal, exact user-presence approval, preimage CAS, no-op rejection, transactional exact-diff verification/rollback, and fresh re-scan. | `tests/advanced-oracle.test.js` title `AT-B6 remediation applies only the approved bounded diff and rolls back failure`: Wrong/stale/no-op, exact success, injected partial failure, unapproved extra write, observed-diff mismatch, and fresh sanitation fixtures. |
 | AT-B7 | Diff development scope, repo CI scope, dependency-order fail-fast, shared runner, and actionable failed/vacuous/gap reports written locally only. | `tests/advanced-oracle.test.js` title `AT-B7 development runs diff scope and CI runs repository scope`: Prove distinct inputs, dependency-not-run, local report contents, visible gaps/vacuity, and omitted routine passes. |
-| AT-HOST-1 | §11.1 emitted-axis contract covers every axis Rig emits — exact path, event schema, matcher, deny payload, proceed protocol, owned merge namespace, preservation rule, and first/repeated apply — across all 19 hosts. There is no "verified vs unverified" split in the contract's scope. | `tests/advanced-oracle.test.js` title `AT-HOST-1 every emitted axis has a complete contract`: Iterate every host and every emitted axis; validate every contract field and each byte-landing test lands the expected bytes at the expected path on a fresh target. Reject a contract missing any field on any axis. |
+| AT-HOST-1 | §11.1 requires a real host-consumed artifact for every `emitted` axis, a named gap for a supported `not_integrated` axis, and cited vendor absence for `unsupported`. The current frozen case validates descriptors but does not independently inspect every artifact; the owner amendment must add this proof. | `tests/advanced-oracle.test.js` title `AT-HOST-1 every emitted axis has a complete contract`: current signed target remains until the owner replaces it; the candidate must inspect exact host artifact bytes and named gaps. |
 | AT-HOST-2 | Common evaluator denies four categories, names rule/category, passes near-matches, consumes exact one-use once, and honors activated permanent choices. | `tests/advanced-oracle.test.js` title `AT-HOST-2 evaluator denies boundaries and honors exact one-use approval once`: Cross-adapter deny/near-match plus changed/replayed/concurrent/failed-dispatch/revoked/native-expired one-use and narrow/category-wide permanent fixtures. |
 | AT-HOST-5 | Shared MCP disposition governs legacy/catalogue; unsupported `pi` emits nothing; user-owned old file survives with guidance. | `tests/advanced-oracle.test.js` title `AT-HOST-5 unsupported MCP emits nothing and preserves user files`: Fresh/adopt/upgrade through both entrypoints; zero new config and byte-identical seeded user file. |
 | AT-CI-1 | Exact provider adapter additively merges one Rig gate into verified existing CI under plan approval, and that gate is removable under `AT-UNINSTALL-1` from its §7.6 manifest record. | `tests/advanced-oracle.test.js` title `AT-CI-1 existing CI integration is additive and detail-free`: Seed all six provider configs and deep-compare every unrelated user value after integration; then uninstall and assert the job is gone and every unrelated value survives byte-for-byte. |

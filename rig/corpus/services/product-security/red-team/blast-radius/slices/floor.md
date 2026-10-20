@@ -1,11 +1,7 @@
-# product-security.red-team.blast-radius — floor and mutation-floor slice
+# product-security.red-team.blast-radius — floor slice
 
-Policy grade slice. This slice bounds blast radius to red-team.blast-radius. It uses `blast-radius-slice-floor` and checks privilege_scopes (nonempty): privilege scopes must name the concrete repository contract..
+Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
 
-For blast radius, choose a repository example that satisfies privilege_scopes at the floor and mutation-floor floor, plus a failure where privilege scopes must name the concrete repository contract. is false. For blast radius, wire `floor and mutation-floor` to `rig-services/product-security.red-team.blast-radius.json` and keep its verdict on privilege_scopes; missing evidence is a named gap, with ceiling blast radius configuration validation only; declared policy does not prove running blast radius behavior. Choose a repository-owned check that observes blast radius from rig-services/product-security.red-team.blast-radius.json..
+Policy grade. `blast-radius-slice-floor` requires configured `privilege_scopes`. It does not inspect role assignments or authorization code.,Name the identity and allowed actions precisely; later compare those declarations against actual access-control rules. Both floor and mutation-floor map to this configuration rule (blast-radius-slice-floor and blast-radius-slice-mutation-floor); the latter name does not indicate runtime mutation.
 
-Service-specific evidence cues:
-Offer: Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
-minimal: privilege scopes — ["read single tenant"].
-mid: isolation boundaries — ["tenant id enforced"].
-maximal: cross tenant access — false.
+Name the identity and allowed actions precisely; later compare those declarations against actual access-control rules.

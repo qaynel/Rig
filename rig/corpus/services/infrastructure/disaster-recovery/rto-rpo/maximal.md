@@ -1,13 +1,11 @@
 # infrastructure.disaster-recovery.rto-rpo — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for rto rpo. The evidence must preserve the rto_minutes, rpo_minutes, claim_targets_without_exercise inputs that determined the result. Binding checks: rto-rpo-evidence-receipt.
+State recovery-time and data-loss objectives as measurable limits. Targets become demonstrated assurance only when an actual recovery exercise measures them.
 
-Anchor the review on a second run against unchanged rto rpo inputs. Record the rto_minutes, rpo_minutes, claim_targets_without_exercise inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this rto rpo result is stale. The ceiling remains: rto rpo configuration validation only; declared policy does not prove running rto rpo behavior. Choose a repository-owned check that observes rto rpo from rig-services/infrastructure.disaster-recovery.rto-rpo.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: rto-rpo-source-code-boundary, rto-rpo-disaster-recovery-context, rto-rpo-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.disaster-recovery.rto-rpo:evidence-replay. Given the disaster-recovery.rto-rpo binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: State recovery-time and data-loss objectives as measurable limits. Targets become demonstrated assurance only when an actual recovery exercise measures them.
-minimal: rto minutes — 30.
-mid: rpo minutes — 5.
-maximal: claim targets without exercise — false.
+Acceptance target: policy:infrastructure.disaster-recovery.rto-rpo:maximal:rto-rpo-source-code-boundary+rto-rpo-disaster-recovery-context+rto-rpo-evidence-receipt.
+
+Declared predicates: rto-rpo-source-code-boundary: `rto_minutes` is numeric and at least 30; rto-rpo-disaster-recovery-context: `rpo_minutes` is numeric and at least 5; rto-rpo-evidence-receipt: `claim_targets_without_exercise` equals false.

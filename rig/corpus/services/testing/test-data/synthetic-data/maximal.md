@@ -1,13 +1,11 @@
 # testing.test-data.synthetic-data — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for synthetic data. The evidence must preserve the generation_rules, seed, use_customer_records inputs that determined the result. Binding checks: synthetic-data-evidence-receipt.
+Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.
 
-Use a second run against unchanged synthetic data inputs. Record the generation_rules, seed, use_customer_records inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this synthetic data result is stale. The ceiling remains: synthetic data configuration validation only; declared policy does not prove running synthetic data behavior. Choose a repository-owned check that observes synthetic data from rig-services/testing.test-data.synthetic-data.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: synthetic-data-source-code-boundary, synthetic-data-test-data-context, synthetic-data-evidence-receipt.
 
-Acceptance target: fixture:testing.test-data.synthetic-data:evidence-replay. Given the test-data.synthetic-data binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.
-minimal: generation rules — ["valid account IDs"].
-mid: seed — 42.
-maximal: use customer records — false.
+Acceptance target: policy:testing.test-data.synthetic-data:maximal:synthetic-data-source-code-boundary+synthetic-data-test-data-context+synthetic-data-evidence-receipt.
+
+Declared predicates: synthetic-data-source-code-boundary: `generation_rules` is nonempty (a string or array); synthetic-data-test-data-context: `seed` is numeric and at least 42; synthetic-data-evidence-receipt: `use_customer_records` equals false.

@@ -15,4 +15,3 @@ minimal: credential classes — ["service token"].
 mid: rotation interval days — 90.
 
 maximal: rotation without owner — false.
-

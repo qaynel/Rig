@@ -245,6 +245,29 @@ function classifyRunnerFailure(result, checkId, command) {
 //   { status: 1, kind: 'coverage_gap', reason }       on a binding/config gap
 //   { status, error?, stdout?, stderr?, checkId? }    on a command failure
 function runBinding(serviceId, binding, scope, target) {
+  // Local lint grades have an interactive review/receipt path. CI keeps its
+  // own enforcement route and must not depend on a local operator review.
+  if (serviceId === 'development.code-quality.lint-format' &&
+      binding.engine === 'component-lint-format-v1' &&
+      binding.grade !== 'minimal' &&
+      process.env.CI !== 'true' && process.env.GITHUB_ACTIONS !== 'true') {
+    const grade = require('./lint-grade').runInstalledGrade({
+      target,
+      binding,
+      execute: (command) => {
+        const cwd = !command.cwd || command.cwd === '.' ? fs.realpathSync(target) : containedPath(target, command.cwd);
+        const [program, ...args] = command.argv;
+        const observed = runConfiguredArgv(serviceId, target, program, args, cwd, binding, command);
+        return {
+          exit_code: Number.isInteger(observed.status) ? observed.status : 1,
+          status: observed.kind || (observed.error ? 'command_not_found' : 'completed'),
+          output_digest: crypto.createHash('sha256').update(`${observed.stdout || ''}\n${observed.stderr || ''}`).digest('hex'),
+        };
+      },
+    });
+    if (grade.verdict === 'pass') return { status: 0, executed_count: grade.commands?.length || 0, executed_checks: grade.completed_grades };
+    return { status: 1, kind: grade.status === 'mutated' ? 'mutated' : grade.status === 'coverage_gap' ? 'coverage_gap' : 'lint_grade_failed', reason: grade.reason || `lint-format ${grade.grade || binding.grade} grade did not pass`, checkId: 'lint-format-grade', ...(grade.changed_paths ? { changed_paths: grade.changed_paths, changes: grade.changes } : {}), ...(grade.findings ? { findings: grade.findings } : {}) };
+  }
   let executedCount = 0;
   const executedChecks = [];
   const diagnostics = new Set();

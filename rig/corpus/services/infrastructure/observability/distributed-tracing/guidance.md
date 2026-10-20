@@ -15,4 +15,3 @@ minimal: trace propagation — ["http","queue"].
 mid: sampling policy — "bounded-head-sampling".
 
 maximal: record sensitive payloads — false.
-

@@ -18,6 +18,7 @@ const {
   apply,
   check,
 } = require('./helpers/advanced');
+const { buildBinding, planCi } = require('../rig/lib/lint-format');
 
 const SERVICE_ID = 'development.code-quality.lint-format';
 const catalogPath = path.join(root, 'rig', 'corpus', 'catalogue.json');
@@ -60,12 +61,21 @@ function installLintFormat(target, grade) {
   return readJson(path.join(target, '.rig', 'service-bindings.json'))[SERVICE_ID];
 }
 
-function runInstalledCheck(target) {
+function runInstalledCheck(target, env = process.env) {
   return spawnSync(
     process.execPath,
     [path.join(target, '.rig', 'bin', 'check.js'), '--scope', 'repo', '--service', SERVICE_ID],
-    { cwd: target, encoding: 'utf8', shell: false },
+    { cwd: target, encoding: 'utf8', shell: false, env },
   );
+}
+
+function completeInstalledLintReview(target) {
+  const request = readJson(path.join(target, 'reports/rig/lint-format-context-review-request.json'));
+  writeJson(path.join(target, '.rig/lint-format/context-review.json'), {
+    ...request,
+    verdict: 'pass', summary: 'The changed files follow the repository lint and format rules.',
+    findings: [],
+  });
 }
 
 test('lint-format is a fully authored executable component leaf', () => {
@@ -147,8 +157,8 @@ test('mid cumulatively adds the repository linter', () => {
       'lint-format-linter-clean',
     ]);
     const serviceBody = fs.readFileSync(path.join(target, '.rig', 'services', `${SERVICE_ID}.md`), 'utf8');
-    assert.match(serviceBody, /Minimal — formatter cleanliness/);
-    assert.match(serviceBody, /Mid addition — linter cleanliness/);
+    assert.match(serviceBody, /Grade: minimal[\s\S]*`lint-format-formatter-clean` requires the actual command to finish successfully/);
+    assert.match(serviceBody, /Grade: mid\. Context includes `lint-format-formatter-clean` and `lint-format-linter-clean`/);
 
     fs.writeFileSync(path.join(target, 'index.js'), 'const = 42;\n');
     const broken = runInstalledCheck(target);
@@ -157,32 +167,81 @@ test('mid cumulatively adds the repository linter', () => {
   });
 });
 
-test('maximal adds a CI gate and records autofix for explicit use only', () => {
+test('maximal local review and Evidence replay work without CI; autofix stays separate', () => {
   withRepo((target) => {
     seedLintFormatRepo(target);
     const binding = installLintFormat(target, 'maximal');
+    assert.ok(fs.existsSync(path.join(target, '.rig/lib/lint-grade.js')));
+    assert.ok(fs.existsSync(path.join(target, '.rig/lib/evidence-artifacts.js')));
     assert.deepEqual(Object.keys(binding.checks), [
       'lint-format-formatter-clean',
       'lint-format-linter-clean',
       'lint-format-ci-gate-and-explicit-fix',
     ]);
     const maximal = binding.checks['lint-format-ci-gate-and-explicit-fix'];
-    assert.ok(fs.existsSync(path.join(target, '.github', 'workflows', 'rig.yml')));
+    assert.deepEqual(maximal.required_paths, ['.github/workflows/rig.yml']);
     assert.deepEqual(maximal.fix, ['npm', 'run', '--silent', 'format']);
+    assert.ok(fs.existsSync(path.join(target, '.github', 'workflows', 'rig.yml')));
+    assert.deepEqual(binding.components[0].format.argv, ['npm', 'run', '--silent', 'format']);
+
+    const first = runInstalledCheck(target);
+    assert.notEqual(first.status, 0, 'Context needs a current local review');
+    assert.match(first.stderr + first.stdout, /context-review\.json/, JSON.stringify(first));
+    completeInstalledLintReview(target);
+    const reviewed = runInstalledCheck(target);
+    assert.equal(reviewed.status, 0, reviewed.stderr);
+    const ciCheck = runInstalledCheck(target, { ...process.env, CI: 'true' });
+    assert.equal(ciCheck.status, 0, ciCheck.stderr);
+    const receipt = readJson(path.join(target, 'reports/rig/lint-format-evidence.json'));
+    assert.equal(receipt.kind, 'lint-format-evidence');
 
     const sourcePath = path.join(target, 'index.js');
     fs.writeFileSync(sourcePath, 'const answer = 42;  \n');
     const before = fs.readFileSync(sourcePath, 'utf8');
-    assert.notEqual(runInstalledCheck(target).status, 0);
+    const redPolicy = runInstalledCheck(target);
+    assert.notEqual(redPolicy.status, 0);
+    assert.match(redPolicy.stderr + redPolicy.stdout, /Policy command failed/);
     assert.equal(fs.readFileSync(sourcePath, 'utf8'), before, 'CI/check path must stay read-only');
 
-    const fixed = spawnSync(maximal.fix[0], maximal.fix.slice(1), {
+    const fixed = spawnSync(binding.components[0].format.argv[0], binding.components[0].format.argv.slice(1), {
       cwd: target,
       encoding: 'utf8',
       shell: false,
     });
     assert.equal(fixed.status, 0, fixed.stderr);
-    assert.equal(runInstalledCheck(target).status, 0, 'explicit fix must restore a clean check');
+    const afterFix = runInstalledCheck(target);
+    assert.equal(afterFix.status, 0, 'restoring the reviewed bytes reuses the exact current review');
+  });
+});
+
+test('maximal local Evidence gap is the same with absent or approved CI', () => {
+  withRepo((target) => {
+    seedLintFormatRepo(target);
+    const absentCi = buildBinding(target, 'maximal');
+    const approvedCi = buildBinding(target, 'maximal', {
+      artifact: { relativePath: '.github/workflows/rig.yml' },
+    });
+    const checkId = 'lint-format-ci-gate-and-explicit-fix';
+    assert.match(absentCi.checks[checkId].coverage_gap, /CI enforcement requires a separately approved CI binding/);
+    assert.deepEqual(approvedCi.checks[checkId], absentCi.checks[checkId]);
+    assert.deepEqual(Object.keys(absentCi.checks), Object.keys(approvedCi.checks));
+  });
+});
+
+test('target-aware lint-format CI planning delegates to the shared approved adapter', () => {
+  assert.deepEqual(planCi({ grade: 'maximal' }), {
+    status: 'coverage_gap',
+    reason: 'repository target is required before selecting a CI adapter',
+  });
+  withRepo((target) => {
+    const pending = planCi({ target, grade: 'maximal' });
+    assert.equal(pending.status, 'approval_required');
+    assert.equal(pending.artifact, null);
+    const approved = planCi({ target, grade: 'maximal', provider: 'github-actions', approved: true });
+    assert.equal(approved.status, 'integrated');
+    assert.equal(approved.evidence, 'verified');
+    assert.equal(approved.artifact.relativePath, '.github/workflows/rig.yml');
+    assert.deepEqual(planCi({ target, grade: 'mid' }), { action: 'none' });
   });
 });
 

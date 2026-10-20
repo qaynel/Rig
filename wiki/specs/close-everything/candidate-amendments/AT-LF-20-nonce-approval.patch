@@ -1,0 +1,86 @@
+diff --git a/tests/advanced-oracle.test.js b/tests/advanced-oracle.test.js
+--- a/tests/advanced-oracle.test.js
++++ b/tests/advanced-oracle.test.js
+@@ -58,6 +58,36 @@
+     h.createRepoFixture(kind, target);
+     return fn(target);
+   });
++}
++
++function signedPlanApproval(target, planned) {
++  const createChallenge = api('lint-format.js', 'createPlanApprovalChallenge');
++  const key = path.join(target, '.rig-test-plan-approval');
++  const message = path.join(target, '.rig-test-plan-approval-message');
++  const identity = 'rig-test-owner@fixture';
++  if (!fs.existsSync(key)) {
++    const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
++    assert.equal(generated.status, 0, generated.stderr);
++    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
++    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
++    fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `${identity} namespaces=\"rig-plan-approval\" ${publicKey}\n`);
++  }
++  const challenge = createChallenge(planned);
++  fs.writeFileSync(message, challenge.message);
++  if (fs.existsSync(`${message}.sig`)) fs.unlinkSync(`${message}.sig`);
++  const signed = spawnSync('ssh-keygen', ['-q', '-Y', 'sign', '-f', key, '-n', 'rig-plan-approval', message], { encoding: 'utf8' });
++  assert.equal(signed.status, 0, signed.stderr);
++  return {
++    schema_version: 1,
++    kind: 'plan-approval',
++    plan_digest: planned.plan_digest,
++    approval_id: challenge.approval_id,
++    approval: {
++      method: 'external-sshsig',
++      identity,
++      signature: fs.readFileSync(`${message}.sig`, 'utf8'),
++    },
++  };
+ }
+ 
+ function allServiceFiles() {
+@@ -856,7 +886,7 @@
+     h.writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
+     const planned = api('lint-format.js', 'planExecution')({ target, commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'package.json#scripts.lint' }] });
+     h.writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "require(\'fs\').writeFileSync(\'ran\',\'x\')"' } });
+-    const result = execute(planned, { plan_digest: planned.plan_digest });
++    const result = execute(planned, signedPlanApproval(target, planned));
+     assert.equal(result.status, 'command_drift');
+     assert.equal(fs.existsSync(path.join(target, 'ran')), false);
+   });
+@@ -921,17 +951,16 @@
+   const executePlan = api('lint-format.js', 'executePlan');
+   h.withRepo((target) => {
+     const planned = planExecution({ target, commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] }] });
+-    // Two independent approval objects derived from the same signed approval:
+-    // the in-memory `used` flag set on the first cannot reach the second, so
+-    // only the durable on-disk one-use record can reject the second execution.
+-    const signed = { plan_digest: planned.plan_digest };
+-    const firstApproval = { ...signed };
+-    const secondApproval = { ...signed };
+-    const first = executePlan(planned, firstApproval);
+-    assert.equal(first.status, 'executed');
+-    assert.equal(secondApproval.used, undefined, 'the second approval must not share the first approval\'s in-memory flag');
+-    const second = executePlan(planned, secondApproval);
+-    assert.notEqual(second.status, 'executed');
++    // Re-presenting the exact verified receipt is replay, even as a new object.
++    const firstApproval = signedPlanApproval(target, planned);
++    const replayApproval = { ...firstApproval, approval: { ...firstApproval.approval } };
++    assert.equal(executePlan(planned, firstApproval).status, 'executed');
++    assert.equal(executePlan(planned, replayApproval).status, 'not_authorized');
++
++    // A new challenge ID is covered by a new SSHSIG and can authorize the same plan.
++    const freshApproval = signedPlanApproval(target, planned);
++    assert.notEqual(freshApproval.approval_id, firstApproval.approval_id);
++    assert.equal(executePlan(planned, freshApproval).status, 'executed');
+   });
+ });
+ 
+@@ -1028,7 +1057,7 @@
+     // fix would let this fall through to 'command_drift' (a recoverable
+     // state) after actually reading the outside file's bytes; assert the
+     // hard refusal and that the outside command's side effect never ran.
+-    const result = executePlan(planned, { plan_digest: planned.plan_digest });
++    const result = executePlan(planned, signedPlanApproval(target, planned));
+     assert.equal(result.status, 'boundary_violation');
+     assert.equal(fs.existsSync(path.join(target, 'ran')), false);
+     assert.equal(fs.existsSync(path.join(outside, 'ran')), false);

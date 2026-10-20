@@ -1,13 +1,11 @@
 # infrastructure.environment-config.config-drift — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for config drift. The evidence must preserve the authoritative_sources, comparison_schedule, silent_drift_acceptance inputs that determined the result. Binding checks: config-drift-evidence-receipt.
+Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.
 
-Tie acceptance to a second run against unchanged config drift inputs. Record the authoritative_sources, comparison_schedule, silent_drift_acceptance inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this config drift result is stale. The ceiling remains: config drift configuration validation only; declared policy does not prove running config drift behavior. Choose a repository-owned check that observes config drift from rig-services/infrastructure.environment-config.config-drift.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: config-drift-source-code-boundary, config-drift-environment-config-context, config-drift-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.environment-config.config-drift:evidence-replay. Given the environment-config.config-drift binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.
-minimal: authoritative sources — ["config/production.json"].
-mid: comparison schedule — "daily".
-maximal: silent drift acceptance — false.
+Acceptance target: policy:infrastructure.environment-config.config-drift:maximal:config-drift-source-code-boundary+config-drift-environment-config-context+config-drift-evidence-receipt.
+
+Declared predicates: config-drift-source-code-boundary: `authoritative_sources` is nonempty (a string or array); config-drift-environment-config-context: `comparison_schedule` is nonempty (a string or array); config-drift-evidence-receipt: `silent_drift_acceptance` equals false.

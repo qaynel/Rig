@@ -1,15 +1,15 @@
 # testing.mutation.execution-orchestrator — identity
 
-Policy grade: execution orchestrator owns mutation.execution-orchestrator. Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.
+Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.
 
-Keep neighboring mutation services outside the execution orchestrator decision for mutation.execution-orchestrator. Start from the configured input at `rig-services/testing.mutation.execution-orchestrator.json`; malformed input is still attributed to that path.
+Policy grade. Bound concurrent mutation workers, per-mutant runtime, and workspace isolation. Two workers sharing a writable source tree can contaminate each other’s test result.
 
-Disposition: convention. Trace the verdict to the limit: execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Choose a repository-owned check that observes execution orchestrator from rig-services/testing.mutation.execution-orchestrator.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.execution-orchestrator:policy-boundary. Given source-code is present and mutation.execution-orchestrator is selected, pass only when the repository binding evaluates mutation.execution-orchestrator and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.execution-orchestrator`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.
-minimal: worker limit — 2.
-mid: per mutant timeout ms — 1000.
-maximal: share mutable worktrees — false.
+Read `rig-services/testing.mutation.execution-orchestrator.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `worker_limit` = `2`; mid adds `per_mutant_timeout_ms` = `1000`; maximal requires `share_mutable_worktrees` = `false`.

@@ -15,4 +15,3 @@ minimal: journeys — ["create and retrieve item"].
 mid: observable outcomes — ["item appears after refresh"].
 
 maximal: assert only page loaded — false.
-

@@ -16,9 +16,9 @@
     "mid": [
       {
         "field": "public_api_changes",
-        "op": "minimum",
+        "op": "equals",
         "value": 0,
-        "reason": "public api changes must meet the configured minimum of 0."
+        "reason": "public_api_changes must be zero; unresolved changes are not a clean policy."
       }
     ],
     "maximal": [

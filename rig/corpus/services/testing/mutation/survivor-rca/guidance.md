@@ -2,17 +2,11 @@
 
 Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
 
-Owned scope: `mutation.survivor-rca`.
+Assurance remains Policy grade.
 
-Offer: Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
+Triage surviving mutants into missing assertions or justified equivalence questions. Treat a survivor as a signal for review, not automatically as a defect or as equivalent.
 
-Input: `rig-services/testing.mutation.survivor-rca.json`. Detection records the path even when its contents are malformed.
+The policy input is `rig-services/testing.mutation.survivor-rca.json`. Keep its configuration visible to review: minimal supplies `surviving_mutants` = `["boundary comparison changed"]`; mid adds `missing_assertions` = `["exact limit rejected"]`; maximal sets `ignore_equivalence_question` = `false`.
 
-Coverage ceiling: survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.
 
-minimal: surviving mutants — ["boundary comparison changed"].
-
-mid: missing assertions — ["exact limit rejected"].
-
-maximal: ignore equivalence question — false.
-
+The native check validates this service’s declared policy only; it does not run the service. For runtime assurance, run an approved repository-owned command and preserve its exit status.

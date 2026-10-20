@@ -15,4 +15,3 @@ minimal: allowed licenses — ["MIT","Apache-2.0"].
 mid: restricted licenses — ["AGPL-3.0-only"].
 
 maximal: ignore license conflicts — false.
-

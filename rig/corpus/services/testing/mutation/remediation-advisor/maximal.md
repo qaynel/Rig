@@ -1,13 +1,13 @@
 # testing.mutation.remediation-advisor — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for remediation advisor. The evidence must preserve the remediation_cases, target_behaviors, add_implementation_mirrors inputs that determined the result. Binding checks: remediation-advisor-evidence-receipt.
+Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
 
-Inspect a second run against unchanged remediation advisor inputs. Record the remediation_cases, target_behaviors, add_implementation_mirrors inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this remediation advisor result is stale. The ceiling remains: remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Choose a repository-owned check that observes remediation advisor from rig-services/testing.mutation.remediation-advisor.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: remediation-advisor-source-code-boundary, remediation-advisor-mutation-context, remediation-advisor-evidence-receipt.
 
-Acceptance target: fixture:testing.mutation.remediation-advisor:evidence-replay. Given the mutation.remediation-advisor binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+Keep `add_implementation_mirrors` equal to false. Keep implementation mirrors disabled; a proposed case still needs a reviewer and a test run before it proves coverage.
 
-Service-specific evidence cues:
-Offer: Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-minimal: remediation cases — ["reject exact upper limit"].
-mid: target behaviors — ["limit enforcement"].
-maximal: add implementation mirrors — false.
+Maximal here adds a configuration guard, not an evidence receipt or a demonstrated mutation outcome. remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.
+
+Evidence-replay target (not established by this policy check): policy:testing.mutation.remediation-advisor:maximal:remediation-advisor-source-code-boundary+remediation-advisor-mutation-context+remediation-advisor-evidence-receipt.
+
+Check: `remediation-advisor-evidence-receipt`.

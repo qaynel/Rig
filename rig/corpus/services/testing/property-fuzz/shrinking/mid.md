@@ -1,13 +1,11 @@
 # testing.property-fuzz.shrinking — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for shrinking; it does not widen ownership beyond property-fuzz.shrinking. For shrinking, inspect these context signals: preserved_constraints. Binding checks: shrinking-property-fuzz-context.
+Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.
+
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: shrinking-source-code-boundary, shrinking-property-fuzz-context.
 
 Inspect the existing repository's shrinking convention, then name the source path or command that establishes it. For shrinking, inspect the repository's actual spec, source, test, or configuration for preserved_constraints; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring property-fuzz services outside the shrinking decision for property-fuzz.shrinking.
 
-Acceptance target: fixture:testing.property-fuzz.shrinking:repository-context. Given property-fuzz.shrinking has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent property fuzz concern; fail when the result infers local convention without an inspectable source.
+Acceptance target: policy:testing.property-fuzz.shrinking:mid:shrinking-source-code-boundary+shrinking-property-fuzz-context.
 
-Service-specific evidence cues:
-Offer: Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.
-minimal: failure predicate — "parser crashes".
-mid: preserved constraints — ["valid UTF-8"].
-maximal: drop failure during shrink — false.
+Declared predicates: shrinking-source-code-boundary: `failure_predicate` is nonempty (a string or array); shrinking-property-fuzz-context: `preserved_constraints` is nonempty (a string or array).

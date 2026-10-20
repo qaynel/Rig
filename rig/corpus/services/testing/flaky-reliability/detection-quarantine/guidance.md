@@ -15,4 +15,3 @@ minimal: flaky cases — ["slow websocket reconnect"].
 mid: quarantine owners — ["realtime"].
 
 maximal: silent quarantine — false.
-

@@ -1,13 +1,11 @@
 # development.code-creation.api-client-generation — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for api client generation. The evidence must preserve the specification_path, compatibility_version, unknown_response_policy inputs that determined the result. Binding checks: api-client-generation-evidence-receipt.
+Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.
 
-Tie acceptance to a second run against unchanged api client generation inputs. Record the specification_path, compatibility_version, unknown_response_policy inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this api client generation result is stale. The ceiling remains: api client generation configuration validation only; declared policy does not prove running api client generation behavior. Choose a repository-owned check that observes api client generation from rig-services/development.code-creation.api-client-generation.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: api-client-generation-source-code-boundary, api-client-generation-code-creation-context, api-client-generation-evidence-receipt.
 
-Acceptance target: fixture:development.code-creation.api-client-generation:evidence-replay. Given the code-creation.api-client-generation binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.
-minimal: specification path — "openapi.json".
-mid: compatibility version — "1.0.0".
-maximal: unknown response policy — "fail-explicitly".
+Acceptance target: policy:development.code-creation.api-client-generation:maximal:api-client-generation-source-code-boundary+api-client-generation-code-creation-context+api-client-generation-evidence-receipt.
+
+Declared predicates: api-client-generation-source-code-boundary: `specification_path` is nonempty (a string or array); api-client-generation-code-creation-context: `compatibility_version` is nonempty (a string or array); api-client-generation-evidence-receipt: `unknown_response_policy` is nonempty (a string or array).

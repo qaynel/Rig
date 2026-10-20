@@ -15,4 +15,3 @@ minimal: unit suites — ["parser"].
 mid: integration suites — ["api database"].
 
 maximal: e2e only strategy — false.
-

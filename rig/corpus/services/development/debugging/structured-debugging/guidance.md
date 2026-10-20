@@ -15,4 +15,3 @@ minimal: reproduction steps — ["run failing case"].
 mid: ranked hypotheses — ["invalid input reaches parser"].
 
 maximal: change before reproduction — false.
-

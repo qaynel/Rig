@@ -15,4 +15,3 @@ minimal: candidate resources — ["worker pool"].
 mid: minimum headroom percent — 20.
 
 maximal: resize without workload evidence — false.
-

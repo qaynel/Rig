@@ -1,15 +1,15 @@
 # testing.mutation.mutant-generator — identity
 
-Policy grade: mutant generator owns mutation.mutant-generator. Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
+Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
 
-Keep neighboring mutation services outside the mutant generator decision for mutation.mutant-generator. Use the configured input at `rig-services/testing.mutation.mutant-generator.json`; malformed input is still attributed to that path.
+Policy grade. Generate semantic production-code mutations while leaving assertions unchanged. Changing a test instead of production code can make a weak oracle appear sensitive.
 
-Disposition: convention. Start from the limit: mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Choose a repository-owned check that observes mutant generator from rig-services/testing.mutation.mutant-generator.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.mutant-generator:policy-boundary. Given source-code is present and mutation.mutant-generator is selected, pass only when the repository binding evaluates mutation.mutant-generator and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.mutant-generator`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.
-minimal: mutation operators — ["negate conditional"].
-mid: target paths — ["src/parser.js"].
-maximal: mutate test code — false.
+Read `rig-services/testing.mutation.mutant-generator.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `mutation_operators` = `["negate conditional"]`; mid adds `target_paths` = `["src/parser.js"]`; maximal requires `mutate_test_code` = `false`.

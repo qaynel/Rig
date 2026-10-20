@@ -1,11 +1,9 @@
-# testing.mutation.equivalent-mutant-detector — floor and mutation-floor slice
+# testing.mutation.equivalent-mutant-detector — floor slice
 
-Policy grade slice. This slice bounds equivalent mutant detector to mutation.equivalent-mutant-detector. It uses `equivalent-mutant-detector-slice-floor` and checks equivalence_evidence (nonempty): equivalence evidence must name the concrete repository contract..
+Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
 
-For equivalent mutant detector, choose a repository example that satisfies equivalence_evidence at the floor and mutation-floor floor, plus a failure where equivalence evidence must name the concrete repository contract. is false. For equivalent mutant detector, wire `floor and mutation-floor` to `rig-services/testing.mutation.equivalent-mutant-detector.json` and keep its verdict on equivalence_evidence; missing evidence is a named gap, with ceiling equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Choose a repository-owned check that observes equivalent mutant detector from rig-services/testing.mutation.equivalent-mutant-detector.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
-minimal: equivalence evidence — ["unreachable branch by domain proof"].
-mid: review owners — ["parser maintainer"].
-maximal: classify by survival only — false.
+This Policy slice checks `equivalence_evidence` through `equivalent-mutant-detector-slice-floor`. The good fixture supplies `equivalence_evidence` = `["unreachable branch by domain proof"]`; the bad fixture removes it.
+
+Evidence text must identify a reason to investigate equivalence, not merely repeat that tests passed. Keep the failure attached to `rig-services/testing.mutation.equivalent-mutant-detector.json`; do not infer that a mutation was generated or killed. equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.

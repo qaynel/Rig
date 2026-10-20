@@ -16,7 +16,7 @@ const { runGrade } = require('../rig/lib/lint-format');
 const { projectForAgent } = require('../rig/lib/reports');
 const { runPayload } = require('../rig/lib/payload');
 const {
-  activatePolicy, activationMessage, policyStatus, proposePolicy,
+  activatePolicy, activationMessage, effectiveStatus, policyStatus, proposePolicy,
   proposeRecovery, recoverPolicy, recoveryMessage,
 } = require('../rig/lib/policy');
 const { actionDigest, consumeOneUseApproval } = require('../rig/lib/enforcement');
@@ -37,6 +37,82 @@ function withTarget(fn) {
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
+
+test('effective policy status applies global and section switches and explains inactive leaves', () => {
+  assert.deepEqual(effectiveStatus().reasons.policy, ['missing']);
+  assert.equal(effectiveStatus({}).protected, false);
+
+  const defaultPolicy = JSON.parse(fs.readFileSync(path.join(__dirname, '../rig/catalog/baseline/network-policy.json'), 'utf8'));
+  assert.equal(effectiveStatus(defaultPolicy).protected, true);
+  const incompleteDefault = { ...defaultPolicy, controls: { ...defaultPolicy.controls } };
+  delete incompleteDefault.controls.drift;
+  assert.equal(effectiveStatus(incompleteDefault).protected, false);
+  assert.deepEqual(effectiveStatus(incompleteDefault).reasons['controls.drift'], ['missing']);
+
+  const policy = {
+    enabled: true,
+    controls: {
+      enabled: true,
+      'sanitation.harness': true,
+      'drift.exact_copy': true,
+      'drift.semantic': true,
+      'secrets.deterministic': true,
+      'network.action_policy': true,
+    },
+    enforcement: {
+      enabled: true,
+      'host.shell': true,
+      'host.web': true,
+      'host.mcp': true,
+      'git.pre_commit': true,
+      'ci.repo': true,
+    },
+    network: {
+      enabled: true,
+      categories: {
+        outbound_network: 'deny',
+        remote_content_execution: 'deny',
+        sensitive_environment_read: 'deny',
+        guardrail_bypass: 'deny',
+      },
+    },
+  };
+  assert.equal(effectiveStatus(policy).protected, true);
+
+  const networkOff = effectiveStatus({ ...policy, network: { ...policy.network, enabled: false } });
+  assert.equal(networkOff.network.outbound_network, 'disabled');
+  assert.deepEqual(networkOff.reasons['network.categories.outbound_network'], ['network.enabled=false']);
+  assert.equal(networkOff.protected, false);
+
+  const controlsOff = effectiveStatus({ ...policy, controls: { ...policy.controls, enabled: false } });
+  assert.equal(controlsOff.controls['secrets.deterministic'], 'disabled');
+  assert.deepEqual(controlsOff.reasons['controls.secrets.deterministic'], ['controls.enabled=false']);
+  assert.equal(controlsOff.protected, false);
+
+  const incompleteCurrent = { ...policy, controls: { ...policy.controls } };
+  delete incompleteCurrent.controls['network.action_policy'];
+  assert.equal(effectiveStatus(incompleteCurrent).protected, false);
+  assert.deepEqual(effectiveStatus(incompleteCurrent).reasons['controls.network.action_policy'], ['missing']);
+
+  const allOff = effectiveStatus({ ...policy, enabled: false });
+  assert.equal(allOff.enforcement['host.shell'], 'disabled');
+  assert.deepEqual(allOff.reasons['enforcement.host.shell'], ['enabled=false']);
+  assert.equal(allOff.protected, false);
+});
+
+test('unknown host capabilities fail closed while registered hosts retain their disposition', () => {
+  const { getCapabilities, materializeHostAdapters } = require('../rig/lib/host-capabilities');
+  assert.equal(getCapabilities('generic').instruction, 'unsupported');
+  const unknown = getCapabilities('nope-not-a-host');
+  assert.equal(unknown.instruction, 'unsupported');
+  assert.equal(unknown.native_skill, 'unsupported');
+  assert.equal(unknown.mcp_config.scope, 'unsupported');
+  assert.equal(getCapabilities('constructor').instruction, 'unsupported');
+
+  const result = materializeHostAdapters('/tmp', 'nope-not-a-host', () => {});
+  assert.deepEqual(result.emitted_axes, []);
+  assert.deepEqual(result.pointers, []);
+});
 
 function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub, reported: reportOverride }) {
   const root = path.join(__dirname, '..');
@@ -118,17 +194,24 @@ test('one-use approvals mutate their durable state and reject replay', () => {
   assert.throws(() => consumeOneUseApproval(approval, action), /used|replay/i);
 });
 
-test('lint grade evidence comes from spawned argv and cannot fake a clean exit', () => {
-  const result = runGrade({
-    grade: 'maximal',
-    changed: ['a.js'],
-    commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.stdout.write("real-output")'], result: { exit_code: 99 } }],
-    context: { findings: [] },
+test('lint grade evidence comes from spawned argv but missing higher-grade work cannot be claimed', () => {
+  withTarget((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const result = runGrade({
+      target,
+      grade: 'maximal',
+      changed: ['a.js'],
+      commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.stdout.write("real-output")'], source: 'rules.json', network: true, result: { exit_code: 99 } }],
+      context: { findings: [] },
+    });
+    assert.equal(result.verdict, 'fail');
+    assert.equal(result.status, 'coverage_gap');
+    assert.deepEqual(result.completed_grades, ['Policy']);
+    assert.equal(result.commands[0].result.source, undefined);
+    assert.equal(result.commands[0].result.exit_code, 0);
+    assert.equal(result.commands[0].result.output_digest, sha256('real-output\n'));
   });
-  assert.equal(result.verdict, 'pass');
-  assert.equal(result.commands[0].result.source, undefined);
-  assert.equal(result.commands[0].result.exit_code, 0);
-  assert.equal(result.evidence.output_digest, sha256('real-output\n'));
 });
 
 test('all repository mutation paths refuse ancestor symlinks that leave the target', () => {
@@ -1048,43 +1131,18 @@ test('policy CLI shows disclosure before activating model-assisted triage', () =
   });
 });
 
-test('shipping recovery verifies a pre-registered SSHSIG before committing consequences', () => {
+test('shipping recovery rejects software keys with caller-written registration claims without consequences', () => {
   withTarget((target) => {
     const policyDir = path.join(target, '.rig/policy');
-    const key = path.join(target, 'recovery-key');
-    const message = path.join(target, 'recovery-message');
     fs.mkdirSync(policyDir, { recursive: true });
-    assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]).status, 0);
-    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim();
-    fs.writeFileSync(path.join(policyDir, 'recovery.allowed-signers'), `recovery-one namespaces="rig-policy-recovery" ${publicKey}\n`);
-    const fingerprintOutput = spawnSync('ssh-keygen', ['-lf', `${key}.pub`], { encoding: 'utf8' });
-    const fingerprint = fingerprintOutput.stdout.match(/\bSHA256:[A-Za-z0-9+/=]+/)[0];
-    fs.writeFileSync(path.join(policyDir, 'trust.json'), `${JSON.stringify({
-      schema_version: 1,
-      signer: { fingerprint: 'SHA256:ordinary' },
-      recovery: [{
-        identity: 'recovery-one', fingerprint,
-        declared_class: 'ssh-ed25519', registration_receipt: { signed_before_loss: true },
-      }],
-      approvals: ['stale'],
-      evidence_epoch: 3,
-      recovery_sequence: 0,
-      previous_recovery_receipt_digest: null,
-    }, null, 2)}\n`);
-    const challenge = proposeRecovery(target, { fingerprint: 'SHA256:replacement', identity: 'new-owner' }, 'recovery-one');
-    fs.writeFileSync(message, recoveryMessage(challenge));
-    assert.equal(spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-recovery', message]).status, 0);
-    const result = recoverPolicy(target, challenge, {
-      challenge_digest: challenge.digest,
-      identity: 'recovery-one',
-      signature: fs.readFileSync(`${message}.sig`, 'utf8'),
-    });
-    assert.equal(result.trust.signer.fingerprint, 'SHA256:replacement');
-    assert.deepEqual(result.trust.approvals, []);
-    assert.equal(result.trust.evidence_epoch, 4);
-    assert.equal(result.receipt.recovery_credential_fingerprint, fingerprint);
-    assert.ok(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')));
-    assert.throws(() => recoverPolicy(target, challenge, {}), /stale|foreign|challenge/i);
+    const state = { schema_version: 1, signer: { fingerprint: 'SHA256:ordinary' }, recovery: [{ identity: 'recovery-one', fingerprint: 'SHA256:software', declared_class: 'ssh-ed25519', registration_receipt: { signed_before_loss: true } }], approvals: ['stale'], evidence_epoch: 3, recovery_sequence: 0 };
+    const trust = path.join(policyDir, 'trust.json');
+    fs.writeFileSync(trust, `${JSON.stringify(state, null, 2)}\n`);
+    const before = fs.readFileSync(trust);
+    assert.throws(() => proposeRecovery(target, { fingerprint: 'SHA256:replacement', identity: 'new-owner' }, 'recovery-one'), /registration chain|trust/i);
+    assert.throws(() => recoverPolicy(target, { kind: 'signer_recovery' }, { identity: 'recovery-one', signature: 'forged' }), /digest|trust|registration/i);
+    assert.deepEqual(fs.readFileSync(trust), before);
+    assert.equal(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')), false);
   });
 });
 

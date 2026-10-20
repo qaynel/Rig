@@ -1,11 +1,7 @@
 # development.documentation.api-reference — floor and mutation-floor slice
 
-Policy grade slice. This slice bounds api reference to documentation.api-reference. It uses `api-reference-slice-floor` and checks documented_endpoints (nonempty): documented endpoints must name the concrete repository contract..
+Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
 
-For api reference, choose a repository example that satisfies documented_endpoints at the floor and mutation-floor floor, plus a failure where documented endpoints must name the concrete repository contract. is false. For api reference, wire `floor and mutation-floor` to `rig-services/development.documentation.api-reference.json` and keep its verdict on documented_endpoints; missing evidence is a named gap, with ceiling api reference configuration validation only; declared policy does not prove running api reference behavior. Choose a repository-owned check that observes api reference from rig-services/development.documentation.api-reference.json..
+Policy grade. The `api-reference-slice-floor` and `api-reference-slice-mutation-floor` checks require at least one configured `documented_endpoints` value. The slice does not query routes or modify API documentation.
 
-Service-specific evidence cues:
-Offer: Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
-minimal: documented endpoints — ["/items"].
-mid: error responses — ["400 invalid input"].
-maximal: authentication documented — true.
+Example policy value: `documented_endpoints` = ["/items"]. A value here is not proof that this endpoint exists, has that response shape, or is publicly accessible.

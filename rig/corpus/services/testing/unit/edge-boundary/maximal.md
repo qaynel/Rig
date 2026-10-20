@@ -1,13 +1,11 @@
 # testing.unit.edge-boundary — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for edge boundary. The evidence must preserve the boundary_cases, invalid_cases, normal_only_tests inputs that determined the result. Binding checks: edge-boundary-evidence-receipt.
+Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
 
-Use a second run against unchanged edge boundary inputs. Record the boundary_cases, invalid_cases, normal_only_tests inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this edge boundary result is stale. The ceiling remains: edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Choose a repository-owned check that observes edge boundary from rig-services/testing.unit.edge-boundary.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: edge-boundary-source-code-boundary, edge-boundary-unit-context, edge-boundary-evidence-receipt.
 
-Acceptance target: fixture:testing.unit.edge-boundary:evidence-replay. Given the unit.edge-boundary binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
-minimal: boundary cases — ["empty input","maximum length"].
-mid: invalid cases — ["negative count"].
-maximal: normal only tests — false.
+Acceptance target: policy:testing.unit.edge-boundary:maximal:edge-boundary-source-code-boundary+edge-boundary-unit-context+edge-boundary-evidence-receipt.
+
+Declared predicates: edge-boundary-source-code-boundary: `boundary_cases` is nonempty (a string or array); edge-boundary-unit-context: `invalid_cases` is nonempty (a string or array); edge-boundary-evidence-receipt: `normal_only_tests` equals false.

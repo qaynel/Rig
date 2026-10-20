@@ -2,17 +2,11 @@
 
 Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
 
-Owned scope: `mutation.language-adapter`.
+Assurance remains Policy grade.
 
-Offer: Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
+Declare which source extensions and compiler or parser command the mutation adapter can handle. A parse or compile error is a coverage gap, not a killed mutant or successful result.
 
-Input: `rig-services/testing.mutation.language-adapter.json`. Detection records the path even when its contents are malformed.
+The policy input is `rig-services/testing.mutation.language-adapter.json`. Keep its configuration visible to review: minimal supplies `source_extensions` = `[".js"]`; mid adds `compiler_command` = `["node","--check"]`; maximal sets `parse_errors_are_success` = `false`.
 
-Coverage ceiling: language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.
 
-minimal: source extensions — [".js"].
-
-mid: compiler command — ["node","--check"].
-
-maximal: parse errors are success — false.
-
+The native check validates this service’s declared policy only; it does not run the service. For runtime assurance, run an approved repository-owned command and preserve its exit status.

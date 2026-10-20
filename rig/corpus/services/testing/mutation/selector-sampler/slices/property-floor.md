@@ -1,11 +1,9 @@
 # testing.mutation.selector-sampler — property-floor slice
 
-Policy grade slice. This slice bounds selector sampler to mutation.selector-sampler. It uses `selector-sampler-slice-property-floor` and checks selection_scope (nonempty): selection scope must name the concrete repository contract..
+Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
 
-For selector sampler, choose a repository example that satisfies selection_scope at the property-floor floor, plus a failure where selection scope must name the concrete repository contract. is false. For selector sampler, wire `property-floor` to `rig-services/testing.mutation.selector-sampler.json` and keep its verdict on selection_scope; missing evidence is a named gap, with ceiling selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Choose a repository-owned check that observes selector sampler from rig-services/testing.mutation.selector-sampler.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
-minimal: selection scope — ["changed parser functions"].
-mid: sampling seed — 42.
-maximal: claim exhaustive from sample — false.
+This slice verifies the configured `selection_scope` rule using `selector-sampler-slice-property-floor`. Choose a reproducible subset of candidate mutants for a bounded run.
+
+The accepted fixture contains `selection_scope` = `["changed parser functions"]`; the invalid fixture demonstrates the missing-field case. This checks policy shape only, not a property of generated mutants.

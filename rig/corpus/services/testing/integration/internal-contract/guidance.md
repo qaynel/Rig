@@ -15,4 +15,3 @@ minimal: producer schema — "schemas/order.json".
 mid: consumer versions — ["v1","v2"].
 
 maximal: allow breaking change — false.
-

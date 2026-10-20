@@ -1,13 +1,15 @@
 # testing.mutation.ci-gate-policy — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for ci gate policy. The minimal boundary for ci gate policy checks minimum_score_percent (minimum 70): minimum score percent must meet the configured minimum of 70.. Binding checks: ci-gate-policy-source-code-boundary.
+Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-Ground the decision in a repository-owned command or existing native check that can observe mutation.ci-gate-policy; bind it to the input named in `rig-services/testing.mutation.ci-gate-policy.json` and preserve the check's failure status. When adopting this in an existing repository, connect ci gate policy to the command that inspects minimum_score_percent and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside mutation.ci-gate-policy as a failure.
+Grade: minimal. Assurance remains Policy grade. This check rejects a policy with no minimum_score_percent: the bad fixture has `minimum_score_percent` = `-1`, while the accepted fixture has `minimum_score_percent` = `70`.
 
-Acceptance target: fixture:testing.mutation.ci-gate-policy:policy-boundary. Given source-code is present and mutation.ci-gate-policy is selected, pass only when the repository binding evaluates mutation.ci-gate-policy and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern. The ceiling is ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Choose a repository-owned check that observes ci gate policy from rig-services/testing.mutation.ci-gate-policy.json..
+Set `minimum_score_percent` to at least 70. The result says only that the configured operator or input is present. Choose the minimum score before evaluating a run; the example threshold is 70 percent.
 
-Service-specific evidence cues:
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
-minimal: minimum score percent — 70.
-mid: timeout policy — "fail-inconclusive".
-maximal: allow unrun mutants — false.
+Input: `rig-services/testing.mutation.ci-gate-policy.json`. The selected binding must preserve a nonzero result when this field is missing or unreadable. The ceiling is: ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.
+
+Acceptance target: policy:testing.mutation.ci-gate-policy:minimal:ci-gate-policy-source-code-boundary.
+
+Declared predicates: ci-gate-policy-source-code-boundary: `minimum_score_percent` is numeric and at least 70.
+
+Check: `ci-gate-policy-source-code-boundary`.

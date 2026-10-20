@@ -13,6 +13,12 @@ service-specific identity, minimal, mid, maximal, and slice guidance, and the
 signed AT-SHAPE-6 oracle rejects generic-baseline wording in authored service
 fragments. Coherence and corpus-contract proofs also pass
 ([closeout trace](../reasoning/2026-10-14-closure-coherence-green.md)). The
+current [semantic review correction](../reasoning/2026-10-18-qa-review-runtime-corrections.md)
+found disposition-label drift and repeated sentence artifacts in those files;
+the [alignment checkpoint](../reasoning/2026-10-18-qa-catalogue-alignment-checkpoint.md)
+records corrected identity labels and a gate for the reproduced sentence defect.
+Those changes require an owner-signed digest refresh.
+The
 older unsigned-candidate account is preserved as historical evidence
 ([candidate evidence](../reasoning/2026-10-14-closure-candidate-advisories.md)).
 The [QA candidate-preparation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-candidate-prep.md)
@@ -72,6 +78,10 @@ either user-choice violations or unnecessary machinery. [Gate 2 §2.1](../gate2/
 - Gate 2 grade-ladder and lint-format mechanism design: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
 
 ## Current delivery
+
+The [semantic-service checkpoint](../reasoning/2026-10-18-qa-semantic-service-review.md)
+records the first 13 service reviews, their fixture checks, and the remaining
+Policy-grade acceptance-metadata mismatch.
 
 The catalogue is implemented as a completed family → group → service → grade
 contract. All 115 services have service-specific guidance, declared checks and

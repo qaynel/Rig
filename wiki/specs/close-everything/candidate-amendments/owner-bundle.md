@@ -5,6 +5,13 @@ not authorize edits to `wiki/gate1/`, `package.json` scripts, or catalogue
 compatibility files. The owner applies any selected changes and regenerates
 the signed manifest and signature only in the authorized signing session.
 
+**Current owner entrypoint:** the binding-review batch is consolidated in
+[`binding-review-owner.patch`](binding-review-owner.patch), with its review
+request and exact owner steps in
+[`2026-10-18-binding-review-unfreeze-request.md`](2026-10-18-binding-review-unfreeze-request.md).
+The older `owner-amendments.patch` below is historical evidence for the earlier
+four-case batch; do not apply it in addition to the consolidated patch.
+
 ## Apply it with one patch
 
 [`owner-amendments.patch`](owner-amendments.patch) carries all four frozen-case

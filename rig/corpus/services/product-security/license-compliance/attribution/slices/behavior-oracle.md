@@ -1,11 +1,5 @@
 # product-security.license-compliance.attribution — behavior-oracle slice
 
-Policy grade slice. This slice bounds attribution to license-compliance.attribution. It uses `attribution-slice-behavior-oracle` and checks notice_paths (nonempty): notice paths must name the concrete repository contract..
+Retain the required notices for redistributed third-party components and keep attribution tied to the inventory. A license label cannot replace a required copyright notice.
 
-For attribution, choose a repository example that satisfies notice_paths at the behavior-oracle floor, plus a failure where notice paths must name the concrete repository contract. is false. For attribution, wire `behavior-oracle` to `rig-services/product-security.license-compliance.attribution.json` and keep its verdict on notice_paths; missing evidence is a named gap, with ceiling attribution configuration validation only; declared policy does not prove running attribution behavior. Choose a repository-owned check that observes attribution from rig-services/product-security.license-compliance.attribution.json..
-
-Service-specific evidence cues:
-Offer: Retain the required notices for redistributed third-party components and keep attribution tied to the inventory. A license label cannot replace a required copyright notice.
-minimal: notice paths — ["THIRD_PARTY_NOTICES"].
-mid: attributed components — ["library@1.0.0"].
-maximal: remove required notices — false.
+Policy grade slice. This slice bounds attribution to license-compliance.attribution. It uses `attribution-slice-behavior-oracle` and checks notice_paths (nonempty): notice paths must name the concrete repository contract.

@@ -1,13 +1,9 @@
 # product-security.red-team.blast-radius — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for blast radius. The minimal boundary for blast radius checks privilege_scopes (nonempty): privilege scopes must name the concrete repository contract.. Binding checks: blast-radius-source-code-boundary.
+Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
 
-Start from a repository-owned command or existing native check that can observe red-team.blast-radius; bind it to the input named in `rig-services/product-security.red-team.blast-radius.json` and preserve the check's failure status. When adopting this in an existing repository, connect blast radius to the command that inspects privilege_scopes and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside red-team.blast-radius as a failure.
+Grade: minimal. Assurance remains Policy grade. `blast-radius-source-code-boundary` checks that `privilege_scopes` is nonempty. Example: ["read single tenant"].
 
-Acceptance target: fixture:product-security.red-team.blast-radius:policy-boundary. Given source-code is present and red-team.blast-radius is selected, pass only when the repository binding evaluates red-team.blast-radius and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern. The ceiling is blast radius configuration validation only; declared policy does not prove running blast radius behavior. Choose a repository-owned check that observes blast radius from rig-services/product-security.red-team.blast-radius.json..
+Describe the principal’s actual privileges and the enforcement boundary between tenants. The example values are illustrative; the native check cannot verify that enforcement exists. The rule proves only that a value was configured.
 
-Service-specific evidence cues:
-Offer: Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
-minimal: privilege scopes — ["read single tenant"].
-mid: isolation boundaries — ["tenant id enforced"].
-maximal: cross tenant access — false.
+Catalogue policy target: `policy:product-security.red-team.blast-radius:minimal:blast-radius-source-code-boundary`. This names the policy condition; no runnable attack fixture is included here.

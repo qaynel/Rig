@@ -15,4 +15,3 @@ minimal: storage classes — ["hot","archive"].
 mid: retention days — 30.
 
 maximal: delete before retention — false.
-

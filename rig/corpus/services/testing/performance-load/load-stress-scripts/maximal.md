@@ -1,13 +1,11 @@
 # testing.performance-load.load-stress-scripts — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for load stress scripts. The evidence must preserve the load_profile, stop_conditions, target_production_by_default inputs that determined the result. Binding checks: load-stress-scripts-evidence-receipt.
+Define the load profile and automatic stop conditions before generating pressure. Stress scripts must target an approved isolated environment instead of defaulting to production.
 
-Start from a second run against unchanged load stress scripts inputs. Record the load_profile, stop_conditions, target_production_by_default inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this load stress scripts result is stale. The ceiling remains: load stress scripts configuration validation only; declared policy does not prove running load stress scripts behavior. Choose a repository-owned check that observes load stress scripts from rig-services/testing.performance-load.load-stress-scripts.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: load-stress-scripts-source-code-boundary, load-stress-scripts-performance-load-context, load-stress-scripts-evidence-receipt.
 
-Acceptance target: fixture:testing.performance-load.load-stress-scripts:evidence-replay. Given the perf-load-test-authoring binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Define the load profile and automatic stop conditions before generating pressure. Stress scripts must target an approved isolated environment instead of defaulting to production.
-minimal: load profile — "ramp 10 to 100 users".
-mid: stop conditions — ["error rate above 5 percent"].
-maximal: target production by default — false.
+Acceptance target: policy:testing.performance-load.load-stress-scripts:maximal:load-stress-scripts-source-code-boundary+load-stress-scripts-performance-load-context+load-stress-scripts-evidence-receipt.
+
+Declared predicates: load-stress-scripts-source-code-boundary: `load_profile` is nonempty (a string or array); load-stress-scripts-performance-load-context: `stop_conditions` is nonempty (a string or array); load-stress-scripts-evidence-receipt: `target_production_by_default` equals false.

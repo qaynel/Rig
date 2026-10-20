@@ -1,13 +1,13 @@
 # testing.mutation.equivalent-mutant-detector — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for equivalent mutant detector; it does not widen ownership beyond mutation.equivalent-mutant-detector. For equivalent mutant detector, inspect these context signals: review_owners. Binding checks: equivalent-mutant-detector-mutation-context.
+Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
 
-Ground the decision in the existing repository's equivalent mutant detector convention, then name the source path or command that establishes it. For equivalent mutant detector, inspect the repository's actual spec, source, test, or configuration for review_owners; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the equivalent mutant detector decision for mutation.equivalent-mutant-detector.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: equivalent-mutant-detector-source-code-boundary, equivalent-mutant-detector-mutation-context.
 
-Acceptance target: fixture:testing.mutation.equivalent-mutant-detector:repository-context. Given mutation.equivalent-mutant-detector has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `review_owners`. Name a reviewer who can assess the affected behavior and inspect the domain evidence behind the claim.
 
-Service-specific evidence cues:
-Offer: Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
-minimal: equivalence evidence — ["unreachable branch by domain proof"].
-mid: review owners — ["parser maintainer"].
-maximal: classify by survival only — false.
+This remains configuration review. A value in `rig-services/testing.mutation.equivalent-mutant-detector.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.equivalent-mutant-detector:mid:equivalent-mutant-detector-source-code-boundary+equivalent-mutant-detector-mutation-context.
+
+Check: `equivalent-mutant-detector-mutation-context`.

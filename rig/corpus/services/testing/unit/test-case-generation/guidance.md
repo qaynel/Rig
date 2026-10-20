@@ -15,4 +15,3 @@ minimal: behavior cases — ["reject malformed input"].
 mid: asserted outcomes — ["throws invalid record"].
 
 maximal: assert implementation details — false.
-

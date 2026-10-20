@@ -15,4 +15,3 @@ minimal: workload — "1000 item reads".
 mid: measured metrics — ["latency_ms","allocations"].
 
 maximal: optimize without measurement — false.
-

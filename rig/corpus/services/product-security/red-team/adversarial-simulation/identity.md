@@ -1,15 +1,13 @@
 # product-security.red-team.adversarial-simulation — identity
 
-Policy grade: adversarial simulation owns red-team.adversarial-simulation. Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
+Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
 
-Keep neighboring red-team services outside the adversarial simulation decision for red-team.adversarial-simulation. Read the configured input at `rig-services/product-security.red-team.adversarial-simulation.json`; malformed input is still attributed to that path.
+Policy grade. Run threat scenarios only in a contained, approved environment. Customer data and unapproved production targets are out of scope.
 
-Disposition: convention. Ground the decision in the limit: adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Choose a repository-owned check that observes adversarial simulation from rig-services/product-security.red-team.adversarial-simulation.json.
+Applicable surface: source-code. Owned scope: `red-team.adversarial-simulation`. Input: `rig-services/product-security.red-team.adversarial-simulation.json`.
 
-Acceptance target: fixture:product-security.red-team.adversarial-simulation:policy-boundary. Given source-code is present and red-team.adversarial-simulation is selected, pass only when the repository binding evaluates red-team.adversarial-simulation and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern.
+Disposition: executable. The native checks validate policy configuration only; they do not demonstrate the promised red-team behavior.
 
-Service-specific evidence cues:
-Offer: Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
-minimal: attack scenarios — ["malformed token"].
-mid: containment scope — "isolated test deployment".
-maximal: use real customer data — false.
+The native rules only check that attack_scenarios and containment_scope are nonempty and use_real_customer_data is false. They do not launch a simulation or verify containment.
+
+Configured examples: minimal `attack_scenarios` = ["malformed token"]; mid `containment_scope` = "isolated test deployment"; maximal `use_real_customer_data` = false. These are policy values, not results from an attack simulation or runtime probe.

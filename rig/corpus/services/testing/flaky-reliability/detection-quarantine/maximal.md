@@ -1,13 +1,11 @@
 # testing.flaky-reliability.detection-quarantine — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for detection quarantine. The evidence must preserve the flaky_cases, quarantine_owners, silent_quarantine inputs that determined the result. Binding checks: detection-quarantine-evidence-receipt.
+Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.
 
-Use a second run against unchanged detection quarantine inputs. Record the flaky_cases, quarantine_owners, silent_quarantine inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this detection quarantine result is stale. The ceiling remains: detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Choose a repository-owned check that observes detection quarantine from rig-services/testing.flaky-reliability.detection-quarantine.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: detection-quarantine-source-code-boundary, detection-quarantine-flaky-reliability-context, detection-quarantine-evidence-receipt.
 
-Acceptance target: fixture:testing.flaky-reliability.detection-quarantine:evidence-replay. Given the flaky-reliability.detection-quarantine binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.
-minimal: flaky cases — ["slow websocket reconnect"].
-mid: quarantine owners — ["realtime"].
-maximal: silent quarantine — false.
+Acceptance target: policy:testing.flaky-reliability.detection-quarantine:maximal:detection-quarantine-source-code-boundary+detection-quarantine-flaky-reliability-context+detection-quarantine-evidence-receipt.
+
+Declared predicates: detection-quarantine-source-code-boundary: `flaky_cases` is nonempty (a string or array); detection-quarantine-flaky-reliability-context: `quarantine_owners` is nonempty (a string or array); detection-quarantine-evidence-receipt: `silent_quarantine` equals false.

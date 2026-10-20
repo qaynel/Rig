@@ -1,13 +1,11 @@
 # testing.integration.cross-module — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for cross module. The evidence must preserve the participating_modules, interaction_cases, stub_internal_contracts inputs that determined the result. Binding checks: cross-module-evidence-receipt.
+Exercise interactions between real modules and assert their shared observable result. Stubbing the internal boundary defeats the purpose of the integration check.
 
-Use a second run against unchanged cross module inputs. Record the participating_modules, interaction_cases, stub_internal_contracts inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this cross module result is stale. The ceiling remains: cross module configuration validation only; declared policy does not prove running cross module behavior. Choose a repository-owned check that observes cross module from rig-services/testing.integration.cross-module.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: cross-module-source-code-boundary, cross-module-integration-context, cross-module-evidence-receipt.
 
-Acceptance target: fixture:testing.integration.cross-module:evidence-replay. Given the integration.cross-module binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Exercise interactions between real modules and assert their shared observable result. Stubbing the internal boundary defeats the purpose of the integration check.
-minimal: participating modules — ["orders","inventory"].
-mid: interaction cases — ["order reserves stock"].
-maximal: stub internal contracts — false.
+Acceptance target: policy:testing.integration.cross-module:maximal:cross-module-source-code-boundary+cross-module-integration-context+cross-module-evidence-receipt.
+
+Declared predicates: cross-module-source-code-boundary: `participating_modules` is nonempty (a string or array); cross-module-integration-context: `interaction_cases` is nonempty (a string or array); cross-module-evidence-receipt: `stub_internal_contracts` equals false.

@@ -1,15 +1,15 @@
 # testing.mutation.remediation-advisor — identity
 
-Policy grade: remediation advisor owns mutation.remediation-advisor. Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
+Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
 
-Keep neighboring mutation services outside the remediation advisor decision for mutation.remediation-advisor. Use the configured input at `rig-services/testing.mutation.remediation-advisor.json`; malformed input is still attributed to that path.
+Policy grade. Propose behavior-level tests that would distinguish a survived mutation. An assertion that copies the implementation logic may preserve the same bug.
 
-Disposition: convention. Start from the limit: remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Choose a repository-owned check that observes remediation advisor from rig-services/testing.mutation.remediation-advisor.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.remediation-advisor:policy-boundary. Given source-code is present and mutation.remediation-advisor is selected, pass only when the repository binding evaluates mutation.remediation-advisor and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.remediation-advisor`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-minimal: remediation cases — ["reject exact upper limit"].
-mid: target behaviors — ["limit enforcement"].
-maximal: add implementation mirrors — false.
+Read `rig-services/testing.mutation.remediation-advisor.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `remediation_cases` = `["reject exact upper limit"]`; mid adds `target_behaviors` = `["limit enforcement"]`; maximal requires `add_implementation_mirrors` = `false`.

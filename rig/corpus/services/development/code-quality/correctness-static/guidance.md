@@ -15,4 +15,3 @@ minimal: analyzer command — ["npm","run","analyze"].
 mid: enabled rules — ["null-dereference"].
 
 maximal: ignore analyzer failure — false.
-

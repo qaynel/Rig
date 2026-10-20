@@ -123,6 +123,30 @@ test('configuration-only infrastructure service keeps an honest assurance ceilin
   assert.match(definition(kubernetes).value.ceiling, /configuration validation only|does not prove running/i);
 });
 
+test('DNS discovery identity matches its executable native policy checks', () => {
+  const service = loadCatalog().services.find(row => row.id === 'infrastructure.networking.dns-discovery');
+  const { value } = definition(service);
+  const identity = fs.readFileSync(path.join(h.root, 'rig', service.fragments.identity), 'utf8');
+  assert.match(identity, new RegExp(`^# ${service.id} — identity[\\s\\S]*?Disposition: ${service.disposition.kind}\\b`));
+  assert.equal(service.disposition.kind, 'executable');
+  assert.deepEqual(service.disposition.argv.slice(-2), ['--service', service.id]);
+  assert.deepEqual(value.checks.minimal.map(check => check.field), ['service_records']);
+  assert.deepEqual(value.checks.mid.map(check => check.field), ['ttl_seconds']);
+  assert.deepEqual(value.checks.maximal.map(check => check.field), ['hardcode_ephemeral_addresses']);
+  assert.match(value.ceiling, /configuration validation only; declared policy does not prove running dns discovery behavior/i);
+});
+
+test('every service identity declares the catalogue disposition', () => {
+  const services = loadCatalog().services;
+  assert.ok(services.length > 0);
+  for (const service of services) {
+    const identity = fs.readFileSync(path.join(h.root, 'rig', service.fragments.identity), 'utf8');
+    const declared = identity.match(/^Disposition: ([a-z-]+)\b/m)?.[1];
+    assert.ok(declared, `${service.id}: identity disposition missing`);
+    assert.equal(declared, service.disposition.kind, `${service.id}: identity/catalogue disposition mismatch`);
+  }
+});
+
 test('signed onboarding binds and executes a selected documentation service', async () => {
   await h.withRepo(target => {
     fs.writeFileSync(path.join(target, 'README.md'), '# Project\n\n## Setup\nRun npm install.\n\n## Run\nRun npm start.\n\n## Check\nRun npm test.\n');

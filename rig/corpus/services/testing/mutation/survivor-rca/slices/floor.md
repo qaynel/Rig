@@ -1,11 +1,9 @@
-# testing.mutation.survivor-rca — floor and mutation-floor slice
+# testing.mutation.survivor-rca — floor slice
 
-Policy grade slice. This slice bounds survivor rca to mutation.survivor-rca. It uses `survivor-rca-slice-floor` and checks surviving_mutants (nonempty): surviving mutants must name the concrete repository contract..
+Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
 
-For survivor rca, choose a repository example that satisfies surviving_mutants at the floor and mutation-floor floor, plus a failure where surviving mutants must name the concrete repository contract. is false. For survivor rca, wire `floor and mutation-floor` to `rig-services/testing.mutation.survivor-rca.json` and keep its verdict on surviving_mutants; missing evidence is a named gap, with ceiling survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Choose a repository-owned check that observes survivor rca from rig-services/testing.mutation.survivor-rca.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
-minimal: surviving mutants — ["boundary comparison changed"].
-mid: missing assertions — ["exact limit rejected"].
-maximal: ignore equivalence question — false.
+This Policy slice checks `surviving_mutants` through `survivor-rca-slice-floor`. The good fixture supplies `surviving_mutants` = `["boundary comparison changed"]`; the bad fixture removes it.
+
+Name the surviving mutation so the investigation has a concrete starting point. Keep the failure attached to `rig-services/testing.mutation.survivor-rca.json`; do not infer that a mutation was generated or killed. survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.

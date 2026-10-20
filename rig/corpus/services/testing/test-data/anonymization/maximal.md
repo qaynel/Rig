@@ -1,13 +1,11 @@
 # testing.test-data.anonymization — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for anonymization. The evidence must preserve the sensitive_fields, replacement_strategy, retain_reidentification_map inputs that determined the result. Binding checks: anonymization-evidence-receipt.
+Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.
 
-Use a second run against unchanged anonymization inputs. Record the sensitive_fields, replacement_strategy, retain_reidentification_map inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this anonymization result is stale. The ceiling remains: anonymization configuration validation only; declared policy does not prove running anonymization behavior. Choose a repository-owned check that observes anonymization from rig-services/testing.test-data.anonymization.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: anonymization-source-code-boundary, anonymization-test-data-context, anonymization-evidence-receipt.
 
-Acceptance target: fixture:testing.test-data.anonymization:evidence-replay. Given the test-data.anonymization binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.
-minimal: sensitive fields — ["email","address"].
-mid: replacement strategy — "irreversible-synthetic-values".
-maximal: retain reidentification map — false.
+Acceptance target: policy:testing.test-data.anonymization:maximal:anonymization-source-code-boundary+anonymization-test-data-context+anonymization-evidence-receipt.
+
+Declared predicates: anonymization-source-code-boundary: `sensitive_fields` is nonempty (a string or array); anonymization-test-data-context: `replacement_strategy` is nonempty (a string or array); anonymization-evidence-receipt: `retain_reidentification_map` equals false.

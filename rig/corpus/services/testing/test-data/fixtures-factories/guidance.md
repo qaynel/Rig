@@ -15,4 +15,3 @@ minimal: fixture defaults — ["valid account"].
 mid: explicit variants — ["expired account"].
 
 maximal: shared mutable state — false.
-

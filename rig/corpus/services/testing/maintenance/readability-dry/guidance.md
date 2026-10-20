@@ -15,4 +15,3 @@ minimal: scenario names — ["expired token is rejected"].
 mid: shared helpers — ["create valid account"].
 
 maximal: hide assertions in helpers — false.
-

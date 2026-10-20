@@ -1,13 +1,9 @@
 # product-security.red-team.auth-session-probe — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for auth session probe. The evidence must preserve the session_cases, protected_routes, accept_revoked_session inputs that determined the result. Binding checks: auth-session-probe-evidence-receipt.
+Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
 
-Ground the decision in a second run against unchanged auth session probe inputs. Record the session_cases, protected_routes, accept_revoked_session inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this auth session probe result is stale. The ceiling remains: auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Choose a repository-owned check that observes auth session probe from rig-services/product-security.red-team.auth-session-probe.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: auth-session-probe-source-code-boundary, auth-session-probe-red-team-context, auth-session-probe-evidence-receipt.
 
-Acceptance target: fixture:product-security.red-team.auth-session-probe:evidence-replay. Given the red-team.auth-session-probe binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The native rules only check nonempty session_cases and protected_routes and require accept_revoked_session=false. They do not make requests or test authentication behavior. For runtime assurance, test each declared case against each protected route: valid sessions retain intended access; expired, logged-out, and revoked sessions do not.
 
-Service-specific evidence cues:
-Offer: Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
-minimal: session cases — ["expiry","logout","revocation"].
-mid: protected routes — ["/account"].
-maximal: accept revoked session — false.
+Catalogue policy target: `policy:product-security.red-team.auth-session-probe:maximal:auth-session-probe-source-code-boundary+auth-session-probe-red-team-context+auth-session-probe-evidence-receipt`. Its current rule proves only that accept_revoked_session equals false. It does not run or replay a red-team test.

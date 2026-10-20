@@ -1,13 +1,11 @@
 # testing.maintenance.readability-dry — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for readability dry. The evidence must preserve the scenario_names, shared_helpers, hide_assertions_in_helpers inputs that determined the result. Binding checks: readability-dry-evidence-receipt.
+Name scenarios by the behavior they establish and share setup only where it clarifies them. Hiding every assertion behind helpers makes failures harder to interpret.
 
-Inspect a second run against unchanged readability dry inputs. Record the scenario_names, shared_helpers, hide_assertions_in_helpers inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this readability dry result is stale. The ceiling remains: readability dry configuration validation only; declared policy does not prove running readability dry behavior. Choose a repository-owned check that observes readability dry from rig-services/testing.maintenance.readability-dry.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: readability-dry-source-code-boundary, readability-dry-maintenance-context, readability-dry-evidence-receipt.
 
-Acceptance target: fixture:testing.maintenance.readability-dry:evidence-replay. Given the maintenance.readability-dry binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Name scenarios by the behavior they establish and share setup only where it clarifies them. Hiding every assertion behind helpers makes failures harder to interpret.
-minimal: scenario names — ["expired token is rejected"].
-mid: shared helpers — ["create valid account"].
-maximal: hide assertions in helpers — false.
+Acceptance target: policy:testing.maintenance.readability-dry:maximal:readability-dry-source-code-boundary+readability-dry-maintenance-context+readability-dry-evidence-receipt.
+
+Declared predicates: readability-dry-source-code-boundary: `scenario_names` is nonempty (a string or array); readability-dry-maintenance-context: `shared_helpers` is nonempty (a string or array); readability-dry-evidence-receipt: `hide_assertions_in_helpers` equals false.

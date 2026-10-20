@@ -1,13 +1,7 @@
 # infrastructure.networking.vpc-firewall — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for vpc firewall. The evidence must preserve the allowed_ingress, default_action, allow_world_admin_access inputs that determined the result. Binding checks: vpc-firewall-evidence-receipt.
+Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
 
-Read a second run against unchanged vpc firewall inputs. Record the allowed_ingress, default_action, allow_world_admin_access inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this vpc firewall result is stale. The ceiling remains: vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Choose a repository-owned check that observes vpc firewall from rig-services/infrastructure.networking.vpc-firewall.json.
+Maximal still provides Policy grade assurance. `vpc-firewall-evidence-receipt` checks `allow_world_admin_access`: administrative ingress must not be open to the world. The checks reject world-open administrative access but do not collect, sign, or replay provider evidence.
 
-Acceptance target: fixture:infrastructure.networking.vpc-firewall:evidence-replay. Given the networking.vpc-firewall binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
-
-Service-specific evidence cues:
-Offer: Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
-minimal: allowed ingress — ["443/tcp"].
-mid: default action — "deny".
-maximal: allow world admin access — false.
+The installed predicate does not produce a replayable evidence receipt. It checks the JSON at `rig-services/infrastructure.networking.vpc-firewall.json` only. These checks inspect the declared firewall policy. They do not query a cloud provider, compute effective rules across network layers, or test packet reachability.

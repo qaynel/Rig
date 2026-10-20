@@ -1,13 +1,13 @@
 # testing.mutation.ci-gate-policy — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for ci gate policy. The evidence must preserve the minimum_score_percent, timeout_policy, allow_unrun_mutants inputs that determined the result. Binding checks: ci-gate-policy-evidence-receipt.
+Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-Start from a second run against unchanged ci gate policy inputs. Record the minimum_score_percent, timeout_policy, allow_unrun_mutants inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this ci gate policy result is stale. The ceiling remains: ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Choose a repository-owned check that observes ci gate policy from rig-services/testing.mutation.ci-gate-policy.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: ci-gate-policy-source-code-boundary, ci-gate-policy-mutation-context, ci-gate-policy-evidence-receipt.
 
-Acceptance target: fixture:testing.mutation.ci-gate-policy:evidence-replay. Given the mutation.ci-gate-policy binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+Keep `allow_unrun_mutants` equal to false. Do not allow unrun mutants to pass the gate; configuration alone does not prove the CI job enforces that policy.
 
-Service-specific evidence cues:
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
-minimal: minimum score percent — 70.
-mid: timeout policy — "fail-inconclusive".
-maximal: allow unrun mutants — false.
+Maximal here adds a configuration guard, not an evidence receipt or a demonstrated mutation outcome. ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.
+
+Evidence-replay target (not established by this policy check): policy:testing.mutation.ci-gate-policy:maximal:ci-gate-policy-source-code-boundary+ci-gate-policy-mutation-context+ci-gate-policy-evidence-receipt.
+
+Check: `ci-gate-policy-evidence-receipt`.

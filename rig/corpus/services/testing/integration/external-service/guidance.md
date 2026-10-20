@@ -15,4 +15,3 @@ minimal: external contracts — ["payment authorization"].
 mid: failure cases — ["timeout","malformed response"].
 
 maximal: require production account — false.
-

@@ -1,13 +1,11 @@
 # testing.unit.mocking-strategy — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for mocking strategy. The evidence must preserve the mocked_boundaries, real_components, mock_unit_under_test inputs that determined the result. Binding checks: mocking-strategy-evidence-receipt.
+Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.
 
-Inspect a second run against unchanged mocking strategy inputs. Record the mocked_boundaries, real_components, mock_unit_under_test inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this mocking strategy result is stale. The ceiling remains: mocking strategy configuration validation only; declared policy does not prove running mocking strategy behavior. Choose a repository-owned check that observes mocking strategy from rig-services/testing.unit.mocking-strategy.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: mocking-strategy-source-code-boundary, mocking-strategy-unit-context, mocking-strategy-evidence-receipt.
 
-Acceptance target: fixture:testing.unit.mocking-strategy:evidence-replay. Given the unit.mocking-strategy binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.
-minimal: mocked boundaries — ["payment network"].
-mid: real components — ["order service"].
-maximal: mock unit under test — false.
+Acceptance target: policy:testing.unit.mocking-strategy:maximal:mocking-strategy-source-code-boundary+mocking-strategy-unit-context+mocking-strategy-evidence-receipt.
+
+Declared predicates: mocking-strategy-source-code-boundary: `mocked_boundaries` is nonempty (a string or array); mocking-strategy-unit-context: `real_components` is nonempty (a string or array); mocking-strategy-evidence-receipt: `mock_unit_under_test` equals false.

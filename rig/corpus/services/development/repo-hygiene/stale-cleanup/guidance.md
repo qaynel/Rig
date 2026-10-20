@@ -15,4 +15,3 @@ minimal: candidate paths — ["unused/generated.js"].
 mid: reference checks — ["search callers"].
 
 maximal: delete without recovery — false.
-

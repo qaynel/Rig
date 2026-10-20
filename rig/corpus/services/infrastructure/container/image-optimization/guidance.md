@@ -15,4 +15,3 @@ minimal: base image digest — "sha256:abcd".
 mid: runtime user — "nonroot".
 
 maximal: include build secrets — false.
-

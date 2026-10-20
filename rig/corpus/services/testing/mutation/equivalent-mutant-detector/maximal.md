@@ -1,13 +1,13 @@
 # testing.mutation.equivalent-mutant-detector — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for equivalent mutant detector. The evidence must preserve the equivalence_evidence, review_owners, classify_by_survival_only inputs that determined the result. Binding checks: equivalent-mutant-detector-evidence-receipt.
+Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
 
-Use a second run against unchanged equivalent mutant detector inputs. Record the equivalence_evidence, review_owners, classify_by_survival_only inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this equivalent mutant detector result is stale. The ceiling remains: equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Choose a repository-owned check that observes equivalent mutant detector from rig-services/testing.mutation.equivalent-mutant-detector.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: equivalent-mutant-detector-source-code-boundary, equivalent-mutant-detector-mutation-context, equivalent-mutant-detector-evidence-receipt.
 
-Acceptance target: fixture:testing.mutation.equivalent-mutant-detector:evidence-replay. Given the mutation.equivalent-mutant-detector binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+Keep `classify_by_survival_only` equal to false. The policy forbids survival-only classification; an actual equivalence decision still needs reviewed evidence.
 
-Service-specific evidence cues:
-Offer: Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
-minimal: equivalence evidence — ["unreachable branch by domain proof"].
-mid: review owners — ["parser maintainer"].
-maximal: classify by survival only — false.
+Maximal here adds a configuration guard, not an evidence receipt or a demonstrated mutation outcome. equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.
+
+Evidence-replay target (not established by this policy check): policy:testing.mutation.equivalent-mutant-detector:maximal:equivalent-mutant-detector-source-code-boundary+equivalent-mutant-detector-mutation-context+equivalent-mutant-detector-evidence-receipt.
+
+Check: `equivalent-mutant-detector-evidence-receipt`.

@@ -15,4 +15,3 @@ minimal: review scope — ["src"].
 mid: required reviewers — 1.
 
 maximal: unresolved findings allowed — false.
-

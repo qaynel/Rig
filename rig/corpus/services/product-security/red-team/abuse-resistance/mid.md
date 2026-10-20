@@ -1,13 +1,9 @@
 # product-security.red-team.abuse-resistance — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for abuse resistance; it does not widen ownership beyond red-team.abuse-resistance. For abuse resistance, inspect these context signals: rate_limit_policy. Binding checks: abuse-resistance-red-team-context.
+Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
 
-Tie acceptance to the existing repository's abuse resistance convention, then name the source path or command that establishes it. For abuse resistance, inspect the repository's actual spec, source, test, or configuration for rate_limit_policy; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring red-team services outside the abuse resistance decision for red-team.abuse-resistance.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: abuse-resistance-source-code-boundary, abuse-resistance-red-team-context.
 
-Acceptance target: fixture:product-security.red-team.abuse-resistance:repository-context. Given red-team.abuse-resistance has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent red team concern; fail when the result infers local convention without an inspectable source.
+List abuse scenarios that apply to the service, then compare the declared rate-limit dimensions with its actual request path. The policy check does not trace those paths. No repository-specific evidence source is supplied by this policy definition, and a nonempty value does not prove that the local boundary has been inspected.
 
-Service-specific evidence cues:
-Offer: Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
-minimal: abuse cases — ["credential stuffing"].
-mid: rate limit policy — "per identity and IP".
-maximal: unbounded public requests — false.
+Catalogue policy target: `policy:product-security.red-team.abuse-resistance:mid:abuse-resistance-source-code-boundary+abuse-resistance-red-team-context`. The native rule establishes only that rate_limit_policy is nonempty.

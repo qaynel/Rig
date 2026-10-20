@@ -15,4 +15,3 @@ minimal: secret references — ["vault://app/db"].
 mid: delivery mechanism — "workload-identity".
 
 maximal: plaintext secret values — false.
-

@@ -15,4 +15,3 @@ minimal: load profile — "ramp 10 to 100 users".
 mid: stop conditions — ["error rate above 5 percent"].
 
 maximal: target production by default — false.
-

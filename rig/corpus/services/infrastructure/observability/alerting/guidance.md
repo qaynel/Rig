@@ -15,4 +15,3 @@ minimal: alert conditions — ["error budget burn"].
 mid: runbook path — "docs/runbook.md".
 
 maximal: alert without owner — false.
-

@@ -1,11 +1,9 @@
-# testing.mutation.ci-gate-policy — floor and mutation-floor slice
+# testing.mutation.ci-gate-policy — floor slice
 
-Policy grade slice. This slice bounds ci gate policy to mutation.ci-gate-policy. It uses `ci-gate-policy-slice-floor` and checks minimum_score_percent (minimum 70): minimum score percent must meet the configured minimum of 70..
+Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-For ci gate policy, choose a repository example that satisfies minimum_score_percent at the floor and mutation-floor floor, plus a failure where minimum score percent must meet the configured minimum of 70. is false. For ci gate policy, wire `floor and mutation-floor` to `rig-services/testing.mutation.ci-gate-policy.json` and keep its verdict on minimum_score_percent; missing evidence is a named gap, with ceiling ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Choose a repository-owned check that observes ci gate policy from rig-services/testing.mutation.ci-gate-policy.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
-minimal: minimum score percent — 70.
-mid: timeout policy — "fail-inconclusive".
-maximal: allow unrun mutants — false.
+This Policy slice checks `minimum_score_percent` through `ci-gate-policy-slice-floor`. The good fixture supplies `minimum_score_percent` = `70`; the bad fixture removes it.
+
+Choose the minimum score before evaluating a run; the example threshold is 70 percent. Keep the failure attached to `rig-services/testing.mutation.ci-gate-policy.json`; do not infer that a mutation was generated or killed. ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.

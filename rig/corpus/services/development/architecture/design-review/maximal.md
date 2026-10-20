@@ -1,13 +1,11 @@
 # development.architecture.design-review — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for design review. The evidence must preserve the reviewed_interfaces, tradeoffs, unresolved_tradeoffs inputs that determined the result. Binding checks: design-review-evidence-receipt.
+Review interfaces and explicit tradeoffs against the intended outcomes. Resolve contradictory design assumptions before implementation instead of treating an approved diagram as proof of correctness.
 
-Inspect a second run against unchanged design review inputs. Record the reviewed_interfaces, tradeoffs, unresolved_tradeoffs inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this design review result is stale. The ceiling remains: design review configuration validation only; declared policy does not prove running design review behavior. Choose a repository-owned check that observes design review from rig-services/development.architecture.design-review.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: design-review-source-code-boundary, design-review-architecture-context, design-review-evidence-receipt.
 
-Acceptance target: fixture:development.architecture.design-review:evidence-replay. Given the architecture.design-review binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Review interfaces and explicit tradeoffs against the intended outcomes. Resolve contradictory design assumptions before implementation instead of treating an approved diagram as proof of correctness.
-minimal: reviewed interfaces — ["items API"].
-mid: tradeoffs — ["latency versus durability"].
-maximal: unresolved tradeoffs — 0.
+Acceptance target: policy:development.architecture.design-review:maximal:design-review-source-code-boundary+design-review-architecture-context+design-review-evidence-receipt.
+
+Declared predicates: design-review-source-code-boundary: `reviewed_interfaces` is nonempty (a string or array); design-review-architecture-context: `tradeoffs` is nonempty (a string or array); design-review-evidence-receipt: `unresolved_tradeoffs` equals 0.

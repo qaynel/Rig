@@ -1,15 +1,13 @@
 # product-security.red-team.abuse-resistance — identity
 
-Policy grade: abuse resistance owns red-team.abuse-resistance. Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
+Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
 
-Keep neighboring red-team services outside the abuse resistance decision for red-team.abuse-resistance. Trace the verdict to the configured input at `rig-services/product-security.red-team.abuse-resistance.json`; malformed input is still attributed to that path.
+Policy grade. Model misuse at public boundaries and define limits for requests that can consume a shared resource. A configured rate limit does not establish that the live service enforces it.
 
-Disposition: convention. Anchor the review on the limit: abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Choose a repository-owned check that observes abuse resistance from rig-services/product-security.red-team.abuse-resistance.json.
+Applicable surface: source-code. Owned scope: `red-team.abuse-resistance`. Input: `rig-services/product-security.red-team.abuse-resistance.json`.
 
-Acceptance target: fixture:product-security.red-team.abuse-resistance:policy-boundary. Given source-code is present and red-team.abuse-resistance is selected, pass only when the repository binding evaluates red-team.abuse-resistance and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern.
+Disposition: executable. The native checks validate policy configuration only; they do not demonstrate the promised red-team behavior.
 
-Service-specific evidence cues:
-Offer: Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.
-minimal: abuse cases — ["credential stuffing"].
-mid: rate limit policy — "per identity and IP".
-maximal: unbounded public requests — false.
+The native rules only check policy values: abuse_cases and rate_limit_policy must be nonempty, and unbounded_public_requests must be false. They do not exercise the public boundary or measure enforcement.
+
+Configured examples: minimal `abuse_cases` = ["credential stuffing"]; mid `rate_limit_policy` = "per identity and IP"; maximal `unbounded_public_requests` = false. These are policy values, not results from an attack simulation or runtime probe.

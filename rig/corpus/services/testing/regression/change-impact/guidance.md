@@ -15,4 +15,3 @@ minimal: changed interfaces — ["order serializer"].
 mid: affected suites — ["order contract"].
 
 maximal: select by filename only — false.
-

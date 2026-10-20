@@ -1,11 +1,7 @@
 # product-security.red-team.auth-session-probe — behavior-oracle slice
 
-Policy grade slice. This slice bounds auth session probe to red-team.auth-session-probe. It uses `auth-session-probe-slice-behavior-oracle` and checks session_cases (nonempty): session cases must name the concrete repository contract..
+Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
 
-For auth session probe, choose a repository example that satisfies session_cases at the behavior-oracle floor, plus a failure where session cases must name the concrete repository contract. is false. For auth session probe, wire `behavior-oracle` to `rig-services/product-security.red-team.auth-session-probe.json` and keep its verdict on session_cases; missing evidence is a named gap, with ceiling auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Choose a repository-owned check that observes auth session probe from rig-services/product-security.red-team.auth-session-probe.json..
+Policy grade. The behavior-oracle slice currently checks only that `session_cases` is nonempty. It does not establish that an expired or revoked session loses access.,A runtime probe should exercise each declared case against protected routes and observe the authorization result.The native check is `auth-session-probe-slice-behavior-oracle`.
 
-Service-specific evidence cues:
-Offer: Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.
-minimal: session cases — ["expiry","logout","revocation"].
-mid: protected routes — ["/account"].
-maximal: accept revoked session — false.
+A runtime probe should exercise each declared case against protected routes and observe the authorization result.

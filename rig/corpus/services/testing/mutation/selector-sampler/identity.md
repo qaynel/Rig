@@ -1,15 +1,15 @@
 # testing.mutation.selector-sampler — identity
 
-Policy grade: selector sampler owns mutation.selector-sampler. Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
+Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
 
-Keep neighboring mutation services outside the selector sampler decision for mutation.selector-sampler. Start from the configured input at `rig-services/testing.mutation.selector-sampler.json`; malformed input is still attributed to that path.
+Policy grade. Choose a reproducible subset of candidate mutants for a bounded run. A seeded sample can estimate sensitivity but cannot stand in for exhaustive mutation coverage.
 
-Disposition: convention. Trace the verdict to the limit: selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Choose a repository-owned check that observes selector sampler from rig-services/testing.mutation.selector-sampler.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.selector-sampler:policy-boundary. Given source-code is present and mutation.selector-sampler is selected, pass only when the repository binding evaluates mutation.selector-sampler and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.selector-sampler`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
-minimal: selection scope — ["changed parser functions"].
-mid: sampling seed — 42.
-maximal: claim exhaustive from sample — false.
+Read `rig-services/testing.mutation.selector-sampler.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `selection_scope` = `["changed parser functions"]`; mid adds `sampling_seed` = `42`; maximal requires `claim_exhaustive_from_sample` = `false`.

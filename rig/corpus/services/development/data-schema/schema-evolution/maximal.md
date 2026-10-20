@@ -1,13 +1,11 @@
 # development.data-schema.schema-evolution — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for schema evolution. The evidence must preserve the compatible_readers, unknown_field_policy, remove_required_fields inputs that determined the result. Binding checks: schema-evolution-evidence-receipt.
+Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.
 
-Use a second run against unchanged schema evolution inputs. Record the compatible_readers, unknown_field_policy, remove_required_fields inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this schema evolution result is stale. The ceiling remains: schema evolution configuration validation only; declared policy does not prove running schema evolution behavior. Choose a repository-owned check that observes schema evolution from rig-services/development.data-schema.schema-evolution.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: schema-evolution-source-code-boundary, schema-evolution-data-schema-context, schema-evolution-evidence-receipt.
 
-Acceptance target: fixture:development.data-schema.schema-evolution:evidence-replay. Given the data-schema.schema-evolution binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.
-minimal: compatible readers — ["v1","v2"].
-mid: unknown field policy — "ignore-additive-fields".
-maximal: remove required fields — false.
+Acceptance target: policy:development.data-schema.schema-evolution:maximal:schema-evolution-source-code-boundary+schema-evolution-data-schema-context+schema-evolution-evidence-receipt.
+
+Declared predicates: schema-evolution-source-code-boundary: `compatible_readers` is nonempty (a string or array); schema-evolution-data-schema-context: `unknown_field_policy` is nonempty (a string or array); schema-evolution-evidence-receipt: `remove_required_fields` equals false.

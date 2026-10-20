@@ -15,4 +15,3 @@ minimal: browser targets — ["chromium"].
 mid: interaction steps — ["submit form"].
 
 maximal: fixed sleeps — false.
-

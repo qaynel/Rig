@@ -15,4 +15,3 @@ minimal: mocked boundaries — ["payment network"].
 mid: real components — ["order service"].
 
 maximal: mock unit under test — false.
-

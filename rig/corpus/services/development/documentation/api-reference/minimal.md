@@ -1,13 +1,9 @@
 # development.documentation.api-reference — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for api reference. The minimal boundary for api reference checks documented_endpoints (nonempty): documented endpoints must name the concrete repository contract.. Binding checks: api-reference-source-code-boundary.
+Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
 
-Tie acceptance to a repository-owned command or existing native check that can observe documentation.api-reference; bind it to the input named in `rig-services/development.documentation.api-reference.json` and preserve the check's failure status. When adopting this in an existing repository, connect api reference to the command that inspects documented_endpoints and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside documentation.api-reference as a failure.
+Grade: minimal. Assurance remains Policy grade. The native check `api-reference-source-code-boundary` evaluates `documented_endpoints` nonempty. Example: `documented_endpoints` = ["/items"].
 
-Acceptance target: fixture:development.documentation.api-reference:policy-boundary. Given source-code is present and documentation.api-reference is selected, pass only when the repository binding evaluates documentation.api-reference and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent documentation concern. The ceiling is api reference configuration validation only; declared policy does not prove running api reference behavior. Choose a repository-owned check that observes api reference from rig-services/development.documentation.api-reference.json..
+Endpoint and error lists identify intended documentation coverage; the authentication flag records that authentication is meant to be documented. The rules do not inspect any API specification.
 
-Service-specific evidence cues:
-Offer: Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.
-minimal: documented endpoints — ["/items"].
-mid: error responses — ["400 invalid input"].
-maximal: authentication documented — true.
+Catalogue policy target: `policy:development.documentation.api-reference:minimal:api-reference-source-code-boundary`. It describes the policy condition; this service does not include a separate fixture for it. Native checks require nonempty endpoint and error-response lists and authentication_documented=true in the JSON policy. They do not compare an API reference with the implemented public contract.

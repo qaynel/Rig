@@ -1,13 +1,13 @@
 # testing.mutation.ci-gate-policy — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for ci gate policy; it does not widen ownership beyond mutation.ci-gate-policy. For ci gate policy, inspect these context signals: timeout_policy. Binding checks: ci-gate-policy-mutation-context.
+Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-Use the existing repository's ci gate policy convention, then name the source path or command that establishes it. For ci gate policy, inspect the repository's actual spec, source, test, or configuration for timeout_policy; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the ci gate policy decision for mutation.ci-gate-policy.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: ci-gate-policy-source-code-boundary, ci-gate-policy-mutation-context.
 
-Acceptance target: fixture:testing.mutation.ci-gate-policy:repository-context. Given mutation.ci-gate-policy has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `timeout_policy`. State whether timeout and infrastructure failures fail the gate or require a visible retry.
 
-Service-specific evidence cues:
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
-minimal: minimum score percent — 70.
-mid: timeout policy — "fail-inconclusive".
-maximal: allow unrun mutants — false.
+This remains configuration review. A value in `rig-services/testing.mutation.ci-gate-policy.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.ci-gate-policy:mid:ci-gate-policy-source-code-boundary+ci-gate-policy-mutation-context.
+
+Check: `ci-gate-policy-mutation-context`.

@@ -15,4 +15,3 @@ minimal: golden paths — ["fixtures/order.json"].
 mid: reviewed diffs — ["field addition"].
 
 maximal: automatic snapshot acceptance — false.
-

@@ -4,12 +4,8 @@ Policy grade: detection quarantine owns flaky-reliability.detection-quarantine. 
 
 Keep neighboring flaky-reliability services outside the detection quarantine decision for flaky-reliability.detection-quarantine. Inspect the configured input at `rig-services/testing.flaky-reliability.detection-quarantine.json`; malformed input is still attributed to that path.
 
-Disposition: convention. Tie acceptance to the limit: detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Choose a repository-owned check that observes detection quarantine from rig-services/testing.flaky-reliability.detection-quarantine.json.
+Disposition: executable. Tie acceptance to the limit: detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Choose a repository-owned check that observes detection quarantine from rig-services/testing.flaky-reliability.detection-quarantine.json.
 
-Acceptance target: fixture:testing.flaky-reliability.detection-quarantine:policy-boundary. Given source-code is present and flaky-reliability.detection-quarantine is selected, pass only when the repository binding evaluates flaky-reliability.detection-quarantine and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent flaky reliability concern.
+Acceptance target: policy:testing.flaky-reliability.detection-quarantine:minimal:detection-quarantine-source-code-boundary.
 
-Service-specific evidence cues:
-Offer: Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.
-minimal: flaky cases — ["slow websocket reconnect"].
-mid: quarantine owners — ["realtime"].
-maximal: silent quarantine — false.
+Declared predicates: detection-quarantine-source-code-boundary: `flaky_cases` is nonempty (a string or array).

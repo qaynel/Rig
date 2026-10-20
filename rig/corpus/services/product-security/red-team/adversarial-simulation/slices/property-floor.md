@@ -1,11 +1,7 @@
 # product-security.red-team.adversarial-simulation — property-floor slice
 
-Policy grade slice. This slice bounds adversarial simulation to red-team.adversarial-simulation. It uses `adversarial-simulation-slice-property-floor` and checks attack_scenarios (nonempty): attack scenarios must name the concrete repository contract..
+Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
 
-For adversarial simulation, choose a repository example that satisfies attack_scenarios at the property-floor floor, plus a failure where attack scenarios must name the concrete repository contract. is false. For adversarial simulation, wire `property-floor` to `rig-services/product-security.red-team.adversarial-simulation.json` and keep its verdict on attack_scenarios; missing evidence is a named gap, with ceiling adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Choose a repository-owned check that observes adversarial simulation from rig-services/product-security.red-team.adversarial-simulation.json..
+Policy grade. `adversarial-simulation-slice-property-floor` accepts any nonempty scenario list. It does not test isolation or a security property.,The maximal policy check forbids real customer data, but a false configuration value is not evidence about the data used at runtime.The native check is `adversarial-simulation-slice-property-floor`.
 
-Service-specific evidence cues:
-Offer: Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
-minimal: attack scenarios — ["malformed token"].
-mid: containment scope — "isolated test deployment".
-maximal: use real customer data — false.
+The maximal policy check forbids real customer data, but a false configuration value is not evidence about the data used at runtime.

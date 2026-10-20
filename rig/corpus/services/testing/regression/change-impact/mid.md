@@ -1,13 +1,11 @@
 # testing.regression.change-impact — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for change impact; it does not widen ownership beyond regression.change-impact. For change impact, inspect these context signals: affected_suites. Binding checks: change-impact-regression-context.
+Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.
+
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: change-impact-source-code-boundary, change-impact-regression-context.
 
 Start from the existing repository's change impact convention, then name the source path or command that establishes it. For change impact, inspect the repository's actual spec, source, test, or configuration for affected_suites; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring regression services outside the change impact decision for regression.change-impact.
 
-Acceptance target: fixture:testing.regression.change-impact:repository-context. Given regression.change-impact has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent regression concern; fail when the result infers local convention without an inspectable source.
+Acceptance target: policy:testing.regression.change-impact:mid:change-impact-source-code-boundary+change-impact-regression-context.
 
-Service-specific evidence cues:
-Offer: Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.
-minimal: changed interfaces — ["order serializer"].
-mid: affected suites — ["order contract"].
-maximal: select by filename only — false.
+Declared predicates: change-impact-source-code-boundary: `changed_interfaces` is nonempty (a string or array); change-impact-regression-context: `affected_suites` is nonempty (a string or array).

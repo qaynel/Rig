@@ -1,15 +1,13 @@
 # development.documentation.docstrings — identity
 
-Policy grade: docstrings owns documentation.docstrings. Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
+Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-Keep neighboring documentation services outside the docstrings decision for documentation.docstrings. Trace the verdict to the configured input at `rig-services/development.documentation.docstrings.json`; malformed input is still attributed to that path.
+Policy grade. Document public symbols’ externally visible parameters and failure behavior so callers can use them without reconstructing implementation details.
 
-Disposition: convention. Anchor the review on the limit: docstrings configuration validation only; declared policy does not prove running docstrings behavior. Choose a repository-owned check that observes docstrings from rig-services/development.documentation.docstrings.json.
+Applicable surface: source-code. Owned scope: `documentation.docstrings`. Input: `rig-services/development.documentation.docstrings.json`.
 
-Acceptance target: fixture:development.documentation.docstrings:policy-boundary. Given source-code is present and documentation.docstrings is selected, pass only when the repository binding evaluates documentation.docstrings and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent documentation concern.
+Disposition: executable. Native checks validate only declared policy fields.
 
-Service-specific evidence cues:
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
-minimal: documented symbols — ["parseRecord"].
-mid: parameters — ["raw: serialized record"].
-maximal: failure contract — "throws on malformed records".
+Native checks require nonempty documented_symbols, parameters, and failure_contract values in the JSON policy. They do not inspect source declarations or validate docstring text.
+
+Configured examples (minimal: `documented_symbols` = ["parseRecord"]; mid: `parameters` = ["raw: serialized record"]; maximal: `failure_contract` = "throws on malformed records") describe expected policy only. They are not repository-derived fixtures.

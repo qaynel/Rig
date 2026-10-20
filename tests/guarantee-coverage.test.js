@@ -18,7 +18,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { withRepo, writeJson } = require('./helpers/advanced');
-const { executePlan, planExecution, runCommand, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
+const { executePlan, planExecution, createPlanApprovalChallenge, runCommand, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
 const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
 const { rssBytesTree, isChildRunning } = require('../rig/lib/memory-guarded-exec');
 const { runBinding, semanticDrift } = require('../rig/lib/checks');
@@ -65,29 +65,74 @@ fs.copyFileSync(
 const catalogCheck = require(path.join(materializedCheckDir, '.rig', 'bin', 'check.js'));
 const catalogCheckCopies = require(path.join(materializedCheckDir, '.rig', 'bin', 'check-copies.js'));
 
-test('AT-PROC-1a (AT-LF-20): one-use approval survives an independent approval object for the same plan, not just object identity', () => {
-  withRepo((target) => {
-    const plan = { plan_digest: 'digest-guarantee-coverage', target, commands: [] };
+function signedPlanApproval(target, plan, identity = 'rig-test-owner') {
+  const key = path.join(target, '.test-approval-key');
+  const allowed = path.join(target, '.rig', 'allowed-signers');
+  if (!fs.existsSync(key)) {
+    execFileSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]);
+    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
+    fs.mkdirSync(path.dirname(allowed), { recursive: true });
+    fs.writeFileSync(allowed, `${identity} namespaces="rig-plan-approval" ${publicKey}\n`);
+  }
+  const challenge = createPlanApprovalChallenge(plan);
+  const message = path.join(target, '.test-approval-message');
+  fs.writeFileSync(message, challenge.message);
+  if (fs.existsSync(`${message}.sig`)) fs.unlinkSync(`${message}.sig`);
+  execFileSync('ssh-keygen', ['-q', '-Y', 'sign', '-f', key, '-n', 'rig-plan-approval', message]);
+  return {
+    schema_version: 1,
+    kind: 'plan-approval',
+    plan_digest: plan.plan_digest,
+    approval_id: challenge.approval_id,
+    approval: { method: 'external-sshsig', identity, signature: fs.readFileSync(`${message}.sig`, 'utf8') },
+  };
+}
 
-    // Process A: approves and executes once.
-    const approvalA = { plan_digest: plan.plan_digest, used: false };
+test('AT-PROC-1a (AT-LF-20): signed approval replay is refused and a fresh approval can rerun the unchanged plan', () => {
+  withRepo((target) => {
+    const plan = planExecution({ target, commands: [] });
+    const approvalA = signedPlanApproval(target, plan);
     const first = executePlan(plan, approvalA);
     assert.equal(first.status, 'executed');
 
-    // Process B: independently re-derives an approval for the *same plan*
-    // (e.g. reloaded from disk, or a second agent turn). It was never
-    // mutated by process A, so a fix that only sets `.used` on the object it
-    // was handed cannot see this. Durable one-use requires state keyed by
-    // plan_digest, not by JS object identity. Refusal is a reported status,
-    // matching every other outcome in this function (command_drift,
-    // executed) rather than a thrown exception.
-    const approvalB = { plan_digest: plan.plan_digest, used: false };
+    // Reconstructing the same signed receipt in another turn is still replay.
+    const approvalB = { ...approvalA, approval: { ...approvalA.approval } };
     const second = executePlan(plan, approvalB);
-    assert.notEqual(
-      second.status,
-      'executed',
-      'a plan already executed under one approval object executed again under an independently-constructed approval for the same plan_digest',
-    );
+    assert.equal(second.status, 'not_authorized');
+
+    // A genuinely new signature for the same current plan digest is fresh consent.
+    const approvalC = signedPlanApproval(target, plan);
+    assert.equal(executePlan(plan, approvalC).status, 'executed');
+  });
+});
+
+test('runGrade requires observed commands and leaves unsupported Context/Evidence grades incomplete', () => {
+  const forged = runGrade({
+    grade: 'minimal',
+    changed: ['a.js'],
+    commands: [{ role: 'lint', result: { exit_code: 0, output_digest: 'a'.repeat(64) } }],
+  });
+  assert.equal(forged.verdict, 'fail');
+  assert.equal(forged.status, 'coverage_gap');
+  assert.deepEqual(forged.completed_grades, []);
+  assert.equal(forged.evidence, undefined, 'unobserved caller results create no evidence');
+
+  withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const plannedHigher = runGrade({
+      target,
+      grade: 'maximal',
+      changed: ['a.js'],
+      commands: [{ role: 'lint', network: true, source: 'rules.json', argv: [process.execPath, '-e', 'process.stdout.write("observed")'] }],
+      context: { findings: [], verdict: 'pass', evidence_digest: 'b'.repeat(64) },
+    });
+    assert.equal(plannedHigher.verdict, 'fail');
+    assert.equal(plannedHigher.status, 'coverage_gap');
+    assert.equal(plannedHigher.grade, 'Policy');
+    assert.deepEqual(plannedHigher.completed_grades, ['Policy']);
+    assert.deepEqual(plannedHigher.steps, ['policy_checks']);
+    assert.match(plannedHigher.evidence.input_digest, /^[a-f0-9]{64}$/);
   });
 });
 
@@ -543,7 +588,7 @@ test('AT-PROC-1aa (AT-LF-24): a source symlink escape is refused before approval
       assert.equal(planned.commands[0].source_snapshot, null);
       assert.equal(planned.commands[0].source_boundary_violation, true);
 
-      const result = executePlan(planned, { plan_digest: planned.plan_digest });
+      const result = executePlan(planned, signedPlanApproval(target, planned));
       assert.equal(result.status, 'boundary_violation');
       assert.equal(
         fs.existsSync(path.join(target, '.rig', 'lint-format', 'executions')),
@@ -567,7 +612,7 @@ test('AT-PROC-1e (AT-LF-20/AT-LF-14 cleanup): a drift-aborted plan does not perm
     // Source drifts after planning (e.g. a concurrent edit) -- execution must
     // abort without ever running anything.
     writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(1)"' } });
-    const aborted = executePlan(planned, { plan_digest: planned.plan_digest });
+    const aborted = executePlan(planned, signedPlanApproval(target, planned));
     assert.equal(aborted.status, 'command_drift');
 
     // Source reverts to exactly what was originally approved (the drift was
@@ -575,7 +620,7 @@ test('AT-PROC-1e (AT-LF-20/AT-LF-14 cleanup): a drift-aborted plan does not perm
     // approval object for the same plan_digest must be able to execute --
     // the earlier aborted attempt must not have durably consumed it.
     writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
-    const retried = executePlan(planned, { plan_digest: planned.plan_digest });
+    const retried = executePlan(planned, signedPlanApproval(target, planned));
     assert.equal(
       retried.status,
       'executed',

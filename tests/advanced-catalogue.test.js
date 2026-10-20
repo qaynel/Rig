@@ -141,11 +141,20 @@ test('catalog validator rejects missing strict grade growth', () => {
 });
 
 test('authored service gate rejects known boilerplate and near-duplicate bodies', () => {
+  const padded = authoredBodiesReport([
+    { id: 'product-security.secrets.toy-relaxation', part: 'minimal', text: '# Toy relaxation\n\nService-specific evidence cues:\nOffer: Limit relaxed secret policy to disposable experiments.' },
+  ]);
+  assert.ok(padded.some(failure => /boilerplate/i.test(failure.reason)), 'repeated generated cue blocks are not authored evidence');
   const boilerplate = authoredBodiesReport([
     { id: 'development.one', part: 'identity', text: '# One\n\nThis is generic baseline practice for the service.' },
   ]);
   assert.equal(boilerplate.length, 1);
   assert.match(boilerplate[0].reason, /known boilerplate/i);
+
+  const broken = authoredBodiesReport([
+    { id: 'infrastructure.dns', part: 'slice', text: '# DNS\n\nService records must name the contract..' },
+  ]);
+  assert.ok(broken.some((failure) => /broken generated sentence/.test(failure.reason)));
 
   const body = '# Infrastructure one\n\nInspect the deployment manifest and prove each region has an independent rollback path.';
   const nearDuplicate = authoredBodiesReport([

@@ -15,4 +15,3 @@ minimal: failover trigger — "primary health unavailable".
 mid: fencing strategy — "single-writer-lease".
 
 maximal: allow split brain — false.
-

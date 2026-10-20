@@ -15,4 +15,3 @@ minimal: migration order — ["001_create_items","002_add_owner"].
 mid: rollback steps — ["drop owner column"].
 
 maximal: destructive change approved — false.
-

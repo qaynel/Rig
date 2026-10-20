@@ -1,13 +1,7 @@
 # development.code-quality.lint-format — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid addition — linter cleanliness adds repository context for lint format; it does not widen ownership beyond code-quality.lint-format. For lint format, inspect these context signals: lint_command. Binding checks: lint-format-linter-clean.
+Grade: mid. Context includes `lint-format-formatter-clean` and `lint-format-linter-clean`. The component runner executes both approved formatter and linter commands before considering the review of the change.
 
-Trace the verdict to the existing repository's lint format convention, then name the source path or command that establishes it. For lint format, inspect the repository's actual spec, source, test, or configuration for lint_command; if none governs that evidence, record the gap instead of inferring a convention. For lint format, keep code-quality.typecheck, correctness-static-analysis, complexity-static, code-quality.code-review outside its verdict.
+The Context review must match the current request's file digests, rule-source digests and command inputs. It supplies a nonempty summary and an explicit `verdict` of `pass` or `fail`; findings name actual violations by file, rule source and meaning. A pass requires no violations. A failed review reports its findings and never advances to Evidence. Missing, stale or inconsistent review leaves Context incomplete.
 
-Acceptance target: fixture:development.code-quality.lint-format:repository-context. Given development.code-quality.lint-format has a repository-specific convention and evidence source, pass only when the result identifies the consulted path or command and stays within code-quality.lint-format; fail when the result infers local convention without an inspectable source.
-
-Service-specific evidence cues:
-Offer: Reuse the component-owned formatter and lint tasks. Read-only verification must preserve source bytes; invoke autofix only under a separately approved action.
-minimal: format command — ["npm","run","format:check"].
-mid: lint command — ["npm","run","lint"].
-maximal: autofix during check — false.
+The JSON predicate on `lint_command` is only declaration validation. It neither reads the changed code nor supplies this Context review. Type checking, correctness analysis and general code review retain their own service scopes.

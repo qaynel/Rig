@@ -1,13 +1,13 @@
 # testing.mutation.score-metrics — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for score metrics. The evidence must preserve the killed_mutants, valid_mutants, include_invalid_mutants_in_score inputs that determined the result. Binding checks: score-metrics-evidence-receipt.
+Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
 
-Ground the decision in a second run against unchanged score metrics inputs. Record the killed_mutants, valid_mutants, include_invalid_mutants_in_score inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this score metrics result is stale. The ceiling remains: score metrics configuration validation only; declared policy does not prove running score metrics behavior. Choose a repository-owned check that observes score metrics from rig-services/testing.mutation.score-metrics.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: score-metrics-source-code-boundary, score-metrics-mutation-context, score-metrics-evidence-receipt.
 
-Acceptance target: fixture:testing.mutation.score-metrics:evidence-replay. Given the mutation.score-metrics binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+Keep `include_invalid_mutants_in_score` equal to false. Keep invalid mutants excluded; the numeric policy does not prove that result classification or arithmetic is correct.
 
-Service-specific evidence cues:
-Offer: Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
-minimal: killed mutants — 8.
-mid: valid mutants — 10.
-maximal: include invalid mutants in score — false.
+Maximal here adds a configuration guard, not an evidence receipt or a demonstrated mutation outcome. score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior.
+
+Evidence-replay target (not established by this policy check): policy:testing.mutation.score-metrics:maximal:score-metrics-source-code-boundary+score-metrics-mutation-context+score-metrics-evidence-receipt.
+
+Check: `score-metrics-evidence-receipt`.

@@ -15,4 +15,3 @@ minimal: invariants — ["sum of debits equals credits"].
 mid: input domain — "nonnegative integer amounts".
 
 maximal: derive expected from subject — false.
-

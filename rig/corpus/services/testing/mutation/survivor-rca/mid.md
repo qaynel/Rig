@@ -1,13 +1,13 @@
 # testing.mutation.survivor-rca — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for survivor rca; it does not widen ownership beyond mutation.survivor-rca. For survivor rca, inspect these context signals: missing_assertions. Binding checks: survivor-rca-mutation-context.
+Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
 
-Anchor the review on the existing repository's survivor rca convention, then name the source path or command that establishes it. For survivor rca, inspect the repository's actual spec, source, test, or configuration for missing_assertions; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the survivor rca decision for mutation.survivor-rca.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: survivor-rca-source-code-boundary, survivor-rca-mutation-context.
 
-Acceptance target: fixture:testing.mutation.survivor-rca:repository-context. Given mutation.survivor-rca has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `missing_assertions`. Connect each survivor to the assertion that should distinguish the original and mutated behavior.
 
-Service-specific evidence cues:
-Offer: Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
-minimal: surviving mutants — ["boundary comparison changed"].
-mid: missing assertions — ["exact limit rejected"].
-maximal: ignore equivalence question — false.
+This remains configuration review. A value in `rig-services/testing.mutation.survivor-rca.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.survivor-rca:mid:survivor-rca-source-code-boundary+survivor-rca-mutation-context.
+
+Check: `survivor-rca-mutation-context`.

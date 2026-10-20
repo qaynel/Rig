@@ -8,6 +8,10 @@
   checks for all 115 services.
 - Add installed lint-format setup with separate approval and recoverable
   replacement.
+- Stop local lint grades on negative reviews or read-only mutations, preserve
+  user-owned host adapter collisions, and report uninstall verification from
+  saved preimages. Document the review outcome and removal evidence in
+  `docs/advanced/operator.md`.
 - Add exact-SHA clean-install E2E, weekly health checks, and release eligibility
   evidence.
 - Update `README.md`, `README.es.md`, `README.ko.md`, `docs/install.md`,

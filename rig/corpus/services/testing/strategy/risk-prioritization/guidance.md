@@ -15,4 +15,3 @@ minimal: high risk behaviors — ["payment duplication"].
 mid: impact scores — [5].
 
 maximal: prioritize only easy cases — false.
-

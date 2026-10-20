@@ -15,4 +15,3 @@ minimal: mesh services — ["api","worker"].
 mid: transport security — "mutual-tls".
 
 maximal: allow plaintext fallback — false.
-

@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
-const { runPayload } = require('../rig/lib/payload');
+const { runPayload, journalWriter, upsertGraftSection } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
 const { PROVIDERS, applyCiPlan, planCiIntegration, GITHUB_WORKFLOW_POINTER } = require('../rig/lib/ci-adapters');
 const { writePlanApproval } = require('./helpers/advanced');
@@ -23,6 +23,85 @@ function withTarget(fn) {
 }
 
 const digest = (value) => crypto.createHash('sha256').update(value).digest('hex');
+
+test('public uninstall discloses absent installation evidence instead of certifying an empty record list', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  fs.writeFileSync(file, '# User instructions\n', { mode: 0o640 });
+  const result = uninstall(target);
+  assert.equal(result.status, 'removed', 'idempotent legacy teardown remains compatible');
+  assert.equal(result.verification.status, 'best_effort');
+  assert.ok(result.verification.files.includes('.rig/install-manifest.jsonl'));
+  assert.equal(result.verification.differences[0].reason, 'manifest-unavailable');
+  assert.equal(fs.readFileSync(file, 'utf8'), '# User instructions\n');
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+}));
+
+test('public uninstall verifies real preimages while preserving later outside edits and mode', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  const original = '# User instructions\r\n';
+  fs.writeFileSync(file, original, { mode: 0o640 });
+  const writer = journalWriter(target);
+  upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+  writer.finish();
+  fs.appendFileSync(file, 'Later user note.\r\n');
+  const run = spawnSync(process.execPath, [materializer, 'uninstall', '--target', target], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  const result = JSON.parse(run.stdout);
+  assert.equal(result.verification.status, 'verified_clean');
+  assert.deepEqual(result.verification.files, []);
+  const expected = Buffer.from(original + 'Later user note.\r\n');
+  assert.deepEqual(fs.readFileSync(file), expected, 'preimage is evidence, never a restore source');
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+  assert.equal(fs.existsSync(path.join(target, '.rig/preimages')), false, 'graft removal does not orphan its own newly journaled snapshots');
+  const difference = result.verification.differences.find(row => row.path === 'AGENTS.md');
+  assert.equal(difference.preimage_digest, digest(original));
+  assert.equal(difference.postimage_digest, digest(expected));
+  assert.equal(difference.status, 'outside_changes');
+  const report = JSON.parse(fs.readFileSync(path.join(target, 'reports/rig/last-uninstall.json')));
+  assert.deepEqual(report.verification, result.verification);
+}));
+
+test('public uninstall names missing or corrupt preimage evidence without restoring user bytes', () => {
+  for (const kind of ['missing', 'corrupt']) withTarget((target) => {
+    const original = '# User instructions\n';
+    const file = path.join(target, 'AGENTS.md');
+    fs.writeFileSync(file, original, { mode: 0o640 });
+    const writer = journalWriter(target);
+    upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+    writer.finish();
+    fs.appendFileSync(file, 'Later user note.\n');
+    const preimage = path.join(target, '.rig/preimages', digest(original));
+    if (kind === 'missing') fs.rmSync(path.dirname(preimage), { recursive: true });
+    else fs.writeFileSync(preimage, 'corrupt evidence\n');
+    const result = uninstall(target);
+    assert.equal(result.status, 'best_effort', kind);
+    assert.equal(result.verification.status, 'best_effort', kind);
+    assert.ok(result.verification.files.includes('AGENTS.md'), kind);
+    const difference = result.verification.differences.find(row => row.path === 'AGENTS.md');
+    assert.equal(difference.reason, `preimage-${kind}`, kind);
+    assert.deepEqual(fs.readFileSync(file), Buffer.from(original + 'Later user note.\n'), kind);
+    assert.equal(fs.statSync(file).mode & 0o777, 0o640, kind);
+    assert.equal(fs.existsSync(path.join(target, '.rig/install-manifest.jsonl')), true, 'retain retry evidence');
+  });
+});
+
+test('public uninstall verification refuses rewritten managed markers and names the untouched file', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  const original = '# User instructions\n';
+  fs.writeFileSync(file, original, { mode: 0o640 });
+  const writer = journalWriter(target);
+  upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+  writer.finish();
+  const changed = fs.readFileSync(file, 'utf8').replace(/<!-- rig:graft[^\n]+-->/g, '<!-- another tool rewrote the marker -->') + 'Later user note.\n';
+  fs.writeFileSync(file, changed);
+  const result = uninstall(target);
+  assert.equal(result.status, 'best_effort');
+  assert.equal(result.verification.status, 'best_effort');
+  assert.ok(result.verification.files.includes('AGENTS.md'));
+  assert.equal(result.verification.differences.find(row => row.path === 'AGENTS.md').status, 'best_effort');
+  assert.deepEqual(fs.readFileSync(file), Buffer.from(changed));
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+}));
 
 test('public uninstall reverses a default bootstrap install', () => withTarget((target) => {
   const agents = path.join(target, 'AGENTS.md');

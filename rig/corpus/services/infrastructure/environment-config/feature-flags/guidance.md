@@ -15,4 +15,3 @@ minimal: flag names — ["new_checkout"].
 mid: rollback owner — "checkout team".
 
 maximal: permanent unowned flags — false.
-

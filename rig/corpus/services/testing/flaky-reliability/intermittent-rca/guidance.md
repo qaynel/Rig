@@ -15,4 +15,3 @@ minimal: observed conditions — ["parallel runs"].
 mid: reproduction attempts — ["repeat with scheduler seed"].
 
 maximal: blame randomness without evidence — false.
-

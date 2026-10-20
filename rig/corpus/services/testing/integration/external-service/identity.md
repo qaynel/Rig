@@ -4,12 +4,8 @@ Policy grade: external service owns integration.external-service. Check the exte
 
 Keep neighboring integration services outside the external service decision for integration.external-service. Start from the configured input at `rig-services/testing.integration.external-service.json`; malformed input is still attributed to that path.
 
-Disposition: convention. Trace the verdict to the limit: external service configuration validation only; declared policy does not prove running external service behavior. Choose a repository-owned check that observes external service from rig-services/testing.integration.external-service.json.
+Disposition: executable. Trace the verdict to the limit: external service configuration validation only; declared policy does not prove running external service behavior. Choose a repository-owned check that observes external service from rig-services/testing.integration.external-service.json.
 
-Acceptance target: fixture:testing.integration.external-service:policy-boundary. Given source-code is present and integration.external-service is selected, pass only when the repository binding evaluates integration.external-service and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent integration concern.
+Acceptance target: policy:testing.integration.external-service:minimal:external-service-source-code-boundary.
 
-Service-specific evidence cues:
-Offer: Check the external contract with isolated test credentials and explicit failure cases. Integration validation must not require a production account or alter real customer data.
-minimal: external contracts — ["payment authorization"].
-mid: failure cases — ["timeout","malformed response"].
-maximal: require production account — false.
+Declared predicates: external-service-source-code-boundary: `external_contracts` is nonempty (a string or array).

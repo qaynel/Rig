@@ -15,4 +15,3 @@ minimal: resource limits — ["cpu","memory"].
 mid: readiness probe — "/health".
 
 maximal: latest image tag — false.
-

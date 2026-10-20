@@ -15,4 +15,3 @@ minimal: sbom format — "cyclonedx".
 mid: components — ["library@1.0.0"].
 
 maximal: omit dependency versions — false.
-

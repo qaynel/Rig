@@ -15,4 +15,3 @@ minimal: reviewed interfaces — ["items API"].
 mid: tradeoffs — ["latency versus durability"].
 
 maximal: unresolved tradeoffs — 0.
-

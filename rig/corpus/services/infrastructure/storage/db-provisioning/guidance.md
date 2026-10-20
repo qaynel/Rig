@@ -15,4 +15,3 @@ minimal: database version — "16".
 mid: access scope — "private-network".
 
 maximal: public database endpoint — false.
-

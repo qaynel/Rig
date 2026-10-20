@@ -1,18 +1,11 @@
-# onboarding docs
+# Contributor setup documentation
 
-Give contributors a reproducible setup, a way to run the project and a way to verify changes. Keep those commands aligned with repository-owned tasks so new teammates do not need oral setup instructions.
+Offer when a new contributor cannot locate installation and execution instructions.
 
-Owned scope: `documentation.onboarding-docs`.
+Offer when new contributors cannot find reliable setup, run, and verification instructions.
 
-Offer: Offer when a new contributor cannot locate installation and execution instructions.
+Owned scope: `documentation.onboarding-docs`. Source: `README.md`.
 
-Input: `README.md`. Detection records the path even when its contents are malformed.
+The native rules recognize a setup heading, a run or usage heading, and a check or test heading. A pass confirms those headings exist; it does not establish that their contents are complete or their commands work.
 
-Coverage ceiling: Checks documented setup, run and verification instructions; does not execute installation or prove that the instructions work on another machine.
-
-minimal: setup command — ["npm","install"].
-
-mid: run command — ["npm","start"].
-
-maximal: check command — ["npm","test"].
-
+Write prerequisites and installation steps under Setup, the project’s actual start command under Run, and the proving checks under Check. Validate the full instructions in a clean environment before claiming they work.

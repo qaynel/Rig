@@ -1,15 +1,13 @@
 # product-security.red-team.dast — identity
 
-Policy grade: dast owns red-team.dast. Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
+Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
 
-Keep neighboring red-team services outside the dast decision for red-team.dast. Anchor the review on the configured input at `rig-services/product-security.red-team.dast.json`; malformed input is still attributed to that path.
+Policy grade. Run dynamic security tests only against a specifically authorized target and path scope. A configured origin is not evidence that a live scan occurred.
 
-Disposition: convention. Inspect the limit: dast configuration validation only; declared policy does not prove running dast behavior. Choose a repository-owned check that observes dast from rig-services/product-security.red-team.dast.json.
+Applicable surface: source-code. Owned scope: `red-team.dast`. Input: `rig-services/product-security.red-team.dast.json`.
 
-Acceptance target: fixture:product-security.red-team.dast:policy-boundary. Given source-code is present and red-team.dast is selected, pass only when the repository binding evaluates red-team.dast and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern.
+Disposition: executable. The native checks validate policy configuration only; they do not demonstrate the promised red-team behavior.
 
-Service-specific evidence cues:
-Offer: Dynamic security testing needs a specifically authorized target and path scope. A declared target does not prove a live scan; missing scanner or credentials must remain visible.
-minimal: target origin — "http://127.0.0.1:8080".
-mid: authorized scope — ["/api"].
-maximal: scan unapproved targets — false.
+The native rules only check that target_origin and authorized_scope are nonempty and scan_unapproved_targets is false. They do not run a scanner or verify ownership or authorization of the target.
+
+Configured examples: minimal `target_origin` = "http://127.0.0.1:8080"; mid `authorized_scope` = ["/api"]; maximal `scan_unapproved_targets` = false. These are policy values, not results from an attack simulation or runtime probe.

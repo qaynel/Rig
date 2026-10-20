@@ -1,11 +1,9 @@
-# testing.mutation.remediation-advisor — floor and mutation-floor slice
+# testing.mutation.remediation-advisor — floor slice
 
-Policy grade slice. This slice bounds remediation advisor to mutation.remediation-advisor. It uses `remediation-advisor-slice-floor` and checks remediation_cases (nonempty): remediation cases must name the concrete repository contract..
+Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
 
-For remediation advisor, choose a repository example that satisfies remediation_cases at the floor and mutation-floor floor, plus a failure where remediation cases must name the concrete repository contract. is false. For remediation advisor, wire `floor and mutation-floor` to `rig-services/testing.mutation.remediation-advisor.json` and keep its verdict on remediation_cases; missing evidence is a named gap, with ceiling remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Choose a repository-owned check that observes remediation advisor from rig-services/testing.mutation.remediation-advisor.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-minimal: remediation cases — ["reject exact upper limit"].
-mid: target behaviors — ["limit enforcement"].
-maximal: add implementation mirrors — false.
+This Policy slice checks `remediation_cases` through `remediation-advisor-slice-floor`. The good fixture supplies `remediation_cases` = `["reject exact upper limit"]`; the bad fixture removes it.
+
+List a concrete remediation case, such as rejecting the exact boundary value that survived. Keep the failure attached to `rig-services/testing.mutation.remediation-advisor.json`; do not infer that a mutation was generated or killed. remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.

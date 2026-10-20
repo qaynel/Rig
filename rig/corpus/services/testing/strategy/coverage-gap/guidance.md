@@ -15,4 +15,3 @@ minimal: uncovered behaviors — ["expired token"].
 mid: risk owners — ["auth team"].
 
 maximal: claim complete from line coverage — false.
-

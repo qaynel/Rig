@@ -15,4 +15,3 @@ minimal: trace fields — ["correlation_id","timestamp"].
 mid: redacted fields — ["authorization"].
 
 maximal: log credentials — false.
-

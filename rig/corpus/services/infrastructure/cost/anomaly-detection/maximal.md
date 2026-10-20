@@ -1,13 +1,11 @@
 # infrastructure.cost.anomaly-detection — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for anomaly detection. The evidence must preserve the cost_baseline, deviation_threshold_percent, ignore_missing_billing_data inputs that determined the result. Binding checks: anomaly-detection-evidence-receipt.
+Compare cost with a stable baseline and an explicit deviation threshold. Missing billing input is a gap, never evidence that spending is normal.
 
-Use a second run against unchanged anomaly detection inputs. Record the cost_baseline, deviation_threshold_percent, ignore_missing_billing_data inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this anomaly detection result is stale. The ceiling remains: anomaly detection configuration validation only; declared policy does not prove running anomaly detection behavior. Choose a repository-owned check that observes anomaly detection from rig-services/infrastructure.cost.anomaly-detection.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: anomaly-detection-source-code-boundary, anomaly-detection-cost-context, anomaly-detection-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.cost.anomaly-detection:evidence-replay. Given the cost.anomaly-detection binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Compare cost with a stable baseline and an explicit deviation threshold. Missing billing input is a gap, never evidence that spending is normal.
-minimal: cost baseline — "weekly service spend".
-mid: deviation threshold percent — 25.
-maximal: ignore missing billing data — false.
+Acceptance target: policy:infrastructure.cost.anomaly-detection:maximal:anomaly-detection-source-code-boundary+anomaly-detection-cost-context+anomaly-detection-evidence-receipt.
+
+Declared predicates: anomaly-detection-source-code-boundary: `cost_baseline` is nonempty (a string or array); anomaly-detection-cost-context: `deviation_threshold_percent` is numeric and at least 25; anomaly-detection-evidence-receipt: `ignore_missing_billing_data` equals false.

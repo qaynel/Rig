@@ -4,12 +4,8 @@ Policy grade: benchmarks owns performance-load.benchmarks. Benchmark a named wor
 
 Keep neighboring performance-load services outside the benchmarks decision for performance-load.benchmarks. Tie acceptance to the configured input at `rig-services/testing.performance-load.benchmarks.json`; malformed input is still attributed to that path.
 
-Disposition: convention. Read the limit: benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Choose a repository-owned check that observes benchmarks from rig-services/testing.performance-load.benchmarks.json.
+Disposition: executable. Read the limit: benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Choose a repository-owned check that observes benchmarks from rig-services/testing.performance-load.benchmarks.json.
 
-Acceptance target: fixture:testing.performance-load.benchmarks:policy-boundary. Given source-code is present and performance-load.benchmarks is selected, pass only when the repository binding evaluates performance-load.benchmarks and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent performance load concern.
+Acceptance target: policy:testing.performance-load.benchmarks:minimal:benchmarks-source-code-boundary.
 
-Service-specific evidence cues:
-Offer: Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
-minimal: benchmark workload — "serialize 1000 records".
-mid: samples — 30.
-maximal: single sample conclusion — false.
+Declared predicates: benchmarks-source-code-boundary: `benchmark_workload` is nonempty (a string or array).

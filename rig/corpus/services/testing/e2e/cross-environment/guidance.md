@@ -15,4 +15,3 @@ minimal: environments — ["linux","macos"].
 mid: shared cases — ["install and run"].
 
 maximal: assume platform equivalence — false.
-

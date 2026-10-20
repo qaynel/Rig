@@ -1,15 +1,15 @@
 # testing.mutation.equivalent-mutant-detector — identity
 
-Policy grade: equivalent mutant detector owns mutation.equivalent-mutant-detector. Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
+Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
 
-Keep neighboring mutation services outside the equivalent mutant detector decision for mutation.equivalent-mutant-detector. Inspect the configured input at `rig-services/testing.mutation.equivalent-mutant-detector.json`; malformed input is still attributed to that path.
+Policy grade. Record evidence and human ownership before classifying a mutant as behaviorally equivalent. A surviving mutant may expose a missing assertion; survival alone is not an equivalence proof.
 
-Disposition: convention. Tie acceptance to the limit: equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Choose a repository-owned check that observes equivalent mutant detector from rig-services/testing.mutation.equivalent-mutant-detector.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.equivalent-mutant-detector:policy-boundary. Given source-code is present and mutation.equivalent-mutant-detector is selected, pass only when the repository binding evaluates mutation.equivalent-mutant-detector and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.equivalent-mutant-detector`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.
-minimal: equivalence evidence — ["unreachable branch by domain proof"].
-mid: review owners — ["parser maintainer"].
-maximal: classify by survival only — false.
+Read `rig-services/testing.mutation.equivalent-mutant-detector.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `equivalence_evidence` = `["unreachable branch by domain proof"]`; mid adds `review_owners` = `["parser maintainer"]`; maximal requires `classify_by_survival_only` = `false`.

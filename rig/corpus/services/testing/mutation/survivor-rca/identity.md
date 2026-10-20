@@ -1,15 +1,15 @@
 # testing.mutation.survivor-rca — identity
 
-Policy grade: survivor rca owns mutation.survivor-rca. Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
+Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
 
-Keep neighboring mutation services outside the survivor rca decision for mutation.survivor-rca. Use the configured input at `rig-services/testing.mutation.survivor-rca.json`; malformed input is still attributed to that path.
+Policy grade. Triage surviving mutants into missing assertions or justified equivalence questions. Treat a survivor as a signal for review, not automatically as a defect or as equivalent.
 
-Disposition: convention. Start from the limit: survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Choose a repository-owned check that observes survivor rca from rig-services/testing.mutation.survivor-rca.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.survivor-rca:policy-boundary. Given source-code is present and mutation.survivor-rca is selected, pass only when the repository binding evaluates mutation.survivor-rca and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.survivor-rca`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.
-minimal: surviving mutants — ["boundary comparison changed"].
-mid: missing assertions — ["exact limit rejected"].
-maximal: ignore equivalence question — false.
+Read `rig-services/testing.mutation.survivor-rca.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `surviving_mutants` = `["boundary comparison changed"]`; mid adds `missing_assertions` = `["exact limit rejected"]`; maximal requires `ignore_equivalence_question` = `false`.

@@ -1,11 +1,9 @@
 # testing.mutation.selector-sampler — behavior-oracle slice
 
-Policy grade slice. This slice bounds selector sampler to mutation.selector-sampler. It uses `selector-sampler-slice-behavior-oracle` and checks selection_scope (nonempty): selection scope must name the concrete repository contract..
+Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
 
-For selector sampler, choose a repository example that satisfies selection_scope at the behavior-oracle floor, plus a failure where selection scope must name the concrete repository contract. is false. For selector sampler, wire `behavior-oracle` to `rig-services/testing.mutation.selector-sampler.json` and keep its verdict on selection_scope; missing evidence is a named gap, with ceiling selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Choose a repository-owned check that observes selector sampler from rig-services/testing.mutation.selector-sampler.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
-minimal: selection scope — ["changed parser functions"].
-mid: sampling seed — 42.
-maximal: claim exhaustive from sample — false.
+The policy oracle for this service is `selector-sampler-slice-behavior-oracle`, and it validates `selection_scope`. A seeded sample can estimate sensitivity but cannot stand in for exhaustive mutation coverage.
+
+A passing result means the input meets this one rule. It does not show the mutation tool or its oracle ran. For that claim, use a repository-owned execution check and report the observed result.

@@ -79,6 +79,9 @@ test('there is exactly one MCP disposition table: the AT-HOST-5 reader reports f
       if (advertised.emission === 'unsupported') {
         assert.equal(reported.status, 'unsupported', `${host} is unsupported in the table`);
         assert.match(reported.guidance, /preserv/i, `${host} guidance must promise preservation`);
+      } else if (advertised.emission === 'not_integrated') {
+        assert.equal(reported.status, 'not_integrated', `${host} has no Rig writer`);
+        assert.match(reported.guidance, /does not write/i, `${host} gap guidance`);
       } else {
         assert.equal(reported.status, advertised.config_scope, `${host} config scope`);
         assert.equal(reported.path, advertised.output.path, `${host} file`);

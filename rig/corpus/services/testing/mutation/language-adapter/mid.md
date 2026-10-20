@@ -1,13 +1,13 @@
 # testing.mutation.language-adapter — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for language adapter; it does not widen ownership beyond mutation.language-adapter. For language adapter, inspect these context signals: compiler_command. Binding checks: language-adapter-mutation-context.
+Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
 
-Inspect the existing repository's language adapter convention, then name the source path or command that establishes it. For language adapter, inspect the repository's actual spec, source, test, or configuration for compiler_command; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the language adapter decision for mutation.language-adapter.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: language-adapter-source-code-boundary, language-adapter-mutation-context.
 
-Acceptance target: fixture:testing.mutation.language-adapter:repository-context. Given mutation.language-adapter has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `compiler_command`. Name the repository’s actual syntax-check command and version; a generic command may not cover every source dialect.
 
-Service-specific evidence cues:
-Offer: Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
-minimal: source extensions — [".js"].
-mid: compiler command — ["node","--check"].
-maximal: parse errors are success — false.
+This remains configuration review. A value in `rig-services/testing.mutation.language-adapter.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.language-adapter:mid:language-adapter-source-code-boundary+language-adapter-mutation-context.
+
+Check: `language-adapter-mutation-context`.

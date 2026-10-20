@@ -1,15 +1,13 @@
 # product-security.red-team.blast-radius — identity
 
-Policy grade: blast radius owns red-team.blast-radius. Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
+Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
 
-Keep neighboring red-team services outside the blast radius decision for red-team.blast-radius. Ground the decision in the configured input at `rig-services/product-security.red-team.blast-radius.json`; malformed input is still attributed to that path.
+Policy grade. Limit the damage a compromised identity can cause by defining its privilege scopes and isolation boundaries. Cross-tenant access violates the intended boundary.
 
-Disposition: convention. Use the limit: blast radius configuration validation only; declared policy does not prove running blast radius behavior. Choose a repository-owned check that observes blast radius from rig-services/product-security.red-team.blast-radius.json.
+Applicable surface: source-code. Owned scope: `red-team.blast-radius`. Input: `rig-services/product-security.red-team.blast-radius.json`.
 
-Acceptance target: fixture:product-security.red-team.blast-radius:policy-boundary. Given source-code is present and red-team.blast-radius is selected, pass only when the repository binding evaluates red-team.blast-radius and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern.
+Disposition: executable. The native checks validate policy configuration only; they do not demonstrate the promised red-team behavior.
 
-Service-specific evidence cues:
-Offer: Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
-minimal: privilege scopes — ["read single tenant"].
-mid: isolation boundaries — ["tenant id enforced"].
-maximal: cross tenant access — false.
+The native rules only check that privilege_scopes and isolation_boundaries are nonempty and cross_tenant_access is false. They do not inspect authorization code or test tenant isolation.
+
+Configured examples: minimal `privilege_scopes` = ["read single tenant"]; mid `isolation_boundaries` = ["tenant id enforced"]; maximal `cross_tenant_access` = false. These are policy values, not results from an attack simulation or runtime probe.

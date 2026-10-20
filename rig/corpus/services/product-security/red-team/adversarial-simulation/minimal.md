@@ -1,13 +1,9 @@
 # product-security.red-team.adversarial-simulation — minimal
 
-Grade: minimal. Assurance remains Policy grade. Minimal establishes a non-vacuous policy boundary for adversarial simulation. The minimal boundary for adversarial simulation checks attack_scenarios (nonempty): attack scenarios must name the concrete repository contract.. Binding checks: adversarial-simulation-source-code-boundary.
+Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
 
-Use a repository-owned command or existing native check that can observe red-team.adversarial-simulation; bind it to the input named in `rig-services/product-security.red-team.adversarial-simulation.json` and preserve the check's failure status. When adopting this in an existing repository, connect adversarial simulation to the command that inspects attack_scenarios and name the source path it reads. Treat a missing binding, unreadable input, failed command, or claim outside red-team.adversarial-simulation as a failure.
+Grade: minimal. Assurance remains Policy grade. `adversarial-simulation-source-code-boundary` checks that `attack_scenarios` is nonempty. Example: ["malformed token"].
 
-Acceptance target: fixture:product-security.red-team.adversarial-simulation:policy-boundary. Given source-code is present and red-team.adversarial-simulation is selected, pass only when the repository binding evaluates red-team.adversarial-simulation and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent red team concern. The ceiling is adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Choose a repository-owned check that observes adversarial simulation from rig-services/product-security.red-team.adversarial-simulation.json..
+Name scenarios that apply to this system and identify the exact isolated deployment and assets they may touch. A configured scope is not proof that the test runner is isolated. The rule proves only that a value was configured.
 
-Service-specific evidence cues:
-Offer: Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
-minimal: attack scenarios — ["malformed token"].
-mid: containment scope — "isolated test deployment".
-maximal: use real customer data — false.
+Catalogue policy target: `policy:product-security.red-team.adversarial-simulation:minimal:adversarial-simulation-source-code-boundary`. This names the policy condition; no runnable attack fixture is included here.

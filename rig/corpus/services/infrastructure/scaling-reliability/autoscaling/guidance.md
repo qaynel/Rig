@@ -15,4 +15,3 @@ minimal: scaling metric — "queue depth".
 mid: maximum replicas — 10.
 
 maximal: scale to zero without wakeup — false.
-

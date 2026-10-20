@@ -1,15 +1,15 @@
 # testing.mutation.ci-gate-policy — identity
 
-Policy grade: ci gate policy owns mutation.ci-gate-policy. Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
+Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
 
-Keep neighboring mutation services outside the ci gate policy decision for mutation.ci-gate-policy. Tie acceptance to the configured input at `rig-services/testing.mutation.ci-gate-policy.json`; malformed input is still attributed to that path.
+Policy grade. Set a mutation score threshold and decide how inconclusive runs affect CI. Timeouts and unrun mutants cannot silently count as acceptable evidence.
 
-Disposition: convention. Read the limit: ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Choose a repository-owned check that observes ci gate policy from rig-services/testing.mutation.ci-gate-policy.json.
+Applicable surface: source-code.
 
-Acceptance target: fixture:testing.mutation.ci-gate-policy:policy-boundary. Given source-code is present and mutation.ci-gate-policy is selected, pass only when the repository binding evaluates mutation.ci-gate-policy and returns zero; fail when the binding is missing, unreadable, exits nonzero, or claims an adjacent mutation concern.
+Owned scope: `mutation.ci-gate-policy`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Service-specific evidence cues:
-Offer: Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.
-minimal: minimum score percent — 70.
-mid: timeout policy — "fail-inconclusive".
-maximal: allow unrun mutants — false.
+Read `rig-services/testing.mutation.ci-gate-policy.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.
+
+Policy checks: minimal requires `minimum_score_percent` = `70`; mid adds `timeout_policy` = `"fail-inconclusive"`; maximal requires `allow_unrun_mutants` = `false`.

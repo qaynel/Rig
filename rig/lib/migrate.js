@@ -384,7 +384,7 @@ function plan(target, opts) {
   const retained = [];
   const keptEdited = [];
   const desiredPaths = new Set();
-  const writeEntries = [staged.release, ...staged.entries.filter((e) => !e.op || e.op === 'pinned_catalog' || e.op === 'seed_user_file')];
+  const writeEntries = [staged.release, ...staged.entries.filter((e) => !e.op || e.op === 'pinned_catalog' || e.op === 'pinned_adapter' || e.op === 'seed_user_file')];
   for (const entry of writeEntries) {
     desiredPaths.add(entry.path);
     const rel = entry.path;
@@ -589,7 +589,7 @@ function pruneEmpty(target, rel) {
 function execute(target, planned, opts) {
   const writer = journalWriter(target, { transactionOwner: `migrate:${planned.plan_digest}` });
   writer.begin();
-  const byPath = new Map(planned.staged.entries.filter((e) => !e.op || e.op === 'pinned_catalog' || e.op === 'seed_user_file').concat(planned.staged.release).map((e) => [e.path, e]));
+  const byPath = new Map(planned.staged.entries.filter((e) => !e.op || e.op === 'pinned_catalog' || e.op === 'pinned_adapter' || e.op === 'seed_user_file').concat(planned.staged.release).map((e) => [e.path, e]));
   const result = { written: [], retired: [], adopted: [] };
   let step = 0;
   const tick = (name) => { if (opts.onStep) opts.onStep(name, step); step += 1; };

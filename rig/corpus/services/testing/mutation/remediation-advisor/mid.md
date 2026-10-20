@@ -1,13 +1,13 @@
 # testing.mutation.remediation-advisor — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for remediation advisor; it does not widen ownership beyond mutation.remediation-advisor. For remediation advisor, inspect these context signals: target_behaviors. Binding checks: remediation-advisor-mutation-context.
+Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
 
-Anchor the review on the existing repository's remediation advisor convention, then name the source path or command that establishes it. For remediation advisor, inspect the repository's actual spec, source, test, or configuration for target_behaviors; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the remediation advisor decision for mutation.remediation-advisor.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: remediation-advisor-source-code-boundary, remediation-advisor-mutation-context.
 
-Acceptance target: fixture:testing.mutation.remediation-advisor:repository-context. Given mutation.remediation-advisor has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+List at least one value for `target_behaviors`. Tie each proposed case to the behavior it protects, not to the implementation branch or helper name.
 
-Service-specific evidence cues:
-Offer: Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.
-minimal: remediation cases — ["reject exact upper limit"].
-mid: target behaviors — ["limit enforcement"].
-maximal: add implementation mirrors — false.
+This remains configuration review. A value in `rig-services/testing.mutation.remediation-advisor.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.remediation-advisor:mid:remediation-advisor-source-code-boundary+remediation-advisor-mutation-context.
+
+Check: `remediation-advisor-mutation-context`.

@@ -1,13 +1,9 @@
 # development.documentation.docstrings — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for docstrings; it does not widen ownership beyond documentation.docstrings. For docstrings, inspect these context signals: parameters. Binding checks: docstrings-documentation-context.
+Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-Tie acceptance to the existing repository's docstrings convention, then name the source path or command that establishes it. For docstrings, inspect the repository's actual spec, source, test, or configuration for parameters; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring documentation services outside the docstrings decision for documentation.docstrings.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: docstrings-source-code-boundary, docstrings-documentation-context.
 
-Acceptance target: fixture:development.documentation.docstrings:repository-context. Given documentation.docstrings has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent documentation concern; fail when the result infers local convention without an inspectable source.
+Compare declared symbols and parameter/failure details with public functions in the repository. The example symbol is illustrative, not discovered from source. A nonempty policy value does not establish that repository context was inspected.
 
-Service-specific evidence cues:
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
-minimal: documented symbols — ["parseRecord"].
-mid: parameters — ["raw: serialized record"].
-maximal: failure contract — "throws on malformed records".
+Catalogue policy target: `policy:development.documentation.docstrings:mid:docstrings-source-code-boundary+docstrings-documentation-context`. Its current policy check proves only that parameters is nonempty.

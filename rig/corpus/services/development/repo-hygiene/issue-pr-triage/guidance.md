@@ -15,4 +15,3 @@ minimal: triage labels — ["bug","needs-reproduction"].
 mid: responsible owners — ["maintainers"].
 
 maximal: close without disposition — false.
-

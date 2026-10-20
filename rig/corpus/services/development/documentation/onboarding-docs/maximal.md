@@ -1,13 +1,9 @@
 # development.documentation.onboarding-docs — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for onboarding docs. The evidence must preserve the , ,  inputs that determined the result. Binding checks: onboarding-docs-evidence-receipt.
+Offer when a new contributor cannot locate installation and execution instructions.
 
-Inspect a second run against unchanged onboarding docs inputs. Record the , ,  inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this onboarding docs result is stale. The ceiling remains: Checks documented setup, run and verification instructions; does not execute installation or prove that the instructions work on another machine.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: onboarding-docs-source-code-boundary, onboarding-docs-documentation-context, onboarding-docs-evidence-receipt.
 
-Acceptance target: fixture:development.documentation.onboarding-docs:evidence-replay. Given the documentation.onboarding-docs binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+Document the repository-owned command contributors should run and name what a successful result establishes. The native rule matches the heading only; it does not run the command, verify its result, or create a replay receipt.
 
-Service-specific evidence cues:
-Offer: Offer when a new contributor cannot locate installation and execution instructions.
-minimal: setup command — ["npm","install"].
-mid: run command — ["npm","start"].
-maximal: check command — ["npm","test"].
+Catalogue policy target: `policy:development.documentation.onboarding-docs:maximal:onboarding-docs-source-code-boundary+onboarding-docs-documentation-context+onboarding-docs-evidence-receipt`. This target is not an implemented replay check or an included fixture. Actual verification requires running the documented command in a clean environment.

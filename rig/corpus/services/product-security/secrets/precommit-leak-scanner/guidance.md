@@ -15,4 +15,3 @@ minimal: scanner command — ["gitleaks","protect"].
 mid: scan scope — "staged-diff".
 
 maximal: ignore scanner exit — false.
-

@@ -15,4 +15,3 @@ minimal: typecheck command — ["npm","run","typecheck"].
 mid: checked components — ["src"].
 
 maximal: ignore type errors — false.
-

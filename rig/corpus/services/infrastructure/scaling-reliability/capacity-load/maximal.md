@@ -1,13 +1,11 @@
 # infrastructure.scaling-reliability.capacity-load — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for capacity load. The evidence must preserve the load_workload, slo_latency_ms, unbounded_load_duration inputs that determined the result. Binding checks: capacity-load-evidence-receipt.
+Evaluate capacity under a declared workload and latency objective. Bound the experiment duration and stop conditions before putting pressure on an environment.
 
-Use a second run against unchanged capacity load inputs. Record the load_workload, slo_latency_ms, unbounded_load_duration inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this capacity load result is stale. The ceiling remains: capacity load configuration validation only; declared policy does not prove running capacity load behavior. Choose a repository-owned check that observes capacity load from rig-services/infrastructure.scaling-reliability.capacity-load.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: capacity-load-source-code-boundary, capacity-load-scaling-reliability-context, capacity-load-evidence-receipt.
 
-Acceptance target: fixture:infrastructure.scaling-reliability.capacity-load:evidence-replay. Given the scaling-reliability.capacity-load binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Evaluate capacity under a declared workload and latency objective. Bound the experiment duration and stop conditions before putting pressure on an environment.
-minimal: load workload — "100 concurrent requests".
-mid: slo latency ms — 250.
-maximal: unbounded load duration — false.
+Acceptance target: policy:infrastructure.scaling-reliability.capacity-load:maximal:capacity-load-source-code-boundary+capacity-load-scaling-reliability-context+capacity-load-evidence-receipt.
+
+Declared predicates: capacity-load-source-code-boundary: `load_workload` is nonempty (a string or array); capacity-load-scaling-reliability-context: `slo_latency_ms` is numeric and at least 250; capacity-load-evidence-receipt: `unbounded_load_duration` equals false.

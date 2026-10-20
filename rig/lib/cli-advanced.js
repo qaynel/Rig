@@ -8,7 +8,7 @@ const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
+const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, proposeSignerSetup, setupPolicySigner, generateRecoveryCredential, registerRecoveryCredential, grantApproval } = require('./policy');
 const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
@@ -157,7 +157,30 @@ function runAdvanced(subcommand, argv) {
       writeOut(out, grantApproval(target, readJson(actionPath)));
       return;
     }
-    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, recover, or grant-approval');
+    if (action === 'signer-challenge') {
+      const signer = parseFlag(argv, '--signer');
+      const out = parseFlag(argv, '--out');
+      if (!signer || !out) throw new Error('rig: policy signer-challenge requires --signer and --out');
+      writeOut(out, proposeSignerSetup(target, readJson(signer)));
+      return;
+    }
+    if (action === 'signer-setup' || action === 'recovery-register') {
+      const challenge = parseFlag(argv, '--challenge');
+      const approval = parseFlag(argv, '--approval');
+      if (!challenge || !approval) throw new Error(`rig: policy ${action} requires --challenge and --approval`);
+      const result = (action === 'signer-setup' ? setupPolicySigner : registerRecoveryCredential)(target, readJson(challenge), readJson(approval));
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      return;
+    }
+    if (action === 'recovery-key') {
+      const identity = parseFlag(argv, '--identity');
+      const output = parseFlag(argv, '--key-output');
+      const out = parseFlag(argv, '--out');
+      if (!identity || !output || !out) throw new Error('rig: policy recovery-key requires --identity --key-output and --out');
+      writeOut(out, generateRecoveryCredential(target, { identity, output }));
+      return;
+    }
+    throw new Error('rig: policy requires status, propose, activate, signer-challenge, signer-setup, recovery-key, recovery-register, recovery-challenge, recover, or grant-approval');
   }
 
   if (subcommand === 'inspect') {

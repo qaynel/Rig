@@ -15,4 +15,3 @@ minimal: generation rules — ["valid account IDs"].
 mid: seed — 42.
 
 maximal: use customer records — false.
-

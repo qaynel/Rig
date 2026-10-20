@@ -15,4 +15,3 @@ minimal: backup schedule — "daily".
 mid: restore test schedule — "monthly".
 
 maximal: backup without restore test — false.
-

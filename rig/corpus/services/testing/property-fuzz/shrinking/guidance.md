@@ -15,4 +15,3 @@ minimal: failure predicate — "parser crashes".
 mid: preserved constraints — ["valid UTF-8"].
 
 maximal: drop failure during shrink — false.
-

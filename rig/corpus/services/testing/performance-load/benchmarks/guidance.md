@@ -15,4 +15,3 @@ minimal: benchmark workload — "serialize 1000 records".
 mid: samples — 30.
 
 maximal: single sample conclusion — false.
-

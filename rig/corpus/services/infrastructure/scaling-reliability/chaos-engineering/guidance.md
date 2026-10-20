@@ -15,4 +15,3 @@ minimal: fault scenarios — ["worker unavailable"].
 mid: stop conditions — ["error budget exhausted"].
 
 maximal: production experiment without approval — false.
-

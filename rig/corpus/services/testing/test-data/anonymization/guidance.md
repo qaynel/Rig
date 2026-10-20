@@ -15,4 +15,3 @@ minimal: sensitive fields — ["email","address"].
 mid: replacement strategy — "irreversible-synthetic-values".
 
 maximal: retain reidentification map — false.
-

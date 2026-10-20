@@ -15,4 +15,3 @@ minimal: toy scope — ["local disposable fixture"].
 mid: expires after days — 1.
 
 maximal: permit production use — false.
-

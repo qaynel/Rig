@@ -1,18 +1,13 @@
-# blast radius
+# Blast-radius boundaries
 
 Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
 
-Owned scope: `red-team.blast-radius`.
+Limit the damage a compromised identity can cause by defining its privilege scopes and isolation boundaries. Cross-tenant access violates the intended boundary.
 
-Offer: Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.
+Owned scope: `red-team.blast-radius`. Input: `rig-services/product-security.red-team.blast-radius.json`.
 
-Input: `rig-services/product-security.red-team.blast-radius.json`. Detection records the path even when its contents are malformed.
+The policy declares minimal `privilege_scopes` = ["read single tenant"]; mid `isolation_boundaries` = ["tenant id enforced"]; maximal `cross_tenant_access` = false. The native rules only check that privilege_scopes and isolation_boundaries are nonempty and cross_tenant_access is false. They do not inspect authorization code or test tenant isolation.
 
-Coverage ceiling: blast radius configuration validation only; declared policy does not prove running blast radius behavior. Select an approved repository-owned command to verify that behavior.
+Describe the principal’s actual privileges and the enforcement boundary between tenants. The example values are illustrative; the native check cannot verify that enforcement exists. To establish the boundary, use authorized tests to attempt only the explicitly approved cross-scope access cases and confirm they are denied.
 
-minimal: privilege scopes — ["read single tenant"].
-
-mid: isolation boundaries — ["tenant id enforced"].
-
-maximal: cross tenant access — false.
-
+Use isolated test tenants and non-sensitive records; never use production customer data to probe access boundaries.

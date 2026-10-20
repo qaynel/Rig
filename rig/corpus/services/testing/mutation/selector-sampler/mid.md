@@ -1,13 +1,13 @@
 # testing.mutation.selector-sampler — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for selector sampler; it does not widen ownership beyond mutation.selector-sampler. For selector sampler, inspect these context signals: sampling_seed. Binding checks: selector-sampler-mutation-context.
+Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
 
-Inspect the existing repository's selector sampler convention, then name the source path or command that establishes it. For selector sampler, inspect the repository's actual spec, source, test, or configuration for sampling_seed; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring mutation services outside the selector sampler decision for mutation.selector-sampler.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: selector-sampler-source-code-boundary, selector-sampler-mutation-context.
 
-Acceptance target: fixture:testing.mutation.selector-sampler:repository-context. Given mutation.selector-sampler has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent mutation concern; fail when the result infers local convention without an inspectable source.
+Set `sampling_seed` to at least 42. Use the same seed and scope when comparing runs; changes to either make samples incomparable.
 
-Service-specific evidence cues:
-Offer: Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.
-minimal: selection scope — ["changed parser functions"].
-mid: sampling seed — 42.
-maximal: claim exhaustive from sample — false.
+This remains configuration review. A value in `rig-services/testing.mutation.selector-sampler.json` does not prove the command was run, that its output was correct, or that neighboring mutation stages were covered.
+
+Repository-context target (not established by this policy check): policy:testing.mutation.selector-sampler:mid:selector-sampler-source-code-boundary+selector-sampler-mutation-context.
+
+Check: `selector-sampler-mutation-context`.

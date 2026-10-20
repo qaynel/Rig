@@ -1,18 +1,15 @@
-# dns discovery
+# DNS discovery
 
 Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
 
-Owned scope: `networking.dns-discovery`.
+Publish stable service names with deliberate TTLs; hardcoded ephemeral addresses can leave clients using stale endpoints during failover.
 
-Offer: Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.
+Owned scope: `dns-discovery`.
 
-Input: `rig-services/infrastructure.networking.dns-discovery.json`. Detection records the path even when its contents are malformed.
+Read the declared input at `rig-services/infrastructure.networking.dns-discovery.json`; retain its path in diagnostics when the file is malformed so the user can repair the right configuration.
 
-Coverage ceiling: dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Select an approved repository-owned command to verify that behavior.
+Policy checks: service records is evaluated at minimal grade; `ttl_seconds` is evaluated at mid; and `hardcode_ephemeral_addresses` is evaluated at maximal.
 
-minimal: service records — ["api.internal"].
+Coverage ceiling: These predicates inspect the declared DNS configuration only. They do not resolve names, query an authoritative server, or measure propagation and cache behavior.
 
-mid: ttl seconds — 60.
-
-maximal: hardcode ephemeral addresses — false.
-
+Use service_records for stable DNS names, ttl_seconds for the configured cache lifetime, and hardcode_ephemeral_addresses to reject literal ephemeral endpoints. The static checks validate these declared values; runtime DNS availability and propagation are outside their ceiling.

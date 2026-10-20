@@ -1,5 +1,19 @@
 # The authored-service gate
 
+The [October 20 cleanup](../reasoning/2026-10-20-qa-closeout-runtime-and-host-remediation.md)
+removes repeated cue scaffolding and speculative binding prose while retaining
+the actual offers and predicates. Two zero-change policy boundaries now reject
+positive counts. Mechanical checks pass; full fresh semantic signoff remains
+separate from those checks.
+
+The [current semantic review](../reasoning/2026-10-18-qa-review-runtime-corrections.md)
+found repeated sentence artifacts and disposition-label drift that the green
+mechanical gate did not detect. Their correction and the active-corpus digest
+refresh are in flight; a passing presence check alone is not release evidence.
+The [alignment checkpoint](../reasoning/2026-10-18-qa-catalogue-alignment-checkpoint.md)
+records all corrected identity labels and a regression for the reproduced
+broken-sentence pattern; group-level semantic review continues.
+
 The signed oracle checks the current service-specific corpus: AT-SHAPE-6 rejects
 generic-baseline wording in authored fragments (lint-format retains its
 evidence-backed exception), and AT-PB-1 pins `rig/corpus/catalogue.json` plus

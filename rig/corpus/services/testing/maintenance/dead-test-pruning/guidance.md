@@ -15,4 +15,3 @@ minimal: obsolete cases — ["removed legacy endpoint"].
 mid: replacement evidence — ["new endpoint contract passes"].
 
 maximal: delete live regressions — false.
-

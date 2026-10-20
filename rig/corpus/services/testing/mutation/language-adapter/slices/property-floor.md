@@ -1,11 +1,9 @@
 # testing.mutation.language-adapter — property-floor slice
 
-Policy grade slice. This slice bounds language adapter to mutation.language-adapter. It uses `language-adapter-slice-property-floor` and checks source_extensions (nonempty): source extensions must name the concrete repository contract..
+Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
 
-For language adapter, choose a repository example that satisfies source_extensions at the property-floor floor, plus a failure where source extensions must name the concrete repository contract. is false. For language adapter, wire `property-floor` to `rig-services/testing.mutation.language-adapter.json` and keep its verdict on source_extensions; missing evidence is a named gap, with ceiling language adapter configuration validation only; declared policy does not prove running language adapter behavior. Choose a repository-owned check that observes language adapter from rig-services/testing.mutation.language-adapter.json..
+Assurance remains Policy grade.
 
-Service-specific evidence cues:
-Offer: Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.
-minimal: source extensions — [".js"].
-mid: compiler command — ["node","--check"].
-maximal: parse errors are success — false.
+This slice verifies the configured `source_extensions` rule using `language-adapter-slice-property-floor`. Declare which source extensions and compiler or parser command the mutation adapter can handle.
+
+The accepted fixture contains `source_extensions` = `[".js"]`; the invalid fixture demonstrates the missing-field case. This checks policy shape only, not a property of generated mutants.

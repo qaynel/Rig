@@ -275,6 +275,48 @@ function uninstall(target, opts = {}) {
     record,
     resolveRecordPath(target, record.path),
   ]));
+  // rig: capture first-write evidence before teardown removes the store;
+  // snapshots prove differences and are never restored over current bytes.
+  const origins = new Map();
+  for (const record of latestOperations(manifest.records)) {
+    if ((record.transaction_kind || 'install') !== 'install') continue;
+    if (record.operation === 'delete_owned' && record.state === 'applied') origins.delete(record.path);
+    else if (!origins.has(record.path)) origins.set(record.path, record);
+  }
+  const preimages = Object.create(null);
+  for (const record of records) {
+    const origin = origins.get(record.path) || record;
+    const digest = (record.operation === 'delete_owned' && record.state === 'applied')
+      || record.path === '.git/hooks/pre-commit.rig-chained' ? null
+      : Object.hasOwn(origin, 'preimage_digest') ? origin.preimage_digest
+        : origin.ownership === 'create_owned' ? null : undefined;
+    const snapshot = { digest, reason: null };
+    // Hooks already keep their original bytes in a journaled chained backup.
+    const chained = record.path === '.git/hooks/pre-commit'
+      && records.find(row => row.path === '.git/hooks/pre-commit.rig-chained');
+    if (chained) {
+      const backup = resolvedRecordPaths.get(chained);
+      if (fs.existsSync(backup) && currentDigest(backup) === (chained.digest || chained.desired_digest)) {
+        snapshot.digest = currentDigest(backup);
+        preimages[record.path] = snapshot;
+        continue;
+      }
+    }
+    if (digest !== null) {
+      if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) snapshot.reason = 'preimage-unavailable';
+      else {
+        try {
+          const file = containedPath(target, `.rig/preimages/${digest}`);
+          const stat = fs.lstatSync(file);
+          if (!stat.isFile() || stat.isSymbolicLink() || currentDigest(file) !== digest) snapshot.reason = 'preimage-corrupt';
+        } catch {
+          snapshot.reason = records.some(row => row.path === `.rig/preimages/${digest}`)
+            ? 'preimage-missing' : 'preimage-unavailable';
+        }
+      }
+    }
+    preimages[record.path] = snapshot;
+  }
   const bestEffort = [];
   const bestEffortDetails = [];
   const setupRecovery = require('./lint-format-setup').recoverSetup(target, records);
@@ -486,6 +528,22 @@ function uninstall(target, opts = {}) {
     }
   }
   for (const rel of deletedRels) pruneEmptyParents(target, rel);
+  // Graft removal itself journals a fresh snapshot; reclaim only those new,
+  // unchanged owned copies after all original preimages have been consumed.
+  const lastInstallSeq = records.reduce((max, record) => Math.max(max, record.seq), 0);
+  for (const record of latestOperations(readManifest(target).records)) {
+    if (record.seq <= lastInstallSeq || record.ownership !== 'create_owned'
+      || !record.path?.startsWith('.rig/preimages/')) continue;
+    const abs = containedPath(target, record.path);
+    if (!fs.existsSync(abs)) continue;
+    const stat = fs.lstatSync(abs);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || currentDigest(abs) !== record.digest) bestEffort.push(record.path);
+    else {
+      fs.rmSync(abs);
+      removed.push(record.path);
+      pruneEmptyParents(target, record.path);
+    }
+  }
   const evidence = {
     schema_version: 1,
     kind: 'uninstall',
@@ -517,10 +575,22 @@ function uninstall(target, opts = {}) {
       if (fs.existsSync(reports)) fs.rmSync(reports, { recursive: true, force: true });
       pruneEmptyParents(target, 'reports/rig');
     }
-  } else {
+  }
+  const verification = records.length ? verifyRemoval(target, { records, preimages, best_effort: bestEffort }) : {
+    status: 'best_effort', files: [MANIFEST_REL],
+    differences: [{ path: MANIFEST_REL, preimage_digest: null, postimage_digest: null, status: 'best_effort', reason: 'manifest-unavailable' }],
+  };
+  for (const difference of verification.differences || []) {
+    // Legacy journals without snapshot fields retain their teardown status,
+    // but verification still discloses that unavailable evidence separately.
+    if (difference.status === 'best_effort' && !['preimage-unavailable', 'manifest-unavailable'].includes(difference.reason)
+      && !bestEffort.includes(difference.path)) bestEffort.push(difference.path);
+  }
+  evidence.verification = verification;
+  if (!opts.purge && !opts.purgeGenerated) {
     writeEvidence(target, 'reports/rig/last-uninstall.json', `${JSON.stringify(evidence, null, 2)}\n`);
   }
-  if (bestEffort.length === 0) {
+  if (bestEffort.length === 0 && !(verification.differences || []).some(row => row.reason && row.reason !== 'preimage-unavailable')) {
     const mfile = containedPath(target, MANIFEST_REL);
     if (fs.existsSync(mfile)) fs.rmSync(mfile, { force: true });
     const legacy = containedPath(target, LEGACY_MANIFEST_REL);
@@ -534,12 +604,60 @@ function uninstall(target, opts = {}) {
     best_effort: bestEffort,
     best_effort_details: bestEffortDetails,
     purge_list: purgeList,
+    verification,
   };
 }
 
 function verifyRemoval(target, evidence) {
   if (evidence && Array.isArray(evidence.missing_markers) && evidence.missing_markers.length) {
     return { status: 'best_effort', files: [...evidence.missing_markers] };
+  }
+  if (evidence?.preimages && Object.keys(evidence.preimages).length) {
+    const files = new Set(evidence.best_effort || []);
+    const differences = [];
+    for (const record of evidence.records || []) {
+      const snapshot = evidence.preimages[record.path];
+      let reason = snapshot?.reason;
+      let postimage = null;
+      try {
+        const abs = resolveRecordPath(target, record.path);
+        if (fs.existsSync(abs)) {
+          const stat = fs.lstatSync(abs);
+          if (!stat.isFile() || stat.isSymbolicLink()) reason ||= 'remaining-unsafe-path';
+          else {
+            const bytes = fs.readFileSync(abs);
+            postimage = digestOf(bytes);
+            const body = bytes.toString('utf8');
+            const managedRemains = record.managed_line ? body.split('\n').includes(record.managed_line)
+              : record.ownership === 'graft_managed'
+                ? (record.managed_grafts || []).some(({ capability }) => body.includes(`<!-- rig:graft capability="${capability}"`))
+                : record.managed_block || record.ownership === 'append_managed'
+                  ? files.has(record.path)
+                  : postimage !== snapshot?.digest;
+            if (managedRemains) reason ||= 'managed-content-remains';
+          }
+        }
+      } catch { reason ||= 'post-removal-unreadable'; }
+      if (files.has(record.path)) reason ||= 'removal-best-effort';
+      if (reason) files.add(record.path);
+      differences.push({
+        path: record.path,
+        preimage_digest: snapshot?.digest ?? null,
+        postimage_digest: postimage,
+        status: reason ? 'best_effort' : postimage === (snapshot?.digest ?? null) ? 'unchanged' : postimage === null ? 'removed' : 'outside_changes',
+        ...(reason ? { reason } : {}),
+      });
+    }
+    // Only paths needing attention are listed: a runtime install records thousands of removed files, and the public result must stay bounded.
+    const counts = {};
+    for (const row of differences) counts[row.status] = (counts[row.status] || 0) + 1;
+    return {
+      status: files.size ? 'best_effort' : 'verified_clean',
+      files: [...files],
+      checked: differences.length,
+      counts,
+      differences: differences.filter((row) => row.status === 'outside_changes' || row.status === 'best_effort'),
+    };
   }
   // Walk any records still handed in and check the filesystem. A record whose
   // file is still on disk after uninstall is a real failure, not verified.

@@ -15,4 +15,3 @@ minimal: acceptance cases — ["creates an item","rejects invalid input"].
 mid: change scope — ["src/items.js"].
 
 maximal: compatibility — "preserve-existing-behavior".
-

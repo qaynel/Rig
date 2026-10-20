@@ -15,4 +15,3 @@ minimal: debt items — ["replace duplicated parser"].
 mid: owners — ["platform"].
 
 maximal: exit criteria — ["single parser with compatibility checks"].
-

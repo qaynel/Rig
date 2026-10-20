@@ -15,4 +15,3 @@ minimal: previous inventory — "licenses.previous.json".
 mid: current inventory — "licenses.current.json".
 
 maximal: accept new licenses automatically — false.
-

@@ -1,13 +1,11 @@
 # development.repo-hygiene.issue-pr-triage — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for issue pr triage. The evidence must preserve the triage_labels, responsible_owners, close_without_disposition inputs that determined the result. Binding checks: issue-pr-triage-evidence-receipt.
+Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
 
-Trace the verdict to a second run against unchanged issue pr triage inputs. Record the triage_labels, responsible_owners, close_without_disposition inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this issue pr triage result is stale. The ceiling remains: issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Choose a repository-owned check that observes issue pr triage from rig-services/development.repo-hygiene.issue-pr-triage.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: issue-pr-triage-source-code-boundary, issue-pr-triage-repo-hygiene-context, issue-pr-triage-evidence-receipt.
 
-Acceptance target: fixture:development.repo-hygiene.issue-pr-triage:evidence-replay. Given the repo-hygiene.issue-pr-triage binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
-minimal: triage labels — ["bug","needs-reproduction"].
-mid: responsible owners — ["maintainers"].
-maximal: close without disposition — false.
+Acceptance target: policy:development.repo-hygiene.issue-pr-triage:maximal:issue-pr-triage-source-code-boundary+issue-pr-triage-repo-hygiene-context+issue-pr-triage-evidence-receipt.
+
+Declared predicates: issue-pr-triage-source-code-boundary: `triage_labels` is nonempty (a string or array); issue-pr-triage-repo-hygiene-context: `responsible_owners` is nonempty (a string or array); issue-pr-triage-evidence-receipt: `close_without_disposition` equals false.

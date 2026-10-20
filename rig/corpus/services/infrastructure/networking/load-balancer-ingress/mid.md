@@ -1,13 +1,7 @@
 # infrastructure.networking.load-balancer-ingress — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for load balancer ingress; it does not widen ownership beyond networking.load-balancer-ingress. For load balancer ingress, inspect these context signals: request_timeout_ms. Binding checks: load-balancer-ingress-networking-context.
+Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
 
-Inspect the existing repository's load balancer ingress convention, then name the source path or command that establishes it. For load balancer ingress, inspect the repository's actual spec, source, test, or configuration for request_timeout_ms; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring networking services outside the load balancer ingress decision for networking.load-balancer-ingress.
+Policy grade remains unchanged at mid. `load-balancer-ingress-networking-context` checks `request_timeout_ms` with the `minimum` predicate at 5000. A 5000 millisecond timeout meets the configured minimum; this check does not discover a repository-specific timeout convention.
 
-Acceptance target: fixture:infrastructure.networking.load-balancer-ingress:repository-context. Given networking.load-balancer-ingress has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent networking concern; fail when the result infers local convention without an inspectable source.
-
-Service-specific evidence cues:
-Offer: Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.
-minimal: backend health path — "/health".
-mid: request timeout ms — 5000.
-maximal: expose admin route — false.
+The value comes from `rig-services/infrastructure.networking.load-balancer-ingress.json`; this is configuration validation, not a claim that the repository follows a discovered convention. The checks validate the declared ingress configuration. They do not send requests, probe backend health, or prove that a deployed load balancer enforces the route and timeout settings.

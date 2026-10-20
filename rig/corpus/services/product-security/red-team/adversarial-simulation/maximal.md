@@ -1,13 +1,9 @@
 # product-security.red-team.adversarial-simulation — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for adversarial simulation. The evidence must preserve the attack_scenarios, containment_scope, use_real_customer_data inputs that determined the result. Binding checks: adversarial-simulation-evidence-receipt.
+Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
 
-Trace the verdict to a second run against unchanged adversarial simulation inputs. Record the attack_scenarios, containment_scope, use_real_customer_data inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this adversarial simulation result is stale. The ceiling remains: adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Choose a repository-owned check that observes adversarial simulation from rig-services/product-security.red-team.adversarial-simulation.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: adversarial-simulation-source-code-boundary, adversarial-simulation-red-team-context, adversarial-simulation-evidence-receipt.
 
-Acceptance target: fixture:product-security.red-team.adversarial-simulation:evidence-replay. Given the red-team.adversarial-simulation binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The native rules only check that attack_scenarios and containment_scope are nonempty and use_real_customer_data is false. They do not launch a simulation or verify containment. A runtime exercise requires approval for the named target and evidence that execution stayed within the declared isolated scope.
 
-Service-specific evidence cues:
-Offer: Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.
-minimal: attack scenarios — ["malformed token"].
-mid: containment scope — "isolated test deployment".
-maximal: use real customer data — false.
+Catalogue policy target: `policy:product-security.red-team.adversarial-simulation:maximal:adversarial-simulation-source-code-boundary+adversarial-simulation-red-team-context+adversarial-simulation-evidence-receipt`. Its current rule proves only that use_real_customer_data equals false. It does not run or replay a red-team test.

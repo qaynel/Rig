@@ -1,11 +1,7 @@
 # development.documentation.docstrings — floor and mutation-floor slice
 
-Policy grade slice. This slice bounds docstrings to documentation.docstrings. It uses `docstrings-slice-floor` and checks documented_symbols (nonempty): documented symbols must name the concrete repository contract..
+Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-For docstrings, choose a repository example that satisfies documented_symbols at the floor and mutation-floor floor, plus a failure where documented symbols must name the concrete repository contract. is false. For docstrings, wire `floor and mutation-floor` to `rig-services/development.documentation.docstrings.json` and keep its verdict on documented_symbols; missing evidence is a named gap, with ceiling docstrings configuration validation only; declared policy does not prove running docstrings behavior. Choose a repository-owned check that observes docstrings from rig-services/development.documentation.docstrings.json..
+Policy grade. `docstrings-slice-floor` and `docstrings-slice-mutation-floor` require the policy’s `documented_symbols` list to contain at least one entry. No source file is edited or parsed by this slice.
 
-Service-specific evidence cues:
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
-minimal: documented symbols — ["parseRecord"].
-mid: parameters — ["raw: serialized record"].
-maximal: failure contract — "throws on malformed records".
+Example: `documented_symbols` = ["parseRecord"]. This does not establish that the symbol exists or that it has a docstring.

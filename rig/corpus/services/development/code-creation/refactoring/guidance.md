@@ -15,4 +15,3 @@ minimal: preserved behaviors — ["public API returns unchanged values"].
 mid: public api changes — 0.
 
 maximal: rollback strategy — "revert-commit".
-

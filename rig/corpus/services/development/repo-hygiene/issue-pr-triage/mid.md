@@ -1,13 +1,11 @@
 # development.repo-hygiene.issue-pr-triage — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for issue pr triage; it does not widen ownership beyond repo-hygiene.issue-pr-triage. For issue pr triage, inspect these context signals: responsible_owners. Binding checks: issue-pr-triage-repo-hygiene-context.
+Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
+
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: issue-pr-triage-source-code-boundary, issue-pr-triage-repo-hygiene-context.
 
 Start from the existing repository's issue pr triage convention, then name the source path or command that establishes it. For issue pr triage, inspect the repository's actual spec, source, test, or configuration for responsible_owners; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring repo-hygiene services outside the issue pr triage decision for repo-hygiene.issue-pr-triage.
 
-Acceptance target: fixture:development.repo-hygiene.issue-pr-triage:repository-context. Given repo-hygiene.issue-pr-triage has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent repo hygiene concern; fail when the result infers local convention without an inspectable source.
+Acceptance target: policy:development.repo-hygiene.issue-pr-triage:mid:issue-pr-triage-source-code-boundary+issue-pr-triage-repo-hygiene-context.
 
-Service-specific evidence cues:
-Offer: Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
-minimal: triage labels — ["bug","needs-reproduction"].
-mid: responsible owners — ["maintainers"].
-maximal: close without disposition — false.
+Declared predicates: issue-pr-triage-source-code-boundary: `triage_labels` is nonempty (a string or array); issue-pr-triage-repo-hygiene-context: `responsible_owners` is nonempty (a string or array).

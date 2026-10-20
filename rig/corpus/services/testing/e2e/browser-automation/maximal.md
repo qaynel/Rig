@@ -1,13 +1,11 @@
 # testing.e2e.browser-automation — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for browser automation. The evidence must preserve the browser_targets, interaction_steps, fixed_sleeps inputs that determined the result. Binding checks: browser-automation-evidence-receipt.
+Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.
 
-Trace the verdict to a second run against unchanged browser automation inputs. Record the browser_targets, interaction_steps, fixed_sleeps inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this browser automation result is stale. The ceiling remains: browser automation configuration validation only; declared policy does not prove running browser automation behavior. Choose a repository-owned check that observes browser automation from rig-services/testing.e2e.browser-automation.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: browser-automation-source-code-boundary, browser-automation-e2e-context, browser-automation-evidence-receipt.
 
-Acceptance target: fixture:testing.e2e.browser-automation:evidence-replay. Given the e2e.browser-automation binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.
-minimal: browser targets — ["chromium"].
-mid: interaction steps — ["submit form"].
-maximal: fixed sleeps — false.
+Acceptance target: policy:testing.e2e.browser-automation:maximal:browser-automation-source-code-boundary+browser-automation-e2e-context+browser-automation-evidence-receipt.
+
+Declared predicates: browser-automation-source-code-boundary: `browser_targets` is nonempty (a string or array); browser-automation-e2e-context: `interaction_steps` is nonempty (a string or array); browser-automation-evidence-receipt: `fixed_sleeps` equals false.

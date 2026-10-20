@@ -15,4 +15,3 @@ minimal: strategy — "canary".
 mid: rollback trigger — "error rate above budget".
 
 maximal: automatic full rollout without checks — false.
-

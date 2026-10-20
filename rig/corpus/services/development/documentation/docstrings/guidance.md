@@ -1,18 +1,13 @@
-# docstrings
+# Public API docstrings
 
 Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
 
-Owned scope: `documentation.docstrings`.
+Document public symbols’ externally visible parameters and failure behavior so callers can use them without reconstructing implementation details.
 
-Offer: Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.
+Owned scope: `documentation.docstrings`. Input: `rig-services/development.documentation.docstrings.json`.
 
-Input: `rig-services/development.documentation.docstrings.json`. Detection records the path even when its contents are malformed.
+Policy fields: minimal: `documented_symbols` = ["parseRecord"]; mid: `parameters` = ["raw: serialized record"]; maximal: `failure_contract` = "throws on malformed records". Native checks require nonempty documented_symbols, parameters, and failure_contract values in the JSON policy. They do not inspect source declarations or validate docstring text.
 
-Coverage ceiling: docstrings configuration validation only; declared policy does not prove running docstrings behavior. Select an approved repository-owned command to verify that behavior.
+Compare declared symbols and parameter/failure details with public functions in the repository. The example symbol is illustrative, not discovered from source. To verify docstrings, inspect the source and compare each public symbol’s actual parameters and failure behavior with its documentation. These policy checks do not parse source or docstrings.
 
-minimal: documented symbols — ["parseRecord"].
-
-mid: parameters — ["raw: serialized record"].
-
-maximal: failure contract — "throws on malformed records".
-
+Do not claim source documentation coverage from configured symbol names alone.

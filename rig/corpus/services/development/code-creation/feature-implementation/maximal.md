@@ -1,13 +1,11 @@
 # development.code-creation.feature-implementation — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for feature implementation. The evidence must preserve the acceptance_cases, change_scope, compatibility inputs that determined the result. Binding checks: feature-implementation-evidence-receipt.
+Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.
 
-Anchor the review on a second run against unchanged feature implementation inputs. Record the acceptance_cases, change_scope, compatibility inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this feature implementation result is stale. The ceiling remains: feature implementation configuration validation only; declared policy does not prove running feature implementation behavior. Choose a repository-owned check that observes feature implementation from rig-services/development.code-creation.feature-implementation.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: feature-implementation-source-code-boundary, feature-implementation-code-creation-context, feature-implementation-evidence-receipt.
 
-Acceptance target: fixture:development.code-creation.feature-implementation:evidence-replay. Given the code-creation.feature-implementation binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The installed native predicates inspect the declared configuration only. They do not produce or verify a replayable evidence receipt; record any external evidence separately.
 
-Service-specific evidence cues:
-Offer: Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.
-minimal: acceptance cases — ["creates an item","rejects invalid input"].
-mid: change scope — ["src/items.js"].
-maximal: compatibility — "preserve-existing-behavior".
+Acceptance target: policy:development.code-creation.feature-implementation:maximal:feature-implementation-source-code-boundary+feature-implementation-code-creation-context+feature-implementation-evidence-receipt.
+
+Declared predicates: feature-implementation-source-code-boundary: `acceptance_cases` is nonempty (a string or array); feature-implementation-code-creation-context: `change_scope` is nonempty (a string or array); feature-implementation-evidence-receipt: `compatibility` is nonempty (a string or array).

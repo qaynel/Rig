@@ -15,4 +15,3 @@ minimal: format command — ["npm","run","format:check"].
 mid: lint command — ["npm","run","lint"].
 
 maximal: autofix during check — false.
-

@@ -1,11 +1,7 @@
 # infrastructure.networking.vpc-firewall — behavior-oracle slice
 
-Policy grade slice. This slice bounds vpc firewall to networking.vpc-firewall. It uses `vpc-firewall-slice-behavior-oracle` and checks allowed_ingress (nonempty): allowed ingress must name the concrete repository contract..
+Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
 
-For vpc firewall, choose a repository example that satisfies allowed_ingress at the behavior-oracle floor, plus a failure where allowed ingress must name the concrete repository contract. is false. For vpc firewall, wire `behavior-oracle` to `rig-services/infrastructure.networking.vpc-firewall.json` and keep its verdict on allowed_ingress; missing evidence is a named gap, with ceiling vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Choose a repository-owned check that observes vpc firewall from rig-services/infrastructure.networking.vpc-firewall.json..
+Policy grade slice for vpc firewall. `vpc-firewall-slice-behavior-oracle` applies the nonempty allowed_ingress predicate to the declared JSON input. Despite the slice name, this check is not a packet-flow oracle. It checks only that allowed_ingress contains a declared rule.
 
-Service-specific evidence cues:
-Offer: Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.
-minimal: allowed ingress — ["443/tcp"].
-mid: default action — "deny".
-maximal: allow world admin access — false.
+This slice does not observe runtime behavior; its result is limited to the configuration field at `rig-services/infrastructure.networking.vpc-firewall.json`. These checks inspect the declared firewall policy. They do not query a cloud provider, compute effective rules across network layers, or test packet reachability.

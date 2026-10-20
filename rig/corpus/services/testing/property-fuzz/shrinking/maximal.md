@@ -1,13 +1,11 @@
 # testing.property-fuzz.shrinking — maximal
 
-Grade: maximal (Evidence target). Assurance remains Policy grade. Maximal adds a replayable evidence receipt for shrinking. The evidence must preserve the failure_predicate, preserved_constraints, drop_failure_during_shrink inputs that determined the result. Binding checks: shrinking-evidence-receipt.
+Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.
 
-Tie acceptance to a second run against unchanged shrinking inputs. Record the failure_predicate, preserved_constraints, drop_failure_during_shrink inputs, consulted paths, command outcome, and input/output digests together; a receipt that cannot replay this shrinking result is stale. The ceiling remains: shrinking configuration validation only; declared policy does not prove running shrinking behavior. Choose a repository-owned check that observes shrinking from rig-services/testing.property-fuzz.shrinking.json.
+Grade: maximal. Assurance remains Policy grade. Native checks validate declared configuration only; they do not establish repository behavior or a replayable evidence receipt. Binding checks: shrinking-source-code-boundary, shrinking-property-fuzz-context, shrinking-evidence-receipt.
 
-Acceptance target: fixture:testing.property-fuzz.shrinking:evidence-replay. Given the property-fuzz.shrinking binding and its inputs are unchanged, pass only when a second run reproduces the verdict and input/output digests; fail when the receipt is stale, incomplete, or cannot be rerun.
+The maximal policy predicates evaluate the declared configuration fields. Record the result and any observed repository evidence separately; this service does not issue or verify a replayable receipt.
 
-Service-specific evidence cues:
-Offer: Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.
-minimal: failure predicate — "parser crashes".
-mid: preserved constraints — ["valid UTF-8"].
-maximal: drop failure during shrink — false.
+Acceptance target: policy:testing.property-fuzz.shrinking:maximal:shrinking-source-code-boundary+shrinking-property-fuzz-context+shrinking-evidence-receipt.
+
+Declared predicates: shrinking-source-code-boundary: `failure_predicate` is nonempty (a string or array); shrinking-property-fuzz-context: `preserved_constraints` is nonempty (a string or array); shrinking-evidence-receipt: `drop_failure_during_shrink` equals false.

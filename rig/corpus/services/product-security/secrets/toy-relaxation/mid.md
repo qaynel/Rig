@@ -1,13 +1,9 @@
 # product-security.secrets.toy-relaxation — mid
 
-Grade: mid (Context target). Assurance remains Policy grade. Mid adds repository context for toy relaxation; it does not widen ownership beyond secrets.toy-relaxation. For toy relaxation, inspect these context signals: expires_after_days. Binding checks: toy-relaxation-secrets-context.
+Limit any relaxed secret policy to disposable local experiments with an expiry. A toy exception must never extend to production or shared customer systems.
 
-Anchor the review on the existing repository's toy relaxation convention, then name the source path or command that establishes it. For toy relaxation, inspect the repository's actual spec, source, test, or configuration for expires_after_days; if none governs that evidence, record the gap instead of inferring a convention. Keep neighboring secrets services outside the toy relaxation decision for secrets.toy-relaxation.
+Grade: mid. Assurance remains Policy grade. This level adds the declared native configuration predicates and does not establish repository-specific convention. Binding checks: toy-relaxation-source-code-boundary, toy-relaxation-secrets-context.
 
-Acceptance target: fixture:product-security.secrets.toy-relaxation:repository-context. Given secrets.toy-relaxation has a repository-specific convention and evidence source, pass only when the result names the consulted path or command and excludes an adjacent secrets concern; fail when the result infers local convention without an inspectable source.
+Acceptance target: policy:product-security.secrets.toy-relaxation:mid:toy-relaxation-source-code-boundary+toy-relaxation-secrets-context.
 
-Service-specific evidence cues:
-Offer: Limit any relaxed secret policy to disposable local experiments with an expiry. A toy exception must never extend to production or shared customer systems.
-minimal: toy scope — ["local disposable fixture"].
-mid: expires after days — 1.
-maximal: permit production use — false.
+Declared predicates: toy-relaxation-source-code-boundary: `toy_scope` is nonempty (a string or array); toy-relaxation-secrets-context: `expires_after_days` is numeric and at least 1.

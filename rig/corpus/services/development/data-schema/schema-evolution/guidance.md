@@ -15,4 +15,3 @@ minimal: compatible readers — ["v1","v2"].
 mid: unknown field policy — "ignore-additive-fields".
 
 maximal: remove required fields — false.
-
