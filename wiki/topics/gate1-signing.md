@@ -27,7 +27,9 @@ sets the runtime evidence needed before AT-LF-7/8/9 can be amended.
 Agents cannot move their own acceptance goalposts. An SSHSIG signature binds
 the combined oracle digests to the single owner identity in
 `wiki/gate1/gate1.allowed-signers`. The technical design is checked for
-presence and remains editable; it has no second freeze.
+presence and remains editable; it has no second freeze. The same key is Rig's
+only signing key at runtime: every approval verifies against the installed copy
+([one trust root](../reasoning/2026-10-20-one-trust-root-owner-decision.md)).
 [The gate](the-two-gates.md) · [frozen acceptance](../gate1/acceptance.md)
 
 Local verification alone is not a barrier against a repository writer.
