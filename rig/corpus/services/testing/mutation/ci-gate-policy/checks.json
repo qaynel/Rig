@@ -3,7 +3,7 @@
   "service_id": "testing.mutation.ci-gate-policy",
   "input": "rig-services/testing.mutation.ci-gate-policy.json",
   "format": "json",
-  "ceiling": "ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a score threshold, a timeout policy and the unrun-mutant flag are declared; it does not run mutation testing.",
   "offer": "Define the score threshold and inconclusive-result policy before the run. A timeout or unrun mutant cannot be silently counted as acceptable enforcement evidence.",
   "checks": {
     "minimal": [
@@ -11,14 +11,14 @@
         "field": "minimum_score_percent",
         "op": "minimum",
         "value": 70,
-        "reason": "minimum score percent must meet the configured minimum of 70."
+        "reason": "Set the minimum mutation score percent, at least 70. A lower bar accepts weak tests, so choose a documented threshold."
       }
     ],
     "mid": [
       {
         "field": "timeout_policy",
         "op": "nonempty",
-        "reason": "timeout policy must name the concrete repository contract."
+        "reason": "State the policy for timed-out mutants. Without it a timeout silently counts as acceptable, so decide killed, survived or inconclusive."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "allow_unrun_mutants",
         "op": "equals",
         "value": false,
-        "reason": "allow unrun mutants must be false."
+        "reason": "Set allowing unrun mutants to false. A mutant that never ran is no evidence, so count it as a gap."
       }
     ]
   },
@@ -37,7 +37,7 @@
         "field": "minimum_score_percent",
         "op": "minimum",
         "value": 70,
-        "reason": "minimum score percent must meet the configured minimum of 70."
+        "reason": "Set the minimum mutation score percent, at least 70. A lower bar accepts weak tests, so choose a documented threshold."
       }
     },
     "behavior-oracle": {
@@ -46,7 +46,7 @@
         "field": "minimum_score_percent",
         "op": "minimum",
         "value": 70,
-        "reason": "minimum score percent must meet the configured minimum of 70."
+        "reason": "Set the minimum mutation score percent, at least 70. A lower bar accepts weak tests, so choose a documented threshold."
       }
     },
     "property-floor": {
@@ -55,7 +55,7 @@
         "field": "minimum_score_percent",
         "op": "minimum",
         "value": 70,
-        "reason": "minimum score percent must meet the configured minimum of 70."
+        "reason": "Set the minimum mutation score percent, at least 70. A lower bar accepts weak tests, so choose a documented threshold."
       }
     },
     "mutation-floor": {
@@ -64,7 +64,7 @@
         "field": "minimum_score_percent",
         "op": "minimum",
         "value": 70,
-        "reason": "minimum score percent must meet the configured minimum of 70."
+        "reason": "Set the minimum mutation score percent, at least 70. A lower bar accepts weak tests, so choose a documented threshold."
       }
     }
   }

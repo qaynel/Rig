@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { TRIAGE_DISCLOSURE } = require('./reports');
+const { verifyTrustRootApproval } = require('./trust-root');
 
 const KNOWN_TOP = new Set(['schema_version', 'enabled', 'controls', 'enforcement', 'network', 'allow', 'secrets']);
 const NETWORK_CATEGORIES = ['outbound_network', 'remote_content_execution', 'sensitive_environment_read', 'guardrail_bypass'];
@@ -97,10 +98,6 @@ function activationMessage(proposal) {
   return `rig-policy-activation-v1\n${proposal.digest}\n`;
 }
 
-function recoveryMessage(challenge) {
-  return `rig-policy-recovery-v1\n${challenge.digest}\n`;
-}
-
 function signerLine(allowedSigners, identity) {
   const line = fs.readFileSync(allowedSigners, 'utf8').split('\n').find((entry) =>
     entry.trim() && !entry.trim().startsWith('#') && entry.trim().split(/\s+/)[0] === identity);
@@ -158,13 +155,77 @@ function verifySshsig({ allowedSigners, identity, namespace, message, signature 
   }
 }
 
+// A control is on only when the status seam says so: global, section, and leaf
+// switches all apply, in either schema, and a missing leaf is not on.
+function controlEnabled(policy, legacyKey, currentKey) {
+  const states = effectiveStatus(policy).controls;
+  return (legacyKey in states ? states[legacyKey] : states[currentKey]) === 'enabled';
+}
+
 function onboardingOrder(policy) {
   const steps = [];
-  steps.push(policy.controls && policy.controls.sanitation === false ? 'record_sanitation_disabled' : 'sanitize');
+  steps.push(controlEnabled(policy, 'sanitation', 'sanitation.harness') ? 'sanitize' : 'record_sanitation_disabled');
   steps.push('profile');
   steps.push('recommend');
   return steps;
 }
+
+const SHIPPED_POLICY = path.join(__dirname, '..', 'catalog', 'baseline', 'network-policy.json');
+
+// The only policy any security decision may read. The shipped default is
+// authoritative until a first activation; from then on the activated bundle and
+// its signed receipt must both be present and verify, or the caller is refused
+// with a named reason. The user-owned candidate (.rig/network-policy.json) is
+// never read here, so editing it changes no permission.
+function loadActivePolicy(target) {
+  const activeAbs = path.join(target, '.rig/policy/active.json');
+  const receiptAbs = path.join(target, '.rig/policy/activation-receipt.json');
+  const hasActive = fs.existsSync(activeAbs);
+  const hasReceipt = fs.existsSync(receiptAbs);
+  if (!hasActive && !hasReceipt) {
+    return { source: 'shipped_default', policy: parsePolicyBytes(fs.readFileSync(SHIPPED_POLICY)).candidate };
+  }
+  const refuse = (reason, detail) => { throw new Error(`policy_active_${reason}: ${detail}`); };
+  if (!hasActive) refuse('missing', '.rig/policy/active.json is missing but an activation receipt exists');
+  if (!hasReceipt) refuse('unreceipted', '.rig/policy/active.json has no activation receipt');
+  let parsed; let receipt;
+  try { parsed = parsePolicyBytes(fs.readFileSync(activeAbs)); } catch (err) { refuse('invalid', err.message); }
+  try { receipt = JSON.parse(fs.readFileSync(receiptAbs, 'utf8')); } catch (err) { refuse('receipt_invalid', err.message); }
+  if (receipt?.signer?.method !== 'external-sshsig') refuse('unverifiable', 'only an externally signed activation can be re-verified');
+  const proposal = receipt.proposal;
+  if (!proposal || digest(JSON.stringify(proposal)) !== receipt.proposal_digest || proposal.candidate_digest !== parsed.digest) {
+    refuse('stale', 'active.json does not match the digest the activation receipt signed');
+  }
+  try {
+    const verified = verifyTrustRootApproval(target, {
+      identity: receipt.approval?.identity,
+      namespace: 'rig-policy-activation',
+      message: activationMessage({ digest: receipt.proposal_digest }),
+      signature: receipt.approval?.signature,
+    });
+    if (verified.fingerprint !== receipt.signer.fingerprint) refuse('signer', 'activation receipt signer differs from the Gate 1 key');
+  } catch (err) {
+    if (/^policy_active_/.test(err.message)) throw err;
+    refuse('unsigned', err.message);
+  }
+  return { source: 'activated', policy: parsed.candidate, digest: parsed.digest };
+}
+
+// Which surfaces mechanically deny, and which are a named gap (North star 12).
+// Supported host hooks Rig does not install are available but not integrated:
+// their decisions are advisory until the user wires a hook to the entrypoint.
+const HOOK_GAP = (surface) => ({
+  state: 'available_not_integrated',
+  claim: 'none: Rig installs no runtime hook for this surface, so nothing is blocked automatically',
+  setup: `Wire your host's pre-tool hook for ${surface} calls to run \`.rig/bin/rig policy evaluate --target <repo> --action <action.json>\` and block on a nonzero exit.`,
+});
+const ENFORCEMENT_SURFACES = {
+  git_pre_commit: { state: 'integrated', entrypoint: '.git/hooks/pre-commit -> .rig/hooks/secret-guard.sh', claim: 'blocks a commit whose staged content matches the deterministic secret floor' },
+  validate_commit: { state: 'integrated_on_invocation', entrypoint: '.rig/bin/rig validate-commit', claim: 'refuses staged harness files with suspicious directives or secret-shaped content; run it from a hook or CI step' },
+  shell: HOOK_GAP('shell'),
+  web: HOOK_GAP('web'),
+  mcp: HOOK_GAP('MCP'),
+};
 
 function policyStatus(target, { candidate, prose } = {}) {
   const authority = '.rig/network-policy.json';
@@ -172,7 +233,6 @@ function policyStatus(target, { candidate, prose } = {}) {
   const activeSnapshot = '.rig/policy/active.json';
   const activeAbs = path.join(target, activeSnapshot);
   const receipt = readJson(path.join(target, '.rig/policy/activation-receipt.json'));
-  const trust = verifiedTrust(target, true);
   let active = null;
   if (fs.existsSync(activeAbs)) {
     const activeBytes = fs.readFileSync(activeAbs);
@@ -186,10 +246,7 @@ function policyStatus(target, { candidate, prose } = {}) {
   const triageEnabled = active?.secrets?.model_assisted_triage === true;
   let activationVerified = false;
   if (receipt && receipt.signer?.method === 'external-sshsig') {
-    const historicalSigner = trust ? receiptSigner(trust, receipt) : null;
-    if (trust && !historicalSigner) throw new Error('policy activation signer is outside the verified trust chain or was superseded');
-    const verified = historicalSigner ? verifyPublicApproval(historicalSigner, 'rig-policy-activation', activationMessage({ digest: receipt.proposal_digest }), { challenge_digest: receipt.proposal_digest, identity: receipt.approval?.identity, signature: receipt.approval?.signature }, { digest: receipt.proposal_digest }) : verifySshsig({
-      allowedSigners: path.join(target, '.rig/policy/allowed-signers'),
+    const verified = verifyTrustRootApproval(target, {
       identity: receipt.approval?.identity,
       namespace: 'rig-policy-activation',
       message: activationMessage({ digest: receipt.proposal_digest }),
@@ -208,6 +265,9 @@ function policyStatus(target, { candidate, prose } = {}) {
       proposalDigestMatches &&
       receipt.proposal.candidate_digest === (active ? digest(fs.readFileSync(activeAbs)) : null);
   }
+  // An interrupted install claims no protection, whatever the policy says.
+  const install = require('./lifecycle').installState(target);
+  const withheld = !install.complete;
   const triageDisclosureConfirmed = (receipt?.confirmed_disclosures || []).includes(digest(TRIAGE_DISCLOSURE));
   return {
     authority,
@@ -219,19 +279,12 @@ function policyStatus(target, { candidate, prose } = {}) {
     active,
     active_digest: active ? digest(fs.readFileSync(activeAbs)) : null,
     activation_receipt: receipt,
-    signer_declared_class: trust?.signer?.declared_class || receipt?.signer?.declared_class || null,
-    recovery: trust ? {
-      sequence: trust.recovery_sequence || 0,
-      replacement_signer_fingerprint: trust.last_recovery?.replacement_signer_fingerprint || null,
-      recovery_credential_fingerprint: trust.last_recovery?.recovery_credential_fingerprint || null,
-      consequences: trust.last_recovery?.consequences || [],
-      credentials: (trust.recovery || []).map((entry) => ({
-        identity: entry.identity,
-        fingerprint: entry.fingerprint,
-        declared_class: entry.declared_class || 'unknown',
-        registered: Boolean(entry.registration_receipt),
-      })),
-    } : null,
+    signer_declared_class: receipt?.signer?.declared_class || null,
+    install,
+    protection: withheld ? 'withheld' : 'per_surface',
+    surfaces: withheld
+      ? Object.fromEntries(Object.entries(ENFORCEMENT_SURFACES).map(([id, surface]) => [id, { ...surface, state: 'withheld_install_incomplete' }]))
+      : ENFORCEMENT_SURFACES,
     model_assisted_triage: {
       enabled: triageEnabled,
       authorized: triageEnabled && activationVerified && triageDisclosureConfirmed,
@@ -283,8 +336,7 @@ function validatePolicyApproval(approval, proposal, opts = {}) {
   let signer;
   const method = approval.approval?.method;
   if (method === 'external-sshsig') {
-    signer = opts.signer ? verifyPublicApproval(opts.signer, 'rig-policy-activation', activationMessage(proposal), { challenge_digest: proposal.digest, identity: approval.approval.identity, signature: approval.approval.signature }, proposal) : verifySshsig({
-      allowedSigners: opts.allowedSigners,
+    signer = verifyTrustRootApproval(opts.target, {
       identity: approval.approval.identity,
       namespace: 'rig-policy-activation',
       message: activationMessage(proposal),
@@ -350,8 +402,7 @@ function activatePolicy(target, proposal, opts = {}) {
   }
   if (!opts.approval) throw new Error('activatePolicy: disclosure-bound cryptographic approval required');
   const signer = validatePolicyApproval(opts.approval, proposal, {
-    allowedSigners: opts.allowedSigners || path.join(target, '.rig/policy/allowed-signers'),
-    signer: verifiedTrust(target, true)?.signer,
+    target,
     verifyHostAttestation: opts.verifyHostAttestation,
   });
   const activeAbs = path.join(target, '.rig/policy/active.json');
@@ -500,326 +551,6 @@ function choosePresenceMethod(state) {
   return 'unavailable';
 }
 
-function recoverSigner(state, opts = {}) {
-  const recovery = Array.isArray(state.recovery) ? state.recovery : [];
-  if (!recovery.length) {
-    throw new Error('recoverSigner: recovery paths exhausted; terminal');
-  }
-  const match = recovery.find((entry) => entry.fingerprint === opts.fingerprint);
-  if (!match) {
-    throw new Error('recoverSigner: recovery fingerprint exhausted or not pre-registered; terminal');
-  }
-  if (!match.user_verification) {
-    throw new Error('recoverSigner: recovery requires user verification');
-  }
-  if (!opts.signature_valid) {
-    throw new Error('recoverSigner: signature invalid');
-  }
-  const remaining = recovery.filter((entry) => entry.fingerprint !== opts.fingerprint);
-  return {
-    ...state,
-    signer: opts.replacement,
-    recovery: remaining,
-    approvals: [],
-    evidence_epoch: (state.evidence_epoch || 0) + 1,
-    receipt: {
-      previous: state.signer,
-      replacement: opts.replacement,
-      fingerprint_used: opts.fingerprint,
-      at: new Date().toISOString(),
-    },
-  };
-}
-
-function signerSetupMessage(challenge) {
-  return `rig-policy-signer-setup-v1\n${challenge.digest}\n`;
-}
-
-function registrationMessage(challenge) {
-  return `rig-policy-recovery-registration-v1\n${challenge.digest}\n`;
-}
-
-function publicSigner(value) {
-  if (!value || !/^[A-Za-z0-9_.@+-]{1,128}$/.test(value.identity || '') || typeof value.public_key !== 'string') {
-    throw new Error('policy signer requires a bounded identity and public_key');
-  }
-  const fields = value.public_key.trim().split(/\s+/);
-  // The security-key prefix is split in the regex so the secret scanner's sk- token rule does not flag it.
-  if (fields.length < 2 || !/^(?:s(?:k-ssh-ed25519|k-ecdsa-sha2-nistp256)@openssh\.com|ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa)$/.test(fields[0])) {
-    throw new Error('policy signer public key class is unsupported');
-  }
-  const public_key = fields.slice(0, 2).join(' ');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-policy-public-'));
-  const file = path.join(dir, 'allowed');
-  try {
-    fs.writeFileSync(file, `${value.identity} ${public_key}\n`);
-    return { identity: value.identity, public_key, fingerprint: signerFingerprint(file, value.identity), declared_class: fields[0] };
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-}
-
-// SSHSIG blob: magic, version, publickey, namespace, reserved, hashalg, signature.
-// An sk signature is string type, string signature, byte flags, uint32 counter, with nothing after.
-// Fails closed: any other layout (including webauthn types) is refused rather than guessed at.
-function sshsigSecurityKeyFlags(armored, keyType) {
-  const blob = Buffer.from(String(armored).replace(/-----[^-]+-----|\s/g, ''), 'base64');
-  let offset = 10;
-  const read = () => {
-    const length = blob.readUInt32BE(offset);
-    if (offset + 4 + length > blob.length) throw new Error('truncated');
-    offset += 4 + length;
-    return blob.subarray(offset - length, offset);
-  };
-  try {
-    if (blob.subarray(0, 6).toString() !== 'SSHSIG') throw new Error('magic');
-    for (let i = 0; i < 4; i++) read();
-    const signature = read();
-    if (offset !== blob.length) throw new Error('trailing data');
-    let at = 0;
-    const field = () => { const length = signature.readUInt32BE(at); at += 4 + length; if (at > signature.length) throw new Error('truncated'); return signature.subarray(at - length, at); };
-    const type = field().toString();
-    if (type !== keyType || !/^sk-(?:ssh-ed25519|ecdsa-sha2-nistp256)@openssh\.com$/.test(type)) throw new Error('signature type');
-    field();
-    if (signature.length - at !== 5) throw new Error('layout');
-    return signature[at];
-  } catch (err) {
-    throw new Error(`policy security-key approval signature is not a recognized sk layout (${err.message})`);
-  }
-}
-
-function verifyPublicApproval(signer, namespace, message, approval, challenge) {
-  if (!approval || approval.challenge_digest !== challenge.digest || approval.identity !== signer.identity) throw new Error('policy signer challenge-bound identity approval required');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-policy-verify-'));
-  const file = path.join(dir, 'allowed');
-  try {
-    fs.writeFileSync(file, `${signer.identity} namespaces="${namespace}" ${signer.public_key}\n`);
-    const verified = verifySshsig({ allowedSigners: file, identity: signer.identity, namespace, message, signature: approval.signature });
-    // ssh-keygen -Y verify cannot require user verification, and generation metadata is not proof of it.
-    if (signer.public_key.startsWith('sk-') && !(sshsigSecurityKeyFlags(approval.signature, signer.public_key.split(/\s+/)[0]) & 0x04)) {
-      throw new Error('policy security-key approval lacks the signed user-verification flag');
-    }
-    return verified;
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-}
-
-function policyFile(target, rel) {
-  const { containedPath } = require('./path-safety');
-  const file = containedPath(target, `.rig/policy/${rel}`);
-  let cursor = fs.realpathSync(target);
-  for (const part of path.relative(cursor, file).split(path.sep)) {
-    cursor = path.join(cursor, part);
-    if (fs.existsSync(cursor)) {
-      const st = fs.lstatSync(cursor);
-      if (st.isSymbolicLink() || (st.isFile() && st.nlink !== 1)) throw new Error('policy trust path is not exclusively owned');
-    }
-  }
-  return file;
-}
-
-function commitPolicyFile(target, rel, bytes) {
-  const file = policyFile(target, rel);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temp = `${file}.${crypto.randomBytes(16).toString('hex')}.tmp`;
-  const fd = fs.openSync(temp, 'wx', 0o600);
-  try { fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
-  fs.renameSync(temp, file);
-}
-
-function trustPayload(challenge) {
-  const { digest: ignored, ...payload } = challenge || {};
-  if (digest(JSON.stringify(payload)) !== challenge?.digest || !/^[a-f0-9]{64}$/.test(payload.nonce || '')) throw new Error('policy trust challenge digest or nonce mismatch');
-  return payload;
-}
-
-function activeReceiptDigest(target) {
-  const receipt = readJson(path.join(target, '.rig/policy/activation-receipt.json'));
-  return receipt ? digest(JSON.stringify(receipt)) : null;
-}
-
-// A signer replaced by rotation or recovery may vouch only for the one receipt
-// that was active when the signed event recorded it, never for a later forgery.
-function receiptSigner(trust, receipt) {
-  const fingerprint = receipt.signer.fingerprint;
-  if (fingerprint === trust.signer.fingerprint) return trust.signer;
-  const receiptDigest = digest(JSON.stringify(receipt));
-  let signer = null;
-  for (const { challenge } of trust.chain) {
-    if (challenge.kind !== 'signer_setup' && challenge.kind !== 'signer_recovery') continue;
-    if (signer?.fingerprint === fingerprint && challenge.active_receipt_digest === receiptDigest) return signer;
-    signer = publicSigner(challenge.kind === 'signer_setup' ? challenge.signer : challenge.replacement_signer);
-  }
-  return null;
-}
-
-function verifiedTrust(target, optional = false) {
-  const state = readJson(policyFile(target, 'trust.json'));
-  // commitTrust always writes recovery.allowed-signers beside trust.json; losing only trust.json must not downgrade to the legacy signer list.
-  if (!state && optional && !fs.existsSync(policyFile(target, 'recovery.allowed-signers'))) return null;
-  if (!state || state.schema_version !== 1 || !Array.isArray(state.chain) || !state.chain.length) throw new Error('policy trust requires a cryptographically verified registration chain');
-  let signer = null, recovery = [], previous = null, recoverySequence = 0;
-  for (const [index, event] of state.chain.entries()) {
-    const payload = trustPayload(event.challenge);
-    if (payload.repository_id !== repositoryIdentity(target) || payload.chain_sequence !== index + 1 || payload.previous_chain_digest !== previous) throw new Error('policy trust registration chain is stale or foreign');
-    if (payload.kind === 'signer_setup') {
-      const candidate = publicSigner(payload.signer);
-      const authorizer = signer || (payload.initial_authorizer ? publicSigner(payload.initial_authorizer) : candidate);
-      verifyPublicApproval(authorizer, 'rig-policy-activation', signerSetupMessage(event.challenge), event.approval, event.challenge);
-      if (recovery.some((entry) => entry.fingerprint === candidate.fingerprint)) throw new Error('policy ordinary and recovery fingerprints must be distinct');
-      signer = candidate;
-    } else if (payload.kind === 'recovery_registration') {
-      const candidate = publicSigner(payload.credential);
-      if (!signer || !candidate.declared_class.startsWith('sk-') || payload.generation?.user_verification !== 'required' || candidate.fingerprint === signer.fingerprint || recovery.some((entry) => entry.fingerprint === candidate.fingerprint || entry.identity === candidate.identity)) throw new Error('policy recovery registration requires a distinct generated sk-security-key credential');
-      verifyPublicApproval(signer, 'rig-policy-activation', registrationMessage(event.challenge), event.approval, event.challenge);
-      recovery.push({ ...candidate, registration_receipt: { challenge_digest: event.challenge.digest, chain_sequence: index + 1 } });
-    } else if (payload.kind === 'signer_recovery') {
-      const credential = recovery.find((entry) => entry.identity === payload.recovery_identity && entry.fingerprint === payload.recovery_fingerprint);
-      const replacement = publicSigner(payload.replacement_signer);
-      if (!credential || payload.sequence !== ++recoverySequence || replacement.fingerprint === signer?.fingerprint || recovery.some((entry) => entry.fingerprint === replacement.fingerprint)) throw new Error('policy recovery_credentials_exhausted or signer fingerprints not distinct');
-      verifyPublicApproval(credential, 'rig-policy-recovery', recoveryMessage(event.challenge), event.approval, event.challenge);
-      recovery = recovery.filter((entry) => entry.fingerprint !== credential.fingerprint);
-      signer = replacement;
-    } else throw new Error('policy trust registration chain has an unknown event');
-    previous = digest(JSON.stringify(event));
-  }
-  if (JSON.stringify(state.signer) !== JSON.stringify(signer) || JSON.stringify(state.recovery) !== JSON.stringify(recovery) || (state.recovery_sequence || 0) !== recoverySequence) throw new Error('policy trust signer or recovery registration differs from verified chain');
-  return state;
-}
-
-function trustChallenge(target, kind, fields) {
-  const state = verifiedTrust(target, true);
-  const payload = { schema_version: 1, kind, repository_id: repositoryIdentity(target), trust_state_digest: state ? digest(JSON.stringify(state)) : null, chain_sequence: (state?.chain.length || 0) + 1, previous_chain_digest: state ? digest(JSON.stringify(state.chain.at(-1))) : null, nonce: crypto.randomBytes(32).toString('hex'), ...fields };
-  return { ...payload, digest: digest(JSON.stringify(payload)) };
-}
-
-function assertCurrentChallenge(target, challenge) {
-  const payload = trustPayload(challenge);
-  const state = verifiedTrust(target, true);
-  if (payload.repository_id !== repositoryIdentity(target) || payload.trust_state_digest !== (state ? digest(JSON.stringify(state)) : null) || payload.chain_sequence !== (state?.chain.length || 0) + 1 || payload.previous_chain_digest !== (state ? digest(JSON.stringify(state.chain.at(-1))) : null)) throw new Error('policy trust challenge is stale or foreign');
-  return state;
-}
-
-function commitTrust(target, state) {
-  // The signed trust chain is authoritative. Derived public lists may be
-  // recreated after interruption; recovery never trusts either list alone.
-  commitPolicyFile(target, 'trust.json', `${JSON.stringify(state, null, 2)}\n`);
-  commitPolicyFile(target, 'allowed-signers', `${state.signer.identity} namespaces="rig-policy-activation" ${state.signer.public_key}\n`);
-  commitPolicyFile(target, 'recovery.allowed-signers', state.recovery.map((entry) => `${entry.identity} namespaces="rig-policy-recovery" ${entry.public_key}\n`).join(''));
-}
-
-function withTrustLock(target, fn) {
-  const file = policyFile(target, 'signer.lock'); fs.mkdirSync(path.dirname(file), { recursive: true });
-  const fd = fs.openSync(file, 'wx', 0o600);
-  try { return fn(); } finally { fs.closeSync(fd); fs.unlinkSync(file); }
-}
-
-function initialAuthorizer(target) {
-  const allowed = policyFile(target, 'allowed-signers');
-  if (!fs.existsSync(allowed)) return null;
-  const line = fs.readFileSync(allowed, 'utf8').split('\n').find((row) => row.trim() && !row.trim().startsWith('#'));
-  if (!line) return null;
-  const identity = line.trim().split(/\s+/)[0];
-  const key = line.match(/((?:sk-)?(?:ssh-ed25519|ecdsa-sha2-nistp256)(?:@openssh\.com)?|ssh-rsa)\s+(\S+)/);
-  if (!key) throw new Error('policy existing signer list is malformed');
-  return publicSigner({ identity, public_key: `${key[1]} ${key[2]}` });
-}
-
-function proposeSignerSetup(target, value) {
-  const signer = publicSigner(value);
-  const state = verifiedTrust(target, true);
-  return trustChallenge(target, 'signer_setup', { signer, initial_authorizer: state ? null : initialAuthorizer(target), active_receipt_digest: activeReceiptDigest(target) });
-}
-
-function setupPolicySigner(target, challenge, approval) {
-  return withTrustLock(target, () => {
-    if (challenge?.kind !== 'signer_setup') throw new Error('policy signer setup challenge required');
-    const prior = assertCurrentChallenge(target, challenge);
-    if (challenge.active_receipt_digest !== activeReceiptDigest(target)) throw new Error('policy activation receipt changed since the signer challenge');
-    if (!prior && JSON.stringify(challenge.initial_authorizer) !== JSON.stringify(initialAuthorizer(target))) throw new Error('policy configured initial authorizer changed');
-    const state = { schema_version: 1, recovery: [], recovery_sequence: 0, evidence_epoch: 0, ...prior, signer: publicSigner(challenge.signer), chain: [...(prior?.chain || []), { challenge, approval }] };
-    // Verify before any public key or trust state is installed.
-    verifyPublicApproval(prior?.signer || challenge.initial_authorizer || state.signer, 'rig-policy-activation', signerSetupMessage(challenge), approval, challenge);
-    if (state.recovery.some((entry) => entry.fingerprint === state.signer.fingerprint)) throw new Error('policy signer and recovery fingerprints must be distinct');
-    commitTrust(target, state);
-    return { trust: state, recovery_offer: prior ? { add_more: true } : { count: 3, add_more: false } };
-  });
-}
-
-function proposeRecoveryRegistration(target, value) {
-  const credential = publicSigner(value);
-  if (!credential.declared_class.startsWith('sk-')) throw new Error('policy recovery requires a generated sk-security-key credential');
-  const state = verifiedTrust(target);
-  if (credential.fingerprint === state.signer.fingerprint || state.recovery.some((entry) => entry.fingerprint === credential.fingerprint || entry.identity === credential.identity)) throw new Error('policy recovery registration fingerprint or identity is duplicate');
-  const generation = readJson(policyFile(target, `generation-${digest(credential.fingerprint)}.json`));
-  if (!generation || generation.public_key !== credential.public_key || generation.user_verification !== 'required' || generation.repository_id !== repositoryIdentity(target)) throw new Error('policy recovery user_verification_unavailable: use the security-key generation ceremony');
-  return trustChallenge(target, 'recovery_registration', { credential, generation });
-}
-
-function generateRecoveryCredential(target, { identity, output }, options = {}) {
-  verifiedTrust(target);
-  if (typeof output !== 'string' || !path.isAbsolute(output)) throw new Error('policy recovery key output must be an absolute path outside the repository');
-  const root = fs.realpathSync(target);
-  const destination = path.join(fs.realpathSync(path.dirname(output)), path.basename(output));
-  const rigDir = require('./path-safety').gitPath(target, 'rig');
-  if ([root, rigDir && path.resolve(rigDir)].filter(Boolean).some((dir) => destination === dir || destination.startsWith(`${dir}${path.sep}`))) throw new Error('policy recovery key output must be outside the repository and clone-local Rig directory');
-  if (fs.existsSync(destination) || fs.existsSync(`${destination}.pub`)) throw new Error('policy recovery key output already exists');
-  if (!/^[A-Za-z0-9_.@+-]{1,128}$/.test(identity || '')) throw new Error('policy recovery identity is invalid');
-  // Only key generation is invoked. SSHSIG signing is always external.
-  // The injectable platform call is for explicit protocol fixtures; CLI input
-  // never selects a replacement generator or claims a hardware touch.
-  const generated = (options.generate || spawnSync)('ssh-keygen', ['-t', 'ed25519-sk', '-O', 'verify-required', '-N', '', '-f', destination], { stdio: 'inherit', shell: false });
-  if (generated.error || generated.status !== 0 || !fs.existsSync(`${destination}.pub`)) throw new Error('policy recovery user_verification_unavailable: OpenSSH security-key enrollment with required user verification failed; no software fallback');
-  const credential = publicSigner({ identity, public_key: fs.readFileSync(`${destination}.pub`, 'utf8') });
-  if (!credential.declared_class.startsWith('sk-')) throw new Error('policy recovery user_verification_unavailable: generator returned a software key');
-  const generation = { schema_version: 1, repository_id: repositoryIdentity(target), public_key: credential.public_key, user_verification: 'required', generator: 'OpenSSH ed25519-sk -O verify-required', declared_class: credential.declared_class };
-  commitPolicyFile(target, `generation-${digest(credential.fingerprint)}.json`, `${JSON.stringify(generation)}\n`);
-  return proposeRecoveryRegistration(target, credential);
-}
-
-function registerRecoveryCredential(target, challenge, approval) {
-  return withTrustLock(target, () => {
-    if (challenge?.kind !== 'recovery_registration') throw new Error('policy recovery registration challenge required');
-    const state = assertCurrentChallenge(target, challenge);
-    const credential = publicSigner(challenge.credential);
-    const proposed = proposeRecoveryRegistration(target, credential);
-    if (JSON.stringify(proposed.generation) !== JSON.stringify(challenge.generation)) throw new Error('policy recovery generation receipt changed');
-    verifyPublicApproval(state.signer, 'rig-policy-activation', registrationMessage(challenge), approval, challenge);
-    const next = { ...state, recovery: [...state.recovery, { ...credential, registration_receipt: { challenge_digest: challenge.digest, chain_sequence: challenge.chain_sequence } }], chain: [...state.chain, { challenge, approval }] };
-    commitTrust(target, next);
-    return { trust: next, recovery_offer: { add_more: true } };
-  });
-}
-
-function proposeRecovery(target, replacement, recoveryIdentity) {
-  const state = verifiedTrust(target);
-  const match = state.recovery.find((entry) => entry.identity === recoveryIdentity);
-  if (!match) throw new Error('proposeRecovery: recovery_credentials_exhausted: pre-registered recovery identity required');
-  const signer = publicSigner(replacement);
-  if (signer.fingerprint === state.signer.fingerprint || state.recovery.some((entry) => entry.fingerprint === signer.fingerprint)) throw new Error('proposeRecovery: replacement and recovery fingerprints must be distinct');
-  return trustChallenge(target, 'signer_recovery', { lost_signer_fingerprint: state.signer.fingerprint, replacement_signer: signer, replacement_signer_digest: digest(JSON.stringify(signer)), recovery_identity: recoveryIdentity, recovery_fingerprint: match.fingerprint, sequence: (state.recovery_sequence || 0) + 1, previous_recovery_receipt_digest: state.previous_recovery_receipt_digest || null, active_receipt_digest: activeReceiptDigest(target) });
-}
-
-function recoverPolicy(target, challenge, approval) {
-  return withTrustLock(target, () => {
-    if (challenge?.kind !== 'signer_recovery') throw new Error('recoverPolicy: complete recovery challenge required');
-    const state = assertCurrentChallenge(target, challenge);
-    if (challenge.active_receipt_digest !== activeReceiptDigest(target)) throw new Error('recoverPolicy: activation receipt changed since the recovery challenge');
-    const match = state.recovery.find((entry) => entry.identity === challenge.recovery_identity && entry.fingerprint === challenge.recovery_fingerprint);
-    const replacement = publicSigner(challenge.replacement_signer);
-    if (!match) throw new Error('recoverPolicy: recovery_credentials_exhausted: credential is not pre-registered');
-    if (replacement.fingerprint === state.signer.fingerprint || state.recovery.some((entry) => entry.fingerprint === replacement.fingerprint)) throw new Error('recoverPolicy: signer fingerprints must be distinct');
-    if (challenge.lost_signer_fingerprint !== state.signer.fingerprint || challenge.sequence !== (state.recovery_sequence || 0) + 1 || challenge.previous_recovery_receipt_digest !== (state.previous_recovery_receipt_digest || null) || challenge.replacement_signer_digest !== digest(JSON.stringify(replacement))) throw new Error('recoverPolicy: stale recovery challenge');
-    const signer = verifyPublicApproval(match, 'rig-policy-recovery', recoveryMessage(challenge), approval, challenge);
-    const consequences = ['pending_candidate_marked_stale', 'one_use_approvals_burned', 'evidence_epoch_advanced'];
-    const receipt = { schema_version: 1, kind: 'policy-recovery', challenge_digest: challenge.digest, sequence: challenge.sequence, previous_recovery_receipt_digest: challenge.previous_recovery_receipt_digest, replacement_signer_fingerprint: replacement.fingerprint, recovery_credential_fingerprint: match.fingerprint, recovery_credential_declared_class: signer.declared_class, consequences };
-    // Commit the fsynced receipt before altering signer authority or state.
-    commitPolicyFile(target, `recovery-receipt-${challenge.sequence}.json`, `${JSON.stringify(receipt, null, 2)}\n`);
-    const next = { ...state, signer: replacement, recovery: state.recovery.filter((entry) => entry.fingerprint !== match.fingerprint), approvals: [], pending_candidate_status: 'stale_after_recovery', recovery_sequence: challenge.sequence, previous_recovery_receipt_digest: digest(JSON.stringify(receipt)), evidence_epoch: (state.evidence_epoch || 0) + 1, last_recovery: receipt, chain: [...state.chain, { challenge, approval }] };
-    commitTrust(target, next);
-    const approvalDir = require('./path-safety').containedPath(target, '.rig/approvals');
-    if (fs.existsSync(approvalDir)) fs.rmSync(approvalDir, { recursive: true });
-    return { trust: next, receipt };
-  });
-}
-
 function grantApproval(target, action) {
   const { actionDigest } = require('./enforcement');
   const approvalsDir = path.join(target, '.rig/approvals');
@@ -845,18 +576,10 @@ module.exports = {
   transitionControl,
   validatePolicy,
   choosePresenceMethod,
-  recoverSigner,
-  proposeSignerSetup,
-  setupPolicySigner,
-  signerSetupMessage,
-  proposeRecoveryRegistration,
-  generateRecoveryCredential,
-  registerRecoveryCredential,
-  registrationMessage,
-  proposeRecovery,
-  recoverPolicy,
+  controlEnabled,
+  loadActivePolicy,
+  NETWORK_CATEGORIES,
   activationMessage,
-  recoveryMessage,
   verifySshsig,
   parsePolicyBytes,
   grantApproval,

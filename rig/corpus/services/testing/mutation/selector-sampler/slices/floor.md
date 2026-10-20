@@ -4,6 +4,4 @@ Make mutant sampling reproducible and state the selected scope. A sampled run ma
 
 Assurance remains Policy grade.
 
-This Policy slice checks `selection_scope` through `selector-sampler-slice-floor`. The good fixture supplies `selection_scope` = `["changed parser functions"]`; the bad fixture removes it.
-
-A nonempty selection scope defines what may be sampled; it does not prove which mutants the sampler selected. Keep the failure attached to `rig-services/testing.mutation.selector-sampler.json`; do not infer that a mutation was generated or killed. selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.
+A nonempty selection scope defines what may be sampled; it does not prove which mutants the sampler selected. Configuration validation only, so it confirms a selection scope, sampling seed and the exhaustive-claim flag are declared; it does not sample mutants.

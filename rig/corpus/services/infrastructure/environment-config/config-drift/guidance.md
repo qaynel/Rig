@@ -1,17 +1,13 @@
-# config drift
+# config-drift
 
 Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.
 
-Owned scope: `environment-config.config-drift`.
+Owned scope: `environment-config.config-drift`. Input: `rig-services/infrastructure.environment-config.config-drift.json`.
 
-Offer: Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.
+Coverage ceiling: Configuration validation only, so it confirms authoritative sources, a comparison schedule and the silent-drift flag are declared; it does not compare live settings.
 
-Input: `rig-services/infrastructure.environment-config.config-drift.json`. Detection records the path even when its contents are malformed.
+minimal: authoritative sources — ["config/production.json"]. Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth.
 
-Coverage ceiling: config drift configuration validation only; declared policy does not prove running config drift behavior. Select an approved repository-owned command to verify that behavior.
+mid: comparison schedule — "daily". Declare how often observed settings are compared. Unscheduled comparison finds drift late, so set a cadence.
 
-minimal: authoritative sources — ["config/production.json"].
-
-mid: comparison schedule — "daily".
-
-maximal: silent drift acceptance — false.
+maximal: silent drift acceptance — false. Set accepting drift silently to false. Drift must become a visible finding rather than redefine the desired state, so report it.

@@ -1,17 +1,13 @@
-# retry hardening
+# retry-hardening
 
 Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.
 
-Owned scope: `flaky-reliability.retry-hardening`.
+Owned scope: `flaky-reliability.retry-hardening`. Input: `rig-services/testing.flaky-reliability.retry-hardening.json`.
 
-Offer: Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.
+Coverage ceiling: Configuration validation only, so it confirms retryable failures, an attempt cap and the retry-assertions flag are declared; it does not execute retries.
 
-Input: `rig-services/testing.flaky-reliability.retry-hardening.json`. Detection records the path even when its contents are malformed.
+minimal: retryable failures — ["connection reset"]. List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only.
 
-Coverage ceiling: retry hardening configuration validation only; declared policy does not prove running retry hardening behavior. Select an approved repository-owned command to verify that behavior.
+mid: maximum attempts — 3. Cap attempts at a bounded number, at least 3 declared. An unbounded retry masks permanent failure, so set the limit.
 
-minimal: retryable failures — ["connection reset"].
-
-mid: maximum attempts — 3.
-
-maximal: retry assertion failures — false.
+maximal: retry assertion failures — false. Set retrying assertion failures to false. Repeating a failed assertion until it passes changes the test contract, so retry infrastructure errors only.

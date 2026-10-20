@@ -3,21 +3,21 @@
   "service_id": "infrastructure.environment-config.secret-injection",
   "input": "rig-services/infrastructure.environment-config.secret-injection.json",
   "format": "json",
-  "ceiling": "secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms secret references, the delivery mechanism and the plaintext flag are declared; it does not read any secret store.",
   "offer": "Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.",
   "checks": {
     "minimal": [
       {
         "field": "secret_references",
         "op": "nonempty",
-        "reason": "secret references must name the concrete repository contract."
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
       }
     ],
     "mid": [
       {
         "field": "delivery_mechanism",
         "op": "nonempty",
-        "reason": "delivery mechanism must name the concrete repository contract."
+        "reason": "Declare how secrets reach the workload, such as workload identity. An undefined path invites plaintext files, so name the mechanism."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "plaintext_secret_values",
         "op": "equals",
         "value": false,
-        "reason": "plaintext secret values must be false."
+        "reason": "Set plaintext secret values to false. A literal value in configuration is a leak, so remove it and rotate the secret."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "secret_references",
         "op": "nonempty",
-        "reason": "secret references must name the concrete repository contract."
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "secret_references",
         "op": "nonempty",
-        "reason": "secret references must name the concrete repository contract."
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "secret_references",
         "op": "nonempty",
-        "reason": "secret references must name the concrete repository contract."
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "secret_references",
         "op": "nonempty",
-        "reason": "secret references must name the concrete repository contract."
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
       }
     }
   }

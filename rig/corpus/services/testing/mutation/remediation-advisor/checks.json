@@ -3,21 +3,21 @@
   "service_id": "testing.mutation.remediation-advisor",
   "input": "rig-services/testing.mutation.remediation-advisor.json",
   "format": "json",
-  "ceiling": "remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms remediation cases, target behaviors and the implementation-mirror flag are declared; it does not write tests.",
   "offer": "Propose new behavioral assertions for the specific survived mutation. Tests that reproduce the implementation algorithm share its mistake instead of exposing it.",
   "checks": {
     "minimal": [
       {
         "field": "remediation_cases",
         "op": "nonempty",
-        "reason": "remediation cases must name the concrete repository contract."
+        "reason": "List the proposed assertions for survived mutations. Without them survivors stay unaddressed, so write each case."
       }
     ],
     "mid": [
       {
         "field": "target_behaviors",
         "op": "nonempty",
-        "reason": "target behaviors must name the concrete repository contract."
+        "reason": "Name the behavior each assertion targets. Tests tied to an algorithm share its mistake, so describe the observable behavior."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "add_implementation_mirrors",
         "op": "equals",
         "value": false,
-        "reason": "add implementation mirrors must be false."
+        "reason": "Set adding implementation mirrors to false. A test that copies the implementation passes with the bug, so assert behavior instead."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "remediation_cases",
         "op": "nonempty",
-        "reason": "remediation cases must name the concrete repository contract."
+        "reason": "List the proposed assertions for survived mutations. Without them survivors stay unaddressed, so write each case."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "remediation_cases",
         "op": "nonempty",
-        "reason": "remediation cases must name the concrete repository contract."
+        "reason": "List the proposed assertions for survived mutations. Without them survivors stay unaddressed, so write each case."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "remediation_cases",
         "op": "nonempty",
-        "reason": "remediation cases must name the concrete repository contract."
+        "reason": "List the proposed assertions for survived mutations. Without them survivors stay unaddressed, so write each case."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "remediation_cases",
         "op": "nonempty",
-        "reason": "remediation cases must name the concrete repository contract."
+        "reason": "List the proposed assertions for survived mutations. Without them survivors stay unaddressed, so write each case."
       }
     }
   }

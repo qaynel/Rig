@@ -3,21 +3,21 @@
   "service_id": "testing.maintenance.readability-dry",
   "input": "rig-services/testing.maintenance.readability-dry.json",
   "format": "json",
-  "ceiling": "readability dry configuration validation only; declared policy does not prove running readability dry behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms scenario names, shared helpers and the hidden-assertion flag are declared; it does not read the tests.",
   "offer": "Name scenarios by the behavior they establish and share setup only where it clarifies them. Hiding every assertion behind helpers makes failures harder to interpret.",
   "checks": {
     "minimal": [
       {
         "field": "scenario_names",
         "op": "nonempty",
-        "reason": "scenario names must name the concrete repository contract."
+        "reason": "Name scenarios by the behavior they establish. Names like test1 explain nothing on failure, so describe the behavior."
       }
     ],
     "mid": [
       {
         "field": "shared_helpers",
         "op": "nonempty",
-        "reason": "shared helpers must name the concrete repository contract."
+        "reason": "List shared helpers and what setup they hold. Sharing setup that obscures the scenario hurts readability, so limit it to what clarifies."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "hide_assertions_in_helpers",
         "op": "equals",
         "value": false,
-        "reason": "hide assertions in helpers must be false."
+        "reason": "Set hiding assertions in helpers to false. An assertion buried in a helper makes failures hard to interpret, so keep it in the test."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "scenario_names",
         "op": "nonempty",
-        "reason": "scenario names must name the concrete repository contract."
+        "reason": "Name scenarios by the behavior they establish. Names like test1 explain nothing on failure, so describe the behavior."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "scenario_names",
         "op": "nonempty",
-        "reason": "scenario names must name the concrete repository contract."
+        "reason": "Name scenarios by the behavior they establish. Names like test1 explain nothing on failure, so describe the behavior."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "scenario_names",
         "op": "nonempty",
-        "reason": "scenario names must name the concrete repository contract."
+        "reason": "Name scenarios by the behavior they establish. Names like test1 explain nothing on failure, so describe the behavior."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "scenario_names",
         "op": "nonempty",
-        "reason": "scenario names must name the concrete repository contract."
+        "reason": "Name scenarios by the behavior they establish. Names like test1 explain nothing on failure, so describe the behavior."
       }
     }
   }

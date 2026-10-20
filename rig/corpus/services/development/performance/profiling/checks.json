@@ -3,21 +3,21 @@
   "service_id": "development.performance.profiling",
   "input": "rig-services/development.performance.profiling.json",
   "format": "json",
-  "ceiling": "profiling configuration validation only; declared policy does not prove running profiling behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the workload, measured metrics and the no-guess flag are declared; it does not show a profile was actually taken.",
   "offer": "Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.",
   "checks": {
     "minimal": [
       {
         "field": "workload",
         "op": "nonempty",
-        "reason": "workload must name the concrete repository contract."
+        "reason": "Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment."
       }
     ],
     "mid": [
       {
         "field": "measured_metrics",
         "op": "nonempty",
-        "reason": "measured metrics must name the concrete repository contract."
+        "reason": "List the measured resource costs, such as CPU time or memory. Without numbers the bottleneck is a guess, so record the metrics."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "optimize_without_measurement",
         "op": "equals",
         "value": false,
-        "reason": "optimize without measurement must be false."
+        "reason": "Set optimizing without measurement to false. Optimizing from intuition wastes effort and can regress other paths, so measure first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "workload",
         "op": "nonempty",
-        "reason": "workload must name the concrete repository contract."
+        "reason": "Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "workload",
         "op": "nonempty",
-        "reason": "workload must name the concrete repository contract."
+        "reason": "Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "workload",
         "op": "nonempty",
-        "reason": "workload must name the concrete repository contract."
+        "reason": "Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "workload",
         "op": "nonempty",
-        "reason": "workload must name the concrete repository contract."
+        "reason": "Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment."
       }
     }
   }

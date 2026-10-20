@@ -4,6 +4,4 @@ Generate semantic changes in the selected production code and leave the tests un
 
 Assurance remains Policy grade.
 
-This slice verifies the configured `mutation_operators` rule using `mutant-generator-slice-property-floor`. Generate semantic production-code mutations while leaving assertions unchanged.
-
-The accepted fixture contains `mutation_operators` = `["negate conditional"]`; the invalid fixture demonstrates the missing-field case. This checks policy shape only, not a property of generated mutants.
+Generate semantic production-code mutations while leaving assertions unchanged.

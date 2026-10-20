@@ -2,4 +2,4 @@
 
 Keep secrets in an encrypted authority with identified key management. A declaration of encryption does not verify the deployed vault or grant access to its contents.
 
-Policy grade slice. This slice bounds encrypted store to secrets.encrypted-store. It uses `encrypted-store-slice-property-floor` and checks secret_store (nonempty): secret store must name the concrete repository contract.
+Policy grade slice `encrypted-store-slice-property-floor`: Name the encrypted store that holds secrets. Secrets in an unnamed place are untracked, so declare the authority.

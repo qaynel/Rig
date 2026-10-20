@@ -1,17 +1,13 @@
-# risk prioritization
+# risk-prioritization
 
 Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.
 
-Owned scope: `strategy.risk-prioritization`.
+Owned scope: `strategy.risk-prioritization`. Input: `rig-services/testing.strategy.risk-prioritization.json`.
 
-Offer: Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.
+Coverage ceiling: Configuration validation only, so it confirms high-risk behaviors, impact scores and the easy-cases-only flag are declared; it does not rank anything.
 
-Input: `rig-services/testing.strategy.risk-prioritization.json`. Detection records the path even when its contents are malformed.
+minimal: high risk behaviors — ["payment duplication"]. List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures.
 
-Coverage ceiling: risk prioritization configuration validation only; declared policy does not prove running risk prioritization behavior. Select an approved repository-owned command to verify that behavior.
+mid: impact scores — [5]. Give an impact score per behavior. Unscored risks cannot be ordered, so assign a value to each.
 
-minimal: high risk behaviors — ["payment duplication"].
-
-mid: impact scores — [5].
-
-maximal: prioritize only easy cases — false.
+maximal: prioritize only easy cases — false. Set prioritizing only easy cases to false. Happy-path tests should not displace costly failure modes, so cover risk first.

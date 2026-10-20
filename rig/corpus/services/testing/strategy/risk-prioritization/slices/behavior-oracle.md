@@ -2,4 +2,4 @@
 
 Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.
 
-Policy grade slice. This slice bounds risk prioritization to strategy.risk-prioritization. It uses `risk-prioritization-slice-behavior-oracle` and checks high_risk_behaviors (nonempty): high risk behaviors must name the concrete repository contract.
+Policy grade slice `risk-prioritization-slice-behavior-oracle`: List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures. Despite its name this slice is not a behavior oracle: it confirms high-risk behaviors, impact scores and the easy-cases-only flag are declared; it does not rank anything.

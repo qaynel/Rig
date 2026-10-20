@@ -3,7 +3,7 @@
   "service_id": "testing.mutation.execution-orchestrator",
   "input": "rig-services/testing.mutation.execution-orchestrator.json",
   "format": "json",
-  "ceiling": "execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a worker limit, per-mutant timeout and the shared-worktree flag are declared; it does not run workers.",
   "offer": "Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.",
   "checks": {
     "minimal": [
@@ -11,7 +11,7 @@
         "field": "worker_limit",
         "op": "minimum",
         "value": 2,
-        "reason": "worker limit must meet the configured minimum of 2."
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
       }
     ],
     "mid": [
@@ -19,7 +19,7 @@
         "field": "per_mutant_timeout_ms",
         "op": "minimum",
         "value": 1000,
-        "reason": "per mutant timeout ms must meet the configured minimum of 1000."
+        "reason": "Set a per-mutant timeout of at least 1000 ms. A mutant can loop forever, so bound each run."
       }
     ],
     "maximal": [
@@ -27,7 +27,7 @@
         "field": "share_mutable_worktrees",
         "op": "equals",
         "value": false,
-        "reason": "share mutable worktrees must be false."
+        "reason": "Set sharing mutable worktrees to false. A shared tree lets one mutant contaminate another's verdict, so isolate each."
       }
     ]
   },
@@ -38,7 +38,7 @@
         "field": "worker_limit",
         "op": "minimum",
         "value": 2,
-        "reason": "worker limit must meet the configured minimum of 2."
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
       }
     },
     "behavior-oracle": {
@@ -47,7 +47,7 @@
         "field": "worker_limit",
         "op": "minimum",
         "value": 2,
-        "reason": "worker limit must meet the configured minimum of 2."
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
       }
     },
     "property-floor": {
@@ -56,7 +56,7 @@
         "field": "worker_limit",
         "op": "minimum",
         "value": 2,
-        "reason": "worker limit must meet the configured minimum of 2."
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
       }
     },
     "mutation-floor": {
@@ -65,7 +65,7 @@
         "field": "worker_limit",
         "op": "minimum",
         "value": 2,
-        "reason": "worker limit must meet the configured minimum of 2."
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
       }
     }
   }

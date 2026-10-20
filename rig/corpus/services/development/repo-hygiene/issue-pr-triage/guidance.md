@@ -1,17 +1,13 @@
-# issue pr triage
+# issue-pr-triage
 
 Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
 
-Owned scope: `repo-hygiene.issue-pr-triage`.
+Owned scope: `repo-hygiene.issue-pr-triage`. Input: `rig-services/development.repo-hygiene.issue-pr-triage.json`.
 
-Offer: Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.
+Coverage ceiling: Configuration validation only, so it confirms triage labels, owners and the close-without-disposition flag are declared; it does not show issues were actually triaged.
 
-Input: `rig-services/development.repo-hygiene.issue-pr-triage.json`. Detection records the path even when its contents are malformed.
+minimal: triage labels — ["bug","needs-reproduction"]. List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses.
 
-Coverage ceiling: issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Select an approved repository-owned command to verify that behavior.
+mid: responsible owners — ["maintainers"]. Name the owner responsible for each triage lane. Without an accountable owner reports stall, so assign people or teams.
 
-minimal: triage labels — ["bug","needs-reproduction"].
-
-mid: responsible owners — ["maintainers"].
-
-maximal: close without disposition — false.
+maximal: close without disposition — false. Set closing without a disposition to false. Inactivity alone does not resolve a report, so close only with a written reason or a proving fix.

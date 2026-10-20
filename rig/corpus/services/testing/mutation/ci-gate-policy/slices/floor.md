@@ -4,6 +4,4 @@ Define the score threshold and inconclusive-result policy before the run. A time
 
 Assurance remains Policy grade.
 
-This Policy slice checks `minimum_score_percent` through `ci-gate-policy-slice-floor`. The good fixture supplies `minimum_score_percent` = `70`; the bad fixture removes it.
-
-Choose the minimum score before evaluating a run; the example threshold is 70 percent. Keep the failure attached to `rig-services/testing.mutation.ci-gate-policy.json`; do not infer that a mutation was generated or killed. ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.
+Choose the minimum score before evaluating a run; the example threshold is 70 percent. Configuration validation only, so it confirms a score threshold, a timeout policy and the unrun-mutant flag are declared; it does not run mutation testing.

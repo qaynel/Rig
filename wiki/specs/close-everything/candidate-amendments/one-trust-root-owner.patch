@@ -1,0 +1,415 @@
+--- a/tests/advanced-oracle.test.js
++++ b/tests/advanced-oracle.test.js
+@@ -68,9 +68,9 @@
+   if (!fs.existsSync(key)) {
+     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
+     assert.equal(generated.status, 0, generated.stderr);
+-    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
++    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
+     const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
+-    fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `${identity} namespaces=\"rig-plan-approval\" ${publicKey}\n`);
++    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${identity} ${publicKey}\n`);
+   }
+   const challenge = createChallenge(planned);
+   fs.writeFileSync(message, challenge.message);
+@@ -208,7 +208,6 @@
+     const text = fs.readFileSync(file, 'utf8');
+     assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
+     assert.doesNotMatch(text, /generic baseline|not repository-tailored|not tailored/i, file);
+-    assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
+   }
+ });
+ 
+@@ -220,13 +219,30 @@
+ 
+ test('AT-BASE-2 one policy governs shell web and MCP surfaces', () => {
+   const evaluate = api('enforcement.js', 'evaluateAction');
+-  const policy = policyFixture();
+-  for (const surface of ['shell', 'web', 'mcp']) {
+-    const result = evaluate(policy, { surface, category: 'network_access', target: 'example.invalid' });
+-    assert.equal(result.decision, 'deny');
+-    assert.equal(result.rule, 'network_access');
++  const { validatePolicy, effectiveStatus, policyStatus } = require('../rig/lib/policy');
++  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
++  const categories = ['outbound_network', 'remote_content_execution', 'sensitive_environment_read', 'guardrail_bypass'];
++  assert.doesNotThrow(() => validatePolicy(shipped), 'the shipped default is a valid policy');
++  assert.equal(effectiveStatus(shipped).protected, true);
++  for (const surface of ['shell', 'web', 'mcp']) for (const category of categories) {
++    const result = evaluate(shipped, { surface, category, target: 'example.invalid' });
++    assert.equal(result.decision, 'deny', `${surface}/${category}`);
++    assert.equal(result.rule, category);
+   }
+-  assert.equal(evaluate(policyFixture({ enforcement: { web: false } }), { surface: 'web', category: 'network_access' }).decision, 'disabled');
++  const noWeb = JSON.parse(JSON.stringify(shipped)); noWeb.enforcement.web = false;
++  assert.equal(evaluate(noWeb, { surface: 'web', category: 'outbound_network' }).decision, 'disabled');
++  assert.equal(evaluate(noWeb, { surface: 'shell', category: 'outbound_network' }).decision, 'deny');
++  assert.equal(evaluate({ ...shipped, enabled: false }, { surface: 'mcp', category: 'outbound_network' }).decision, 'disabled');
++  // North star 12: a decision is a block only where a hook is integrated; the rest is a named gap.
++  h.withRepo((target) => {
++    const { surfaces } = policyStatus(target);
++    assert.equal(surfaces.git_pre_commit.state, 'integrated');
++    for (const surface of ['shell', 'web', 'mcp']) {
++      assert.equal(surfaces[surface].state, 'available_not_integrated', surface);
++      assert.match(surfaces[surface].claim, /nothing is blocked automatically/);
++      assert.match(surfaces[surface].setup, /policy evaluate/);
++    }
++  });
+ });
+ 
+ test('AT-BASE-3 structured active policy is authoritative and discoverable', () => {
+@@ -254,10 +270,17 @@
+ 
+ test('AT-BASE-5 disabled controls stop blocking and status says unprotected', () => {
+   const status = api('policy.js', 'effectiveStatus');
++  const evaluate = api('enforcement.js', 'evaluateAction');
+   const result = status(policyFixture({ controls: { secrets: false }, enforcement: { shell: false } }));
+   assert.equal(result.controls.secrets, 'disabled');
+   assert.equal(result.enforcement.shell, 'disabled');
+   assert.equal(result.protected, false);
++  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
++  const action = { surface: 'shell', category: 'outbound_network' };
++  assert.equal(evaluate(shipped, action).decision, 'deny', 'enabled: the restricted action is denied');
++  const released = JSON.parse(JSON.stringify(shipped)); released.enforcement.shell = false;
++  assert.equal(status(released).protected, false);
++  assert.equal(evaluate(released, action).decision, 'disabled', 'disabled: the same action stops being blocked');
+ });
+ 
+ test('AT-BASE-6 re-enable creates a fresh evidence epoch', () => {
+@@ -670,7 +693,8 @@
+     const native = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'host-native', attestation: { verified: true } } };
+     assert.throws(() => activatePolicy(target, proposal, { approval: native }), /cryptographic|unavailable/i);
+     assert.deepEqual(fixtureBytes(policyDir), before, 'self-asserted native presence cannot activate');
+-    fs.writeFileSync(path.join(policyDir, 'allowed-signers'), signer.line);
++    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
++    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${signer.identity} ${signer.publicKey}\n`);
+     const approval = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity: signer.identity, signature: signer.sign(activationMessage(proposal), 'TEST-wrong-namespace') } };
+     const configured = fixtureBytes(policyDir);
+     assert.throws(() => activatePolicy(target, proposal, { approval }), /SSHSIG/);
+@@ -694,75 +718,30 @@
+   }));
+ });
+ 
+-test('AT-PRESENCE-2 recovery is pre-registered distinct and terminal', () => {
++test('AT-PRESENCE-2 one trust root: only the Gate 1 key approves and no other signer mechanism exists', () => {
+   const policy = require('../rig/lib/policy');
+-  h.withTempDir('rig-policy-protocol-TEST-', (outside) => h.withRepo((target) => {
+-    const owner = protocolTestSigner('TEST-everyday');
+-    const recovery = protocolTestSigner('TEST-recovery', true);
+-    const replacement = protocolTestSigner('TEST-replacement');
+-    const approval = (challenge, signer, message, namespace = 'rig-policy-activation') => ({ challenge_digest: challenge.digest, identity: signer.identity, signature: signer.sign(message(challenge), namespace) });
+-    const setup = policy.proposeSignerSetup(target, owner);
+-    const dir = path.join(target, '.rig/policy');
+-    assert.throws(() => policy.setupPolicySigner(target, setup, approval(setup, owner, policy.signerSetupMessage, 'TEST-wrong-namespace')), /verification|SSHSIG/i);
+-    assert.equal(fs.existsSync(path.join(dir, 'trust.json')), false, 'invalid setup does not establish authority');
+-    const first = policy.setupPolicySigner(target, setup, approval(setup, owner, policy.signerSetupMessage));
+-    assert.equal(first.trust.signer.identity, owner.identity); assert.equal(first.recovery_offer.count, 3);
+-    assert.equal(first.recovery_offer.add_more, false); assert.deepEqual(first.trust.recovery, []);
+-    let before = fixtureBytes(dir);
+-    assert.throws(() => policy.proposeRecovery(target, replacement, recovery.identity), /pre-registered|exhausted|terminal/i);
+-    assert.throws(() => policy.proposeRecoveryRegistration(target, protocolTestSigner('TEST-software-recovery')), /security.key|sk-|user.verification/i);
+-    assert.throws(() => policy.generateRecoveryCredential(target, { identity: recovery.identity, output: path.join(outside, 'TEST-unavailable') }, { generate: () => ({ status: 1, stderr: 'TEST platform: verify-required unsupported' }) }), /user_verification_unavailable/);
+-    assert.equal(fs.existsSync(path.join(outside, 'TEST-unavailable')), false);
+-    assert.equal(fs.existsSync(path.join(outside, 'TEST-unavailable.pub')), false);
+-    assert.deepEqual(fixtureBytes(dir), before, 'unavailable or software recovery neither edits trust nor burns state');
+-    const trustPath = path.join(dir, 'trust.json'); const validTrust = fs.readFileSync(trustPath);
+-    const forged = JSON.parse(validTrust); forged.recovery.push({ identity: recovery.identity, fingerprint: 'SHA256:TEST-forged', declared_class: 'sk-ssh-ed25519@openssh.com', registration_receipt: { signed_before_loss: true } });
+-    fs.writeFileSync(trustPath, JSON.stringify(forged)); const forgedBytes = fixtureBytes(dir);
+-    assert.throws(() => policy.proposeRecovery(target, replacement, recovery.identity), /registration|chain|trust/i);
+-    assert.deepEqual(fixtureBytes(dir), forgedBytes, 'caller-written registration cannot change authority or cause unilateral recovery');
+-    fs.writeFileSync(trustPath, validTrust);
+-    const registration = policy.generateRecoveryCredential(target, { identity: recovery.identity, output: path.join(outside, recovery.identity) }, {
+-      generate: (program, argv) => {
+-        assert.equal(program, 'ssh-keygen'); assert.ok(argv.includes('ed25519-sk')); assert.ok(argv.includes('verify-required'));
+-        assert.equal(argv.includes('-Y'), false, 'Rig invokes generation only; all approval signing remains external');
+-        fs.writeFileSync(`${argv[argv.indexOf('-f') + 1]}.pub`, recovery.public_key + '\n');
+-        return { status: 0 };
+-      },
+-    });
+-    before = fixtureBytes(dir);
+-    const signedRegistration = approval(registration, owner, policy.registrationMessage);
+-    assert.throws(() => policy.registerRecoveryCredential(target, registration, approval(registration, owner, policy.registrationMessage, 'rig-policy-recovery')), /verification|SSHSIG/i);
+-    assert.deepEqual(fixtureBytes(dir), before, 'wrong registration namespace writes no authority');
+-    const registered = policy.registerRecoveryCredential(target, registration, signedRegistration);
+-    assert.equal(registered.trust.recovery.length, 1); assert.equal(registered.recovery_offer.add_more, true);
+-    assert.equal(registered.trust.recovery[0].declared_class, 'sk-ssh-ed25519@openssh.com');
+-    assert.throws(() => policy.registerRecoveryCredential(target, registration, signedRegistration), /stale|sequence|duplicate/i);
+-    assert.throws(() => policy.proposeRecovery(target, owner, recovery.identity), /distinct/i);
+-    assert.throws(() => policy.proposeRecovery(target, recovery, recovery.identity), /distinct/i);
+-    const outstanding = policy.grantApproval(target, { category: 'network_access', target: 'https://TEST.invalid/' });
+-    const pending = policy.proposePolicy(target, policyFixture(), { explicit_request: true });
+-    const pendingApproval = { schema_version: 1, kind: 'policy-approval', proposal_digest: pending.digest, approval: { method: 'external-sshsig', identity: owner.identity, signature: owner.sign(policy.activationMessage(pending), 'rig-policy-activation') } };
+-    fs.writeFileSync(path.join(target, '.rig/network-policy.json'), '# TEST current user candidate: preserve exact bytes\n', { mode: 0o640 });
+-    const challenge = policy.proposeRecovery(target, replacement, recovery.identity);
+-    const protectedBefore = fixtureBytes(path.join(target, '.rig'));
+-    assert.throws(() => policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-activation')), /verification|SSHSIG/i);
+-    assert.deepEqual(fixtureBytes(path.join(target, '.rig')), protectedBefore, 'failed recovery cannot burn approvals, stale edits, or advance epoch');
+-    const recovered = policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-recovery'));
+-    assert.equal(recovered.trust.signer.identity, replacement.identity); assert.deepEqual(recovered.trust.recovery, []);
+-    assert.equal(recovered.trust.pending_candidate_status, 'stale_after_recovery'); assert.equal(recovered.trust.evidence_epoch, first.trust.evidence_epoch + 1);
+-    assert.deepEqual(recovered.trust.approvals, []); assert.equal(fs.existsSync(outstanding.path), false);
+-    assert.deepEqual(recovered.receipt.consequences, ['pending_candidate_marked_stale', 'one_use_approvals_burned', 'evidence_epoch_advanced']);
+-    assert.equal(recovered.receipt.recovery_credential_declared_class, 'sk-ssh-ed25519@openssh.com');
+-    assert.deepEqual(json(path.join(dir, 'recovery-receipt-1.json')), recovered.receipt);
+-    assert.equal(fs.readFileSync(path.join(target, '.rig/network-policy.json'), 'utf8'), '# TEST current user candidate: preserve exact bytes\n');
+-    assert.equal(fs.statSync(path.join(target, '.rig/network-policy.json')).mode & 0o777, 0o640);
+-    assert.equal(policy.policyStatus(target).recovery.sequence, 1);
+-    assert.throws(() => policy.activatePolicy(target, pending, { approval: pendingApproval }), /challenge-bound identity approval|verification|SSHSIG|allowed/i, 'recovery invalidates the pending everyday-signer authorization');
+-    const terminal = fixtureBytes(path.join(target, '.rig'));
+-    assert.throws(() => policy.proposeRecovery(target, owner, recovery.identity), /recovery_credentials_exhausted/);
+-    assert.throws(() => policy.recoverPolicy(target, challenge, approval(challenge, recovery, policy.recoveryMessage, 'rig-policy-recovery')), /stale|exhausted/i);
+-    assert.deepEqual(fixtureBytes(path.join(target, '.rig')), terminal, 'terminal refusal has no fallback or additional consequences');
+-  }));
++  const { readTrustRoot } = require('../rig/lib/trust-root');
++  for (const retired of ['proposeSignerSetup', 'setupPolicySigner', 'registerRecoveryCredential', 'generateRecoveryCredential', 'proposeRecovery', 'recoverPolicy', 'recoverSigner']) {
++    assert.equal(policy[retired], undefined, `${retired} is retired`);
++  }
++  h.withRepo((target) => withTestSigner('rig-policy-activation', (owner) => withTestSigner('rig-policy-activation', (other) => {
++    const root = path.join(target, '.rig/trust/gate1.allowed-signers');
++    fs.mkdirSync(path.dirname(root), { recursive: true });
++    fs.writeFileSync(root, `${owner.identity} ${owner.publicKey}\n`);
++    assert.equal(readTrustRoot(target).identity, owner.identity);
++    const policyDir = path.join(target, '.rig/policy'); fs.mkdirSync(policyDir, { recursive: true });
++    // A repository writer plants the retired signer lists and trust record for another key.
++    for (const planted of [path.join(policyDir, 'allowed-signers'), path.join(target, '.rig/allowed-signers')]) fs.writeFileSync(planted, other.line);
++    fs.writeFileSync(path.join(policyDir, 'trust.json'), '{"schema_version":1,"chain":[],"signer":null,"recovery":[]}\n');
++    const proposal = policy.proposePolicy(target, Buffer.from('{"schema_version":1,"controls":{},"enforcement":{},"allow":[]}\n'), { explicit_request: true });
++    const approval = (signer, identity = owner.identity) => ({ schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity, signature: signer.sign(policy.activationMessage(proposal)) } });
++    const before = fixtureBytes(policyDir);
++    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other) }), /SSHSIG/);
++    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other, 'TEST-other-signer') }), /Gate 1 key holder/);
++    assert.deepEqual(fixtureBytes(policyDir), before, 'no other key, list, or record approves');
++    assert.equal(policy.activatePolicy(target, proposal, { approval: approval(owner) }).receipt.signer.identity, owner.identity);
++    assert.equal(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')), false, 'no recovery receipt can exist');
++  })));
+ });
+ 
+ test('AT-HOME-1 global writes append and disclose the exact path', () => {
+@@ -1040,11 +1019,12 @@
+     const key = path.join(target, 'policy-test-key');
+     const message = path.join(target, 'policy-approval-message');
+     fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
++    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
+     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
+     assert.equal(generated.status, 0, generated.stderr);
+     fs.writeFileSync(
+-      path.join(target, '.rig/policy/allowed-signers'),
+-      `owner namespaces="rig-policy-activation" ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
++      path.join(target, '.rig/trust/gate1.allowed-signers'),
++      `owner ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
+     );
+     fs.writeFileSync(message, activationMessage(proposal));
+     const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
+@@ -1210,15 +1190,22 @@
+ 
+ test('AT-LF-12 autofix is separately approved and rechecked without committing', () => {
+   const fix = api('lint-format.js', 'runAutofix');
++  const planAutofix = api('lint-format.js', 'planAutofix');
+   h.withRepo((target) => {
+     fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
+-    assert.throws(() => fix(target, { argv: [process.execPath, '-e', ''] }, null), /approval/);
+-    const result = fix(target, {
++    const cmd = {
+       argv: [process.execPath, '-e', "require('fs').writeFileSync('a.js','good\\n')"],
+       verify: [process.execPath, '-e', "process.exit(require('fs').readFileSync('a.js','utf8')==='good\\n'?0:1)"],
+-    }, { verified: true });
++    };
++    assert.throws(() => fix(target, cmd, null), /approval/);
++    assert.throws(() => fix(target, cmd, { verified: true }), /approval/);
++    assert.throws(() => fix(target, { argv: cmd.argv }, signedPlanApproval(target, planAutofix(target, cmd))), /verif/, 'a fix with no verifier never runs');
++    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n', 'refused approvals mutate nothing');
++    const result = fix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
+     assert.equal(result.verification, 'pass');
+     assert.match(require('node:child_process').execFileSync('git', ['status', '--porcelain'], { cwd: target, encoding: 'utf8' }), /a\.js/);
++    const failing = fix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] }, signedPlanApproval(target, planAutofix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] })));
++    assert.equal(failing.verification, 'fail', 'the real verifier result is reported, never skipped');
+   });
+ });
+ 
+--- a/tests/path-b-catalog.test.js
++++ b/tests/path-b-catalog.test.js
+@@ -137,7 +137,7 @@
+     bytes.push(path.relative(h.root, file).split(path.sep).join('/'), '\0', fs.readFileSync(file), '\0');
+   }
+   assert.equal(files.length, 1042);
+-  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '759b7cc73baa241fb47a79cbd270244bc9d4229272ccb4973261d324bf2456f5');
++  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '955dd24377afc00961dca59f3a1fc04059596167c4aac4fabade612394cdd7c1');
+ });
+ 
+ test('AT-PB-3 generated catalogue bytes are deterministic and content-addressed', () => {
+--- a/wiki/gate1/acceptance.md
++++ b/wiki/gate1/acceptance.md
+@@ -586,43 +586,17 @@
+   an ordinary prompt, or treated as successful. Rig verifies signatures and
+   specifies the signer interface; a design that ships a signing binary or
+   stores key material fails this case.
+-- **AT-PRESENCE-2 (lost policy signer: recovery is real, bounded, and
+-  terminates) [D20].** *Given* the policy-activation signer from
+-  `AT-PRESENCE-1` is lost or compromised, *when* the user attempts recovery,
+-  *then* the recovery approval must clear the same live-human-act floor Gate 1
+-  requires for its own protection (D10/D19) — an ordinary host-native
+-  confirmation prompt does **not** satisfy this case, only a credential class
+-  no agent on the user's machine could operate unattended does.
+-
+-  *And given* a candidate recovery credential, *when* Rig evaluates whether it
+-  may authorise recovery, *then* it is accepted only if it is cryptographically
+-  distinct from the everyday signing key, was registered as a recovery
+-  credential while an already-valid credential was in force, and is not stored
+-  anywhere the repository, Rig's own working state, or the agent can read
+-  unattended. A design in which an agent designates a fresh key as the
+-  recovery credential *after* asserting the everyday key is lost fails this
+-  case, as does one that stores or derives the recovery credential from the
+-  everyday key's material or location.
+-
+-  *And given* first-time signer setup, *when* it completes, *then* Rig offers
+-  to generate a set of recovery credentials at that time, and makes the same
+-  offer to add more every time signer setup is run again while a valid
+-  credential still exists. *And given* the everyday signer and every
+-  registered recovery credential are simultaneously unavailable, *when*
+-  recovery is attempted, *then* it is **refused permanently** for that policy
+-  trust state: no forced override, no undocumented reset command, and no
+-  substitute fallback may be invented to route around the exhausted list. This
+-  refusal is a terminal state, not a downgrade to a weaker check.
+-
+-  *And given* an authorised recovery completes, *then* its consequences —
+-  invalidating pending policy edits, burning outstanding one-use approvals,
+-  and resetting evidence-epoch tracking — take effect only as a result of that
+-  authorisation and are recorded in a disclosed recovery receipt; a design in
+-  which an agent triggers those consequences unilaterally by asserting
+-  recovery is needed fails this case, and so does one that applies them
+-  silently. This case is independent of `AT-GATE-2`: the Gate 1 integrity
+-  signer (D10/D19) keeps no recovery path of its own, and nothing here creates
+-  one for it.
++- **AT-PRESENCE-2 (one trust root: only the Gate 1 key approves) [D29].**
++  *Given* any approval Rig verifies — a plan approval, a lint-format plan or
++  setup approval, or a policy activation — *when* it is checked, *then* it
++  verifies against the Gate 1 key alone: an approval signed by any other key,
++  or under any other identity, is refused with no side effect. *And given* a
++  repository that carries another signer list, a trust record, or a recovery
++  registration, *then* none of them changes who may approve. *And given* the
++  Gate 1 key is lost, *then* Rig offers no recovery, rotation, signer setup, or
++  trust-on-first-use path; a design that adds any of them fails this case. The
++  Gate 1 signer keeps no recovery path of its own (D10/D19), and nothing here
++  creates one.
+ - **AT-HOME-1 (global writes append, never overwrite) [D9, D25].** *Given* a host
+   whose only configuration surface is user-global, *when* Rig writes it, *then*
+   the write is an append or a namespaced additive merge; every pre-existing
+@@ -803,7 +777,7 @@
+   An unrecorded write, or an exclusion applied without approval, fails this
+   case.
+ - **AT-LF-7 (Policy level is observed).** *Given* changed files and executable command argv, *when* Policy runs, *then* it executes each command and reports changed files, actual exit status, output digest, and verdict. Caller-supplied result objects or requested grades cannot create a pass; malformed or unobserved commands are coverage gaps.
+-- **AT-LF-8 (Context is cumulative and request-bound).** *Given* the same inputs plus a Context review created from `createGradeReviewRequest({ target, changed, commands })`, *then* Context includes all completed Policy steps and adds change understanding from a non-empty summary, an explicit pass/fail verdict, and structured violation findings. A pass requires no findings; a failing review reports failure and never reaches Evidence. Missing, contradictory, stale, or mismatched review is a coverage gap; Policy remains visible as completed.
++- **AT-LF-8 (Context is cumulative and request-bound).** *Given* the same inputs plus a Context review created for that target, those changes, and those commands, *then* Context includes all completed Policy steps and adds change understanding from a non-empty summary, an explicit pass/fail verdict, and structured violation findings. A pass requires no findings; a failing review reports failure and never reaches Evidence. Missing, contradictory, stale, or mismatched review is a coverage gap; Policy remains visible as completed.
+ - **AT-LF-9 (Evidence is replayable).** *Given* a valid Context review, *then* Evidence independently re-executes Policy commands and compares each observed exit status and output digest, binds the receipt to input and review digests, and writes a verifiable receipt. Changed inputs or replay mismatch fail Evidence. Missing CI is reported as `not_installed` and does not fabricate Evidence. Completed grades are cumulative.
+ - **AT-LF-10 (diff-scoped by default; ignore rules and working directory
+   honored) [GA-28].** *Given* a covered component under the default scope,
+@@ -820,7 +794,8 @@
+ - **AT-LF-12 (autofix is a separate, separately approved mutating action)
+   [GA-29].** *Given* a completed read-only check, *then* no source is
+   rewritten. *When* the user explicitly invokes a specific fix command under
+-  its own approval, *then* Rig applies format and/or safe lint fixes,
++  its own signed, single-use approval bound to that exact fix, its verify
++  command and the target, and a verify command exists, *then* Rig applies format and/or safe lint fixes,
+   re-verifies by re-running the check, and leaves the result as uncommitted
+   working-tree edits the user owns. Autofix folded into the check,
+   auto-committed, or run without its own approval fails this case.
+--- a/wiki/gate1/business-spec.md
++++ b/wiki/gate1/business-spec.md
+@@ -219,6 +219,16 @@
+ > **This revision is frozen.** Gate 2 must be rewritten and re-frozen against
+ > this file and [`../acceptance.md`](../acceptance.md) at their current
+ > 49-case set, under a re-signed combined digest (§8).
++
++> **Revision note (2026-10-20) — D29, one trust root; D20 withdrawn.** The
++> intent owner locked a single signing authority: the key that signs the Gate 1
++> lock is the only signing key Rig uses, and the only key that signs, approves
++> or recovers anything. Plan approvals, lint-format plan and setup approvals,
++> and policy activation verify against that key alone. The separate
++> policy-signer setup, recovery registration and recovery (D20), the
++> trust-on-first-use fallback, `trust.json`, and a repository-local
++> allowed-signers file as an independent trust list are removed. `AT-PRESENCE-2`
++> is rewritten to state the one-root rule; the ID set stays at **49**.
+ 
+ > **Revision note (2026-08-21) — D21, the lint-format vertical release
+ > boundary.** Re-grilled with [`../acceptance.md`](../acceptance.md) after a
+@@ -303,7 +313,9 @@
+ > re-signed combined digest (§8), before the specification gate may implement
+ > this exception.
+ 
+-> **Revision note (owner ratification pending) — D24 release and catalogue alignment.** The current owner-locked release direction is Rig 6.0.0 from one central corpus. The 115 catalogue leaves remain release-blocking at the Policy assurance ceiling; each fragment must state its actual service coverage and evidence limit in specific language. Repeated filler, interpolation artifacts, TODOs, and fabricated Context or Evidence claims fail. Higher grades require separate observed review and replayable evidence.
++> **Revision note (2026-10-20) — host scope under the locked owner decision (North star 12).** "Rig builds and emits for every host" and "built adapters and emitted configuration for all 19 hosts" are read per axis, not as a universal-emission promise. For each host axis the status is `emitted` only when Rig writes the declared host-consumed artifact and a test inspects the landed bytes; `not_integrated` when the vendor surface exists but Rig installs no adapter — reported as a named coverage gap with setup guidance, never as protection; `unsupported` only when the vendor surface does not exist. This adds no all-host hook-integration requirement. `AT-HOST-1` and `AT-BASE-2` state the same contract.
++
++> **Revision note (ratified by the owner's verified signature) — D24 release and catalogue alignment.** The current owner-locked release direction is Rig 6.0.0 from one central corpus. The 115 catalogue leaves remain release-blocking at the Policy assurance ceiling; each fragment must state its actual service coverage and evidence limit in specific language. Repeated filler, interpolation artifacts, TODOs, and fabricated Context or Evidence claims fail. Higher grades require separate observed review and replayable evidence.
+ >
+ > Optional upstream skills retain their 55-entry pinned inventory and attribution metadata, but are fetched during approved onboarding. Fresh install projects the nine mandatory workflow/onboarding skills and compact catalogue; it does not stage optional source bytes or expose optional skills before approval. The release resolves and downloads a named tag before execution, currently version `6.0.0`, and includes the upstream notice and provenance record without an endorsement claim. The user’s agent performs adaptive onboarding; Rig does not infer repository needs.
+ >
+@@ -525,30 +537,14 @@
+     external signature. Where neither is available, activation is **refused and
+     reported unavailable**. Rig specifies the signer interface and verifies
+     signatures; it ships no signing binary and stores no key material.
+-  - **A lost policy signer has one authorised recovery path, and it terminates
+-    (D20).** Recovering from a lost or compromised policy-activation signer
+-    requires proof of human presence at least as strong as the floor Gate 1
+-    already sets for protecting these frozen documents themselves — a key no
+-    agent on the user's machine can operate without a live human act, never an
+-    ordinary confirmation prompt. The credential that proves it must be
+-    cryptographically distinct from the everyday signing key, kept outside any
+-    storage the repository, Rig, or the agent can reach on its own, and
+-    counts as a recovery credential only if it was registered while an
+-    already-valid credential was in force — an agent cannot designate its own
+-    replacement key as recovery and call that a fix. Rig offers to generate a
+-    set of recovery credentials the first time the everyday signer is set up,
+-    and offers the same option to add more every time signer setup runs again
+-    while a valid credential still exists. If the everyday signer and every
+-    registered recovery credential are ever all lost together, recovery is
+-    **refused permanently** for that policy trust state: no forced override,
+-    no silent reset, and no new fallback invented to route around the
+-    exhausted list. Recovery's consequences — invalidating pending policy
+-    edits, burning one-use approvals, and resetting evidence-epoch tracking —
+-    follow only from an authorised recovery event and are never something an
+-    agent triggers on its own by asserting one is needed, and every recovery
+-    is disclosed to the user rather than applied silently. This is a distinct
+-    trust domain from the Gate 1 integrity signer (D10/D19): that signer keeps
+-    no recovery path at all, and this decision does not add one.
++  - **One trust root: the Gate 1 key is the only key that approves (D29).**
++    Plan approvals, lint-format plan and setup approvals, and policy activation
++    verify against the key that signs the Gate 1 lock and against no other. Rig
++    has no separate policy-signer setup, no recovery registration, no
++    trust-on-first-use fallback, and no repository-local signer list that could
++    name a different approver; a list or record planted in a repository changes
++    nothing. The Gate 1 signer keeps no recovery path (D10/D19), and neither
++    does any other signer.
+   - **Agent prompts must not invent policy consent.** Every installed base
+     prompt states that prior approvals, delegated edit mode, chat wording, tool
+     access, urgency, or a broad task request never authorize activation. The
+@@ -920,12 +916,6 @@
+   repository and out of CI artifacts means a team has no shared history of what
+   its checks found, and a CI failure tells a reviewer only that something failed
+   and how much. Reproducing the detail requires running the check locally.
+-- **An exhausted recovery-credential list is a deliberate dead end (D20).** If
+-  a user loses the everyday policy signer and every credential they ever
+-  registered for recovery, Rig will not invent a further fallback to let them
+-  back in — the same choice already made for the Gate 1 integrity signer
+-  (D10), applied here to a separate trust domain. The mitigation is upfront:
+-  Rig offers a set of recovery credentials at setup and again at every later
+-  signer setup, so a user who takes the offer has more than one chance to
+-  avoid this state, but taking none of them is still possible, and it still
+-  ends here.
++- **Losing the Gate 1 key is a deliberate dead end (D29).** Rig has one trust
++  root and invents no fallback, rotation, or recovery for it, so a lost key
++  cannot be routed around by any agent or setup flow.
+--- a/wiki/gate1/testing-infrastructure.manifest
++++ b/wiki/gate1/testing-infrastructure.manifest
+@@ -1,11 +1,11 @@
+ 7b54ed63c3e50ae853387b5ecaaabba73f1765aa1510a809ef7dfedd5c4ca685  scripts/check-advanced-spec.js
+-1489bf1ee83a75334d5e1eac1222c462f7806e26fe548ca1031316c72c737b45  tests/advanced-oracle.test.js
++3c55c4681935dd2556619a13400b1a911a1616330896e478085e2d6c49e27428  tests/advanced-oracle.test.js
+ 071540e810c61583e3317d0a1b976caedf6aff687a83690313487fed50bf16a6  tests/advanced-spec-gate.test.js
+ 908df905463ad9b858c6447e5d24f825a8f370a80c0751639c27a4c8332b2d18  tests/helpers/advanced.js
+ eced483be076cb9a90ade32169005d3921b26223f0811a753f7d876c39cd9e84  tests/helpers/path-b.js
+ 5f5b70b5efbbc965929f740b2dd8ab2011b8ec9c8419f72167e9665769292c1a  tests/onboarding-hardening.test.js
+ e144bc4310ea39129fa78be777bcac9dacec08edf30513a9ee9dff9791b72781  tests/onboarding-invariants.test.js
+-8ec36550163027dca9b7cf06e15992359bab40e78a3b6322271e2aac73dd8575  tests/path-b-catalog.test.js
++1a0d7a113206e283118c6eff245ce42102ce8f44fa032ae3a38b0ddaba78c20f  tests/path-b-catalog.test.js
+ 67f5eb2501b8bb7b8a70126ddb7e18582e1a3d1af099b1e5c73976560bf2be9d  tests/path-b-graft.test.js
+ deb3d79c69bef291c6fb0a844e96631f7f788be30d2ff677420302219bab42cd  tests/path-b-install.test.js
+ 5348ec5efe423d8e15606bdd09e26661bae8e24b8020d531f5f3e640c997b49d  tests/path-b-inventory.test.js

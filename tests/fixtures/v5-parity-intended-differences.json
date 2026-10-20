@@ -311,6 +311,54 @@
         "active/windsurf"
       ],
       "reason": "Intended change (03 slice 6): the staged skill-shelf tree carries the regenerated catalog.json (same cause as .rig/catalog.json)."
+    },
+    {
+      "path": ".rig/allowed-signers.example.md",
+      "configs": "*",
+      "reason": "Rig has one trust root, the Gate 1 key, so the example for a separate repository signer list is retired with that mechanism and is intentionally absent from the install."
+    },
+    {
+      "path": ".rig/trust/gate1.allowed-signers",
+      "configs": "*",
+      "reason": "The installer ships the Gate 1 public key as the single trust root every approval verifies against, a file the v5 installer never wrote."
+    },
+    {
+      "path": ".rig/network-policy.json",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/claude",
+        "active/cline",
+        "active/codewhale",
+        "active/codex",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/none",
+        "active/opencode",
+        "active/windsurf"
+      ],
+      "reason": "Intended change (policy evaluation): the shipped default declares the four protected network categories and uses one leaf vocabulary, so the action evaluator and the status seam read the same document."
+    },
+    {
+      "path": ".rig/network-rules.md",
+      "configs": [
+        "active/all",
+        "active/antigravity",
+        "active/claude",
+        "active/cline",
+        "active/codewhale",
+        "active/codex",
+        "active/copilot",
+        "active/cursor",
+        "active/gemini",
+        "active/kiro",
+        "active/none",
+        "active/opencode",
+        "active/windsurf"
+      ],
+      "reason": "Intended change (policy evaluation): the shipped rules name the four protected categories, the leaf switches, and the available-but-not-integrated surfaces the evaluator and status now report."
     }
   ]
 }

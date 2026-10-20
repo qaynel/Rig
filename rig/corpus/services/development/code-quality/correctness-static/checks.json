@@ -3,21 +3,21 @@
   "service_id": "development.code-quality.correctness-static",
   "input": "rig-services/development.code-quality.correctness-static.json",
   "format": "json",
-  "ceiling": "correctness static configuration validation only; declared policy does not prove running correctness static behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the analyzer command, enabled rules and failure handling are declared; it does not show the analyzer ran or found nothing.",
   "offer": "Choose correctness rules for the language and record the actual analyzer invocation. Analyzer crashes and findings remain non-passing; a missing analyzer is a setup gap.",
   "checks": {
     "minimal": [
       {
         "field": "analyzer_command",
         "op": "nonempty",
-        "reason": "analyzer command must name the concrete repository contract."
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
       }
     ],
     "mid": [
       {
         "field": "enabled_rules",
         "op": "nonempty",
-        "reason": "enabled rules must name the concrete repository contract."
+        "reason": "List the correctness rules enabled for the language. An empty set analyzes nothing, so name the rule sets or checks in force."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "ignore_analyzer_failure",
         "op": "equals",
         "value": false,
-        "reason": "ignore analyzer failure must be false."
+        "reason": "Set ignoring analyzer failure to false. A crashing analyzer must stay non-passing, otherwise a broken run reads as clean."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "analyzer_command",
         "op": "nonempty",
-        "reason": "analyzer command must name the concrete repository contract."
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "analyzer_command",
         "op": "nonempty",
-        "reason": "analyzer command must name the concrete repository contract."
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "analyzer_command",
         "op": "nonempty",
-        "reason": "analyzer command must name the concrete repository contract."
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "analyzer_command",
         "op": "nonempty",
-        "reason": "analyzer command must name the concrete repository contract."
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
       }
     }
   }

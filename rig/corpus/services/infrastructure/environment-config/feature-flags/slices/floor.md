@@ -2,4 +2,4 @@
 
 Give feature flags an owner and a rollback route. Unowned permanent flags accumulate untested branches and should not pass as deliberate release controls.
 
-Policy grade slice. This slice bounds feature flags to environment-config.feature-flags. It uses `feature-flags-slice-floor` and checks flag_names (nonempty): flag names must name the concrete repository contract.
+Policy grade slice `feature-flags-slice-floor`: List the feature flags in use. Unlisted flags accumulate untested branches, so name each one.

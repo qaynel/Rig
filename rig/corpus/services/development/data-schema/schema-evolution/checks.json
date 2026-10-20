@@ -3,21 +3,21 @@
   "service_id": "development.data-schema.schema-evolution",
   "input": "rig-services/development.data-schema.schema-evolution.json",
   "format": "json",
-  "ceiling": "schema evolution configuration validation only; declared policy does not prove running schema evolution behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms compatible readers, unknown-field handling and the no-removal setting are declared; it does not show old and new readers interoperate.",
   "offer": "Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.",
   "checks": {
     "minimal": [
       {
         "field": "compatible_readers",
         "op": "nonempty",
-        "reason": "compatible readers must name the concrete repository contract."
+        "reason": "List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version."
       }
     ],
     "mid": [
       {
         "field": "unknown_field_policy",
         "op": "nonempty",
-        "reason": "unknown field policy must name the concrete repository contract."
+        "reason": "Declare how readers treat unknown fields, such as ignore or reject. Undefined handling breaks forward compatibility, so state the rule."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "remove_required_fields",
         "op": "equals",
         "value": false,
-        "reason": "remove required fields must be false."
+        "reason": "Set removal of required fields to false. Removing a required field breaks existing readers, so use a distinct versioned transition instead."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "compatible_readers",
         "op": "nonempty",
-        "reason": "compatible readers must name the concrete repository contract."
+        "reason": "List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "compatible_readers",
         "op": "nonempty",
-        "reason": "compatible readers must name the concrete repository contract."
+        "reason": "List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "compatible_readers",
         "op": "nonempty",
-        "reason": "compatible readers must name the concrete repository contract."
+        "reason": "List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "compatible_readers",
         "op": "nonempty",
-        "reason": "compatible readers must name the concrete repository contract."
+        "reason": "List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version."
       }
     }
   }

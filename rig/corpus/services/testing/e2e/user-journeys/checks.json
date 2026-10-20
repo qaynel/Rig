@@ -3,21 +3,21 @@
   "service_id": "testing.e2e.user-journeys",
   "input": "rig-services/testing.e2e.user-journeys.json",
   "format": "json",
-  "ceiling": "user journeys configuration validation only; declared policy does not prove running user journeys behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms journeys, observable outcomes and the page-load-only flag are declared; it does not execute a journey.",
   "offer": "Follow the user through the complete outcome, including persistence or resulting state. A page-loading check cannot prove that the requested journey succeeded.",
   "checks": {
     "minimal": [
       {
         "field": "journeys",
         "op": "nonempty",
-        "reason": "journeys must name the concrete repository contract."
+        "reason": "Name the user journeys covered end to end. Untracked journeys are untested, so list each one."
       }
     ],
     "mid": [
       {
         "field": "observable_outcomes",
         "op": "nonempty",
-        "reason": "observable outcomes must name the concrete repository contract."
+        "reason": "State the observable outcome that ends each journey, such as a stored record. Without it success is assumed, so write what must be true afterwards."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "assert_only_page_loaded",
         "op": "equals",
         "value": false,
-        "reason": "assert only page loaded must be false."
+        "reason": "Set asserting only that the page loaded to false. A loading page does not prove the requested outcome happened, so assert the resulting state."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "journeys",
         "op": "nonempty",
-        "reason": "journeys must name the concrete repository contract."
+        "reason": "Name the user journeys covered end to end. Untracked journeys are untested, so list each one."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "journeys",
         "op": "nonempty",
-        "reason": "journeys must name the concrete repository contract."
+        "reason": "Name the user journeys covered end to end. Untracked journeys are untested, so list each one."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "journeys",
         "op": "nonempty",
-        "reason": "journeys must name the concrete repository contract."
+        "reason": "Name the user journeys covered end to end. Untracked journeys are untested, so list each one."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "journeys",
         "op": "nonempty",
-        "reason": "journeys must name the concrete repository contract."
+        "reason": "Name the user journeys covered end to end. Untracked journeys are untested, so list each one."
       }
     }
   }

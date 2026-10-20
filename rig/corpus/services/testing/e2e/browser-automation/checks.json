@@ -3,21 +3,21 @@
   "service_id": "testing.e2e.browser-automation",
   "input": "rig-services/testing.e2e.browser-automation.json",
   "format": "json",
-  "ceiling": "browser automation configuration validation only; declared policy does not prove running browser automation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms browser targets, interaction steps and the fixed-sleep flag are declared; it does not drive a browser.",
   "offer": "Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.",
   "checks": {
     "minimal": [
       {
         "field": "browser_targets",
         "op": "nonempty",
-        "reason": "browser targets must name the concrete repository contract."
+        "reason": "List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version."
       }
     ],
     "mid": [
       {
         "field": "interaction_steps",
         "op": "nonempty",
-        "reason": "interaction steps must name the concrete repository contract."
+        "reason": "Write the interaction steps as observable actions. Vague steps cannot be replayed, so list each click, input and expected state."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "fixed_sleeps",
         "op": "equals",
         "value": false,
-        "reason": "fixed sleeps must be false."
+        "reason": "Set fixed sleeps to false. A sleep hides synchronization defects and flakes on slower machines, so wait on an observable state."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "browser_targets",
         "op": "nonempty",
-        "reason": "browser targets must name the concrete repository contract."
+        "reason": "List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "browser_targets",
         "op": "nonempty",
-        "reason": "browser targets must name the concrete repository contract."
+        "reason": "List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "browser_targets",
         "op": "nonempty",
-        "reason": "browser targets must name the concrete repository contract."
+        "reason": "List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "browser_targets",
         "op": "nonempty",
-        "reason": "browser targets must name the concrete repository contract."
+        "reason": "List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version."
       }
     }
   }

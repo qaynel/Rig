@@ -1,17 +1,13 @@
-# dead test pruning
+# dead-test-pruning
 
 Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.
 
-Owned scope: `maintenance.dead-test-pruning`.
+Owned scope: `maintenance.dead-test-pruning`. Input: `rig-services/testing.maintenance.dead-test-pruning.json`.
 
-Offer: Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.
+Coverage ceiling: Configuration validation only, so it confirms obsolete cases, replacement evidence and the delete-live-regression flag are declared; it does not run the suite.
 
-Input: `rig-services/testing.maintenance.dead-test-pruning.json`. Detection records the path even when its contents are malformed.
+minimal: obsolete cases — ["removed legacy endpoint"]. List the tests judged obsolete. Without names nothing is reviewable, so identify each case.
 
-Coverage ceiling: dead test pruning configuration validation only; declared policy does not prove running dead test pruning behavior. Select an approved repository-owned command to verify that behavior.
+mid: replacement evidence — ["new endpoint contract passes"]. Record the evidence that equivalent protection remains. Age alone does not make a regression dead, so cite the replacement.
 
-minimal: obsolete cases — ["removed legacy endpoint"].
-
-mid: replacement evidence — ["new endpoint contract passes"].
-
-maximal: delete live regressions — false.
+maximal: delete live regressions — false. Set deleting live regressions to false. Removing a test that still guards behavior reopens a defect, so keep it.

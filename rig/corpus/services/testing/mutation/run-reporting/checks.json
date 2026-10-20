@@ -3,21 +3,21 @@
   "service_id": "testing.mutation.run-reporting",
   "input": "rig-services/testing.mutation.run-reporting.json",
   "format": "json",
-  "ceiling": "run reporting configuration validation only; declared policy does not prove running run reporting behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms reported outcomes, the input revision and the raw-secret flag are declared; it does not produce a report.",
   "offer": "Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.",
   "checks": {
     "minimal": [
       {
         "field": "reported_outcomes",
         "op": "nonempty",
-        "reason": "reported outcomes must name the concrete repository contract."
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
       }
     ],
     "mid": [
       {
         "field": "input_revision",
         "op": "nonempty",
-        "reason": "input revision must name the concrete repository contract."
+        "reason": "Record the exact input revision of the run. A report without a revision cannot be tied to code, so name the commit."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "publish_raw_secrets",
         "op": "equals",
         "value": false,
-        "reason": "publish raw secrets must be false."
+        "reason": "Set publishing raw secrets to false. Reports leave the producing environment, so redact sensitive input first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "reported_outcomes",
         "op": "nonempty",
-        "reason": "reported outcomes must name the concrete repository contract."
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "reported_outcomes",
         "op": "nonempty",
-        "reason": "reported outcomes must name the concrete repository contract."
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "reported_outcomes",
         "op": "nonempty",
-        "reason": "reported outcomes must name the concrete repository contract."
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "reported_outcomes",
         "op": "nonempty",
-        "reason": "reported outcomes must name the concrete repository contract."
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
       }
     }
   }

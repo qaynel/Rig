@@ -3,21 +3,21 @@
   "service_id": "product-security.red-team.abuse-resistance",
   "input": "rig-services/product-security.red-team.abuse-resistance.json",
   "format": "json",
-  "ceiling": "abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms abuse cases, a rate-limit policy and the unbounded-requests flag are declared; it does not test any live limit.",
   "offer": "Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.",
   "checks": {
     "minimal": [
       {
         "field": "abuse_cases",
         "op": "nonempty",
-        "reason": "abuse cases must name the concrete repository contract."
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
       }
     ],
     "mid": [
       {
         "field": "rate_limit_policy",
         "op": "nonempty",
-        "reason": "rate limit policy must name the concrete repository contract."
+        "reason": "Declare the rate-limit policy at the public boundary. An undeclared limit means unbounded use, so state the thresholds."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "unbounded_public_requests",
         "op": "equals",
         "value": false,
-        "reason": "unbounded public requests must be false."
+        "reason": "Set unbounded public requests to false. A public endpoint with no bound invites abuse, so enforce a limit."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "abuse_cases",
         "op": "nonempty",
-        "reason": "abuse cases must name the concrete repository contract."
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "abuse_cases",
         "op": "nonempty",
-        "reason": "abuse cases must name the concrete repository contract."
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "abuse_cases",
         "op": "nonempty",
-        "reason": "abuse cases must name the concrete repository contract."
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "abuse_cases",
         "op": "nonempty",
-        "reason": "abuse cases must name the concrete repository contract."
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
       }
     }
   }

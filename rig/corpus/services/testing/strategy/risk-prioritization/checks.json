@@ -3,21 +3,21 @@
   "service_id": "testing.strategy.risk-prioritization",
   "input": "rig-services/testing.strategy.risk-prioritization.json",
   "format": "json",
-  "ceiling": "risk prioritization configuration validation only; declared policy does not prove running risk prioritization behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms high-risk behaviors, impact scores and the easy-cases-only flag are declared; it does not rank anything.",
   "offer": "Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.",
   "checks": {
     "minimal": [
       {
         "field": "high_risk_behaviors",
         "op": "nonempty",
-        "reason": "high risk behaviors must name the concrete repository contract."
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
       }
     ],
     "mid": [
       {
         "field": "impact_scores",
         "op": "nonempty",
-        "reason": "impact scores must name the concrete repository contract."
+        "reason": "Give an impact score per behavior. Unscored risks cannot be ordered, so assign a value to each."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "prioritize_only_easy_cases",
         "op": "equals",
         "value": false,
-        "reason": "prioritize only easy cases must be false."
+        "reason": "Set prioritizing only easy cases to false. Happy-path tests should not displace costly failure modes, so cover risk first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "high_risk_behaviors",
         "op": "nonempty",
-        "reason": "high risk behaviors must name the concrete repository contract."
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "high_risk_behaviors",
         "op": "nonempty",
-        "reason": "high risk behaviors must name the concrete repository contract."
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "high_risk_behaviors",
         "op": "nonempty",
-        "reason": "high risk behaviors must name the concrete repository contract."
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "high_risk_behaviors",
         "op": "nonempty",
-        "reason": "high risk behaviors must name the concrete repository contract."
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
       }
     }
   }

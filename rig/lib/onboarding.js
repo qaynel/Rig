@@ -9,7 +9,7 @@ const {
   canonical: canonicalJson, readMigrations, sha256, skillsDigest, validateSkillCatalog,
 } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
-const { verifySshsig } = require('./policy');
+const { TRUST_ROOT_REL, verifyTrustRootApproval } = require('./trust-root');
 const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
@@ -28,7 +28,6 @@ const {
 const ACTIONS = new Set(['prepare', 'propose', 'apply', 'check']);
 const CATALOG_REL = '.rig/catalog.json';
 const PLAYBOOK_REL = '.rig/skills/onboarding/SKILL.md';
-const ALLOWED_SIGNERS_REL = '.rig/allowed-signers';
 const APPROVAL_NAMESPACE = 'rig-plan-approval';
 
 // The signed message binds the namespace and the exact proposal digest, so a
@@ -150,9 +149,9 @@ function currentDigest(target, rel) {
 // A receipt is only evidence of user presence if something outside the caller
 // can be re-checked. `verified: true` was a caller-controlled Boolean: anyone
 // who could hand `apply` a JSON object could assert it. The trust envelope now
-// carries a signature that this process re-verifies against a repository-owned
-// allowed-signers file, so approval means "a listed human key signed exactly
-// this proposal digest under the plan-approval namespace" and nothing weaker.
+// carries a signature that this process re-verifies against the Gate 1 trust
+// root, so approval means "the Gate 1 key signed exactly this proposal digest
+// under the plan-approval namespace" and nothing weaker.
 function approvalRecord(receipt, proposalDigest, target) {
   if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)
     || receipt.schema_version !== 1 || receipt.kind !== 'plan-approval'
@@ -168,12 +167,7 @@ function approvalRecord(receipt, proposalDigest, target) {
     // the real gap rather than reading as a schema typo.
     fail('host-native approval has no configured verifier for plan approval; use external-sshsig');
   }
-  const allowedSigners = containedPath(target, ALLOWED_SIGNERS_REL);
-  if (!fs.existsSync(allowedSigners)) {
-    fail(`approval verifier not configured: ${ALLOWED_SIGNERS_REL} is missing`);
-  }
-  const verified = verifySshsig({
-    allowedSigners,
+  const verified = verifyTrustRootApproval(target, {
     identity: receipt.approval.identity,
     namespace: APPROVAL_NAMESPACE,
     message: approvalMessage(proposalDigest),
@@ -1216,5 +1210,5 @@ function handleOnboarding(request) {
 }
 
 module.exports = {
-  migrateState, ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
+  migrateState, TRUST_ROOT_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
 };

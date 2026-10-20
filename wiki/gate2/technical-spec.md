@@ -51,13 +51,16 @@ Source-repository artifacts, sitting beside Gate 1:
 | `wiki/gate1/gate1.sig` | Detached SSHSIG signature over the message above. |
 | `wiki/gate1/gate1.allowed-signers` | Public verification identities for the intent owner. Public key material only, each entry carrying `namespaces="rig-gate1"`, plus a comment line per identity recording the key class the intent owner attests it to be (D19). Its presence arms the check (D17). |
 
-Do not confuse these with `.rig/policy/allowed-signers` in §3.2: that is a
-**target-repository** artifact governing policy activation in a user's repo.
-Same SSHSIG primitive, different presence floors: `.rig/policy/allowed-signers`
-uses §8.4's declared-and-disclosed policy-activation floor, while
-`gate1.allowed-signers` uses the stricter D10/D19 Gate 1 floor requiring a
-signer no agent can operate without a live human act. Separate trust stores with
-separate lifecycles. Neither can authorize the other.
+There is one trust root (D29). The installer ships a byte copy of
+`gate1.allowed-signers` into every target repository as
+`.rig/trust/gate1.allowed-signers`, and plan approvals, lint-format plan and
+setup approvals, and policy activation all verify against that file through
+`rig/lib/trust-root.js`. It must hold exactly one key; an approval whose
+identity is not that key's principal is refused. No other signer list, trust
+record, registration, or recovery path exists. A copy planted elsewhere in a
+repository changes nothing; the installed copy is a managed file, so editing it
+is drift. A fixture test that needs a different key replaces the file inside a
+disposable repository and restores the shipped bytes before uninstall.
 
 **The signers file is the trust root, and it sits inside what it protects.** A
 context that can write the repository can replace `gate1.allowed-signers` with a
@@ -189,25 +192,11 @@ degraded to an ordinary confirmation, or treated as successful. Rig specifies
 the signer interface and verifies signatures; it ships no signing binary and
 stores no key material.
 
-**Lost policy-signer recovery is pre-registered and terminal (D20).** A lost or
-compromised policy-activation signer can be replaced only by a recovery
-credential that was registered while the old trust state still had a valid
-credential. Recovery credentials are distinct SSHSIG security-key (`sk-*`)
-identities of a **declared** class, verified under their own namespace, and
-their private material stays outside the repository, Rig state, and unattended
-agent reach. As with the everyday policy signer (D19), Rig verifies the
-signature and the listing but cannot prove from the artifact that a hardware
-authenticator was involved; it records the declared `sk-*` class and discloses
-it, and the user attests that the key meets the live-human-act floor. What makes
-this hold rather than the label is the registration ceremony (§8.4): each
-recovery key is generated through a user-verification authenticator act, so an
-agent cannot register a key it could later operate unattended. Rig offers three
-recovery credentials at first signer setup and offers to add more on later
-signer setup while a valid credential remains. If the everyday signer and
-every registered recovery credential are gone, recovery is permanently refused
-for that policy trust state. Invalidating pending edits, burning one-use
-approvals, and resetting evidence epochs happen only after an authorized
-recovery receipt is written; an agent request cannot trigger them by itself.
+**One trust root; no signer recovery (D29, replaces D20).** The key that signs
+the Gate 1 lock is the only signing key Rig verifies. Rig has no policy-signer
+setup, recovery registration, rotation, recovery ceremony, trust-on-first-use
+fallback, or `trust.json`. Losing the Gate 1 key is a deliberate dead end that
+no agent or flow routes around.
 
 Agents may draft policy revisions only when the user asks for that exact draft
 or when a user-approved delegated policy-edit mode is active. Delegation is
@@ -297,7 +286,7 @@ These are implementation constraints, not suggestions:
 | AD-27 | Ship a committed root install stub that fetches a released version tag from GitHub by name, defaulting to the latest release with an override for a specific one. Do not embed a build fingerprint. Download to a file and execute it; never pipe the network into a shell. Current 6.0.0 delivery projects the central corpus and nine mandatory native entry skills; optional third-party content is fetched only after approved onboarding. Delete the inherited npm publish workflow; keep the package `private`. |
 | AD-28 | Verify the complete oracle by signature, not repository process: recompute both Gate 1 digests and `testing-infrastructure.manifest`, verify the v2 namespaced SSHSIG message, then verify every sorted path/digest entry before product tests. Verify the signature, not the key class; the owner attests that separately. Run this verifier first in `npm test`, short-circuiting code tests, and provide `npm run test:code`. An unarmed checkout reports `Gate 1 unprotected` and continues; once `gate1.allowed-signers` exists, every missing/malformed/stale signature fails closed. |
 | AD-29 | Produce every review receipt through a wrapper that starts a fresh reviewer session, invokes it non-interactively, and itself writes the digest it computed over the reviewed bytes and the timestamp. The reviewing agent supplies findings only and never authors those binding fields. |
-| AD-30 | Recover a lost or compromised policy-activation signer only through a pre-registered recovery identity in `.rig/policy/recovery.allowed-signers`, verified as an SSHSIG security-key signature under namespace `rig-policy-recovery`. Registration requires an already-valid credential, records a registration receipt in `.rig/policy/trust.json`, and rejects a recovery key whose fingerprint matches an everyday signer. First signer setup offers three recovery identities; later signer setup offers to add more while any valid credential remains. Exhausting the everyday signer and every registered recovery identity is terminal for that policy trust state. Recovery side effects are applied only after a valid recovery receipt is committed. *(Amended v0.6/v0.11:* the `sk-*` class is **declared and disclosed**, not certified from the signature (D19); the registration user-verification ceremony — not the label — is what stops an agent holding a valid credential from registering a key it could later operate unattended, and a platform that cannot request user verification refuses registration with `user_verification_unavailable`.)* |
+| AD-30 | **One trust root (D29).** Verify every approval — plan approvals, lint-format plan and setup approvals, policy activation — against the Gate 1 key shipped as `.rig/trust/gate1.allowed-signers` (`rig/lib/trust-root.js`), restricting the namespace per use. Exactly one key; the approval identity must be its principal. Delete the separate policy-signer setup, recovery registration, recovery, trust-on-first-use fallback, `trust.json`, `.rig/policy/allowed-signers`, `recovery.allowed-signers`, and the repository-local `.rig/allowed-signers`. |
 | AD-31 | **Author the D24 MVP broadly at Policy grade.** All 115 leaves are authored in one pass and all are release-blocking. Each fragment declares Policy and untailored baseline status; missing bindings remain coverage gaps. Sequential one-leaf authorship is suspended for this release and returns for post-beta Context/Evidence promotion. Lint-format alone retains its existing higher-grade vertical evidence. |
 | AD-32 | **Map Policy → Context → Evidence onto the cumulative `minimal/mid/maximal` dial** (§5.7). `minimal = Policy`, `mid = Context`, `maximal = Evidence`; the ladder inherits AD-4 cumulative composition and AT-SHAPE-3 grade-invariant identity unchanged. Commodity syntax/format/type/static output are inputs, not grades. The selected grade is the target and the ceiling: evaluate cheapest-deterministic-first; a lower-grade *failure* may short-circuit, but a clean lower-grade result continues through to the selected grade (Context runs every Policy check plus its understanding pass; Evidence runs every Context check plus its local verifiable-evidence work). Never exceed the grade, and never report assurance above the highest grade actually completed. Policy is the ceiling only when Policy itself is selected. §11.3's additive CI graft is the Evidence grade's repository enforcement surface, proposed and approved separately; CI absence cannot make the per-run Evidence verdict logically unreachable. The disposition is `executable` (AD-15). Universal method, but authored and proven only for lint-format now (GA-23). |
 | AD-33 | **Lint-format's unit of work is a repository component** (§5.8): whole-repository, open-ecosystem discovery derived from the repository (no fixed roster), semantic command binding by role with ambiguity returned to the user, hybrid-plus preservation of existing toolchains by default, user-approved partial-coverage exclusion of uncoverable components, and a per-component evidence-backed support claim whose whole-repository form is the AND over discovered non-excluded components. |
@@ -373,13 +362,10 @@ These are implementation constraints, not suggestions:
   unattributed first entry can never be safely removed.
 - A prune subsystem for orphaned user-global entries: `AT-HOME-2` does not ask
   for it.
-- A `trust.json` bootstrap, reset, or start-fresh command that can replace the
-  policy signer without a pre-registered recovery signature: this makes the
-  reset command the real root of trust.
-- An infinite recovery chain where a weaker fallback recovers the recovery
-  mechanism: the system is only as strong as that weakest fallback.
-- Reusing the everyday policy signer as its own recovery credential: circular
-  recovery does not survive the loss it claims to handle.
+- Any second signer mechanism — a `trust.json` bootstrap, policy-signer setup,
+  recovery registration or recovery, trust-on-first-use, or a repository-local
+  allowed-signers list: the owner locked one trust root (D29), so an extra
+  signer is an extra way to approve.
 - Parallel or template-driven catalogue authoring: the failure this project is
   recovering from was 432 placeholder files produced at volume. Leaves are
   authored one at a time.
@@ -521,10 +507,9 @@ rig.json                              # user-owned committed selection
   service-activation.json             # Rig-owned activation/evidence epochs
   global-writes.json                  # Rig-owned ledger of out-of-repo writes
   policy/
-    trust.json                        # public signed trust-state and recovery receipts
     active.json                       # exact active bytes + activation receipt
-    allowed-signers                   # public verification identities
-    recovery.allowed-signers          # public pre-registered recovery identities
+  trust/
+    gate1.allowed-signers             # the one trust root: the Gate 1 public key
   baseline/
     drift-rule.md
     sanitation-review.json
@@ -551,11 +536,9 @@ Clone-local one-use approvals live below the path returned by
 `git rev-parse --git-path rig`, never an assumed `.git` directory, and are
 never committed, copied into install receipts, or uploaded as CI artifacts.
 Private signer material lives outside the target repository in the
-user-controlled host/OS approval facility. Recovery credential material also
-lives outside the repository and Rig state, and must require a live human act
-before it can sign. The committed public trust record lets clean CI checkouts
-verify the active bundle and registered recovery identities, but changing or
-deleting it cannot bootstrap a new signer.
+user-controlled host/OS approval facility. The installed public trust root lets
+clean CI checkouts verify approvals; changing or deleting it is drift, not a way
+to name another signer.
 
 The same clone-local directory holds the §7.6 preimage store — the bytes of
 each touched path as it stood immediately before Rig first modified it. It is
@@ -1350,6 +1333,19 @@ For user-global surfaces, a JSON or TOML namespaced additive merge records
 `global_append` (§7.4), so a record names its write shape rather than hiding
 it behind one code.
 
+**Legacy JSON manifest (compatibility reader, not a second authority).**
+Installs made before the journal wrote a single `.rig/install-manifest.json`
+object (`{ "records": [...] }`). That file is supported input, not a stale
+representation: `readManifest` reads it only when no `.jsonl` journal exists,
+returns the same record shape, and never writes it; every new mutation appends
+to the `.jsonl` journal, and a successful uninstall deletes both files. Records
+read this way pass the same containment and ownership checks as journal
+records, so a legacy file cannot reach outside the repository. The legacy
+fixture in `AT-UNINSTALL-1` and the ancestor-symlink case in
+`tests/release-blockers.test.js` exercise this bounded reader; the journal
+itself is exercised through the public uninstall by `AT-UNINSTALL-2`
+(missing marker, outside edit, retained preimage).
+
 **Records are written before the mutation, not after.** A record lands as
 `state: "pending"`; the mutation is then applied; a second record with the
 same `seq` and `state: "applied"` supersedes it and carries the post-write
@@ -1634,8 +1630,8 @@ Enforcement reads only a fully valid active bundle. Editing the candidate
 changes no permission until activation succeeds; the previous valid bundle
 remains active and status reports `pending_activation`. Any formatting or
 byte change requires a new approval. The committed bundle and public signed
-`.rig/policy/trust.json` let CI verify the same revision without a private
-key.
+receipt let CI verify the same revision against the Gate 1 public key without
+a private key.
 
 Before the first user revision, the immutable shipped policy above is the
 safe active default. It enables every leaf and denies every protected
@@ -1647,7 +1643,7 @@ mandatory language: delegated edit mode, prior approvals, chat phrasing,
 tool access, urgency, or broad instructions such as "fix the policy" are
 not consent to activate a policy.
 
-### 8.4 User-presence approval, signer setup, and recovery
+### 8.4 User-presence approval and the one trust root
 
 Two approval methods produce the same receipt:
 
@@ -1658,7 +1654,8 @@ Two approval methods produce the same receipt:
 2. **External user-presence signature, fallback.** A signer outside the
    target repository signs the versioned activation message. Rig specifies
    the interface as SSHSIG and verifies it with `ssh-keygen -Y verify`
-   against `.rig/policy/allowed-signers` under a domain-separating namespace.
+   against the Gate 1 trust root (`.rig/trust/gate1.allowed-signers`) under a
+   domain-separating namespace.
    Rig never invokes a signing binary and never stores private material.
 
 **When neither is available, activation is refused and reported unavailable.**
@@ -1702,84 +1699,13 @@ digest, a fresh nonce, and any native expiry. After user presence and before
 commit, activation re-reads and revalidates the candidate, acquires an
 exclusive lock, and compare-and-swaps the previous sequence/receipt.
 
-Policy signer setup writes only public verification material into the
-repository. The ordinary signer list is `.rig/policy/allowed-signers`;
-pre-registered recovery identities live separately in
-`.rig/policy/recovery.allowed-signers`. Both files use SSHSIG allowed-signers
-format with namespace restrictions:
-
-- `rig-policy-activation` for ordinary policy activation and one-use
-  approvals;
-- `rig-policy-recovery` for recovery credentials.
-
-First signer setup establishes the ordinary policy signer through the same
-user-presence approval flow as activation. Later signer setup rotates the
-ordinary signer only after a valid ordinary activation signature or a valid
-recovery signature authorizes the new public signer set. Once an ordinary
-credential is valid, first signer setup offers to create **three** recovery
-identities. On every later signer setup while a valid credential still exists,
-Rig offers to add more. The generation flow is:
-
-1. the user chooses an output path outside the target repository, outside the
-   clone-local Rig directory, and outside any path Rig will copy into reports
-   or CI artifacts;
-2. Rig invokes the platform OpenSSH `ssh-keygen` security-key flow for a
-   `sk-*` key with user verification required. If the platform cannot request
-   user verification, registration refuses with
-   `user_verification_unavailable`; it never falls back to a weaker key;
-3. the user performs the authenticator touch/PIN/biometric act for each key;
-4. Rig records only the public key, its fingerprint, the declared class, and a
-   registration receipt signed by the currently valid ordinary or recovery
-   credential.
-
-The recovery identity must be cryptographically distinct from every ordinary
-policy signer: matching public-key fingerprints are rejected. A recovery entry
-is valid only if its registration receipt is already part of the current
-`.rig/policy/trust.json` chain before the ordinary signer is reported lost or
-compromised. A fresh key generated after that point cannot be accepted as a
-recovery credential for the old trust state.
-
-**Registration cannot be turned into self-appointment (D19, `AT-PRESENCE-2`).**
-The dangerous case is an agent that *does* hold a valid credential — mid-session,
-after a legitimate approval — and tries to register a key it controls as a
-recovery credential, so it can later "recover" unattended. Two properties defeat
-it without Rig verifying hardware it cannot verify. First, registration runs the
-same generation ceremony as any recovery key: the authenticator user-verification
-act in step 3 is required to produce the key, so the credential an agent can
-register is, by the same act, one it cannot operate silently later. Second, the
-class Rig records is *declared*, and `policy status` discloses it, so a recovery
-credential registered under a weaker declared class is visible to the user rather
-than passing as hardware-backed. Rig verifies the registration receipt chain and
-the fingerprint distinctness; it does not, and per D19 cannot, certify the key's
-class from the signature. The residual — an owner who registers a weak recovery
-key while recording a strong class — is the same declared-class risk §9 already
-records for the policy signer, applied to this domain, not a new hole.
-
-Recovery verifies a versioned challenge containing repository identity, current
-trust-state digest, the lost/compromised signer fingerprint, the replacement
-ordinary signer set digest, a monotonic recovery sequence, previous recovery
-receipt digest, and a fresh nonce. Rig verifies the SSHSIG signature against the
-pre-registered recovery identity under `rig-policy-recovery`; it never invokes a
-signing binary and never stores recovery private material.
-
-After that verification, and only after the recovery receipt has been fsynced
-and atomically committed, Rig applies recovery consequences:
-
-- pending candidate policy bytes are preserved but marked stale, so they cannot
-  be activated without a fresh exact-byte approval under the new trust state;
-- clone-local one-use approvals from the prior trust epoch are deleted;
-- evidence generations for enabled controls are incremented, making prior
-  current-epoch evidence stale;
-- `policy status` discloses the recovery sequence, replacement signer
-  fingerprint, recovery credential fingerprint, and the recovery consequences.
-
-If the ordinary policy signer and every pre-registered recovery identity are
-unavailable, recovery is refused permanently for that policy trust state with
-reason `recovery_credentials_exhausted`. There is no `--force`, no reset command
-that claims continuity with the old trust state, and no fallback to an ordinary
-confirmation prompt. A user may still start an unrelated new repository trust
-state by deleting Rig's policy artifacts by hand, but Rig must report that as a
-new untrusted initialization, not recovery of the old state.
+There is no policy-signer setup, rotation, recovery registration, or recovery
+(D29). The only namespace Rig verifies for policy activation is
+`rig-policy-activation`, against the Gate 1 key. Every `policy status` output
+names the receipt signer's declared class. If the Gate 1 key is lost, Rig
+offers no recovery path and invents no fallback: a user may start an unrelated
+new repository trust state by hand, and Rig reports that as a new untrusted
+initialization.
 
 ### 8.5 One-use approvals
 
@@ -2056,6 +1982,8 @@ repository's secrets, and the log is the easier of the two to read. The
 
 ### 9.4 Plan-bound read-only execution, autofix, and drift (lint-format)
 
+*Private API traceability (`AT-LF-8`).* The acceptance text states only the observable rule — review evidence binds to the target, the changes, and the commands, and a contradictory or mismatched review is a coverage gap. Its implementation seam is `createGradeReviewRequest({ target, changed, commands })` in `rig/lib/lint-grade.js`; callers outside the module do not depend on that signature.
+
 Lint-format runs the repository's own discovered commands, which is running the
 repository's own untrusted code. This subsection is how that stays bounded.
 
@@ -2118,14 +2046,20 @@ does **not** continue. An auto-restore, a continuation, or a pass fails
 
 **Autofix (`AT-LF-12`, GA-29).** Autofix is a distinct mutating action, never
 folded into or triggered by a read-only check. It runs only when the user
-explicitly invokes a fix command under its **own** separate verified approval,
-distinct from the read-only check approval. Rig offers both format fixes and
-safe lint fixes, applies them, re-verifies by re-running the read-only check,
-and leaves the result as uncommitted working-tree edits the user owns — never
-committed, never claimed as Rig's source. Binding that approval token to the
-exact fix argv remains an acknowledged hardening gap outside the frozen
-`AT-LF-12` contract. Autofix folded into the check, auto-committed, or run
-without its own approval fails `AT-LF-12`.
+explicitly invokes a fix command under its **own** separate approval. That
+approval is a real SSHSIG plan approval (§6.6), verified against the Gate 1
+key alone (AD-30) — a Boolean such as `{verified:true}` is refused. The plan
+(`planAutofix`) binds the exact fix argv, the verify argv, the network grant,
+the limits and the target, so a signature for one fix cannot authorise another;
+the approval is single use, and a replay is refused. The verify command is
+required and checked **before** any mutation. Rig applies the fix, then runs the
+verify command for real and reports its actual result (`pass` or `fail`); a halt
+(timeout, memory ceiling, no network isolation) reports `not_run` with its
+status, never `skipped` or a pass. The result is left as uncommitted
+working-tree edits the user owns — never committed, never claimed as Rig's
+source. Autofix folded into the check, auto-committed, run without its own
+signed approval, or reported as verified without running the check fails
+`AT-LF-12`.
 
 **Command drift (`AT-LF-14`, GA-31).** Each approved binding carries the digest
 of the exact command text and target it was approved against — the §8.5
@@ -2163,7 +2097,7 @@ fails `AT-LF-15`.
 | Candidate policy | Bounded exact bytes; strict duplicate/unknown-key/schema rejection; never used for enforcement until approved. |
 | Active policy | Exact snapshot digest, repository/sequence-bound verified attestation or signature, atomic receipt last; fail closed on missing/stale/replay. |
 | User-presence trust | Verified host attestation or external signer outside the repo; repo flags, TTY text, and unattended keys are insufficient. |
-| Policy signer recovery | Pre-registered `sk-*` SSHSIG recovery identity under `rig-policy-recovery`; registration must predate loss and be signed by an already-valid credential. No ordinary prompt, same-key recovery, unregistered fresh key, or reset fallback can replace the signer. Recovery side effects occur only after the receipt commits. |
+| Policy signer recovery | Retired (D29). One trust root: the Gate 1 key. There is no signer setup, rotation, recovery registration, recovery, or trust-on-first-use. |
 | One-use approval | Clone-local, complete action binding, exclusive atomic consumption before dispatch, no retarget/replay/share. |
 | Host action event | Axis-specific schema validation and normalization; malformed/unknown event is a gap/deny per the contract, never implicit allow. |
 | Source fragments | Catalogue allowlist only; verify source catalogue digest before use. |
@@ -2557,7 +2491,7 @@ results rather than trusting an aggregate exit code.
 | AT-CI-4 | Unknown/malformed/collision config is byte-preserved/nonzero; every integrated or bootstrapped provider is proven by its byte-landing test on a fresh repo fixture. | `tests/advanced-oracle.test.js` title `AT-CI-4 unknown CI remains byte-identical and unverified until first run`: Reject fabricated/stale/local-only receipts; validate captured byte-landing fixtures for every emitted provider integration. |
 | AT-CLAIM-1 | AD-13/§6 discovers unambiguous host markers, activates exactly detected or explicit hosts, and routes all 19 hosts/six providers through one adapter contract. Absent hosts receive no tree. | `tests/advanced-oracle.test.js` title `AT-CLAIM-1 detected hosts only, whole roster reachable`: exercise every marker, mixed and bare repositories, ambiguous `AGENTS.md`, explicit absent-host opt-in, all roster entries, and exact per-axis byte landing. |
 | AT-PRESENCE-1 | §8.4 three terminal states: host-native, external SSHSIG, or refusal reported unavailable. Declared-and-disclosed signer class, no downgrade ceremony (D19); Rig verifies and never signs. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-1 activation refuses when no verified presence path exists`: Activate via each available path; then remove both facilities and assert refusal with reason `no_presence_facility`, prior bundle still active, and no success recorded. Assert activation is never degraded to an ordinary confirmation and never self-completes. Assert `policy status` names the declared signer class on every output for both a `sk-` and a plain entry. Assert no signing binary ships and no private key material is written. |
-| AT-PRESENCE-2 | §8.4/AD-30 recovery uses only pre-registered, distinct `sk-*` SSHSIG recovery identities under `rig-policy-recovery`; registration requires an already-valid credential and recovery exhaustion is terminal for the current policy trust state. The `sk-*` class is declared and disclosed, not certified from the signature (D19); the user-verification registration ceremony is the product ceremony, while automation proves only the enforceable preconditions and disclosures around it. Authorized recovery writes a disclosed receipt before invalidating pending candidates, burning one-use approvals, or resetting evidence generations. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-2 recovery is pre-registered distinct and terminal`: First signer setup offers exactly three recovery identities and later valid signer setup offers to add more. Accept a recovery signed by a pre-registered distinct recovery key and assert the receipt, replacement signer, stale pending candidate, deleted prior one-use approvals, incremented evidence generations, and disclosed status. Reject ordinary confirmation, same-key recovery, a fresh post-loss key, a recovery key under the activation namespace, a missing registration receipt, and exhausted registered credentials with reason `recovery_credentials_exhausted`; assert none of those rejected attempts changes candidate bytes, approvals, evidence generations, or signer state. Assert the registration path records a valid pre-loss registration receipt, rejects fingerprint reuse and namespace confusion, and that `policy status` discloses each recovery credential's declared class so a weak registration is visible rather than passing as hardware-backed. Do not assert a hardware touch in `node --test`; per D19 no signature artifact proves that class. |
+| AT-PRESENCE-2 | §8.4/AD-30 (D29): every approval verifies against the Gate 1 key shipped as `.rig/trust/gate1.allowed-signers` and no other; the separate policy-signer setup, recovery registration, recovery, trust-on-first-use, `trust.json` and repository-local signer lists do not exist. | `tests/advanced-oracle.test.js` title `AT-PRESENCE-2 one trust root: only the Gate 1 key approves and no other signer mechanism exists`: Assert the retired policy functions are absent. Install a trust root holding one test key, plant another key in `.rig/policy/allowed-signers`, `.rig/allowed-signers` and a `trust.json`, and assert an approval signed by that other key is refused (SSHSIG failure under the root's identity, identity mismatch under another) with no change to policy bytes; assert the root's key activates, and that no recovery receipt can exist. |
 | AT-HOME-1 | §7.4 append or namespaced additive merge only, with the install line naming any file written outside the repository; D25 makes OpenClaw an explicit flagged exception that is written only through its native CLI. | `tests/advanced-oracle.test.js` title `AT-HOME-1 OpenClaw MCP opt-in is explicit, installed, and reversible`: Use the released installer against a temporary HOME plus fake `openclaw`, `npm`, and download commands. Assert the default installation calls neither OpenClaw nor npm and leaves the global config byte-identical. Assert `--openclaw-mcp` warns before calling `openclaw mcp set`, installs and starts the target runtime, uses one `rig-<install-id>` key, and preserves an unrelated server. Reinstall is key-identical. Uninstall calls `openclaw mcp unset` and preserves the unrelated server. |
 | AT-HOME-2 | §7.4 attribution by clone-local install ID from the first install, with `.rig/global-writes.json` as the removal ledger. | `tests/advanced-oracle.test.js` title `AT-HOME-2 global entries are attributed per repository`: Install from repo A and repo B into one global file; uninstall A and assert only A's entries are gone, B's and all unattributed values survive byte-for-byte, and B still works. Reinstall A twice and assert idempotence. Assert the removal report names A and not B. Assert the *first* install's entries are attributed before any second repository exists. |
 | AT-DIST-1 | §12.4 root stub resolves and records a named tag and downloads before execution. The source catalogue retains 55 pinned upstream skill entries and notices, while install stages zero optional third-party trees and projects nine mandatory native entry skills; approved onboarding fetches only selected upstream content. | `tests/advanced-oracle.test.js` title `AT-DIST-1 stranger installs complete named-tag release`: assert the public stub shape, version format, 55 unique source catalogue entries and notices, and no npm publish workflow. Install staging and the nine mandatory skills are proved by the editable Path B install regressions. |
@@ -2707,7 +2641,7 @@ node --test tests/advanced-policy.test.js tests/advanced-config.test.js
 ### Slice 4 - User-presence and one-use approval lifecycle
 
 Implement verified host-native-first/external-signature fallback, common
-receipts, signer setup/rotation, pre-registered recovery, clone/worktree-local
+receipts (verified against the one Gate 1 trust root), clone/worktree-local
 approval storage, full action normalization, exclusive consumption,
 list/revoke, and native expiry handling. Repository/TTY self-authorization
 remains impossible.

@@ -2,4 +2,4 @@
 
 Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.
 
-Policy grade slice. This slice bounds test case generation to unit.test-case-generation. It uses `test-case-generation-slice-floor` and checks behavior_cases (nonempty): behavior cases must name the concrete repository contract.
+Policy grade slice `test-case-generation-slice-floor`: List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior.

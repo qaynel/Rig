@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { sha256, canonical } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
-const { verifySshsig } = require('./policy');
+const { verifyTrustRootApproval } = require('./trust-root');
 const CONTRACTS = {
   js: {tool:'biome', files:['biome.json','eslint.config.js','.prettierrc.json','.prettierignore','.eslintignore']},
   python: {tool:'ruff', files:['pyproject.toml']},
@@ -83,7 +83,7 @@ function applySetup(target, proposal, approval) {
   }
   if (rebuiltDigest !== digest && !records.some(r => r.setup_digest === digest)) throw new Error('stale setup proposal');
   if (!approval || typeof approval.identity !== 'string' || typeof approval.signature !== 'string') throw new Error('separate setup approval required');
-  verifySshsig({allowedSigners:containedPath(target,'.rig/allowed-signers'),identity:approval.identity,namespace:'rig-lint-format-setup',message:approvalMessage(digest),signature:approval.signature});
+  verifyTrustRootApproval(target,{identity:approval.identity,namespace:'rig-lint-format-setup',message:approvalMessage(digest),signature:approval.signature});
   const {journalWriter} = require('./payload');
   fileBytes(target,'.rig/install-manifest.jsonl');
   for (const row of body.writes) {

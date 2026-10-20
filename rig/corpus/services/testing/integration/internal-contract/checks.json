@@ -3,21 +3,21 @@
   "service_id": "testing.integration.internal-contract",
   "input": "rig-services/testing.integration.internal-contract.json",
   "format": "json",
-  "ceiling": "internal contract configuration validation only; declared policy does not prove running internal contract behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the producer schema, consumer versions and the breaking-change flag are declared; it does not compare live schemas.",
   "offer": "Verify producer and consumer compatibility against the same schema. Breaking a consumer contract needs a deliberate transition rather than updating only the producer fixture.",
   "checks": {
     "minimal": [
       {
         "field": "producer_schema",
         "op": "nonempty",
-        "reason": "producer schema must name the concrete repository contract."
+        "reason": "Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file."
       }
     ],
     "mid": [
       {
         "field": "consumer_versions",
         "op": "nonempty",
-        "reason": "consumer versions must name the concrete repository contract."
+        "reason": "List the consumer versions that must keep working. An empty list ignores existing callers, so name each version."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "allow_breaking_change",
         "op": "equals",
         "value": false,
-        "reason": "allow breaking change must be false."
+        "reason": "Set allowing breaking change to false. Breaking a consumer needs a deliberate transition, not a producer-only fixture update."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "producer_schema",
         "op": "nonempty",
-        "reason": "producer schema must name the concrete repository contract."
+        "reason": "Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "producer_schema",
         "op": "nonempty",
-        "reason": "producer schema must name the concrete repository contract."
+        "reason": "Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "producer_schema",
         "op": "nonempty",
-        "reason": "producer schema must name the concrete repository contract."
+        "reason": "Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "producer_schema",
         "op": "nonempty",
-        "reason": "producer schema must name the concrete repository contract."
+        "reason": "Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file."
       }
     }
   }

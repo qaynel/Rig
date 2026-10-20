@@ -1,11 +1,9 @@
 # infrastructure.storage.backup-restore — identity
 
-Policy grade: backup restore owns storage.backup-restore. Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
+Policy grade: backup-restore owns storage.backup-restore. Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
 
-Keep neighboring storage services outside the backup restore decision for storage.backup-restore. Read the configured input at `rig-services/infrastructure.storage.backup-restore.json`; malformed input is still attributed to that path.
+Input: `rig-services/infrastructure.storage.backup-restore.json`. Configuration validation only, so it confirms a backup schedule, a restore-test schedule and the untested-backup flag are declared; it does not show data is recoverable.
 
-Disposition: executable. Ground the decision in the limit: backup restore configuration validation only; declared policy does not prove running backup restore behavior. Choose a repository-owned check that observes backup restore from rig-services/infrastructure.storage.backup-restore.json.
-
+Disposition: executable.
 Acceptance target: policy:infrastructure.storage.backup-restore:minimal:backup-restore-source-code-boundary.
-
 Declared predicates: backup-restore-source-code-boundary: `backup_schedule` is nonempty (a string or array).

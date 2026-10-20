@@ -2,16 +2,12 @@
 
 Bind the type checker to the repository task and enumerate covered components. Do not make a clean result by suppressing type errors or silently excluding a package.
 
-Owned scope: `code-quality.typecheck`.
+Owned scope: `code-quality.typecheck`. Input: `rig-services/development.code-quality.typecheck.json`.
 
-Offer: Bind the type checker to the repository task and enumerate covered components. Do not make a clean result by suppressing type errors or silently excluding a package.
+Coverage ceiling: Configuration validation only, so it confirms the type-check command, covered components and suppression setting are declared; it does not show the code type-checks.
 
-Input: `rig-services/development.code-quality.typecheck.json`. Detection records the path even when its contents are malformed.
+minimal: typecheck command — ["npm","run","typecheck"]. Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task.
 
-Coverage ceiling: typecheck configuration validation only; declared policy does not prove running typecheck behavior. Select an approved repository-owned command to verify that behavior.
+mid: checked components — ["src"]. List the components the type checker covers. A silently excluded package hides type errors, so enumerate every covered component.
 
-minimal: typecheck command — ["npm","run","typecheck"].
-
-mid: checked components — ["src"].
-
-maximal: ignore type errors — false.
+maximal: ignore type errors — false. Set ignoring type errors to false. Suppressing errors manufactures a clean result, so fix the errors or record them as findings.

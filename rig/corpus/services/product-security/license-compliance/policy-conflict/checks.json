@@ -3,21 +3,21 @@
   "service_id": "product-security.license-compliance.policy-conflict",
   "input": "rig-services/product-security.license-compliance.policy-conflict.json",
   "format": "json",
-  "ceiling": "policy conflict configuration validation only; declared policy does not prove running policy conflict behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms allowed licenses, restricted licenses and the ignore-conflict flag are declared; it does not scan components.",
   "offer": "Evaluate component licenses against the explicit distribution policy. Conflicting or unknown licensing needs review rather than silently expanding the allow list.",
   "checks": {
     "minimal": [
       {
         "field": "allowed_licenses",
         "op": "nonempty",
-        "reason": "allowed licenses must name the concrete repository contract."
+        "reason": "List the licenses the distribution policy allows. With no list every license is unchecked, so name them."
       }
     ],
     "mid": [
       {
         "field": "restricted_licenses",
         "op": "nonempty",
-        "reason": "restricted licenses must name the concrete repository contract."
+        "reason": "List the restricted licenses. An unlisted restriction is silently allowed, so name each prohibited license."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "ignore_license_conflicts",
         "op": "equals",
         "value": false,
-        "reason": "ignore license conflicts must be false."
+        "reason": "Set ignoring license conflicts to false. Conflicting or unknown licenses need review instead of expanding the allow list silently."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "allowed_licenses",
         "op": "nonempty",
-        "reason": "allowed licenses must name the concrete repository contract."
+        "reason": "List the licenses the distribution policy allows. With no list every license is unchecked, so name them."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "allowed_licenses",
         "op": "nonempty",
-        "reason": "allowed licenses must name the concrete repository contract."
+        "reason": "List the licenses the distribution policy allows. With no list every license is unchecked, so name them."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "allowed_licenses",
         "op": "nonempty",
-        "reason": "allowed licenses must name the concrete repository contract."
+        "reason": "List the licenses the distribution policy allows. With no list every license is unchecked, so name them."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "allowed_licenses",
         "op": "nonempty",
-        "reason": "allowed licenses must name the concrete repository contract."
+        "reason": "List the licenses the distribution policy allows. With no list every license is unchecked, so name them."
       }
     }
   }

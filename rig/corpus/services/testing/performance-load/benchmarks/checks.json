@@ -3,14 +3,14 @@
   "service_id": "testing.performance-load.benchmarks",
   "input": "rig-services/testing.performance-load.benchmarks.json",
   "format": "json",
-  "ceiling": "benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a benchmark workload, sample count and the single-sample flag are declared; it does not run benchmarks.",
   "offer": "Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.",
   "checks": {
     "minimal": [
       {
         "field": "benchmark_workload",
         "op": "nonempty",
-        "reason": "benchmark workload must name the concrete repository contract."
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "samples",
         "op": "minimum",
         "value": 30,
-        "reason": "samples must meet the configured minimum of 30."
+        "reason": "Take at least 30 samples. Fewer cannot characterize variance, so declare the sample count."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "single_sample_conclusion",
         "op": "equals",
         "value": false,
-        "reason": "single sample conclusion must be false."
+        "reason": "Set concluding from a single sample to false. One timing cannot support a regression or optimization claim, so compare distributions."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "benchmark_workload",
         "op": "nonempty",
-        "reason": "benchmark workload must name the concrete repository contract."
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "benchmark_workload",
         "op": "nonempty",
-        "reason": "benchmark workload must name the concrete repository contract."
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "benchmark_workload",
         "op": "nonempty",
-        "reason": "benchmark workload must name the concrete repository contract."
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "benchmark_workload",
         "op": "nonempty",
-        "reason": "benchmark workload must name the concrete repository contract."
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
       }
     }
   }

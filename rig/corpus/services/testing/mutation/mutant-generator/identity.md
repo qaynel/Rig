@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.mutant-generator`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.mutant-generator.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms mutation operators, target paths and the mutate-tests flag are declared; it does not generate mutants.
 
 Policy checks: minimal requires `mutation_operators` = `["negate conditional"]`; mid adds `target_paths` = `["src/parser.js"]`; maximal requires `mutate_test_code` = `false`.

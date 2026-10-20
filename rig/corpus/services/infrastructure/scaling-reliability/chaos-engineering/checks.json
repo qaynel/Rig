@@ -3,21 +3,21 @@
   "service_id": "infrastructure.scaling-reliability.chaos-engineering",
   "input": "rig-services/infrastructure.scaling-reliability.chaos-engineering.json",
   "format": "json",
-  "ceiling": "chaos engineering configuration validation only; declared policy does not prove running chaos engineering behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms fault scenarios, stop conditions and the unapproved-production flag are declared; it does not inject any fault.",
   "offer": "Choose faults that test a resilience assumption and define immediate stop conditions. Production chaos requires explicit approval and measured safeguards.",
   "checks": {
     "minimal": [
       {
         "field": "fault_scenarios",
         "op": "nonempty",
-        "reason": "fault scenarios must name the concrete repository contract."
+        "reason": "List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks."
       }
     ],
     "mid": [
       {
         "field": "stop_conditions",
         "op": "nonempty",
-        "reason": "stop conditions must name the concrete repository contract."
+        "reason": "Define the conditions that stop the experiment immediately. Without them a fault can run away, so write the abort criteria."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "production_experiment_without_approval",
         "op": "equals",
         "value": false,
-        "reason": "production experiment without approval must be false."
+        "reason": "Set production experiments without approval to false. Production chaos needs explicit sign-off and safeguards, so obtain it first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "fault_scenarios",
         "op": "nonempty",
-        "reason": "fault scenarios must name the concrete repository contract."
+        "reason": "List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "fault_scenarios",
         "op": "nonempty",
-        "reason": "fault scenarios must name the concrete repository contract."
+        "reason": "List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "fault_scenarios",
         "op": "nonempty",
-        "reason": "fault scenarios must name the concrete repository contract."
+        "reason": "List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "fault_scenarios",
         "op": "nonempty",
-        "reason": "fault scenarios must name the concrete repository contract."
+        "reason": "List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks."
       }
     }
   }

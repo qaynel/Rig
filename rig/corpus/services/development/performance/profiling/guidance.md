@@ -2,16 +2,12 @@
 
 Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.
 
-Owned scope: `code-profiling`, `bottleneck-identification`.
+Owned scope: `code-profiling, bottleneck-identification`. Input: `rig-services/development.performance.profiling.json`.
 
-Offer: Profile a representative workload and name the measured resource costs. Do not optimize from intuition when a repeatable measurement can establish the bottleneck.
+Coverage ceiling: Configuration validation only, so it confirms the workload, measured metrics and the no-guess flag are declared; it does not show a profile was actually taken.
 
-Input: `rig-services/development.performance.profiling.json`. Detection records the path even when its contents are malformed.
+minimal: workload — "1000 item reads". Name the representative workload that was profiled. A profile of an unspecified run cannot be repeated, so describe the input and environment.
 
-Coverage ceiling: profiling configuration validation only; declared policy does not prove running profiling behavior. Select an approved repository-owned command to verify that behavior.
+mid: measured metrics — ["latency_ms","allocations"]. List the measured resource costs, such as CPU time or memory. Without numbers the bottleneck is a guess, so record the metrics.
 
-minimal: workload — "1000 item reads".
-
-mid: measured metrics — ["latency_ms","allocations"].
-
-maximal: optimize without measurement — false.
+maximal: optimize without measurement — false. Set optimizing without measurement to false. Optimizing from intuition wastes effort and can regress other paths, so measure first.

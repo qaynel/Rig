@@ -3,21 +3,21 @@
   "service_id": "testing.mutation.mutant-generator",
   "input": "rig-services/testing.mutation.mutant-generator.json",
   "format": "json",
-  "ceiling": "mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms mutation operators, target paths and the mutate-tests flag are declared; it does not generate mutants.",
   "offer": "Generate semantic changes in the selected production code and leave the tests unchanged. Mutating test assertions measures the wrong boundary and can fabricate useful-looking scores.",
   "checks": {
     "minimal": [
       {
         "field": "mutation_operators",
         "op": "nonempty",
-        "reason": "mutation operators must name the concrete repository contract."
+        "reason": "List the mutation operators in use. An empty set generates nothing meaningful, so name each operator."
       }
     ],
     "mid": [
       {
         "field": "target_paths",
         "op": "nonempty",
-        "reason": "target paths must name the concrete repository contract."
+        "reason": "List the production paths mutated. Mutants outside them measure the wrong code, so name the target directories."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "mutate_test_code",
         "op": "equals",
         "value": false,
-        "reason": "mutate test code must be false."
+        "reason": "Set mutating test code to false. Altering assertions measures the wrong boundary and fabricates scores, so mutate production code only."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "mutation_operators",
         "op": "nonempty",
-        "reason": "mutation operators must name the concrete repository contract."
+        "reason": "List the mutation operators in use. An empty set generates nothing meaningful, so name each operator."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "mutation_operators",
         "op": "nonempty",
-        "reason": "mutation operators must name the concrete repository contract."
+        "reason": "List the mutation operators in use. An empty set generates nothing meaningful, so name each operator."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "mutation_operators",
         "op": "nonempty",
-        "reason": "mutation operators must name the concrete repository contract."
+        "reason": "List the mutation operators in use. An empty set generates nothing meaningful, so name each operator."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "mutation_operators",
         "op": "nonempty",
-        "reason": "mutation operators must name the concrete repository contract."
+        "reason": "List the mutation operators in use. An empty set generates nothing meaningful, so name each operator."
       }
     }
   }

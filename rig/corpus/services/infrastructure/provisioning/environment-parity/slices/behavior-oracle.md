@@ -2,4 +2,4 @@
 
 Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
 
-Policy grade slice. This slice bounds environment parity to provisioning.environment-parity. It uses `environment-parity-slice-behavior-oracle` and checks environments (nonempty): environments must name the concrete repository contract.
+Policy grade slice `environment-parity-slice-behavior-oracle`: List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable. Despite its name this slice is not a behavior oracle: it confirms environments, intentional differences and the unrecorded-difference flag are declared; it does not compare deployed resources.

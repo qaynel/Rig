@@ -1,11 +1,9 @@
 # testing.integration.external-service — identity
 
-Policy grade: external service owns integration.external-service. Check the external contract with isolated test credentials and explicit failure cases. Integration validation must not require a production account or alter real customer data.
+Policy grade: external-service owns integration.external-service. Check the external contract with isolated test credentials and explicit failure cases. Integration validation must not require a production account or alter real customer data.
 
-Keep neighboring integration services outside the external service decision for integration.external-service. Start from the configured input at `rig-services/testing.integration.external-service.json`; malformed input is still attributed to that path.
+Input: `rig-services/testing.integration.external-service.json`. Configuration validation only, so it confirms external contracts, failure cases and the production-account flag are declared; it does not call the service.
 
-Disposition: executable. Trace the verdict to the limit: external service configuration validation only; declared policy does not prove running external service behavior. Choose a repository-owned check that observes external service from rig-services/testing.integration.external-service.json.
-
+Disposition: executable.
 Acceptance target: policy:testing.integration.external-service:minimal:external-service-source-code-boundary.
-
 Declared predicates: external-service-source-code-boundary: `external_contracts` is nonempty (a string or array).

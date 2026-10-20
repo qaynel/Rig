@@ -3,21 +3,21 @@
   "service_id": "testing.performance-load.load-stress-scripts",
   "input": "rig-services/testing.performance-load.load-stress-scripts.json",
   "format": "json",
-  "ceiling": "load stress scripts configuration validation only; declared policy does not prove running load stress scripts behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a load profile, stop conditions and the production-default flag are declared; it does not generate load.",
   "offer": "Define the load profile and automatic stop conditions before generating pressure. Stress scripts must target an approved isolated environment instead of defaulting to production.",
   "checks": {
     "minimal": [
       {
         "field": "load_profile",
         "op": "nonempty",
-        "reason": "load profile must name the concrete repository contract."
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
       }
     ],
     "mid": [
       {
         "field": "stop_conditions",
         "op": "nonempty",
-        "reason": "stop conditions must name the concrete repository contract."
+        "reason": "Define the stop conditions that end the test automatically. An unbounded stress run can damage an environment, so write the abort limits."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "target_production_by_default",
         "op": "equals",
         "value": false,
-        "reason": "target production by default must be false."
+        "reason": "Set targeting production by default to false. Stress scripts must aim at an approved isolated environment, so require an explicit target."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "load_profile",
         "op": "nonempty",
-        "reason": "load profile must name the concrete repository contract."
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "load_profile",
         "op": "nonempty",
-        "reason": "load profile must name the concrete repository contract."
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "load_profile",
         "op": "nonempty",
-        "reason": "load profile must name the concrete repository contract."
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "load_profile",
         "op": "nonempty",
-        "reason": "load profile must name the concrete repository contract."
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
       }
     }
   }

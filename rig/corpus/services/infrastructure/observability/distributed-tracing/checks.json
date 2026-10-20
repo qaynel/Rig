@@ -3,21 +3,21 @@
   "service_id": "infrastructure.observability.distributed-tracing",
   "input": "rig-services/infrastructure.observability.distributed-tracing.json",
   "format": "json",
-  "ceiling": "distributed tracing configuration validation only; declared policy does not prove running distributed tracing behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms trace propagation, a sampling policy and the sensitive-payload flag are declared; it does not show traces are collected.",
   "offer": "Propagate trace context across HTTP and asynchronous boundaries and bound sampling costs. Sensitive request bodies must not become trace attributes.",
   "checks": {
     "minimal": [
       {
         "field": "trace_propagation",
         "op": "nonempty",
-        "reason": "trace propagation must name the concrete repository contract."
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
       }
     ],
     "mid": [
       {
         "field": "sampling_policy",
         "op": "nonempty",
-        "reason": "sampling policy must name the concrete repository contract."
+        "reason": "Declare the sampling policy. Unbounded sampling costs money and storage, so set a rate or rule."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "record_sensitive_payloads",
         "op": "equals",
         "value": false,
-        "reason": "record sensitive payloads must be false."
+        "reason": "Set recording sensitive payloads to false. Request bodies as trace attributes leak data, so record identifiers only."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "trace_propagation",
         "op": "nonempty",
-        "reason": "trace propagation must name the concrete repository contract."
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "trace_propagation",
         "op": "nonempty",
-        "reason": "trace propagation must name the concrete repository contract."
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "trace_propagation",
         "op": "nonempty",
-        "reason": "trace propagation must name the concrete repository contract."
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "trace_propagation",
         "op": "nonempty",
-        "reason": "trace propagation must name the concrete repository contract."
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
       }
     }
   }

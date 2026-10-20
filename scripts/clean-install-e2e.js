@@ -124,8 +124,6 @@ async function main() {
       const cloneState = path.resolve(target, run('git', ['rev-parse', '--git-path', 'rig'], { cwd: target, env }));
       fs.mkdirSync(cloneState, { recursive: true });
       fs.writeFileSync(path.join(cloneState, 'install-id'), `e2e-${scenario}\n`);
-      fs.mkdirSync(path.join(target, '.rig'));
-      fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `disposable-clean-install@rig ${type} ${key}\n`);
       if (scenario === 'existing') {
         fs.writeFileSync(path.join(target, 'AGENTS.md'), '# User agent instructions\r\nPreserve these bytes.\r\n');
         fs.writeFileSync(path.join(target, '.gitignore'), 'ignored/\nreports/\n');
@@ -171,7 +169,15 @@ async function main() {
       const summary = ['Existing state', 'Rig interpretation', 'Reuse', 'Grafts and improvements', 'New capabilities', 'Important decisions', 'Resulting pipeline', 'Expected user experience'].map((h) => `## ${h}\nPreserve user files and check approved onboarding documentation.`).join('\n');
       const selected = { 'development.documentation.onboarding-docs': 'minimal' };
       const proposed = onboarding({ action: 'propose', expected_revision: prepared.revision, proposal: { inventory_digest: state.inventory.digest, catalog_digest: state.release.catalog_digest, capabilities: [], selected_skills: [], selected_services: selected, grafts: [], owned_files: [], critical_decisions: [] }, summary_markdown: `# Rig onboarding summary\n${summary}\n` });
-      const applied = onboarding({ action: 'apply', expected_revision: proposed.revision, approval: fixtureApproval(work, target, proposed.proposal_digest) });
+      // The installer ships the Gate 1 public key as the only trust root. The
+      // disposable signer replaces it only while the approval is verified.
+      const trustFile = path.join(target, '.rig/trust/gate1.allowed-signers');
+      const shippedRoot = fs.readFileSync(trustFile);
+      assert.deepEqual(shippedRoot, fs.readFileSync(path.join(root, 'wiki/gate1/gate1.allowed-signers')), 'installer must ship the Gate 1 key as the trust root');
+      fs.writeFileSync(trustFile, `disposable-clean-install@rig ${type} ${key}\n`);
+      let applied;
+      try { applied = onboarding({ action: 'apply', expected_revision: proposed.revision, approval: fixtureApproval(work, target, proposed.proposal_digest) }); }
+      finally { fs.writeFileSync(trustFile, shippedRoot); }
       const checked = onboarding({ action: 'check', expected_revision: applied.revision });
       assert.deepEqual(checked.hard_failures, []);
       assert.equal(checked.phase, 'checked');

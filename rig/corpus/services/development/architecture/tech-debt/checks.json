@@ -3,28 +3,28 @@
   "service_id": "development.architecture.tech-debt",
   "input": "rig-services/development.architecture.tech-debt.json",
   "format": "json",
-  "ceiling": "tech debt configuration validation only; declared policy does not prove running tech debt behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms debt items, owners and exit criteria are written down; it does not show that any debt is repaid or the cost measured.",
   "offer": "Define debt as an observable cost with an owner and an exit condition. A vague cleanup label without a completion condition cannot guide a useful maintenance change.",
   "checks": {
     "minimal": [
       {
         "field": "debt_items",
         "op": "nonempty",
-        "reason": "debt items must name the concrete repository contract."
+        "reason": "List each debt item as an observable cost, not a cleanup label. An empty list gives maintenance work nothing to target, so name the concrete cost and where it lives."
       }
     ],
     "mid": [
       {
         "field": "owners",
         "op": "nonempty",
-        "reason": "owners must name the concrete repository contract."
+        "reason": "Name an accountable owner for the debt. Unowned debt is never scheduled, so assign a person or team to every listed item."
       }
     ],
     "maximal": [
       {
         "field": "exit_criteria",
         "op": "nonempty",
-        "reason": "exit criteria must name the concrete repository contract."
+        "reason": "State the exit criteria that mark each item done. Without a completion condition a cleanup never ends, so write the observable check that closes it."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "debt_items",
         "op": "nonempty",
-        "reason": "debt items must name the concrete repository contract."
+        "reason": "List each debt item as an observable cost, not a cleanup label. An empty list gives maintenance work nothing to target, so name the concrete cost and where it lives."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "debt_items",
         "op": "nonempty",
-        "reason": "debt items must name the concrete repository contract."
+        "reason": "List each debt item as an observable cost, not a cleanup label. An empty list gives maintenance work nothing to target, so name the concrete cost and where it lives."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "debt_items",
         "op": "nonempty",
-        "reason": "debt items must name the concrete repository contract."
+        "reason": "List each debt item as an observable cost, not a cleanup label. An empty list gives maintenance work nothing to target, so name the concrete cost and where it lives."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "debt_items",
         "op": "nonempty",
-        "reason": "debt items must name the concrete repository contract."
+        "reason": "List each debt item as an observable cost, not a cleanup label. An empty list gives maintenance work nothing to target, so name the concrete cost and where it lives."
       }
     }
   }

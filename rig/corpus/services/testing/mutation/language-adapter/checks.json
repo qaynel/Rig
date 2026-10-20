@@ -3,21 +3,21 @@
   "service_id": "testing.mutation.language-adapter",
   "input": "rig-services/testing.mutation.language-adapter.json",
   "format": "json",
-  "ceiling": "language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms source extensions, a compiler command and the parse-error flag are declared; it does not compile anything.",
   "offer": "Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.",
   "checks": {
     "minimal": [
       {
         "field": "source_extensions",
         "op": "nonempty",
-        "reason": "source extensions must name the concrete repository contract."
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
       }
     ],
     "mid": [
       {
         "field": "compiler_command",
         "op": "nonempty",
-        "reason": "compiler command must name the concrete repository contract."
+        "reason": "Declare the compiler or toolchain command. Without it mutants cannot be checked for validity, so record the invocation."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "parse_errors_are_success",
         "op": "equals",
         "value": false,
-        "reason": "parse errors are success must be false."
+        "reason": "Set parse errors counting as success to false. A mutant that fails to parse is a gap, not a result, so report it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "source_extensions",
         "op": "nonempty",
-        "reason": "source extensions must name the concrete repository contract."
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "source_extensions",
         "op": "nonempty",
-        "reason": "source extensions must name the concrete repository contract."
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "source_extensions",
         "op": "nonempty",
-        "reason": "source extensions must name the concrete repository contract."
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "source_extensions",
         "op": "nonempty",
-        "reason": "source extensions must name the concrete repository contract."
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
       }
     }
   }

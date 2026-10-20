@@ -3,21 +3,21 @@
   "service_id": "infrastructure.environment-config.config-drift",
   "input": "rig-services/infrastructure.environment-config.config-drift.json",
   "format": "json",
-  "ceiling": "config drift configuration validation only; declared policy does not prove running config drift behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms authoritative sources, a comparison schedule and the silent-drift flag are declared; it does not compare live settings.",
   "offer": "Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.",
   "checks": {
     "minimal": [
       {
         "field": "authoritative_sources",
         "op": "nonempty",
-        "reason": "authoritative sources must name the concrete repository contract."
+        "reason": "Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth."
       }
     ],
     "mid": [
       {
         "field": "comparison_schedule",
         "op": "nonempty",
-        "reason": "comparison schedule must name the concrete repository contract."
+        "reason": "Declare how often observed settings are compared. Unscheduled comparison finds drift late, so set a cadence."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "silent_drift_acceptance",
         "op": "equals",
         "value": false,
-        "reason": "silent drift acceptance must be false."
+        "reason": "Set accepting drift silently to false. Drift must become a visible finding rather than redefine the desired state, so report it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "authoritative_sources",
         "op": "nonempty",
-        "reason": "authoritative sources must name the concrete repository contract."
+        "reason": "Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "authoritative_sources",
         "op": "nonempty",
-        "reason": "authoritative sources must name the concrete repository contract."
+        "reason": "Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "authoritative_sources",
         "op": "nonempty",
-        "reason": "authoritative sources must name the concrete repository contract."
+        "reason": "Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "authoritative_sources",
         "op": "nonempty",
-        "reason": "authoritative sources must name the concrete repository contract."
+        "reason": "Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth."
       }
     }
   }

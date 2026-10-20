@@ -3,21 +3,21 @@
   "service_id": "infrastructure.observability.metrics-dashboards",
   "input": "rig-services/infrastructure.observability.metrics-dashboards.json",
   "format": "json",
-  "ceiling": "metrics dashboards configuration validation only; declared policy does not prove running metrics dashboards behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms service metrics, a dashboard owner and the omitted-error-metric flag are declared; it does not read any dashboard.",
   "offer": "Expose user-facing latency, failure and saturation metrics with a responsible dashboard owner. A throughput-only dashboard cannot reveal whether the service is failing its users.",
   "checks": {
     "minimal": [
       {
         "field": "service_metrics",
         "op": "nonempty",
-        "reason": "service metrics must name the concrete repository contract."
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
       }
     ],
     "mid": [
       {
         "field": "dashboard_owner",
         "op": "nonempty",
-        "reason": "dashboard owner must name the concrete repository contract."
+        "reason": "Name the dashboard owner. An unowned dashboard rots, so assign a person or team."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "omit_error_metrics",
         "op": "equals",
         "value": false,
-        "reason": "omit error metrics must be false."
+        "reason": "Set omitting error metrics to false. A dashboard without errors cannot reveal that users are failing, so include failure rate."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "service_metrics",
         "op": "nonempty",
-        "reason": "service metrics must name the concrete repository contract."
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "service_metrics",
         "op": "nonempty",
-        "reason": "service metrics must name the concrete repository contract."
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "service_metrics",
         "op": "nonempty",
-        "reason": "service metrics must name the concrete repository contract."
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "service_metrics",
         "op": "nonempty",
-        "reason": "service metrics must name the concrete repository contract."
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
       }
     }
   }

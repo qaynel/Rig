@@ -115,7 +115,7 @@ test('an invalid digest or unavailable upstream refuses the whole apply and writ
     withMirror(`file://${bad}`, () => assert.throws(() => apply(target, proposed), /upstream fetch refused \(digest-mismatch\)/));
     withMirror('file:///no/such/mirror.tgz', () => assert.throws(() => apply(target, proposed), /upstream fetch refused \(upstream-unavailable\).*RIG_UPSTREAM_MIRROR_/));
     withMirror('http://insecure.invalid/x.tgz', () => assert.throws(() => apply(target, proposed), /upstream fetch refused \(upstream-unavailable\)/));
-    assert.deepEqual(fs.readdirSync(path.join(target, '.rig')).filter((name) => name !== 'allowed-signers').sort(), before, 'no fetched tree or receipt was written');
+    assert.deepEqual(fs.readdirSync(path.join(target, '.rig')).sort(), before, 'no fetched tree or receipt was written');
     assert.equal(fs.existsSync(path.join(target, '.rig/fetched')), false);
     assert.equal(h.readJson(path.join(target, '.rig/state.json')).phase, 'proposed');
   }, { install: true });

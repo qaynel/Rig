@@ -3,21 +3,21 @@
   "service_id": "infrastructure.cicd.deployment-strategy",
   "input": "rig-services/infrastructure.cicd.deployment-strategy.json",
   "format": "json",
-  "ceiling": "deployment strategy configuration validation only; declared policy does not prove running deployment strategy behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the rollout strategy, rollback trigger and the no-unchecked-rollout flag are declared; it does not show a canary or rollback ever ran.",
   "offer": "Select a deployment strategy with measurable rollout and rollback conditions. Configuration validates the declared controls; live canary outcomes need separately available deployment tooling.",
   "checks": {
     "minimal": [
       {
         "field": "strategy",
         "op": "nonempty",
-        "reason": "strategy must name the concrete repository contract."
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
       }
     ],
     "mid": [
       {
         "field": "rollback_trigger",
         "op": "nonempty",
-        "reason": "rollback trigger must name the concrete repository contract."
+        "reason": "State the measurable condition that triggers rollback, such as an error-rate threshold. Without a trigger a bad release keeps rolling, so write the number."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "automatic_full_rollout_without_checks",
         "op": "equals",
         "value": false,
-        "reason": "automatic full rollout without checks must be false."
+        "reason": "Set automatic full rollout without checks to false. Skipping the staged checks defeats the strategy, so gate the final step on them."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "strategy",
         "op": "nonempty",
-        "reason": "strategy must name the concrete repository contract."
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "strategy",
         "op": "nonempty",
-        "reason": "strategy must name the concrete repository contract."
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "strategy",
         "op": "nonempty",
-        "reason": "strategy must name the concrete repository contract."
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "strategy",
         "op": "nonempty",
-        "reason": "strategy must name the concrete repository contract."
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
       }
     }
   }

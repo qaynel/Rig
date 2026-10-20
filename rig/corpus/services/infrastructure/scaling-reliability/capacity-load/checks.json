@@ -3,14 +3,14 @@
   "service_id": "infrastructure.scaling-reliability.capacity-load",
   "input": "rig-services/infrastructure.scaling-reliability.capacity-load.json",
   "format": "json",
-  "ceiling": "capacity load configuration validation only; declared policy does not prove running capacity load behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the load workload, latency objective and the unbounded-duration flag are declared; it does not generate load.",
   "offer": "Evaluate capacity under a declared workload and latency objective. Bound the experiment duration and stop conditions before putting pressure on an environment.",
   "checks": {
     "minimal": [
       {
         "field": "load_workload",
         "op": "nonempty",
-        "reason": "load workload must name the concrete repository contract."
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "slo_latency_ms",
         "op": "minimum",
         "value": 250,
-        "reason": "slo latency ms must meet the configured minimum of 250."
+        "reason": "Set the latency objective in milliseconds, at least 250. A tighter figure cannot be evidenced here, so choose a measurable limit."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "unbounded_load_duration",
         "op": "equals",
         "value": false,
-        "reason": "unbounded load duration must be false."
+        "reason": "Set unbounded load duration to false. An experiment without a stop time can damage the environment, so bound its length."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "load_workload",
         "op": "nonempty",
-        "reason": "load workload must name the concrete repository contract."
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "load_workload",
         "op": "nonempty",
-        "reason": "load workload must name the concrete repository contract."
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "load_workload",
         "op": "nonempty",
-        "reason": "load workload must name the concrete repository contract."
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "load_workload",
         "op": "nonempty",
-        "reason": "load workload must name the concrete repository contract."
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
       }
     }
   }

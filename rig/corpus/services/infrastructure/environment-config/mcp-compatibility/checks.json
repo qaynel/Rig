@@ -3,21 +3,21 @@
   "service_id": "infrastructure.environment-config.mcp-compatibility",
   "input": "rig-services/infrastructure.environment-config.mcp-compatibility.json",
   "format": "json",
-  "ceiling": "mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the MCP transport, protocol revision and the embedded-credential flag are declared; it does not perform a handshake with a live server.",
   "offer": "Declare the MCP transport and protocol contract without embedding credential values. Descriptor checks do not establish that a live server can complete the protocol handshake.",
   "checks": {
     "minimal": [
       {
         "field": "transport",
         "op": "nonempty",
-        "reason": "transport must name the concrete repository contract."
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
       }
     ],
     "mid": [
       {
         "field": "protocol_revision",
         "op": "nonempty",
-        "reason": "protocol revision must name the concrete repository contract."
+        "reason": "Declare the protocol revision the server speaks. A mismatch fails the handshake, so record the exact revision."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "credentials_in_descriptor",
         "op": "equals",
         "value": false,
-        "reason": "credentials in descriptor must be false."
+        "reason": "Set credentials in the descriptor to false. A secret in a descriptor is committed and shared, so reference it by name instead."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "transport",
         "op": "nonempty",
-        "reason": "transport must name the concrete repository contract."
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "transport",
         "op": "nonempty",
-        "reason": "transport must name the concrete repository contract."
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "transport",
         "op": "nonempty",
-        "reason": "transport must name the concrete repository contract."
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "transport",
         "op": "nonempty",
-        "reason": "transport must name the concrete repository contract."
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
       }
     }
   }

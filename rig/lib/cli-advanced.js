@@ -8,7 +8,8 @@ const { createPlan } = require('./plan');
 const { applyPlan, remediate } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, proposeSignerSetup, setupPolicySigner, generateRecoveryCredential, registerRecoveryCredential, grantApproval } = require('./policy');
+const { activatePolicy, policyStatus, proposePolicy, grantApproval, loadActivePolicy, parsePolicyBytes } = require('./policy');
+const { evaluateAction } = require('./enforcement');
 const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
@@ -129,23 +130,15 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       return;
     }
-    if (action === 'recovery-challenge') {
-      const replacementPath = parseFlag(argv, '--replacement');
-      const identity = parseFlag(argv, '--identity');
-      const out = parseFlag(argv, '--out');
-      if (!replacementPath || !identity || !out || !fs.existsSync(replacementPath)) {
-        throw new Error('rig: policy recovery-challenge requires --replacement --identity --out');
-      }
-      writeOut(out, proposeRecovery(target, readJson(replacementPath), identity));
-      return;
-    }
-    if (action === 'recover') {
-      const challengePath = parseFlag(argv, '--challenge');
-      const approvalPath = parseFlag(argv, '--approval');
-      if (!challengePath || !approvalPath || !fs.existsSync(challengePath) || !fs.existsSync(approvalPath)) {
-        throw new Error('rig: policy recover requires --challenge and --approval');
-      }
-      process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
+    if (action === 'evaluate') {
+      // The entrypoint a host pre-tool hook calls: the activated bundle decides, and
+      // missing or invalid evidence is a named deny, never a default grant.
+      const actionPath = parseFlag(argv, '--action');
+      if (!actionPath || !fs.existsSync(actionPath)) throw new Error('rig: policy evaluate requires --action <action.json>');
+      let result;
+      try { result = evaluateAction(loadActivePolicy(target).policy, readJson(actionPath)); } catch (err) { result = { decision: 'deny', reason: err.message }; }
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      if (result.decision === 'deny') process.exitCode = 1;
       return;
     }
     if (action === 'grant-approval') {
@@ -157,30 +150,7 @@ function runAdvanced(subcommand, argv) {
       writeOut(out, grantApproval(target, readJson(actionPath)));
       return;
     }
-    if (action === 'signer-challenge') {
-      const signer = parseFlag(argv, '--signer');
-      const out = parseFlag(argv, '--out');
-      if (!signer || !out) throw new Error('rig: policy signer-challenge requires --signer and --out');
-      writeOut(out, proposeSignerSetup(target, readJson(signer)));
-      return;
-    }
-    if (action === 'signer-setup' || action === 'recovery-register') {
-      const challenge = parseFlag(argv, '--challenge');
-      const approval = parseFlag(argv, '--approval');
-      if (!challenge || !approval) throw new Error(`rig: policy ${action} requires --challenge and --approval`);
-      const result = (action === 'signer-setup' ? setupPolicySigner : registerRecoveryCredential)(target, readJson(challenge), readJson(approval));
-      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-      return;
-    }
-    if (action === 'recovery-key') {
-      const identity = parseFlag(argv, '--identity');
-      const output = parseFlag(argv, '--key-output');
-      const out = parseFlag(argv, '--out');
-      if (!identity || !output || !out) throw new Error('rig: policy recovery-key requires --identity --key-output and --out');
-      writeOut(out, generateRecoveryCredential(target, { identity, output }));
-      return;
-    }
-    throw new Error('rig: policy requires status, propose, activate, signer-challenge, signer-setup, recovery-key, recovery-register, recovery-challenge, recover, or grant-approval');
+    throw new Error('rig: policy requires status, propose, activate, evaluate, or grant-approval');
   }
 
   if (subcommand === 'inspect') {
@@ -274,8 +244,16 @@ function runAdvanced(subcommand, argv) {
   }
 
   if (subcommand === 'validate-commit') {
+    // An explicit --policy is the caller's own file, validated strictly; with no
+    // flag the activated bundle decides, and invalid active evidence refuses.
     const policyPath = parseFlag(argv, '--policy');
-    const policy = policyPath && fs.existsSync(policyPath) ? readJson(policyPath) : null;
+    let policy;
+    try {
+      policy = policyPath ? parsePolicyBytes(fs.readFileSync(policyPath)).candidate : loadActivePolicy(target).policy;
+    } catch (err) {
+      process.stderr.write(`rig: validate-commit refused: ${err.message}\n`);
+      process.exit(1);
+    }
     const result = runPreCommit(target, policy);
     if (!result.allowed) {
       process.stderr.write(`${JSON.stringify(result, null, 2)}\n`);

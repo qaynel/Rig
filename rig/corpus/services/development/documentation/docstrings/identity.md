@@ -4,7 +4,7 @@ Document the externally visible parameters and failure behavior of public symbol
 
 Policy grade. Document public symbols’ externally visible parameters and failure behavior so callers can use them without reconstructing implementation details.
 
-Applicable surface: source-code. Owned scope: `documentation.docstrings`. Input: `rig-services/development.documentation.docstrings.json`.
+Applicable surface: source-code. Owned scope: `documentation.docstrings`.
 
 Disposition: executable. Native checks validate only declared policy fields.
 

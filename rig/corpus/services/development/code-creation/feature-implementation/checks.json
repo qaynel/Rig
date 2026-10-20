@@ -3,28 +3,28 @@
   "service_id": "development.code-creation.feature-implementation",
   "input": "rig-services/development.code-creation.feature-implementation.json",
   "format": "json",
-  "ceiling": "feature implementation configuration validation only; declared policy does not prove running feature implementation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms acceptance cases, change scope and compatibility notes are declared; it does not show the implemented feature meets them.",
   "offer": "Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.",
   "checks": {
     "minimal": [
       {
         "field": "acceptance_cases",
         "op": "nonempty",
-        "reason": "acceptance cases must name the concrete repository contract."
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
       }
     ],
     "mid": [
       {
         "field": "change_scope",
         "op": "nonempty",
-        "reason": "change scope must name the concrete repository contract."
+        "reason": "List the files or modules the change may touch. An empty scope lets edits spread unreviewed, so declare the agreed boundary."
       }
     ],
     "maximal": [
       {
         "field": "compatibility",
         "op": "nonempty",
-        "reason": "compatibility must name the concrete repository contract."
+        "reason": "State the compatibility expectations for existing callers or data. Leaving them implicit hides breaking changes, so record what must keep working."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "acceptance_cases",
         "op": "nonempty",
-        "reason": "acceptance cases must name the concrete repository contract."
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "acceptance_cases",
         "op": "nonempty",
-        "reason": "acceptance cases must name the concrete repository contract."
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "acceptance_cases",
         "op": "nonempty",
-        "reason": "acceptance cases must name the concrete repository contract."
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "acceptance_cases",
         "op": "nonempty",
-        "reason": "acceptance cases must name the concrete repository contract."
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
       }
     }
   }

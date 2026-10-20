@@ -7,6 +7,17 @@ remains one central corpus with agent-led, repository-aware onboarding. See
 
 ## Current release checkpoint
 
+The [authorized October 20 review result](../reasoning/2026-10-20-authorized-binding-review-result.md)
+is **fail**: four blocker, five major and three minor findings; no passing
+receipt, and three preserved failures. The [bounded finding-by-finding handoff](../specs/close-everything/2026-10-20-binding-review-handoff.md)
+provides acceptance criteria and written-response options, preserving the
+owner's honest host-gap decision. No further binding retry is authorized.
+
+The [owner's October 20 authorization](../reasoning/2026-10-20-owner-authorized-binding-rereview.md)
+permits one additional binding `--force-rereview` attempt using the preserved
+reviewer, author context and attempt history. Authorization permits the attempt;
+its verdict and current-byte validation determine whether a receipt is usable.
+
 The [per-blocker acceptance evidence](../specs/close-everything/qa-closeout-evidence.md)
 indexes the maintained tests and commands for every blocker, the defects found
 and fixed on 2026-10-20, and the owner-only steps that remain.

@@ -3,21 +3,21 @@
   "service_id": "testing.strategy.pyramid-balance",
   "input": "rig-services/testing.strategy.pyramid-balance.json",
   "format": "json",
-  "ceiling": "pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms unit suites, integration suites and the e2e-only flag are declared; it does not count tests.",
   "offer": "Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.",
   "checks": {
     "minimal": [
       {
         "field": "unit_suites",
         "op": "nonempty",
-        "reason": "unit suites must name the concrete repository contract."
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
       }
     ],
     "mid": [
       {
         "field": "integration_suites",
         "op": "nonempty",
-        "reason": "integration suites must name the concrete repository contract."
+        "reason": "List the focused integration suites above them. A pyramid needs a middle, so name the integration layer."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "e2e_only_strategy",
         "op": "equals",
         "value": false,
-        "reason": "e2e only strategy must be false."
+        "reason": "Set e2e-only strategy to false. Relying only on end-to-end tests makes failures slow to diagnose, so keep lower layers."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "unit_suites",
         "op": "nonempty",
-        "reason": "unit suites must name the concrete repository contract."
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "unit_suites",
         "op": "nonempty",
-        "reason": "unit suites must name the concrete repository contract."
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "unit_suites",
         "op": "nonempty",
-        "reason": "unit suites must name the concrete repository contract."
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "unit_suites",
         "op": "nonempty",
-        "reason": "unit suites must name the concrete repository contract."
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
       }
     }
   }

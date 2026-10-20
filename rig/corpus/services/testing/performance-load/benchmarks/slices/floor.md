@@ -2,4 +2,4 @@
 
 Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.
 
-Policy grade slice. This slice bounds benchmarks to performance-load.benchmarks. It uses `benchmarks-slice-floor` and checks benchmark_workload (nonempty): benchmark workload must name the concrete repository contract.
+Policy grade slice `benchmarks-slice-floor`: Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it.

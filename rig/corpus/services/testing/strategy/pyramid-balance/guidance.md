@@ -1,17 +1,13 @@
-# pyramid balance
+# pyramid-balance
 
 Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
 
-Owned scope: `strategy.pyramid-balance`.
+Owned scope: `strategy.pyramid-balance`. Input: `rig-services/testing.strategy.pyramid-balance.json`.
 
-Offer: Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
+Coverage ceiling: Configuration validation only, so it confirms unit suites, integration suites and the e2e-only flag are declared; it does not count tests.
 
-Input: `rig-services/testing.strategy.pyramid-balance.json`. Detection records the path even when its contents are malformed.
+minimal: unit suites — ["parser"]. List the fast local unit suites. Without them diagnosis is slow, so name each suite.
 
-Coverage ceiling: pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior.
+mid: integration suites — ["api database"]. List the focused integration suites above them. A pyramid needs a middle, so name the integration layer.
 
-minimal: unit suites — ["parser"].
-
-mid: integration suites — ["api database"].
-
-maximal: e2e only strategy — false.
+maximal: e2e only strategy — false. Set e2e-only strategy to false. Relying only on end-to-end tests makes failures slow to diagnose, so keep lower layers.

@@ -3,14 +3,14 @@
   "service_id": "infrastructure.cost.utilization-analysis",
   "input": "rig-services/infrastructure.cost.utilization-analysis.json",
   "format": "json",
-  "ceiling": "utilization analysis configuration validation only; declared policy does not prove running utilization analysis behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms observed resources, the observation window and the single-peak flag are declared; it does not read utilization data.",
   "offer": "Measure utilization over a representative window and inspect multiple constrained resources. A single peak does not establish steady-state capacity or an opportunity to reduce it.",
   "checks": {
     "minimal": [
       {
         "field": "observed_resources",
         "op": "nonempty",
-        "reason": "observed resources must name the concrete repository contract."
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "observation_window_days",
         "op": "minimum",
         "value": 7,
-        "reason": "observation window days must meet the configured minimum of 7."
+        "reason": "Observe for at least 7 days. A shorter window misses weekly cycles, so cover a representative period."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "decide_from_single_peak",
         "op": "equals",
         "value": false,
-        "reason": "decide from single peak must be false."
+        "reason": "Set deciding from a single peak to false. One spike does not establish steady-state capacity, so use the distribution."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "observed_resources",
         "op": "nonempty",
-        "reason": "observed resources must name the concrete repository contract."
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "observed_resources",
         "op": "nonempty",
-        "reason": "observed resources must name the concrete repository contract."
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "observed_resources",
         "op": "nonempty",
-        "reason": "observed resources must name the concrete repository contract."
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "observed_resources",
         "op": "nonempty",
-        "reason": "observed resources must name the concrete repository contract."
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
       }
     }
   }

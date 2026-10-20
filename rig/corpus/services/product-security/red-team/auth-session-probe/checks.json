@@ -3,21 +3,21 @@
   "service_id": "product-security.red-team.auth-session-probe",
   "input": "rig-services/product-security.red-team.auth-session-probe.json",
   "format": "json",
-  "ceiling": "auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms session cases, protected routes and the revoked-session flag are declared; it does not probe a live session.",
   "offer": "Probe session invalidation and protected-route behavior, not merely successful login. A revoked or expired session must lose access even when its cookie still exists.",
   "checks": {
     "minimal": [
       {
         "field": "session_cases",
         "op": "nonempty",
-        "reason": "session cases must name the concrete repository contract."
+        "reason": "List the session cases probed, such as expiry and logout. Testing only login misses invalidation, so name each case."
       }
     ],
     "mid": [
       {
         "field": "protected_routes",
         "op": "nonempty",
-        "reason": "protected routes must name the concrete repository contract."
+        "reason": "List the protected routes the cases hit. Unlisted routes may be public by accident, so name them."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "accept_revoked_session",
         "op": "equals",
         "value": false,
-        "reason": "accept revoked session must be false."
+        "reason": "Set accepting a revoked session to false. A revoked or expired session must lose access even if its cookie exists, so enforce invalidation."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "session_cases",
         "op": "nonempty",
-        "reason": "session cases must name the concrete repository contract."
+        "reason": "List the session cases probed, such as expiry and logout. Testing only login misses invalidation, so name each case."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "session_cases",
         "op": "nonempty",
-        "reason": "session cases must name the concrete repository contract."
+        "reason": "List the session cases probed, such as expiry and logout. Testing only login misses invalidation, so name each case."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "session_cases",
         "op": "nonempty",
-        "reason": "session cases must name the concrete repository contract."
+        "reason": "List the session cases probed, such as expiry and logout. Testing only login misses invalidation, so name each case."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "session_cases",
         "op": "nonempty",
-        "reason": "session cases must name the concrete repository contract."
+        "reason": "List the session cases probed, such as expiry and logout. Testing only login misses invalidation, so name each case."
       }
     }
   }

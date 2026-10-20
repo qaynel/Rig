@@ -2,4 +2,4 @@
 
 Name the configuration authority and compare observed settings on a defined schedule. Drift must become a visible finding instead of silently redefining the desired state.
 
-Policy grade slice. This slice bounds config drift to environment-config.config-drift. It uses `config-drift-slice-floor` and checks authoritative_sources (nonempty): authoritative sources must name the concrete repository contract.
+Policy grade slice `config-drift-slice-floor`: Name the configuration authority each setting is compared to. Without one, drift has no reference, so list the source of truth.

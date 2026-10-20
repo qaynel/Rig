@@ -94,7 +94,7 @@ test('the slot is validated: paths, sizes, reserved targets and digests', () => 
   bad({ approved_outputs: [] }, /approved_outputs must list/);
   bad({ approved_outputs: [{ path: '../escape.md', max_bytes: 10, preimage_digest: null }] }, /clean relative path/);
   bad({ approved_outputs: [{ path: '/etc/passwd', max_bytes: 10, preimage_digest: null }] }, /approved output path is invalid/);
-  bad({ approved_outputs: [{ path: '.rig/allowed-signers', max_bytes: 10, preimage_digest: null }] }, /reserved/);
+  bad({ approved_outputs: [{ path: '.rig/trust/gate1.allowed-signers', max_bytes: 10, preimage_digest: null }] }, /reserved/);
   bad({ approved_outputs: [{ path: '.git/hooks/pre-commit', max_bytes: 10, preimage_digest: null }] }, /reserved/);
   bad({ approved_outputs: [{ path: '.env.local', max_bytes: 10, preimage_digest: null }] }, /reserved/);
   bad({ approved_outputs: [{ path: 'a.md', max_bytes: 10 * 1024 * 1024, preimage_digest: null }] }, /max_bytes/);
@@ -326,7 +326,7 @@ test('substituting the approved script bytes fails before anything runs', { skip
 test('a slot that targets Rig-owned or git paths is rejected at propose time', async () => {
   await h.withRepo((target) => {
     assert.throws(() => propose(target, slotFor({
-      approved_outputs: [{ path: '.rig/allowed-signers', max_bytes: 100, preimage_digest: null }],
+      approved_outputs: [{ path: '.rig/trust/gate1.allowed-signers', max_bytes: 100, preimage_digest: null }],
     })), /reserved/);
   }, { install: true });
 });

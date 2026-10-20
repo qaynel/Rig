@@ -2,4 +2,4 @@
 
 Pin the generator revision and identify exactly which paths are generated. Generated output must never overwrite hand-written files without a separate decision.
 
-Policy grade slice. This slice bounds codegen scaffolding to code-creation.codegen-scaffolding. It uses `codegen-scaffolding-slice-behavior-oracle` and checks generator_revision (nonempty): generator revision must name the concrete repository contract.
+Policy grade slice `codegen-scaffolding-slice-behavior-oracle`: Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit. Despite its name this slice is not a behavior oracle: it confirms the generator revision, generated paths and the no-overwrite setting are declared; it does not show that generation preserved hand-written files.

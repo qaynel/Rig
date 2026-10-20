@@ -65,7 +65,12 @@ function main() {
       process.stderr.write(renderDiagnostic(serviceId, diagnostic));
     }
     if (result.error || result.status !== 0) {
-      const message = result.reason || result.stderr || result.stdout || `${serviceId} failed`;
+      // AT-REPORT-1: finding detail stays on the producing machine, so a CI log
+      // carries the service and check rule only; rerun locally for the detail.
+      const inCi = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+      const message = inCi
+        ? `${serviceId}: failed${result.checkId ? ` (${result.checkId})` : ''}; detail stays local, rerun \`node .rig/bin/check.js --scope ${args.scope} --service ${serviceId}\``
+        : result.reason || result.stderr || result.stdout || `${serviceId} failed`;
       process.stderr.write(message.endsWith('\n') ? message : `${message}\n`);
       process.exit(result.status || 1);
     }

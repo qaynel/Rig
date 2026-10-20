@@ -2,4 +2,4 @@
 
 Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.
 
-Policy grade slice. This slice bounds change impact to regression.change-impact. It uses `change-impact-slice-floor` and checks changed_interfaces (nonempty): changed interfaces must name the concrete repository contract.
+Policy grade slice `change-impact-slice-floor`: List the interfaces that changed. Impact starts from the change, so name each one.

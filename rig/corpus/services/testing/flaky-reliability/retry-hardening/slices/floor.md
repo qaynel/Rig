@@ -2,4 +2,4 @@
 
 Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.
 
-Policy grade slice. This slice bounds retry hardening to flaky-reliability.retry-hardening. It uses `retry-hardening-slice-floor` and checks retryable_failures (nonempty): retryable failures must name the concrete repository contract.
+Policy grade slice `retry-hardening-slice-floor`: List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only.

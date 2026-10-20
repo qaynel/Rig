@@ -1,17 +1,13 @@
-# edge boundary
+# edge-boundary
 
 Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
 
-Owned scope: `unit.edge-boundary`.
+Owned scope: `unit.edge-boundary`. Input: `rig-services/testing.unit.edge-boundary.json`.
 
-Offer: Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.
+Coverage ceiling: Configuration validation only, so it confirms boundary cases, invalid cases and the normal-only flag are declared; it does not run the tests.
 
-Input: `rig-services/testing.unit.edge-boundary.json`. Detection records the path even when its contents are malformed.
+minimal: boundary cases — ["empty input","maximum length"]. List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values.
 
-Coverage ceiling: edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior.
+mid: invalid cases — ["negative count"]. List the invalid inputs, such as empty and oversized. Untested invalid input crashes in production, so add them.
 
-minimal: boundary cases — ["empty input","maximum length"].
-
-mid: invalid cases — ["negative count"].
-
-maximal: normal only tests — false.
+maximal: normal only tests — false. Set normal-only tests to false. Tests that never leave the happy path miss boundary bugs, so include edges.

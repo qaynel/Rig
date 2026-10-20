@@ -3,21 +3,21 @@
   "service_id": "testing.regression.snapshot-golden",
   "input": "rig-services/testing.regression.snapshot-golden.json",
   "format": "json",
-  "ceiling": "snapshot golden configuration validation only; declared policy does not prove running snapshot golden behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms golden paths, reviewed diffs and the auto-accept flag are declared; it does not compare snapshots.",
   "offer": "Review golden output differences against intended behavior before accepting them. Automatically updating snapshots turns the implementation output into its own expected result.",
   "checks": {
     "minimal": [
       {
         "field": "golden_paths",
         "op": "nonempty",
-        "reason": "golden paths must name the concrete repository contract."
+        "reason": "List the golden files under test. Unlisted snapshots drift unnoticed, so name each path."
       }
     ],
     "mid": [
       {
         "field": "reviewed_diffs",
         "op": "nonempty",
-        "reason": "reviewed diffs must name the concrete repository contract."
+        "reason": "Record the diffs reviewed against intended behavior. An unreviewed update accepts the implementation as truth, so cite the review."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "automatic_snapshot_acceptance",
         "op": "equals",
         "value": false,
-        "reason": "automatic snapshot acceptance must be false."
+        "reason": "Set automatic snapshot acceptance to false. Updating snapshots blindly makes output its own expectation, so require a human decision."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "golden_paths",
         "op": "nonempty",
-        "reason": "golden paths must name the concrete repository contract."
+        "reason": "List the golden files under test. Unlisted snapshots drift unnoticed, so name each path."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "golden_paths",
         "op": "nonempty",
-        "reason": "golden paths must name the concrete repository contract."
+        "reason": "List the golden files under test. Unlisted snapshots drift unnoticed, so name each path."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "golden_paths",
         "op": "nonempty",
-        "reason": "golden paths must name the concrete repository contract."
+        "reason": "List the golden files under test. Unlisted snapshots drift unnoticed, so name each path."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "golden_paths",
         "op": "nonempty",
-        "reason": "golden paths must name the concrete repository contract."
+        "reason": "List the golden files under test. Unlisted snapshots drift unnoticed, so name each path."
       }
     }
   }

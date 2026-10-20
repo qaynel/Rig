@@ -3,14 +3,14 @@
   "service_id": "infrastructure.networking.dns-discovery",
   "input": "rig-services/infrastructure.networking.dns-discovery.json",
   "format": "json",
-  "ceiling": "dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only; declared policy does not prove running DNS discovery behavior, so it confirms service records, a TTL and the hardcoded-address flag are declared and never resolves a record.",
   "offer": "Publish service discovery records with a deliberate TTL and stable ownership. Hardcoding ephemeral addresses bypasses discovery and creates avoidable failover failures.",
   "checks": {
     "minimal": [
       {
         "field": "service_records",
         "op": "nonempty",
-        "reason": "service records must name the concrete repository contract."
+        "reason": "List the service discovery records. Unlisted services cannot be found, so name each record."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "ttl_seconds",
         "op": "minimum",
         "value": 60,
-        "reason": "ttl seconds must meet the configured minimum of 60."
+        "reason": "Set the record TTL to at least 60 seconds. Very short TTLs load the resolver, so choose a deliberate value."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "hardcode_ephemeral_addresses",
         "op": "equals",
         "value": false,
-        "reason": "hardcode ephemeral addresses must be false."
+        "reason": "Set hardcoding ephemeral addresses to false. Pinned addresses bypass discovery and break on failover, so use the record instead."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "service_records",
         "op": "nonempty",
-        "reason": "service records must name the concrete repository contract."
+        "reason": "List the service discovery records. Unlisted services cannot be found, so name each record."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "service_records",
         "op": "nonempty",
-        "reason": "service records must name the concrete repository contract."
+        "reason": "List the service discovery records. Unlisted services cannot be found, so name each record."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "service_records",
         "op": "nonempty",
-        "reason": "service records must name the concrete repository contract."
+        "reason": "List the service discovery records. Unlisted services cannot be found, so name each record."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "service_records",
         "op": "nonempty",
-        "reason": "service records must name the concrete repository contract."
+        "reason": "List the service discovery records. Unlisted services cannot be found, so name each record."
       }
     }
   }

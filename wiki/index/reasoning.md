@@ -12,6 +12,10 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-20 | current | [2026-10-20-qa-closeout-owner-request](../reasoning/2026-10-20-qa-closeout-owner-request.md) | the-overhaul | — | qa-closeout, acceptance, verification |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-independent-findings](../reasoning/2026-10-20-qa-closeout-independent-findings.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, defect |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-evidence-inventory](../reasoning/2026-10-20-qa-closeout-evidence-inventory.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, owner-action |
+| 2026-10-20 | current | [2026-10-20-owner-authorized-binding-rereview](../reasoning/2026-10-20-owner-authorized-binding-rereview.md) | review-receipts, the-overhaul | — | review, authorization |
+| 2026-10-20 | current | [2026-10-20-one-trust-root-progress](../reasoning/2026-10-20-one-trust-root-progress.md) | gate1-signing, review-receipts | — | trust, progress |
+| 2026-10-20 | current | [2026-10-20-one-trust-root-owner-decision](../reasoning/2026-10-20-one-trust-root-owner-decision.md) | gate1-signing, user-presence-approvals, review-receipts | — | trust, signing, north-star |
+| 2026-10-20 | current | [2026-10-20-authorized-binding-review-result](../reasoning/2026-10-20-authorized-binding-review-result.md) | review-receipts, the-overhaul | — | review, verification |
 | 2026-10-19 | current | [2026-10-19-qa-closeout-resume](../reasoning/2026-10-19-qa-closeout-resume.md) | the-overhaul, testing-strategy | — | qa-closeout, verification |
 | 2026-10-19 | current | [2026-10-19-qa-closeout-pinned-mirror-checkpoint](../reasoning/2026-10-19-qa-closeout-pinned-mirror-checkpoint.md) | testing-strategy | — | qa-closeout, verification |
 | 2026-10-19 | current | [2026-10-19-qa-closeout-owner-patch-ready](../reasoning/2026-10-19-qa-closeout-owner-patch-ready.md) | testing-strategy | — | qa-closeout, verification |

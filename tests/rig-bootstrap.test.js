@@ -191,6 +191,7 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       .filter((file) => file.includes(`${path.sep}.rig${path.sep}`))
       .filter((file) => !file.endsWith(`${path.sep}.rig${path.sep}install-manifest.jsonl`))
       .filter((file) => !file.includes(`${path.sep}.rig${path.sep}preimages${path.sep}`))
+      .filter((file) => !file.endsWith(`${path.sep}.rig${path.sep}trust${path.sep}gate1.allowed-signers`))
       .filter((file) => !noticeBasenames.has(path.basename(file)));
     assert.ok(tier1RigFiles.every((file) => file.endsWith('.md')));
     assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing')), false, 'plumbing must not land on a default install');
@@ -209,7 +210,6 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
     const tier1Body = installed.filter((f) => !isVendoredFile(f)).map((file) => fs.readFileSync(file, 'utf8')).join('\n');
     for (const relativePath of backtickedRigPaths(tier1Body)) {
       if (relativePath.startsWith('.rig/runtime/')) continue; // optional runtime references resolve only with --with-runtime
-      if (relativePath === '.rig/allowed-signers') continue; // this user-owned trust file is copied from the installed example
       assert.equal(fs.existsSync(path.join(target, relativePath)), true, `${relativePath} should exist after install`);
     }
     // Secret-shape scan runs against Tier-1 bodies. The vendored suite ships
@@ -219,8 +219,9 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
     assert.doesNotMatch(tier1Body, /(?:API_KEY|BEGIN (?:RSA |OPENSSH )?PRIVATE KEY|(?<![a-z0-9])sk-[a-z0-9-]{10,})/i);
     assert.equal(fs.existsSync(path.join(target, '.env')), false);
     assert.equal(fs.existsSync(path.join(target, '.env.example')), false);
-    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers')), false, 'approval trust remains repository-owned');
-    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers.example.md')), true, 'the signer template is installed');
+    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers')), false, 'no independent signer list is installed');
+    assert.equal(fs.existsSync(path.join(target, '.rig/allowed-signers.example.md')), false, 'no signer template is installed');
+    assert.equal(fs.readFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), 'utf8'), fs.readFileSync(path.join(__dirname, '..', 'wiki/gate1/gate1.allowed-signers'), 'utf8'), 'the Gate 1 key is the only trust root');
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }

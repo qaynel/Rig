@@ -3,21 +3,21 @@
   "service_id": "infrastructure.container.k8s-helm",
   "input": "rig-services/infrastructure.container.k8s-helm.json",
   "format": "json",
-  "ceiling": "k8s helm configuration validation only; declared policy does not prove running k8s helm behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms resource limits, a readiness probe and the latest-tag flag are declared; it does not show the workload schedules or becomes ready.",
   "offer": "Declare Kubernetes resource bounds and readiness independently of process existence. Pin deployed images rather than selecting mutable latest tags.",
   "checks": {
     "minimal": [
       {
         "field": "resource_limits",
         "op": "nonempty",
-        "reason": "resource limits must name the concrete repository contract."
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
       }
     ],
     "mid": [
       {
         "field": "readiness_probe",
         "op": "nonempty",
-        "reason": "readiness probe must name the concrete repository contract."
+        "reason": "Declare a readiness probe. Process existence is not readiness, so define the endpoint or command that proves the service can take traffic."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "latest_image_tag",
         "op": "equals",
         "value": false,
-        "reason": "latest image tag must be false."
+        "reason": "Set a latest image tag to false. A mutable tag changes what is deployed without a change record, so pin an exact version or digest."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "resource_limits",
         "op": "nonempty",
-        "reason": "resource limits must name the concrete repository contract."
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "resource_limits",
         "op": "nonempty",
-        "reason": "resource limits must name the concrete repository contract."
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "resource_limits",
         "op": "nonempty",
-        "reason": "resource limits must name the concrete repository contract."
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "resource_limits",
         "op": "nonempty",
-        "reason": "resource limits must name the concrete repository contract."
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
       }
     }
   }

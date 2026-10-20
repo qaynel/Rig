@@ -2,4 +2,4 @@
 
 Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.
 
-Policy grade slice. This slice bounds secret injection to runtime-secret-injection, secret-injection-wiring. It uses `secret-injection-slice-property-floor` and checks secret_references (nonempty): secret references must name the concrete repository contract.
+Policy grade slice `secret-injection-slice-property-floor`: List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store.

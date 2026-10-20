@@ -3,21 +3,21 @@
   "service_id": "development.documentation.api-reference",
   "input": "rig-services/development.documentation.api-reference.json",
   "format": "json",
-  "ceiling": "api reference configuration validation only; declared policy does not prove running api reference behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms documented endpoints, error responses and the authentication flag are declared; it does not show the documentation matches the live API.",
   "offer": "Describe actual endpoints, response shapes and error cases from the public contract. Authentication requirements belong beside the endpoint so a caller cannot mistake protected operations for public ones.",
   "checks": {
     "minimal": [
       {
         "field": "documented_endpoints",
         "op": "nonempty",
-        "reason": "documented endpoints must name the concrete repository contract."
+        "reason": "List the endpoints documented from the public contract. An empty list leaves callers guessing, so name each endpoint and its response shape."
       }
     ],
     "mid": [
       {
         "field": "error_responses",
         "op": "nonempty",
-        "reason": "error responses must name the concrete repository contract."
+        "reason": "Document the error responses each endpoint can return. Callers need failure shapes to handle them, so list status codes and bodies."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "authentication_documented",
         "op": "equals",
         "value": true,
-        "reason": "authentication documented must be true."
+        "reason": "Authentication must be documented beside each endpoint. Otherwise a protected operation reads as public, so mark which endpoints require credentials."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "documented_endpoints",
         "op": "nonempty",
-        "reason": "documented endpoints must name the concrete repository contract."
+        "reason": "List the endpoints documented from the public contract. An empty list leaves callers guessing, so name each endpoint and its response shape."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "documented_endpoints",
         "op": "nonempty",
-        "reason": "documented endpoints must name the concrete repository contract."
+        "reason": "List the endpoints documented from the public contract. An empty list leaves callers guessing, so name each endpoint and its response shape."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "documented_endpoints",
         "op": "nonempty",
-        "reason": "documented endpoints must name the concrete repository contract."
+        "reason": "List the endpoints documented from the public contract. An empty list leaves callers guessing, so name each endpoint and its response shape."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "documented_endpoints",
         "op": "nonempty",
-        "reason": "documented endpoints must name the concrete repository contract."
+        "reason": "List the endpoints documented from the public contract. An empty list leaves callers guessing, so name each endpoint and its response shape."
       }
     }
   }

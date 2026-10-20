@@ -2,4 +2,4 @@
 
 Report observed progress, the work in flight and the next resolving action. Distinguish finished evidence from intended work so another contributor can resume accurately.
 
-Policy grade slice. This slice bounds status updates to repo-hygiene.status-updates. It uses `status-updates-slice-floor` and checks completed (nonempty): completed must name the concrete repository contract.
+Policy grade slice `status-updates-slice-floor`: List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items.

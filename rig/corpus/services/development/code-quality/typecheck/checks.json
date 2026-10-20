@@ -3,21 +3,21 @@
   "service_id": "development.code-quality.typecheck",
   "input": "rig-services/development.code-quality.typecheck.json",
   "format": "json",
-  "ceiling": "typecheck configuration validation only; declared policy does not prove running typecheck behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the type-check command, covered components and suppression setting are declared; it does not show the code type-checks.",
   "offer": "Bind the type checker to the repository task and enumerate covered components. Do not make a clean result by suppressing type errors or silently excluding a package.",
   "checks": {
     "minimal": [
       {
         "field": "typecheck_command",
         "op": "nonempty",
-        "reason": "typecheck command must name the concrete repository contract."
+        "reason": "Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task."
       }
     ],
     "mid": [
       {
         "field": "checked_components",
         "op": "nonempty",
-        "reason": "checked components must name the concrete repository contract."
+        "reason": "List the components the type checker covers. A silently excluded package hides type errors, so enumerate every covered component."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "ignore_type_errors",
         "op": "equals",
         "value": false,
-        "reason": "ignore type errors must be false."
+        "reason": "Set ignoring type errors to false. Suppressing errors manufactures a clean result, so fix the errors or record them as findings."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "typecheck_command",
         "op": "nonempty",
-        "reason": "typecheck command must name the concrete repository contract."
+        "reason": "Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "typecheck_command",
         "op": "nonempty",
-        "reason": "typecheck command must name the concrete repository contract."
+        "reason": "Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "typecheck_command",
         "op": "nonempty",
-        "reason": "typecheck command must name the concrete repository contract."
+        "reason": "Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "typecheck_command",
         "op": "nonempty",
-        "reason": "typecheck command must name the concrete repository contract."
+        "reason": "Bind the type checker to the repository's typecheck command. A missing command means types are unchecked, so name the real task."
       }
     }
   }

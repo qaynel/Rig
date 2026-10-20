@@ -1,11 +1,9 @@
 # development.data-schema.schema-evolution — identity
 
-Policy grade: schema evolution owns data-schema.schema-evolution. Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.
+Policy grade: schema-evolution owns data-schema.schema-evolution. Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.
 
-Keep neighboring data-schema services outside the schema evolution decision for data-schema.schema-evolution. Inspect the configured input at `rig-services/development.data-schema.schema-evolution.json`; malformed input is still attributed to that path.
+Input: `rig-services/development.data-schema.schema-evolution.json`. Configuration validation only, so it confirms compatible readers, unknown-field handling and the no-removal setting are declared; it does not show old and new readers interoperate.
 
-Disposition: executable. Tie acceptance to the limit: schema evolution configuration validation only; declared policy does not prove running schema evolution behavior. Choose a repository-owned check that observes schema evolution from rig-services/development.data-schema.schema-evolution.json.
-
+Disposition: executable.
 Acceptance target: policy:development.data-schema.schema-evolution:minimal:schema-evolution-source-code-boundary.
-
 Declared predicates: schema-evolution-source-code-boundary: `compatible_readers` is nonempty (a string or array).

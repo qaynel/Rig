@@ -2,4 +2,4 @@
 
 Limit any relaxed secret policy to disposable local experiments with an expiry. A toy exception must never extend to production or shared customer systems.
 
-Policy grade slice. This slice bounds toy relaxation to secrets.toy-relaxation. It uses `toy-relaxation-slice-floor` and checks toy_scope (nonempty): toy scope must name the concrete repository contract.
+Policy grade slice `toy-relaxation-slice-floor`: Limit the relaxation to a named disposable scope, such as a local experiment. An open-ended exception becomes permanent, so state the scope.

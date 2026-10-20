@@ -96,6 +96,17 @@ function readManifest(target) {
   return { format: 'json', records: JSON.parse(fs.readFileSync(legacy, 'utf8')).records || [] };
 }
 
+// An install is incomplete while its newest install_state record says so or the
+// journal holds a pending operation nothing later applied. Callers withhold every
+// protection claim until it is not.
+function installState(target) {
+  const { records } = readManifest(target);
+  const states = records.filter((record) => record.kind === 'install_state');
+  const pending_paths = latestOperations(records).filter((record) => record.state === 'pending').map((record) => record.path);
+  const incomplete = pending_paths.length > 0 || (states.length > 0 && states[states.length - 1].complete === false);
+  return { complete: !incomplete, pending_paths };
+}
+
 function appendRecord(target, record) {
   const file = containedPath(target, MANIFEST_REL);
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -673,4 +684,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };
+module.exports = { parseJournalRecords, readManifest, installState, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };

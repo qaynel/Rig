@@ -123,7 +123,7 @@ Path B's seventh business-level property is covered directly by
 |---|---|---|
 | `AT-CLAIM-1` | Build the whole roster uniformly; activate exactly the detected or explicitly requested host trees. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-PRESENCE-1` | No presence, no activation. Three terminal states, refusal being one. | [user-presence approvals](../topics/user-presence-approvals.md) |
-| `AT-PRESENCE-2` | Lost policy signer: recovery is real, bounded, and terminates. | [policy-signer recovery](../topics/policy-signer-recovery.md) |
+| `AT-PRESENCE-2` | One trust root: only the Gate 1 key approves (owner amendment pending). | [one trust root](../topics/policy-signer-recovery.md) |
 | `AT-HOME-1` | Global writes append, never overwrite, and the install line names the file. | [user-global writes](../topics/user-global-writes.md) |
 | `AT-HOME-2` | Multi-repository attribution, required from the **first** install. | [user-global writes](../topics/user-global-writes.md) |
 | `AT-DIST-1` | A stranger installs named-tag `5.0.0`, all 55 named skills, and required MIT notice/provenance without `curl | sh`. | [distribution and release](../topics/distribution-and-release.md) |

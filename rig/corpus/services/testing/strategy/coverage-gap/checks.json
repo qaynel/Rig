@@ -3,21 +3,21 @@
   "service_id": "testing.strategy.coverage-gap",
   "input": "rig-services/testing.strategy.coverage-gap.json",
   "format": "json",
-  "ceiling": "coverage gap configuration validation only; declared policy does not prove running coverage gap behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms uncovered behaviors, risk owners and the line-coverage-complete flag are declared; it does not measure coverage.",
   "offer": "Map untested behavior to business risk and owners. Line coverage can locate unused paths, but it does not prove that important outcomes are asserted.",
   "checks": {
     "minimal": [
       {
         "field": "uncovered_behaviors",
         "op": "nonempty",
-        "reason": "uncovered behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
       }
     ],
     "mid": [
       {
         "field": "risk_owners",
         "op": "nonempty",
-        "reason": "risk owners must name the concrete repository contract."
+        "reason": "Name an owner for each gap's risk. Unowned gaps are never closed, so assign a person or team."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "claim_complete_from_line_coverage",
         "op": "equals",
         "value": false,
-        "reason": "claim complete from line coverage must be false."
+        "reason": "Set claiming completeness from line coverage to false. Executed lines are not asserted outcomes, so do not equate them."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "uncovered_behaviors",
         "op": "nonempty",
-        "reason": "uncovered behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "uncovered_behaviors",
         "op": "nonempty",
-        "reason": "uncovered behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "uncovered_behaviors",
         "op": "nonempty",
-        "reason": "uncovered behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "uncovered_behaviors",
         "op": "nonempty",
-        "reason": "uncovered behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
       }
     }
   }

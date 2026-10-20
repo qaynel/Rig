@@ -1,17 +1,13 @@
-# chaos engineering
+# chaos-engineering
 
 Choose faults that test a resilience assumption and define immediate stop conditions. Production chaos requires explicit approval and measured safeguards.
 
-Owned scope: `scaling-reliability.chaos-engineering`.
+Owned scope: `scaling-reliability.chaos-engineering`. Input: `rig-services/infrastructure.scaling-reliability.chaos-engineering.json`.
 
-Offer: Choose faults that test a resilience assumption and define immediate stop conditions. Production chaos requires explicit approval and measured safeguards.
+Coverage ceiling: Configuration validation only, so it confirms fault scenarios, stop conditions and the unapproved-production flag are declared; it does not inject any fault.
 
-Input: `rig-services/infrastructure.scaling-reliability.chaos-engineering.json`. Detection records the path even when its contents are malformed.
+minimal: fault scenarios — ["worker unavailable"]. List the faults that test a resilience assumption. Random breakage teaches nothing, so name each scenario and what it checks.
 
-Coverage ceiling: chaos engineering configuration validation only; declared policy does not prove running chaos engineering behavior. Select an approved repository-owned command to verify that behavior.
+mid: stop conditions — ["error budget exhausted"]. Define the conditions that stop the experiment immediately. Without them a fault can run away, so write the abort criteria.
 
-minimal: fault scenarios — ["worker unavailable"].
-
-mid: stop conditions — ["error budget exhausted"].
-
-maximal: production experiment without approval — false.
+maximal: production experiment without approval — false. Set production experiments without approval to false. Production chaos needs explicit sign-off and safeguards, so obtain it first.

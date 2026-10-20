@@ -3,14 +3,14 @@
   "service_id": "testing.performance-load.perf-regression-ci",
   "input": "rig-services/testing.performance-load.perf-regression-ci.json",
   "format": "json",
-  "ceiling": "perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms tracked metrics, a regression budget and the ignore-failure flag are declared; it does not run CI.",
   "offer": "Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.",
   "checks": {
     "minimal": [
       {
         "field": "tracked_metrics",
         "op": "nonempty",
-        "reason": "tracked metrics must name the concrete repository contract."
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "regression_budget_percent",
         "op": "minimum",
         "value": 10,
-        "reason": "regression budget percent must meet the configured minimum of 10."
+        "reason": "Set the regression budget percent, at least 10. A budget that is too tight flakes, so choose a stable threshold."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "ignore_threshold_failure",
         "op": "equals",
         "value": false,
-        "reason": "ignore threshold failure must be false."
+        "reason": "Set ignoring threshold failure to false. A breached budget must fail the build, otherwise it is a decorative chart."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "tracked_metrics",
         "op": "nonempty",
-        "reason": "tracked metrics must name the concrete repository contract."
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "tracked_metrics",
         "op": "nonempty",
-        "reason": "tracked metrics must name the concrete repository contract."
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "tracked_metrics",
         "op": "nonempty",
-        "reason": "tracked metrics must name the concrete repository contract."
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "tracked_metrics",
         "op": "nonempty",
-        "reason": "tracked metrics must name the concrete repository contract."
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
       }
     }
   }

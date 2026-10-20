@@ -1,17 +1,13 @@
-# image optimization
+# image-optimization
 
 Pin the container base and use an unprivileged runtime user. Build secrets must not enter the resulting image layers; config inspection alone cannot verify a built image.
 
-Owned scope: `container.image-optimization`.
+Owned scope: `container.image-optimization`. Input: `rig-services/infrastructure.container.image-optimization.json`.
 
-Offer: Pin the container base and use an unprivileged runtime user. Build secrets must not enter the resulting image layers; config inspection alone cannot verify a built image.
+Coverage ceiling: Configuration validation only, so it confirms the base image digest, runtime user and the build-secret flag are declared; it does not inspect a built image.
 
-Input: `rig-services/infrastructure.container.image-optimization.json`. Detection records the path even when its contents are malformed.
+minimal: base image digest — "sha256:abcd". Pin the base image by digest. A tag can change underneath the build, so record the immutable digest.
 
-Coverage ceiling: image optimization configuration validation only; declared policy does not prove running image optimization behavior. Select an approved repository-owned command to verify that behavior.
+mid: runtime user — "nonroot". Name an unprivileged runtime user. Running as root widens the blast radius, so declare a non-root user.
 
-minimal: base image digest — "sha256:abcd".
-
-mid: runtime user — "nonroot".
-
-maximal: include build secrets — false.
+maximal: include build secrets — false. Set including build secrets to false. Secrets copied into layers persist in the image, so use build-time mounts that leave no layer.

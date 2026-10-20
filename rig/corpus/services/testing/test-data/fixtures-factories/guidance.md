@@ -1,17 +1,13 @@
-# fixtures factories
+# fixtures-factories
 
 Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.
 
-Owned scope: `test-data.fixtures-factories`.
+Owned scope: `test-data.fixtures-factories`. Input: `rig-services/testing.test-data.fixtures-factories.json`.
 
-Offer: Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.
+Coverage ceiling: Configuration validation only, so it confirms fixture defaults, explicit variants and the shared-mutable-state flag are declared; it does not build fixtures.
 
-Input: `rig-services/testing.test-data.fixtures-factories.json`. Detection records the path even when its contents are malformed.
+minimal: fixture defaults — ["valid account"]. Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record.
 
-Coverage ceiling: fixtures factories configuration validation only; declared policy does not prove running fixtures factories behavior. Select an approved repository-owned command to verify that behavior.
+mid: explicit variants — ["expired account"]. List the explicit variants for each behavior. Implicit variants obscure what is tested, so name them.
 
-minimal: fixture defaults — ["valid account"].
-
-mid: explicit variants — ["expired account"].
-
-maximal: shared mutable state — false.
+maximal: shared mutable state — false. Set shared mutable state to false. Tests changing shared fixtures affect each other, so build fresh data per test.

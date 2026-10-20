@@ -5,8 +5,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { redact } = require('./inspect');
+const { gitPath } = require('./path-safety');
 
 const ALLOWED = new Set(['failed', 'vacuous', 'coverage_gap']);
+
+// Local reports hold finding detail, so a blanket `git add` must never stage them.
+// The clone-local exclude file keeps the repository's tracked .gitignore untouched.
+function excludeReports(target) {
+  const file = gitPath(target, 'info/exclude');
+  if (!file) return;
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  if (existing.split('\n').includes('/reports/rig/')) return;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.appendFileSync(file, `${existing && !existing.endsWith('\n') ? '\n' : ''}/reports/rig/\n`);
+}
 
 function writeReport(target, report) {
   if (!ALLOWED.has(report.status)) {
@@ -14,6 +26,7 @@ function writeReport(target, report) {
   }
   const dir = path.join(target, 'reports', 'rig');
   fs.mkdirSync(dir, { recursive: true });
+  excludeReports(target);
   const body = {
     schema_version: 1,
     run_id: report.run_id || `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
@@ -26,6 +39,7 @@ function writeReport(target, report) {
     reason: redact(report.reason || ''),
     evidence: (report.evidence || []).map((e) => redact(typeof e === 'string' ? e : JSON.stringify(e))),
     fix_context: (report.fix_context || []).map((c) => redact(typeof c === 'string' ? c : JSON.stringify(c))),
+    ...(!require('./lifecycle').installState(target).complete ? { install: 'incomplete', protection: 'withheld' } : {}),
     rerun: report.rerun || ['node', '.rig/bin/check.js', '--scope', report.scope || 'repo'],
   };
   const digest = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 12);

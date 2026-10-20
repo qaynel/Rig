@@ -1,17 +1,13 @@
-# invariant identification
+# invariant-identification
 
 State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.
 
-Owned scope: `property-fuzz.invariant-identification`.
+Owned scope: `property-fuzz.invariant-identification`. Input: `rig-services/testing.property-fuzz.invariant-identification.json`.
 
-Offer: State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.
+Coverage ceiling: Configuration validation only, so it confirms invariants, an input domain and the derive-from-subject flag are declared; it does not run properties.
 
-Input: `rig-services/testing.property-fuzz.invariant-identification.json`. Detection records the path even when its contents are malformed.
+minimal: invariants — ["sum of debits equals credits"]. State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification.
 
-Coverage ceiling: invariant identification configuration validation only; declared policy does not prove running invariant identification behavior. Select an approved repository-owned command to verify that behavior.
+mid: input domain — "nonnegative integer amounts". Bound the generated input domain. An unbounded domain explores nonsense, so declare the valid ranges.
 
-minimal: invariants — ["sum of debits equals credits"].
-
-mid: input domain — "nonnegative integer amounts".
-
-maximal: derive expected from subject — false.
+maximal: derive expected from subject — false. Set deriving expected values from the subject to false. Computing the expectation with the implementation proves nothing, so use an independent oracle.

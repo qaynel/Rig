@@ -1,17 +1,13 @@
-# synthetic data
+# synthetic-data
 
 Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.
 
-Owned scope: `test-data.synthetic-data`.
+Owned scope: `test-data.synthetic-data`. Input: `rig-services/testing.test-data.synthetic-data.json`.
 
-Offer: Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.
+Coverage ceiling: Configuration validation only, so it confirms generation rules, a seed and the customer-records flag are declared; it does not generate data.
 
-Input: `rig-services/testing.test-data.synthetic-data.json`. Detection records the path even when its contents are malformed.
+minimal: generation rules — ["valid account IDs"]. List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them.
 
-Coverage ceiling: synthetic data configuration validation only; declared policy does not prove running synthetic data behavior. Select an approved repository-owned command to verify that behavior.
+mid: seed — 42. Fix a seed, at least 42 as a value. Deterministic output makes failures reproducible, so record it.
 
-minimal: generation rules — ["valid account IDs"].
-
-mid: seed — 42.
-
-maximal: use customer records — false.
+maximal: use customer records — false. Set using customer records to false. Real customer data must not become test data, so generate it instead.

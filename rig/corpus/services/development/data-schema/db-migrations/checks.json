@@ -3,21 +3,21 @@
   "service_id": "development.data-schema.db-migrations",
   "input": "rig-services/development.data-schema.db-migrations.json",
   "format": "json",
-  "ceiling": "db migrations configuration validation only; declared policy does not prove running db migrations behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms migration order, rollback steps and the destructive-change flag are declared; it does not show migrations apply or roll back.",
   "offer": "Keep migration ordering deterministic and preserve a tested recovery route. Destructive schema operations require their own explicit approval rather than inheriting ordinary migration consent.",
   "checks": {
     "minimal": [
       {
         "field": "migration_order",
         "op": "nonempty",
-        "reason": "migration order must name the concrete repository contract."
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
       }
     ],
     "mid": [
       {
         "field": "rollback_steps",
         "op": "nonempty",
-        "reason": "rollback steps must name the concrete repository contract."
+        "reason": "Write the rollback steps for a failed migration. Without a tested recovery route a bad migration is permanent, so list the exact reverse steps."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "destructive_change_approved",
         "op": "equals",
         "value": false,
-        "reason": "destructive change approved must be false."
+        "reason": "Destructive changes must be marked not approved by default. A drop or truncate needs its own explicit approval, so keep this false until a separate sign-off exists."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "migration_order",
         "op": "nonempty",
-        "reason": "migration order must name the concrete repository contract."
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "migration_order",
         "op": "nonempty",
-        "reason": "migration order must name the concrete repository contract."
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "migration_order",
         "op": "nonempty",
-        "reason": "migration order must name the concrete repository contract."
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "migration_order",
         "op": "nonempty",
-        "reason": "migration order must name the concrete repository contract."
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
       }
     }
   }

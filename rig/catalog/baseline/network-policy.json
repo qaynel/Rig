@@ -12,6 +12,15 @@
     "web": true,
     "mcp": true
   },
+  "network": {
+    "enabled": true,
+    "categories": {
+      "outbound_network": "deny",
+      "remote_content_execution": "deny",
+      "sensitive_environment_read": "deny",
+      "guardrail_bypass": "deny"
+    }
+  },
   "allow": [],
   "secrets": {
     "model_assisted_triage": false

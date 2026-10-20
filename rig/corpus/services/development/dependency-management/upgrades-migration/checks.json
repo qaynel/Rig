@@ -3,21 +3,21 @@
   "service_id": "development.dependency-management.upgrades-migration",
   "input": "rig-services/development.dependency-management.upgrades-migration.json",
   "format": "json",
-  "ceiling": "upgrades migration configuration validation only; declared policy does not prove running upgrades migration behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms target versions, migration steps and rollback availability are declared; it does not show the upgrade is compatible.",
   "offer": "Inventory the target versions and deliberate migration steps. Keep the prior dependency state recoverable until compatibility checks prove that the upgrade can stay.",
   "checks": {
     "minimal": [
       {
         "field": "target_versions",
         "op": "nonempty",
-        "reason": "target versions must name the concrete repository contract."
+        "reason": "List the target version for each upgraded dependency. Without versions the upgrade scope is unbounded, so name package and target."
       }
     ],
     "mid": [
       {
         "field": "migration_steps",
         "op": "nonempty",
-        "reason": "migration steps must name the concrete repository contract."
+        "reason": "Write the ordered migration steps. An unplanned upgrade breaks callers midway, so list each step and its check."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "rollback_available",
         "op": "equals",
         "value": true,
-        "reason": "rollback available must be true."
+        "reason": "Rollback availability must be true. If the prior dependency state is not recoverable a failed upgrade cannot be undone, so keep the lockfile or branch restorable."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "target_versions",
         "op": "nonempty",
-        "reason": "target versions must name the concrete repository contract."
+        "reason": "List the target version for each upgraded dependency. Without versions the upgrade scope is unbounded, so name package and target."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "target_versions",
         "op": "nonempty",
-        "reason": "target versions must name the concrete repository contract."
+        "reason": "List the target version for each upgraded dependency. Without versions the upgrade scope is unbounded, so name package and target."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "target_versions",
         "op": "nonempty",
-        "reason": "target versions must name the concrete repository contract."
+        "reason": "List the target version for each upgraded dependency. Without versions the upgrade scope is unbounded, so name package and target."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "target_versions",
         "op": "nonempty",
-        "reason": "target versions must name the concrete repository contract."
+        "reason": "List the target version for each upgraded dependency. Without versions the upgrade scope is unbounded, so name package and target."
       }
     }
   }

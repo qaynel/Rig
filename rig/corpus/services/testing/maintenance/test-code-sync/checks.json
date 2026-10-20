@@ -3,21 +3,21 @@
   "service_id": "testing.maintenance.test-code-sync",
   "input": "rig-services/testing.maintenance.test-code-sync.json",
   "format": "json",
-  "ceiling": "test code sync configuration validation only; declared policy does not prove running test code sync behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms changed behaviors, updated cases and the follow-output flag are declared; it does not compare tests with code.",
   "offer": "Update tests from the intended contract when behavior changes. Copying new output into old assertions without a behavioral decision creates circular evidence.",
   "checks": {
     "minimal": [
       {
         "field": "changed_behaviors",
         "op": "nonempty",
-        "reason": "changed behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
       }
     ],
     "mid": [
       {
         "field": "updated_cases",
         "op": "nonempty",
-        "reason": "updated cases must name the concrete repository contract."
+        "reason": "List the test cases updated for those behaviors. A changed behavior with no updated case leaves stale tests, so map each."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "tests_follow_output_blindly",
         "op": "equals",
         "value": false,
-        "reason": "tests follow output blindly must be false."
+        "reason": "Set tests following output blindly to false. Copying new output into old assertions makes circular evidence, so decide the intended behavior first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "changed_behaviors",
         "op": "nonempty",
-        "reason": "changed behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "changed_behaviors",
         "op": "nonempty",
-        "reason": "changed behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "changed_behaviors",
         "op": "nonempty",
-        "reason": "changed behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "changed_behaviors",
         "op": "nonempty",
-        "reason": "changed behaviors must name the concrete repository contract."
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
       }
     }
   }

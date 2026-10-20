@@ -2,16 +2,12 @@
 
 Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.
 
-Owned scope: `test-data.anonymization`.
+Owned scope: `test-data.anonymization`. Input: `rig-services/testing.test-data.anonymization.json`.
 
-Offer: Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.
+Coverage ceiling: Configuration validation only, so it confirms sensitive fields, a replacement strategy and the re-identification-map flag are declared; it does not read any data.
 
-Input: `rig-services/testing.test-data.anonymization.json`. Detection records the path even when its contents are malformed.
+minimal: sensitive fields — ["email","address"]. List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them.
 
-Coverage ceiling: anonymization configuration validation only; declared policy does not prove running anonymization behavior. Select an approved repository-owned command to verify that behavior.
+mid: replacement strategy — "irreversible-synthetic-values". Declare the replacement strategy, which must be irreversible while preserving data shape. Reversible masking is not anonymization, so name the method.
 
-minimal: sensitive fields — ["email","address"].
-
-mid: replacement strategy — "irreversible-synthetic-values".
-
-maximal: retain reidentification map — false.
+maximal: retain reidentification map — false. Set retaining a re-identification map to false. A lookup from synthetic values to people defeats anonymization, so delete it.

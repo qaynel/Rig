@@ -42,8 +42,8 @@
     },
     {
       "op": "copy",
-      "from": "rig/corpus/allowed-signers.example.md",
-      "to": ".rig/allowed-signers.example.md",
+      "from": "rig/corpus/trust/gate1.allowed-signers",
+      "to": ".rig/trust/gate1.allowed-signers",
       "host": "neutral"
     },
     {

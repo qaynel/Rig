@@ -2,4 +2,4 @@
 
 Check old and new readers against additive evolution and define unknown-field handling. Removing required fields breaks compatibility and needs a distinct versioned transition.
 
-Policy grade slice. This slice bounds schema evolution to data-schema.schema-evolution. It uses `schema-evolution-slice-property-floor` and checks compatible_readers (nonempty): compatible readers must name the concrete repository contract.
+Policy grade slice `schema-evolution-slice-property-floor`: List the old and new readers checked against the change. An empty list means compatibility was assumed, so name each consumer version.

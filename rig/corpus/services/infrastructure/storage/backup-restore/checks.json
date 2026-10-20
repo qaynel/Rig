@@ -3,21 +3,21 @@
   "service_id": "infrastructure.storage.backup-restore",
   "input": "rig-services/infrastructure.storage.backup-restore.json",
   "format": "json",
-  "ceiling": "backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a backup schedule, a restore-test schedule and the untested-backup flag are declared; it does not show data is recoverable.",
   "offer": "Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.",
   "checks": {
     "minimal": [
       {
         "field": "backup_schedule",
         "op": "nonempty",
-        "reason": "backup schedule must name the concrete repository contract."
+        "reason": "Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence."
       }
     ],
     "mid": [
       {
         "field": "restore_test_schedule",
         "op": "nonempty",
-        "reason": "restore test schedule must name the concrete repository contract."
+        "reason": "Declare how often restores are tested. A backup never restored is unproven, so schedule independent restore tests."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "backup_without_restore_test",
         "op": "equals",
         "value": false,
-        "reason": "backup without restore test must be false."
+        "reason": "Set backup without a restore test to false. Successful backup creation cannot prove recovery, so require a restore test."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "backup_schedule",
         "op": "nonempty",
-        "reason": "backup schedule must name the concrete repository contract."
+        "reason": "Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "backup_schedule",
         "op": "nonempty",
-        "reason": "backup schedule must name the concrete repository contract."
+        "reason": "Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "backup_schedule",
         "op": "nonempty",
-        "reason": "backup schedule must name the concrete repository contract."
+        "reason": "Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "backup_schedule",
         "op": "nonempty",
-        "reason": "backup schedule must name the concrete repository contract."
+        "reason": "Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence."
       }
     }
   }

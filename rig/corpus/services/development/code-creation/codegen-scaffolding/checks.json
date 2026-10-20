@@ -3,21 +3,21 @@
   "service_id": "development.code-creation.codegen-scaffolding",
   "input": "rig-services/development.code-creation.codegen-scaffolding.json",
   "format": "json",
-  "ceiling": "codegen scaffolding configuration validation only; declared policy does not prove running codegen scaffolding behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the generator revision, generated paths and the no-overwrite setting are declared; it does not show that generation preserved hand-written files.",
   "offer": "Pin the generator revision and identify exactly which paths are generated. Generated output must never overwrite hand-written files without a separate decision.",
   "checks": {
     "minimal": [
       {
         "field": "generator_revision",
         "op": "nonempty",
-        "reason": "generator revision must name the concrete repository contract."
+        "reason": "Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit."
       }
     ],
     "mid": [
       {
         "field": "generated_paths",
         "op": "nonempty",
-        "reason": "generated paths must name the concrete repository contract."
+        "reason": "List the exact paths the generator owns. Without them hand-written code can be mistaken for generated code, so declare the generated directories or files."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "overwrite_user_files",
         "op": "equals",
         "value": false,
-        "reason": "overwrite user files must be false."
+        "reason": "Set overwrite of user files to false. A generator that overwrites hand-written files destroys work, so require a separate decision before it may."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "generator_revision",
         "op": "nonempty",
-        "reason": "generator revision must name the concrete repository contract."
+        "reason": "Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "generator_revision",
         "op": "nonempty",
-        "reason": "generator revision must name the concrete repository contract."
+        "reason": "Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "generator_revision",
         "op": "nonempty",
-        "reason": "generator revision must name the concrete repository contract."
+        "reason": "Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "generator_revision",
         "op": "nonempty",
-        "reason": "generator revision must name the concrete repository contract."
+        "reason": "Pin the generator revision. An unpinned generator changes output between runs, so record the exact version or commit."
       }
     }
   }

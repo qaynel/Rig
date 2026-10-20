@@ -2,4 +2,4 @@
 
 A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.
 
-Policy grade slice. This slice bounds dr runbooks to disaster-recovery.dr-runbooks. It uses `dr-runbooks-slice-behavior-oracle` and checks recovery_steps (nonempty): recovery steps must name the concrete repository contract.
+Policy grade slice `dr-runbooks-slice-behavior-oracle`: Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence. Despite its name this slice is not a behavior oracle: it confirms recovery steps, an exercise schedule and the ownerless-runbook flag are declared; it does not show the runbook was ever exercised.

@@ -1,17 +1,13 @@
-# test case generation
+# test-case-generation
 
 Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.
 
-Owned scope: `unit.test-case-generation`.
+Owned scope: `unit.test-case-generation`. Input: `rig-services/testing.unit.test-case-generation.json`.
 
-Offer: Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.
+Coverage ceiling: Configuration validation only, so it confirms behavior cases, asserted outcomes and the implementation-detail flag are declared; it does not generate tests.
 
-Input: `rig-services/testing.unit.test-case-generation.json`. Detection records the path even when its contents are malformed.
+minimal: behavior cases — ["reject malformed input"]. List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior.
 
-Coverage ceiling: test case generation configuration validation only; declared policy does not prove running test case generation behavior. Select an approved repository-owned command to verify that behavior.
+mid: asserted outcomes — ["throws invalid record"]. State a concrete expected outcome per case. An assertion without an expected value proves nothing, so write it.
 
-minimal: behavior cases — ["reject malformed input"].
-
-mid: asserted outcomes — ["throws invalid record"].
-
-maximal: assert implementation details — false.
+maximal: assert implementation details — false. Set asserting implementation details to false. Asserting private structure makes refactoring costly, so assert outputs.

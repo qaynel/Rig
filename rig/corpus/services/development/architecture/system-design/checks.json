@@ -3,28 +3,28 @@
   "service_id": "development.architecture.system-design",
   "input": "rig-services/development.architecture.system-design.json",
   "format": "json",
-  "ceiling": "system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms components, trust boundaries and failure modes are listed; it does not show that the design survives those failures.",
   "offer": "Name the system components and the trust boundaries between them. Evaluate failure modes before adopting the diagram as a design; arrows alone do not explain resilience.",
   "checks": {
     "minimal": [
       {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "Name every component of the system. An empty list leaves nothing to draw boundaries around, so enumerate the real services, stores and external callers."
       }
     ],
     "mid": [
       {
         "field": "trust_boundaries",
         "op": "nonempty",
-        "reason": "trust boundaries must name the concrete repository contract."
+        "reason": "Name each trust boundary between components. Without them an arrow could cross a privilege change unnoticed, so list where authority or data sensitivity changes."
       }
     ],
     "maximal": [
       {
         "field": "failure_modes",
         "op": "nonempty",
-        "reason": "failure modes must name the concrete repository contract."
+        "reason": "List the failure modes evaluated, such as dependency loss or partial writes. An empty list means resilience was assumed from the diagram, so add the failures you examined."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "Name every component of the system. An empty list leaves nothing to draw boundaries around, so enumerate the real services, stores and external callers."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "Name every component of the system. An empty list leaves nothing to draw boundaries around, so enumerate the real services, stores and external callers."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "Name every component of the system. An empty list leaves nothing to draw boundaries around, so enumerate the real services, stores and external callers."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "Name every component of the system. An empty list leaves nothing to draw boundaries around, so enumerate the real services, stores and external callers."
       }
     }
   }

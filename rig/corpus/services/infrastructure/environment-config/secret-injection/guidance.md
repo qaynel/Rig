@@ -1,17 +1,13 @@
-# secret injection
+# secret-injection
 
 Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.
 
-Owned scope: `runtime-secret-injection`, `secret-injection-wiring`.
+Owned scope: `runtime-secret-injection, secret-injection-wiring`. Input: `rig-services/infrastructure.environment-config.secret-injection.json`.
 
-Offer: Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.
+Coverage ceiling: Configuration validation only, so it confirms secret references, the delivery mechanism and the plaintext flag are declared; it does not read any secret store.
 
-Input: `rig-services/infrastructure.environment-config.secret-injection.json`. Detection records the path even when its contents are malformed.
+minimal: secret references — ["vault://app/db"]. List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store.
 
-Coverage ceiling: secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior.
+mid: delivery mechanism — "workload-identity". Declare how secrets reach the workload, such as workload identity. An undefined path invites plaintext files, so name the mechanism.
 
-minimal: secret references — ["vault://app/db"].
-
-mid: delivery mechanism — "workload-identity".
-
-maximal: plaintext secret values — false.
+maximal: plaintext secret values — false. Set plaintext secret values to false. A literal value in configuration is a leak, so remove it and rotate the secret.

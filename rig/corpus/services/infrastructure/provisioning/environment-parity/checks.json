@@ -3,21 +3,21 @@
   "service_id": "infrastructure.provisioning.environment-parity",
   "input": "rig-services/infrastructure.provisioning.environment-parity.json",
   "format": "json",
-  "ceiling": "environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms environments, intentional differences and the unrecorded-difference flag are declared; it does not compare deployed resources.",
   "offer": "Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.",
   "checks": {
     "minimal": [
       {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
       }
     ],
     "mid": [
       {
         "field": "intentional_differences",
         "op": "nonempty",
-        "reason": "intentional differences must name the concrete repository contract."
+        "reason": "Record the differences that are intentional. Unexplained differences are drift, so document each deliberate one."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "unrecorded_differences_allowed",
         "op": "equals",
         "value": false,
-        "reason": "unrecorded differences allowed must be false."
+        "reason": "Set unrecorded differences allowed to false. A hidden difference makes staging results meaningless, so record or remove it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
       }
     }
   }

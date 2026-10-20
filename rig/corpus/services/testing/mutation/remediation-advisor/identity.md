@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.remediation-advisor`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.remediation-advisor.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms remediation cases, target behaviors and the implementation-mirror flag are declared; it does not write tests.
 
 Policy checks: minimal requires `remediation_cases` = `["reject exact upper limit"]`; mid adds `target_behaviors` = `["limit enforcement"]`; maximal requires `add_implementation_mirrors` = `false`.

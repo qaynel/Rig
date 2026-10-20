@@ -3,21 +3,21 @@
   "service_id": "testing.test-data.fixtures-factories",
   "input": "rig-services/testing.test-data.fixtures-factories.json",
   "format": "json",
-  "ceiling": "fixtures factories configuration validation only; declared policy does not prove running fixtures factories behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms fixture defaults, explicit variants and the shared-mutable-state flag are declared; it does not build fixtures.",
   "offer": "Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.",
   "checks": {
     "minimal": [
       {
         "field": "fixture_defaults",
         "op": "nonempty",
-        "reason": "fixture defaults must name the concrete repository contract."
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
       }
     ],
     "mid": [
       {
         "field": "explicit_variants",
         "op": "nonempty",
-        "reason": "explicit variants must name the concrete repository contract."
+        "reason": "List the explicit variants for each behavior. Implicit variants obscure what is tested, so name them."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "shared_mutable_state",
         "op": "equals",
         "value": false,
-        "reason": "shared mutable state must be false."
+        "reason": "Set shared mutable state to false. Tests changing shared fixtures affect each other, so build fresh data per test."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "fixture_defaults",
         "op": "nonempty",
-        "reason": "fixture defaults must name the concrete repository contract."
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "fixture_defaults",
         "op": "nonempty",
-        "reason": "fixture defaults must name the concrete repository contract."
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "fixture_defaults",
         "op": "nonempty",
-        "reason": "fixture defaults must name the concrete repository contract."
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "fixture_defaults",
         "op": "nonempty",
-        "reason": "fixture defaults must name the concrete repository contract."
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
       }
     }
   }

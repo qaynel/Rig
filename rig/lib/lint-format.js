@@ -12,7 +12,7 @@ const {
   executableAvailable,
 } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
-const { verifySshsig } = require('./policy');
+const { verifyTrustRootApproval } = require('./trust-root');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
 const { resumeInstall, uninstall: uninstallLifecycle } = require('./lifecycle');
 const { writeEvidence } = require('./evidence-artifacts');
@@ -482,8 +482,7 @@ function executePlan(plan, approval) {
   if (!signed || signed.method !== 'external-sshsig' || typeof signed.identity !== 'string' || typeof signed.signature !== 'string') {
     throw new Error('executePlan: verified external SSHSIG approval required');
   }
-  verifySshsig({
-    allowedSigners: containedPath(plan.target, '.rig/allowed-signers'),
+  verifyTrustRootApproval(plan.target, {
     identity: signed.identity,
     namespace: 'rig-plan-approval',
     message: planApprovalMessage(plan.plan_digest, approval.approval_id),
@@ -787,12 +786,38 @@ function diffSnapshots(a, b) {
 
 const AUTOFIX_HALT_STATUSES = new Set(['timeout', 'memory_exceeded', 'memory_ceiling_unavailable']);
 
+// The approved plan binds the exact fix argv, the verify argv, the network grant,
+// the limits and the target, so a signature for one fix cannot authorise another.
+function planAutofix(target, cmd) {
+  if (!cmd || !Array.isArray(cmd.argv) || cmd.argv.length === 0) throw new Error('runAutofix: fix argv required');
+  if (!Array.isArray(cmd.verify) || cmd.verify.length === 0) throw new Error('runAutofix: a verification command (verify) is required before any fix runs');
+  return planExecution({
+    target,
+    commands: [{
+      role: 'autofix',
+      argv: cmd.argv,
+      verify: cmd.verify,
+      network: cmd.network === true,
+      dependencies: cmd.dependencies || [],
+      timeout_ms: cmd.timeout_ms || cmd.timeoutMs || null,
+      memory_limit_mb: cmd.memory_limit_mb || null,
+      max_output_bytes: cmd.max_output_bytes || null,
+    }],
+  });
+}
+
+// AT-LF-12: the fix runs only under its own signed, single-use plan approval
+// (verified against the Gate 1 key), then the verify command is actually run
+// and its real result is reported. Nothing is committed.
 function runAutofix(target, cmd, approval) {
-  if (!approval || !approval.verified) throw new Error('runAutofix: approval required');
+  if (!approval) throw new Error('runAutofix: approval required');
+  const plan = planAutofix(target, cmd);
   const isolation = networkIsolationPrefix();
   if (!isolation && cmd.network !== true) {
-    return { verification: 'skipped', status: 'network_isolation_unavailable' };
+    return { verification: 'not_run', status: 'network_isolation_unavailable' };
   }
+  const authorised = executePlan(plan, approval);
+  if (authorised.status !== 'executed') throw new Error(`runAutofix: approval not authorized (${authorised.status})`);
   const runOpts = {
     cwd: target,
     timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
@@ -803,16 +828,14 @@ function runAutofix(target, cmd, approval) {
   };
   const fixResult = runCommand(argvWithNetworkIsolation(cmd, isolation), runOpts);
   if (AUTOFIX_HALT_STATUSES.has(fixResult.status)) {
-    return { verification: 'skipped', status: fixResult.status };
+    return { verification: 'not_run', status: fixResult.status };
   }
-  if (cmd.verify) {
-    const verifyResult = runCommand(argvWithNetworkIsolation({ argv: cmd.verify, network: cmd.network }, isolation), runOpts);
-    if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
-      return { verification: 'skipped', status: verifyResult.status };
-    }
-    return { verification: verifyResult.exit_code === 0 ? 'pass' : 'fail' };
+  const verifyResult = runCommand(argvWithNetworkIsolation({ argv: cmd.verify, network: cmd.network }, isolation), runOpts);
+  if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
+    return { verification: 'not_run', status: verifyResult.status };
   }
-  return { verification: 'skipped' };
+  const passed = verifyResult.status === 'completed' && verifyResult.exit_code === 0;
+  return { verification: passed ? 'pass' : 'fail', status: verifyResult.status, fix_status: fixResult.status };
 }
 
 function planCi({ grade, target, provider, approved, spec }) {
@@ -922,6 +945,7 @@ module.exports = {
   runReadOnly,
   snapshotDir,
   diffSnapshots,
+  planAutofix,
   runAutofix,
   planCi,
   buildReport,

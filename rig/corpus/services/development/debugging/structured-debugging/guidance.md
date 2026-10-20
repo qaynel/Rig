@@ -1,17 +1,13 @@
-# structured debugging
+# structured-debugging
 
 Capture a repeatable failure before changing code and rank hypotheses from evidence. One experiment should separate explanations; speculative fixes before reproduction erase useful evidence.
 
-Owned scope: `debugging.structured-debugging`.
+Owned scope: `debugging.structured-debugging`. Input: `rig-services/development.debugging.structured-debugging.json`.
 
-Offer: Capture a repeatable failure before changing code and rank hypotheses from evidence. One experiment should separate explanations; speculative fixes before reproduction erase useful evidence.
+Coverage ceiling: Configuration validation only, so it confirms reproduction steps, ranked hypotheses and the change-before-reproduction flag are declared; it does not show the bug is reproducible.
 
-Input: `rig-services/development.debugging.structured-debugging.json`. Detection records the path even when its contents are malformed.
+minimal: reproduction steps — ["run failing case"]. Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first.
 
-Coverage ceiling: structured debugging configuration validation only; declared policy does not prove running structured debugging behavior. Select an approved repository-owned command to verify that behavior.
+mid: ranked hypotheses — ["invalid input reaches parser"]. Rank the hypotheses by evidence, each with the experiment that separates it. An unranked list invites guessing, so order them and name the discriminating test.
 
-minimal: reproduction steps — ["run failing case"].
-
-mid: ranked hypotheses — ["invalid input reaches parser"].
-
-maximal: change before reproduction — false.
+maximal: change before reproduction — false. Set change before reproduction to false. Editing code before the failure reproduces destroys the evidence, so reproduce first.

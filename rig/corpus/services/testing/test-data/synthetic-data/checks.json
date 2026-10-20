@@ -3,14 +3,14 @@
   "service_id": "testing.test-data.synthetic-data",
   "input": "rig-services/testing.test-data.synthetic-data.json",
   "format": "json",
-  "ceiling": "synthetic data configuration validation only; declared policy does not prove running synthetic data behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms generation rules, a seed and the customer-records flag are declared; it does not generate data.",
   "offer": "Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.",
   "checks": {
     "minimal": [
       {
         "field": "generation_rules",
         "op": "nonempty",
-        "reason": "generation rules must name the concrete repository contract."
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "seed",
         "op": "minimum",
         "value": 42,
-        "reason": "seed must meet the configured minimum of 42."
+        "reason": "Fix a seed, at least 42 as a value. Deterministic output makes failures reproducible, so record it."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "use_customer_records",
         "op": "equals",
         "value": false,
-        "reason": "use customer records must be false."
+        "reason": "Set using customer records to false. Real customer data must not become test data, so generate it instead."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "generation_rules",
         "op": "nonempty",
-        "reason": "generation rules must name the concrete repository contract."
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "generation_rules",
         "op": "nonempty",
-        "reason": "generation rules must name the concrete repository contract."
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "generation_rules",
         "op": "nonempty",
-        "reason": "generation rules must name the concrete repository contract."
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "generation_rules",
         "op": "nonempty",
-        "reason": "generation rules must name the concrete repository contract."
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
       }
     }
   }

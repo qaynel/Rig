@@ -3,28 +3,28 @@
   "service_id": "development.repo-hygiene.status-updates",
   "input": "rig-services/development.repo-hygiene.status-updates.json",
   "format": "json",
-  "ceiling": "status updates configuration validation only; declared policy does not prove running status updates behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms completed work, in-flight work and a next action are written; it does not show the status is accurate.",
   "offer": "Report observed progress, the work in flight and the next resolving action. Distinguish finished evidence from intended work so another contributor can resume accurately.",
   "checks": {
     "minimal": [
       {
         "field": "completed",
         "op": "nonempty",
-        "reason": "completed must name the concrete repository contract."
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
       }
     ],
     "mid": [
       {
         "field": "in_flight",
         "op": "nonempty",
-        "reason": "in flight must name the concrete repository contract."
+        "reason": "List the work in flight. Another contributor cannot resume without it, so name the open tasks and who holds them."
       }
     ],
     "maximal": [
       {
         "field": "next_action",
         "op": "nonempty",
-        "reason": "next action must name the concrete repository contract."
+        "reason": "State the next resolving action. A status without a next step leaves the work stalled, so write the single action that moves it forward."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "completed",
         "op": "nonempty",
-        "reason": "completed must name the concrete repository contract."
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "completed",
         "op": "nonempty",
-        "reason": "completed must name the concrete repository contract."
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "completed",
         "op": "nonempty",
-        "reason": "completed must name the concrete repository contract."
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "completed",
         "op": "nonempty",
-        "reason": "completed must name the concrete repository contract."
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
       }
     }
   }

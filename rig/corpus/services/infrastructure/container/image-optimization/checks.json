@@ -3,21 +3,21 @@
   "service_id": "infrastructure.container.image-optimization",
   "input": "rig-services/infrastructure.container.image-optimization.json",
   "format": "json",
-  "ceiling": "image optimization configuration validation only; declared policy does not prove running image optimization behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the base image digest, runtime user and the build-secret flag are declared; it does not inspect a built image.",
   "offer": "Pin the container base and use an unprivileged runtime user. Build secrets must not enter the resulting image layers; config inspection alone cannot verify a built image.",
   "checks": {
     "minimal": [
       {
         "field": "base_image_digest",
         "op": "nonempty",
-        "reason": "base image digest must name the concrete repository contract."
+        "reason": "Pin the base image by digest. A tag can change underneath the build, so record the immutable digest."
       }
     ],
     "mid": [
       {
         "field": "runtime_user",
         "op": "nonempty",
-        "reason": "runtime user must name the concrete repository contract."
+        "reason": "Name an unprivileged runtime user. Running as root widens the blast radius, so declare a non-root user."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "include_build_secrets",
         "op": "equals",
         "value": false,
-        "reason": "include build secrets must be false."
+        "reason": "Set including build secrets to false. Secrets copied into layers persist in the image, so use build-time mounts that leave no layer."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "base_image_digest",
         "op": "nonempty",
-        "reason": "base image digest must name the concrete repository contract."
+        "reason": "Pin the base image by digest. A tag can change underneath the build, so record the immutable digest."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "base_image_digest",
         "op": "nonempty",
-        "reason": "base image digest must name the concrete repository contract."
+        "reason": "Pin the base image by digest. A tag can change underneath the build, so record the immutable digest."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "base_image_digest",
         "op": "nonempty",
-        "reason": "base image digest must name the concrete repository contract."
+        "reason": "Pin the base image by digest. A tag can change underneath the build, so record the immutable digest."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "base_image_digest",
         "op": "nonempty",
-        "reason": "base image digest must name the concrete repository contract."
+        "reason": "Pin the base image by digest. A tag can change underneath the build, so record the immutable digest."
       }
     }
   }

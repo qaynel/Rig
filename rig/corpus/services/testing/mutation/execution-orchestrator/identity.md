@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.execution-orchestrator`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.execution-orchestrator.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms a worker limit, per-mutant timeout and the shared-worktree flag are declared; it does not run workers.
 
 Policy checks: minimal requires `worker_limit` = `2`; mid adds `per_mutant_timeout_ms` = `1000`; maximal requires `share_mutable_worktrees` = `false`.

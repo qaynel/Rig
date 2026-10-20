@@ -3,14 +3,14 @@
   "service_id": "development.code-quality.code-review",
   "input": "rig-services/development.code-quality.code-review.json",
   "format": "json",
-  "ceiling": "code review configuration validation only; declared policy does not prove running code review behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms review scope, reviewer count and the unresolved-findings setting are declared; it does not show the review was thorough.",
   "offer": "Review the actual changed scope with independent ownership. At least one reviewer must resolve or explicitly disposition every finding before the change earns a clean review.",
   "checks": {
     "minimal": [
       {
         "field": "review_scope",
         "op": "nonempty",
-        "reason": "review scope must name the concrete repository contract."
+        "reason": "State the changed scope under review. A review without a scope may cover nothing, so list the files or diff range actually examined."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "required_reviewers",
         "op": "minimum",
         "value": 1,
-        "reason": "required reviewers must meet the configured minimum of 1."
+        "reason": "Require at least 1 reviewer who did not author the change. Zero reviewers is self-approval, so set the minimum reviewer count to 1 or more."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "unresolved_findings_allowed",
         "op": "equals",
         "value": false,
-        "reason": "unresolved findings allowed must be false."
+        "reason": "Unresolved findings must not be allowed. Setting this to true lets a change merge with open findings, so resolve or explicitly disposition each one."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "review_scope",
         "op": "nonempty",
-        "reason": "review scope must name the concrete repository contract."
+        "reason": "State the changed scope under review. A review without a scope may cover nothing, so list the files or diff range actually examined."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "review_scope",
         "op": "nonempty",
-        "reason": "review scope must name the concrete repository contract."
+        "reason": "State the changed scope under review. A review without a scope may cover nothing, so list the files or diff range actually examined."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "review_scope",
         "op": "nonempty",
-        "reason": "review scope must name the concrete repository contract."
+        "reason": "State the changed scope under review. A review without a scope may cover nothing, so list the files or diff range actually examined."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "review_scope",
         "op": "nonempty",
-        "reason": "review scope must name the concrete repository contract."
+        "reason": "State the changed scope under review. A review without a scope may cover nothing, so list the files or diff range actually examined."
       }
     }
   }

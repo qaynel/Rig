@@ -3,21 +3,21 @@
   "service_id": "testing.flaky-reliability.intermittent-rca",
   "input": "rig-services/testing.flaky-reliability.intermittent-rca.json",
   "format": "json",
-  "ceiling": "intermittent rca configuration validation only; declared policy does not prove running intermittent rca behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms observed conditions, reproduction attempts and the blame-randomness flag are declared; it does not reproduce the failure.",
   "offer": "Capture the conditions correlated with intermittent failure and run discriminating reproductions. Calling a defect random without evidence delays the actual scheduling or resource cause.",
   "checks": {
     "minimal": [
       {
         "field": "observed_conditions",
         "op": "nonempty",
-        "reason": "observed conditions must name the concrete repository contract."
+        "reason": "Record the conditions seen when the failure occurs, such as load or ordering. Without them the cause stays a guess, so list the correlations."
       }
     ],
     "mid": [
       {
         "field": "reproduction_attempts",
         "op": "nonempty",
-        "reason": "reproduction attempts must name the concrete repository contract."
+        "reason": "List the reproduction attempts and what each varied. Single runs cannot separate causes, so record discriminating tries."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "blame_randomness_without_evidence",
         "op": "equals",
         "value": false,
-        "reason": "blame randomness without evidence must be false."
+        "reason": "Set blaming randomness without evidence to false. Calling it random delays finding the scheduling or resource cause, so show data."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "observed_conditions",
         "op": "nonempty",
-        "reason": "observed conditions must name the concrete repository contract."
+        "reason": "Record the conditions seen when the failure occurs, such as load or ordering. Without them the cause stays a guess, so list the correlations."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "observed_conditions",
         "op": "nonempty",
-        "reason": "observed conditions must name the concrete repository contract."
+        "reason": "Record the conditions seen when the failure occurs, such as load or ordering. Without them the cause stays a guess, so list the correlations."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "observed_conditions",
         "op": "nonempty",
-        "reason": "observed conditions must name the concrete repository contract."
+        "reason": "Record the conditions seen when the failure occurs, such as load or ordering. Without them the cause stays a guess, so list the correlations."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "observed_conditions",
         "op": "nonempty",
-        "reason": "observed conditions must name the concrete repository contract."
+        "reason": "Record the conditions seen when the failure occurs, such as load or ordering. Without them the cause stays a guess, so list the correlations."
       }
     }
   }

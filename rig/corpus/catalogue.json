@@ -61,7 +61,7 @@
       "reuses": "skills/rig/SKILL.md",
       "disposition": {
         "kind": "executable",
-        "reason": "feature implementation configuration validation only; declared policy does not prove running feature implementation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms acceptance cases, change scope and compatibility notes are declared; it does not show the implemented feature meets them.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -151,7 +151,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "refactoring configuration validation only; declared policy does not prove running refactoring behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms preserved behaviors, a zero API-change count and a rollback route are declared; it does not show that behavior is unchanged.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -241,7 +241,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "codegen scaffolding configuration validation only; declared policy does not prove running codegen scaffolding behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the generator revision, generated paths and the no-overwrite setting are declared; it does not show that generation preserved hand-written files.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -331,7 +331,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "api client generation configuration validation only; declared policy does not prove running api client generation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the specification path, compatibility version and unknown-response policy are declared; it does not show the generated client matches the live API.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -378,7 +378,7 @@
       ],
       "disposition": {
         "kind": "executable",
-        "reason": "lint format configuration validation only; declared policy does not prove running lint format behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the format and lint commands and the autofix setting are declared; it does not show the sources are formatted or lint-clean.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -511,7 +511,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "typecheck configuration validation only; declared policy does not prove running typecheck behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the type-check command, covered components and suppression setting are declared; it does not show the code type-checks.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -605,7 +605,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "correctness static configuration validation only; declared policy does not prove running correctness static behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the analyzer command, enabled rules and failure handling are declared; it does not show the analyzer ran or found nothing.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -696,7 +696,7 @@
       "reuses": "rig/corpus/skills/code-review/SKILL.md",
       "disposition": {
         "kind": "executable",
-        "reason": "code review configuration validation only; declared policy does not prove running code review behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms review scope, reviewer count and the unresolved-findings setting are declared; it does not show the review was thorough.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -787,7 +787,7 @@
       "reuses": "rig/corpus/skills/debugging/SKILL.md",
       "disposition": {
         "kind": "executable",
-        "reason": "structured debugging configuration validation only; declared policy does not prove running structured debugging behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms reproduction steps, ranked hypotheses and the change-before-reproduction flag are declared; it does not show the bug is reproducible.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -877,7 +877,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "log trace analysis configuration validation only; declared policy does not prove running log trace analysis behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms trace fields, redacted fields and the no-credential-logging setting are declared; it does not show logs are actually clean.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -967,7 +967,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "root cause analysis configuration validation only; declared policy does not prove running root cause analysis behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the failure boundary, causal evidence and the symptom-only-fix flag are declared; it does not show the cause is correct.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1057,7 +1057,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "upgrades migration configuration validation only; declared policy does not prove running upgrades migration behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms target versions, migration steps and rollback availability are declared; it does not show the upgrade is compatible.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1147,7 +1147,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "deprecation triage configuration validation only; declared policy does not prove running deprecation triage behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms deprecated APIs, replacement owners and the deadline-handling flag are declared; it does not show the migration is done.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1237,7 +1237,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "api reference configuration validation only; declared policy does not prove running api reference behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms documented endpoints, error responses and the authentication flag are declared; it does not show the documentation matches the live API.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1327,7 +1327,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "adrs configuration validation only; declared policy does not prove running adrs behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a decision, alternatives and consequences are written; it does not show the decision is sound or still current.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1417,7 +1417,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "docstrings configuration validation only; declared policy does not prove running docstrings behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms documented symbols, parameters and failure contracts are listed; it does not show the docstrings are accurate.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1598,7 +1598,7 @@
       "reuses": "rig/corpus/skills/product-design/SKILL.md",
       "disposition": {
         "kind": "executable",
-        "reason": "system design configuration validation only; declared policy does not prove running system design behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms components, trust boundaries and failure modes are listed; it does not show that the design survives those failures.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1688,7 +1688,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "tech debt configuration validation only; declared policy does not prove running tech debt behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms debt items, owners and exit criteria are written down; it does not show that any debt is repaid or the cost measured.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1778,7 +1778,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "design review configuration validation only; declared policy does not prove running design review behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms interfaces, tradeoffs and an unresolved-tradeoff count are declared; it does not show that the review found the real design flaws.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1868,7 +1868,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "db migrations configuration validation only; declared policy does not prove running db migrations behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms migration order, rollback steps and the destructive-change flag are declared; it does not show migrations apply or roll back.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -1958,7 +1958,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "schema evolution configuration validation only; declared policy does not prove running schema evolution behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms compatible readers, unknown-field handling and the no-removal setting are declared; it does not show old and new readers interoperate.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2049,7 +2049,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "profiling configuration validation only; declared policy does not prove running profiling behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the workload, measured metrics and the no-guess flag are declared; it does not show a profile was actually taken.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2139,7 +2139,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "issue pr triage configuration validation only; declared policy does not prove running issue pr triage behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms triage labels, owners and the close-without-disposition flag are declared; it does not show issues were actually triaged.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2229,7 +2229,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms candidate paths, reference checks and the no-recovery-delete flag are declared; it does not show the candidates are really unused.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2319,7 +2319,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "status updates configuration validation only; declared policy does not prove running status updates behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms completed work, in-flight work and a next action are written; it does not show the status is accurate.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2410,7 +2410,7 @@
       "reuses": "rig/corpus/skills/tdd/SKILL.md",
       "disposition": {
         "kind": "executable",
-        "reason": "test case generation configuration validation only; declared policy does not prove running test case generation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms behavior cases, asserted outcomes and the implementation-detail flag are declared; it does not generate tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2500,7 +2500,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "edge boundary configuration validation only; declared policy does not prove running edge boundary behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms boundary cases, invalid cases and the normal-only flag are declared; it does not run the tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2590,7 +2590,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "mocking strategy configuration validation only; declared policy does not prove running mocking strategy behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms mocked boundaries, real components and the mock-subject flag are declared; it does not run the tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2680,7 +2680,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "cross module configuration validation only; declared policy does not prove running cross module behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms participating modules, interaction cases and the stub-internals flag are declared; it does not run the modules.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2770,7 +2770,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "external service configuration validation only; declared policy does not prove running external service behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms external contracts, failure cases and the production-account flag are declared; it does not call the service.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2860,7 +2860,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "internal contract configuration validation only; declared policy does not prove running internal contract behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the producer schema, consumer versions and the breaking-change flag are declared; it does not compare live schemas.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -2952,7 +2952,7 @@
       "surfaceless_reason": "No browser or UI surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "user journeys configuration validation only; declared policy does not prove running user journeys behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms journeys, observable outcomes and the page-load-only flag are declared; it does not execute a journey.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3044,7 +3044,7 @@
       "surfaceless_reason": "No browser or UI surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "browser automation configuration validation only; declared policy does not prove running browser automation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms browser targets, interaction steps and the fixed-sleep flag are declared; it does not drive a browser.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3136,7 +3136,7 @@
       "surfaceless_reason": "No browser or UI surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "cross environment configuration validation only; declared policy does not prove running cross environment behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms environments, shared cases and the platform-equivalence flag are declared; it does not run on any platform.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3226,7 +3226,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "coverage gap configuration validation only; declared policy does not prove running coverage gap behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms uncovered behaviors, risk owners and the line-coverage-complete flag are declared; it does not measure coverage.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3316,7 +3316,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "pyramid balance configuration validation only; declared policy does not prove running pyramid balance behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms unit suites, integration suites and the e2e-only flag are declared; it does not count tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3406,7 +3406,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "risk prioritization configuration validation only; declared policy does not prove running risk prioritization behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms high-risk behaviors, impact scores and the easy-cases-only flag are declared; it does not rank anything.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3496,7 +3496,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "suite curation configuration validation only; declared policy does not prove running suite curation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms retained suites, retirement reasons and the no-owner flag are declared; it does not run the suites.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3586,7 +3586,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "change impact configuration validation only; declared policy does not prove running change impact behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms changed interfaces, affected suites and the filename-only flag are declared; it does not trace callers.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3676,7 +3676,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "snapshot golden configuration validation only; declared policy does not prove running snapshot golden behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms golden paths, reviewed diffs and the auto-accept flag are declared; it does not compare snapshots.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3766,7 +3766,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "invariant identification configuration validation only; declared policy does not prove running invariant identification behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms invariants, an input domain and the derive-from-subject flag are declared; it does not run properties.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3856,7 +3856,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "fuzz input generation configuration validation only; declared policy does not prove running fuzz input generation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms input seeds, a reproduction seed and the unbounded-size flag are declared; it does not fuzz anything.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -3946,7 +3946,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "shrinking configuration validation only; declared policy does not prove running shrinking behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a failure predicate, preserved constraints and the drop-failure flag are declared; it does not shrink inputs.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4036,7 +4036,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "fixtures factories configuration validation only; declared policy does not prove running fixtures factories behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms fixture defaults, explicit variants and the shared-mutable-state flag are declared; it does not build fixtures.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4126,7 +4126,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "synthetic data configuration validation only; declared policy does not prove running synthetic data behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms generation rules, a seed and the customer-records flag are declared; it does not generate data.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4216,7 +4216,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "anonymization configuration validation only; declared policy does not prove running anonymization behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms sensitive fields, a replacement strategy and the re-identification-map flag are declared; it does not read any data.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4306,7 +4306,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "detection quarantine configuration validation only; declared policy does not prove running detection quarantine behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms flaky cases, quarantine owners and the silent-quarantine flag are declared; it does not run the tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4396,7 +4396,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "intermittent rca configuration validation only; declared policy does not prove running intermittent rca behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms observed conditions, reproduction attempts and the blame-randomness flag are declared; it does not reproduce the failure.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4486,7 +4486,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "retry hardening configuration validation only; declared policy does not prove running retry hardening behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms retryable failures, an attempt cap and the retry-assertions flag are declared; it does not execute retries.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4577,7 +4577,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "load stress scripts configuration validation only; declared policy does not prove running load stress scripts behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a load profile, stop conditions and the production-default flag are declared; it does not generate load.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4667,7 +4667,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "benchmarks configuration validation only; declared policy does not prove running benchmarks behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a benchmark workload, sample count and the single-sample flag are declared; it does not run benchmarks.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4757,7 +4757,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms tracked metrics, a regression budget and the ignore-failure flag are declared; it does not run CI.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4847,7 +4847,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "dead test pruning configuration validation only; declared policy does not prove running dead test pruning behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms obsolete cases, replacement evidence and the delete-live-regression flag are declared; it does not run the suite.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -4937,7 +4937,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "readability dry configuration validation only; declared policy does not prove running readability dry behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms scenario names, shared helpers and the hidden-assertion flag are declared; it does not read the tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5027,7 +5027,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "test code sync configuration validation only; declared policy does not prove running test code sync behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms changed behaviors, updated cases and the follow-output flag are declared; it does not compare tests with code.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5122,7 +5122,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "mutant generator configuration validation only; declared policy does not prove running mutant generator behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms mutation operators, target paths and the mutate-tests flag are declared; it does not generate mutants.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5212,7 +5212,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a selection scope, sampling seed and the exhaustive-claim flag are declared; it does not sample mutants.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5302,7 +5302,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms equivalence evidence, review owners and the survival-only flag are declared; it does not analyze mutants.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5401,7 +5401,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "execution orchestrator configuration validation only; declared policy does not prove running execution orchestrator behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a worker limit, per-mutant timeout and the shared-worktree flag are declared; it does not run workers.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5491,7 +5491,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "survivor rca configuration validation only; declared policy does not prove running survivor rca behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms surviving mutants, missing assertions and the equivalence-question flag are declared; it does not examine survivors.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5581,7 +5581,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "remediation advisor configuration validation only; declared policy does not prove running remediation advisor behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms remediation cases, target behaviors and the implementation-mirror flag are declared; it does not write tests.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5671,7 +5671,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms killed and valid mutant counts and the invalid-in-score flag are declared; it does not compute a score.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5761,7 +5761,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "ci gate policy configuration validation only; declared policy does not prove running ci gate policy behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a score threshold, a timeout policy and the unrun-mutant flag are declared; it does not run mutation testing.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5851,7 +5851,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "run reporting configuration validation only; declared policy does not prove running run reporting behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms reported outcomes, the input revision and the raw-secret flag are declared; it does not produce a report.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -5941,7 +5941,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms source extensions, a compiler command and the parse-error flag are declared; it does not compile anything.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6031,7 +6031,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "iac authoring configuration validation only; declared policy does not prove running iac authoring behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms resource names, a state backend and the unreviewed-apply flag are declared; it does not read live infrastructure.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6121,7 +6121,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms environments, intentional differences and the unrecorded-difference flag are declared; it does not compare deployed resources.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6211,7 +6211,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "capacity planning configuration validation only; declared policy does not prove running capacity planning behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a peak request rate, headroom and the growth-forecast flag are declared; it does not test that the hardware sustains the load.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6301,7 +6301,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "pipeline definition configuration validation only; declared policy does not prove running pipeline definition behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms pipeline stages, required checks and the deploy-after-failure flag are declared; it does not show the pipeline blocks a failing build.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6391,7 +6391,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "deployment strategy configuration validation only; declared policy does not prove running deployment strategy behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the rollout strategy, rollback trigger and the no-unchecked-rollout flag are declared; it does not show a canary or rollback ever ran.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6481,7 +6481,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "release gating configuration validation only; declared policy does not prove running release gating behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms required gates, the release revision and the stale-result flag are declared; it does not show the gates passed for that artifact.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6571,7 +6571,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "image optimization configuration validation only; declared policy does not prove running image optimization behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the base image digest, runtime user and the build-secret flag are declared; it does not inspect a built image.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6661,7 +6661,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "k8s helm configuration validation only; declared policy does not prove running k8s helm behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms resource limits, a readiness probe and the latest-tag flag are declared; it does not show the workload schedules or becomes ready.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6751,7 +6751,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "service mesh configuration validation only; declared policy does not prove running service mesh behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms mesh services, transport security and the plaintext-fallback flag are declared; it does not show traffic is actually encrypted.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6841,7 +6841,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "load balancer ingress configuration validation only; declared policy does not prove running load balancer ingress behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the backend health path, request timeout and the admin-route flag are declared; it does not probe a live balancer.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -6931,7 +6931,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "dns discovery configuration validation only; declared policy does not prove running dns discovery behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only; declared policy does not prove running DNS discovery behavior, so it confirms service records, a TTL and the hardcoded-address flag are declared and never resolves a record.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7021,7 +7021,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms allowed ingress, a default action and the world-admin flag are declared; it does not read the live firewall.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7111,7 +7111,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "metrics dashboards configuration validation only; declared policy does not prove running metrics dashboards behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms service metrics, a dashboard owner and the omitted-error-metric flag are declared; it does not read any dashboard.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7201,7 +7201,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "distributed tracing configuration validation only; declared policy does not prove running distributed tracing behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms trace propagation, a sampling policy and the sensitive-payload flag are declared; it does not show traces are collected.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7291,7 +7291,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "alerting configuration validation only; declared policy does not prove running alerting behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms alert conditions, a runbook path and the ownerless-alert flag are declared; it does not show alerts fire or reach anyone.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7381,7 +7381,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "db provisioning configuration validation only; declared policy does not prove running db provisioning behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the database version, access scope and the public-endpoint flag are declared; it does not read the managed service.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7471,7 +7471,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a backup schedule, a restore-test schedule and the untested-backup flag are declared; it does not show data is recoverable.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7561,7 +7561,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "tiering lifecycle configuration validation only; declared policy does not prove running tiering lifecycle behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms storage classes, retention days and the early-delete flag are declared; it does not read bucket policies.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7651,7 +7651,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "autoscaling configuration validation only; declared policy does not prove running autoscaling behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the scaling metric, a replica ceiling and the scale-to-zero flag are declared; it does not show scaling happens.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7741,7 +7741,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "capacity load configuration validation only; declared policy does not prove running capacity load behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the load workload, latency objective and the unbounded-duration flag are declared; it does not generate load.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7831,7 +7831,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "chaos engineering configuration validation only; declared policy does not prove running chaos engineering behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms fault scenarios, stop conditions and the unapproved-production flag are declared; it does not inject any fault.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -7921,7 +7921,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "utilization analysis configuration validation only; declared policy does not prove running utilization analysis behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms observed resources, the observation window and the single-peak flag are declared; it does not read utilization data.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8011,7 +8011,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "anomaly detection configuration validation only; declared policy does not prove running anomaly detection behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a cost baseline, deviation threshold and the missing-data flag are declared; it does not read real billing data.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8101,7 +8101,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "rightsizing configuration validation only; declared policy does not prove running rightsizing behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms candidate resources, headroom and the no-evidence-resize flag are declared; it does not read workload measurements.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8192,7 +8192,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "secret injection configuration validation only; declared policy does not prove running secret injection behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms secret references, the delivery mechanism and the plaintext flag are declared; it does not read any secret store.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8282,7 +8282,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "feature flags configuration validation only; declared policy does not prove running feature flags behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms flag names, a rollback owner and the permanent-unowned flag are declared; it does not read live flag state.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8372,7 +8372,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "config drift configuration validation only; declared policy does not prove running config drift behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms authoritative sources, a comparison schedule and the silent-drift flag are declared; it does not compare live settings.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8463,7 +8463,7 @@
       "reuses": "rig/lib/renderers.js",
       "disposition": {
         "kind": "executable",
-        "reason": "mcp compatibility configuration validation only; declared policy does not prove running mcp compatibility behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the MCP transport, protocol revision and the embedded-credential flag are declared; it does not perform a handshake with a live server.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8553,7 +8553,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms recovery steps, an exercise schedule and the ownerless-runbook flag are declared; it does not show the runbook was ever exercised.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8643,7 +8643,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "failover configuration validation only; declared policy does not prove running failover behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the failover trigger, fencing strategy and the split-brain flag are declared; it does not show failover works.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8733,7 +8733,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "rto rpo configuration validation only; declared policy does not prove running rto rpo behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms recovery-time and data-loss objectives and the untested-claim flag are declared; it does not measure a real recovery.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8823,7 +8823,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "encrypted store configuration validation only; declared policy does not prove running encrypted store behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the secret store, encryption at rest and the plaintext flag are declared; it does not inspect the deployed vault.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -8913,7 +8913,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "toy relaxation configuration validation only; declared policy does not prove running toy relaxation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms toy scope, an expiry and the production-use flag are declared; it does not enforce the expiry.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9003,7 +9003,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "precommit leak scanner configuration validation only; declared policy does not prove running precommit leak scanner behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the scanner command, scan scope and the ignore-exit flag are declared; it does not run the scanner.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9093,7 +9093,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "rotation reminder configuration validation only; declared policy does not prove running rotation reminder behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms credential classes, a rotation interval and the ownerless flag are declared; it does not show any credential was rotated.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9184,7 +9184,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "sast configuration validation only; declared policy does not prove running sast behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms the scanner command, rule sets and the ignore-errors flag are declared; it does not run SAST.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9274,7 +9274,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "sca configuration validation only; declared policy does not prove running sca behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms dependency manifests, a severity threshold and the omit-transitive flag are declared; it does not consult a vulnerability database.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9364,7 +9364,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "secrets in deps configuration validation only; declared policy does not prove running secrets in deps behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms dependency paths, a redaction policy and the verbatim-findings flag are declared; it does not inspect dependency content.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9454,7 +9454,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "iac scan configuration validation only; declared policy does not prove running iac scan behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms IaC paths, a scanner command and the missing-scanner flag are declared; it does not scan infrastructure.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9544,7 +9544,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "scan depth configuration validation only; declared policy does not prove running scan depth behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms scan layers, a depth ceiling and the silent-partial-scan flag are declared; it does not traverse anything.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9634,7 +9634,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms an SBOM format, components and the omit-versions flag are declared; it does not generate or validate an SBOM.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9724,7 +9724,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "policy conflict configuration validation only; declared policy does not prove running policy conflict behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms allowed licenses, restricted licenses and the ignore-conflict flag are declared; it does not scan components.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9814,7 +9814,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "license diff configuration validation only; declared policy does not prove running license diff behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms previous and current inventories and the auto-accept flag are declared; it does not compute a diff.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9904,7 +9904,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "attribution configuration validation only; declared policy does not prove running attribution behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms notice paths, attributed components and the notice-removal flag are declared; it does not show the shipped artifact carries those notices.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -9994,7 +9994,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "dast configuration validation only; declared policy does not prove running dast behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms a target origin, authorized scope and the unapproved-target flag are declared; it does not run a scan.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -10084,7 +10084,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms attack scenarios, containment scope and the customer-data flag are declared; it does not run a simulation.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -10174,7 +10174,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "auth session probe configuration validation only; declared policy does not prove running auth session probe behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms session cases, protected routes and the revoked-session flag are declared; it does not probe a live session.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -10264,7 +10264,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "abuse resistance configuration validation only; declared policy does not prove running abuse resistance behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms abuse cases, a rate-limit policy and the unbounded-requests flag are declared; it does not test any live limit.",
         "argv": [
           "node",
           ".rig/bin/check.js",
@@ -10354,7 +10354,7 @@
       "surfaceless_reason": "No applicable surface was detected.",
       "disposition": {
         "kind": "executable",
-        "reason": "blast radius configuration validation only; declared policy does not prove running blast radius behavior. Select an approved repository-owned command to verify that behavior.",
+        "reason": "Configuration validation only, so it confirms privilege scopes, isolation boundaries and the cross-tenant flag are declared; it does not test compromise.",
         "argv": [
           "node",
           ".rig/bin/check.js",

@@ -3,21 +3,21 @@
   "service_id": "testing.maintenance.dead-test-pruning",
   "input": "rig-services/testing.maintenance.dead-test-pruning.json",
   "format": "json",
-  "ceiling": "dead test pruning configuration validation only; declared policy does not prove running dead test pruning behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms obsolete cases, replacement evidence and the delete-live-regression flag are declared; it does not run the suite.",
   "offer": "Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.",
   "checks": {
     "minimal": [
       {
         "field": "obsolete_cases",
         "op": "nonempty",
-        "reason": "obsolete cases must name the concrete repository contract."
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
       }
     ],
     "mid": [
       {
         "field": "replacement_evidence",
         "op": "nonempty",
-        "reason": "replacement evidence must name the concrete repository contract."
+        "reason": "Record the evidence that equivalent protection remains. Age alone does not make a regression dead, so cite the replacement."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "delete_live_regressions",
         "op": "equals",
         "value": false,
-        "reason": "delete live regressions must be false."
+        "reason": "Set deleting live regressions to false. Removing a test that still guards behavior reopens a defect, so keep it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "obsolete_cases",
         "op": "nonempty",
-        "reason": "obsolete cases must name the concrete repository contract."
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "obsolete_cases",
         "op": "nonempty",
-        "reason": "obsolete cases must name the concrete repository contract."
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "obsolete_cases",
         "op": "nonempty",
-        "reason": "obsolete cases must name the concrete repository contract."
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "obsolete_cases",
         "op": "nonempty",
-        "reason": "obsolete cases must name the concrete repository contract."
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
       }
     }
   }

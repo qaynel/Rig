@@ -29,9 +29,9 @@ function stagedHarnessFiles(target) {
 function runPreCommit(target, policy) {
   const steps = [];
   const findings = [];
-  const controls = (policy && policy.controls) || {};
+  const { controlEnabled } = require('./policy');
 
-  if (controls.sanitation !== false) {
+  if (!policy || controlEnabled(policy, 'sanitation', 'sanitation.harness')) {
     steps.push('sanitation');
     const staged = stagedHarnessFiles(target);
     if (!staged.ok) {

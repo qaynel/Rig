@@ -2,4 +2,4 @@
 
 Reuse the component-owned formatter and lint tasks. Read-only verification must preserve source bytes; invoke autofix only under a separately approved action.
 
-Policy grade slice. This slice bounds lint format to code-quality.lint-format. It uses `lint-format-slice-floor` and checks format_command (nonempty): format command must name the concrete repository contract.
+Policy grade slice `lint-format-slice-floor`: Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task.

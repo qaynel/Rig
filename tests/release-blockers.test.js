@@ -17,7 +17,6 @@ const { projectForAgent } = require('../rig/lib/reports');
 const { runPayload } = require('../rig/lib/payload');
 const {
   activatePolicy, activationMessage, effectiveStatus, policyStatus, proposePolicy,
-  proposeRecovery, recoverPolicy, recoveryMessage,
 } = require('../rig/lib/policy');
 const { actionDigest, consumeOneUseApproval } = require('../rig/lib/enforcement');
 const { mergeGlobalConfig } = require('../rig/lib/global-writes');
@@ -164,12 +163,12 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
 function signPolicyProposal(target, proposal) {
   const key = path.join(target, 'policy-test-key');
   const message = path.join(target, 'policy-approval-message');
-  const policyDir = path.join(target, '.rig/policy');
-  fs.mkdirSync(policyDir, { recursive: true });
+  fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
+  fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
   const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
   assert.equal(generated.status, 0, generated.stderr);
   const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim();
-  fs.writeFileSync(path.join(policyDir, 'allowed-signers'), `owner namespaces="rig-policy-activation" ${publicKey}\n`);
+  fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `owner ${publicKey}\n`);
   fs.writeFileSync(message, activationMessage(proposal));
   const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
   assert.equal(signed.status, 0, signed.stderr);
@@ -1128,21 +1127,6 @@ test('policy CLI shows disclosure before activating model-assisted triage', () =
     ], { encoding: 'utf8' });
     assert.equal(status.status, 0, status.stderr);
     assert.equal(JSON.parse(status.stdout).model_assisted_triage.enabled, true);
-  });
-});
-
-test('shipping recovery rejects software keys with caller-written registration claims without consequences', () => {
-  withTarget((target) => {
-    const policyDir = path.join(target, '.rig/policy');
-    fs.mkdirSync(policyDir, { recursive: true });
-    const state = { schema_version: 1, signer: { fingerprint: 'SHA256:ordinary' }, recovery: [{ identity: 'recovery-one', fingerprint: 'SHA256:software', declared_class: 'ssh-ed25519', registration_receipt: { signed_before_loss: true } }], approvals: ['stale'], evidence_epoch: 3, recovery_sequence: 0 };
-    const trust = path.join(policyDir, 'trust.json');
-    fs.writeFileSync(trust, `${JSON.stringify(state, null, 2)}\n`);
-    const before = fs.readFileSync(trust);
-    assert.throws(() => proposeRecovery(target, { fingerprint: 'SHA256:replacement', identity: 'new-owner' }, 'recovery-one'), /registration chain|trust/i);
-    assert.throws(() => recoverPolicy(target, { kind: 'signer_recovery' }, { identity: 'recovery-one', signature: 'forged' }), /digest|trust|registration/i);
-    assert.deepEqual(fs.readFileSync(trust), before);
-    assert.equal(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')), false);
   });
 });
 

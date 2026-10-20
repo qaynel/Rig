@@ -4,7 +4,7 @@ Describe actual endpoints, response shapes and error cases from the public contr
 
 Policy grade. Describe endpoints and response shapes from the public contract, including errors and authentication requirements so callers can distinguish protected operations.
 
-Applicable surface: source-code. Owned scope: `documentation.api-reference`. Input: `rig-services/development.documentation.api-reference.json`.
+Applicable surface: source-code. Owned scope: `documentation.api-reference`.
 
 Disposition: executable. Native checks validate only declared policy fields.
 

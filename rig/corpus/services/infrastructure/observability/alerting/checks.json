@@ -3,21 +3,21 @@
   "service_id": "infrastructure.observability.alerting",
   "input": "rig-services/infrastructure.observability.alerting.json",
   "format": "json",
-  "ceiling": "alerting configuration validation only; declared policy does not prove running alerting behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms alert conditions, a runbook path and the ownerless-alert flag are declared; it does not show alerts fire or reach anyone.",
   "offer": "Every actionable alert needs an owned response and a runbook. Signals without an operator or response path create noise rather than protection.",
   "checks": {
     "minimal": [
       {
         "field": "alert_conditions",
         "op": "nonempty",
-        "reason": "alert conditions must name the concrete repository contract."
+        "reason": "List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold."
       }
     ],
     "mid": [
       {
         "field": "runbook_path",
         "op": "nonempty",
-        "reason": "runbook path must name the concrete repository contract."
+        "reason": "Point each alert to a runbook. An alert without a response path is a page nobody can act on, so give the path."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "alert_without_owner",
         "op": "equals",
         "value": false,
-        "reason": "alert without owner must be false."
+        "reason": "Set alert without owner to false. An unowned alert is ignored, so assign an on-call owner."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "alert_conditions",
         "op": "nonempty",
-        "reason": "alert conditions must name the concrete repository contract."
+        "reason": "List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "alert_conditions",
         "op": "nonempty",
-        "reason": "alert conditions must name the concrete repository contract."
+        "reason": "List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "alert_conditions",
         "op": "nonempty",
-        "reason": "alert conditions must name the concrete repository contract."
+        "reason": "List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "alert_conditions",
         "op": "nonempty",
-        "reason": "alert conditions must name the concrete repository contract."
+        "reason": "List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold."
       }
     }
   }

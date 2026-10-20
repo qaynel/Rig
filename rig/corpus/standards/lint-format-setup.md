@@ -90,7 +90,7 @@ The response names its recommendation, trigger, exact writes, original digests
 and proposal digest. For `apply`, supply `target`, `proposal` and a separate
 `approval` object with `identity` and an SSH signature. Sign the exact message
 `rig-lint-format-setup\ndigest=<proposal digest>\n` with the SSH namespace
-`rig-lint-format-setup`; Rig verifies it against `.rig/allowed-signers`.
+`rig-lint-format-setup`; Rig verifies it against the Gate 1 trust root (`.rig/trust/gate1.allowed-signers`).
 Selection and plan signatures are rejected in this namespace. A null approval
 means declined and writes nothing. The public library seam is
 `proposeSetup` / `applySetup` in the installed runtime's `lint-format.js`.

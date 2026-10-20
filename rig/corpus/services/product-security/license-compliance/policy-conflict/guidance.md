@@ -1,17 +1,13 @@
-# policy conflict
+# policy-conflict
 
 Evaluate component licenses against the explicit distribution policy. Conflicting or unknown licensing needs review rather than silently expanding the allow list.
 
-Owned scope: `license-compliance.policy-conflict`.
+Owned scope: `license-compliance.policy-conflict`. Input: `rig-services/product-security.license-compliance.policy-conflict.json`.
 
-Offer: Evaluate component licenses against the explicit distribution policy. Conflicting or unknown licensing needs review rather than silently expanding the allow list.
+Coverage ceiling: Configuration validation only, so it confirms allowed licenses, restricted licenses and the ignore-conflict flag are declared; it does not scan components.
 
-Input: `rig-services/product-security.license-compliance.policy-conflict.json`. Detection records the path even when its contents are malformed.
+minimal: allowed licenses — ["MIT","Apache-2.0"]. List the licenses the distribution policy allows. With no list every license is unchecked, so name them.
 
-Coverage ceiling: policy conflict configuration validation only; declared policy does not prove running policy conflict behavior. Select an approved repository-owned command to verify that behavior.
+mid: restricted licenses — ["AGPL-3.0-only"]. List the restricted licenses. An unlisted restriction is silently allowed, so name each prohibited license.
 
-minimal: allowed licenses — ["MIT","Apache-2.0"].
-
-mid: restricted licenses — ["AGPL-3.0-only"].
-
-maximal: ignore license conflicts — false.
+maximal: ignore license conflicts — false. Set ignoring license conflicts to false. Conflicting or unknown licenses need review instead of expanding the allow list silently.

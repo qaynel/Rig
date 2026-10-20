@@ -18,7 +18,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { withRepo, writeJson } = require('./helpers/advanced');
-const { executePlan, planExecution, createPlanApprovalChallenge, runCommand, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
+const { executePlan, planExecution, createPlanApprovalChallenge, runCommand, runGrade, runReadOnly, runAutofix, planAutofix } = require('../rig/lib/lint-format');
 const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
 const { rssBytesTree, isChildRunning } = require('../rig/lib/memory-guarded-exec');
 const { runBinding, semanticDrift } = require('../rig/lib/checks');
@@ -67,7 +67,7 @@ const catalogCheckCopies = require(path.join(materializedCheckDir, '.rig', 'bin'
 
 function signedPlanApproval(target, plan, identity = 'rig-test-owner') {
   const key = path.join(target, '.test-approval-key');
-  const allowed = path.join(target, '.rig', 'allowed-signers');
+  const allowed = path.join(target, '.rig', 'trust', 'gate1.allowed-signers');
   if (!fs.existsSync(key)) {
     execFileSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]);
     const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
@@ -87,6 +87,9 @@ function signedPlanApproval(target, plan, identity = 'rig-test-owner') {
     approval: { method: 'external-sshsig', identity, signature: fs.readFileSync(`${message}.sig`, 'utf8') },
   };
 }
+
+const NOOP = [process.execPath, '-e', 'process.exit(0)'];
+const approvedFix = (target, cmd) => runAutofix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
 
 test('AT-PROC-1a (AT-LF-20): signed approval replay is refused and a fresh approval can rerun the unchanged plan', () => {
   withRepo((target) => {
@@ -332,7 +335,7 @@ test('AT-PROC-1r (2026-08-29 review): runAutofix denies ungranted network access
     `);
 
     try {
-      runAutofix(target, { argv: [process.execPath, probe] }, { verified: true });
+      approvedFix(target, { argv: [process.execPath, probe], verify: NOOP });
       assert.equal(
         fs.existsSync(marker),
         false,
@@ -342,8 +345,10 @@ test('AT-PROC-1r (2026-08-29 review): runAutofix denies ungranted network access
       const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
       const savedPath = process.env.PATH;
       try {
+        const quiet = { argv: [process.execPath, '-e', ''], verify: NOOP };
+        const approval = signedPlanApproval(target, planAutofix(target, quiet));
         process.env.PATH = emptyBin;
-        const result = runAutofix(target, { argv: [process.execPath, '-e', ''] }, { verified: true });
+        const result = runAutofix(target, quiet, approval);
         assert.equal(
           result.status,
           'network_isolation_unavailable',
@@ -383,7 +388,7 @@ test('AT-PROC-1s (2026-08-29 review): runAutofix kills and reports a fix command
       timeout_ms: 10000,
       verify: [process.execPath, '-e', 'process.exit(0)'],
     };
-    const result = runAutofix(target, cmd, { verified: true });
+    const result = approvedFix(target, cmd);
 
     assert.equal(
       fs.existsSync(marker),
@@ -1076,4 +1081,46 @@ test('AT-CAP-5 (RIG-144): malformed or unenforceable capability controls refuse 
       }
     });
   }
+});
+
+test('AT-LF-12r (finding 5): autofix needs a real Gate 1 plan approval bound to this exact fix and verify, single use, and reports the real verification result', () => {
+  withRepo((target) => {
+    const write = (body) => [process.execPath, '-e', `require('fs').writeFileSync('a.js',${JSON.stringify(body)})`];
+    const check = (want) => [process.execPath, '-e', `process.exit(require('fs').readFileSync('a.js','utf8')===${JSON.stringify(want)}?0:1)`];
+    fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
+    const cmd = { argv: write('good\n'), verify: check('good\n') };
+    const plan = planAutofix(target, cmd);
+    const approval = signedPlanApproval(target, plan);
+
+    // A boolean, a null, or a forged signature never runs the fix.
+    assert.throws(() => runAutofix(target, cmd, { verified: true }), /approval/);
+    assert.throws(() => runAutofix(target, cmd, null), /approval/);
+    assert.throws(() => runAutofix(target, cmd, { ...approval, approval: { ...approval.approval, signature: 'forged' } }), /SSHSIG|signature|verif/i);
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n');
+
+    // A signature for this fix does not authorise a different fix command.
+    assert.throws(() => runAutofix(target, { ...cmd, argv: write('evil\n') }, approval), /approval/);
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n');
+
+    // A fix with no verification command is refused before it mutates anything.
+    assert.throws(() => planAutofix(target, { argv: cmd.argv }), /verif/);
+    assert.throws(() => runAutofix(target, { argv: cmd.argv }, approval), /verif/);
+
+    // The approved fix runs, is re-verified for real, and the signature is single use.
+    const done = runAutofix(target, cmd, approval);
+    assert.equal(done.verification, 'pass');
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'good\n');
+    assert.throws(() => runAutofix(target, cmd, approval), /not authorized/);
+  });
+});
+
+test('AT-LF-12r (finding 5): a failing or missing verifier is reported as failed, never as skipped or passed', () => {
+  withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
+    const fix = [process.execPath, '-e', "require('fs').writeFileSync('a.js','still-bad\n')"];
+    const failing = approvedFix(target, { argv: fix, verify: [process.execPath, '-e', 'process.exit(1)'] });
+    assert.equal(failing.verification, 'fail');
+    const missing = approvedFix(target, { argv: fix, verify: ['rig-no-such-verifier-binary'] });
+    assert.equal(missing.verification, 'fail');
+  });
 });

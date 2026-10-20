@@ -3,14 +3,14 @@
   "service_id": "infrastructure.cost.rightsizing",
   "input": "rig-services/infrastructure.cost.rightsizing.json",
   "format": "json",
-  "ceiling": "rightsizing configuration validation only; declared policy does not prove running rightsizing behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms candidate resources, headroom and the no-evidence-resize flag are declared; it does not read workload measurements.",
   "offer": "Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.",
   "checks": {
     "minimal": [
       {
         "field": "candidate_resources",
         "op": "nonempty",
-        "reason": "candidate resources must name the concrete repository contract."
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "minimum_headroom_percent",
         "op": "minimum",
         "value": 20,
-        "reason": "minimum headroom percent must meet the configured minimum of 20."
+        "reason": "Keep minimum headroom of at least 20 percent. Shrinking to zero headroom risks outages on a spike, so retain the margin."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "resize_without_workload_evidence",
         "op": "equals",
         "value": false,
-        "reason": "resize without workload evidence must be false."
+        "reason": "Set resizing without workload evidence to false. Configuration alone cannot justify shrinking production, so require measurements."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "candidate_resources",
         "op": "nonempty",
-        "reason": "candidate resources must name the concrete repository contract."
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "candidate_resources",
         "op": "nonempty",
-        "reason": "candidate resources must name the concrete repository contract."
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "candidate_resources",
         "op": "nonempty",
-        "reason": "candidate resources must name the concrete repository contract."
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "candidate_resources",
         "op": "nonempty",
-        "reason": "candidate resources must name the concrete repository contract."
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
       }
     }
   }

@@ -1,17 +1,13 @@
-# perf regression ci
+# perf-regression-ci
 
 Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.
 
-Owned scope: `performance-load.perf-regression-ci`.
+Owned scope: `performance-load.perf-regression-ci`. Input: `rig-services/testing.performance-load.perf-regression-ci.json`.
 
-Offer: Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.
+Coverage ceiling: Configuration validation only, so it confirms tracked metrics, a regression budget and the ignore-failure flag are declared; it does not run CI.
 
-Input: `rig-services/testing.performance-load.perf-regression-ci.json`. Detection records the path even when its contents are malformed.
+minimal: tracked metrics — ["p95 latency"]. List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one.
 
-Coverage ceiling: perf regression ci configuration validation only; declared policy does not prove running perf regression ci behavior. Select an approved repository-owned command to verify that behavior.
+mid: regression budget percent — 10. Set the regression budget percent, at least 10. A budget that is too tight flakes, so choose a stable threshold.
 
-minimal: tracked metrics — ["p95 latency"].
-
-mid: regression budget percent — 10.
-
-maximal: ignore threshold failure — false.
+maximal: ignore threshold failure — false. Set ignoring threshold failure to false. A breached budget must fail the build, otherwise it is a decorative chart.

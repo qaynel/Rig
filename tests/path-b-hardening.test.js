@@ -904,11 +904,11 @@ describe('Task 1 — authenticated approval receipts', () => {
     }, { install: true });
   });
 
-  it('AT-PB-hard approval — no allowed-signers → apply refuses', async () => {
+  it('AT-PB-hard approval — no Gate 1 trust root → apply refuses', async () => {
     await h.withRepo(async (target) => {
       const { proposed } = h.prepareAndPropose(target);
       const receipt = signApproval(target, proposed.proposal_digest);
-      fs.rmSync(path.join(target, '.rig/allowed-signers'), { force: true });
+      fs.rmSync(path.join(target, '.rig/trust/gate1.allowed-signers'), { force: true });
       assert.throws(
         () => applyWith(target, proposed, receipt),
         /allowed-signers|verifier/i,
@@ -949,7 +949,7 @@ describe('Task 1 — authenticated approval receipts', () => {
   it('AT-PB-hard approval — an unlisted signer is rejected', async () => {
     await h.withRepo(async (target) => {
       const { proposed } = h.prepareAndPropose(target);
-      // Someone must be listed or there is no allowed-signers file at all.
+      // The trust root must exist; it holds exactly one key.
       signApproval(target, proposed.proposal_digest, { identity: 'listed@rig' });
       const receipt = signApproval(target, proposed.proposal_digest, {
         identity: 'stranger@rig',
@@ -978,18 +978,17 @@ describe('Task 1 — authenticated approval receipts', () => {
     }, { install: true });
   });
 
-  it('AT-PB-hard approval — the installer ships an allowed-signers template and never the live file', async () => {
+  it('AT-PB-hard approval — the installer ships the Gate 1 key as the only trust root', async () => {
     await h.withRepo(async (target) => {
       h.installRuntime(target, ['codex']);
-      assert.ok(
-        fs.existsSync(path.join(target, '.rig/allowed-signers.example.md')),
-        'installer must ship .rig/allowed-signers.example.md',
+      assert.deepEqual(
+        fs.readFileSync(path.join(target, '.rig/trust/gate1.allowed-signers')),
+        fs.readFileSync(path.join(__dirname, '..', 'wiki/gate1/gate1.allowed-signers')),
+        'installer must ship exactly the Gate 1 key as the trust root',
       );
-      assert.equal(
-        fs.existsSync(path.join(target, '.rig/allowed-signers')),
-        false,
-        'installer must never write the live .rig/allowed-signers',
-      );
+      for (const retired of ['.rig/allowed-signers', '.rig/allowed-signers.example.md', '.rig/policy/allowed-signers']) {
+        assert.equal(fs.existsSync(path.join(target, retired)), false, `${retired} is not an independent trust list`);
+      }
     });
   });
 });

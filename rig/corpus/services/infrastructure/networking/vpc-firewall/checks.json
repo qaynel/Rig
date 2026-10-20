@@ -3,21 +3,21 @@
   "service_id": "infrastructure.networking.vpc-firewall",
   "input": "rig-services/infrastructure.networking.vpc-firewall.json",
   "format": "json",
-  "ceiling": "vpc firewall configuration validation only; declared policy does not prove running vpc firewall behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms allowed ingress, a default action and the world-admin flag are declared; it does not read the live firewall.",
   "offer": "Allow only required ingress and retain a default-deny policy. Administrative network access must not be open to the world.",
   "checks": {
     "minimal": [
       {
         "field": "allowed_ingress",
         "op": "nonempty",
-        "reason": "allowed ingress must name the concrete repository contract."
+        "reason": "List the ingress that is explicitly allowed. Anything unlisted should be closed, so name each port and source."
       }
     ],
     "mid": [
       {
         "field": "default_action",
         "op": "nonempty",
-        "reason": "default action must name the concrete repository contract."
+        "reason": "Declare the default action, which should be deny. An allow-by-default firewall exposes everything not listed, so state deny."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "allow_world_admin_access",
         "op": "equals",
         "value": false,
-        "reason": "allow world admin access must be false."
+        "reason": "Set world-open admin access to false. Administrative ports open to the internet are a standing breach, so restrict them to known sources."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "allowed_ingress",
         "op": "nonempty",
-        "reason": "allowed ingress must name the concrete repository contract."
+        "reason": "List the ingress that is explicitly allowed. Anything unlisted should be closed, so name each port and source."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "allowed_ingress",
         "op": "nonempty",
-        "reason": "allowed ingress must name the concrete repository contract."
+        "reason": "List the ingress that is explicitly allowed. Anything unlisted should be closed, so name each port and source."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "allowed_ingress",
         "op": "nonempty",
-        "reason": "allowed ingress must name the concrete repository contract."
+        "reason": "List the ingress that is explicitly allowed. Anything unlisted should be closed, so name each port and source."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "allowed_ingress",
         "op": "nonempty",
-        "reason": "allowed ingress must name the concrete repository contract."
+        "reason": "List the ingress that is explicitly allowed. Anything unlisted should be closed, so name each port and source."
       }
     }
   }

@@ -2,4 +2,4 @@
 
 State recovery-time and data-loss objectives as measurable limits. Targets become demonstrated assurance only when an actual recovery exercise measures them.
 
-Policy grade slice. This slice bounds rto rpo to disaster-recovery.rto-rpo. It uses `rto-rpo-slice-floor` and checks rto_minutes (minimum 30): rto minutes must meet the configured minimum of 30.
+Policy grade slice `rto-rpo-slice-floor`: State the recovery time objective in minutes, at least 30. A figure below what the system can meet is a wish, so choose a measurable limit.

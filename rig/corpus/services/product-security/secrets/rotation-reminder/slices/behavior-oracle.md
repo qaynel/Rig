@@ -2,4 +2,4 @@
 
 Assign credential classes a rotation interval and an accountable owner. A reminder is a scheduling control and does not demonstrate that a credential was rotated.
 
-Policy grade slice. This slice bounds rotation reminder to secrets.rotation-reminder. It uses `rotation-reminder-slice-behavior-oracle` and checks credential_classes (nonempty): credential classes must name the concrete repository contract.
+Policy grade slice `rotation-reminder-slice-behavior-oracle`: List the credential classes covered, such as API keys and deploy tokens. Unlisted classes never rotate, so name them. Despite its name this slice is not a behavior oracle: it confirms credential classes, a rotation interval and the ownerless flag are declared; it does not show any credential was rotated.

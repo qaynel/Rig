@@ -3,7 +3,7 @@
   "service_id": "infrastructure.provisioning.capacity-planning",
   "input": "rig-services/infrastructure.provisioning.capacity-planning.json",
   "format": "json",
-  "ceiling": "capacity planning configuration validation only; declared policy does not prove running capacity planning behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a peak request rate, headroom and the growth-forecast flag are declared; it does not test that the hardware sustains the load.",
   "offer": "Size capacity from a declared peak workload with explicit headroom and growth assumptions. A static configuration cannot prove that the hardware sustains the forecast.",
   "checks": {
     "minimal": [
@@ -11,7 +11,7 @@
         "field": "peak_requests_per_second",
         "op": "minimum",
         "value": 100,
-        "reason": "peak requests per second must meet the configured minimum of 100."
+        "reason": "Declare the peak requests per second, at least 100. A lower figure is not a peak workload, so size from the real maximum."
       }
     ],
     "mid": [
@@ -19,7 +19,7 @@
         "field": "headroom_percent",
         "op": "minimum",
         "value": 30,
-        "reason": "headroom percent must meet the configured minimum of 30."
+        "reason": "Keep headroom of at least 30 percent. Running at the forecast leaves no room for error, so add margin."
       }
     ],
     "maximal": [
@@ -27,7 +27,7 @@
         "field": "ignore_growth_forecast",
         "op": "equals",
         "value": false,
-        "reason": "ignore growth forecast must be false."
+        "reason": "Set ignoring the growth forecast to false. Capacity sized for today fails next quarter, so include growth assumptions."
       }
     ]
   },
@@ -38,7 +38,7 @@
         "field": "peak_requests_per_second",
         "op": "minimum",
         "value": 100,
-        "reason": "peak requests per second must meet the configured minimum of 100."
+        "reason": "Declare the peak requests per second, at least 100. A lower figure is not a peak workload, so size from the real maximum."
       }
     },
     "behavior-oracle": {
@@ -47,7 +47,7 @@
         "field": "peak_requests_per_second",
         "op": "minimum",
         "value": 100,
-        "reason": "peak requests per second must meet the configured minimum of 100."
+        "reason": "Declare the peak requests per second, at least 100. A lower figure is not a peak workload, so size from the real maximum."
       }
     },
     "property-floor": {
@@ -56,7 +56,7 @@
         "field": "peak_requests_per_second",
         "op": "minimum",
         "value": 100,
-        "reason": "peak requests per second must meet the configured minimum of 100."
+        "reason": "Declare the peak requests per second, at least 100. A lower figure is not a peak workload, so size from the real maximum."
       }
     },
     "mutation-floor": {
@@ -65,7 +65,7 @@
         "field": "peak_requests_per_second",
         "op": "minimum",
         "value": 100,
-        "reason": "peak requests per second must meet the configured minimum of 100."
+        "reason": "Declare the peak requests per second, at least 100. A lower figure is not a peak workload, so size from the real maximum."
       }
     }
   }

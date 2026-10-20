@@ -1,17 +1,13 @@
-# log trace analysis
+# log-trace-analysis
 
 Correlate events across requests using stable trace fields. Remove authorization material before analysis; raw credentials must never enter the diagnostic log.
 
-Owned scope: `debugging.log-trace-analysis`.
+Owned scope: `debugging.log-trace-analysis`. Input: `rig-services/development.debugging.log-trace-analysis.json`.
 
-Offer: Correlate events across requests using stable trace fields. Remove authorization material before analysis; raw credentials must never enter the diagnostic log.
+Coverage ceiling: Configuration validation only, so it confirms trace fields, redacted fields and the no-credential-logging setting are declared; it does not show logs are actually clean.
 
-Input: `rig-services/development.debugging.log-trace-analysis.json`. Detection records the path even when its contents are malformed.
+minimal: trace fields — ["correlation_id","timestamp"]. List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields.
 
-Coverage ceiling: log trace analysis configuration validation only; declared policy does not prove running log trace analysis behavior. Select an approved repository-owned command to verify that behavior.
+mid: redacted fields — ["authorization"]. List the fields redacted before analysis, such as authorization headers. An empty list can leak credentials into a diagnostic log, so name each sensitive field.
 
-minimal: trace fields — ["correlation_id","timestamp"].
-
-mid: redacted fields — ["authorization"].
-
-maximal: log credentials — false.
+maximal: log credentials — false. Set logging credentials to false. Raw credentials in a diagnostic log are a leak, so strip or mask them at the source.

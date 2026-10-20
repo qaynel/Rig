@@ -2,4 +2,4 @@
 
 Update tests from the intended contract when behavior changes. Copying new output into old assertions without a behavioral decision creates circular evidence.
 
-Policy grade slice. This slice bounds test code sync to maintenance.test-code-sync. It uses `test-code-sync-slice-behavior-oracle` and checks changed_behaviors (nonempty): changed behaviors must name the concrete repository contract.
+Policy grade slice `test-code-sync-slice-behavior-oracle`: List the behaviors that changed. Tests cannot follow a change nobody named, so state each one. Despite its name this slice is not a behavior oracle: it confirms changed behaviors, updated cases and the follow-output flag are declared; it does not compare tests with code.

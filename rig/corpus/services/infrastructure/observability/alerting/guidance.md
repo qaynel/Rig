@@ -2,16 +2,12 @@
 
 Every actionable alert needs an owned response and a runbook. Signals without an operator or response path create noise rather than protection.
 
-Owned scope: `observability.alerting`.
+Owned scope: `observability.alerting`. Input: `rig-services/infrastructure.observability.alerting.json`.
 
-Offer: Every actionable alert needs an owned response and a runbook. Signals without an operator or response path create noise rather than protection.
+Coverage ceiling: Configuration validation only, so it confirms alert conditions, a runbook path and the ownerless-alert flag are declared; it does not show alerts fire or reach anyone.
 
-Input: `rig-services/infrastructure.observability.alerting.json`. Detection records the path even when its contents are malformed.
+minimal: alert conditions — ["error budget burn"]. List the conditions that alert. An alert with no stated condition is noise, so name each signal and threshold.
 
-Coverage ceiling: alerting configuration validation only; declared policy does not prove running alerting behavior. Select an approved repository-owned command to verify that behavior.
+mid: runbook path — "docs/runbook.md". Point each alert to a runbook. An alert without a response path is a page nobody can act on, so give the path.
 
-minimal: alert conditions — ["error budget burn"].
-
-mid: runbook path — "docs/runbook.md".
-
-maximal: alert without owner — false.
+maximal: alert without owner — false. Set alert without owner to false. An unowned alert is ignored, so assign an on-call owner.

@@ -1,17 +1,13 @@
-# coverage gap
+# coverage-gap
 
 Map untested behavior to business risk and owners. Line coverage can locate unused paths, but it does not prove that important outcomes are asserted.
 
-Owned scope: `strategy.coverage-gap`.
+Owned scope: `strategy.coverage-gap`. Input: `rig-services/testing.strategy.coverage-gap.json`.
 
-Offer: Map untested behavior to business risk and owners. Line coverage can locate unused paths, but it does not prove that important outcomes are asserted.
+Coverage ceiling: Configuration validation only, so it confirms uncovered behaviors, risk owners and the line-coverage-complete flag are declared; it does not measure coverage.
 
-Input: `rig-services/testing.strategy.coverage-gap.json`. Detection records the path even when its contents are malformed.
+minimal: uncovered behaviors — ["expired token"]. List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors.
 
-Coverage ceiling: coverage gap configuration validation only; declared policy does not prove running coverage gap behavior. Select an approved repository-owned command to verify that behavior.
+mid: risk owners — ["auth team"]. Name an owner for each gap's risk. Unowned gaps are never closed, so assign a person or team.
 
-minimal: uncovered behaviors — ["expired token"].
-
-mid: risk owners — ["auth team"].
-
-maximal: claim complete from line coverage — false.
+maximal: claim complete from line coverage — false. Set claiming completeness from line coverage to false. Executed lines are not asserted outcomes, so do not equate them.

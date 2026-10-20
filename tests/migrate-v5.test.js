@@ -1703,3 +1703,19 @@ test('migration replay refuses an unowned deferred marker', () => withTarget((ta
   assert.equal(result.status, 'refused');
   assert.equal(fs.readFileSync(marker, 'utf8'), 'user marker\n');
 }));
+
+test('migration refreshes an untouched v5 network policy default but keeps a user-edited one', () => {
+  const v5Default = spawnSync('git', ['show', `${V5_COMMIT}:rig/catalog/baseline/network-policy.json`], { cwd: root });
+  assert.equal(v5Default.status, 0, String(v5Default.stderr));
+  for (const edited of [false, true]) withTarget((target) => {
+    userRepo(target);
+    installV5(target, { active: true });
+    const file = path.join(target, '.rig/network-policy.json');
+    const mine = Buffer.from(`${v5Default.stdout.toString('utf8').trimEnd()}\n\n`);
+    fs.writeFileSync(file, edited ? mine : v5Default.stdout);
+    const result = migrate(target, { releaseTag: 'v5.0.0' });
+    assert.equal(result.status, 'migrated', JSON.stringify(result).slice(0, 400));
+    const shipped = fs.readFileSync(path.join(root, 'rig/catalog/baseline/network-policy.json'));
+    assert.ok(fs.readFileSync(file).equals(edited ? mine : shipped), edited ? 'a user edit survives migration' : 'the untouched default is refreshed to the shipped categories');
+  });
+});

@@ -1,17 +1,13 @@
-# encrypted store
+# encrypted-store
 
 Keep secrets in an encrypted authority with identified key management. A declaration of encryption does not verify the deployed vault or grant access to its contents.
 
-Owned scope: `secrets.encrypted-store`.
+Owned scope: `secrets.encrypted-store`. Input: `rig-services/product-security.secrets.encrypted-store.json`.
 
-Offer: Keep secrets in an encrypted authority with identified key management. A declaration of encryption does not verify the deployed vault or grant access to its contents.
+Coverage ceiling: Configuration validation only, so it confirms the secret store, encryption at rest and the plaintext flag are declared; it does not inspect the deployed vault.
 
-Input: `rig-services/product-security.secrets.encrypted-store.json`. Detection records the path even when its contents are malformed.
+minimal: secret store — "managed vault". Name the encrypted store that holds secrets. Secrets in an unnamed place are untracked, so declare the authority.
 
-Coverage ceiling: encrypted store configuration validation only; declared policy does not prove running encrypted store behavior. Select an approved repository-owned command to verify that behavior.
+mid: encryption at rest — "provider-managed-kms". Declare the encryption-at-rest and key management in use. Without it encryption is a claim, so name the mechanism.
 
-minimal: secret store — "managed vault".
-
-mid: encryption at rest — "provider-managed-kms".
-
-maximal: store plaintext credentials — false.
+maximal: store plaintext credentials — false. Set storing plaintext credentials to false. A credential stored in the clear is a leak, so move it into the store.

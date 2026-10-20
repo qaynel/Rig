@@ -3,28 +3,28 @@
   "service_id": "development.documentation.docstrings",
   "input": "rig-services/development.documentation.docstrings.json",
   "format": "json",
-  "ceiling": "docstrings configuration validation only; declared policy does not prove running docstrings behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms documented symbols, parameters and failure contracts are listed; it does not show the docstrings are accurate.",
   "offer": "Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.",
   "checks": {
     "minimal": [
       {
         "field": "documented_symbols",
         "op": "nonempty",
-        "reason": "documented symbols must name the concrete repository contract."
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
       }
     ],
     "mid": [
       {
         "field": "parameters",
         "op": "nonempty",
-        "reason": "parameters must name the concrete repository contract."
+        "reason": "Document each public parameter's meaning and type. Missing parameter notes force callers to reverse-engineer inputs, so list them."
       }
     ],
     "maximal": [
       {
         "field": "failure_contract",
         "op": "nonempty",
-        "reason": "failure contract must name the concrete repository contract."
+        "reason": "Describe the failure behavior, such as raised errors or return codes. Without it a caller cannot handle failure, so state what each symbol does when it cannot succeed."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "documented_symbols",
         "op": "nonempty",
-        "reason": "documented symbols must name the concrete repository contract."
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "documented_symbols",
         "op": "nonempty",
-        "reason": "documented symbols must name the concrete repository contract."
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "documented_symbols",
         "op": "nonempty",
-        "reason": "documented symbols must name the concrete repository contract."
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "documented_symbols",
         "op": "nonempty",
-        "reason": "documented symbols must name the concrete repository contract."
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
       }
     }
   }

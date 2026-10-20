@@ -402,18 +402,7 @@ behavior exists and pass only when the product intent is met.
   An undeclared, missing, malformed, silent, or no-op executable binding is a
   nonzero coverage gap, never a pass. The discriminating test is behavioral:
   a command either runs in a fixture repository or it does not.
-- **AT-SHAPE-6 (complete authored catalogue).** *Given* the frozen inventory,
-  *when* the specification gate reviews all 115 leaves (Development 26, Testing
-  40, Infrastructure 31, Product-Security 18), *then* every service has
-  service-specific identity, owned scope and adjacent exclusions,
-  applicability, dependencies (or explicit none), cumulative grade behavior,
-  execution disposition, checks, and acceptance evidence. A TODO, generic
-  "concrete convention," repeated filler, or merely non-empty fragment fails
-  the gate. Every D24-authored fragment states that it is Policy-grade generic
-  baseline practice, not repository-tailored Context or Evidence coverage;
-  lint-format alone may retain higher claims backed by its existing evidence.
-  Mechanical presence checks cannot substitute for a fresh-context semantic
-  review of every leaf.
+- **AT-SHAPE-6 (complete authored catalogue).** *Given* all 115 frozen leaves (Development 26, Testing 40, Infrastructure 31, Product-Security 18), *then* each has service-specific identity, scope and exclusions, applicability, dependencies (or explicit none), cumulative grade behavior, execution disposition, checks, and acceptance evidence. TODOs, interpolation artifacts, repeated filler, and merely non-empty fragments fail. Every fragment states its actual coverage and evidence limit in specific language. Context or Evidence claims require the corresponding verifiable review/evidence path. The review covers all 115 leaves semantically; mechanical presence checks alone do not pass.
 
 ### B. Default baseline and user control
 
@@ -543,11 +532,7 @@ without installer inference, is evidenced directly by `AT-PB-1` through
 
 ### E. Host, hook, CI, and evidence claims
 
-- **AT-HOST-1 (complete per-axis contract).** *Given* any host live-hook axis
-  Rig emits, *when* its contract is inspected, *then* Gate 2 names the
-  exact emitted path/filename, vendor input/event schema and matcher fields,
-  deny response and exit behavior, deliberate-proceed protocol, owned merge
-  boundary, user-config preservation, and first/repeated-apply behavior.
+- **AT-HOST-1 (honest per-axis contract).** *Given* each supported host live-hook axis, *then* status is `emitted` only when Rig writes the declared host-consumed artifact at its declared path and a test inspects the landed bytes; status is `unsupported` only when the vendor surface does not exist; and status is `not_integrated` when the vendor surface exists but Rig has no adapter. A Rig-owned JSON declaration alone does not prove emission. Every not-integrated axis is reported as a named coverage gap. For emitted axes, the contract names the path, input/event schema and matcher, deny/proceed behavior, merge boundary, user-config preservation, and first/repeated-apply behavior.
 - **AT-HOST-2 (boundary and proceed behavior).** *Given* default active
   controls, disallowed network access, remote-content-to-execution, sensitive
   environment/credential reads, and guardrail disable/bypass are mechanically
@@ -685,17 +670,7 @@ without installer inference, is evidenced directly by `AT-PB-1` through
   uninstall stops before deleting the referenced runtime and reports the named
   global configuration for repair; it never silently leaves a broken global
   server entry.
-- **AT-DIST-1 (a stranger can install the complete release) [D7, D24].**
-  *Given* a stranger with git, curl, and sh and no Rig checkout, *when* they run
-  the committed root install stub for a named released tag, *then* the stub
-  resolves the tag, downloads it before execution rather than piping remote
-  content to a shell, and installs version `5.0.0` into their repository. The
-  resulting install exposes all 55 vendored skills by their Rig names and
-  carries `LICENSE.upstream` plus `UPSTREAM.md`; it makes no upstream-
-  endorsement claim. *And given* the production release is tagged, *then* the
-  inherited npm publish workflow no longer exists, so tagging cannot fail on a
-  private package. A build that passes every other case but cannot be installed
-  by someone without this checkout is not shipped.
+- **AT-DIST-1 (a stranger can install the complete release) [D7, D24].** *Given* a stranger with git, curl, and sh but no checkout, *when* they run the committed installer for a named released tag, *then* it downloads the tag before execution and installs the requested version (6.0.0 for this candidate). The release carries the pinned 55-skill upstream inventory and attribution metadata, but optional skill bytes are fetched only during approved onboarding. Fresh install exposes the nine mandatory workflow/onboarding skills and compact catalogue; no optional skills are staged or discoverable before approval. It includes upstream notice and provenance without endorsement. The inherited npm publish workflow is absent.
 
   *And given* that stranger explicitly selects `--openclaw-mcp`, *then* the
   tagged archive carries the bundled MCP server and a lockfile for its runtime
@@ -827,20 +802,9 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   reported as a visible unprotected gap, and the covered component installs.
   An unrecorded write, or an exclusion applied without approval, fails this
   case.
-- **AT-LF-7 (Policy level governs the change) [GA-22].** *Given* a covered
-  component at grade Policy, *when* the check runs, *then* it governs the
-  change at the lowest level capable of a definitive answer and reports a
-  real Policy-level result. A placeholder result, or a check that silently
-  runs a higher level, fails this case.
-- **AT-LF-8 (Context level is a cumulative superset) [GA-22].** *Given* the
-  same component at grade Context, *then* the checks are a strict superset of
-  Policy's — Policy's governance plus understanding the change. A Context
-  grade that drops or merely replaces a Policy check fails this case.
-- **AT-LF-9 (Evidence level proves with verifiable evidence) [GA-22].**
-  *Given* the same component at grade Evidence, *then* the checks are a
-  strict superset of Context's and the verdict rests on verifiable evidence,
-  not an agent opinion. An Evidence pass backed only by an unverifiable agent
-  assertion fails this case.
+- **AT-LF-7 (Policy level is observed).** *Given* changed files and executable command argv, *when* Policy runs, *then* it executes each command and reports changed files, actual exit status, output digest, and verdict. Caller-supplied result objects or requested grades cannot create a pass; malformed or unobserved commands are coverage gaps.
+- **AT-LF-8 (Context is cumulative and request-bound).** *Given* the same inputs plus a Context review created from `createGradeReviewRequest({ target, changed, commands })`, *then* Context includes all completed Policy steps and adds change understanding from a non-empty summary, an explicit pass/fail verdict, and structured violation findings. A pass requires no findings; a failing review reports failure and never reaches Evidence. Missing, contradictory, stale, or mismatched review is a coverage gap; Policy remains visible as completed.
+- **AT-LF-9 (Evidence is replayable).** *Given* a valid Context review, *then* Evidence independently re-executes Policy commands and compares each observed exit status and output digest, binds the receipt to input and review digests, and writes a verifiable receipt. Changed inputs or replay mismatch fail Evidence. Missing CI is reported as `not_installed` and does not fabricate Evidence. Completed grades are cumulative.
 - **AT-LF-10 (diff-scoped by default; ignore rules and working directory
   honored) [GA-28].** *Given* a covered component under the default scope,
   *when* the check runs, *then* it inspects only the changed files, respects
@@ -981,18 +945,7 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   orphaned/mismatched/nested/duplicate markers, marker text in content, and
   symlink or hard-link mutation ambiguity fail without changing a byte.
 
-- **AT-PB-3 (onboarding context is deterministic, compact, pinned, and
-  non-discoverable by default).** *Given* a Path B install, *then* the generated
-  skill catalogue bytes are deterministic, sorted, content-addressed, and
-  copied exactly to `.rig/catalog.json`; family metadata and every source path
-  resolve. The complete optional source shelf is staged exactly once under the
-  release-pinned runtime outside every host discovery path, while only the
-  eight mandatory workflow/onboarding skills are discoverable before approval.
-  Prepare works without a network lookup and supplies the compact catalogue,
-  not every skill body; likely bodies may be opened locally on demand. A
-  changed catalogue digest makes every existing proposal stale and requires a
-  rebuilt, re-approved proposal. A user-edited installed catalogue conflicts
-  instead of being silently overwritten.
+- **AT-PB-3 (compact pinned onboarding catalogue; optional skills fetched on approval).** *Given* a Path B install, *then* catalogue bytes are deterministic, sorted, content-addressed, copied exactly to `.rig/catalog.json`, and resolve all family metadata and source paths. Optional source bytes are not staged at install; only the nine mandatory workflow/onboarding skills are discoverable. Approved onboarding fetches only the selected optional skills from the pinned source. Prepare works offline and supplies the compact catalogue. A changed digest stales proposals; user edits conflict rather than being overwritten.
 
 - **AT-PB-4 (repository-local onboarding state is strict, atomic, and
   truthful).** *Given* explicit onboarding, *when* prepare, propose, apply, and
@@ -1037,20 +990,7 @@ ending taxonomy, or partial coverage — and pass only when this intent is met.
   claimed only after a hard-failure-free check; partial writes are reported as
   resumable state, never active protection.
 
-- **AT-PB-6 (one explicit install command, repeatable host scope, no
-  auto-trigger).** *Given* a released or unpacked Rig, *when* the operator runs
-  `install rig [--host <host>]...`, *then* no host option preserves bounded
-  mechanical detection, while repeated options are registry-validated,
-  de-duplicated in first-seen order, and replace detection. Unknown hosts fail
-  before a target write. The command always installs the runtime, compact
-  catalogue, mandatory skills, canonical router/adapters, and release-pinned
-  source shelf; it does not semantically read the repository, prepare state,
-  select optional skills, create a proposal, or apply a graft. It has no
-  Basic/mid/Advanced package choice. Normal output names the selected/detected
-  hosts and gives one next step: explicitly invoke `rig-onboarding` in a host
-  agent, with the warning that nothing is adapted until the summary is
-  approved. A pre-existing repo-owned instruction file stays byte-identical
-  before that approved onboarding step.
+- **AT-PB-6 (one explicit install command, repeatable host scope, no auto-trigger).** *Given* a released or unpacked Rig, *when* the operator runs `install rig [--host <host>]...`, *then* bounded host detection is used only when no host option is supplied; repeated options are validated, de-duplicated in first-seen order, and replace detection. Unknown hosts fail before writes. Install writes the runtime, compact catalogue, nine mandatory skills, router/adapters, and upstream source metadata; it stages no optional skill source bytes and performs no semantic repository reading, prepare/propose/apply, or graft. It has no tier choices. Output names selected hosts and directs the operator to explicitly invoke `rig-onboarding`; no adaptation is claimed before approval. Bootstrap may append only the mandatory routing pointer while preserving every pre-existing instruction byte; optional skills and repository adaptation remain deferred until approval of the exact onboarding proposal.
 
 - **AT-PB-7 (inventory is bounded structural fact, never inferred desire).**
   *Given* repository instructions, rules, steering, skills/assets, hooks, and

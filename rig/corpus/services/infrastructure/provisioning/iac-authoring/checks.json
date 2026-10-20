@@ -3,21 +3,21 @@
   "service_id": "infrastructure.provisioning.iac-authoring",
   "input": "rig-services/infrastructure.provisioning.iac-authoring.json",
   "format": "json",
-  "ceiling": "iac authoring configuration validation only; declared policy does not prove running iac authoring behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms resource names, a state backend and the unreviewed-apply flag are declared; it does not read live infrastructure.",
   "offer": "Declare infrastructure resources with a recoverable state backend and inspect the exact plan before applying. Configuration checks do not establish live infrastructure behavior.",
   "checks": {
     "minimal": [
       {
         "field": "resource_names",
         "op": "nonempty",
-        "reason": "resource names must name the concrete repository contract."
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
       }
     ],
     "mid": [
       {
         "field": "state_backend",
         "op": "nonempty",
-        "reason": "state backend must name the concrete repository contract."
+        "reason": "Declare a recoverable state backend. Local state is lost with the machine, so configure remote locked storage."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "apply_without_reviewed_plan",
         "op": "equals",
         "value": false,
-        "reason": "apply without reviewed plan must be false."
+        "reason": "Set applying without a reviewed plan to false. Applying unseen changes can destroy resources, so inspect the exact plan first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "resource_names",
         "op": "nonempty",
-        "reason": "resource names must name the concrete repository contract."
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "resource_names",
         "op": "nonempty",
-        "reason": "resource names must name the concrete repository contract."
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "resource_names",
         "op": "nonempty",
-        "reason": "resource names must name the concrete repository contract."
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "resource_names",
         "op": "nonempty",
-        "reason": "resource names must name the concrete repository contract."
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
       }
     }
   }

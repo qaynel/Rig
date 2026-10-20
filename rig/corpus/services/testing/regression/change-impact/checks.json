@@ -3,21 +3,21 @@
   "service_id": "testing.regression.change-impact",
   "input": "rig-services/testing.regression.change-impact.json",
   "format": "json",
-  "ceiling": "change impact configuration validation only; declared policy does not prove running change impact behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms changed interfaces, affected suites and the filename-only flag are declared; it does not trace callers.",
   "offer": "Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.",
   "checks": {
     "minimal": [
       {
         "field": "changed_interfaces",
         "op": "nonempty",
-        "reason": "changed interfaces must name the concrete repository contract."
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
       }
     ],
     "mid": [
       {
         "field": "affected_suites",
         "op": "nonempty",
-        "reason": "affected suites must name the concrete repository contract."
+        "reason": "List the suites affected by tracing callers and contracts. An incomplete list skips downstream behavior, so map each interface to suites."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "select_by_filename_only",
         "op": "equals",
         "value": false,
-        "reason": "select by filename only must be false."
+        "reason": "Set selecting by filename only to false. Filename similarity misses downstream effects, so select by the dependency trace."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "changed_interfaces",
         "op": "nonempty",
-        "reason": "changed interfaces must name the concrete repository contract."
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "changed_interfaces",
         "op": "nonempty",
-        "reason": "changed interfaces must name the concrete repository contract."
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "changed_interfaces",
         "op": "nonempty",
-        "reason": "changed interfaces must name the concrete repository contract."
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "changed_interfaces",
         "op": "nonempty",
-        "reason": "changed interfaces must name the concrete repository contract."
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
       }
     }
   }

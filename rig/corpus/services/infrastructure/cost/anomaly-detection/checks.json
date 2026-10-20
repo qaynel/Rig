@@ -3,14 +3,14 @@
   "service_id": "infrastructure.cost.anomaly-detection",
   "input": "rig-services/infrastructure.cost.anomaly-detection.json",
   "format": "json",
-  "ceiling": "anomaly detection configuration validation only; declared policy does not prove running anomaly detection behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a cost baseline, deviation threshold and the missing-data flag are declared; it does not read real billing data.",
   "offer": "Compare cost with a stable baseline and an explicit deviation threshold. Missing billing input is a gap, never evidence that spending is normal.",
   "checks": {
     "minimal": [
       {
         "field": "cost_baseline",
         "op": "nonempty",
-        "reason": "cost baseline must name the concrete repository contract."
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "deviation_threshold_percent",
         "op": "minimum",
         "value": 25,
-        "reason": "deviation threshold percent must meet the configured minimum of 25."
+        "reason": "Set the deviation threshold percent to at least 25. A tighter threshold alarms on ordinary variance, so choose a documented threshold of 25 or more."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "ignore_missing_billing_data",
         "op": "equals",
         "value": false,
-        "reason": "ignore missing billing data must be false."
+        "reason": "Set ignoring missing billing data to false. Absent billing input is a gap, never evidence that spending is normal, so surface it."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "cost_baseline",
         "op": "nonempty",
-        "reason": "cost baseline must name the concrete repository contract."
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "cost_baseline",
         "op": "nonempty",
-        "reason": "cost baseline must name the concrete repository contract."
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "cost_baseline",
         "op": "nonempty",
-        "reason": "cost baseline must name the concrete repository contract."
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "cost_baseline",
         "op": "nonempty",
-        "reason": "cost baseline must name the concrete repository contract."
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
       }
     }
   }

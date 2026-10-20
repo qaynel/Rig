@@ -12,8 +12,8 @@ function sign(target, proposal) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-setup-key-'));
   try {
     cp.execFileSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', path.join(dir, 'key')]);
-    fs.mkdirSync(path.join(target, '.rig'), {recursive:true});
-    fs.writeFileSync(path.join(target, '.rig/allowed-signers'), `owner ${fs.readFileSync(path.join(dir, 'key.pub'), 'utf8')}`);
+    fs.mkdirSync(path.join(target, '.rig/trust'), {recursive:true});
+    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `owner ${fs.readFileSync(path.join(dir, 'key.pub'), 'utf8')}`);
     fs.writeFileSync(path.join(dir, 'message'), approvalMessage(proposal.digest));
     cp.execFileSync('ssh-keygen', ['-Y', 'sign', '-f', path.join(dir, 'key'), '-n', 'rig-lint-format-setup', path.join(dir, 'message')], {stdio:'ignore'});
     return { identity:'owner', signature:fs.readFileSync(path.join(dir, 'message.sig'), 'utf8') };
@@ -116,7 +116,10 @@ test('installed CLI proposes, separately approves, applies, and uninstalls lint 
       writes: [{ path: 'biome.json', content: '{"formatter":{"indentWidth":2}}\n' }],
     });
     assert.equal(proposal.action, 'setup');
+    const trustFile = path.join(target, '.rig/trust/gate1.allowed-signers');
+    const shippedRoot = fs.readFileSync(trustFile);
     const applied = run({ action: 'apply', target, proposal, approval: sign(target, proposal) });
+    fs.writeFileSync(trustFile, shippedRoot); // the fixture key stood in for the Gate 1 key only while verifying
     assert.equal(applied.status, 'applied');
     assert.equal(fs.readFileSync(path.join(target, 'biome.json'), 'utf8'), '{"formatter":{"indentWidth":2}}\n');
     const removed = cp.spawnSync(cli, ['--target', target, '--uninstall'], { encoding: 'utf8' });

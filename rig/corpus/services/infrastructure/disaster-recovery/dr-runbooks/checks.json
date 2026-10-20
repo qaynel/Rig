@@ -3,21 +3,21 @@
   "service_id": "infrastructure.disaster-recovery.dr-runbooks",
   "input": "rig-services/infrastructure.disaster-recovery.dr-runbooks.json",
   "format": "json",
-  "ceiling": "dr runbooks configuration validation only; declared policy does not prove running dr runbooks behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms recovery steps, an exercise schedule and the ownerless-runbook flag are declared; it does not show the runbook was ever exercised.",
   "offer": "A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.",
   "checks": {
     "minimal": [
       {
         "field": "recovery_steps",
         "op": "nonempty",
-        "reason": "recovery steps must name the concrete repository contract."
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
       }
     ],
     "mid": [
       {
         "field": "exercise_schedule",
         "op": "nonempty",
-        "reason": "exercise schedule must name the concrete repository contract."
+        "reason": "Declare how often the runbook is exercised. A document never exercised cannot establish recoverability, so set a schedule."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "runbook_without_owner",
         "op": "equals",
         "value": false,
-        "reason": "runbook without owner must be false."
+        "reason": "Set runbook without owner to false. An ownerless runbook goes stale, so name the accountable person or team."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "recovery_steps",
         "op": "nonempty",
-        "reason": "recovery steps must name the concrete repository contract."
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "recovery_steps",
         "op": "nonempty",
-        "reason": "recovery steps must name the concrete repository contract."
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "recovery_steps",
         "op": "nonempty",
-        "reason": "recovery steps must name the concrete repository contract."
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "recovery_steps",
         "op": "nonempty",
-        "reason": "recovery steps must name the concrete repository contract."
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
       }
     }
   }

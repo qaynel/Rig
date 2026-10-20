@@ -3,21 +3,21 @@
   "service_id": "development.debugging.structured-debugging",
   "input": "rig-services/development.debugging.structured-debugging.json",
   "format": "json",
-  "ceiling": "structured debugging configuration validation only; declared policy does not prove running structured debugging behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms reproduction steps, ranked hypotheses and the change-before-reproduction flag are declared; it does not show the bug is reproducible.",
   "offer": "Capture a repeatable failure before changing code and rank hypotheses from evidence. One experiment should separate explanations; speculative fixes before reproduction erase useful evidence.",
   "checks": {
     "minimal": [
       {
         "field": "reproduction_steps",
         "op": "nonempty",
-        "reason": "reproduction steps must name the concrete repository contract."
+        "reason": "Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first."
       }
     ],
     "mid": [
       {
         "field": "ranked_hypotheses",
         "op": "nonempty",
-        "reason": "ranked hypotheses must name the concrete repository contract."
+        "reason": "Rank the hypotheses by evidence, each with the experiment that separates it. An unranked list invites guessing, so order them and name the discriminating test."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "change_before_reproduction",
         "op": "equals",
         "value": false,
-        "reason": "change before reproduction must be false."
+        "reason": "Set change before reproduction to false. Editing code before the failure reproduces destroys the evidence, so reproduce first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "reproduction_steps",
         "op": "nonempty",
-        "reason": "reproduction steps must name the concrete repository contract."
+        "reason": "Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "reproduction_steps",
         "op": "nonempty",
-        "reason": "reproduction steps must name the concrete repository contract."
+        "reason": "Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "reproduction_steps",
         "op": "nonempty",
-        "reason": "reproduction steps must name the concrete repository contract."
+        "reason": "Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "reproduction_steps",
         "op": "nonempty",
-        "reason": "reproduction steps must name the concrete repository contract."
+        "reason": "Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first."
       }
     }
   }

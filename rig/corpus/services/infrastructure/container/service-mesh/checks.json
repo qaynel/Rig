@@ -3,21 +3,21 @@
   "service_id": "infrastructure.container.service-mesh",
   "input": "rig-services/infrastructure.container.service-mesh.json",
   "format": "json",
-  "ceiling": "service mesh configuration validation only; declared policy does not prove running service mesh behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms mesh services, transport security and the plaintext-fallback flag are declared; it does not show traffic is actually encrypted.",
   "offer": "Enumerate mesh participants and require authenticated encrypted service traffic. Plaintext fallback undermines the declared mesh boundary and must not be implicit.",
   "checks": {
     "minimal": [
       {
         "field": "mesh_services",
         "op": "nonempty",
-        "reason": "mesh services must name the concrete repository contract."
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
       }
     ],
     "mid": [
       {
         "field": "transport_security",
         "op": "nonempty",
-        "reason": "transport security must name the concrete repository contract."
+        "reason": "Declare the transport security mode, such as mutual TLS. Without it service traffic may be unauthenticated, so state the required mode."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "allow_plaintext_fallback",
         "op": "equals",
         "value": false,
-        "reason": "allow plaintext fallback must be false."
+        "reason": "Set allowing plaintext fallback to false. A silent downgrade undermines the declared boundary, so reject unencrypted connections."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "mesh_services",
         "op": "nonempty",
-        "reason": "mesh services must name the concrete repository contract."
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "mesh_services",
         "op": "nonempty",
-        "reason": "mesh services must name the concrete repository contract."
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "mesh_services",
         "op": "nonempty",
-        "reason": "mesh services must name the concrete repository contract."
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "mesh_services",
         "op": "nonempty",
-        "reason": "mesh services must name the concrete repository contract."
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
       }
     }
   }

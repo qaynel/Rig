@@ -2,4 +2,4 @@
 
 Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.
 
-Policy grade slice. This slice bounds pyramid balance to strategy.pyramid-balance. It uses `pyramid-balance-slice-property-floor` and checks unit_suites (nonempty): unit suites must name the concrete repository contract.
+Policy grade slice `pyramid-balance-slice-property-floor`: List the fast local unit suites. Without them diagnosis is slow, so name each suite.

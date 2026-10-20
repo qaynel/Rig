@@ -3,21 +3,21 @@
   "service_id": "testing.mutation.equivalent-mutant-detector",
   "input": "rig-services/testing.mutation.equivalent-mutant-detector.json",
   "format": "json",
-  "ceiling": "equivalent mutant detector configuration validation only; declared policy does not prove running equivalent mutant detector behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms equivalence evidence, review owners and the survival-only flag are declared; it does not analyze mutants.",
   "offer": "Require behavioral reasoning before marking a mutant equivalent. Survival can mean missing tests, so it cannot itself prove that a mutation changes no behavior.",
   "checks": {
     "minimal": [
       {
         "field": "equivalence_evidence",
         "op": "nonempty",
-        "reason": "equivalence evidence must name the concrete repository contract."
+        "reason": "Record the behavioral reasoning that a mutant is equivalent. Survival alone could mean a missing test, so write the argument."
       }
     ],
     "mid": [
       {
         "field": "review_owners",
         "op": "nonempty",
-        "reason": "review owners must name the concrete repository contract."
+        "reason": "Name who reviews equivalence claims. An unreviewed claim hides test gaps, so assign reviewers."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "classify_by_survival_only",
         "op": "equals",
         "value": false,
-        "reason": "classify by survival only must be false."
+        "reason": "Set classifying by survival only to false. Treating every survivor as equivalent hides real unasserted behavior, so require evidence."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "equivalence_evidence",
         "op": "nonempty",
-        "reason": "equivalence evidence must name the concrete repository contract."
+        "reason": "Record the behavioral reasoning that a mutant is equivalent. Survival alone could mean a missing test, so write the argument."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "equivalence_evidence",
         "op": "nonempty",
-        "reason": "equivalence evidence must name the concrete repository contract."
+        "reason": "Record the behavioral reasoning that a mutant is equivalent. Survival alone could mean a missing test, so write the argument."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "equivalence_evidence",
         "op": "nonempty",
-        "reason": "equivalence evidence must name the concrete repository contract."
+        "reason": "Record the behavioral reasoning that a mutant is equivalent. Survival alone could mean a missing test, so write the argument."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "equivalence_evidence",
         "op": "nonempty",
-        "reason": "equivalence evidence must name the concrete repository contract."
+        "reason": "Record the behavioral reasoning that a mutant is equivalent. Survival alone could mean a missing test, so write the argument."
       }
     }
   }

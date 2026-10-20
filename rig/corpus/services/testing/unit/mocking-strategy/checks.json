@@ -3,21 +3,21 @@
   "service_id": "testing.unit.mocking-strategy",
   "input": "rig-services/testing.unit.mocking-strategy.json",
   "format": "json",
-  "ceiling": "mocking strategy configuration validation only; declared policy does not prove running mocking strategy behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms mocked boundaries, real components and the mock-subject flag are declared; it does not run the tests.",
   "offer": "Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.",
   "checks": {
     "minimal": [
       {
         "field": "mocked_boundaries",
         "op": "nonempty",
-        "reason": "mocked boundaries must name the concrete repository contract."
+        "reason": "List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries."
       }
     ],
     "mid": [
       {
         "field": "real_components",
         "op": "nonempty",
-        "reason": "real components must name the concrete repository contract."
+        "reason": "List the real components the unit uses. Without them the test checks a mock, so name the collaborators exercised."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "mock_unit_under_test",
         "op": "equals",
         "value": false,
-        "reason": "mock unit under test must be false."
+        "reason": "Set mocking the unit under test to false. A mocked unit proves only what the mock was told to return, so test the real one."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "mocked_boundaries",
         "op": "nonempty",
-        "reason": "mocked boundaries must name the concrete repository contract."
+        "reason": "List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "mocked_boundaries",
         "op": "nonempty",
-        "reason": "mocked boundaries must name the concrete repository contract."
+        "reason": "List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "mocked_boundaries",
         "op": "nonempty",
-        "reason": "mocked boundaries must name the concrete repository contract."
+        "reason": "List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "mocked_boundaries",
         "op": "nonempty",
-        "reason": "mocked boundaries must name the concrete repository contract."
+        "reason": "List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries."
       }
     }
   }

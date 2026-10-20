@@ -3,21 +3,21 @@
   "service_id": "testing.property-fuzz.invariant-identification",
   "input": "rig-services/testing.property-fuzz.invariant-identification.json",
   "format": "json",
-  "ceiling": "invariant identification configuration validation only; declared policy does not prove running invariant identification behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms invariants, an input domain and the derive-from-subject flag are declared; it does not run properties.",
   "offer": "State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.",
   "checks": {
     "minimal": [
       {
         "field": "invariants",
         "op": "nonempty",
-        "reason": "invariants must name the concrete repository contract."
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
       }
     ],
     "mid": [
       {
         "field": "input_domain",
         "op": "nonempty",
-        "reason": "input domain must name the concrete repository contract."
+        "reason": "Bound the generated input domain. An unbounded domain explores nonsense, so declare the valid ranges."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "derive_expected_from_subject",
         "op": "equals",
         "value": false,
-        "reason": "derive expected from subject must be false."
+        "reason": "Set deriving expected values from the subject to false. Computing the expectation with the implementation proves nothing, so use an independent oracle."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "invariants",
         "op": "nonempty",
-        "reason": "invariants must name the concrete repository contract."
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "invariants",
         "op": "nonempty",
-        "reason": "invariants must name the concrete repository contract."
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "invariants",
         "op": "nonempty",
-        "reason": "invariants must name the concrete repository contract."
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "invariants",
         "op": "nonempty",
-        "reason": "invariants must name the concrete repository contract."
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
       }
     }
   }

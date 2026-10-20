@@ -3,28 +3,28 @@
   "service_id": "development.code-creation.api-client-generation",
   "input": "rig-services/development.code-creation.api-client-generation.json",
   "format": "json",
-  "ceiling": "api client generation configuration validation only; declared policy does not prove running api client generation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the specification path, compatibility version and unknown-response policy are declared; it does not show the generated client matches the live API.",
   "offer": "Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.",
   "checks": {
     "minimal": [
       {
         "field": "specification_path",
         "op": "nonempty",
-        "reason": "specification path must name the concrete repository contract."
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
       }
     ],
     "mid": [
       {
         "field": "compatibility_version",
         "op": "nonempty",
-        "reason": "compatibility version must name the concrete repository contract."
+        "reason": "Declare the API compatibility version the client targets. Callers cannot tell which contract they rely on otherwise, so record the version string."
       }
     ],
     "maximal": [
       {
         "field": "unknown_response_policy",
         "op": "nonempty",
-        "reason": "unknown response policy must name the concrete repository contract."
+        "reason": "State how the client treats response variants it does not recognise. Silent acceptance turns schema drift into success, so name the explicit policy such as fail or surface."
       }
     ]
   },
@@ -34,7 +34,7 @@
       "rule": {
         "field": "specification_path",
         "op": "nonempty",
-        "reason": "specification path must name the concrete repository contract."
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
       }
     },
     "behavior-oracle": {
@@ -42,7 +42,7 @@
       "rule": {
         "field": "specification_path",
         "op": "nonempty",
-        "reason": "specification path must name the concrete repository contract."
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
       }
     },
     "property-floor": {
@@ -50,7 +50,7 @@
       "rule": {
         "field": "specification_path",
         "op": "nonempty",
-        "reason": "specification path must name the concrete repository contract."
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
       }
     },
     "mutation-floor": {
@@ -58,7 +58,7 @@
       "rule": {
         "field": "specification_path",
         "op": "nonempty",
-        "reason": "specification path must name the concrete repository contract."
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
       }
     }
   }

@@ -3,21 +3,21 @@
   "service_id": "testing.unit.test-case-generation",
   "input": "rig-services/testing.unit.test-case-generation.json",
   "format": "json",
-  "ceiling": "test case generation configuration validation only; declared policy does not prove running test case generation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms behavior cases, asserted outcomes and the implementation-detail flag are declared; it does not generate tests.",
   "offer": "Generate tests from observable behavior and give every case a concrete expected outcome. Assertions against private implementation structure make refactoring needlessly expensive.",
   "checks": {
     "minimal": [
       {
         "field": "behavior_cases",
         "op": "nonempty",
-        "reason": "behavior cases must name the concrete repository contract."
+        "reason": "List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior."
       }
     ],
     "mid": [
       {
         "field": "asserted_outcomes",
         "op": "nonempty",
-        "reason": "asserted outcomes must name the concrete repository contract."
+        "reason": "State a concrete expected outcome per case. An assertion without an expected value proves nothing, so write it."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "assert_implementation_details",
         "op": "equals",
         "value": false,
-        "reason": "assert implementation details must be false."
+        "reason": "Set asserting implementation details to false. Asserting private structure makes refactoring costly, so assert outputs."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "behavior_cases",
         "op": "nonempty",
-        "reason": "behavior cases must name the concrete repository contract."
+        "reason": "List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "behavior_cases",
         "op": "nonempty",
-        "reason": "behavior cases must name the concrete repository contract."
+        "reason": "List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "behavior_cases",
         "op": "nonempty",
-        "reason": "behavior cases must name the concrete repository contract."
+        "reason": "List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "behavior_cases",
         "op": "nonempty",
-        "reason": "behavior cases must name the concrete repository contract."
+        "reason": "List the behaviors the cases cover. Cases tied to structure break on refactor, so describe observable behavior."
       }
     }
   }

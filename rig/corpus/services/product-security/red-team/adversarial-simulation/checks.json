@@ -3,21 +3,21 @@
   "service_id": "product-security.red-team.adversarial-simulation",
   "input": "rig-services/product-security.red-team.adversarial-simulation.json",
   "format": "json",
-  "ceiling": "adversarial simulation configuration validation only; declared policy does not prove running adversarial simulation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms attack scenarios, containment scope and the customer-data flag are declared; it does not run a simulation.",
   "offer": "Simulate threats in a contained environment with declared scenarios. Customer records and unapproved production targets do not belong in adversarial experiments.",
   "checks": {
     "minimal": [
       {
         "field": "attack_scenarios",
         "op": "nonempty",
-        "reason": "attack scenarios must name the concrete repository contract."
+        "reason": "List the attack scenarios simulated. Unstated scenarios cannot be reviewed, so name each one."
       }
     ],
     "mid": [
       {
         "field": "containment_scope",
         "op": "nonempty",
-        "reason": "containment scope must name the concrete repository contract."
+        "reason": "Declare the containment scope, such as an isolated environment. Without it a simulation can reach production, so define the boundary."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "use_real_customer_data",
         "op": "equals",
         "value": false,
-        "reason": "use real customer data must be false."
+        "reason": "Set using real customer data to false. Customer records do not belong in adversarial experiments, so use synthetic data."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "attack_scenarios",
         "op": "nonempty",
-        "reason": "attack scenarios must name the concrete repository contract."
+        "reason": "List the attack scenarios simulated. Unstated scenarios cannot be reviewed, so name each one."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "attack_scenarios",
         "op": "nonempty",
-        "reason": "attack scenarios must name the concrete repository contract."
+        "reason": "List the attack scenarios simulated. Unstated scenarios cannot be reviewed, so name each one."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "attack_scenarios",
         "op": "nonempty",
-        "reason": "attack scenarios must name the concrete repository contract."
+        "reason": "List the attack scenarios simulated. Unstated scenarios cannot be reviewed, so name each one."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "attack_scenarios",
         "op": "nonempty",
-        "reason": "attack scenarios must name the concrete repository contract."
+        "reason": "List the attack scenarios simulated. Unstated scenarios cannot be reviewed, so name each one."
       }
     }
   }

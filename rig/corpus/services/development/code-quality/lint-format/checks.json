@@ -3,21 +3,21 @@
   "service_id": "development.code-quality.lint-format",
   "input": "rig-services/development.code-quality.lint-format.json",
   "format": "json",
-  "ceiling": "lint format configuration validation only; declared policy does not prove running lint format behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the format and lint commands and the autofix setting are declared; it does not show the sources are formatted or lint-clean.",
   "offer": "Reuse the component-owned formatter and lint tasks. Read-only verification must preserve source bytes; invoke autofix only under a separately approved action.",
   "checks": {
     "minimal": [
       {
         "field": "format_command",
         "op": "nonempty",
-        "reason": "format command must name the concrete repository contract."
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
       }
     ],
     "mid": [
       {
         "field": "lint_command",
         "op": "nonempty",
-        "reason": "lint command must name the concrete repository contract."
+        "reason": "Declare the component's own lint command. A missing command leaves lint unchecked, so reuse the repository's existing task."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "autofix_during_check",
         "op": "equals",
         "value": false,
-        "reason": "autofix during check must be false."
+        "reason": "Set autofix during a check to false. A check that rewrites source breaks the read-only guarantee, so run autofix only under a separate approved action."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "format_command",
         "op": "nonempty",
-        "reason": "format command must name the concrete repository contract."
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "format_command",
         "op": "nonempty",
-        "reason": "format command must name the concrete repository contract."
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "format_command",
         "op": "nonempty",
-        "reason": "format command must name the concrete repository contract."
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "format_command",
         "op": "nonempty",
-        "reason": "format command must name the concrete repository contract."
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
       }
     }
   }

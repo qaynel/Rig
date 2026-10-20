@@ -2,4 +2,4 @@
 
 Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.
 
-Policy grade slice. This slice bounds feature implementation to code-creation.feature-implementation. It uses `feature-implementation-slice-property-floor` and checks acceptance_cases (nonempty): acceptance cases must name the concrete repository contract.
+Policy grade slice `feature-implementation-slice-property-floor`: Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see.

@@ -3,21 +3,21 @@
   "service_id": "testing.integration.cross-module",
   "input": "rig-services/testing.integration.cross-module.json",
   "format": "json",
-  "ceiling": "cross module configuration validation only; declared policy does not prove running cross module behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms participating modules, interaction cases and the stub-internals flag are declared; it does not run the modules.",
   "offer": "Exercise interactions between real modules and assert their shared observable result. Stubbing the internal boundary defeats the purpose of the integration check.",
   "checks": {
     "minimal": [
       {
         "field": "participating_modules",
         "op": "nonempty",
-        "reason": "participating modules must name the concrete repository contract."
+        "reason": "List the real modules that interact. Without them the check is a unit test, so name each participant."
       }
     ],
     "mid": [
       {
         "field": "interaction_cases",
         "op": "nonempty",
-        "reason": "interaction cases must name the concrete repository contract."
+        "reason": "List the interaction cases and their shared observable result. Untested interactions break silently, so write each case."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "stub_internal_contracts",
         "op": "equals",
         "value": false,
-        "reason": "stub internal contracts must be false."
+        "reason": "Set stubbing internal contracts to false. A stubbed internal boundary defeats the integration check, so exercise the real module."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "participating_modules",
         "op": "nonempty",
-        "reason": "participating modules must name the concrete repository contract."
+        "reason": "List the real modules that interact. Without them the check is a unit test, so name each participant."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "participating_modules",
         "op": "nonempty",
-        "reason": "participating modules must name the concrete repository contract."
+        "reason": "List the real modules that interact. Without them the check is a unit test, so name each participant."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "participating_modules",
         "op": "nonempty",
-        "reason": "participating modules must name the concrete repository contract."
+        "reason": "List the real modules that interact. Without them the check is a unit test, so name each participant."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "participating_modules",
         "op": "nonempty",
-        "reason": "participating modules must name the concrete repository contract."
+        "reason": "List the real modules that interact. Without them the check is a unit test, so name each participant."
       }
     }
   }

@@ -1,17 +1,13 @@
-# license diff
+# license-diff
 
 Compare license inventories across the actual release change. New or changed obligations require a deliberate disposition before the update is accepted.
 
-Owned scope: `license-compliance.license-diff`.
+Owned scope: `license-compliance.license-diff`. Input: `rig-services/product-security.license-compliance.license-diff.json`.
 
-Offer: Compare license inventories across the actual release change. New or changed obligations require a deliberate disposition before the update is accepted.
+Coverage ceiling: Configuration validation only, so it confirms previous and current inventories and the auto-accept flag are declared; it does not compute a diff.
 
-Input: `rig-services/product-security.license-compliance.license-diff.json`. Detection records the path even when its contents are malformed.
+minimal: previous inventory — "licenses.previous.json". Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory.
 
-Coverage ceiling: license diff configuration validation only; declared policy does not prove running license diff behavior. Select an approved repository-owned command to verify that behavior.
+mid: current inventory — "licenses.current.json". Provide the current license inventory. A diff needs both sides, so reference the inventory for this release.
 
-minimal: previous inventory — "licenses.previous.json".
-
-mid: current inventory — "licenses.current.json".
-
-maximal: accept new licenses automatically — false.
+maximal: accept new licenses automatically — false. Set accepting new licenses automatically to false. New or changed obligations need a deliberate disposition, so review each one.

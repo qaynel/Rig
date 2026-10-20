@@ -1,17 +1,13 @@
-# suite curation
+# suite-curation
 
 Keep the regressions that protect live behavior and give obsolete tests a written retirement reason. Removing a slow test without identifying its behavior owner can silently reopen a defect.
 
-Owned scope: `regression.suite-curation`.
+Owned scope: `regression.suite-curation`. Input: `rig-services/testing.regression.suite-curation.json`.
 
-Offer: Keep the regressions that protect live behavior and give obsolete tests a written retirement reason. Removing a slow test without identifying its behavior owner can silently reopen a defect.
+Coverage ceiling: Configuration validation only, so it confirms retained suites, retirement reasons and the no-owner flag are declared; it does not run the suites.
 
-Input: `rig-services/testing.regression.suite-curation.json`. Detection records the path even when its contents are malformed.
+minimal: retained suites — ["critical regression"]. List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them.
 
-Coverage ceiling: suite curation configuration validation only; declared policy does not prove running suite curation behavior. Select an approved repository-owned command to verify that behavior.
+mid: retirement reasons — ["obsolete API removed"]. Give a written reason for each retired test. Removal without a reason can reopen a defect, so record why it was safe.
 
-minimal: retained suites — ["critical regression"].
-
-mid: retirement reasons — ["obsolete API removed"].
-
-maximal: remove without behavior owner — false.
+maximal: remove without behavior owner — false. Set removing without a behavior owner to false. A test with no identified owner is deleted blindly, so name who owns the behavior first.

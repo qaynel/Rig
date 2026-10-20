@@ -2,4 +2,4 @@
 
 Locate the first boundary where expected behavior diverges and record the causal observation. Fix the shared cause and retain a reproduction rather than masking the final symptom.
 
-Policy grade slice. This slice bounds root cause analysis to debugging.root-cause-analysis. It uses `root-cause-analysis-slice-property-floor` and checks failure_boundary (nonempty): failure boundary must name the concrete repository contract.
+Policy grade slice `root-cause-analysis-slice-property-floor`: Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong.

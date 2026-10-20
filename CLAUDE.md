@@ -45,6 +45,12 @@ Before any scope, design, test, or support question, check it against this list.
     reserve `unsupported` for a vendor surface that does not exist. The gap is
     explicit in the release contract rather than a speculative hook claim.
     `wiki/reasoning/2026-10-18-host-hook-honest-gap-owner-decision.md`.
+13. **One trust root: the Gate 1 key is the only signing key Rig uses.**
+    It is the only key that signs, approves, or recovers anything. Plan
+    approvals, policy, and receipts verify against it alone. Rig has no
+    separate policy-signer setup, recovery registration, trust-on-first-use
+    fallback, `trust.json`, or independent `.rig/allowed-signers` list.
+    `wiki/reasoning/2026-10-20-one-trust-root-owner-decision.md`.
 
 When the owner states a product decision, add it here in the same change.
 

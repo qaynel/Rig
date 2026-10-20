@@ -1,17 +1,13 @@
-# backup restore
+# backup-restore
 
 Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
 
-Owned scope: `storage.backup-restore`.
+Owned scope: `storage.backup-restore`. Input: `rig-services/infrastructure.storage.backup-restore.json`.
 
-Offer: Schedule backups and independent restoration tests together. Successful backup creation cannot prove that the stored data can be recovered.
+Coverage ceiling: Configuration validation only, so it confirms a backup schedule, a restore-test schedule and the untested-backup flag are declared; it does not show data is recoverable.
 
-Input: `rig-services/infrastructure.storage.backup-restore.json`. Detection records the path even when its contents are malformed.
+minimal: backup schedule — "daily". Declare the backup schedule. Backups that run irregularly leave gaps, so set the cadence.
 
-Coverage ceiling: backup restore configuration validation only; declared policy does not prove running backup restore behavior. Select an approved repository-owned command to verify that behavior.
+mid: restore test schedule — "monthly". Declare how often restores are tested. A backup never restored is unproven, so schedule independent restore tests.
 
-minimal: backup schedule — "daily".
-
-mid: restore test schedule — "monthly".
-
-maximal: backup without restore test — false.
+maximal: backup without restore test — false. Set backup without a restore test to false. Successful backup creation cannot prove recovery, so require a restore test.

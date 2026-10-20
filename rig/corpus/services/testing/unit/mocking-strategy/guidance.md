@@ -1,17 +1,13 @@
-# mocking strategy
+# mocking-strategy
 
 Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.
 
-Owned scope: `unit.mocking-strategy`.
+Owned scope: `unit.mocking-strategy`. Input: `rig-services/testing.unit.mocking-strategy.json`.
 
-Offer: Mock costly external boundaries while exercising the real unit and its local collaborators. Mocking the unit itself proves only what the mock was told to return.
+Coverage ceiling: Configuration validation only, so it confirms mocked boundaries, real components and the mock-subject flag are declared; it does not run the tests.
 
-Input: `rig-services/testing.unit.mocking-strategy.json`. Detection records the path even when its contents are malformed.
+minimal: mocked boundaries — ["payment network"]. List the costly external boundaries that are mocked. Mocking everything proves nothing, so name only true boundaries.
 
-Coverage ceiling: mocking strategy configuration validation only; declared policy does not prove running mocking strategy behavior. Select an approved repository-owned command to verify that behavior.
+mid: real components — ["order service"]. List the real components the unit uses. Without them the test checks a mock, so name the collaborators exercised.
 
-minimal: mocked boundaries — ["payment network"].
-
-mid: real components — ["order service"].
-
-maximal: mock unit under test — false.
+maximal: mock unit under test — false. Set mocking the unit under test to false. A mocked unit proves only what the mock was told to return, so test the real one.

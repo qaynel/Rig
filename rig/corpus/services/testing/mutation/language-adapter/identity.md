@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.language-adapter`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.language-adapter.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. language adapter configuration validation only; declared policy does not prove running language adapter behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms source extensions, a compiler command and the parse-error flag are declared; it does not compile anything.
 
 Policy checks: minimal requires `source_extensions` = `[".js"]`; mid adds `compiler_command` = `["node","--check"]`; maximal requires `parse_errors_are_success` = `false`.

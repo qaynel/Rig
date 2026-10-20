@@ -2,4 +2,4 @@
 
 Verify producer and consumer compatibility against the same schema. Breaking a consumer contract needs a deliberate transition rather than updating only the producer fixture.
 
-Policy grade slice. This slice bounds internal contract to integration.internal-contract. It uses `internal-contract-slice-behavior-oracle` and checks producer_schema (nonempty): producer schema must name the concrete repository contract.
+Policy grade slice `internal-contract-slice-behavior-oracle`: Declare the producer schema consumers rely on. Without it compatibility has no reference, so point to the schema file. Despite its name this slice is not a behavior oracle: it confirms the producer schema, consumer versions and the breaking-change flag are declared; it does not compare live schemas.

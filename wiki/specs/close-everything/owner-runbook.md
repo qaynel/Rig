@@ -7,41 +7,40 @@ follow step 1, because the signature file is part of the bytes they bind.
 
 ## 1. Apply and re-sign the batched Gate 1 amendment 🔒
 
-The owner completed the `test:e2e` re-sign on 2026-10-17. A subsequent binding
-review found contradictions in the signed release and catalogue prose and
-incomplete executable cases. Review the
-[unsigned amendment request](candidate-amendments/2026-10-18-binding-review-unfreeze-request.md)
-and its single
-[consolidated candidate patch](candidate-amendments/binding-review-owner.patch).
-From the repository root, inspect and check the patch, then apply it only after
-approving the complete frozen delta:
+Your earlier signature already ratified the binding-review amendment
+(`binding-review-owner.patch`); it is applied in the working tree and
+`wiki/gate1/gate1.sig` carries your signature. Do not re-apply it. The failed
+October 20 binding review and your one-trust-root decision (North star 13)
+need one more frozen delta, prepared as a single patch:
+[`one-trust-root-owner.patch`](candidate-amendments/one-trust-root-owner.patch).
+It changes five files: the oracle test, the catalogue pin test, the acceptance
+cases, the business specification, and the manifest digests. Read it before
+applying — each hunk is listed in the
+[evidence index](qa-closeout-evidence.md#the-owner-amendment-one-batch).
+
+From the repository root:
 
 ```sh
-git apply --stat wiki/specs/close-everything/candidate-amendments/binding-review-owner.patch
-git apply --check wiki/specs/close-everything/candidate-amendments/binding-review-owner.patch
-git apply wiki/specs/close-everything/candidate-amendments/binding-review-owner.patch
-node --test --test-name-pattern='AT-P1|AT-P4|AT-B6|AT-HOST-1|AT-DIST-1|AT-LF-5|AT-LF-7|AT-LF-8|AT-LF-9|AT-LF-13|AT-LF-14|AT-LF-20|AT-LF-22|AT-LF-24|AT-PRESENCE-1|AT-PRESENCE-2|AT-UNINSTALL-2' tests/advanced-oracle.test.js
-node --test tests/advanced-spec-gate.test.js tests/path-b-install.test.js tests/path-b-catalog.test.js
+git apply --stat  wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
+git apply --check wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
+git apply         wiki/specs/close-everything/candidate-amendments/one-trust-root-owner.patch
+node scripts/check-advanced-spec.js        # fails only on the signature until you sign
+node --test tests/advanced-oracle.test.js tests/advanced-spec-gate.test.js tests/path-b-catalog.test.js
 ```
 
-The patch includes the proposed manifest digests. Recompute every changed
-entry from the final bytes and inspect the actual `git diff -- wiki/gate1`
-before signing. AT-PB-1 currently pins 1,042 corpus files at
-`759b7cc73baa241fb47a79cbd270244bc9d4229272ccb4973261d324bf2456f5`; if those
-bytes change, refresh the pin and affected manifest entries before proceeding.
+The patch already carries recomputed manifest digests; inspect
+`git diff -- wiki/gate1` and recompute any entry whose bytes you change. The
+corpus pin in `AT-PB-1` is the 1,042-file digest of the catalogue as authored;
+if you edit any `rig/corpus/services` file or `catalogue.json`, refresh it.
 The agent must not edit frozen files, run or simulate the signing ceremony, or
 supply a guessed digest.
 
 Run `node scripts/approve-gate1.js` yourself. Its first refusal prints the exact
 proposed oracle digest and the command with `--confirm-digest-delta`. Review
-that delta, then run that printed command yourself and verify with
-`node scripts/check-advanced-spec.js`. Then run the full gate in step 2. The
-confirmation is the combined oracle message digest, **not** the package-script
-file's hash. Agents never run the ceremony or supply a guessed confirmation.
-
-Compare the complete final frozen delta with the amendment request before you
-sign. The earlier package-script-only delta description is historical and does
-not describe this new batch.
+that delta, run that printed command yourself, then verify with
+`node scripts/check-advanced-spec.js`. The confirmation is the combined oracle
+message digest, **not** a single file's hash. Agents never run the ceremony or
+supply a guessed confirmation.
 
 ## 2. Full gate on the final bytes
 
@@ -79,7 +78,7 @@ committed into the repository changes the bytes it claims to describe. Keep the
 file — step 7 needs its contents.
 
 The latest failed review used this same context and output path; its
-failed-attempt counter is **2**. Preserve it. The wrapper requires
+failed-attempt counter is **3**. Preserve it. The wrapper requires
 `--force-rereview` for another attempt, and the owner must explicitly
 authorize that exception after inspecting the remediated final candidate.
 Do not change the context or delete the counter to retry.

@@ -1,17 +1,13 @@
-# feature implementation
+# feature-implementation
 
 Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.
 
-Owned scope: `code-creation.feature-implementation`.
+Owned scope: `code-creation.feature-implementation`. Input: `rig-services/development.code-creation.feature-implementation.json`.
 
-Offer: Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.
+Coverage ceiling: Configuration validation only, so it confirms acceptance cases, change scope and compatibility notes are declared; it does not show the implemented feature meets them.
 
-Input: `rig-services/development.code-creation.feature-implementation.json`. Detection records the path even when its contents are malformed.
+minimal: acceptance cases — ["creates an item","rejects invalid input"]. Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see.
 
-Coverage ceiling: feature implementation configuration validation only; declared policy does not prove running feature implementation behavior. Select an approved repository-owned command to verify that behavior.
+mid: change scope — ["src/items.js"]. List the files or modules the change may touch. An empty scope lets edits spread unreviewed, so declare the agreed boundary.
 
-minimal: acceptance cases — ["creates an item","rejects invalid input"].
-
-mid: change scope — ["src/items.js"].
-
-maximal: compatibility — "preserve-existing-behavior".
+maximal: compatibility — "preserve-existing-behavior". State the compatibility expectations for existing callers or data. Leaving them implicit hides breaking changes, so record what must keep working.

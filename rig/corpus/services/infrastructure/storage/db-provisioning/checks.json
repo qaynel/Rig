@@ -3,21 +3,21 @@
   "service_id": "infrastructure.storage.db-provisioning",
   "input": "rig-services/infrastructure.storage.db-provisioning.json",
   "format": "json",
-  "ceiling": "db provisioning configuration validation only; declared policy does not prove running db provisioning behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms the database version, access scope and the public-endpoint flag are declared; it does not read the managed service.",
   "offer": "Pin the database engine and restrict connectivity to its intended clients. Configuration conformance does not establish actual managed-service access controls.",
   "checks": {
     "minimal": [
       {
         "field": "database_version",
         "op": "nonempty",
-        "reason": "database version must name the concrete repository contract."
+        "reason": "Pin the database engine version. An unpinned engine upgrades unexpectedly, so record the exact version."
       }
     ],
     "mid": [
       {
         "field": "access_scope",
         "op": "nonempty",
-        "reason": "access scope must name the concrete repository contract."
+        "reason": "Restrict access to the intended clients, such as a private network or named roles. Open access exposes data, so declare the scope."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "public_database_endpoint",
         "op": "equals",
         "value": false,
-        "reason": "public database endpoint must be false."
+        "reason": "Set public database endpoint to false. A publicly reachable database invites attack, so keep it on a private network."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "database_version",
         "op": "nonempty",
-        "reason": "database version must name the concrete repository contract."
+        "reason": "Pin the database engine version. An unpinned engine upgrades unexpectedly, so record the exact version."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "database_version",
         "op": "nonempty",
-        "reason": "database version must name the concrete repository contract."
+        "reason": "Pin the database engine version. An unpinned engine upgrades unexpectedly, so record the exact version."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "database_version",
         "op": "nonempty",
-        "reason": "database version must name the concrete repository contract."
+        "reason": "Pin the database engine version. An unpinned engine upgrades unexpectedly, so record the exact version."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "database_version",
         "op": "nonempty",
-        "reason": "database version must name the concrete repository contract."
+        "reason": "Pin the database engine version. An unpinned engine upgrades unexpectedly, so record the exact version."
       }
     }
   }

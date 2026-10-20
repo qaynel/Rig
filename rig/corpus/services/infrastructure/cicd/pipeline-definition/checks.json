@@ -3,21 +3,21 @@
   "service_id": "infrastructure.cicd.pipeline-definition",
   "input": "rig-services/infrastructure.cicd.pipeline-definition.json",
   "format": "json",
-  "ceiling": "pipeline definition configuration validation only; declared policy does not prove running pipeline definition behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms pipeline stages, required checks and the deploy-after-failure flag are declared; it does not show the pipeline blocks a failing build.",
   "offer": "Make build, verification and deployment ordering explicit in the pipeline. Deployment must be blocked when a required check fails rather than merely recording a red stage.",
   "checks": {
     "minimal": [
       {
         "field": "stages",
         "op": "nonempty",
-        "reason": "stages must name the concrete repository contract."
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
       }
     ],
     "mid": [
       {
         "field": "required_checks",
         "op": "nonempty",
-        "reason": "required checks must name the concrete repository contract."
+        "reason": "List the checks a deploy requires. A pipeline that does not name required checks can ship unverified code, so declare them."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "deploy_after_failed_checks",
         "op": "equals",
         "value": false,
-        "reason": "deploy after failed checks must be false."
+        "reason": "Set deploying after failed checks to false. A red stage that does not block deployment only records the failure, so make deploy depend on the checks."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "stages",
         "op": "nonempty",
-        "reason": "stages must name the concrete repository contract."
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "stages",
         "op": "nonempty",
-        "reason": "stages must name the concrete repository contract."
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "stages",
         "op": "nonempty",
-        "reason": "stages must name the concrete repository contract."
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "stages",
         "op": "nonempty",
-        "reason": "stages must name the concrete repository contract."
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
       }
     }
   }

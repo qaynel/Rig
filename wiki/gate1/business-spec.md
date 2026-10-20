@@ -303,23 +303,11 @@ infrastructure form the oracle that is signed once before implementation.
 > re-signed combined digest (§8), before the specification gate may implement
 > this exception.
 
-> **Revision note (2026-08-21, final ruling that day) — D24, broad Policy MVP
-> and one gate.** Re-grilled with [`acceptance.md`](acceptance.md) after the
-> intent owner approved the complete MVP handoff. This revision supersedes
-> D21's lint-format-only release boundary and retires D23's temporary
-> `AT-SHAPE-6` exception. The MVP release now includes all 115 catalogue leaves
-> at the Policy rung, all 55 vendored skills wired and callable by Rig name,
-> context-aware onboarding that writes only into detected host trees, and a
-> named-tag distribution path at version `5.0.0`.
+> **Revision note (owner ratification pending) — D24 release and catalogue alignment.** The current owner-locked release direction is Rig 6.0.0 from one central corpus. The 115 catalogue leaves remain release-blocking at the Policy assurance ceiling; each fragment must state its actual service coverage and evidence limit in specific language. Repeated filler, interpolation artifacts, TODOs, and fabricated Context or Evidence claims fail. Higher grades require separate observed review and replayable evidence.
 >
-> Every D24-authored fragment states that it is generic Policy-grade baseline
-> practice, not repository-tailored Context or Evidence coverage. The honesty
-> floor is unchanged: missing or malformed bindings are named nonzero coverage
-> gaps, never silent skips or fabricated passes. Lint-format alone may retain
-> its already-evidenced Context and Evidence behavior. Sequential per-leaf
-> authorship is suspended for this release; the owner accepts that this MVP
-> therefore does not itself demonstrate that an agent cannot set its own test
-> bar. Later promotion restores ordinary per-leaf review.
+> Optional upstream skills retain their 55-entry pinned inventory and attribution metadata, but are fetched during approved onboarding. Fresh install projects the nine mandatory workflow/onboarding skills and compact catalogue; it does not stage optional source bytes or expose optional skills before approval. The release resolves and downloads a named tag before execution, currently version `6.0.0`, and includes the upstream notice and provenance record without an endorsement claim. The user’s agent performs adaptive onboarding; Rig does not infer repository needs.
+>
+> Missing or malformed bindings are named nonzero coverage gaps, never silent skips or fabricated passes. The signed oracle remains this file, acceptance, and the deterministic testing infrastructure manifest; Gate 2 is present but not frozen.
 >
 > The two-gate workflow is replaced by one freeze. The signed oracle consists
 > of this file, [`acceptance.md`](acceptance.md), and the deterministic testing
@@ -644,25 +632,9 @@ pre-modification copies, and the uninstall path that consumes them. This is the
 counterpart to D7: a product a stranger can install without this checkout must
 also be one they can remove without it.
 
-**Also in scope (D24) — the broad Policy MVP.** All 115 catalogue leaves ship
-at the Policy rung; each states that its content is generic baseline practice,
-not repository-tailored Context or Evidence coverage. All 55 vendored skills
-are wired into materialization and host discovery and remain callable by their
-Rig names. Onboarding detects existing host trees mechanically and writes only
-to those trees. The root installer resolves and downloads a named released tag
-before execution, and the release version is `5.0.0`. The upstream MIT notice
-and provenance record for the modified partial vendored suite ship in every
-installed copy, without an upstream-endorsement claim.
+**Also in scope (D24) — release and authored catalogue.** All 115 catalogue leaves remain release-blocking at the Policy assurance ceiling. Each must state service-specific coverage and its evidence limit; repeated filler and unsupported higher-grade claims fail. Optional upstream skills retain a 55-entry pinned inventory and attribution metadata, and are fetched during approved onboarding. A fresh install projects nine mandatory workflow/onboarding skills and the compact catalogue, with no optional source shelf staged or exposed before approval. The named-tag installer downloads before execution; the current release is 6.0.0. The upstream notice and provenance ship without an endorsement claim.
 
-**Also in scope (Path B) — agent-led adaptive onboarding.** The released
-payload carries the complete skill source shelf once outside host discovery, a
-deterministic compact capability catalogue, bounded structural inventory and
-overlap reports, repository-local onboarding state/reports, versioned graft
-mechanics, a shared `prepare` / `propose` / `apply` / `check` domain used by CLI
-and MCP, selective approved skill projections, one canonical router and
-onboarding playbook, the `install rig [--host <host>]` operator path, and the
-warning/correctness check. The public flow has no install tiers and no
-auto-trigger.
+**Also in scope (Path B) — agent-led adaptive onboarding.** The released payload carries pinned source metadata for the optional skill shelf, a deterministic compact capability catalogue, bounded structural inventory and overlap reports, repository-local onboarding state/reports, versioned graft mechanics, a shared `prepare` / `propose` / `apply` / `check` domain used by CLI and MCP, selective approved skill projections, one canonical router and onboarding playbook, and the `install rig [--host <host>]` operator path. Optional skill bytes are fetched only during approved onboarding. The public flow has no install tiers and no auto-trigger.
 
 **Lint-format remains the evidenced vertical.** Its whole-repository discovery,
 semantic command binding, cumulative Policy → Context → Evidence behavior,
@@ -739,15 +711,7 @@ The determinism ladder (unit → property → mutation → contract → chaos �
 inter-service **dependencies** (auto-pull), orthogonal to grade. **The catalogue is mutually exclusive
 (MECE)** — every capability is owned by exactly one service.
 
-All **115 frozen leaves are release-blocking for this MVP** (D24). Each ships
-at Policy grade with service-specific identity, owned scope and adjacent
-exclusions, applicability, dependencies, cumulative grade behavior, execution
-disposition, checks, and acceptance evidence. Each D24-authored fragment names
-its Policy grade and says explicitly that it is generic baseline practice, not
-repository-tailored Context or Evidence coverage. A TODO fragment, generic
-filler presented as coverage, repeated boilerplate, or merely non-empty file
-does not constitute an authored service pack. Lint-format is the only leaf that
-may claim Context or Evidence from its existing evidence.
+All **115 frozen leaves remain release-blocking** (D24). Each ships at Policy grade with service-specific identity, scope and exclusions, applicability, dependencies, cumulative grade behavior, execution disposition, checks, and acceptance evidence. Each fragment states its actual coverage and evidence limit in service-specific language. A TODO, interpolation artifact, repeated filler, or merely non-empty file fails. Context or Evidence is claimed only when the corresponding review and evidence receipt can be verified.
 
 **Four families → groups** (service-level detail in `../../archive/grilling/advanced-grilling.md` §GA-9k/9l/9m/9n and the
 `references/` taxonomies):

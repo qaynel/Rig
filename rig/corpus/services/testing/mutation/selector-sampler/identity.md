@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.selector-sampler`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.selector-sampler.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms a selection scope, sampling seed and the exhaustive-claim flag are declared; it does not sample mutants.
 
 Policy checks: minimal requires `selection_scope` = `["changed parser functions"]`; mid adds `sampling_seed` = `42`; maximal requires `claim_exhaustive_from_sample` = `false`.

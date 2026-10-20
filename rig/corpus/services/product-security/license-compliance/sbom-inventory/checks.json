@@ -3,21 +3,21 @@
   "service_id": "product-security.license-compliance.sbom-inventory",
   "input": "rig-services/product-security.license-compliance.sbom-inventory.json",
   "format": "json",
-  "ceiling": "sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms an SBOM format, components and the omit-versions flag are declared; it does not generate or validate an SBOM.",
   "offer": "Record a machine-readable software inventory with exact component versions. An SBOM describes shipped components; it does not by itself establish license or vulnerability compliance.",
   "checks": {
     "minimal": [
       {
         "field": "sbom_format",
         "op": "nonempty",
-        "reason": "sbom format must name the concrete repository contract."
+        "reason": "Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it."
       }
     ],
     "mid": [
       {
         "field": "components",
         "op": "nonempty",
-        "reason": "components must name the concrete repository contract."
+        "reason": "List the components in the inventory. An empty SBOM describes nothing shipped, so include every component."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "omit_dependency_versions",
         "op": "equals",
         "value": false,
-        "reason": "omit dependency versions must be false."
+        "reason": "Set omitting dependency versions to false. A component without an exact version cannot be matched to advisories, so record versions."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "sbom_format",
         "op": "nonempty",
-        "reason": "sbom format must name the concrete repository contract."
+        "reason": "Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "sbom_format",
         "op": "nonempty",
-        "reason": "sbom format must name the concrete repository contract."
+        "reason": "Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "sbom_format",
         "op": "nonempty",
-        "reason": "sbom format must name the concrete repository contract."
+        "reason": "Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "sbom_format",
         "op": "nonempty",
-        "reason": "sbom format must name the concrete repository contract."
+        "reason": "Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it."
       }
     }
   }

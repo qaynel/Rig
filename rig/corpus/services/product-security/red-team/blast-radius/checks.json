@@ -3,21 +3,21 @@
   "service_id": "product-security.red-team.blast-radius",
   "input": "rig-services/product-security.red-team.blast-radius.json",
   "format": "json",
-  "ceiling": "blast radius configuration validation only; declared policy does not prove running blast radius behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms privilege scopes, isolation boundaries and the cross-tenant flag are declared; it does not test compromise.",
   "offer": "Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.",
   "checks": {
     "minimal": [
       {
         "field": "privilege_scopes",
         "op": "nonempty",
-        "reason": "privilege scopes must name the concrete repository contract."
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
       }
     ],
     "mid": [
       {
         "field": "isolation_boundaries",
         "op": "nonempty",
-        "reason": "isolation boundaries must name the concrete repository contract."
+        "reason": "List the isolation boundaries, such as tenant or network separation. An unnamed boundary is not enforced, so declare it."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "cross_tenant_access",
         "op": "equals",
         "value": false,
-        "reason": "cross tenant access must be false."
+        "reason": "Set cross-tenant access to false. Access across tenants defeats the boundary, so deny it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "privilege_scopes",
         "op": "nonempty",
-        "reason": "privilege scopes must name the concrete repository contract."
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "privilege_scopes",
         "op": "nonempty",
-        "reason": "privilege scopes must name the concrete repository contract."
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "privilege_scopes",
         "op": "nonempty",
-        "reason": "privilege scopes must name the concrete repository contract."
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "privilege_scopes",
         "op": "nonempty",
-        "reason": "privilege scopes must name the concrete repository contract."
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
       }
     }
   }

@@ -3,21 +3,21 @@
   "service_id": "testing.regression.suite-curation",
   "input": "rig-services/testing.regression.suite-curation.json",
   "format": "json",
-  "ceiling": "suite curation configuration validation only; declared policy does not prove running suite curation behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms retained suites, retirement reasons and the no-owner flag are declared; it does not run the suites.",
   "offer": "Keep the regressions that protect live behavior and give obsolete tests a written retirement reason. Removing a slow test without identifying its behavior owner can silently reopen a defect.",
   "checks": {
     "minimal": [
       {
         "field": "retained_suites",
         "op": "nonempty",
-        "reason": "retained suites must name the concrete repository contract."
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
       }
     ],
     "mid": [
       {
         "field": "retirement_reasons",
         "op": "nonempty",
-        "reason": "retirement reasons must name the concrete repository contract."
+        "reason": "Give a written reason for each retired test. Removal without a reason can reopen a defect, so record why it was safe."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "remove_without_behavior_owner",
         "op": "equals",
         "value": false,
-        "reason": "remove without behavior owner must be false."
+        "reason": "Set removing without a behavior owner to false. A test with no identified owner is deleted blindly, so name who owns the behavior first."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "retained_suites",
         "op": "nonempty",
-        "reason": "retained suites must name the concrete repository contract."
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "retained_suites",
         "op": "nonempty",
-        "reason": "retained suites must name the concrete repository contract."
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "retained_suites",
         "op": "nonempty",
-        "reason": "retained suites must name the concrete repository contract."
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "retained_suites",
         "op": "nonempty",
-        "reason": "retained suites must name the concrete repository contract."
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
       }
     }
   }

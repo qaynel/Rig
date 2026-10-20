@@ -1,17 +1,13 @@
-# environment parity
+# environment-parity
 
 Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
 
-Owned scope: `provisioning.environment-parity`.
+Owned scope: `provisioning.environment-parity`. Input: `rig-services/infrastructure.provisioning.environment-parity.json`.
 
-Offer: Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.
+Coverage ceiling: Configuration validation only, so it confirms environments, intentional differences and the unrecorded-difference flag are declared; it does not compare deployed resources.
 
-Input: `rig-services/infrastructure.provisioning.environment-parity.json`. Detection records the path even when its contents are malformed.
+minimal: environments — ["staging","production"]. List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable.
 
-Coverage ceiling: environment parity configuration validation only; declared policy does not prove running environment parity behavior. Select an approved repository-owned command to verify that behavior.
+mid: intentional differences — ["instance count"]. Record the differences that are intentional. Unexplained differences are drift, so document each deliberate one.
 
-minimal: environments — ["staging","production"].
-
-mid: intentional differences — ["instance count"].
-
-maximal: unrecorded differences allowed — false.
+maximal: unrecorded differences allowed — false. Set unrecorded differences allowed to false. A hidden difference makes staging results meaningless, so record or remove it.

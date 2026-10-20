@@ -3,21 +3,21 @@
   "service_id": "testing.test-data.anonymization",
   "input": "rig-services/testing.test-data.anonymization.json",
   "format": "json",
-  "ceiling": "anonymization configuration validation only; declared policy does not prove running anonymization behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms sensitive fields, a replacement strategy and the re-identification-map flag are declared; it does not read any data.",
   "offer": "Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.",
   "checks": {
     "minimal": [
       {
         "field": "sensitive_fields",
         "op": "nonempty",
-        "reason": "sensitive fields must name the concrete repository contract."
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
       }
     ],
     "mid": [
       {
         "field": "replacement_strategy",
         "op": "nonempty",
-        "reason": "replacement strategy must name the concrete repository contract."
+        "reason": "Declare the replacement strategy, which must be irreversible while preserving data shape. Reversible masking is not anonymization, so name the method."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "retain_reidentification_map",
         "op": "equals",
         "value": false,
-        "reason": "retain reidentification map must be false."
+        "reason": "Set retaining a re-identification map to false. A lookup from synthetic values to people defeats anonymization, so delete it."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "sensitive_fields",
         "op": "nonempty",
-        "reason": "sensitive fields must name the concrete repository contract."
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "sensitive_fields",
         "op": "nonempty",
-        "reason": "sensitive fields must name the concrete repository contract."
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "sensitive_fields",
         "op": "nonempty",
-        "reason": "sensitive fields must name the concrete repository contract."
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "sensitive_fields",
         "op": "nonempty",
-        "reason": "sensitive fields must name the concrete repository contract."
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
       }
     }
   }

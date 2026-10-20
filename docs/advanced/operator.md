@@ -83,40 +83,16 @@ The proposal carries the third-party disclosure and exact activation challenge.
 External approval signs `rig-policy-activation-v1`, the proposal digest, and a
 trailing newline under SSHSIG namespace `rig-policy-activation`. The approval
 JSON carries the signer identity, armored signature, proposal digest, and
-confirmed disclosure digests; Rig verifies it against
-`.rig/policy/allowed-signers`. A JSON `verified: true` assertion is not accepted.
+confirmed disclosure digests. A JSON `verified: true` assertion is not accepted.
 
-Signer setup and recovery registration are signed ceremonies too. Rig only
-generates challenges and verifies signatures; it never holds a private key:
-
-```sh
-node rig/materialize.js policy signer-challenge --target <repo> --signer <signer.json> --out <challenge.json>
-node rig/materialize.js policy signer-setup --target <repo> --challenge <challenge.json> --approval <approval.json>
-node rig/materialize.js policy recovery-key --target <repo> --identity <recovery-id> --key-output </absolute/path/outside/repo> --out <challenge.json>
-node rig/materialize.js policy recovery-register --target <repo> --challenge <challenge.json> --approval <approval.json>
-```
-
-`signer.json` carries the signer `identity` and `public_key`. Setup is signed
-by the already-configured signer (or the single signer in an existing
-`allowed-signers` file) under namespace `rig-policy-activation`, and it offers
-three recovery identities. `recovery-key` runs OpenSSH `ed25519-sk` generation
-with required user verification outside the repository; if that is unavailable
-Rig refuses and never falls back to a software key. Registering a recovery
-credential is signed by the current signer, and rotations require the current
-signer. Recovery approvals must carry the signed user-verification flag. A caller-written registration is not trusted: authority is the
-reverified signed chain in `.rig/policy/`.
-
-Signer recovery uses the separate recovery namespace and trust store:
-
-```sh
-node rig/materialize.js policy recovery-challenge --target <repo> --replacement <replacement.json> --identity <recovery-id> --out <challenge.json>
-node rig/materialize.js policy recover --target <repo> --challenge <challenge.json> --approval <recovery-approval.json>
-```
-
-The recovery approval signs `rig-policy-recovery-v1`, the challenge digest, and
-a trailing newline under namespace `rig-policy-recovery`. Recovery requires a
-pre-registered distinct credential and commits its receipt before burning old
-approvals or advancing evidence state.
+Rig has one trust root: the key that signs the Gate 1 lock. The installer ships
+its public half as `.rig/trust/gate1.allowed-signers`, and every approval —
+plan approvals, lint-format plan and setup approvals, and policy activation —
+verifies against that key alone, with the identity it lists (`gate1-owner`).
+There is no separate policy-signer setup, recovery registration, rotation,
+recovery, or trust-on-first-use, and a signer list planted elsewhere in the
+repository approves nothing. Editing the installed trust root is drift. If the
+Gate 1 key is lost Rig offers no recovery path.
 
 Removal is available from the same shipped runtime:
 

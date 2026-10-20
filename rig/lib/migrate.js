@@ -56,6 +56,12 @@ const V5_ZONES = [
   /^\.kiro\/steering\/rig\.md$/,
 ];
 
+// Seeded user files are never overwritten, except a v5 default the user left byte-for-byte
+// untouched: its old shape lacks the protected network categories the evaluator reads.
+const V5_UNEDITED_SEEDS = new Map([
+  ['.rig/network-policy.json', '96f090e36a5f6153da30f68f1c27c9645d95910f1a0a088581c83ab78902299f'],
+]);
+
 class MigrationRefusal extends Error {
   constructor(code, detail, extra = {}) {
     super(`rig: migration refused (${code}): ${detail}`);
@@ -393,7 +399,11 @@ function plan(target, opts) {
     const live = liveDigest(target, rel);
     const owned = journal.latest.get(rel);
     const old = owned && owned.state === 'applied' && isFileOwned(owned) ? (owned.digest || null) : null;
-    if (entry.op === 'seed_user_file') { if (live === null) actions.push({ path: rel, action: 'write', old: null, new: newDigest, op: 'seed_user_file' }); continue; }
+    if (entry.op === 'seed_user_file') {
+      if (live === null) actions.push({ path: rel, action: 'write', old: null, new: newDigest, op: 'seed_user_file' });
+      else if (live !== newDigest && V5_UNEDITED_SEEDS.get(rel) === live) actions.push({ path: rel, action: 'write', old: live, new: newDigest, op: 'seed_user_file', backup: true });
+      continue;
+    }
     if (live === newDigest) {
       const mode = fs.statSync(containedPath(target, rel)).mode & 0o777;
       if (old !== null && owned.mode && mode !== owned.mode && mode !== entry.mode) {

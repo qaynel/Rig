@@ -1,17 +1,13 @@
-# sbom inventory
+# sbom-inventory
 
 Record a machine-readable software inventory with exact component versions. An SBOM describes shipped components; it does not by itself establish license or vulnerability compliance.
 
-Owned scope: `license-compliance.sbom-inventory`.
+Owned scope: `license-compliance.sbom-inventory`. Input: `rig-services/product-security.license-compliance.sbom-inventory.json`.
 
-Offer: Record a machine-readable software inventory with exact component versions. An SBOM describes shipped components; it does not by itself establish license or vulnerability compliance.
+Coverage ceiling: Configuration validation only, so it confirms an SBOM format, components and the omit-versions flag are declared; it does not generate or validate an SBOM.
 
-Input: `rig-services/product-security.license-compliance.sbom-inventory.json`. Detection records the path even when its contents are malformed.
+minimal: sbom format — "cyclonedx". Declare the SBOM format, such as CycloneDX or SPDX. A tool cannot read an unspecified format, so name it.
 
-Coverage ceiling: sbom inventory configuration validation only; declared policy does not prove running sbom inventory behavior. Select an approved repository-owned command to verify that behavior.
+mid: components — ["library@1.0.0"]. List the components in the inventory. An empty SBOM describes nothing shipped, so include every component.
 
-minimal: sbom format — "cyclonedx".
-
-mid: components — ["library@1.0.0"].
-
-maximal: omit dependency versions — false.
+maximal: omit dependency versions — false. Set omitting dependency versions to false. A component without an exact version cannot be matched to advisories, so record versions.

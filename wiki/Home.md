@@ -64,7 +64,7 @@ topic is wrong.
 [the safety baseline](topics/safety-baseline.md) ·
 [the policy model](topics/policy-model.md) ·
 [user-presence approvals](topics/user-presence-approvals.md) ·
-[policy-signer recovery](topics/policy-signer-recovery.md) ·
+[one trust root (formerly policy-signer recovery)](topics/policy-signer-recovery.md) ·
 [one-use approvals](topics/one-use-approvals.md) ·
 [the action evaluator](topics/action-evaluator.md) ·
 [enforcement and git-dispatch wiring](topics/enforcement-and-git-dispatch-wiring.md) ·

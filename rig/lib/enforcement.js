@@ -15,19 +15,34 @@ function actionDigest(action) {
   return digest(JSON.stringify(action));
 }
 
+// Enforcement leaves per surface: [legacy key, current key]. Both schemas pass
+// through effectiveStatus, so a global or section switch, a leaf switch, or a
+// missing leaf yields the same state here that `policy status` reports.
+const SURFACE_LEAF = { shell: ['shell', 'host.shell'], web: ['web', 'host.web'], mcp: ['mcp', 'host.mcp'] };
+
 function evaluateAction(policy, action) {
+  const { effectiveStatus, NETWORK_CATEGORIES } = require('./policy');
   const surface = action && action.surface;
-  const enforcement = (policy && policy.enforcement) || {};
-  if (surface && enforcement[surface] === false) {
-    return { decision: 'disabled', surface, rule: null };
+  const rule = (action && action.category) || 'unknown';
+  if (!policy || typeof policy !== 'object' || Array.isArray(policy)) {
+    return { decision: 'deny', surface, rule, reason: 'policy_invalid' };
   }
-  const category = action && action.category;
-  const rule = category || 'unknown';
-  const allow = (policy && policy.allow) || [];
-  if (allow.includes(rule)) {
-    return { decision: 'allow', surface, rule };
+  const leaves = SURFACE_LEAF[surface];
+  if (!leaves) return { decision: 'deny', surface, rule, reason: 'unknown_surface' };
+  const status = effectiveStatus(policy);
+  const leaf = leaves.find((key) => key in status.enforcement);
+  if (!leaf || status.enforcement[leaf] !== 'enabled') {
+    return { decision: 'disabled', surface, rule: null, reasons: (leaf && status.reasons[`enforcement.${leaf}`]) || ['missing'] };
   }
-  return { decision: 'deny', surface, rule };
+  const allow = Array.isArray(policy.allow) ? policy.allow : [];
+  if (NETWORK_CATEGORIES.includes(rule) && rule in status.network) {
+    const gate = status.controls['network.action_policy'];
+    if (status.network[rule] !== 'enabled' || gate === 'disabled') {
+      return { decision: 'disabled', surface, rule: null, reasons: status.reasons[`network.categories.${rule}`] || status.reasons['controls.network.action_policy'] || [] };
+    }
+    if (policy.network.categories[rule] === 'allow') return { decision: 'allow', surface, rule };
+  }
+  return { decision: allow.includes(rule) ? 'allow' : 'deny', surface, rule };
 }
 
 function consumeOneUseApproval(approval, action) {

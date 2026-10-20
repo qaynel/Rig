@@ -3,14 +3,14 @@
   "service_id": "testing.mutation.selector-sampler",
   "input": "rig-services/testing.mutation.selector-sampler.json",
   "format": "json",
-  "ceiling": "selector sampler configuration validation only; declared policy does not prove running selector sampler behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms a selection scope, sampling seed and the exhaustive-claim flag are declared; it does not sample mutants.",
   "offer": "Make mutant sampling reproducible and state the selected scope. A sampled run may estimate sensitivity, but it cannot claim exhaustive mutation coverage.",
   "checks": {
     "minimal": [
       {
         "field": "selection_scope",
         "op": "nonempty",
-        "reason": "selection scope must name the concrete repository contract."
+        "reason": "State the scope the sample is drawn from. An unscoped sample cannot be reproduced, so name the files or modules."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "sampling_seed",
         "op": "minimum",
         "value": 42,
-        "reason": "sampling seed must meet the configured minimum of 42."
+        "reason": "Record the sampling seed, at least 42 as a fixed value. A random draw cannot be rerun, so fix the seed."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "claim_exhaustive_from_sample",
         "op": "equals",
         "value": false,
-        "reason": "claim exhaustive from sample must be false."
+        "reason": "Set claiming exhaustive coverage from a sample to false. A sample estimates sensitivity only, so state it as a sample."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "selection_scope",
         "op": "nonempty",
-        "reason": "selection scope must name the concrete repository contract."
+        "reason": "State the scope the sample is drawn from. An unscoped sample cannot be reproduced, so name the files or modules."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "selection_scope",
         "op": "nonempty",
-        "reason": "selection scope must name the concrete repository contract."
+        "reason": "State the scope the sample is drawn from. An unscoped sample cannot be reproduced, so name the files or modules."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "selection_scope",
         "op": "nonempty",
-        "reason": "selection scope must name the concrete repository contract."
+        "reason": "State the scope the sample is drawn from. An unscoped sample cannot be reproduced, so name the files or modules."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "selection_scope",
         "op": "nonempty",
-        "reason": "selection scope must name the concrete repository contract."
+        "reason": "State the scope the sample is drawn from. An unscoped sample cannot be reproduced, so name the files or modules."
       }
     }
   }

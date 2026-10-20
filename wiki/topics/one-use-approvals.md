@@ -36,9 +36,8 @@ risks or state that expires unchanged user intent. [Rejected approaches](../inde
 ## What is still open
 
 **Resolved** for the in-process one-use path: clone-local storage, exact-action
-binding, and atomic consumption pass the green full test suite. Policy recovery
-invalidates pending one-use approvals only after an authorized recovery receipt
-commits, per [policy-signer recovery](policy-signer-recovery.md).
+binding, and atomic consumption pass the green full test suite. There is no policy-signer recovery to invalidate approvals; see
+[the one trust root](policy-signer-recovery.md).
 
 The lint-format plan/execute flow is a second consumption site. Branch
 `rig-115-at-lf-20-single-use-approval` (RIG-115, AT-LF-20) set

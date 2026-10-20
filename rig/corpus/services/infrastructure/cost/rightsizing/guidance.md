@@ -2,16 +2,12 @@
 
 Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.
 
-Owned scope: `cost.rightsizing`.
+Owned scope: `cost.rightsizing`. Input: `rig-services/infrastructure.cost.rightsizing.json`.
 
-Offer: Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.
+Coverage ceiling: Configuration validation only, so it confirms candidate resources, headroom and the no-evidence-resize flag are declared; it does not read workload measurements.
 
-Input: `rig-services/infrastructure.cost.rightsizing.json`. Detection records the path even when its contents are malformed.
+minimal: candidate resources — ["worker pool"]. List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource.
 
-Coverage ceiling: rightsizing configuration validation only; declared policy does not prove running rightsizing behavior. Select an approved repository-owned command to verify that behavior.
+mid: minimum headroom percent — 20. Keep minimum headroom of at least 20 percent. Shrinking to zero headroom risks outages on a spike, so retain the margin.
 
-minimal: candidate resources — ["worker pool"].
-
-mid: minimum headroom percent — 20.
-
-maximal: resize without workload evidence — false.
+maximal: resize without workload evidence — false. Set resizing without workload evidence to false. Configuration alone cannot justify shrinking production, so require measurements.

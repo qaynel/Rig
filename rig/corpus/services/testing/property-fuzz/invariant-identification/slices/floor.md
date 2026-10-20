@@ -2,4 +2,4 @@
 
 State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.
 
-Policy grade slice. This slice bounds invariant identification to property-fuzz.invariant-identification. It uses `invariant-identification-slice-floor` and checks invariants (nonempty): invariants must name the concrete repository contract.
+Policy grade slice `invariant-identification-slice-floor`: State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification.

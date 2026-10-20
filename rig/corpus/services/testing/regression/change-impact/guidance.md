@@ -1,17 +1,13 @@
-# change impact
+# change-impact
 
 Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.
 
-Owned scope: `regression.change-impact`.
+Owned scope: `regression.change-impact`. Input: `rig-services/testing.regression.change-impact.json`.
 
-Offer: Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.
+Coverage ceiling: Configuration validation only, so it confirms changed interfaces, affected suites and the filename-only flag are declared; it does not trace callers.
 
-Input: `rig-services/testing.regression.change-impact.json`. Detection records the path even when its contents are malformed.
+minimal: changed interfaces — ["order serializer"]. List the interfaces that changed. Impact starts from the change, so name each one.
 
-Coverage ceiling: change impact configuration validation only; declared policy does not prove running change impact behavior. Select an approved repository-owned command to verify that behavior.
+mid: affected suites — ["order contract"]. List the suites affected by tracing callers and contracts. An incomplete list skips downstream behavior, so map each interface to suites.
 
-minimal: changed interfaces — ["order serializer"].
-
-mid: affected suites — ["order contract"].
-
-maximal: select by filename only — false.
+maximal: select by filename only — false. Set selecting by filename only to false. Filename similarity misses downstream effects, so select by the dependency trace.

@@ -8,8 +8,6 @@ Applicable surface: source-code.
 
 Owned scope: `mutation.score-metrics`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
 
-Read `rig-services/testing.mutation.score-metrics.json`; malformed input remains attributable to that path. The good and bad fixtures show the configuration boundary, not a mutation run.
-
-Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. score metrics configuration validation only; declared policy does not prove running score metrics behavior. Select an approved repository-owned command to verify that behavior.
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms killed and valid mutant counts and the invalid-in-score flag are declared; it does not compute a score.
 
 Policy checks: minimal requires `killed_mutants` = `8`; mid adds `valid_mutants` = `10`; maximal requires `include_invalid_mutants_in_score` = `false`.

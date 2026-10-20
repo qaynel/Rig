@@ -3,21 +3,21 @@
   "service_id": "development.repo-hygiene.stale-cleanup",
   "input": "rig-services/development.repo-hygiene.stale-cleanup.json",
   "format": "json",
-  "ceiling": "stale cleanup configuration validation only; declared policy does not prove running stale cleanup behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms candidate paths, reference checks and the no-recovery-delete flag are declared; it does not show the candidates are really unused.",
   "offer": "Establish that a stale candidate has no remaining callers before removing it. Retain a recoverable deletion and preserve user-owned files that only look unused.",
   "checks": {
     "minimal": [
       {
         "field": "candidate_paths",
         "op": "nonempty",
-        "reason": "candidate paths must name the concrete repository contract."
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
       }
     ],
     "mid": [
       {
         "field": "reference_checks",
         "op": "nonempty",
-        "reason": "reference checks must name the concrete repository contract."
+        "reason": "Record the check that shows no callers remain, such as a search or build. Deleting without it can break hidden users, so attach the reference check."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "delete_without_recovery",
         "op": "equals",
         "value": false,
-        "reason": "delete without recovery must be false."
+        "reason": "Set deleting without recovery to false. A deletion that cannot be undone destroys user files that only look unused, so keep it recoverable."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "candidate_paths",
         "op": "nonempty",
-        "reason": "candidate paths must name the concrete repository contract."
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "candidate_paths",
         "op": "nonempty",
-        "reason": "candidate paths must name the concrete repository contract."
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "candidate_paths",
         "op": "nonempty",
-        "reason": "candidate paths must name the concrete repository contract."
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "candidate_paths",
         "op": "nonempty",
-        "reason": "candidate paths must name the concrete repository contract."
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
       }
     }
   }

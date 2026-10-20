@@ -1,17 +1,13 @@
-# user journeys
+# user-journeys
 
 Follow the user through the complete outcome, including persistence or resulting state. A page-loading check cannot prove that the requested journey succeeded.
 
-Owned scope: `e2e.user-journeys`.
+Owned scope: `e2e.user-journeys`. Input: `rig-services/testing.e2e.user-journeys.json`.
 
-Offer: Follow the user through the complete outcome, including persistence or resulting state. A page-loading check cannot prove that the requested journey succeeded.
+Coverage ceiling: Configuration validation only, so it confirms journeys, observable outcomes and the page-load-only flag are declared; it does not execute a journey.
 
-Input: `rig-services/testing.e2e.user-journeys.json`. Detection records the path even when its contents are malformed.
+minimal: journeys — ["create and retrieve item"]. Name the user journeys covered end to end. Untracked journeys are untested, so list each one.
 
-Coverage ceiling: user journeys configuration validation only; declared policy does not prove running user journeys behavior. Select an approved repository-owned command to verify that behavior.
+mid: observable outcomes — ["item appears after refresh"]. State the observable outcome that ends each journey, such as a stored record. Without it success is assumed, so write what must be true afterwards.
 
-minimal: journeys — ["create and retrieve item"].
-
-mid: observable outcomes — ["item appears after refresh"].
-
-maximal: assert only page loaded — false.
+maximal: assert only page loaded — false. Set asserting only that the page loaded to false. A loading page does not prove the requested outcome happened, so assert the resulting state.

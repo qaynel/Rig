@@ -4,7 +4,7 @@ Record the chosen approach, credible alternatives and concrete consequences. A d
 
 Policy grade. Capture the selected approach, credible alternatives, and concrete consequences. A useful decision record explains the tradeoff that shaped the system rather than restating implementation details.
 
-Applicable surface: source-code. Owned scope: `documentation.adrs`. Input: `rig-services/development.documentation.adrs.json`.
+Applicable surface: source-code. Owned scope: `documentation.adrs`.
 
 Disposition: executable. Native checks validate only declared policy fields.
 

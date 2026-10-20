@@ -3,21 +3,21 @@
   "service_id": "testing.e2e.cross-environment",
   "input": "rig-services/testing.e2e.cross-environment.json",
   "format": "json",
-  "ceiling": "cross environment configuration validation only; declared policy does not prove running cross environment behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms environments, shared cases and the platform-equivalence flag are declared; it does not run on any platform.",
   "offer": "Run the same behavioral cases in the required environments and record each result separately. One platform passing does not establish that filesystem or process semantics match another.",
   "checks": {
     "minimal": [
       {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments the cases must run in. One passing platform says nothing about another, so name each OS or runtime."
       }
     ],
     "mid": [
       {
         "field": "shared_cases",
         "op": "nonempty",
-        "reason": "shared cases must name the concrete repository contract."
+        "reason": "List the cases shared across those environments. Different cases per platform cannot be compared, so name the common set."
       }
     ],
     "maximal": [
@@ -25,7 +25,7 @@
         "field": "assume_platform_equivalence",
         "op": "equals",
         "value": false,
-        "reason": "assume platform equivalence must be false."
+        "reason": "Set assuming platform equivalence to false. Filesystem and process semantics differ, so record each environment's result separately."
       }
     ]
   },
@@ -35,7 +35,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments the cases must run in. One passing platform says nothing about another, so name each OS or runtime."
       }
     },
     "behavior-oracle": {
@@ -43,7 +43,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments the cases must run in. One passing platform says nothing about another, so name each OS or runtime."
       }
     },
     "property-floor": {
@@ -51,7 +51,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments the cases must run in. One passing platform says nothing about another, so name each OS or runtime."
       }
     },
     "mutation-floor": {
@@ -59,7 +59,7 @@
       "rule": {
         "field": "environments",
         "op": "nonempty",
-        "reason": "environments must name the concrete repository contract."
+        "reason": "List the environments the cases must run in. One passing platform says nothing about another, so name each OS or runtime."
       }
     }
   }

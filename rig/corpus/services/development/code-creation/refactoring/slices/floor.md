@@ -2,4 +2,4 @@
 
 A refactor changes structure while preserving behavior. Enumerate the observable contract and keep public API changes at zero; retain a direct way to revert the restructuring.
 
-Policy grade slice. This slice bounds refactoring to code-creation.refactoring. It uses `refactoring-slice-floor` and checks preserved_behaviors (nonempty): preserved behaviors must name the concrete repository contract.
+Policy grade slice `refactoring-slice-floor`: List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract.

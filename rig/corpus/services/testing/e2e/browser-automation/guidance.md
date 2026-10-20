@@ -1,17 +1,13 @@
-# browser automation
+# browser-automation
 
 Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.
 
-Owned scope: `e2e.browser-automation`.
+Owned scope: `e2e.browser-automation`. Input: `rig-services/testing.e2e.browser-automation.json`.
 
-Offer: Drive real interactions and wait for observable state transitions. Fixed sleeps hide synchronization defects and produce unreliable results under slower environments.
+Coverage ceiling: Configuration validation only, so it confirms browser targets, interaction steps and the fixed-sleep flag are declared; it does not drive a browser.
 
-Input: `rig-services/testing.e2e.browser-automation.json`. Detection records the path even when its contents are malformed.
+minimal: browser targets — ["chromium"]. List the browser targets the flows run against. Unnamed targets leave compatibility untested, so name each browser and version.
 
-Coverage ceiling: browser automation configuration validation only; declared policy does not prove running browser automation behavior. Select an approved repository-owned command to verify that behavior.
+mid: interaction steps — ["submit form"]. Write the interaction steps as observable actions. Vague steps cannot be replayed, so list each click, input and expected state.
 
-minimal: browser targets — ["chromium"].
-
-mid: interaction steps — ["submit form"].
-
-maximal: fixed sleeps — false.
+maximal: fixed sleeps — false. Set fixed sleeps to false. A sleep hides synchronization defects and flakes on slower machines, so wait on an observable state.

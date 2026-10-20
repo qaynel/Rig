@@ -3,14 +3,14 @@
   "service_id": "testing.flaky-reliability.retry-hardening",
   "input": "rig-services/testing.flaky-reliability.retry-hardening.json",
   "format": "json",
-  "ceiling": "retry hardening configuration validation only; declared policy does not prove running retry hardening behavior. Select an approved repository-owned command to verify that behavior.",
+  "ceiling": "Configuration validation only, so it confirms retryable failures, an attempt cap and the retry-assertions flag are declared; it does not execute retries.",
   "offer": "Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.",
   "checks": {
     "minimal": [
       {
         "field": "retryable_failures",
         "op": "nonempty",
-        "reason": "retryable failures must name the concrete repository contract."
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
       }
     ],
     "mid": [
@@ -18,7 +18,7 @@
         "field": "maximum_attempts",
         "op": "minimum",
         "value": 3,
-        "reason": "maximum attempts must meet the configured minimum of 3."
+        "reason": "Cap attempts at a bounded number, at least 3 declared. An unbounded retry masks permanent failure, so set the limit."
       }
     ],
     "maximal": [
@@ -26,7 +26,7 @@
         "field": "retry_assertion_failures",
         "op": "equals",
         "value": false,
-        "reason": "retry assertion failures must be false."
+        "reason": "Set retrying assertion failures to false. Repeating a failed assertion until it passes changes the test contract, so retry infrastructure errors only."
       }
     ]
   },
@@ -36,7 +36,7 @@
       "rule": {
         "field": "retryable_failures",
         "op": "nonempty",
-        "reason": "retryable failures must name the concrete repository contract."
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
       }
     },
     "behavior-oracle": {
@@ -44,7 +44,7 @@
       "rule": {
         "field": "retryable_failures",
         "op": "nonempty",
-        "reason": "retryable failures must name the concrete repository contract."
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
       }
     },
     "property-floor": {
@@ -52,7 +52,7 @@
       "rule": {
         "field": "retryable_failures",
         "op": "nonempty",
-        "reason": "retryable failures must name the concrete repository contract."
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
       }
     },
     "mutation-floor": {
@@ -60,7 +60,7 @@
       "rule": {
         "field": "retryable_failures",
         "op": "nonempty",
-        "reason": "retryable failures must name the concrete repository contract."
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
       }
     }
   }
