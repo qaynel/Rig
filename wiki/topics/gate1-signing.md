@@ -73,3 +73,5 @@ explains why even test-command edits belong to the signed surface.
 The [October diagnostic](../reasoning/2026-10-19-qa-closeout-oracle-diagnostic.md)
 records the additional lint fixture updates needed in the current owner-only
 amendment before the next signature.
+
+The [trust-root review fixes](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) trace prepares a second owner-only amendment (seven oracle case bodies, no title changes) after the failed re-review; it is unapplied until the owner signs.

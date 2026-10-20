@@ -166,3 +166,5 @@ The [broad review checkpoint](../reasoning/2026-10-18-qa-closeout-review-progres
 The [managed-section correction](../reasoning/2026-10-18-qa-closeout-managed-section-correction.md) retracts a proposed code finding because the signed contract intentionally removes edited managed bodies; live documentation must match that behavior.
 
 The [temp-type boundary check](../reasoning/2026-10-18-qa-closeout-temp-type-check.md) adds a bounded FIFO-refusal criterion to the existing migration finding; the consolidated list remains eight groups.
+
+The [trust-root review fixes](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) trace resolves the nine findings of the failed re-review (counter 6, preserved) and stages a second owner amendment; no new receipt exists.
