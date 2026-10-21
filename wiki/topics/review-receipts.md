@@ -2,6 +2,17 @@
 
 ## What it is
 
+The [latest authorized attempt](../reasoning/2026-10-20-post-fix-binding-review-unavailable.md)
+could not complete: the reviewer hit its weekly limit, with a stated reset of
+October 23 at 09:30 IST. No semantic verdict, findings or receipt was produced.
+The preserved counter is seven; the single authorization was used once.
+Another attempt requires explicit owner authorization and provider availability.
+The [applied-amendment checkpoint](../reasoning/2026-10-20-owner-amendment-applied-full-gate-wiki-budget.md)
+confirms the owner-signed amendment and passing focused cases; the first full
+gate stopped only on this hub's size budget. The [final-byte rerun](../reasoning/2026-10-20-final-byte-full-gate-green.md)
+passes after that correction; a fresh explicitly authorized, provider-available
+review remains required before a receipt can exist.
+
 The [authorized retry](../reasoning/2026-10-20-trust-root-rereview-result.md)
 is **fail**: three major and six minor findings, no blockers, and no passing
 receipt. The preserved counter rose from five to six. The [authorization](../reasoning/2026-10-20-owner-authorized-trust-root-rereview.md)
@@ -10,16 +21,9 @@ The [provider-limit failure](../reasoning/2026-10-20-trust-root-binding-review-u
 and the reviews below concern earlier attempts. The [handoff](../specs/close-everything/2026-10-20-trust-root-review-handoff.md)
 lists bounded criteria for the unreproduced reviewer claims.
 
-The [authorized October 20 review result](../reasoning/2026-10-20-authorized-binding-review-result.md)
-is **fail**: four blocker, five major and three minor findings; no passing
-receipt, and three preserved failures. The [bounded finding-by-finding handoff](../specs/close-everything/2026-10-20-binding-review-handoff.md)
-provides acceptance criteria and written-response options, preserving the
-owner's honest host-gap decision. No further binding retry is authorized.
-
-The [owner's October 20 authorization](../reasoning/2026-10-20-owner-authorized-binding-rereview.md)
-permits one additional binding `--force-rereview` attempt using the preserved
-reviewer, author context and attempt history. Authorization permits the attempt;
-its verdict and current-byte validation determine whether a receipt is usable.
+The [earlier October 20 review](../reasoning/2026-10-20-authorized-binding-review-result.md)
+and its [handoff](../specs/close-everything/2026-10-20-binding-review-handoff.md)
+remain historical evidence for their reviewed bytes.
 
 The [fix-verification checkpoint](../reasoning/2026-10-18-qa-closeout-fix-verification.md)
 checks the eight-item remediation. Its [bounded follow-up](../specs/close-everything/qa-prod-closeout-followup.md)
@@ -167,4 +171,6 @@ The [managed-section correction](../reasoning/2026-10-18-qa-closeout-managed-sec
 
 The [temp-type boundary check](../reasoning/2026-10-18-qa-closeout-temp-type-check.md) adds a bounded FIFO-refusal criterion to the existing migration finding; the consolidated list remains eight groups.
 
-The [trust-root review fixes](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) trace resolves the nine findings of the failed re-review (counter 6, preserved) and stages a second owner amendment; no new receipt exists.
+The [trust-root review fixes](../reasoning/2026-10-20-trust-root-review-fixes-progress.md)
+resolve the nine findings and stage the applied owner amendment; no new receipt
+exists.

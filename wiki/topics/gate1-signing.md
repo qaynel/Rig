@@ -75,3 +75,10 @@ records the additional lint fixture updates needed in the current owner-only
 amendment before the next signature.
 
 The [trust-root review fixes](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) trace prepares a second owner-only amendment (seven oracle case bodies, no title changes) after the failed re-review; it is unapplied until the owner signs.
+The [verification record](../reasoning/2026-10-20-trust-root-review-fixes-verified.md)
+confirms the prepared amendment's isolated oracle passes; it does not replace
+the required owner signature or final-byte full gate.
+The [applied-amendment checkpoint](../reasoning/2026-10-20-owner-amendment-applied-full-gate-wiki-budget.md)
+confirms the owner applied and signed those exact amended bytes. The amended
+cases and [final-byte full gate](../reasoning/2026-10-20-final-byte-full-gate-green.md)
+pass. A fresh review receipt and exact-QA-commit promotion evidence remain.

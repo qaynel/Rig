@@ -25,7 +25,7 @@ still the one mandated read. This is the layer under it.
 
 | I am about to… | Read first | Lines | Then, only if needed |
 |---|---|---|---|
-| **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 75 | [Gate 1 and Gate 2](../topics/the-two-gates.md) (37) · `gate1/` is frozen — never edit it |
+| **Touch Gate 1, the oracle, signing, or a re-sign** | [Gate 1 signing](../topics/gate1-signing.md) | 80 | [Gate 1 and Gate 2](../topics/the-two-gates.md) (37) · `gate1/` is frozen — never edit it |
 | **Change the installer, graft, or onboarding** | [Onboarding flow](../topics/onboarding-flow.md) | 87 | [Graft mechanics](../topics/graft-mechanics.md) (121) · [Install manifest and removal](../topics/install-manifest-removal.md) (174) |
 | **Add or change a host** | [Host and CI coverage](../topics/host-and-ci-coverage.md) | 149 | [Onboarding flow](../topics/onboarding-flow.md) (87) for the projection path |
 | **Edit a skill, rule, or standard** | [Agent working conventions](../topics/agent-working-conventions.md) | 63 | `rig/corpus/` is the canonical shipped source; follow its routing and projection checks |
@@ -33,10 +33,10 @@ still the one mandated read. This is the layer under it.
 | **Touch policy, approvals, or safety** | [The policy model](../topics/policy-model.md) | 56 | [Safety baseline](../topics/safety-baseline.md) (42) · [One-use approvals](../topics/one-use-approvals.md) (67) · [Action evaluator](../topics/action-evaluator.md) (42) |
 | **Write or change tests** | [Testing strategy](../topics/testing-strategy.md) | 154 | [Acceptance cases](acceptance-cases.md) (266) for the `AT-*` register |
 | **Work on trust boundaries or failure paths** | [Trust and failure boundaries](../topics/trust-and-failure-boundaries.md) | 412 | [Drift and secret controls](../topics/drift-and-secret-controls.md) (68) |
-| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 134 | [Review receipts](../topics/review-receipts.md) (167) · [Delivery plan](../topics/delivery-plan.md) (45) |
+| **Ship, release, or cut a version** | [Distribution and release](../topics/distribution-and-release.md) | 134 | [Review receipts](../topics/review-receipts.md) (172) · [Delivery plan](../topics/delivery-plan.md) (45) |
 | **Change the wiki itself** | [Reasoning convention](../reasoning/README.md) | — | Trace bodies are immutable; frontmatter is not. `.claude/skills/wiki-maintenance/SKILL.md` owns the routine. |
 | **Propose a workflow, product, or architecture change** | [Rig router](../../rig/corpus/routing.md) | — | Route to the named skill; read the relevant Gate 1 intent and Gate 2 technical design before proposing changes |
-| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 65 | [Status](../status.md) (174) for what is true right now |
+| **Understand the product before proposing anything** | [What Rig is](../topics/what-rig-is.md) | 65 | [Status](../status.md) (180) for what is true right now |
 
 ---
 

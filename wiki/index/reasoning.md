@@ -6,6 +6,7 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-20 | superseded | [2026-10-20-trust-root-review-fixes-verified](../reasoning/2026-10-20-trust-root-review-fixes-verified.md) | gate1-signing, review-receipts, the-overhaul | — | trust, verification, owner-action |
 | 2026-10-20 | current | [2026-10-20-trust-root-review-fixes-progress](../reasoning/2026-10-20-trust-root-review-fixes-progress.md) | gate1-signing, review-receipts | — | trust, progress |
 | 2026-10-20 | current | [2026-10-20-trust-root-rereview-result](../reasoning/2026-10-20-trust-root-rereview-result.md) | review-receipts, the-overhaul | — | review, verification |
 | 2026-10-20 | current | [2026-10-20-trust-root-binding-review-unavailable](../reasoning/2026-10-20-trust-root-binding-review-unavailable.md) | review-receipts, the-overhaul | — | review, provider-limit |
@@ -15,11 +16,17 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-10-20 | current | [2026-10-20-qa-closeout-owner-request](../reasoning/2026-10-20-qa-closeout-owner-request.md) | the-overhaul | — | qa-closeout, acceptance, verification |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-independent-findings](../reasoning/2026-10-20-qa-closeout-independent-findings.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, defect |
 | 2026-10-20 | current | [2026-10-20-qa-closeout-evidence-inventory](../reasoning/2026-10-20-qa-closeout-evidence-inventory.md) | the-overhaul, testing-strategy | — | qa-closeout, verification, owner-action |
+| 2026-10-20 | current | [2026-10-20-post-fix-binding-review-unavailable](../reasoning/2026-10-20-post-fix-binding-review-unavailable.md) | review-receipts, the-overhaul | — | review, verification, provider-limit |
+| 2026-10-20 | superseded | [2026-10-20-owner-lock-retained-superseded-oracle](../reasoning/2026-10-20-owner-lock-retained-superseded-oracle.md) | gate1-signing, review-receipts, the-overhaul | — | gate1, verification, trust-root |
 | 2026-10-20 | current | [2026-10-20-owner-authorized-trust-root-review](../reasoning/2026-10-20-owner-authorized-trust-root-review.md) | review-receipts, the-overhaul | — | review, authorization |
 | 2026-10-20 | current | [2026-10-20-owner-authorized-trust-root-rereview](../reasoning/2026-10-20-owner-authorized-trust-root-rereview.md) | review-receipts, the-overhaul | — | review, authorization |
+| 2026-10-20 | current | [2026-10-20-owner-authorized-post-fix-binding-review](../reasoning/2026-10-20-owner-authorized-post-fix-binding-review.md) | review-receipts, the-overhaul | — | review, authorization |
 | 2026-10-20 | current | [2026-10-20-owner-authorized-binding-rereview](../reasoning/2026-10-20-owner-authorized-binding-rereview.md) | review-receipts, the-overhaul | — | review, authorization |
+| 2026-10-20 | superseded → 2026-10-20-frozen-oracle-amendment-not-applied, 2026-10-20-owner-lock-retained-superseded-oracle | [2026-10-20-owner-amendment-applied-full-gate-wiki-budget](../reasoning/2026-10-20-owner-amendment-applied-full-gate-wiki-budget.md) | gate1-signing, review-receipts, the-overhaul | — | gate1, verification, trust-root, wiki |
 | 2026-10-20 | current | [2026-10-20-one-trust-root-progress](../reasoning/2026-10-20-one-trust-root-progress.md) | gate1-signing, review-receipts | — | trust, progress |
 | 2026-10-20 | current | [2026-10-20-one-trust-root-owner-decision](../reasoning/2026-10-20-one-trust-root-owner-decision.md) | gate1-signing, user-presence-approvals, review-receipts | — | trust, signing, north-star |
+| 2026-10-20 | superseded | [2026-10-20-frozen-oracle-amendment-not-applied](../reasoning/2026-10-20-frozen-oracle-amendment-not-applied.md) | gate1-signing, review-receipts, the-overhaul | — | gate1, verification, trust-root |
+| 2026-10-20 | current → 2026-10-20-owner-amendment-applied-full-gate-wiki-budget | [2026-10-20-final-byte-full-gate-green](../reasoning/2026-10-20-final-byte-full-gate-green.md) | gate1-signing, review-receipts, the-overhaul | — | gate1, verification, trust-root, full-gate |
 | 2026-10-20 | current | [2026-10-20-authorized-binding-review-result](../reasoning/2026-10-20-authorized-binding-review-result.md) | review-receipts, the-overhaul | — | review, verification |
 | 2026-10-19 | current | [2026-10-19-qa-closeout-resume](../reasoning/2026-10-19-qa-closeout-resume.md) | the-overhaul, testing-strategy | — | qa-closeout, verification |
 | 2026-10-19 | current | [2026-10-19-qa-closeout-pinned-mirror-checkpoint](../reasoning/2026-10-19-qa-closeout-pinned-mirror-checkpoint.md) | testing-strategy | — | qa-closeout, verification |

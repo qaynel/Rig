@@ -7,6 +7,12 @@ remains one central corpus with agent-led, repository-aware onboarding. See
 
 ## Current release checkpoint
 
+The [latest authorized attempt](../reasoning/2026-10-20-post-fix-binding-review-unavailable.md)
+could not complete: the reviewer hit its weekly limit, with a stated reset of
+October 23 at 09:30 IST. No semantic verdict, findings or receipt was produced.
+The preserved counter is seven; the single authorization was used once.
+Another attempt requires explicit owner authorization and provider availability.
+
 The [authorized retry](../reasoning/2026-10-20-trust-root-rereview-result.md)
 is **fail**: three major and six minor findings, no blockers, and no passing
 receipt. The preserved counter rose from five to six. The [authorization](../reasoning/2026-10-20-owner-authorized-trust-root-rereview.md)
@@ -14,6 +20,14 @@ was used once. Approval remains withheld and no further attempt is authorized.
 The [provider-limit failure](../reasoning/2026-10-20-trust-root-binding-review-unavailable.md)
 and the reviews below concern earlier attempts. The [handoff](../specs/close-everything/2026-10-20-trust-root-review-handoff.md)
 lists bounded criteria for the unreproduced reviewer claims.
+The [post-fix verification](../reasoning/2026-10-20-trust-root-review-fixes-verified.md)
+records passing focused and amended-oracle evidence; the owner signature, final-byte
+full gate, and new explicit review authorization still remain.
+The [applied-amendment checkpoint](../reasoning/2026-10-20-owner-amendment-applied-full-gate-wiki-budget.md)
+confirms the owner signature now binds the amended bodies and the focused cases
+pass. The [final-byte full gate](../reasoning/2026-10-20-final-byte-full-gate-green.md)
+is green after its documentation-size correction; fresh review authorization
+and exact-QA automated promotion evidence remain.
 
 The [authorized October 20 review result](../reasoning/2026-10-20-authorized-binding-review-result.md)
 is **fail**: four blocker, five major and three minor findings; no passing
