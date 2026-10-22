@@ -359,10 +359,7 @@ function enumerateGraftMarkers(target) {
 function journalWriter(target, { transactionOwner = null } = {}) {
   const manifest = containedPath(target, MANIFEST_REL);
   const records = fs.existsSync(manifest)
-    ? fs.readFileSync(manifest, 'utf8').split('\n').flatMap((line) => {
-      if (!line.trim()) return [];
-      try { return [JSON.parse(line)]; } catch { return []; }
-    })
+    ? require('./lifecycle').parseJournalRecords(fs.readFileSync(manifest, 'utf8'))
     : [];
   let seq = records.reduce((max, record) => Math.max(max, record.seq || 0), 0);
   const latestByPath = new Map();
@@ -400,8 +397,17 @@ function journalWriter(target, { transactionOwner = null } = {}) {
     trackOrigin(record);
   }
 
+  if (records.truncated_tail === true) interrupted = true;
+
+  let journalNormalized = false;
   const append = (record) => {
     fs.mkdirSync(path.dirname(manifest), { recursive: true });
+    if (!journalNormalized && fs.existsSync(manifest)) {
+      const original = fs.readFileSync(manifest, 'utf8');
+      const normalized = require('./lifecycle').canonicalJournalText(original);
+      if (normalized !== original) fs.writeFileSync(manifest, normalized, { mode: 0o600 });
+    }
+    journalNormalized = true;
     fs.appendFileSync(manifest, `${JSON.stringify(record)}\n`);
   };
 
@@ -641,6 +647,11 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
   const writesBefore = writeFile.appliedCount();
   writeFile.begin();
   for (const entry of entries) applyEntry(target, entry, writeFile);
+  for (const entry of require('./baseline-payload').entries) {
+    const abs = containedPath(target, entry.to);
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    writeFile(target, entry.to, fs.readFileSync(path.join(ROOT, 'rig', entry.from)), entry.mode);
+  }
   if (releaseTag) {
     const installedHostIds = [...new Set(selected)].sort();
     writeFile(target, '.rig/release.json', `${JSON.stringify({ tag: releaseTag, hosts: installedHostIds }, null, 2)}\n`);

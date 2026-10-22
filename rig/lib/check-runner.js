@@ -20,15 +20,22 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnGuardedSync, isolatedTaskEnv, networkIsolationPrefix } = require('./spawn-guarded');
+const { spawnGuardedSync, executableAvailable, isolatedTaskEnv } = require('./spawn-guarded');
 const { containedPath } = require('./path-safety');
 const { scriptPath: memoryGuardScript } = require('./memory-guarded-exec');
+const { redact } = require('./redaction');
+const { taskCommandSpec } = require('./sandbox');
 
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_MEMORY_LIMIT_MB = 2 * 1024;
 
 // spawnSync-shaped results preserve the existing command-runner contract.
-function runArgv(command, argv, cwd, { timeoutMs = DEFAULT_TIMEOUT_MS, memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB } = {}) {
+function runArgv(command, argv, cwd, {
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB,
+  env = isolatedTaskEnv(),
+  cleanup,
+} = {}) {
   const resultFile = path.join(os.tmpdir(), `rig-check-mem-guard-${process.pid}-${crypto.randomBytes(6).toString('hex')}.json`);
   const outer = spawnGuardedSync(process.execPath, [
     memoryGuardScript,
@@ -41,7 +48,7 @@ function runArgv(command, argv, cwd, { timeoutMs = DEFAULT_TIMEOUT_MS, memoryLim
     cwd,
     encoding: 'utf8',
     shell: false,
-    env: isolatedTaskEnv(),
+    env,
     // The watchdog kills the command and its descendants at the requested
     // deadline; this is only a guard against a stuck watchdog process.
     timeout: timeoutMs + 5000,
@@ -53,15 +60,44 @@ function runArgv(command, argv, cwd, { timeoutMs = DEFAULT_TIMEOUT_MS, memoryLim
     meta = { killed_for: outer.error?.code === 'ETIMEDOUT' ? 'timeout' : 'memory_ceiling_unavailable', code: 1 };
   } finally {
     fs.rmSync(resultFile, { force: true });
+    cleanup?.();
   }
-  const kind = meta.killed_for || null;
+  const kind = meta.killed_for || (meta.signal ? 'signalled' : outer.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' ? 'partial_output' : null);
+  const normalizeTaskOutput = (value) => String(value || '').split(env.TMPDIR || '\0').join('[TASK_TMP]');
   return {
     status: kind ? 1 : (meta.code == null ? 1 : meta.code),
-    stdout: outer.stdout || '',
-    stderr: outer.stderr || '',
+    stdout: normalizeTaskOutput(outer.stdout),
+    stderr: normalizeTaskOutput(outer.stderr),
     error: outer.error || null,
     ...(kind ? { kind, reason: `${kind}: command execution was stopped` } : {}),
   };
+}
+
+function snapshotTarget(target) {
+  const rows = [];
+  const walk = (dir, rel = '') => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!rel && ['.git', '.rig'].includes(entry.name)) continue;
+      const child = path.join(rel, entry.name);
+      const abs = path.join(dir, entry.name);
+      const stat = fs.lstatSync(abs);
+      const mode = stat.mode & 0o7777;
+      if (stat.isSymbolicLink()) rows.push([child, `link:${mode}:${fs.readlinkSync(abs)}`]);
+      else if (stat.isDirectory()) {
+        rows.push([child, `directory:${mode}`]);
+        walk(abs, child);
+      } else if (stat.isFile()) rows.push([child, `file:${mode}:${crypto.createHash('sha256').update(fs.readFileSync(abs)).digest('hex')}`]);
+    }
+  };
+  walk(target);
+  return rows.sort(([left], [right]) => left.localeCompare(right));
+}
+
+function changedSnapshotPaths(before, after) {
+  const oldFiles = new Map(before);
+  const newFiles = new Map(after);
+  return [...new Set([...oldFiles.keys(), ...newFiles.keys()])]
+    .filter((file) => oldFiles.get(file) !== newFiles.get(file)).sort();
 }
 
 function positiveInteger(value, fallback) {
@@ -192,23 +228,57 @@ function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
   }
   const capability = evaluateCapabilities(serviceId, target, { ...limits, network });
   if (capability.failure) return capability.failure;
-  if (network === 'none') {
-    const prefix = networkIsolationPrefix();
-    if (!prefix) {
-      return {
-        status: 1,
-        kind: 'network_isolation_unavailable',
-        reason: 'network isolation is unavailable on this host',
-        network_state: network,
-      };
+  const signedTaskRequired = serviceId === 'development.code-quality.lint-format' || network === 'required' ||
+    limits.timeoutMs > DEFAULT_TIMEOUT_MS || limits.memoryLimitMb > DEFAULT_MEMORY_LIMIT_MB;
+  if (signedTaskRequired) {
+    const consent = require('./task-consent');
+    let permit = sources.find(source => source?.execution_permit)?.execution_permit;
+    if (!permit && serviceId !== 'development.code-quality.lint-format') {
+      const plannedCommand = { service_id: serviceId, argv: [command, ...argv], cwd: path.relative(fs.realpathSync(target), fs.realpathSync(cwd)) || '.', network,
+        timeout_ms: limits.timeoutMs, memory_limit_mb: limits.memoryLimitMb };
+      const authSource = sources.find(source => source?.execution_plan || source?.execution_approval);
+      const auth = consent.authorizeCommands(target, [plannedCommand], authSource
+        ? { plan: authSource.execution_plan, approval: authSource.execution_approval } : {});
+      if (auth.status !== 'authorized') return { status: 1, kind: auth.status, reason: auth.reason };
+      permit = auth.permit;
     }
-    return { ...runArgv(prefix[0], [...prefix.slice(1), command, ...argv], cwd, limits), network_state: network };
+    if (!consent.consumeTaskPermit(permit, target, [command, ...argv], cwd, network === 'required', { ...limits, ...(serviceId !== 'development.code-quality.lint-format' ? { serviceId } : {}) }))
+      return { status: 1, kind: 'not_authorized', reason: 'a current signed single-use execution plan is required' };
   }
-  if (network === 'undeclared') {
-    const diagnostic = 'network capability undeclared; running under temporary compatibility mode';
-    return { ...runArgv(command, argv, cwd, limits), network_state: network, diagnostic };
+  // Detect an absent command before a platform sandbox wraps spawn: wrappers
+  // such as macOS sandbox-exec can replace the native ENOENT with their own
+  // exit status, hiding the actionable missing-tool result.
+  if (!executableAvailable(command, { cwd, env: isolatedTaskEnv() })) {
+    return classifyRunnerFailure({ status: -2, error: { code: 'ENOENT' } }, command, command);
   }
-  return { ...runArgv(command, argv, cwd, limits), network_state: network };
+  const targetPath = fs.realpathSync(target);
+  const cwdPath = fs.realpathSync(cwd);
+  const relCwd = path.relative(targetPath, cwdPath);
+  if (relCwd === '..' || relCwd.startsWith(`..${path.sep}`) || path.isAbsolute(relCwd)) {
+    return { status: 1, kind: 'boundary_violation', reason: 'command working directory escapes repository', network_state: network };
+  }
+  const task = taskCommandSpec({
+    target: targetPath,
+    cwd: cwdPath,
+    argv: [command, ...argv],
+    env: isolatedTaskEnv(),
+    network: network === 'required',
+  });
+  if (task.unavailable) {
+    return {
+      status: 1,
+      kind: 'filesystem_isolation_unavailable',
+      reason: task.reason,
+      network_state: network,
+      setup_guidance: 'Install or enable the supported OS filesystem and network sandbox before running repository tasks.',
+    };
+  }
+  const result = {
+    ...runArgv(task.command, task.args, cwdPath, { ...limits, env: task.env, cleanup: task.cleanup }),
+    network_state: network,
+  };
+  if (network === 'undeclared') result.diagnostic = 'network capability undeclared; network is denied by default';
+  return result;
 }
 
 function classifyRunnerFailure(result, checkId, command) {
@@ -275,28 +345,27 @@ function genericSuccessBinding(argv) {
 //   { status: 1, kind: 'coverage_gap', reason }       on a binding/config gap
 //   { status, error?, stdout?, stderr?, checkId? }    on a command failure
 function runBinding(serviceId, binding, scope, target) {
-  // Local lint grades have an interactive review/receipt path. CI keeps its
-  // own enforcement route and must not depend on a local operator review.
-  if (serviceId === 'development.code-quality.lint-format' &&
-      binding.engine === 'component-lint-format-v1' &&
-      binding.grade !== 'minimal' &&
-      process.env.CI !== 'true' && process.env.GITHUB_ACTIONS !== 'true') {
-    const grade = require('./lint-grade').runInstalledGrade({
-      target,
-      binding,
-      execute: (command) => {
-        const cwd = !command.cwd || command.cwd === '.' ? fs.realpathSync(target) : containedPath(target, command.cwd);
-        const [program, ...args] = command.argv;
-        const observed = runConfiguredArgv(serviceId, target, program, args, cwd, binding, command);
-        return {
-          exit_code: Number.isInteger(observed.status) ? observed.status : 1,
-          status: observed.kind || (observed.error ? 'command_not_found' : 'completed'),
-          output_digest: crypto.createHash('sha256').update(`${observed.stdout || ''}\n${observed.stderr || ''}`).digest('hex'),
-        };
-      },
-    });
-    if (grade.verdict === 'pass') return { status: 0, executed_count: grade.commands?.length || 0, executed_checks: grade.completed_grades };
-    return { status: 1, kind: grade.status === 'mutated' ? 'mutated' : grade.status === 'coverage_gap' ? 'coverage_gap' : 'lint_grade_failed', reason: grade.reason || `lint-format ${grade.grade || binding.grade} grade did not pass`, checkId: 'lint-format-grade', ...(grade.changed_paths ? { changed_paths: grade.changed_paths, changes: grade.changes } : {}), ...(grade.findings ? { findings: grade.findings } : {}) };
+  if (serviceId === 'development.code-quality.lint-format' && binding.engine === 'component-lint-format-v1') {
+    const grades = require('./lint-grade');
+    const ci = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+    const inputs = grades.installedGradeInputs({ target, binding, scope: ci ? 'repo' : binding.scope || 'diff' });
+    if (inputs.gap) return { status: 1, kind: 'coverage_gap', reason: inputs.gap.reason, setup_guidance: inputs.gap.setup_guidance, completed_grades: [] };
+    const commands = inputs.grade === 'maximal' ? [...inputs.commands, ...inputs.commands] : inputs.commands;
+    const auth = require('./task-consent').authorizeCommands(target, commands);
+    if (auth.status !== 'authorized') return { status: 1, kind: auth.status, reason: auth.reason, executed_count: 0 };
+    const grade = grades.runInstalledGrade({ target, binding, scope, inputs, execute: (command) => {
+      const cwd = !command.cwd || command.cwd === '.' ? fs.realpathSync(target) : containedPath(target, command.cwd);
+      const [program, ...args] = command.argv;
+      const observed = runConfiguredArgv(serviceId, target, program, args, cwd, binding, command, { execution_permit: auth.permit });
+      return { exit_code: Number.isInteger(observed.status) ? observed.status : 1,
+        status: observed.kind || (observed.error ? 'command_not_found' : 'completed'),
+        output_digest: crypto.createHash('sha256').update(`${observed.stdout || ''}\n${observed.stderr || ''}`).digest('hex') };
+    } });
+    const executedChecks = Object.keys(binding.checks || {}).slice(0, Math.max(grade.commands?.length ? 1 : 0, (grade.completed_grades || []).length));
+    const shared = { executed_count: grade.executed_count || grade.commands?.length || 0, executed_checks: executedChecks, grade: grade.grade, completed_grades: grade.completed_grades, evidence: grade.evidence, commands: grade.commands, setup_guidance: grade.setup_guidance, ...(grade.findings ? { findings: grade.findings } : {}) };
+    if (grade.verdict === 'pass') return { status: 0, ...shared };
+    return { status: 1, kind: grade.status, reason: grade.reason || 'lint-format grade did not pass', checkId: 'lint-format-grade', ...shared,
+      ...(grade.changed_paths ? { changed_paths: grade.changed_paths, changes: grade.changes } : {}) };
   }
   let executedCount = 0;
   const executedChecks = [];
@@ -308,7 +377,10 @@ function runBinding(serviceId, binding, scope, target) {
   };
   const withDiagnostics = (result) => ({
     ...result,
-    diagnostics: [...diagnostics],
+    ...(Object.hasOwn(result, 'stdout') ? { stdout: redact(result.stdout || '') } : {}),
+    ...(Object.hasOwn(result, 'stderr') ? { stderr: redact(result.stderr || '') } : {}),
+    ...(typeof result.reason === 'string' ? { reason: redact(result.reason) } : {}),
+    diagnostics: [...diagnostics].map(redact),
     ...(diagnostics.size ? { diagnostic: diagnostics.values().next().value } : {}),
   });
   const failedCheck = (checkId, result) => withDiagnostics({
@@ -318,6 +390,9 @@ function runBinding(serviceId, binding, scope, target) {
     executed_checks: [...executedChecks],
   });
   const checks = binding.checks && Object.entries(binding.checks);
+  if (checks && checks.length === 0) {
+    return { status: 1, kind: 'coverage_gap', reason: 'No executable checks are configured', executed_count: 0, executed_checks: [] };
+  }
   if (!checks) {
     const argv = binding[scope] || binding.repo;
     if (!argv || !Array.isArray(argv) || !argv.length) {
@@ -326,11 +401,32 @@ function runBinding(serviceId, binding, scope, target) {
     const bareStub = genericSuccessBinding(argv);
     if (bareStub) return { status: 1, kind: 'coverage_gap', reason: `${bareStub} is not a check: coverage gap` };
     const [command, ...rest] = argv;
+    const before = binding.read_only ? snapshotTarget(target) : null;
     const result = runConfiguredArgv(serviceId, target, command, rest, target, binding);
     recordDiagnostics(result);
+    if (before) {
+      const after = snapshotTarget(target);
+      const changed = changedSnapshotPaths(before, after);
+      if (changed.length) return withDiagnostics({ ...result, status: 1, kind: result.kind || 'mutated', reason: result.reason || 'read-only service command changed repository files', changed_paths: changed,
+        changes: changed.map(file => ({ path: file, before: new Map(before).get(file) || null, after: new Map(after).get(file) || null })) });
+    }
     return withDiagnostics(result);
   }
 
+  for (const [checkId, check] of checks) {
+    if (!check || typeof check !== 'object' || Array.isArray(check)) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` });
+    if (check.required_paths && !Array.isArray(check.required_paths)) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required paths` });
+    for (const rel of check.required_paths || []) {
+      let abs;
+      try { abs = typeof rel === 'string' ? containedPath(target, rel) : null; } catch {}
+      if (!abs) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: invalid required path` });
+      if (!fs.existsSync(abs)) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing ${rel}` });
+    }
+    if (check.native_service || check.coverage_gap) continue;
+    if (Object.hasOwn(check, 'commands')) {
+      if (!Array.isArray(check.commands) || !check.commands.length || check.commands.some((cmd) => !cmd || genericSuccessBinding(cmd.argv))) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: empty, malformed or no-op command` });
+    } else if (genericSuccessBinding(check[scope] || check.repo)) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: missing, malformed or no-op argv` });
+  }
   for (const [checkId, check] of checks) {
     if (!check || typeof check !== 'object') {
       return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed check binding` });
@@ -363,8 +459,11 @@ function runBinding(serviceId, binding, scope, target) {
       return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed explicit fix binding` });
     }
     if (check.commands) {
+      if (!Array.isArray(check.commands) || check.commands.length === 0) {
+        return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: no executable commands configured` });
+      }
       for (const commandBinding of check.commands) {
-        if (!Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
+        if (!commandBinding || !Array.isArray(commandBinding.argv) || !commandBinding.argv.length) {
           return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed component command` });
         }
         const componentStub = genericSuccessBinding(commandBinding.argv);
@@ -378,35 +477,41 @@ function runBinding(serviceId, binding, scope, target) {
           return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: component cwd escapes repository` });
         }
         const [command, ...rest] = commandBinding.argv;
+        const before = snapshotTarget(target);
         const result = runConfiguredArgv(serviceId, target, command, rest, cwd, binding, check, commandBinding);
         recordDiagnostics(result);
         if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
+        const changed = changedSnapshotPaths(before, snapshotTarget(target));
+        if (changed.length) return withDiagnostics({ status: 1, kind: result.kind || 'mutated', reason: result.reason || 'component check command changed repository files', changed_paths: changed, changes: changed.map((file) => ({ path: file, before: new Map(before).get(file) || null, after: new Map(snapshotTarget(target)).get(file) || null })), checkId, executed_count: executedCount, executed_checks: executedChecks });
         const classified = classifyRunnerFailure(result, checkId, command);
         if (classified.error || classified.status !== 0) return withDiagnostics({ ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks });
       }
       continue;
     }
     const argv = check[scope] || check.repo;
-    if (!argv) continue;
+    if (!argv) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: no argv binding for scope ${scope}` });
     if (!Array.isArray(argv) || !argv.length) {
       return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: malformed ${scope} binding` });
     }
     const checkStub = genericSuccessBinding(argv);
     if (checkStub) return failedCheck(checkId, { status: 1, kind: 'coverage_gap', reason: `${checkId}: ${checkStub} is not a check` });
     const [command, ...rest] = argv;
-    const readOnly = check.read_only ? require('./lint-format') : null;
+    const readOnly = check.read_only || binding.read_only ? require('./lint-format') : null;
     const before = readOnly?.snapshotDir(target);
     const result = runConfiguredArgv(serviceId, target, command, rest, target, binding, check);
     recordDiagnostics(result);
     if (result.network_state && !result.kind) { executedCount += 1; executedChecks.push(checkId); }
     if (readOnly) {
       const changed = readOnly.diffSnapshots(before, readOnly.snapshotDir(target));
-      if (changed.length) return withDiagnostics({ status: 1, kind: 'mutated', reason: 'read-only service command changed repository files', changed_paths: changed, checkId, executed_count: executedCount, executed_checks: executedChecks });
+      if (changed.length) return withDiagnostics({ status: 1, kind: result.kind || 'mutated', reason: result.reason || 'read-only service command changed repository files', changed_paths: changed, changes: changed.map((file) => ({ path: file, before: new Map(before).get(file) || null, after: new Map(snapshotTarget(target)).get(file) || null })), checkId, executed_count: executedCount, executed_checks: executedChecks });
     }
     const classified = classifyRunnerFailure(result, checkId, command);
     if (classified.error || classified.status !== 0) return withDiagnostics({ ...classified, checkId, executed_count: executedCount, executed_checks: executedChecks });
   }
+  if (executedCount === 0) {
+    return withDiagnostics({ status: 1, kind: 'coverage_gap', reason: 'No executable checks were launched', executed_count: 0, executed_checks: [] });
+  }
   return withDiagnostics({ status: 0, stdout: '', stderr: '', executed_count: executedCount, executed_checks: executedChecks });
 }
 
-module.exports = { runArgv, runBinding, evaluateCapabilities, renderDiagnostic, genericSuccessBinding };
+module.exports = { runArgv, runBinding, runConfiguredArgv, evaluateCapabilities, renderDiagnostic, genericSuccessBinding };

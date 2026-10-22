@@ -14,33 +14,38 @@ Rig supports two complementary safety gates: **one-time approvals** for specific
 
 ## Grant a one-time approval
 
-When policy denies an action but you need it to run once, create an approval bound to the exact action:
+When policy denies an action, prepare a proposal bound to its exact repository,
+command, inputs and active policy:
 
 ```bash
-# Define the action (shell command, web request, or MCP call)
-cat > /tmp/action.json <<'EOF'
-{
-  "surface": "shell",
-  "category": "credential_read",
-  "argv": ["printenv", "DATABASE_TOKEN"],
-  "cwd": "/path/to/repo"
-}
-EOF
-
-# Grant a one-time approval
-node rig/bin/grant-approval /path/to/repo /tmp/action.json
+node rig/materialize.js policy grant-proposal \
+  --target /path/to/repo --action /tmp/action.json --out /tmp/proposal.json
 ```
 
-The approval is stored clone-locally, bound to every detail of the action, and consumed on first use. If the command, arguments, or working directory change, the approval is invalid.
+The action JSON names `surface`, a supported policy `category`, and the exact
+command or request. The human Gate 1 key holder signs
+`actionApprovalMessage(proposal)` from `rig/lib/enforcement.js` using SSHSIG
+namespace `rig-action-approval`. The signed approval JSON contains
+`method: "external-sshsig"`, the Gate 1 `identity`, and the SSHSIG `signature`.
+Agents prepare these inputs but never use the owner's signing key.
 
-### Via CLI
+Issue the signed one-use grant with either entrypoint:
 
 ```bash
-rig policy grant-approval \
-  --target /path/to/repo \
-  --action /tmp/action.json \
-  --out /tmp/approval.json
+node rig/bin/grant-approval /path/to/repo /tmp/action.json \
+  /tmp/proposal.json /tmp/signed-approval.json > /tmp/grant.json
+
+node rig/materialize.js policy grant-approval \
+  --target /path/to/repo --action /tmp/action.json \
+  --proposal /tmp/proposal.json --approval /tmp/signed-approval.json \
+  --out /tmp/grant.json
 ```
+
+The output is the signed grant accepted by `policy evaluate --approval
+/tmp/grant.json`. The dispatcher consumes it atomically in clone-local Git
+storage before allowing the exact action once. A changed action, input,
+policy or repository invalidates the grant; copying the JSON cannot reset it.
+Unsigned two-argument grant requests are refused.
 
 ## Validate commits for harness safety
 

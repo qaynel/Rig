@@ -44,7 +44,7 @@ function containedPath(target, rel) {
 // Linked worktrees have a `.git` *file*, so callers must not join `.git/...`
 // themselves — this is the safe way to find hooks, the common dir, etc.
 function gitPath(target, rel) {
-  const result = spawnSync('git', ['rev-parse', '--git-path', rel], {
+  const result = spawnSync(fs.existsSync('/usr/bin/git') ? '/usr/bin/git' : 'git', ['rev-parse', '--git-path', rel], {
     cwd: target,
     encoding: 'utf8',
     shell: false,

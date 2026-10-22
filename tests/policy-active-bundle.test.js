@@ -57,7 +57,7 @@ function repo(dir, fn) {
       approval: { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity: 'gate1-owner', signature: signer.sign(policy.activationMessage(proposal)) } },
     });
   };
-  return fn(target, activate);
+  return fn(target, activate, signer);
 }
 
 test('the shipped default and a valid current-schema document both deny all four protected categories on every surface', () => {
@@ -154,15 +154,19 @@ test('missing, corrupt, stale, or unsigned active evidence refuses with a named 
   assert.equal(policy.loadActivePolicy(target).source, 'activated');
 })));
 
-test('the MCP renderer and validate-commit read only the active bundle and refuse when its evidence is bad', () => withDir((dir) => repo(dir, (target, activate) => {
+test('the MCP renderer and validate-commit read only the active bundle and refuse when its evidence is bad', () => withDir((dir) => repo(dir, (target, activate, signer) => {
   spawnSync('git', ['init', '-q'], { cwd: target });
+  const { materialize, exampleServer } = require('./helpers/basic-install');
+  const manifest = { hosts: ['claude'], mcp_servers: [{ ...exampleServer, variants: [exampleServer.variants.find((v) => v.transport === 'http')] }] };
+  // Commit fixture harness first, before this test establishes activation.
+  materialize(target, manifest);
+  fs.writeFileSync(path.join(target, TRUST_ROOT_REL), `gate1-owner ${signer.publicKey}\n`);
   activate(current());
   fs.writeFileSync(path.join(target, '.rig/policy/active.json'), '{ corrupt');
   const refused = spawnSync(process.execPath, [path.join(root, 'rig/materialize.js'), 'validate-commit', '--target', target], { encoding: 'utf8' });
   assert.equal(refused.status, 1);
   assert.match(refused.stderr, /validate-commit refused: policy_active_invalid/);
-  const { materialize, exampleServer } = require('./helpers/basic-install');
-  materialize(target, { hosts: ['claude'], mcp_servers: [{ ...exampleServer, variants: [exampleServer.variants.find((v) => v.transport === 'http')] }] });
+  materialize(target, manifest);
   const entry = JSON.parse(fs.readFileSync(path.join(target, '.rig/basic-receipt.json'), 'utf8')).networkPolicy[0];
   assert.deepEqual([entry.decision, entry.rule, entry.advisory], ['deny', 'policy_unavailable', true]);
   assert.match(entry.reason, /policy_active_invalid/);

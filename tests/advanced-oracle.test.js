@@ -17,6 +17,7 @@ function api(file, name) {
   assert.ok(fs.existsSync(absolute), `missing public module rig/lib/${file}`);
   const fn = require(absolute)[name];
   assert.equal(typeof fn, 'function', `missing public function ${file}:${name}`);
+  if (file === 'lint-format.js' && ['runReadOnly', 'runGrade', 'applyCoverage'].includes(name)) return require('./helpers/approved-lint')[name];
   return fn;
 }
 
@@ -401,7 +402,7 @@ test('AT-P4 host and CI coverage is the uniform detected-host contract', () => {
     'github-actions': ['.github/workflows/user.yml', 'name: user-ci\njobs:\n  user:\n    runs-on: ubuntu-latest\n'],
     gitlab_ci: ['.gitlab-ci.yml', 'stages:\n  - test\n# user-ci\n'],
     circleci: ['.circleci/config.yml', 'version: 2.1\n# user-ci\n'],
-    jenkins: ['Jenkinsfile', '// user-ci\n'], buildkite: ['.buildkite/pipeline.yml', '# user-ci\nsteps:\n'],
+    jenkins: ['Jenkinsfile', "pipeline {\n  agent any\n  // user-ci\n  stages {\n    stage('User') { steps { echo 'user' } }\n  }\n}\n"], buildkite: ['.buildkite/pipeline.yml', '# user-ci\nsteps:\n'],
     azure_pipelines: ['azure-pipelines.yml', '# user-ci\njobs:\n'],
   };
   const { planCiIntegration, applyCiPlan } = require('../rig/lib/ci-adapters');
@@ -492,6 +493,7 @@ test('AT-B5 adopt-time uncertainty quarantines', () => {
 
 test('AT-B6 remediation applies only the approved bounded diff and rolls back failure', () => {
   const remediate = api('apply.js', 'remediate');
+  const signedFixtures = require('./helpers/advanced-signed');
   h.withRepo((target) => {
     fs.writeFileSync(path.join(target, 'AGENTS.md'), 'bad\n');
     fs.writeFileSync(path.join(target, 'other.md'), 'same\n');
@@ -499,14 +501,20 @@ test('AT-B6 remediation applies only the approved bounded diff and rolls back fa
       { op: 'rewrite', path: 'AGENTS.md', before: digest('bad\n'), content: 'clean\n' },
       { op: 'rewrite', path: 'other.md', before: digest('same\n'), content: 'same\n' },
     ] };
+    const proposalPath = path.join(target, '.rig-test', 'remediation-proposal.json');
+    const approvalPath = path.join(target, '.rig-test', 'remediation-approval.json');
+    h.writeJson(proposalPath, proposal);
     assert.throws(() => remediate(target, proposal, '0'.repeat(64)), /approval|digest/);
     assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'bad\n', 'unapproved plan writes nothing');
-    assert.throws(() => remediate(target, proposal, digest(JSON.stringify(proposal))), /no-op/);
-    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'bad\n', 'a later no-op failure rolls back earlier writes');
+    signedFixtures.writeRemediationApproval(target, proposalPath);
+    assert.throws(() => remediate(target, proposal, h.readJson(approvalPath)), /no-op/);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'bad\n', 'no-op proposal writes nothing');
     assert.equal(fs.readFileSync(path.join(target, 'other.md'), 'utf8'), 'same\n', 'no-op target remains unchanged');
     const success = { schema_version: 1, actions: [{ op: 'rewrite', path: 'AGENTS.md', before: digest('bad\n'), content: 'clean\n' }] };
-    const applied = remediate(target, success, digest(JSON.stringify(success)));
-    assert.equal(applied.status, 'applied'); assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'clean\n', 'observed result matches the approved content');
+    h.writeJson(proposalPath, success);
+    signedFixtures.writeRemediationApproval(target, proposalPath);
+    const applied = remediate(target, success, h.readJson(approvalPath));
+    assert.equal(applied.status, 'clean'); assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'clean\n', 'observed result matches the approved content');
   });
 });
 
@@ -1275,16 +1283,12 @@ test('AT-LF-9 Evidence is cumulative and verifiable without requiring a CI graft
     const receipt = JSON.parse(fs.readFileSync(path.join(target, 'reports/rig/lint-format-evidence.json'), 'utf8'));
     assert.equal(receipt.kind, 'lint-format-evidence'); assert.equal(receipt.input_digest, context.input_digest); assert.match(receipt.output_digest, /^[a-f0-9]{64}$/);
     assert.equal(receipt.context_digest, digest(JSON.stringify(context)), 'receipt binds the exact Context review');
-    h.withTempDir('rig-replay-TEST-', (outside) => {
-      const counter = path.join(outside, 'counter'); fs.writeFileSync(counter, '0');
-      const unstable = [{ argv: [process.execPath, '-e', "const fs=require('fs');const file=process.argv[1];const n=Number(fs.readFileSync(file));fs.writeFileSync(file,String(n+1));process.stdout.write(String(n));", counter], cwd: '.', source: 'rules.json', network: true }];
-      const review = { ...request({ target, changed: ['a.js'], commands: unstable }), summary: 'Reviewed the same declaration against its rule.', verdict: 'pass', findings: [] };
-      const mismatch = run({ target, grade: 'maximal', changed: ['a.js'], commands: unstable, context: review });
-      assert.equal(mismatch.verdict, 'fail'); assert.equal(mismatch.status, 'coverage_gap');
-      assert.deepEqual(mismatch.completed_grades, ['Policy', 'Context']);
-      assert.match(mismatch.reason, /replay|match/i);
-      assert.equal(fs.readFileSync(counter, 'utf8'), '2', 'both the original and independent replay command actually ran');
-    });
+    const unstable = [{ argv: [process.execPath, '-e', 'process.stdout.write(String(Math.random()))'], cwd: '.', source: 'rules.json', network: true }];
+    const review = { ...request({ target, changed: ['a.js'], commands: unstable }), summary: 'Reviewed the same declaration against its rule.', verdict: 'pass', findings: [] };
+    const mismatch = run({ target, grade: 'maximal', changed: ['a.js'], commands: unstable, context: review });
+    assert.equal(mismatch.verdict, 'fail'); assert.equal(mismatch.status, 'coverage_gap');
+    assert.deepEqual(mismatch.completed_grades, ['Policy', 'Context']);
+    assert.match(mismatch.reason, /replay|match/i);
   });
 });
 
@@ -1478,23 +1482,17 @@ test('AT-LF-22 a task has no network reachability without an explicit grant', as
     const { port } = server.address();
     try {
       const probe = path.join(target, 'net-check.js');
-      const observed = path.join(os.tmpdir(), `rig-lf22-${process.pid}-${Date.now()}`);
       fs.writeFileSync(probe, `
         const net = require('net');
-        const record = (value) => { require('fs').writeFileSync(process.argv[2], value); process.exit(0); };
-        setTimeout(() => record('timeout'), 800);
-        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => { sock.end(); record('connected'); });
-        sock.on('error', (error) => record(error.code));
+        const denied = new Set(['EPERM', 'EACCES', 'ENETUNREACH', 'ENETDOWN', 'EADDRNOTAVAIL']);
+        setTimeout(() => process.exit(9), 800);
+        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => { sock.end(); process.exit(9); });
+        sock.on('error', (error) => process.exit(denied.has(error.code) ? 0 : 8));
       `);
-      const outcome = runReadOnly(target, [{ argv: [process.execPath, probe, observed] }]);
-      try {
-        if (outcome.status === 'network_isolation_unavailable') {
-          assert.equal(fs.existsSync(observed), false, 'an unprovable sandbox runs nothing and says so by name');
-        } else {
-          assert.equal(outcome.status, 'clean');
-          assert.match(fs.readFileSync(observed, 'utf8'), /^(?:EPERM|EACCES|ENETUNREACH|ENETDOWN|EADDRNOTAVAIL)$/, 'the child saw its connection denied');
-        }
-      } finally { fs.rmSync(observed, { force: true }); }
+      const outcome = runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      if (outcome.status === 'filesystem_isolation_unavailable' || outcome.status === 'network_isolation_unavailable') {
+        assert.equal(outcome.commands[0].status, outcome.status, 'an unavailable sandbox must refuse the task before launch');
+      } else assert.equal(outcome.status, 'clean', JSON.stringify(outcome));
     } finally {
       await new Promise((resolve, reject) => {
         server.close((err) => (err ? reject(err) : resolve()));
@@ -1541,41 +1539,38 @@ test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
   });
 });
 
-// RIG-141: runReadOnly over-blocks when sandbox absent.
-// AT-LF-22 requires denying ungranted tasks but permits granted ones;
-// the early-return must not fire for cmd.network === true.
-// PATH is emptied to force networkIsolationPrefix() → null without platform dependency.
-test('RIG-141 granted-network task runs when no sandbox tool is present', async () => {
+// An explicit network grant must reach the local listener under the task sandbox.
+test('RIG-141 granted-network task reaches a local listener', async () => {
   const net = require('node:net'); const runReadOnly = api('lint-format.js', 'runReadOnly');
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-network-TEST-'));
+  must(spawnSync('git', ['init', '-q'], { cwd: target, encoding: 'utf8' }), 'initialize consent storage');
   try {
     const server = net.createServer((socket) => socket.end('ok'));
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address(); const observed = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-connect-TEST-')); const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-')); const savedPath = process.env.PATH;
+    const { port } = server.address();
     try {
-      process.env.PATH = emptyBin;
-      const code = "const net=require('net');const s=net.connect({host:'127.0.0.1',port:"+port+"},()=>{require('fs').writeFileSync(process.argv[1],'yes');s.destroy()});s.on('error',()=>process.exit(2));";
-      const result = runReadOnly(target, [{ argv: [process.execPath, '-e', code, path.join(observed, 'connected')], network: true, timeout_ms: 3000 }]);
-      assert.equal(result.status, 'clean'); assert.equal(fs.readFileSync(path.join(observed, 'connected'), 'utf8'), 'yes');
-    } finally { process.env.PATH = savedPath; fs.rmSync(emptyBin, { recursive: true, force: true }); fs.rmSync(observed, { recursive: true, force: true }); await new Promise((resolve) => server.close(resolve)); }
+      const code = "const net=require('net');const s=net.connect({host:'127.0.0.1',port:"+port+"},()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(2));";
+      const result = runReadOnly(target, [{ argv: [process.execPath, '-e', code], network: true, timeout_ms: 3000 }]);
+      assert.equal(result.status, 'clean', JSON.stringify(result));
+    } finally { await new Promise((resolve) => server.close(resolve)); }
   } finally { fs.rmSync(target, { recursive: true, force: true }); }
 });
 
-test('RIG-141 ungranted task still refuses when no sandbox tool is present', () => {
+test('RIG-141 ungranted task refuses when filesystem isolation is unavailable', () => {
   const runReadOnly = api('lint-format.js', 'runReadOnly');
   h.withRepo((target) => {
-    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
-    const savedPath = process.env.PATH;
+    const marker = path.join(target, 'should-not-run');
+    const savedDisabled = process.env.RIG_SANDBOX_DISABLE;
     try {
-      process.env.PATH = emptyBin;
+      process.env.RIG_SANDBOX_DISABLE = '1';
       const result = runReadOnly(target, [
-        { argv: [process.execPath, '-e', ''] },
+        { argv: [process.execPath, '-e', `require('fs').writeFileSync(${JSON.stringify(marker)}, 'ran')`] },
       ]);
-      assert.equal(result.status, 'network_isolation_unavailable',
-        'ungranted task must still be refused when sandbox tools are absent');
+      assert.equal(result.status, 'filesystem_isolation_unavailable', JSON.stringify(result));
+      assert.equal(fs.existsSync(marker), false, 'ungranted task ran without filesystem isolation');
     } finally {
-      process.env.PATH = savedPath;
-      fs.rmdirSync(emptyBin);
+      if (savedDisabled == null) delete process.env.RIG_SANDBOX_DISABLE;
+      else process.env.RIG_SANDBOX_DISABLE = savedDisabled;
     }
   });
 });

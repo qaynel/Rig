@@ -9,11 +9,12 @@ const { spawnSync } = require('node:child_process');
 const { withRepo, writeJson } = require('./helpers/advanced');
 const { runBinding, renderDiagnostic } = require('../rig/lib/check-runner');
 const { runChecks } = require('../rig/lib/checks');
+const { prepareFixtureRuntimeCheck } = require('./helpers/runtime-check');
 
 const ok = [process.execPath, '-e', "require('fs').readdirSync('.')"];
 const fail = [process.execPath, '-e', 'process.exit(7)'];
 
-test('Review Received F4: successful named and component checks retain one compatibility diagnostic', () => {
+test('Review Received F4: omitted network declarations retain one default-deny diagnostic', () => {
   withRepo((target) => {
     const named = runBinding('service', { checks: {
       first: { repo: ok },
@@ -22,7 +23,7 @@ test('Review Received F4: successful named and component checks retain one compa
     assert.equal(named.status, 0);
     assert.deepEqual(named.executed_checks, ['first', 'second']);
     assert.deepEqual(named.diagnostics, [
-      'network capability undeclared; running under temporary compatibility mode',
+      'network capability undeclared; network is denied by default',
     ]);
 
     const component = runBinding('service', { checks: {
@@ -45,7 +46,7 @@ test('Review Received F4: a later failing named sub-check retains prior diagnost
     assert.deepEqual(result.executed_checks, ['passing', 'failing']);
     assert.equal(result.executed_count, 2);
     assert.deepEqual(result.diagnostics, [
-      'network capability undeclared; running under temporary compatibility mode',
+      'network capability undeclared; network is denied by default',
     ]);
   });
 });
@@ -62,7 +63,7 @@ test('Review Received F4: a later coverage gap retains earlier diagnostics and c
     assert.equal(result.executed_count, 1);
     assert.deepEqual(result.executed_checks, ['passing']);
     assert.deepEqual(result.diagnostics, [
-      'network capability undeclared; running under temporary compatibility mode',
+      'network capability undeclared; network is denied by default',
     ]);
   });
 });
@@ -73,15 +74,12 @@ function installedCheckRun(binding, env = {}) {
     const root = path.join(__dirname, '..');
     fs.mkdirSync(path.join(dir, '.rig', 'bin'), { recursive: true });
     fs.mkdirSync(path.join(dir, '.rig', 'lib'), { recursive: true });
-    for (const [from, to] of [
-      ['rig/catalog/baseline/check.js', '.rig/bin/check.js'],
-      ['rig/catalog/baseline/check-copies.js', '.rig/bin/check-copies.js'],
-      ['rig/lib/spawn-guarded.js', '.rig/lib/spawn-guarded.js'],
-      ['rig/lib/path-safety.js', '.rig/lib/path-safety.js'],
-      ['rig/lib/check-runner.js', '.rig/lib/check-runner.js'],
-      ['rig/lib/memory-guarded-exec.js', '.rig/lib/memory-guarded-exec.js'],
-    ]) fs.copyFileSync(path.join(root, from), path.join(dir, to));
+    for (const entry of require('../rig/lib/baseline-payload').entries) {
+      fs.copyFileSync(path.join(root, 'rig', entry.from), path.join(dir, entry.to));
+    }
+    fs.writeFileSync(path.join(dir, 'AGENTS.md'), 'Follow the repository workflow.\n');
     writeJson(path.join(dir, '.rig', 'service-bindings.json'), { service: binding });
+    prepareFixtureRuntimeCheck(dir, 'The fixture has one repository instruction that assigns the repository workflow consistently; no other instruction overrides it.');
     const cleanEnv = { ...process.env };
     delete cleanEnv.GITHUB_ACTIONS;
     return spawnSync(process.execPath, [path.join(dir, '.rig', 'bin', 'check.js'), '--scope', 'repo', '--service', 'service'], {
@@ -103,10 +101,10 @@ test('Review Received F4: normal CLI and GitHub output render named and componen
 
   const ci = installedCheckRun(binding, { GITHUB_ACTIONS: 'true' });
   assert.equal(ci.status, 0, ci.stderr);
-  const annotations = `${ci.stdout}${ci.stderr}`.split('\n').filter((line) => line.startsWith('::warning'));
-  assert.equal(annotations.length, 1, `${ci.stdout}${ci.stderr}`);
-  assert.match(annotations[0], /network capability undeclared/);
-  assert.doesNotMatch(annotations[0], /%0A|%0D/);
+  const aggregate = JSON.parse(ci.stdout);
+  assert.equal(aggregate.verdict, 'pass');
+  assert.deepEqual(aggregate.rules, []);
+  assert.doesNotMatch(ci.stdout + ci.stderr, /network capability undeclared|::warning|service|named|components/);
   assert.equal(
     renderDiagnostic('service%name', 'first line\nsecond line', { GITHUB_ACTIONS: 'true' }),
     '::warning title=Rig check::service%25name: first line%0Asecond line\n',
@@ -116,7 +114,7 @@ test('Review Received F4: normal CLI and GitHub output render named and componen
     passing: { repo: ok },
     failing: { repo: fail },
   } });
-  assert.equal(mixed.status, 7);
+  assert.equal(mixed.status, 1);
   assert.equal((mixed.stderr.match(/network capability undeclared/g) || []).length, 1, mixed.stderr);
   assert.match(mixed.stderr, /failing/);
 

@@ -9,6 +9,7 @@ const { definition, detectService, runNativeService } = require('../rig/lib/serv
 const { runBinding } = require('../rig/lib/check-runner');
 const { runChecks } = require('../rig/lib/checks');
 const { signApproval } = require('./helpers/path-b-approval');
+const { prepareFixtureRuntimeCheck } = require('./helpers/runtime-check');
 
 test('installed onboarding README and catalogue authorities describe the signed corpus', async () => {
   await h.withRepo(target => {
@@ -174,6 +175,7 @@ test('approved service reselection removes inactive bindings and unedited guidan
     assert.equal(result.checked.phase, 'checked');
     assert.deepEqual(h.readJson(path.join(target, '.rig/service-bindings.json')), {});
     assert.equal(fs.existsSync(path.join(target, `.rig/services/${id}.md`)), false);
+    prepareFixtureRuntimeCheck(target, 'The fixture retains its original repository workflow after deselecting the documentation service; the added context-change note introduces no conflicting instruction.');
     assert.equal(runChecks(target).status, 0);
   }, { install: true });
 });

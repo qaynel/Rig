@@ -1,5 +1,14 @@
 # Install manifest and removal
 
+A fresh October 22 independent review found that the shared parser accepted
+valid-JSON operation records with missing ownership/state/operation fields; a
+matching digest could then let uninstall delete user-created `.rig` data.
+Strict structural validation and public-uninstall byte-preservation tests are
+in progress. The new tests pass; adjacent older handcrafted fixtures are
+incomplete under the validated operation schema and remain unresolved pending
+fixture ownership and reconciliation.
+[Latest journal integrity checkpoint](../reasoning/2026-10-22-journal-integrity-fix-progress.md)
+
 The [QA follow-up checkpoint](../reasoning/2026-10-18-qa-closeout-followup-progress.md)
 records that migration retains its temporary record with a named recovery state;
 pathname cleanup cannot atomically prove the entry still names the validated inode.
@@ -172,3 +181,10 @@ uninstall round trip that restores the full pre-install inventory.
 ([trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md))
 
 Closure work in progress: [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md).
+
+2026-10-22: Lifecycle rejects malformed operation ownership/history before
+uninstall mutation, while accepting valid legacy applied creates without a
+preimage digest; replacements still require one
+([checkpoint](../reasoning/2026-10-22-journal-legacy-create-compatibility.md)).
+Resume accepts a pointer graft matching its verified preimage
+([checkpoint](../reasoning/2026-10-22-legacy-pointer-resume-guard.md)).

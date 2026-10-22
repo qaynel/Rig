@@ -5,8 +5,17 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { withRepo } = require('./helpers/advanced');
-const { createGradeReviewRequest, runGrade } = require('../rig/lib/lint-format');
-const { runGrade: evaluateGrade, runInstalledGrade } = require('../rig/lib/lint-grade');
+const { createGradeReviewRequest } = require('../rig/lib/lint-format');
+const { runGrade } = require('./helpers/approved-lint');
+const { runGrade: evaluateGrade, runInstalledGrade, installedGradeInputs } = require('../rig/lib/lint-grade');
+
+function approveInstalled(target, binding) {
+  const inputs = installedGradeInputs({ target, binding });
+  assert.equal(inputs.gap, undefined, JSON.stringify(inputs.gap));
+  const signed = require('./helpers/task-approval').approved(target, inputs.commands, inputs.grade === 'maximal' ? 2 : 1);
+  fs.mkdirSync(path.join(target, '.rig/lint-format'), { recursive: true });
+  for (const [name, value] of Object.entries(signed)) fs.writeFileSync(path.join(target, `.rig/lint-format/execution-${name}.json`), JSON.stringify(value));
+}
 
 test('installed Context and Evidence use an editable review file and local replay, without CI', () => {
   withRepo((target) => {
@@ -17,9 +26,9 @@ test('installed Context and Evidence use an editable review file and local repla
     fs.writeFileSync(path.join(target, 'src.js'), 'after\n');
     const binding = {
       engine: 'component-lint-format-v1', grade: 'maximal',
-      components: [{ cwd: '.', manifest: 'rules.json', format_check: {
-        argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.', source: 'rules.json', network: true,
-      }, lint: { argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.', source: 'rules.json', network: true } }],
+      components: [{ root: '.', cwd: '.', include: ['src.js'], manifest: 'rules.json', format_check: {
+        argv: [process.execPath, '-e', 'process.stdout.write("clean")', '{files}'], cwd: '.', source: 'rules.json', network: true,
+      }, lint: { argv: [process.execPath, '-e', 'process.stdout.write("clean")', '{files}'], cwd: '.', source: 'rules.json', network: true } }],
     };
     const execute = (command) => {
       const result = require('node:child_process').spawnSync(command.argv[0], command.argv.slice(1), { cwd: path.join(target, command.cwd || '.'), encoding: 'utf8' });
@@ -183,10 +192,11 @@ test('installed check runner preserves mutation paths and never launches the lat
     execFileSync('git', ['add', '.'], { cwd: target });
     execFileSync('git', ['commit', '-m', 'base'], { cwd: target });
     const command = code => ({ argv: [process.execPath, '-e', code], cwd: '.' });
-    const binding = { engine: 'component-lint-format-v1', grade: 'mid', components: [{ cwd: '.', manifest: 'rules.json',
+    const binding = { engine: 'component-lint-format-v1', grade: 'mid', scope: 'repo', components: [{ root: '.', include: ['a.js'], cwd: '.', manifest: 'rules.json',
       format_check: command('require("fs").writeFileSync("a.js","changed\\n")'),
       lint: command('require("fs").writeFileSync("must-not-run","bad")'),
     }] };
+    approveInstalled(target, binding);
     const result = require('../rig/lib/check-runner').runBinding('development.code-quality.lint-format', binding, 'repo', target);
     assert.equal(result.status, 1);
     assert.equal(result.kind, 'mutated');
@@ -205,16 +215,18 @@ test('installed check runner reports Context violations without writing Evidence
     execFileSync('git', ['commit', '-m', 'base'], { cwd: target });
     fs.writeFileSync(path.join(target, 'a.js'), 'after\n');
     const command = { argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.' };
-    const binding = { engine: 'component-lint-format-v1', grade: 'maximal', components: [{ cwd: '.', manifest: 'rules.json', format_check: command, lint: command }] };
+    const binding = { engine: 'component-lint-format-v1', grade: 'maximal', scope: 'repo', components: [{ root: '.', include: ['a.js'], cwd: '.', manifest: 'rules.json', format_check: command, lint: command }] };
     const { runBinding } = require('../rig/lib/check-runner');
+    approveInstalled(target, binding);
     assert.equal(runBinding('development.code-quality.lint-format', binding, 'repo', target).kind, 'coverage_gap');
     const request = JSON.parse(fs.readFileSync(path.join(target, 'reports/rig/lint-format-context-review-request.json')));
     const findings = [{ file: 'a.js', rule: 'rules.json', meaning: 'The change violates the repository rule.' }];
     fs.mkdirSync(path.join(target, '.rig/lint-format'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/lint-format/context-review.json'), JSON.stringify({ ...request, verdict: 'fail', summary: 'A policy violation remains.', findings }));
+    approveInstalled(target, binding);
     const result = runBinding('development.code-quality.lint-format', binding, 'repo', target);
     assert.equal(result.status, 1);
-    assert.equal(result.kind, 'lint_grade_failed');
+    assert.equal(result.kind, 'failed');
     assert.deepEqual(result.findings, findings);
     assert.equal(fs.existsSync(path.join(target, 'reports/rig/lint-format-evidence.json')), false);
   });

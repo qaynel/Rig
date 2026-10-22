@@ -7,6 +7,8 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { PAYLOAD_HOSTS, runPayload } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
+const { writePlanApproval } = require('./helpers/advanced-signed');
+const { writeFixtureLintSelection, prepareFixtureRuntimeCheck } = require('./helpers/runtime-check');
 
 const root = path.join(__dirname, '..');
 const pointer = 'Before acting, read `.rig/routing.md` and route this task through its skill table.';
@@ -182,16 +184,21 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       walk(path.join(target, top));
     }
 
-    // A default install (no --with-runtime) is markdown-only end to end: the
-    // vendored skill catalogue lands as instructions, and the plumbing/runtime
-    // trees don't land at all. Only install bookkeeping and the vendored MIT
-    // notice file are exempt.
+    // Default delivery includes the mandatory executable safety baseline.
+    // Optional plumbing/runtime packages still require --with-runtime.
+    const baseline = require('../rig/lib/baseline-payload').entries;
+    const baselineFiles = new Set(baseline.map((entry) => path.join(target, entry.to)));
+    for (const entry of baseline) {
+      assert.deepEqual(fs.readFileSync(path.join(target, entry.to)), fs.readFileSync(path.join(root, 'rig', entry.from)), entry.to);
+      assert.equal(fs.statSync(path.join(target, entry.to)).mode & 0o777, entry.mode, entry.to);
+    }
     const noticeBasenames = new Set(['LICENSE.upstream', 'UPSTREAM.md', 'README.md']);
     const tier1RigFiles = installed
       .filter((file) => file.includes(`${path.sep}.rig${path.sep}`))
       .filter((file) => !file.endsWith(`${path.sep}.rig${path.sep}install-manifest.jsonl`))
       .filter((file) => !file.includes(`${path.sep}.rig${path.sep}preimages${path.sep}`))
       .filter((file) => !file.endsWith(`${path.sep}.rig${path.sep}trust${path.sep}gate1.allowed-signers`))
+      .filter((file) => !baselineFiles.has(file))
       .filter((file) => !noticeBasenames.has(path.basename(file)));
     assert.ok(tier1RigFiles.every((file) => file.endsWith('.md')));
     assert.equal(fs.existsSync(path.join(target, '.rig', 'plumbing')), false, 'plumbing must not land on a default install');
@@ -207,7 +214,7 @@ test('Tier 1 bootstrap configures every explicitly selected instruction host', (
       || /[/\\]\.rig[/\\]skills[/\\][^/\\]+[/\\]/.test(file)
       || /[/\\]\.claude[/\\]skills[/\\][^/\\]+[/\\]/.test(file)
       || /[/\\]\.agents[/\\]skills[/\\][^/\\]+[/\\]/.test(file);
-    const tier1Body = installed.filter((f) => !isVendoredFile(f)).map((file) => fs.readFileSync(file, 'utf8')).join('\n');
+    const tier1Body = installed.filter((f) => !isVendoredFile(f) && !baselineFiles.has(f)).map((file) => fs.readFileSync(file, 'utf8')).join('\n');
     for (const relativePath of backtickedRigPaths(tier1Body)) {
       if (relativePath.startsWith('.rig/runtime/')) continue; // optional runtime references resolve only with --with-runtime
       assert.equal(fs.existsSync(path.join(target, relativePath)), true, `${relativePath} should exist after install`);
@@ -260,13 +267,15 @@ test('Tier 1 --with-runtime installs and surfaces a working catalogue entrypoint
 
   try {
     execFileSync('git', ['init'], { cwd: target, stdio: 'pipe' });
+    execFileSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'initial fixture', '--allow-empty'], { cwd: target, stdio: 'pipe' });
     fs.writeFileSync(path.join(target, 'package.json'), `${JSON.stringify({
       name: 'rig-entrypoint-fixture',
       version: '1.0.0',
       private: true,
-      scripts: { 'format:check': 'git diff --check' },
+      scripts: { 'format:check': 'node fixture-format-check.cjs' },
     }, null, 2)}\n`);
     fs.writeFileSync(path.join(target, 'index.js'), 'const answer = 42;\n');
+    writeFixtureLintSelection(target);
 
     const output = execFileSync('sh', [
       path.join(root, 'rig', 'bootstrap.sh'),
@@ -302,17 +311,12 @@ test('Tier 1 --with-runtime installs and surfaces a working catalogue entrypoint
       'plan', '--target', target, '--manifest', selectionPath,
       '--review', reviewPath, '--out', planPath,
     ], { stdio: 'pipe' });
-    const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
-    fs.writeFileSync(approvalPath, `${JSON.stringify({
-      schema_version: 1,
-      kind: 'plan-approval',
-      plan_digest: plan.plan_digest,
-      approval: { method: 'external-sshsig', verified: true },
-    }, null, 2)}\n`);
+    fs.copyFileSync(writePlanApproval(target, planPath), approvalPath);
     execFileSync(rig, [
       'apply', '--target', target, '--manifest', selectionPath,
       '--review', reviewPath, '--plan', planPath, '--approval', approvalPath,
     ], { stdio: 'pipe' });
+    prepareFixtureRuntimeCheck(target, 'The bootstrap fixture entrypoints consistently route Rig work to the common corpus; its selected JavaScript whitespace check conflicts with no repository instruction.');
     execFileSync(rig, ['check', '--target', target, '--service', service], { stdio: 'pipe' });
 
     const bindings = JSON.parse(read(target, '.rig/service-bindings.json'));

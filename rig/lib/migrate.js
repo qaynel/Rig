@@ -362,6 +362,11 @@ function stage(target, hosts, delivery, toTag) {
   for (const host of hosts) if (!REGISTRY[host]) refuse('unknown-host', `release record names unknown host "${host}"`);
   const selection = { hosts, delivery };
   const entries = projectAll(loadCorpus(selection), selection);
+  // The mandatory safety baseline is installed by both delivery paths and
+  // belongs in the same CAS-protected desired tree during an upgrade.
+  for (const entry of require('./baseline-payload').entries) {
+    entries.push({ path: entry.to, bytes: fs.readFileSync(path.join(__dirname, '..', entry.from)), mode: entry.mode });
+  }
   const release = {
     path: RELEASE_REL,
     bytes: Buffer.from(`${JSON.stringify({ tag: toTag, hosts: [...new Set(hosts)].sort() }, null, 2)}\n`),

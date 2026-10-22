@@ -159,7 +159,7 @@ ${targetBytes.toString('utf8')}
 
 const reviewerCommand = reviewerDriver === 'codex' ? 'codex' : 'claude';
 const reviewerArgs = reviewerDriver === 'codex'
-  ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
+  ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--enable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
   : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob,Bash'];
 
 // RIG-124.1: write the failure optimistically, before the spawn, and only

@@ -7,6 +7,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { TRIAGE_DISCLOSURE } = require('./reports');
 const { verifyTrustRootApproval } = require('./trust-root');
+const { policyPath, atomicWrite, withPolicyLock, syncDirectory } = require('./policy-transaction');
 
 const KNOWN_TOP = new Set(['schema_version', 'enabled', 'controls', 'enforcement', 'network', 'allow', 'secrets']);
 const NETWORK_CATEGORIES = ['outbound_network', 'remote_content_execution', 'sensitive_environment_read', 'guardrail_bypass'];
@@ -91,7 +92,7 @@ function readJson(file) {
 }
 
 function repositoryIdentity(target) {
-  return digest(path.resolve(target));
+  return digest(fs.realpathSync(target));
 }
 
 function activationMessage(proposal) {
@@ -119,7 +120,7 @@ function signerFingerprint(allowedSigners, identity) {
   const pub = path.join(dir, 'signer.pub');
   try {
     fs.writeFileSync(pub, `${match[1]} ${match[2]}\n`);
-    const result = spawnSync('ssh-keygen', ['-lf', pub], { encoding: 'utf8', shell: false });
+    const result = spawnSync(fs.existsSync('/usr/bin/ssh-keygen') ? '/usr/bin/ssh-keygen' : 'ssh-keygen', ['-lf', pub], { encoding: 'utf8', shell: false });
     if (result.status !== 0) throw new Error('activatePolicy: cannot fingerprint allowed signer');
     const fingerprint = result.stdout.match(/\bSHA256:[A-Za-z0-9+/=]+/);
     if (!fingerprint) throw new Error('activatePolicy: fingerprint output malformed');
@@ -138,7 +139,7 @@ function verifySshsig({ allowedSigners, identity, namespace, message, signature 
   const signatureFile = path.join(dir, 'approval.sig');
   try {
     fs.writeFileSync(signatureFile, signature, { mode: 0o600 });
-    const result = spawnSync('ssh-keygen', [
+    const result = spawnSync(fs.existsSync('/usr/bin/ssh-keygen') ? '/usr/bin/ssh-keygen' : 'ssh-keygen', [
       '-Y', 'verify', '-f', allowedSigners, '-I', identity,
       '-n', namespace, '-s', signatureFile,
     ], { input: message, encoding: 'utf8', shell: false });
@@ -178,12 +179,14 @@ const SHIPPED_POLICY = path.join(__dirname, '..', 'catalog', 'baseline', 'networ
 // with a named reason. The user-owned candidate (.rig/network-policy.json) is
 // never read here, so editing it changes no permission.
 function loadActivePolicy(target) {
-  const activeAbs = path.join(target, '.rig/policy/active.json');
-  const receiptAbs = path.join(target, '.rig/policy/activation-receipt.json');
+  if (fs.existsSync(policyPath(target, '.rig/policy/transaction.json'))) throw new Error('policy_active_incomplete: interrupted publication; run rig policy recover-activation');
+  const activeAbs = policyPath(target, '.rig/policy/active.json');
+  const receiptAbs = policyPath(target, '.rig/policy/activation-receipt.json');
   const hasActive = fs.existsSync(activeAbs);
   const hasReceipt = fs.existsSync(receiptAbs);
   if (!hasActive && !hasReceipt) {
-    return { source: 'shipped_default', policy: parsePolicyBytes(fs.readFileSync(SHIPPED_POLICY)).candidate };
+    const parsed = parsePolicyBytes(fs.readFileSync(fs.existsSync(SHIPPED_POLICY) ? SHIPPED_POLICY : path.join(__dirname, 'network-policy-default.json')));
+    return { source: 'shipped_default', policy: parsed.candidate, digest: parsed.digest, generation: 'default' };
   }
   const refuse = (reason, detail) => { throw new Error(`policy_active_${reason}: ${detail}`); };
   if (!hasActive) refuse('missing', '.rig/policy/active.json is missing but an activation receipt exists');
@@ -193,7 +196,9 @@ function loadActivePolicy(target) {
   try { receipt = JSON.parse(fs.readFileSync(receiptAbs, 'utf8')); } catch (err) { refuse('receipt_invalid', err.message); }
   if (receipt?.signer?.method !== 'external-sshsig') refuse('unverifiable', 'only an externally signed activation can be re-verified');
   const proposal = receipt.proposal;
-  if (!proposal || digest(JSON.stringify(proposal)) !== receipt.proposal_digest || proposal.candidate_digest !== parsed.digest) {
+  if (!proposal || digest(JSON.stringify(proposal)) !== receipt.proposal_digest || proposal.candidate_digest !== parsed.digest ||
+      proposal.repository_id !== repositoryIdentity(target) || receipt.repository_id !== proposal.repository_id ||
+      receipt.sequence !== proposal.sequence || receipt.previous_receipt_digest !== proposal.previous_receipt_digest) {
     refuse('stale', 'active.json does not match the digest the activation receipt signed');
   }
   try {
@@ -208,7 +213,7 @@ function loadActivePolicy(target) {
     if (/^policy_active_/.test(err.message)) throw err;
     refuse('unsigned', err.message);
   }
-  return { source: 'activated', policy: parsed.candidate, digest: parsed.digest };
+  return { source: 'activated', policy: parsed.candidate, digest: parsed.digest, generation: `${receipt.sequence}:${receipt.proposal_digest}` };
 }
 
 // Which surfaces mechanically deny, and which are a named gap (North star 12).
@@ -231,7 +236,15 @@ function policyStatus(target, { candidate, prose } = {}) {
   const authority = '.rig/network-policy.json';
   const guide = '.rig/network-rules.md';
   const activeSnapshot = '.rig/policy/active.json';
-  const activeAbs = path.join(target, activeSnapshot);
+  const activeAbs = policyPath(target, activeSnapshot);
+  let authoritative;
+  try { authoritative = loadActivePolicy(target); }
+  catch (error) {
+    return { authority, active_snapshot: activeSnapshot, active: null, active_digest: null,
+      protection: 'withheld', error: error.message,
+      surfaces: Object.fromEntries(Object.keys(ENFORCEMENT_SURFACES).map(id => [id, { state: 'withheld_invalid_policy' }])),
+      model_assisted_triage: { enabled: false, authorized: false, disclosure: null } };
+  }
   const receipt = readJson(path.join(target, '.rig/policy/activation-receipt.json'));
   let active = null;
   if (fs.existsSync(activeAbs)) {
@@ -282,6 +295,7 @@ function policyStatus(target, { candidate, prose } = {}) {
     signer_declared_class: receipt?.signer?.declared_class || null,
     install,
     protection: withheld ? 'withheld' : 'per_surface',
+    control_evidence: currentProtectionEvidence(target, authoritative),
     surfaces: withheld
       ? Object.fromEntries(Object.entries(ENFORCEMENT_SURFACES).map(([id, surface]) => [id, { ...surface, state: 'withheld_install_incomplete' }]))
       : ENFORCEMENT_SURFACES,
@@ -291,6 +305,29 @@ function policyStatus(target, { candidate, prose } = {}) {
       disclosure: triageEnabled ? TRIAGE_DISCLOSURE : null,
     },
   };
+}
+
+function currentProtectionEvidence(target, active = loadActivePolicy(target)) {
+  let evidence;
+  try { evidence = readJson(policyPath(target, '.rig/policy/control-evidence.json')); } catch { evidence = null; }
+  const snapshots = new Map();
+  const currentRuns = (evidence?.results || []).filter((run) => {
+    if (run.generation !== active.generation || run.policy_digest !== active.digest || !['diff', 'repo'].includes(run.scope)) return false;
+    try {
+      if (!snapshots.has(run.scope)) snapshots.set(run.scope, require('./policy-baseline').baselineSnapshot(target, run.scope));
+      const snapshot = snapshots.get(run.scope);
+      return snapshot.scanned.ok && snapshot.inputDigest === run.input_digest && snapshot.implementation === run.implementation;
+    } catch { return false; }
+  });
+  const names = { sanitation: ['sanitation'], 'sanitation.harness': ['sanitation'], drift: ['exact-copy', 'semantic-drift'],
+    'drift.exact_copy': ['exact-copy'], 'drift.semantic': ['semantic-drift'], secrets: ['secrets'], 'secrets.deterministic': ['secrets'] };
+  return Object.fromEntries(Object.entries(effectiveStatus(active.policy).controls).map(([control, state]) => {
+    const needed = names[control] || [];
+    const runs = currentRuns.filter((run) => needed.includes(run.control));
+    const passed = state === 'enabled' && needed.length > 0 && needed.every((name) => runs.some((run) => run.control === name && run.status === 'passed'));
+    return [control, { status: state === 'disabled' ? 'disabled' : passed ? 'passed' : runs.some((run) => run.status === 'failed') ? 'failed' : 'pending',
+      generation: active.generation, runs, protection: passed }];
+  }));
 }
 
 function proposePolicy(target, candidate, opts = {}) {
@@ -391,6 +428,8 @@ function activatePolicy(target, proposal, opts = {}) {
   if (proposal.repository_id !== repositoryIdentity(target)) {
     throw new Error('activatePolicy: approval belongs to a different repository');
   }
+  return withPolicyLock(target, () => {
+  if (fs.existsSync(policyPath(target, '.rig/policy/transaction.json'))) throw new Error('policy_active_incomplete: recover the prior transaction before activating');
   const priorReceipt = readJson(path.join(target, '.rig/policy/activation-receipt.json'));
   if (proposal.sequence !== (priorReceipt?.sequence || 0) + 1 ||
       proposal.previous_receipt_digest !== (priorReceipt ? digest(JSON.stringify(priorReceipt)) : null)) {
@@ -425,14 +464,50 @@ function activatePolicy(target, proposal, opts = {}) {
     },
     confirmed_disclosures: opts.approval.confirmed_disclosures || [],
   };
-  const activeTmp = `${activeAbs}.${process.pid}.tmp`;
-  const receiptAbs = path.join(target, '.rig/policy/activation-receipt.json');
-  const receiptTmp = `${receiptAbs}.${process.pid}.tmp`;
-  fs.writeFileSync(activeTmp, candidateBytes, { mode: 0o600 });
-  fs.writeFileSync(receiptTmp, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600 });
-  fs.renameSync(activeTmp, activeAbs);
-  fs.renameSync(receiptTmp, receiptAbs);
+  const receiptAbs = policyPath(target, '.rig/policy/activation-receipt.json');
+  const transaction = {
+    candidate_bytes: candidateBytes.toString('base64'), receipt,
+    prior_active: fs.existsSync(activeAbs) ? digest(fs.readFileSync(activeAbs)) : null,
+    prior_receipt: fs.existsSync(receiptAbs) ? digest(fs.readFileSync(receiptAbs)) : null,
+  };
+  atomicWrite(target, '.rig/policy/transaction.json', JSON.stringify(transaction));
+  atomicWrite(target, '.rig/policy/active.json', candidateBytes);
+  atomicWrite(target, '.rig/policy/activation-receipt.json', `${JSON.stringify(receipt, null, 2)}\n`);
+  fs.unlinkSync(policyPath(target, '.rig/policy/transaction.json'));
+  syncDirectory(path.dirname(activeAbs));
   return { active: proposal.candidate, digest: expected, receipt };
+  });
+}
+
+function recoverPolicyActivation(target) {
+  return withPolicyLock(target, () => {
+    const file = policyPath(target, '.rig/policy/transaction.json');
+    if (!fs.existsSync(file)) return loadActivePolicy(target);
+    const tx = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const bytes = Buffer.from(tx.candidate_bytes || '', 'base64');
+    const parsed = parsePolicyBytes(bytes);
+    const receipt = tx.receipt;
+    if (!receipt?.proposal || digest(JSON.stringify(receipt.proposal)) !== receipt.proposal_digest ||
+        receipt.proposal.candidate_digest !== parsed.digest || receipt.repository_id !== repositoryIdentity(target)) {
+      throw new Error('policy recovery: corrupt transaction');
+    }
+    validatePolicyApproval({ schema_version: 1, kind: 'policy-approval', proposal_digest: receipt.proposal_digest,
+      approval: receipt.approval, confirmed_disclosures: receipt.confirmed_disclosures },
+    { ...receipt.proposal, digest: receipt.proposal_digest }, { target });
+    const desiredReceipt = `${JSON.stringify(receipt, null, 2)}\n`;
+    for (const [rel, prior, desired] of [
+      ['.rig/policy/active.json', tx.prior_active, bytes],
+      ['.rig/policy/activation-receipt.json', tx.prior_receipt, desiredReceipt],
+    ]) {
+      const abs = policyPath(target, rel);
+      const current = fs.existsSync(abs) ? digest(fs.readFileSync(abs)) : null;
+      if (current !== prior && current !== digest(desired)) throw new Error('policy recovery: newer or altered policy state; refusing overwrite');
+    }
+    atomicWrite(target, '.rig/policy/active.json', bytes);
+    atomicWrite(target, '.rig/policy/activation-receipt.json', desiredReceipt);
+    fs.unlinkSync(file); syncDirectory(path.dirname(file));
+    return loadActivePolicy(target);
+  }, { recover: true });
 }
 
 function effectiveStatus(policy) {
@@ -517,6 +592,18 @@ function validatePolicy(candidate) {
       throw new Error(`validatePolicy: unknown field "${key}"; policy cannot self-authorize activation`);
     }
   }
+  if (Array.isArray(candidate)) throw new Error('validatePolicy: object required');
+  if (candidate.schema_version !== undefined && candidate.schema_version !== 1) throw new Error('validatePolicy: unsupported schema_version');
+  if (candidate.enabled !== undefined && typeof candidate.enabled !== 'boolean') throw new Error('validatePolicy: enabled must be boolean');
+  for (const section of ['controls', 'enforcement']) {
+    if (candidate[section] === undefined) continue;
+    if (!candidate[section] || typeof candidate[section] !== 'object' || Array.isArray(candidate[section])) throw new Error(`validatePolicy: ${section} must be an object`);
+    const known = new Set(['enabled', ...REQUIRED_POLICY_LEAVES.legacy[section], ...REQUIRED_POLICY_LEAVES.current[section]]);
+    for (const [key, value] of Object.entries(candidate[section])) {
+      if (!known.has(key) || typeof value !== 'boolean') throw new Error(`validatePolicy: invalid ${section}.${key}; known boolean leaf required`);
+    }
+  }
+  if (candidate.allow !== undefined && (!Array.isArray(candidate.allow) || candidate.allow.some((entry) => typeof entry !== 'string' || !entry))) throw new Error('validatePolicy: allow must contain named categories');
   if (candidate.network !== undefined) {
     const network = candidate.network;
     if (!network || typeof network !== 'object' || Array.isArray(network)) throw new Error('validatePolicy: network must be an object');
@@ -550,19 +637,16 @@ function choosePresenceMethod(state) {
   return 'unavailable';
 }
 
-function grantApproval(target, action) {
-  const { actionDigest } = require('./enforcement');
-  const approvalsDir = path.join(target, '.rig/approvals');
-  fs.mkdirSync(approvalsDir, { recursive: true });
-  const approval = {
-    action_digest: actionDigest(action),
-    action,
-    used: false,
-    created_at: new Date().toISOString(),
-  };
-  const approvalPath = path.join(approvalsDir, `${approval.action_digest}.json`);
-  fs.writeFileSync(approvalPath, `${JSON.stringify(approval, null, 2)}\n`, { mode: 0o600 });
-  return { approval, path: approvalPath };
+function grantApproval(target, action, { proposal, approval } = {}) {
+  const { verifyActionApproval, approvalStorage } = require('./enforcement');
+  const grant = { proposal, authorization: approval };
+  const id = verifyActionApproval(target, grant, action);
+  const approvalPath = approvalStorage(target, `${id}.json`);
+  fs.mkdirSync(path.dirname(approvalPath), { recursive: true });
+  const fd = fs.openSync(approvalPath, 'wx', 0o600);
+  try { fs.writeFileSync(fd, `${JSON.stringify(grant)}\n`); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  syncDirectory(path.dirname(approvalPath));
+  return { approval: grant, path: approvalPath };
 }
 
 module.exports = {
@@ -570,6 +654,7 @@ module.exports = {
   policyStatus,
   proposePolicy,
   activatePolicy,
+  recoverPolicyActivation,
   validatePolicyApproval,
   effectiveStatus,
   transitionControl,
@@ -577,6 +662,7 @@ module.exports = {
   choosePresenceMethod,
   controlEnabled,
   loadActivePolicy,
+  currentProtectionEvidence,
   NETWORK_CATEGORIES,
   activationMessage,
   verifySshsig,

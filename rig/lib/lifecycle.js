@@ -81,17 +81,78 @@ function isRigInstallPath(rel, record = {}) {
 function parseJournalRecords(text) {
   const lines = String(text).split('\n');
   const records = [];
+  const sequences = new Map();
+  let maximum = 0;
+  const ownerships = new Set(['create_owned', 'replace_owned', 'append_managed', 'graft_managed', 'merge_namespaced', 'delete_owned', 'user_owned', 'host_adapter', 'lint_format_config']);
+  const sha256 = (value) => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const validDigest = (value) => value === null || sha256(value);
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     if (!line.trim()) continue;
+    let record;
+    try { record = JSON.parse(line); } catch {
+      if (i === lines.length - 1 && !text.endsWith('\n')) { Object.defineProperty(records, 'truncated_tail', { value: true }); break; }
+      throw new Error(`manifest record is invalid (line ${i + 1})`);
+    }
     try {
-      records.push(JSON.parse(line));
-    } catch {
-      const later = lines.slice(i + 1).some((next) => next.trim());
-      if (later) throw new Error(`manifest record is not valid JSON (line ${i + 1})`);
+      if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('record must be an object');
+      if (record.kind === 'install_state') {
+        if (typeof record.complete !== 'boolean') throw new Error('install_state.complete must be boolean');
+        if (Object.hasOwn(record, 'owner') && record.owner !== null && typeof record.owner !== 'string') throw new Error('install_state.owner must be a string or null');
+        if (Object.hasOwn(record, 'recovery') && (record.recovery !== 'truncated-final-record' || typeof record.truncated_record_base64 !== 'string')) throw new Error('install_state recovery metadata is invalid');
+      } else {
+        if (!Number.isInteger(record.seq) || record.seq < 1 || typeof record.path !== 'string' || !record.path) throw new Error('record needs a positive sequence and path');
+        if (!['pending', 'applied'].includes(record.state)) throw new Error('record needs a valid operation state');
+        if (!ownerships.has(record.ownership)) throw new Error('record needs a valid ownership');
+        if (!ownerships.has(record.operation) || record.operation !== record.ownership) throw new Error('record needs a matching operation');
+        if (!['install', 'user_seed'].includes(record.transaction_kind)) throw new Error('record needs a valid transaction kind');
+        if (!Object.hasOwn(record, 'desired_digest') || !validDigest(record.desired_digest)) throw new Error('record needs a valid desired digest');
+        const createdFile = record.ownership === 'create_owned' && record.operation === 'create_owned'
+          && record.state === 'applied' && sha256(record.desired_digest)
+          && record.digest === record.desired_digest;
+        if ((!Object.hasOwn(record, 'preimage_digest') && !createdFile)
+          || (Object.hasOwn(record, 'preimage_digest') && !validDigest(record.preimage_digest))) {
+          throw new Error('record needs a valid preimage digest');
+        }
+        if (record.operation === 'delete_owned') {
+          if (record.desired_digest !== null || (record.state === 'applied' && record.digest !== null)) throw new Error('delete record must describe absence');
+        } else if (record.desired_digest === null) throw new Error('non-delete record needs desired bytes');
+        if (record.state === 'pending') {
+          if (Object.hasOwn(record, 'digest')) throw new Error('pending operation cannot have an applied digest');
+        } else if (!Object.hasOwn(record, 'digest') || (record.operation === 'delete_owned'
+          ? record.digest !== null : !sha256(record.digest) || record.digest !== record.desired_digest)) {
+          throw new Error('applied operation needs its result digest');
+        }
+        if (record.transaction_kind === 'user_seed' && record.ownership !== 'user_owned') throw new Error('user_seed must be user_owned');
+        const prior = sequences.get(record.seq);
+        if (prior) {
+          for (const key of ['path', 'ownership', 'operation', 'transaction_kind', 'desired_digest', 'preimage_digest']) {
+            if (JSON.stringify(prior[key]) !== JSON.stringify(record[key])) throw new Error(`contradictory sequence ${record.seq}`);
+          }
+          if (prior.state !== 'pending' || record.state !== 'applied' || (prior.digest && record.digest !== prior.digest)) throw new Error('invalid operation history');
+        } else if (record.seq <= maximum) throw new Error('non-monotonic sequence');
+        maximum = Math.max(maximum, record.seq);
+        sequences.set(record.seq, record);
+      }
+      records.push(record);
+    } catch (error) {
+      throw new Error(`manifest record is invalid (line ${i + 1}): ${error.message}`);
     }
   }
   return records;
+}
+
+function canonicalJournalText(text) {
+  const records = parseJournalRecords(text);
+  if (records.truncated_tail) {
+    const at = text.lastIndexOf('\n');
+    const tail = text.slice(at + 1);
+    // The recovery event retains the interrupted fragment without echoing it
+    // in diagnostics, and prevents a preceding complete:true becoming clean.
+    return text.slice(0, at + 1) + JSON.stringify({ kind: 'install_state', complete: false,
+      recovery: 'truncated-final-record', truncated_record_base64: Buffer.from(tail).toString('base64') }) + '\n';
+  }
+  return text && !text.endsWith('\n') ? `${text}\n` : text;
 }
 
 function readManifest(target) {
@@ -101,7 +162,9 @@ function readManifest(target) {
   }
   const legacy = containedPath(target, LEGACY_MANIFEST_REL);
   if (!fs.existsSync(legacy)) return { format: 'jsonl', records: [] };
-  return { format: 'json', records: JSON.parse(fs.readFileSync(legacy, 'utf8')).records || [] };
+  const records = JSON.parse(fs.readFileSync(legacy, 'utf8')).records;
+  if (!Array.isArray(records)) throw new Error('legacy manifest records must be an array');
+  return { format: 'json', records: parseJournalRecords(records.map(record => JSON.stringify(record)).join('\n') + '\n') };
 }
 
 // An install is incomplete while its newest install_state record says so or the
@@ -111,7 +174,7 @@ function installState(target) {
   const { records } = readManifest(target);
   const states = records.filter((record) => record.kind === 'install_state');
   const pending_paths = latestOperations(records).filter((record) => record.state === 'pending').map((record) => record.path);
-  const incomplete = pending_paths.length > 0 || (states.length > 0 && states[states.length - 1].complete === false);
+  const incomplete = Boolean(records.truncated_tail) || pending_paths.length > 0 || (states.length > 0 && states[states.length - 1].complete === false);
   return { complete: !incomplete, pending_paths };
 }
 
@@ -155,6 +218,12 @@ function resumeInstall(target, opts) {
   const latest = latestOperations(existing.records);
   const byPath = new Map(latest.map((record) => [record.path, record]));
   let seq = latest.reduce((max, record) => Math.max(max, record.seq), 0);
+  const manifestPath = containedPath(target, MANIFEST_REL);
+  if (fs.existsSync(manifestPath)) {
+    const text = fs.readFileSync(manifestPath, 'utf8');
+    const canonical = canonicalJournalText(text);
+    if (canonical !== text) fs.writeFileSync(manifestPath, canonical);
+  }
   appendRecord(target, { kind: 'install_state', complete: false });
   // An install stops only when a real write fails or the process dies; the
   // pending record and install_state:false it leaves are what the next run resumes.
@@ -287,6 +356,7 @@ function dropEmptyOrWrite(abs, stripped) {
 function uninstall(target, opts = {}) {
   if (opts.purge && opts.purgeGenerated) throw new Error('rig: choose either --purge or --purge-generated');
   const manifest = readManifest(target);
+  if (manifest.records.truncated_tail) throw new Error('manifest final record is truncated; resume installation before removal');
   const latestByPath = new Map();
   for (const record of latestOperations(manifest.records)) {
     if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
@@ -701,4 +771,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { parseJournalRecords, readManifest, installState, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };
+module.exports = { canonicalJournalText, parseJournalRecords, readManifest, installState, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };

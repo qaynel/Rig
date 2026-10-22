@@ -192,7 +192,18 @@ for (const name of Object.keys(golden.configs)) {
     const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-parity-'));
     try {
       runPayload(target, selection.hosts, { activeDelivery: selection.delivery === 'active' });
-      const actual = inventory(diskFiles(target));
+      const installed = diskFiles(target);
+      // v5 parity applies to the retained corpus. The mandatory executable
+      // safety baseline was added after v5; prove its exact source bytes and
+      // modes separately rather than treating all .rig/lib additions as free.
+      for (const entry of require('../rig/lib/baseline-payload').entries) {
+        const file = installed.get(entry.to);
+        assert.ok(file, `${entry.to}: mandatory baseline missing`);
+        assert.deepEqual(file.bytes, fs.readFileSync(path.join(root, 'rig', entry.from)), entry.to);
+        assert.equal(file.mode, entry.mode, `${entry.to}: executable contract`);
+        installed.delete(entry.to);
+      }
+      const actual = inventory(installed);
       const expected = goldenInventory(name);
       const allowed = intended.differences.filter((entry) => entry.configs === '*' || entry.configs.includes(name));
       const diffs = [];

@@ -8,9 +8,9 @@ const { spawnSync } = require('node:child_process');
 const {
   spawnGuardedSync,
   isolatedTaskEnv,
-  networkIsolationPrefix,
   executableAvailable,
 } = require('./spawn-guarded');
+const { runTaskSandboxed, taskCommandSpec } = require('./sandbox');
 const { containedPath } = require('./path-safety');
 const { verifyTrustRootApproval } = require('./trust-root');
 const { scriptPath: MEMORY_GUARD_SCRIPT } = require('./memory-guarded-exec');
@@ -32,7 +32,11 @@ const KNOWN_LINTERS = /(eslint|biome|pylint|flake8|ruff|golangci-lint|rubocop|st
 const KNOWN_FORMATTERS = /(prettier|black|gofmt|rustfmt|dprint)/i;
 
 function digest(value) {
-  return crypto.createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
+  return crypto.createHash('sha256').update(Buffer.isBuffer(value) || typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
+}
+
+function normalizeTaskOutput(value, scratch) {
+  return String(value || '').split(scratch || '\0').join('[TASK_TMP]');
 }
 
 function fallbackFiles(target, root = '', out = []) {
@@ -185,7 +189,7 @@ function packageRunner(target, component, pkg) {
 }
 
 function addCandidate(candidates, role, argv, component, source) {
-  const item = { argv, cwd: component.root, source };
+  const item = { argv, cwd: component.root, source, network: 'none' };
   if (!candidates[role].some((entry) => JSON.stringify(entry.argv) === JSON.stringify(argv))) {
     candidates[role].push(item);
   }
@@ -311,7 +315,10 @@ function bindComponent(target, component, grade) {
   };
 }
 
-function buildBinding(target, grade, ci = null) {
+function buildBinding(target, grade, ci = null, agentSelection = null) {
+  const discovery = require('./lint-discovery');
+  const agent = agentSelection ? discovery.bindAgentSelection(target, grade, agentSelection) : discovery.loadAgentBinding(target, grade);
+  if (agent) return { ...agent, ci };
   const components = discoverComponents(target).map((component) => {
     const sourcePaths = [...component.signals.map((signal) => path.join(component.root, signal)), ...component.ignore_files];
     const sources = [...new Set(sourcePaths)].map((source) => ({ path: source, digest: digest(fs.readFileSync(path.join(target, source))) }));
@@ -399,145 +406,72 @@ function finalizeSelection(recommendation, user) {
   };
 }
 
-// AT-LF-24: a `cmd.source` pointing outside the repository through a symlink
-// must be refused, not silently planned with an empty snapshot -- an empty
-// snapshot at plan time and an unguarded re-read at execute time (see
-// executePlan) is exactly how the escape used to slip through as a
-// recoverable "drift" state instead of a hard refusal.
-function readSource(target, cmd) {
-  if (!target || !cmd.source) return { snapshot: null, boundary_violation: false };
-  const [file, ref] = cmd.source.split('#');
-  let abs;
-  try {
-    abs = containedPath(target, file);
-  } catch {
-    return { snapshot: null, boundary_violation: true };
-  }
-  if (!fs.existsSync(abs)) return { snapshot: null, boundary_violation: false };
-  try {
-    const doc = JSON.parse(fs.readFileSync(abs, 'utf8'));
-    const parts = ref.split('.');
-    let node = doc;
-    for (const part of parts) node = node && node[part];
-    return { snapshot: node, boundary_violation: false };
-  } catch {
-    return { snapshot: null, boundary_violation: false };
-  }
-}
-
-function planExecution(input) {
-  const target = input.target;
-  const commands = (input.commands || []).map((cmd) => {
-    const { snapshot, boundary_violation } = readSource(target, cmd);
-    return { ...cmd, source_snapshot: snapshot, source_boundary_violation: boundary_violation };
-  });
-  const snapshot = { target, commands, selected: input.selected === true };
-  const plan_digest = digest(snapshot);
-  return { ...snapshot, plan_digest, authorized: false };
-}
-
-// Durable, clone-local one-use consumption: bind the marker to the signed
-// approval payload as well as the plan. A new signature can re-authorize an
-// unchanged plan; replaying the same signed approval still collides.
-function planApprovalMessage(planDigest, approvalId) {
-  return `rig-plan-approval\ndigest=${planDigest}\napproval_id=${approvalId}\n`;
-}
-
-function createPlanApprovalChallenge(plan) {
-  if (!plan || !/^[a-f0-9]{64}$/.test(plan.plan_digest || '')) {
-    throw new Error('createPlanApprovalChallenge: valid plan digest required');
-  }
-  const approval_id = crypto.randomBytes(32).toString('hex');
-  return {
-    schema_version: 1,
-    kind: 'plan-approval-challenge',
-    plan_digest: plan.plan_digest,
-    approval_id,
-    message: planApprovalMessage(plan.plan_digest, approval_id),
-  };
-}
-
-function consumePlanApproval(target, plan, approval) {
-  const approvalDigest = digest({ plan_digest: plan.plan_digest, approval_id: approval.approval_id });
-  const recordPath = containedPath(target, path.join('.rig/lint-format/executions', `${approvalDigest}.json`));
-  fs.mkdirSync(path.dirname(recordPath), { recursive: true });
-  try {
-    fs.writeFileSync(recordPath, `${JSON.stringify({ plan_digest: plan.plan_digest, approval_id: approval.approval_id, approval_digest: approvalDigest, executed_at: new Date().toISOString() }, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
-    return true;
-  } catch (error) {
-    if (error.code === 'EEXIST') return false;
-    throw error;
-  }
-}
+const { planExecution, createPlanApprovalChallenge, authorizeExecution, authorizeCommands, consumeTaskPermit } = require('./task-consent');
 
 function executePlan(plan, approval) {
-  if (!plan || !plan.target || !Array.isArray(plan.commands)) throw new Error('executePlan: valid plan digest required');
-  const expectedDigest = digest({ target: plan.target, commands: plan.commands, selected: plan.selected === true });
-  if (expectedDigest !== plan.plan_digest) throw new Error('executePlan: plan digest mismatch');
-  if (!approval || approval.schema_version !== 1 || approval.kind !== 'plan-approval'
-    || approval.plan_digest !== plan.plan_digest || !/^[a-f0-9]{64}$/.test(approval.approval_id || '')) {
-    throw new Error('executePlan: approval digest mismatch');
-  }
-  const signed = approval.approval;
-  if (!signed || signed.method !== 'external-sshsig' || typeof signed.identity !== 'string' || typeof signed.signature !== 'string') {
-    throw new Error('executePlan: verified external SSHSIG approval required');
-  }
-  verifyTrustRootApproval(plan.target, {
-    identity: signed.identity,
-    namespace: 'rig-plan-approval',
-    message: planApprovalMessage(plan.plan_digest, approval.approval_id),
-    signature: signed.signature,
-  });
-  if (approval.used) {
-    return { status: 'not_authorized' };
-  }
-  if (!plan.target) throw new Error('executePlan: plan target required for durable one-use consumption');
-  // Drift is checked before the durable one-use record is written: it's a
-  // read-only precondition, not part of "this plan ran". Writing the record
-  // first meant an aborted, never-executed attempt permanently burned the
-  // approval, and a legitimate re-approval of the identical (post-drift-
-  // reverted) plan_digest could never execute either, since the on-disk
-  // record already existed.
-  for (const cmd of plan.commands || []) {
-    if (cmd.source && plan.target) {
-      // Re-derived from disk, not trusted from the plan object: the target
-      // could have grown an escaping symlink between plan and execute, and
-      // this is the read that actually feeds the command about to run.
-      const { snapshot, boundary_violation } = readSource(plan.target, cmd);
-      if (boundary_violation) {
-        return { status: 'boundary_violation', violated: cmd };
-      }
-      if (JSON.stringify(snapshot) !== JSON.stringify(cmd.source_snapshot)) {
-        return { status: 'command_drift', drifted: cmd };
-      }
+  if (!plan?.target) throw new Error('executePlan: valid plan and approval required');
+  const authorized = authorizeExecution(plan, approval);
+  if (authorized.status !== 'authorized') return authorized;
+  const command_results = [];
+  for (const cmd of plan.commands) {
+    let cwd;
+    try { cwd = taskCwd(plan.target, cmd.cwd); }
+    catch { return { status: 'boundary_violation', reason: 'approved working directory escapes repository', command_results }; }
+    const before = cmd.role === 'autofix' ? null : snapshotDir(plan.target);
+    const observed = runCommand(cmd.argv, {
+      permit: authorized.permit,
+      target: plan.target,
+      cwd,
+      timeoutMs: cmd.timeout_ms,
+      memoryLimitMb: cmd.memory_limit_mb,
+      maxOutputBytes: cmd.max_output_bytes,
+      network: cmd.network === true || cmd.network === 'required',
+      dependencies: cmd.dependencies,
+    });
+    const result = {
+      status: observed.status,
+      exit_code: observed.exit_code,
+      output_digest: observed.output_digest,
+    };
+    if (before) {
+      const changed_paths = diffSnapshots(before, snapshotDir(plan.target));
+      if (changed_paths.length) return { status: 'mutated', changed_paths, changes: changed_paths.map((file) => ({ path: file, before: before.get(file) || null, after: snapshotDir(plan.target).get(file) || null })), command_results: [...command_results, result] };
+    }
+    command_results.push(result);
+    if (result.status !== 'completed' || result.exit_code !== 0) {
+      return { status: result.status === 'completed' ? 'failed' : result.status, command_results };
     }
   }
-  if (!consumePlanApproval(plan.target, plan, approval)) {
-    return { status: 'not_authorized' };
-  }
-  approval.used = true;
-  return { status: 'executed' };
+  return { status: 'executed', command_results, executed_count: command_results.length };
+}
+
+function createCoverageApprovalChallenge(target, plan) {
+  const plan_digest = digest({ target: fs.realpathSync(target), plan });
+  return { plan_digest, message: `rig-coverage-approval\ntarget=${fs.realpathSync(target)}\nplan=${plan_digest}\n` };
 }
 
 function applyCoverage(target, plan, approval) {
-  const excluded = plan.excluded || [];
-  if (excluded.length > 0) {
-    if (!approval) throw new Error('applyCoverage: exclusion approval required');
-    const expectedDigest = digest(plan);
-    if (approval.digest !== expectedDigest) throw new Error('applyCoverage: approval digest mismatch');
-    const approvedSet = new Set(approval.exclusions || []);
-    for (const entry of excluded) {
-      if (!approvedSet.has(entry.component)) throw new Error(`applyCoverage: exclusion "${entry.component}" not approved`);
+  const challenge = createCoverageApprovalChallenge(target, plan);
+  if (!approval || approval.kind !== 'coverage-approval' || approval.plan_digest !== challenge.plan_digest || approval.approval?.method !== 'external-sshsig') throw new Error('applyCoverage: signed exact coverage approval required');
+  verifyTrustRootApproval(target, { identity: approval.approval.identity, namespace: 'rig-coverage-approval', message: challenge.message, signature: approval.approval.signature });
+  // Reuse the durable installer; pending/applied records, preimages, resume,
+  // and removal have one authority instead of an in-memory imitation.
+  const lock = require('./apply').acquireLock(target, 'lint-coverage');
+  try {
+    const write = require('./payload').journalWriter(target, { transactionOwner: challenge.plan_digest });
+    for (const item of plan.writes || []) {
+      if (!item || typeof item.path !== 'string' || typeof item.content !== 'string') throw new Error('applyCoverage: malformed write');
+      containedPath(target, item.path);
     }
-  }
-  const manifest_records = [];
-  for (const write of plan.writes || []) {
-    const abs = containedPath(target, write.path);
-    fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, write.content);
-    manifest_records.push({ path: write.path, digest: digest(write.content) });
-  }
-  return { unprotected: excluded.map((entry) => entry.component), manifest_records };
+    write.begin();
+    for (const item of plan.writes || []) {
+      const abs = containedPath(target, item.path);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      write(target, item.path, item.content);
+    }
+    write.finish();
+    return { unprotected: (plan.excluded || []).map((entry) => entry.component), manifest_records: require('./lifecycle').readManifest(target).records };
+  } finally { fs.rmSync(lock, { force: true }); }
 }
 
 // A working directory is safe only when it resolves inside the repository
@@ -550,6 +484,18 @@ function taskCwd(target, rel) {
 }
 
 function spawnTask(argv, options) {
+  if (options?.target) {
+    return runTaskSandboxed({
+      target: options.target,
+      cwd: options.cwd || options.target,
+      argv,
+      env: isolatedTaskEnv(),
+      timeoutMs: options.timeout,
+      maxBuffer: options.maxBuffer,
+      network: options.network === true,
+      trustedReadDirs: options.trustedReadDirs,
+    });
+  }
   return spawnGuardedSync(argv[0], argv.slice(1), {
     encoding: 'utf8',
     ...options,
@@ -570,16 +516,27 @@ function spawnTask(argv, options) {
 // process-group cleanup (RIG-135) hold on both the no-limit path and the
 // watchdog wrapper.
 function runCommand(argv, {
+  target,
   cwd,
+  permit,
+  network = false,
   timeoutMs,
   memoryLimitMb,
   cancelled = false,
   dependencies = [],
   maxOutputBytes,
 } = {}) {
+  const approvedCommand = target && consumeTaskPermit(permit, target, argv, cwd || target, network);
+  if (!approvedCommand) return { exit_code: 1, status: 'not_authorized', output_digest: digest('') };
+  timeoutMs = approvedCommand.timeout_ms ?? approvedCommand.timeoutMs;
+  memoryLimitMb = approvedCommand.memory_limit_mb ?? approvedCommand.memoryLimitMb;
+  cancelled = approvedCommand.cancelled === true;
+  dependencies = approvedCommand.dependencies || [];
+  maxOutputBytes = approvedCommand.max_output_bytes ?? approvedCommand.maxOutputBytes;
   if (cancelled) {
     return { exit_code: 1, status: 'cancelled', output_digest: digest('') };
   }
+  if (!executableAvailable(argv[0], { cwd: cwd || target, env: isolatedTaskEnv() })) return { exit_code: 1, status: 'command_not_found', output_digest: digest('') };
   if (dependencies.some((dependency) => !executableAvailable(dependency, {
     cwd,
     env: isolatedTaskEnv(),
@@ -590,17 +547,19 @@ function runCommand(argv, {
   const outputLimit = Number.isInteger(maxOutputBytes) && maxOutputBytes > 0 ? maxOutputBytes : undefined;
   if (!memoryLimitMb) {
     const result = spawnTask(argv, {
+      target,
       cwd,
       timeout: effectiveTimeout,
+      network,
       ...(outputLimit ? { maxBuffer: outputLimit } : {}),
     });
-    const output = `${result.stdout || ''}\n${result.stderr || ''}`;
+    const output = `${normalizeTaskOutput(result.stdout, result.scratch)}\n${normalizeTaskOutput(result.stderr, result.scratch)}`;
     return {
       exit_code: result.status == null ? 1 : result.status,
-      status: result.error?.code === 'ETIMEDOUT' ? 'timeout'
+      status: result.unavailable ? 'filesystem_isolation_unavailable' : (result.error?.code === 'ETIMEDOUT' ? 'timeout'
         : outputLimit && (result.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' || result.signal) ? 'partial_output'
           : result.signal ? 'signalled'
-            : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed',
+            : result.error?.code === 'ENOENT' ? 'command_not_found' : 'completed'),
       output_digest: digest(output),
     };
   }
@@ -608,14 +567,20 @@ function runCommand(argv, {
   // The watcher enforces the real timeout itself so it can also kill its own
   // child on expiry; this outer timeout is only a safety net against the
   // watcher itself hanging.
-  const outer = spawnTask(
-    [process.execPath, MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout), ...argv],
-    {
-      cwd,
-      timeout: effectiveTimeout + 5000,
-      ...(outputLimit ? { maxBuffer: outputLimit } : {}),
-    },
-  );
+  const task = taskCommandSpec({
+    target, cwd, argv, env: isolatedTaskEnv(), network,
+  });
+  if (task.unavailable) return { exit_code: 1, status: task.unavailable, output_digest: digest('') };
+  const outer = spawnGuardedSync(process.execPath, [
+    MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout), task.command, ...task.args,
+  ], {
+    cwd: target,
+    env: task.env,
+    shell: false,
+    encoding: 'utf8',
+    timeout: effectiveTimeout + 5000,
+    ...(outputLimit ? { maxBuffer: outputLimit } : {}),
+  });
   let meta;
   try {
     meta = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
@@ -629,8 +594,9 @@ function runCommand(argv, {
     };
   } finally {
     fs.rmSync(resultFile, { force: true });
+    task.cleanup();
   }
-  const output = `${outer.stdout || ''}\n${outer.stderr || ''}`;
+  const output = `${normalizeTaskOutput(outer.stdout, task.env.TMPDIR)}\n${normalizeTaskOutput(outer.stderr, task.env.TMPDIR)}`;
   return {
     exit_code: meta.code == null ? 1 : meta.code,
     status: meta.killed_for || (meta.signal ? 'signalled' : 'completed'),
@@ -642,16 +608,20 @@ function createGradeReviewRequest({ target, changed, commands }) {
   return require('./lint-grade').createGradeReviewRequest({ target, changed, commands });
 }
 
-function runGrade({ target, grade, changed, commands, context, ci }) {
-  const isolation = networkIsolationPrefix();
+function runGrade({ target, grade, changed, commands, context, ci, plan, approval }) {
+  if (!target || !['minimal', 'mid', 'maximal'].includes(grade) || !Array.isArray(changed) || !Array.isArray(commands) || !commands.length) return { status: 'coverage_gap', verdict: 'fail', completed_grades: [], reason: 'a concrete grade, file scope and executable commands are required' };
+  const auth = authorizeCommands(target, grade === 'maximal' ? [...commands, ...commands] : commands, { plan, approval });
+  if (auth.status !== 'authorized') return { ...auth, verdict: 'fail', completed_grades: [] };
   const execute = (cmd) => {
     let cwd;
     try {
       cwd = taskCwd(target, cmd.cwd);
     } catch { return { exit_code: 1, status: 'boundary_violation', output_digest: digest('') }; }
-    if (!isolation && cmd.network !== true) return { exit_code: 1, status: 'network_isolation_unavailable', output_digest: digest('') };
-    const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
+    const result = runCommand(cmd.argv, {
+      permit: auth.permit,
+      target,
       cwd,
+      network: cmd.network === true || cmd.network === 'required',
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
       cancelled: cmd.cancelled,
@@ -679,96 +649,65 @@ function resolveScope({ root, changed, ignores, requested }) {
   return { kind: 'diff', cwd: root, files };
 }
 
-// AT-LF-22: OS-level isolation so an ungranted task cannot open a socket.
-// rig: Seatbelt defaults to deny; `(deny network*)` alone refuses execvp of
-// the task. `allow default` then deny network is the profile that still runs.
-function argvWithNetworkIsolation(cmd, prefix) {
-  const argv = cmd.argv || [];
-  if (cmd.network === true) return argv;
-  return [...prefix, ...argv];
-}
-
-function runReadOnly(target, commands) {
-  const isolation = networkIsolationPrefix();
+function runReadOnly(target, commands, options = {}) {
+  const auth = authorizeCommands(target, commands, options);
+  if (auth.status !== 'authorized') return auth;
   const preState = snapshotDir(target);
   const changed_paths = [];
   const outcomes = [];
   for (const cmd of commands) {
-    // RIG-145: like runGrade, an ungranted command is marked and skipped; the
-    // network-granted commands after it still run.
-    if (!isolation && cmd.network !== true) {
-      outcomes.push({ status: 'network_isolation_unavailable' });
-      continue;
-    }
     let cwd;
     try {
       cwd = taskCwd(target, cmd.cwd);
     } catch {
       return { status: 'boundary_violation', changed_paths };
     }
-    const result = runCommand(argvWithNetworkIsolation(cmd, isolation), {
+    const result = runCommand(cmd.argv, {
+      permit: auth.permit,
+      target,
       cwd,
+      network: cmd.network === true || cmd.network === 'required',
       timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
       memoryLimitMb: cmd.memory_limit_mb,
       cancelled: cmd.cancelled,
       dependencies: cmd.dependencies,
       maxOutputBytes: cmd.max_output_bytes,
     });
-    if (result.status === 'timeout' || result.status === 'memory_exceeded' || result.status === 'memory_ceiling_unavailable') {
-      return { status: result.status, changed_paths };
-    }
     const postState = snapshotDir(target);
     const diff = diffSnapshots(preState, postState);
     if (diff.length) {
       for (const rel of diff) if (!changed_paths.includes(rel)) changed_paths.push(rel);
-      return { status: 'mutated', changed_paths };
+      return { status: result.status === 'completed' ? 'mutated' : result.status, changed_paths, changes: changed_paths.map((file) => ({ path: file, before: preState.get(file) || null, after: postState.get(file) || null })) };
     }
-    outcomes.push({ status: 'clean' });
+    if (result.status !== 'completed' || result.exit_code !== 0) {
+      return { status: result.status === 'completed' ? 'failed' : (result.status || 'runner_error'), changed_paths, commands: [...outcomes, { status: result.status || 'runner_error', exit_code: result.exit_code ?? null }] };
+    }
+    outcomes.push({ status: 'clean', exit_code: 0 });
   }
-  const unavailable = outcomes.some((outcome) => outcome.status === 'network_isolation_unavailable');
-  return { status: unavailable ? 'network_isolation_unavailable' : 'clean', changed_paths, commands: outcomes };
+  const unavailable = outcomes.find((outcome) => outcome.status === 'network_isolation_unavailable'
+    || outcome.status === 'filesystem_isolation_unavailable');
+  return { status: unavailable?.status || 'clean', changed_paths, commands: outcomes };
 }
 
-// Tooling caches and build outputs are ignorable mutations — a lint or format
-// run that writes into `.eslintcache` or `.pytest_cache` is still read-only
-// from the source's perspective, and the halt in runReadOnly (AT-LF-11) is
-// meant to catch genuine source mutations, not cache churn.
-const SNAPSHOT_SKIP = new Set([
-  '.git',
-  'node_modules',
-  '.eslintcache',
-  '.ruff_cache',
-  '__pycache__',
-  '.mypy_cache',
-  '.pytest_cache',
-  '.cache',
-  '.venv',
-  'vendor',
-  'target',
-  'dist',
-  'build',
-  '.next',
-  '.turbo',
-]);
+// Only protected Rig and Git authority storage is outside the source snapshot.
+const SNAPSHOT_SKIP = new Set(['.git', '.rig']);
 
 function snapshotDir(root) {
   const map = new Map();
   const walk = (dir) => {
     if (!fs.existsSync(dir)) return;
     for (const name of fs.readdirSync(dir)) {
-      if (SNAPSHOT_SKIP.has(name)) continue;
+      if (dir === root && SNAPSHOT_SKIP.has(name)) continue;
       const abs = path.join(dir, name);
       let stat;
-      try {
-        stat = fs.lstatSync(abs);
-      } catch {
-        continue;
-      }
-      if (stat.isSymbolicLink()) continue;
-      if (stat.isDirectory()) walk(abs);
-      else if (stat.isFile()) {
-        map.set(path.relative(root, abs), digest(fs.readFileSync(abs)));
-      }
+      try { stat = fs.lstatSync(abs); } catch { continue; }
+      const rel = path.relative(root, abs);
+      const mode = stat.mode & 0o7777;
+      if (stat.isSymbolicLink()) map.set(rel, `link:${mode}:${fs.readlinkSync(abs)}`);
+      else if (stat.isDirectory()) {
+        map.set(rel, `directory:${mode}`);
+        walk(abs);
+      } else if (stat.isFile()) map.set(rel, `file:${mode}:${digest(fs.readFileSync(abs))}`);
     }
   };
   walk(root);
@@ -791,18 +730,22 @@ const AUTOFIX_HALT_STATUSES = new Set(['timeout', 'memory_exceeded', 'memory_cei
 function planAutofix(target, cmd) {
   if (!cmd || !Array.isArray(cmd.argv) || cmd.argv.length === 0) throw new Error('runAutofix: fix argv required');
   if (!Array.isArray(cmd.verify) || cmd.verify.length === 0) throw new Error('runAutofix: a verification command (verify) is required before any fix runs');
+  const limits = {
+    cwd: cmd.cwd || '.',
+    source: cmd.source,
+    network: cmd.network === true || cmd.network === 'required',
+    dependencies: cmd.dependencies || [],
+    timeout_ms: cmd.timeout_ms || cmd.timeoutMs || null,
+    memory_limit_mb: cmd.memory_limit_mb || null,
+    max_output_bytes: cmd.max_output_bytes || null,
+  };
   return planExecution({
     target,
     commands: [{
+      ...limits,
       role: 'autofix',
       argv: cmd.argv,
-      verify: cmd.verify,
-      network: cmd.network === true,
-      dependencies: cmd.dependencies || [],
-      timeout_ms: cmd.timeout_ms || cmd.timeoutMs || null,
-      memory_limit_mb: cmd.memory_limit_mb || null,
-      max_output_bytes: cmd.max_output_bytes || null,
-    }],
+    }, { ...limits, role: 'verify', argv: cmd.verify }],
   });
 }
 
@@ -812,25 +755,28 @@ function planAutofix(target, cmd) {
 function runAutofix(target, cmd, approval) {
   if (!approval) throw new Error('runAutofix: approval required');
   const plan = planAutofix(target, cmd);
-  const isolation = networkIsolationPrefix();
-  if (!isolation && cmd.network !== true) {
-    return { verification: 'not_run', status: 'network_isolation_unavailable' };
-  }
   const authorised = executePlan(plan, approval);
-  if (authorised.status !== 'executed') throw new Error(`runAutofix: approval not authorized (${authorised.status})`);
-  const runOpts = {
-    cwd: target,
-    timeoutMs: cmd.timeout_ms || cmd.timeoutMs,
-    memoryLimitMb: cmd.memory_limit_mb,
-    cancelled: cmd.cancelled,
-    dependencies: cmd.dependencies,
-    maxOutputBytes: cmd.max_output_bytes,
-  };
-  const fixResult = runCommand(argvWithNetworkIsolation(cmd, isolation), runOpts);
+  if (authorised.status === 'not_authorized') {
+    throw new Error('runAutofix: approval not authorized or already consumed');
+  }
+  if (authorised.status !== 'executed') {
+    if (AUTOFIX_HALT_STATUSES.has(authorised.status)) {
+      return { verification: 'not_run', status: authorised.status };
+    }
+    if (authorised.command_results?.length) {
+      return {
+        verification: 'fail',
+        status: authorised.status,
+        fix_status: authorised.command_results[0].status,
+      };
+    }
+    return { verification: 'not_run', status: authorised.status, ...(authorised.command_results ? { fix_status: authorised.command_results[0]?.status || authorised.status } : {}) };
+  }
+  const fixResult = authorised.command_results[0] || { status: 'runner_error', exit_code: 1 };
   if (AUTOFIX_HALT_STATUSES.has(fixResult.status)) {
     return { verification: 'not_run', status: fixResult.status };
   }
-  const verifyResult = runCommand(argvWithNetworkIsolation({ argv: cmd.verify, network: cmd.network }, isolation), runOpts);
+  const verifyResult = authorised.command_results[1] || { status: 'runner_error', exit_code: 1 };
   if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
     return { verification: 'not_run', status: verifyResult.status };
   }
@@ -927,6 +873,7 @@ function supportStatus(components) {
 
 module.exports = {
   ...require('./lint-format-setup'),
+  ...require('./lint-discovery'),
   discoverComponents,
   recommendTooling,
   discoverCommands,
@@ -937,6 +884,7 @@ module.exports = {
   createPlanApprovalChallenge,
   executePlan,
   applyCoverage,
+  createCoverageApprovalChallenge,
   runGrade,
   createGradeReviewRequest,
   runCommand,

@@ -39,13 +39,15 @@ function commit(target, bin) {
 test('TP-C6.4 scanner tier prefers gitleaks over trufflehog', () => {
   installedRepo((target, bin) => {
     const trufflehogMarker = path.join(target, 'trufflehog-ran');
-    writeScanner(bin, 'gitleaks', 'echo "gitleaks finding" >&2\nexit 1');
+    const scannerSecret = ['sk-', 'ant-api03-AAAAAAAAAAAAAAAAAAAAAAAA'].join('');
+    writeScanner(bin, 'gitleaks', `echo "${scannerSecret}" >&2\nexit 1`);
     writeScanner(bin, 'trufflehog', `touch "${trufflehogMarker}"\nexit 1`);
     stage(target, 'clean.txt', 'nothing secret here\n');
 
     const result = commit(target, bin);
     assert.notEqual(result.status, 0, 'gitleaks finding blocks the commit');
-    assert.match(result.stderr + result.stdout, /gitleaks finding/, 'gitleaks output is surfaced');
+    assert.match(result.stderr + result.stdout, /gitleaks flagged staged content/, 'a safe scanner identity is surfaced');
+    assert.doesNotMatch(result.stderr + result.stdout, new RegExp(scannerSecret), 'raw scanner secrets stay private');
     assert.equal(fs.existsSync(trufflehogMarker), false, 'trufflehog is not consulted when gitleaks exists');
   });
 });
@@ -57,7 +59,8 @@ test('TP-C6.5 scanner tier falls back to trufflehog', () => {
 
     const result = commit(target, bin);
     assert.notEqual(result.status, 0, 'trufflehog finding blocks the commit');
-    assert.match(result.stderr + result.stdout, /trufflehog finding/, 'trufflehog output is surfaced');
+    assert.match(result.stderr + result.stdout, /trufflehog flagged staged content/, 'a safe scanner identity is surfaced');
+    assert.doesNotMatch(result.stderr + result.stdout, /trufflehog finding/, 'raw scanner output stays private');
   });
 });
 

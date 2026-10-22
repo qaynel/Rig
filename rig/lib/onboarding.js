@@ -136,6 +136,7 @@ function prepareContext(target, catalog) {
   return {
     playbook: fs.existsSync(playbook) ? fs.readFileSync(playbook, 'utf8') : '',
     catalog,
+    repository_inventory: require('./lint-discovery').inventoryRepository(target),
     adopted_config: fs.readFileSync(containedPath(target, '.rig/adopted-config.md'), 'utf8'),
     overlaps: fs.readFileSync(containedPath(target, '.rig/overlaps.md'), 'utf8'),
   };

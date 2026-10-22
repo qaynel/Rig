@@ -108,6 +108,22 @@ the source commit, and passes archive/tree commitments to the public installer.
 Only explicit `--artifact` supplies a local archive; `--tag` remains the
 separate post-publication smoke test.
 
+**Implementation reconciliation — 2026-10-21.** The mandatory Git/CI baseline
+and its shared executable dependencies now ship through bootstrap, catalogue
+apply, and v5 migration. Optional plumbing/full command runtime remains gated
+by active delivery; default delivery is not markdown-only. The repository's
+agent supplies open-ecosystem component meaning and scoped command roles in
+`rig-lint-format.json`; mechanical inventory does not infer that meaning.
+Every lint task route, including installed CI, verifies exact Gate 1 task
+consent and consumes it durably under the resolved Git directory before
+dispatch. Plans seal active policy digest/generation, executable bytes,
+repository definitions, command order, network and resource limits. A non-Git
+target must run `git init` before approving tasks. Signed coverage writes use
+the ordinary locked install journal. Provider render/merge proof establishes
+integration, while actual provider execution remains `unverified` until a real
+first run is recorded; this candidate has no such certification. The runnable
+human signing handoff is in the [operator guide](../../docs/advanced/operator.md#exact-execution-approval-handoff).
+
 - Gate 1 rationale: [`../sources/logs/advanced-grilling.md`](../sources/logs/advanced-grilling.md)
 - Shipped Basic mechanism being extended:
   [`../sources/superseded/deprecated-tier-taxonomy/basic/basic-design.md`](../sources/superseded/deprecated-tier-taxonomy/basic/basic-design.md)
@@ -267,7 +283,7 @@ These are implementation constraints, not suggestions:
 | AD-5 | Resolve dependencies as named slices; never replace or silently raise a user-selected grade. |
 | AD-6 | Default to `inspect -> host review -> recommend -> plan -> apply -> check`. An exactly activated policy may disable sanitation; the flow then records sanitation disabled/not run and continues without a clean/protected claim. |
 | AD-7 | Treat target harness files as hostile bytes: bounded reads, no execution, redacted evidence, fail-closed uncertainty. |
-| AD-8 | Keep remediation separate and read-only until approval. Exact proposal approval, unchanged preimages, transactional writes, observed-diff equality, no-op rejection, rollback, and a fresh sanitation run are required before success. Remediation mutations use §7.6's journal with `transaction_kind: remediation`; a successful user-content change is retained but excluded from uninstall, while every rolled-back write is superseded by a `rolled_back` record carrying the restored digest so install resume/removal cannot mistake it for live installation state. |
+| AD-8 | Keep remediation read-only until exact signed consent. Bind proposal, policy and preimages; validate the full bounded edit set under the target lock before writes. Use a separate durable remediation journal/preimages for rollback and interrupted recovery, then rescan sanitation. Successful edits remain user-owned and never become install/uninstall targets (§7.6). |
 | AD-9 | Graft through typed create/replace-owned/ensure-line/structured-merge/hook operations; never arbitrary shell plans. |
 | AD-10 | Apply under an exclusive target lock with compare-and-swap preimages, baseline-first phases, the §7.6 append-only install manifest recording every write before it happens, and activation receipt last. A failed apply never rolls back: writes already recorded `applied` stay in place, the receipt (the final write) is absent, and re-running resumes from the manifest per `AT-INSTALL-1`. |
 | AD-11 | Materialize service prose once under `.rig/services/`; host surfaces get thin pointers only. |
@@ -293,11 +309,12 @@ These are implementation constraints, not suggestions:
 | AD-31 | **Author the D24 MVP broadly at Policy grade.** All 115 leaves are authored in one pass and all are release-blocking. Each fragment states its Policy grade and evidence limit in service-specific words, never a repeated stock disclaimer; missing bindings remain coverage gaps. Sequential one-leaf authorship is suspended for this release and returns for post-beta Context/Evidence promotion. Lint-format alone retains its existing higher-grade vertical evidence. |
 | AD-32 | **Map Policy → Context → Evidence onto the cumulative `minimal/mid/maximal` dial** (§5.7). `minimal = Policy`, `mid = Context`, `maximal = Evidence`; the ladder inherits AD-4 cumulative composition and AT-SHAPE-3 grade-invariant identity unchanged. Commodity syntax/format/type/static output are inputs, not grades. The selected grade is the target and the ceiling: evaluate cheapest-deterministic-first; a lower-grade *failure* may short-circuit, but a clean lower-grade result continues through to the selected grade (Context runs every Policy check plus its understanding pass; Evidence runs every Context check plus its local verifiable-evidence work). Never exceed the grade, and never report assurance above the highest grade actually completed. Policy is the ceiling only when Policy itself is selected. §11.3's additive CI graft is the Evidence grade's repository enforcement surface, proposed and approved separately; CI absence cannot make the per-run Evidence verdict logically unreachable. The disposition is `executable` (AD-15). Universal method, but authored and proven only for lint-format now (GA-23). |
 | AD-33 | **Lint-format's unit of work is a repository component** (§5.8): whole-repository, open-ecosystem discovery derived from the repository (no fixed roster), semantic command binding by role with ambiguity returned to the user, hybrid-plus preservation of existing toolchains by default, user-approved partial-coverage exclusion of uncoverable components, and a per-component evidence-backed support claim whose whole-repository form is the AND over discovered non-excluded components. |
-| AD-34 | **Lint-format execution is plan-bound and read-only by construction** (§9.4). Selection authorizes nothing; only an exact-digest-approved plan authorizes its listed read-only commands, directories, and components, disclosed as untrusted code with `shell: false` not presented as safety. Diff-scoped by default in the component's working directory honoring its ignore rules; a read-only check that mutates the tree is detected, halted, evidenced, and never auto-restored; autofix is a separately approved mutating action re-verified by re-running the check; command drift halts before running; every abnormal ending is its own distinct non-passing state. |
+| AD-34 | **Lint-format execution is plan-bound on every route** (§9.4). Exact Gate 1 consent binds target, active policy digest/generation, executable bytes/mode, repository definitions, command order, scope, network and limits. Consume once durably under the resolved Git directory before local/CLI/MCP/installed-CI dispatch; non-Git targets refuse with `git init` guidance. Diff scope expands `{files}` in the component cwd with ignores; mutation halts with evidence and no restore. Autofix needs separate signed consent and actual verification; drift and abnormal endings remain non-passing. |
 | AD-35 | A policy proposal that changes `secrets.model_assisted_triage` from false or absent to true carries the full third-party disclosure and its digest. Activation requires a Gate 1 signature approval bound to the exact proposal and explicitly confirming that disclosure digest. Status repeats the disclosure while triage is enabled. |
 | AD-36 | A release review receipt binds the exact implementation worktree as well as the technical specification and catalogue. The worktree digest covers every tracked or publishable untracked file with path, type, mode, and bytes; review receipt files are excluded to avoid self-reference. The fresh report-only reviewer examines the PR diff plus untracked implementation files, and validation rejects a stale or mismatched implementation digest or base. |
+| AD-37 | Default bootstrap, catalogue apply and migration install the same mandatory executable safety baseline. Active delivery alone adds optional plumbing and the full command runtime. Nine native entry skills ship; optional third-party source is fetched only after approved onboarding. This supersedes the former markdown-only/55-skill default delivery claim. |
 | AD-38 | The root installer and local bootstrap accept an explicit `--openclaw-mcp` flag. The default install does not invoke OpenClaw or require npm. A separate explicit `SETUP_MCP=1` migration request may install the bundled runtime after a v5 upgrade when the selected host emits MCP configuration; fresh installs and non-emitting hosts skip this migration-only request, which does not write OpenClaw configuration. `--openclaw-mcp` prints the global-path/blast-radius disclosure, preflights `openclaw`, `node`, and `npm`, copies `rig-mcp/` into the target runtime, runs `npm ci --omit=dev --ignore-scripts` against its committed lockfile, then calls `openclaw mcp set rig-<install-id> <stdio-json>`. The install ID and server name are recorded in `.rig/global-writes.json`; no code parses or writes OpenClaw JSON5. Reinstall uses the recorded name. Uninstall calls `openclaw mcp unset` before removing the runtime; if that cannot complete, it reports best effort and retains the runtime. |
-| AD-39 | The non-interactive check runner reads elevated execution authority only from a committed, target-owned `.rig/execution-policy.json`, never from environment or a prompt. It is a separate authority from generated `.rig/service-bindings.json`: bindings request `network: "required"`, `timeout_ms`, or `memory_limit_mb`; policy grants are keyed by the exact service ID and set the maximum permitted raised timeout/memory and network grant. Missing, malformed, uncommitted, or insufficient authority refuses that command. `network: "none"` needs no elevated grant and is isolated; an undeclared network state remains a visibly reported compatibility state. The initial schema is `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
+| AD-39 | A committed target-owned `.rig/execution-policy.json` bounds elevated network/resource requests by exact service ID; it is separate from generated bindings and cannot authorize a task alone. Lint tasks always require AD-34 signed consent; any other task requesting network or raised limits also requires exact signed consent. Missing, malformed, uncommitted or insufficient grants refuse. Both `network: "none"` and undeclared network are isolated default-deny states; the latter retains a local diagnostic. Schema: `{ "schema_version": 1, "grants": { "service.id": { "network": "required", "timeout_ms": 1200000, "memory_limit_mb": 4096 } } }`; unknown keys and invalid values fail closed. |
 
 ### 2.1 Rejected approaches
 
@@ -422,13 +439,11 @@ Relevant existing seams:
 | `docs/agent-portability.md` | Actual host instruction/plugin surface | Starting evidence for the capability registry. |
 | `scripts/check-rule-copies.js` | Source-repo exact-copy guard | Pattern for target-local `.rig/sync-map.json` checking. |
 
-The 2026-08-23 production findings are closed in code and regression tests.
-One pre-existing product-design gap remains: first-enable secret-history
-scanning has no user-visible disclosure surface at the point of enabling. That
-cannot be inferred from implementation because the intent owner must choose the
-product interaction before it is built. A fresh independent review receipt and
-the release tag are release operations after that decision, not implementation
-substitutes for it.
+The current acceptance work uses real signed dispatch, installed baseline,
+crash/recovery, history-scanner and provider-merge regressions. Implementation
+does not substitute for the current-byte full gate, independent review or real
+provider first-run evidence. History activation's supported scanner and exact
+waiver surface are specified in §8.8; there is no pending product-choice prompt.
 
 Important constraints:
 
@@ -543,11 +558,10 @@ user-controlled host/OS approval facility. The installed public trust root lets
 clean CI checkouts verify approvals; changing or deleting it is drift, not a way
 to name another signer.
 
-The same clone-local directory holds the §7.6 preimage store — the bytes of
-each touched path as it stood immediately before Rig first modified it. It is
-uncommitted, both because a preimage of a user-owned configuration file can
-contain that user's credentials and because a linked worktree must not share
-state with another.
+The §7.6 preimage store is `.rig/preimages/`, excluded from version control.
+It holds the bytes before Rig first modified each path, may contain user
+credentials, and counts toward installed attributable weight. It is separate
+from Git-directory approval consumption; do not copy either as portable grants.
 
 The same clone-local directory holds `install-id`, a generated identifier
 created at first install and used to attribute every entry Rig writes to a
@@ -845,19 +859,26 @@ Lint-format's unit of work is a **component** — a subtree with its own
 lint/format ecosystem, working directory, ignore rules, and commands.
 
 **Whole-repository, open-ecosystem discovery (`AT-LF-1`, GA-19/20).**
-`inspect`/`recommend` (§6.2/§6.4) discover components across the entire
-repository — root, workspaces, nested packages, polyglot subtrees — by reading
-the repository's own manifests and layout, never a fixed language or
-package-manager roster. Each discovered component carries the ecosystem Rig
-derived for it, and every discovered component appears in the reviewable plan
+Mechanical inventory exposes regular files and directories across the whole
+repository, including unfamiliar ecosystems. The host agent interprets that
+inventory and supplies schema-version-1 `rig-lint-format.json`: explicit
+`diff`/`repo` scope, component roots, repository `evidence_paths`, command roles,
+include/ignore patterns and excluded roots with reasons. `inspect`/`recommend`
+validate and bind those declarations; the legacy known-manifest helper is a
+compatibility fallback, not open-ecosystem semantic discovery. Every selected
+component appears in the reviewable plan
 (§6.5), where the user may deselect components before apply (`AT-LF-4`, with
 `AT-P5`). A plan that enumerates only the root, or matches against a hard-coded
 language list, fails `AT-LF-1`.
 
 **Semantic command binding (`AT-LF-3`, GA-21).** For each component, binding
-reads manifests, tool configuration, and declared tasks and binds lint/format
-commands **by role, not by fixed script name**, preserving the component's
-declared workflow. Ambiguity is never guessed: an ambiguous match becomes a
+the host agent reads manifests, tool configuration and declared tasks, then
+assigns `format_check`, `lint` and optional `format` roles with `argv`, a
+repository `source`, and declared network capability. Mechanical binding
+records source-byte digests and validates cwd equals the component root.
+A `diff` command requires one `{files}` argv placeholder; expansion preserves
+paths with spaces and honors includes, ignores and exclusions without widening
+scope. Ambiguity is never guessed: an ambiguous match becomes a
 `needs_user_choice` binding state surfaced in the plan, and apply blocks that
 component until the user chooses. Bindings feed §9.1's `shell: false` argv
 schema. Reliance on fixed script names, or a silent guess, fails `AT-LF-3`.
@@ -953,8 +974,8 @@ node rig/materialize.js approvals revoke \
 Source checkouts use the `node rig/materialize.js` form above. Active-runtime
 installs journal an executable `.rig/bin/rig` shim that accepts the same
 subcommands and delegates to the installed runtime; bootstrap changes into the
-target and prints the staged command sequence. The default markdown-only
-bootstrap installs neither the shim nor runtime.
+target and prints the staged command sequence. Default bootstrap installs the
+mandatory executable baseline, but neither the full command shim nor runtime.
 
 The CLI remains argument parsing and orchestration. Domain logic stays under
 `rig/lib/`. Approval files carry an external user-presence signature by the Gate 1 key; a bare digest flag is never approval. There
@@ -1180,11 +1201,11 @@ The host transition skill consumes this contract and the plan. It prefers:
 It does not install a new engine or modify an existing dependency/lockfile as
 part of catalogue onboarding.
 
-The Product-Security leak-scanner service is stricter: first enablement must
-discover a configured vetted scanner such as Gitleaks, TruffleHog, or an
-explicit equivalent and invoke its documented full-history mode. Rig does not
-install a scanner and does not substitute its staged-secret regex floor for
-the history scan.
+The Product-Security leak-scanner service is stricter: first enablement accepts
+only SHA-pinned official Gitleaks 8.30.1 macOS/Linux arm64/x64 binaries and
+invokes its full-history mode. A matching executable name or self-reported
+version is insufficient. Rig does not install it or substitute the staged
+regex floor; §8.8 defines failures and exact signed waivers.
 
 ### 7.4 User-global writes and repository attribution
 
@@ -1218,6 +1239,11 @@ The exact user-global MCP writer contracts verified on 2026-08-24 are:
 
 `rig/lib/global-writes.js` owns these contracts and their merge/remove
 implementation. JSON merges preserve all unrelated keys and server values;
+the lexical writer also preserves existing whitespace and key order. A private
+`.rig-<filename>.ownership.json` sidecar records insertion coordinates, lexical
+hashes and Rig-owned values without copying unrelated user secrets. Two
+repositories can install and remove in either order, including creator-first;
+edited owned entries are retained as conflicts rather than guessed away.
 Hermes accepts only the block-mapping form it can update without guessing and
 fails unchanged on unsupported YAML shapes. Reapply replaces the same
 attributed entry, and removal first verifies the current value and exact
@@ -1322,19 +1348,21 @@ reconstructed afterwards. Removal that has to infer what install did will
 eventually infer wrong.
 
 **The manifest.** `.rig/install-manifest.jsonl` is an append-only journal,
-one JSON object per line, covering every mutation Rig makes — inside the
-repository or user-global. Append-only and line-delimited so a crash
-mid-write truncates only the final line, which parses as damaged and is
-discarded. A malformed **non-final** line is not treated as crash damage:
-uninstall and resume refuse before deleting or reconciling anything, and
-name the bad record. Each record carries a monotonic `seq`, the absolute `path`, the
+one JSON object per line, covering installation mutations inside the
+repository or user-global; remediation has the separate transaction below.
+Append-only and line-delimited so a crash
+mid-write can truncate the final line. The shared strict reader reports that
+tail as incomplete; removal refuses and resume converts its exact bytes into
+a durable recovery marker before appending. It is never silently discarded.
+A malformed newline-terminated final or any middle record fails before
+mutation. Readers validate record shape, state, ownership and monotonic
+sequence, including contradictory updates. Each operation carries `seq`, `path`, the
 `ownership` class from §7.1, the `operation` (`create_owned`,
 `replace_owned`, `append_managed`, `merge_namespaced`,
-`global_merge_namespaced`, `global_append`, `remediate_user_content`), the
+`global_merge_namespaced`, `global_append`), the
 managed-block marker identity
-where one applies, the `install_id` from §4.2, a `transaction_kind` (`install`
-or `remediation`), and a `state`. Install entries use `pending`/`applied`;
-remediation entries use `pending`, `committed_user_change`, or `rolled_back`.
+where one applies, the `install_id` from §4.2, transaction metadata and a
+`pending`/`applied` state.
 For user-global surfaces, a JSON or TOML namespaced additive merge records
 `global_merge_namespaced` and a line-oriented or markdown fenced append records
 `global_append` (§7.4), so a record names its write shape rather than hiding
@@ -1365,14 +1393,13 @@ unmarker-if-present — so a `pending` entry costs a wasted check and nothing
 else.
 
 **Preimages.** Immediately before Rig first modifies a path it stores that
-path's bytes content-addressed under the clone-local Rig directory returned
-by `git rev-parse --git-path rig`, alongside `install-id`, and names the
+path's bytes content-addressed under `.rig/preimages/` and names the
 digest in the manifest record. Only the first modification is stored. They
-live clone-local and uncommitted for §4.2's reasons plus one of their own: a
+remain uncommitted for §4.2's reasons plus one of their own: a
 preimage of a user-owned configuration file can contain that user's
 credentials.
 
-**Incomplete installs never claim to protect.** The manifest header carries
+**Incomplete installs never claim to protect.** An appended install-state record carries
 `complete: false` from the first record until the install's final record
 lands. While it is false, `policy status`, the install line, and every run
 report state that the install is incomplete and report no control as enabled,
@@ -1387,13 +1414,13 @@ file and applied only if it did not land. Applied work is never duplicated.
 A `pending` record whose file state cannot be classified blocks with the
 path named, under the `conflicting/unknown` class of §7.1.
 
-Remediation entries do not participate in install resume. A
-`committed_user_change` records that the owner-approved content edit succeeded
-and remains user-owned; a `rolled_back` entry carries the restored digest and
-records that no live mutation remains. A remediation entry left `pending` by a
-crash is reconciled against its preimage and expected output before any new
-install or remediation action proceeds: exact output may be rolled back, exact
-preimage is recorded `rolled_back`, and any third state blocks by path.
+Remediation uses `.rig/remediation.jsonl` with operation-level `started`,
+`pending`, `applied`, `complete` and `rolled_back` events and separate
+`.rig/remediation-preimages/<operation>/` backups. A subsequent remediation
+reconciles interrupted writes against exact preimage/output bytes under the
+same target lock; unexpected user edits block recovery rather than being
+overwritten. Failed transactions roll back their own prior writes. A completed
+transaction remains a user-owned edit and runs a fresh sanitation scan.
 
 **Removal walks the manifest in reverse.** Install writes a target before any
 reference to it; uninstall walks descending `seq` so a reference is always
@@ -1429,9 +1456,8 @@ and `--purge` delete the journal only after a clean local removal. Uninstall
 then reports exactly what it removed. There is no second teardown path for a
 partial install.
 
-Entries whose `transaction_kind` is `remediation` are never uninstall targets:
-`committed_user_change` is a user-approved working-tree edit and `rolled_back`
-has no live mutation to remove.
+The separate remediation journal is never an uninstall target or installation
+ownership claim; an approved user-content edit remains user-owned.
 
 **Verified clean, or named best-effort.** After removal, each touched path is
 diffed against its preimage. A path differing only by the user's own later
@@ -1636,11 +1662,19 @@ Activation:
    whitespace or key order;
 3. verifies user approval of that digest, repository identity, and monotonic
    activation sequence;
-4. builds one `.rig/policy/active.json` bundle containing the exact policy
-   bytes (losslessly encoded) and common activation receipt;
-5. fsyncs a complete temporary bundle and atomically renames it into place.
+4. acquires the exclusive publication lock and rechecks the signed prior
+   active digest, receipt digest, and monotonic sequence at that boundary;
+5. fsyncs a transaction containing the exact candidate bytes and signed
+   receipt, then publishes `active.json` and `activation-receipt.json` with
+   exclusive random temporary files and atomic renames;
+6. removes the transaction only after both files are durable.
 
-Enforcement reads only a fully valid active bundle. Editing the candidate
+Enforcement reads only a matching, reverified active policy and receipt. A
+remaining transaction reports `policy_active_incomplete`, never a mixed pair.
+`policy recover-activation` verifies the transaction against the Gate 1 key,
+rejects any newer or altered state, and completes that approved publication.
+It recovers interrupted file publication; it introduces no recovery signer.
+Symlinks in authority paths and temporary-file collisions fail safely. Editing the candidate
 changes no permission until activation succeeds; the previous valid bundle
 remains active and status reports `pending_activation`. Any formatting or
 byte change requires a new approval. The committed bundle and public signed
@@ -1742,8 +1776,10 @@ IDs or timestamps. They retain the raw event digest as evidence. A changed
 bound field creates a different action digest and requires new approval.
 
 The same Gate 1 signature approves a
-domain-separated `approve-once` challenge. The approved envelope is stored
-clone-locally under the resolved Git-path `rig/approvals/`. Rig imposes no
+domain-separated `rig-action-approval` challenge. `grant-proposal` produces
+its exact proposal; `grant-approval` verifies the Gate 1 SSHSIG before issuing
+it. The approved envelope is stored clone-locally under the resolved Git-path
+`rig/approvals/`, bound additionally to a random clone identity. Rig imposes no
 clock timeout: an approval remains pending until the action is used, a
 bound field changes, the user revokes it, the active policy changes, or a
 verified native host expiry occurs.
@@ -1751,6 +1787,11 @@ verified native host expiry occurs.
 Before tool dispatch, the adapter acquires an exclusive consume operation
 and moves the matching approval out of the pending set. Concurrent attempts
 allow at most one dispatch. Consumption is final even if the tool later fails.
+The shipping dispatcher checks permanent activated permissions first, then
+verifies any required grant and exclusively creates its persistent consumed
+record before executing. Unsigned objects and an in-memory `used` flag are
+never dispatch authority. Input bytes/modes, Git index, clone identity and
+policy generation are rechecked after winning consumption.
 
 ### 8.6 Common action evaluator
 
@@ -1825,7 +1866,13 @@ surface.
 When `drift.semantic` is enabled, the host reviewer compares
 `.rig/context-index.json`, changed files, canonical/deprecated
 relationships, and current input digests. Missing, malformed, stale, or
-note-only reviewer output is a gap, never a pass.
+note-only reviewer output is a gap, never a pass. The index carries a
+structured `review` with schema version 1, a named `host-agent` reviewer,
+`pass`/`fail` status, exact current `{path, digest}` inputs, and explicit
+`consistent`/`contradiction` relationship judgments with reasons. Every pair
+in the bounded explicit document set must have one judgment. The host agent
+supplies semantic judgment; deterministic code validates its current-byte
+binding and coverage. Git reads those input bytes from the index.
 
 **Matched secret content does not reach the model by default (D16,
 `AT-SECRET-1`).** Secret detection is deterministic — `secrets.deterministic`,
@@ -1861,14 +1908,20 @@ high-precision patterns and tracked-`.env` block over staged or whole-repo
 scope as applicable. This control is independent from the selected
 Product-Security leak-scanner service.
 
-First enabling that service enters `pending_history_scan`. Rig discovers a
-configured vetted scanner and runs its documented full-history mode with
-`shell: false`. A clean run activates the service. A finding, missing
+First enabling that service enters `pending_history_scan`. Rig locates official
+Gitleaks 8.30.1 on PATH, verifies one of four pinned binary SHA-256 identities,
+and runs `git . --log-opts=--all --full-history` with a controlled default
+configuration and scrubbed environment. Global Git/scanner overrides and inline
+allow directives cannot suppress the scan. Shallow or unreadable history fails.
+A clean run activates the service. A finding, missing
 scanner, unsupported version, timeout, malformed output, concurrent
 history/config change, or execution failure is nonzero and writes an
-actionable redacted report. A waiver is available only for an actual current
-finding set, bound to exact scanner/version, repository/ref state,
-configuration, and finding-set digest.
+actionable redacted `reports/rig/history-scan.json`. Its `waiver_message` can be
+signed only by the Gate 1 holder in namespace `rig-history-waiver`. The waiver
+binds the exact binary/version, repository/ref state, configuration and finding
+set. The supplied `history_waiver` has `binding_digest`, root `identity` and
+armored `signature`; a valid current waiver returns `accepted_findings`, never
+a clean verdict. Remediation and rescan are the ordinary path.
 
 ### 8.9 Git/CI dispatch and truthful evidence
 
@@ -2018,9 +2071,11 @@ disclosure names the controls; these five pin what each one concretely
 guarantees. **(20) Single-use approval:** a plan approval authorizes exactly
 one execution of its exact plan digest; presenting the same approval for a
 second execution is refused, not re-authorized. **(21) Filesystem/env
-isolation:** a command's working directory and every path it touches must
-resolve inside the repository even through a symlink, and it receives no
-ambient environment variable beyond an explicit allowlist. **(22) Network
+isolation:** repository inputs and cwd must remain contained even through
+symlinks. The sandbox exposes the repository, private scratch and explicit
+OS/tool runtime paths, denies ambient home/temp data, and protects `.git` and
+`.rig` authority from task writes. Its environment is an explicit allowlist.
+**(22) Network
 denial:** a command not explicitly granted network access by the plan has no
 outbound reachability; a command explicitly granted it may connect.
 **(23) Resource/time caps:** a command exceeding a configured memory ceiling
@@ -2030,7 +2085,7 @@ silently truncated. **(24) Symlink escapes:** a repository-supplied symlink
 whose real target resolves outside the repository is refused for read,
 write, or working-directory use, never followed because its lexical path
 looks contained. `AT-LF-20` is implemented (`executePlan` consumes a matching
-approval on a successful execution and refuses the same approval on replay).
+approval before execution, including failed executions, and refuses replay).
 `AT-LF-21` is now enforced at task spawn: working directories resolve through
 the same containment check as other repository paths, and the child
 environment is an explicit allowlist rather than inherited `process.env`.
@@ -2038,10 +2093,22 @@ environment is an explicit allowlist rather than inherited `process.env`.
 `AT-LF-23` is implemented (timeoutMs kill-and-report). `AT-LF-24` is
 implemented: `planExecution` resolves real paths before snapshotting and
 refuses a read whose target escapes the repository through a symlink. The
-five guarantees are fully implemented on the interactive lint-format
-plan/grade path. The non-interactive CI floor runner deliberately has no
-plan/approval seam under GA-38; it enforces containment, resource ceilings,
-three-state network handling, and committed-policy capability authority.
+five guarantees use one task-consent boundary across direct, grade, read-only,
+CLI, MCP and installed CI routes. The approved plan seals active policy
+digest/generation, resolved executable bytes/mode and repository configuration
+alongside argv, cwd, network and resource limits. Source/executable/policy drift
+is checked before consumption and again at dispatch. Consumption creates and
+fsyncs an exclusive `task-<digest>.consumed` record under the resolved Git
+`rig/approvals/` directory; changing `.rig` cannot reset it. A failed task still
+consumes consent, and replay/restart/concurrent attempts cannot dispatch twice.
+Non-Git targets refuse with `git init` guidance. Installed runners load
+`.rig/lint-format/execution-plan.json` and `execution-approval.json` and compare
+their ordered commands to actual dispatch, including Evidence replay. CI has
+the same signing requirement; committed capability policy alone is insufficient.
+Default-deny network and a restricted filesystem/environment apply before
+task launch; unsupported isolation is non-passing. Partial coverage's separate
+`rig-coverage-approval` signature binds the exact proposal and its writes use
+the locked record-before-mutate journal, including crash recovery and removal.
 
 **Diff scope and locality (`AT-LF-10`, GA-28).** The default scope is the
 component's changed files (§9.2's development default), run inside the
@@ -2295,12 +2362,15 @@ verdict-and-counts output with no artifact upload.
 `unknown`, `malformed`, and `collision` return nonzero, record the exact
 reason, and preserve every byte.
 
-Every new or merged target integration is proven by its byte-landing test on
-a fresh repo fixture: the adapter version, config digest, active policy, and
-effective binding manifest produce the exact expected job/step bytes at the
-exact expected path. That test is the release evidence. Provider adapters do
-not distinguish "installed" from "watched running": every provider ships
-through the same test path.
+Byte-landing and preservation tests prove only that the intended integration
+was emitted. Provider registry entries are `supported`, with render-test
+evidence and execution `unverified`; applied plans record `first_run_required`.
+Actual provider startup, configuration acceptance and verdict delivery require
+a real provider run, independently of local render/merge success. This candidate
+does not certify that evidence. Conservative merge validation rejects shapes it
+cannot preserve safely, including YAML aliases/flow collections, ambiguous job
+collisions, non-declarative Jenkins and Azure root `steps`/`stages` layouts.
+Refusal preserves all user bytes and names the unsupported shape.
 
 Disabling `ci.repo` transactionally removes or disables only the receipt-
 owned Rig integration. User jobs/config remain unchanged. Any external

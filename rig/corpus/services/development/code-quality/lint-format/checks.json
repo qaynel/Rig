@@ -3,7 +3,7 @@
   "service_id": "development.code-quality.lint-format",
   "input": "rig-services/development.code-quality.lint-format.json",
   "format": "json",
-  "ceiling": "Configuration validation only, so it confirms the format and lint commands and the autofix setting are declared; it does not show the sources are formatted or lint-clean.",
+  "ceiling": "Policy requires approved repository-adapted executable formatter checks; Context additionally requires current semantic review; Evidence additionally requires matching independent replay and a bound receipt. Configuration predicates only supplement executable checks.",
   "offer": "Reuse the component-owned formatter and lint tasks. Read-only verification must preserve source bytes; invoke autofix only under a separately approved action.",
   "checks": {
     "minimal": [

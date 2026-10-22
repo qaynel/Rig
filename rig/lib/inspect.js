@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
 const { discoverHosts, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { canonical } = require('./skill-catalog');
+const { SECRET_RE, redact } = require('./redaction');
 
 const MAX_BYTES = 256 * 1024;
 const HARNESS_NAMES = new Set([
@@ -18,11 +19,17 @@ const HARNESS_NAMES = new Set([
 ]);
 // Derived from the host registry; do not maintain a second hard-coded list.
 const HARNESS_DIRS = SCAN_ROOTS.map((r) => r.root);
-const SECRET_RE =
-  /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[po]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----/gi;
+const SUSPICIOUS_RE = /exfiltrat|ignore .*(safety|prior instructions)|curl .*evil|bypass.*(guard|permission)/i;
 
-function redact(text) {
-  return String(text).replace(SECRET_RE, '[REDACTED]');
+function scanHarnessText(text) {
+  const findings = [];
+  if (Buffer.byteLength(text) > MAX_BYTES) return [{ kind: 'oversized', bytes: Buffer.byteLength(text), limit: MAX_BYTES }];
+  if (SUSPICIOUS_RE.test(text)) findings.push({ kind: 'suspicious_directive', evidence: redact(text.slice(0, 240)) });
+  SECRET_RE.lastIndex = 0;
+  const hasSecret = SECRET_RE.test(text);
+  SECRET_RE.lastIndex = 0;
+  if (hasSecret) findings.push({ kind: 'secret_shaped', evidence: '[REDACTED]' });
+  return findings;
 }
 
 function sha256(buf) {
@@ -332,24 +339,8 @@ function inspectTarget(target, { host, hosts } = {}) {
     hash.update(rel);
     hash.update(digest);
     const text = bytes.toString('utf8');
-    const redacted = redact(text);
     inputs.push({ path: rel, sha256: digest, bytes: st.size });
-    if (/exfiltrat|ignore prior|curl .*evil|bypass.*(guard|permission)/i.test(text)) {
-      findings.push({
-        path: rel,
-        kind: 'suspicious_directive',
-        evidence: redact(text.slice(0, 240)),
-      });
-    }
-    if (SECRET_RE.test(text)) {
-      SECRET_RE.lastIndex = 0;
-      findings.push({
-        path: rel,
-        kind: 'secret_shaped',
-        evidence: '[REDACTED]',
-      });
-    }
-    void redacted;
+    for (const finding of scanHarnessText(text)) findings.push({ path: rel, ...finding });
   }
 
   return {
@@ -437,6 +428,7 @@ module.exports = {
   inspectTarget,
   hostReview,
   redact,
+  scanHarnessText,
   validateReview,
   validateVerdict: validateReview,
   VERDICTS,

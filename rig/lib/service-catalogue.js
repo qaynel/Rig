@@ -92,6 +92,17 @@ function bindServices(target, selection) {
         native_service: { input: value.input, format: value.format, rule: rules[index] },
       }])),
     };
+    if (id === 'development.code-quality.lint-format') {
+      const agent = require('./lint-discovery').loadAgentBinding(target, entry.selected_grade || 'minimal');
+      // The legacy declaration predicates cannot establish source cleanliness.
+      // Missing executable adaptation remains a named, non-passing setup gap.
+      Object.assign(bindings[id], agent || {
+        engine: 'component-lint-format-v1', components: [], scope: 'diff',
+        checks: { 'lint-format-formatter-clean': { coverage_gap: 'Missing executable lint-format adaptation; have the repository agent create rig-lint-format.json with approved components, argv, rule sources and scope.' } },
+        ceiling: 'No executable lint-format adaptation is installed; declaration strings do not verify source code.',
+      });
+      if (agent) bindings[id].discovery.evidence_paths.push('rig-lint-format.json');
+    }
     const adapter = adapters?.services[id];
     if (adapter) {
       if (typeof adapter.ceiling !== 'string' || !adapter.ceiling.trim() || !adapter.checks || typeof adapter.checks !== 'object' || Array.isArray(adapter.checks)) {
@@ -125,7 +136,7 @@ function preflightServices(target, proposal, writer) {
   const recomputed = bindServices(target, proposal.selected_services);
   // Discovery may change as source files change. Approval freezes executable
   // rule bytes and grade ceilings, rather than the contents checks evaluate.
-  const executable = bindings => Object.fromEntries(Object.entries(bindings).map(([id, { discovery, output_preimages, ...binding }]) => [id, binding]));
+  const executable = bindings => Object.fromEntries(Object.entries(bindings).map(([id, { discovery, output_preimages, uncovered_files, unprotected, ...binding }]) => [id, binding]));
   if (canonical(executable(recomputed)) !== canonical(executable(proposal.service_bindings))) {
     throw new Error('approved service bindings are stale');
   }

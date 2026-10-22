@@ -12,7 +12,8 @@ const { spawnSync } = require('node:child_process');
 const { remediate } = require('../rig/lib/apply');
 const { resumeInstall, uninstall } = require('../rig/lib/lifecycle');
 const { applyCoverage } = require('../rig/lib/lint-format');
-const { runGrade } = require('../rig/lib/lint-format');
+const { runGrade: production_runGrade } = require('../rig/lib/lint-format');
+const { runGrade } = require('./helpers/approved-lint');
 const { projectForAgent } = require('../rig/lib/reports');
 const { runPayload } = require('../rig/lib/payload');
 const {
@@ -35,6 +36,11 @@ function withTarget(fn) {
 
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
+}
+function appliedJournalRecord(seq, path, body, ownership = 'create_owned') {
+  const digest = body === null ? null : sha256(body);
+  return { seq, path, ownership, operation: ownership, transaction_kind: 'install', state: 'applied',
+    preimage_digest: null, desired_digest: digest, digest };
 }
 
 test('effective policy status applies global and section switches and explains inactive leaves', () => {
@@ -195,6 +201,7 @@ test('one-use approvals mutate their durable state and reject replay', () => {
 
 test('lint grade evidence comes from spawned argv but missing higher-grade work cannot be claimed', () => {
   withTarget((target) => {
+    require('node:child_process').execFileSync('git', ['init', '-q'], { cwd: target });
     fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
     fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
     const result = runGrade({
@@ -219,11 +226,11 @@ test('all repository mutation paths refuse ancestor symlinks that leave the targ
     (target) => {
       fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
       fs.writeFileSync(path.join(target, '.rig/install-manifest.json'), JSON.stringify({
-        records: [{ seq: 1, path: 'escape/victim', ownership: 'create_owned' }],
+        records: [appliedJournalRecord(1, 'escape/victim', 'changed')],
       }));
       return uninstall(target);
     },
-    (target) => applyCoverage(target, { writes: [{ path: 'escape/victim', content: 'changed' }] }),
+    (target) => require('./helpers/approved-lint').applyCoverage(target, { writes: [{ path: 'escape/victim', content: 'changed' }] }, {}),
     (target) => {
       const proposal = { actions: [{ op: 'rewrite', path: 'escape/victim', content: 'changed' }] };
       return remediate(target, proposal, sha256(JSON.stringify(proposal)));
@@ -247,12 +254,7 @@ test('OpenClaw runtime preservation cannot bypass journal path containment', () 
     fs.symlinkSync(outside, path.join(target, 'escape'));
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: `${runtime}/victim`,
-      state: 'applied',
-      transaction_kind: 'install',
-      ownership: 'create_owned',
-      digest: sha256('outside\n'),
+      ...appliedJournalRecord(1, `${runtime}/victim`, 'outside\n'),
     })}\n`);
     fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
       kind: 'openclaw-mcp',
@@ -300,7 +302,7 @@ test('uninstall does not crash when `.git` is a file, as in a linked worktree', 
     fs.writeFileSync(path.join(target, '.git'), 'gitdir: /elsewhere/.git/worktrees/example\n');
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      { seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: sha256('shim') },
+      appliedJournalRecord(1, '.git/hooks/pre-commit', 'shim'),
     ].map(JSON.stringify).join('\n') + '\n');
 
     const result = uninstall(target);
@@ -322,8 +324,8 @@ test('the shipping CLI restores chained hooks and removes only attributed global
     fs.writeFileSync(path.join(target, '.git/hooks/pre-commit'), shim);
     fs.writeFileSync(path.join(target, '.git/hooks/pre-commit.rig-chained'), originalHook);
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      { seq: 1, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: sha256(originalHook) },
-      { seq: 2, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: sha256(shim) },
+      appliedJournalRecord(1, '.git/hooks/pre-commit.rig-chained', originalHook),
+      appliedJournalRecord(2, '.git/hooks/pre-commit', shim),
     ].map(JSON.stringify).join('\n') + '\n');
     const global = path.join(outside, 'host.json');
     fs.writeFileSync(global, '{"user":true}\n');
@@ -352,11 +354,7 @@ test('forged journal record cannot delete unrelated in-repository file with matc
     fs.writeFileSync(victim, content);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: 'package.json',
-      state: 'applied',
-      transaction_kind: 'install',
-      digest: sha256(content),
+      ...appliedJournalRecord(1, 'package.json', content),
     })}\n`);
     const result = uninstall(target);
     assert.equal(fs.readFileSync(victim, 'utf8'), content);
@@ -444,20 +442,8 @@ test('OpenClaw global unregister failure preserves retry state through the shipp
     fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 1\n', { mode: 0o755 });
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      {
-        seq: 1,
-        path: '.rig/runtime/rig-mcp/index.js',
-        state: 'applied',
-        transaction_kind: 'install',
-        digest: sha256('server\n'),
-      },
-      {
-        seq: 2,
-        path: '.rig/routing.md',
-        state: 'applied',
-        transaction_kind: 'install',
-        digest: sha256('routing\n'),
-      },
+      appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'),
+      appliedJournalRecord(2, '.rig/routing.md', 'routing\n'),
     ].map(JSON.stringify).join('\n') + '\n');
     fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({
       entries: [{
@@ -650,13 +636,7 @@ test('a partial OpenClaw set remains removable through the pending ledger', () =
       '',
     ].join('\n'), { mode: 0o755 });
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: '.rig/runtime/rig-mcp/index.js',
-      state: 'applied',
-      transaction_kind: 'install',
-      digest: sha256('server\n'),
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify(appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'))}\n`);
 
     const oldPath = process.env.PATH;
     const oldConfig = process.env.OPENCLAW_CONFIG_PATH;
@@ -739,9 +719,7 @@ test('OpenClaw uninstall preserves a user-replaced named server and runtime', ()
       kind: 'openclaw-mcp', path: config, server_key: 'rig-known', install_id: 'known', runtime: '.rig/runtime/rig-mcp',
       value: { command: 'node', args: [server] }, state: 'applied',
     }] })}\n`);
-    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1, path: '.rig/runtime/rig-mcp/index.js', state: 'applied', transaction_kind: 'install', digest: sha256('server\n'),
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify(appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'))}\n`);
     fs.writeFileSync(path.join(bin, 'openclaw'), [
       '#!/bin/sh',
       'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then printf \'{"rig-known":{"command":"user"}}\'; exit 0; fi',
@@ -934,7 +912,7 @@ test('all six CI providers render and apply a working additive adapter', () => {
     'github-actions': ['.github/workflows/ci.yml', 'name: user-ci\njobs:\n  user:\n    runs-on: ubuntu-latest\n'],
     gitlab_ci: ['.gitlab-ci.yml', 'stages:\n  - test\n# user-ci\n'],
     circleci: ['.circleci/config.yml', 'version: 2.1\n# user-ci\n'],
-    jenkins: ['Jenkinsfile', '// user-ci\n'],
+    jenkins: ['Jenkinsfile', "// user-ci\npipeline { agent any; stages { stage('Build') { steps { sh 'make' } } } }\n"],
     buildkite: ['.buildkite/pipeline.yml', '# user-ci\nsteps:\n'],
     azure_pipelines: ['azure-pipelines.yml', '# user-ci\njobs:\n'],
   };
@@ -948,7 +926,7 @@ test('all six CI providers render and apply a working additive adapter', () => {
 
       const plan = planCiIntegration(target, { provider, approved: true });
       assert.equal(plan.status, 'integrated', provider);
-      assert.equal(plan.evidence, 'verified', provider);
+      assert.equal(plan.evidence, 'unverified', provider);
       assert.ok(plan.artifact, provider);
       applyCiPlan(target, plan);
       const first = fs.readFileSync(file, 'utf8');

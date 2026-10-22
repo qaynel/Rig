@@ -47,6 +47,11 @@ function seedLintFormatRepo(target) {
     "const fs = require('node:fs');\nconst p = 'index.js';\nfs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(/[ \\t]+$/gm, ''));\n",
   );
   fs.writeFileSync(path.join(target, '.github', 'workflows', '.keep'), '');
+  writeJson(path.join(target, 'rig-lint-format.json'), {
+    schema_version: 1, scope: 'repo', excluded: [],
+    components: [{ id: '.', root: '.', include: ['index.js'], evidence_paths: ['package.json'],
+      ...Object.fromEntries([['format_check', 'format:check'], ['lint', 'lint'], ['format', 'format']].map(([role, task]) => [role, { argv: ['npm', 'run', '--silent', task], source: 'package.json', network: 'none' }])) }],
+  });
   execFileSync('git', ['add', '.'], { cwd: target, stdio: 'pipe' });
   execFileSync('git', ['commit', '-m', 'fixture'], { cwd: target, stdio: 'pipe' });
 }
@@ -61,7 +66,24 @@ function installLintFormat(target, grade) {
   return readJson(path.join(target, '.rig', 'service-bindings.json'))[SERVICE_ID];
 }
 
+function approveInstalled(target, env = process.env) {
+  const document = 'AGENTS.md';
+  const digest = require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(target, document))).digest('hex');
+  writeJson(path.join(target, '.rig/context-index.json'), { documents: [{ path: document, digest }], review: {
+    schema_version: 1, reviewer: { kind: 'host-agent', identity: 'lint-fixture-reviewer' }, status: 'pass',
+    inputs: [{ path: document, digest }], relationships: [],
+  } });
+  const binding = readJson(path.join(target, '.rig/service-bindings.json'))[SERVICE_ID];
+  const ci = env.CI === 'true' || env.GITHUB_ACTIONS === 'true';
+  const inputs = require('../rig/lib/lint-grade').installedGradeInputs({ target, binding, scope: ci ? 'repo' : binding.scope || 'diff' });
+  if (inputs.gap || !inputs.commands.length) return;
+  const signed = require('./helpers/task-approval').approved(target, inputs.commands, inputs.grade === 'maximal' ? 2 : 1);
+  writeJson(path.join(target, '.rig/lint-format/execution-plan.json'), signed.plan);
+  writeJson(path.join(target, '.rig/lint-format/execution-approval.json'), signed.approval);
+}
+
 function runInstalledCheck(target, env = process.env) {
+  approveInstalled(target, env);
   return spawnSync(
     process.execPath,
     [path.join(target, '.rig', 'bin', 'check.js'), '--scope', 'repo', '--service', SERVICE_ID],
@@ -143,7 +165,7 @@ test('minimal installs a real read-only formatter verifier', () => {
     const before = fs.readFileSync(sourcePath, 'utf8');
     const broken = runInstalledCheck(target);
     assert.notEqual(broken.status, 0, 'broken formatting must fail');
-    assert.match(broken.stderr + broken.stdout, /trailing whitespace|formatter/i);
+    assert.match(broken.stderr + broken.stdout, /trailing whitespace|formatter|Policy command failed.*format:check/i);
     assert.equal(fs.readFileSync(sourcePath, 'utf8'), before, 'check must not autofix');
   });
 });
@@ -189,11 +211,16 @@ test('maximal local review and Evidence replay work without CI; autofix stays se
     assert.match(first.stderr + first.stdout, /context-review\.json/, JSON.stringify(first));
     completeInstalledLintReview(target);
     const reviewed = runInstalledCheck(target);
-    assert.equal(reviewed.status, 0, reviewed.stderr);
+    assert.equal(reviewed.status, 0, `${reviewed.stderr}\n${reviewed.stdout}`);
+    const evidencePath = path.join(target, 'reports/rig/lint-format-evidence.json');
+    fs.rmSync(evidencePath);
+    assert.equal(fs.existsSync(evidencePath), false, 'CI must create a fresh Evidence receipt');
     const ciCheck = runInstalledCheck(target, { ...process.env, CI: 'true' });
-    assert.equal(ciCheck.status, 0, ciCheck.stderr);
-    const receipt = readJson(path.join(target, 'reports/rig/lint-format-evidence.json'));
+    assert.equal(ciCheck.status, 0, ciCheck.stderr + ciCheck.stdout);
+    const receipt = readJson(evidencePath);
     assert.equal(receipt.kind, 'lint-format-evidence');
+    assert.deepEqual(receipt.commands.map((command) => command.argv.at(-1)).sort(), ['format:check', 'lint']);
+    assert.match(receipt.output_digest, /^[a-f0-9]{64}$/);
 
     const sourcePath = path.join(target, 'index.js');
     fs.writeFileSync(sourcePath, 'const answer = 42;  \n');
@@ -217,6 +244,7 @@ test('maximal local review and Evidence replay work without CI; autofix stays se
 test('maximal local Evidence gap is the same with absent or approved CI', () => {
   withRepo((target) => {
     seedLintFormatRepo(target);
+    fs.rmSync(path.join(target, 'rig-lint-format.json'));
     const absentCi = buildBinding(target, 'maximal');
     const approvedCi = buildBinding(target, 'maximal', {
       artifact: { relativePath: '.github/workflows/rig.yml' },
@@ -239,7 +267,7 @@ test('target-aware lint-format CI planning delegates to the shared approved adap
     assert.equal(pending.artifact, null);
     const approved = planCi({ target, grade: 'maximal', provider: 'github-actions', approved: true });
     assert.equal(approved.status, 'integrated');
-    assert.equal(approved.evidence, 'verified');
+    assert.equal(approved.evidence, 'unverified');
     assert.equal(approved.artifact.relativePath, '.github/workflows/rig.yml');
     assert.deepEqual(planCi({ target, grade: 'mid' }), { action: 'none' });
   });
@@ -257,7 +285,7 @@ test('missing repository formatter is a loud coverage gap', () => {
 
     const result = runInstalledCheck(target);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr + result.stdout, /coverage gap.*format:check|format:check.*missing/i);
+    assert.match(result.stderr + result.stdout, /no selected executable components.*rig-lint-format\.json|coverage gap.*format:check|format:check.*missing|format_check.*binding/i);
   });
 });
 
@@ -322,8 +350,9 @@ test('source check command dispatches the same real installed binding', () => {
     installLintFormat(target, 'minimal');
     fs.writeFileSync(path.join(target, 'index.js'), 'const answer = 42;  \n');
 
+    approveInstalled(target);
     const result = check(target, { scope: 'repo', service: SERVICE_ID });
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr + result.stdout, /trailing whitespace|formatter/i);
+    assert.match(result.stderr + result.stdout, /trailing whitespace|formatter|Policy command failed.*format:check/i);
   });
 });

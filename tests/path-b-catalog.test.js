@@ -137,7 +137,7 @@ test('AT-PB-1 the governed 115-service catalogue remains byte-identical', () => 
     bytes.push(path.relative(h.root, file).split(path.sep).join('/'), '\0', fs.readFileSync(file), '\0');
   }
   assert.equal(files.length, 1042);
-  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '955dd24377afc00961dca59f3a1fc04059596167c4aac4fabade612394cdd7c1');
+  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '84cec4d43458fae2a5eb24bca255f9db44d728cdd340d11274c98d881c9799a7');
 });
 
 test('AT-PB-3 generated catalogue bytes are deterministic and content-addressed', () => {

@@ -83,19 +83,45 @@ function docFailures(text, version, help) {
 
 async function fetchIssues(token, repo) {
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error('invalid GitHub repository');
+  const [owner, name] = repo.split('/');
   const issues = [];
-  for (let page = 1; ; page += 1) {
-    const response = await fetch(`https://api.github.com/repos/${repo}/issues?state=all&per_page=100&page=${page}`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(30000),
+  const query = `query TrackerIssues($owner: String!, $name: String!, $cursor: String) {
+    repository(owner: $owner, name: $name) {
+      issues(first: 100, states: [OPEN, CLOSED], after: $cursor) {
+        nodes { number title state stateReason labels(first: 100) { nodes { name } } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }`;
+  let cursor = null;
+  const cursors = new Set();
+  while (true) {
+    const response = await fetch('https://api.github.com/graphql', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { owner, name, cursor } }),
+      signal: AbortSignal.timeout(30000),
     });
     if (!response.ok) throw new Error(`GitHub tracker API failed: HTTP ${response.status}`);
-    const batch = await response.json();
-    if (!Array.isArray(batch)) throw new Error('GitHub tracker API returned invalid data');
-    issues.push(...batch.filter((issue) => !issue.pull_request).map((issue) => ({
-      number: issue.number, title: issue.title, state: issue.state.toUpperCase(),
-      stateReason: issue.state === 'open' ? null : (issue.state_reason || '').toUpperCase(), labels: issue.labels,
-    })));
-    if (batch.length < 100) return issues;
+    const result = await response.json();
+    if (result.errors?.length) throw new Error(`GitHub tracker API failed: ${result.errors.map((error) => error.message).join('; ')}`);
+    const connection = result.data?.repository?.issues;
+    if (!connection || !Array.isArray(connection.nodes) || typeof connection.pageInfo?.hasNextPage !== 'boolean') {
+      throw new Error('GitHub tracker API returned invalid data');
+    }
+    issues.push(...connection.nodes.map((issue) => {
+      if (!Number.isInteger(issue.number) || typeof issue.title !== 'string' || !['OPEN', 'CLOSED'].includes(issue.state)
+          || !Array.isArray(issue.labels?.nodes)) throw new Error('GitHub tracker API returned invalid issue data');
+      return {
+        number: issue.number, title: issue.title, state: issue.state,
+        stateReason: issue.state === 'OPEN' ? null : (issue.stateReason || null),
+        labels: issue.labels.nodes,
+      };
+    }));
+    if (!connection.pageInfo.hasNextPage) return issues;
+    cursor = connection.pageInfo.endCursor;
+    if (typeof cursor !== 'string' || cursors.has(cursor)) throw new Error('GitHub tracker API returned invalid pagination data');
+    cursors.add(cursor);
   }
 }
 
@@ -124,7 +150,7 @@ async function main() {
   const evidence = spawnSync(process.execPath, ['scripts/check-test-evidence.js'], { cwd: ROOT, encoding: 'utf8' });
   if (evidence.status !== 0) failures.push(`proving-test evidence: ${(evidence.stdout + evidence.stderr).trim()}`);
   if (failures.length) throw new Error(failures.join('\n'));
-  console.log(`coherence: docs, instructions, corpus and ${rows.length} declared tracker transitions agree (${phase})`);
+  console.log(`coherence: docs, instructions, corpus and ${rows.length} declared tracker transitions agree with ${live?.length ?? 'offline'} live issues (${phase})`);
 }
 
 if (require.main === module) main().catch((error) => { console.error(error.message); process.exitCode = 1; });

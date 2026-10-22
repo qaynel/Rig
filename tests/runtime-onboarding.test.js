@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { writePlanApproval } = require('./helpers/advanced');
+const { writeFixtureLintSelection, prepareFixtureRuntimeCheck } = require('./helpers/runtime-check');
 
 const root = path.join(__dirname, '..');
 const bootstrap = path.join(root, 'rig', 'bootstrap.sh');
@@ -44,11 +45,14 @@ test('runtime bootstrap prints a runnable staged sequence', () => withTarget((ta
 
 test('the staged sequence produces review selection plan and a green check', () => withTarget((target) => {
   fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({
-    name: 'onboarding-fixture', private: true, scripts: { 'format:check': 'git diff --check' },
+    name: 'onboarding-fixture', private: true, scripts: { 'format:check': 'node fixture-format-check.cjs' },
   }) + '\n');
   fs.writeFileSync(path.join(target, 'index.js'), 'module.exports = 1;\n');
+  writeFixtureLintSelection(target);
   const inited = spawnSync('git', ['init', '-q'], { cwd: target, encoding: 'utf8' });
   assert.equal(inited.status, 0, inited.stderr);
+  const committed = spawnSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'initial fixture', '--allow-empty'], { cwd: target, encoding: 'utf8' });
+  assert.equal(committed.status, 0, committed.stderr);
   const installed = spawnSync('sh', [bootstrap, '--tier', '1', '--target', target, '--with-runtime'], {
     encoding: 'utf8',
   });
@@ -71,9 +75,15 @@ test('the staged sequence produces review selection plan and a green check', () 
   const planned = JSON.parse(fs.readFileSync(plan, 'utf8'));
   const approval = writePlanApproval(target, plan);
   run(['apply', '--target', target, '--manifest', selection, '--review', review, '--plan', plan, '--approval', approval]);
+  prepareFixtureRuntimeCheck(target, 'The known fixture instruction entrypoints consistently delegate Rig work to the shared router; the selected JavaScript whitespace check has no conflicting instructions.');
   const check = runRig(rig, ['check', '--target', target, '--service', 'development.code-quality.lint-format']);
   assert.equal(check.status, 0, check.stderr || check.stdout);
   assert.match(check.stdout, /check.*(?:passed|succeeded|complete)/i);
+  fs.writeFileSync(path.join(target, 'index.js'), 'module.exports = 1;  \n');
+  prepareFixtureRuntimeCheck(target, 'The reviewed instruction relationships are unchanged; this run verifies the selected checker rejects a real trailing-whitespace violation.');
+  const rejected = runRig(rig, ['check', '--target', target, '--service', 'development.code-quality.lint-format']);
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /Policy command failed/);
 }));
 
 test('the installed runtime exposes the staged producer commands', () => withTarget((target) => {
@@ -195,6 +205,7 @@ test('a clean staged check confirms success', () => withTarget((target) => {
   const installed = installRuntime(target, ['codex']);
   assert.equal(installed.status, 0, installed.stderr);
   const rig = path.join(target, '.rig', 'bin', 'rig');
+  prepareFixtureRuntimeCheck(target, 'The clean fixture instructions consistently refer to the shared Rig router and introduce no contradictory repository rules.');
   const result = runRig(rig, ['check', '--target', target]);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /check.*(?:passed|succeeded|complete)/i);
