@@ -3,7 +3,7 @@ date: 2026-10-22
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-22-qa-closure-signing-readiness
 tags: verification, handoff, signing
 summary: Three Luna agents completed the bounded repair/review scope;213 macOS and43 Linux acceptance cases and live66-issue coherence pass, leaving human signing before final npm gate, binding review and push.

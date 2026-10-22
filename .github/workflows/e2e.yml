@@ -45,6 +45,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Prepare Linux task sandbox
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
       - name: Verify exact commit with fresh dependency downloads
         env:
           CANDIDATE_SHA: ${{ needs.resolve.outputs.sha }}
@@ -70,6 +77,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Prepare Linux task sandbox
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
       - name: Download and verify the published tag through the public installer
         env:
           PUBLIC_TAG: ${{ github.event.release.tag_name }}

@@ -65,8 +65,10 @@ jobs:
         with:
           node-version: '22'
       # Match the full-gate runner capability used by test.yml.
-      - name: Enable rootless network namespaces
+      - name: Prepare task sandbox
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
       - name: Require a changelog entry for the release version

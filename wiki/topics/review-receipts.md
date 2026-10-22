@@ -1,8 +1,8 @@
 # Review receipts
 
-The [owner-signature handoff](../reasoning/2026-10-22-qa-closure-owner-signature-handoff.md) records213 macOS and43 Linux passing acceptance cases, a passing66-issue live coherence gate, and recoverable next commands. Human signing precedes the final npm gate, binding review and push.
+The [final signed-candidate checkpoint](../reasoning/2026-10-22-final-signed-candidate-freeze.md) records reviewed evidence for all eighteen findings, the completed owner signature (16 files/95 cases), and a diagnostic full npm pass (main1284, Pi15, MCP6). Added installed-route proofs and workflow checks each pass8/8. Freeze/commit the final bytes, repeat the full gate, obtain the binding receipt, then push PR153 and require checks on its exact head. No passing fresh receipt or deployment is claimed here.
 
-The [2026-10-22 closure scope and recovery handoff](../specs/close-everything/2026-10-22-qa-closure-scope.md) preserves all eighteen criteria, evidence mapping and ownership. The executable state report is `.context/qa-closure/handoff.sh`; see [its instructions](../../.context/qa-closure/HANDOFF.md). Historical `.context/full-main-final-candidate.log` recorded 1,246 passes and 11 failures; most have focused fixes now. Current focused evidence: Linux 25/25, macOS 36/36, Pi 15/15, MCP 6/6, five provider YAML parses and seven adapter tests. The current full-main log is still running; another `npm test` stops before tests at the stale frozen Gate 1 digest. All findings remain open; required evidence, final candidate reconciliation and binding review still apply.
+The [closure scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) and [unchanged acceptance criteria with closure ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) hold the reviewed evidence map. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves commands and model recovery. The owner signing step is complete.
 
 ## What a receipt proves
 
@@ -12,7 +12,7 @@ The reviewer returns verdicts and findings. The wrapper computes digests, starts
 
 ## Current review state
 
-The [October 21 Codex review](../reasoning/2026-10-21-code-mode-binding-review-result.md) failed with four blockers and fourteen major findings. Its rejected report is preserved at [the source JSON](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json); no passing receipt exists and the attempt counter is ten. The [acceptance criteria](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) remain unchanged. The [latest dispatch checkpoint](../reasoning/2026-10-21-acceptance-dispatch-renewal-progress.md) records broad adversarial progress. The [October 22 evidence checkpoint](../reasoning/2026-10-22-qa-closure-evidence-checkpoint.md) and [focused security review](../../.context/qa-closure/luna-review-boundaries.md) record repairs and remaining exact-candidate gaps; full integration and current-byte acceptance are not established.
+The [October 21 Codex review](../reasoning/2026-10-21-code-mode-binding-review-result.md) failed with four blockers and fourteen major findings. Its rejected report is retained at [the source JSON](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json). All eighteen findings now have reviewed closure evidence; a fresh exact-candidate binding review remains required after the final full gate. Preserve the existing author context and attempt counter (ten before that review). The acceptance requirements remain unchanged.
 
 The owner authorizes completing the existing scope without repeat permission prompts. The exact final binding review still follows the receipt path after the candidate is ready; preserve author context and counter. A provider usage limit means preserve logs and resume from the scope and handoff. It never changes a finding's status or authorizes an automatic retry.
 

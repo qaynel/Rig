@@ -32,8 +32,10 @@ jobs:
       # Ubuntu 24.04 restricts rootless user namespaces through AppArmor.
       # Rig's ungranted-task network boundary uses a rootless network namespace,
       # so enable the native runner capability and verify it before the suite.
-      - name: Enable rootless network namespaces
+      - name: Prepare task sandbox
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
 

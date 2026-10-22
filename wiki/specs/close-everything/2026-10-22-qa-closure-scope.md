@@ -17,24 +17,24 @@ criteria.
 
 | # | Required behavior and evidence surface | Current disposition |
 |---|---|---|
-| 1 | Gate 1 signature and exact target/plan binding at public CLI and exported apply seam; forged, wrong-key/identity/purpose, stale, cross-repository rejection preserves bytes; valid signature applies exact changes. `tests/advanced-apply.test.js`, `tests/remediation-task-acceptance.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 2 | Read-only proposal; Gate 1 consent; locked preimage check; no-op/unsupported/path rejection; exact diff, rollback and crash journal; post-write sanitation rescan. `tests/remediation-task-acceptance.test.js`, `tests/remediation-apply-coverage.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 3 | Empty/malformed/mixed executable maps are named nonzero gaps through shared and installed runners; valid launch count reflects real commands. `tests/remediation-task-acceptance.test.js`, `tests/catalogue-installed.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 4 | Exact real task launch only after signed one-use approval; drift/replay/restart/concurrency blocked on every local, CLI, MCP, installed and CI dispatch route. `tests/remediation-dispatch-boundaries.test.js`, `tests/guarantee-coverage.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 5 | OS-enforced filesystem and environment boundary for task and child processes; outside read/write, symlink, cwd and ambient-variable attempts denied on macOS and Linux; valid contained task succeeds. `tests/task-filesystem-sandbox.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 6 | Omitted/missing network declarations deny on all binding shapes; only exact approved explicit grant reaches listener; apply-generated binding covered. `tests/remediation-task-acceptance.test.js`, `tests/remediation-dispatch-boundaries.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 7 | Agent-led open discovery, semantic binding and ambiguity, user selection/exclusion, changed-file expansion and ignore behavior reach actual argv/cwd after apply and resume. `tests/remediation-discovery-pathb.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 8 | Every read-only route snapshots each command, reports mutation/nonzero/signal truthfully, preserves edits and stops before the next command. `tests/remediation-dispatch-boundaries.test.js`, `tests/guarantee-coverage.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 9 | Installed Path B lint-format runs real good/bad source checks at Policy; Context review and Evidence replay are cumulative and bound. `tests/remediation-discovery-pathb.test.js`, `tests/path-b-catalog.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 10 | Installed hook and CI actually run enabled policy baseline in order; signed disable/re-enable, real commit, user hook and lint grade rules are honored. `tests/remediation-policy-baseline.test.js`, `tests/advanced-ci-floor.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 11 | Sanitation scans staged index bytes through the shared detector; semantic drift requires current review and rejects contradiction at installed hook. `tests/remediation-history-global-journal.test.js`, `tests/advanced-sync.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 12 | Policy activation is atomic, locked and recoverable; exact signed action is durably consumed before dispatch and resists clone/replay/races. `tests/remediation-policy-baseline.test.js`, `tests/remediation-dispatch-boundaries.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 13 | Existing provider CI is classified and merged without clobber; malformed/unknown shapes preserved; real provider execution is verified only when observed; otherwise explicitly first_run_required. `tests/remediation-ci-merge.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 14 | Secret/PII/path data stays private across CLI, Git, CI, MCP and reports; every abnormal ending retains distinct nonpassing state. `tests/remediation-ci-privacy.test.js`, `tests/basic-guard-scanner.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 15 | One strict journal parser governs readers and recovery; malformed history fails closed; attributable weight includes every written preimage. `tests/remediation-history-global-journal.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 16 | Coverage writes require exact signed approval and durable recoverable ownership; higher grades retain cumulative lower-grade bindings. `tests/remediation-apply-coverage.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 17 | Pinned official history scanner, structured/actionable local evidence, exact-current-finding Gate 1 waiver, and clean rescan after accepted findings. `tests/advanced-secret.test.js`, `tests/remediation-history-global-journal.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
-| 18 | Attributed shared-global JSON changes preserve all unrelated lexical bytes through install/reinstall/removal in either repository order; OpenClaw uses native CLI only. `tests/global-mcp-writes.test.js`, `tests/remediation-history-global-journal.test.js`. | Open — implementation and focused regressions are indexed in the current acceptance ledger; final full-gate and binding-review reconciliation remain. |
+| 1 | Gate 1 signature and exact target/plan binding at public CLI and exported apply seam; forged, wrong-key/identity/purpose, stale, cross-repository rejection preserves bytes; valid signature applies exact changes. `tests/advanced-apply.test.js`, `tests/remediation-task-acceptance.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 2 | Read-only proposal; Gate 1 consent; locked preimage check; no-op/unsupported/path rejection; exact diff, rollback and crash journal; post-write sanitation rescan. `tests/remediation-task-acceptance.test.js`, `tests/remediation-apply-coverage.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 3 | Empty/malformed/mixed executable maps are named nonzero gaps through shared and installed runners; valid launch count reflects real commands. `tests/remediation-task-acceptance.test.js`, `tests/catalogue-installed.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 4 | Exact real task launch only after signed one-use approval; drift/replay/restart/concurrency blocked on every local, CLI, MCP, installed and CI dispatch route. `tests/remediation-dispatch-boundaries.test.js`, `tests/guarantee-coverage.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 5 | OS-enforced filesystem and environment boundary for task and child processes; outside read/write, symlink, cwd and ambient-variable attempts denied on macOS and Linux; valid contained task succeeds. `tests/task-filesystem-sandbox.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 6 | Omitted/missing network declarations deny on all binding shapes; only exact approved explicit grant reaches listener; apply-generated binding covered. `tests/remediation-task-acceptance.test.js`, `tests/remediation-dispatch-boundaries.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 7 | Agent-led open discovery, semantic binding and ambiguity, user selection/exclusion, changed-file expansion and ignore behavior reach actual argv/cwd after apply and resume. `tests/remediation-discovery-pathb.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 8 | Every read-only route snapshots each command, reports mutation/nonzero/signal truthfully, preserves edits and stops before the next command. `tests/remediation-dispatch-boundaries.test.js`, `tests/guarantee-coverage.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 9 | Installed Path B lint-format runs real good/bad source checks at Policy; Context review and Evidence replay are cumulative and bound. `tests/remediation-discovery-pathb.test.js`, `tests/path-b-catalog.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 10 | Installed hook and CI actually run enabled policy baseline in order; signed disable/re-enable, real commit, user hook and lint grade rules are honored. `tests/remediation-policy-baseline.test.js`, `tests/advanced-ci-floor.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 11 | Sanitation scans staged index bytes through the shared detector; semantic drift requires current review and rejects contradiction at installed hook. `tests/remediation-history-global-journal.test.js`, `tests/advanced-sync.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 12 | Policy activation is atomic, locked and recoverable; exact signed action is durably consumed before dispatch and resists clone/replay/races. `tests/remediation-policy-baseline.test.js`, `tests/remediation-dispatch-boundaries.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 13 | Existing provider CI is classified and merged without clobber; malformed/unknown shapes preserved; real provider execution is verified only when observed; otherwise explicitly first_run_required. `tests/remediation-ci-merge.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 14 | Secret/PII/path data stays private across CLI, Git, CI, MCP and reports; every abnormal ending retains distinct nonpassing state. `tests/remediation-ci-privacy.test.js`, `tests/basic-guard-scanner.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 15 | One strict journal parser governs readers and recovery; malformed history fails closed; attributable weight includes every written preimage. `tests/remediation-history-global-journal.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 16 | Coverage writes require exact signed approval and durable recoverable ownership; higher grades retain cumulative lower-grade bindings. `tests/remediation-apply-coverage.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 17 | Pinned official history scanner, structured/actionable local evidence, exact-current-finding Gate 1 waiver, and clean rescan after accepted findings. `tests/advanced-secret.test.js`, `tests/remediation-history-global-journal.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
+| 18 | Attributed shared-global JSON changes preserve all unrelated lexical bytes through install/reinstall/removal in either repository order; OpenClaw uses native CLI only. `tests/global-mcp-writes.test.js`, `tests/remediation-history-global-journal.test.js`. | Closed on finding-specific evidence — the acceptance ledger names the maintained proofs; final full-gate, binding review and exact-head PR checks remain delivery conditions. |
 
 ## Ownership and integration
 
@@ -57,39 +57,37 @@ Focused evidence can be reused only when it names the tested bytes and seam.
 
 ## Current gate and recovery
 
-Three Luna agents completed the original repair slices, reviewed all eighteen
-criteria independently and fixed the additional reproduced defects. The
-mutable acceptance ledger maps every criterion to the current maintained
-regression. All rows remain open for final verification and the binding review.
+Three Luna repair/review slices and three fresh Luna evidence/audit slices have
+completed. All eighteen finding rows have reviewed implementation and
+regression evidence in the mutable acceptance ledger. The original sections
+1–18 are preserved. New installed public-process proofs cover network denial
+and exact signed grant, CI timeout/mutation parity, and Gate 1 signed privacy
+triage enable/disable. A reproduced standalone exact-copy diagnostic leak is
+fixed with the already-installed shared redactor and safe CI projection.
 
-Current combined acceptance evidence passes 213/213 on macOS and 37/37 under
-real Docker/Linux Bubblewrap. Pi passes 15/15, MCP 6/6, six-provider CI
-preservation passes 7/7, and all five YAML provider artifacts pass native syntax
-parsing. Logs and exact resume commands are under `.context/qa-closure/`.
-The latest broad main run passed1274 tests and failed four on its starting
-bytes; three reported regressions now have focused passing fixes, and the
-fourth is the unsigned oracle. The live coherence gate now passes all66
-tracker transitions and its seven dedicated tests. No green full npm gate
-exists until owner signing and final verification.
-
-`npm test` currently stops at the stale oracle signature, before test code.
-The only human action identified is the batched signing of the prepared three
-fixture files. The exact command remains:
-
-```sh
-node scripts/approve-gate1.js --confirm-digest-delta b093070363c5dc1a3ac6c4f991e76e6a53e577371c44c051b732b29275075de4
-```
+The owner has signed the prepared fixture amendment. Independent verification
+passes16 files and95 acceptance cases. No additional signing action is needed.
+The first signed full npm run passes main1284, Pi15 and MCP6, with zero failures
+and two main-suite skips. Since final proof/docs changes overlapped that run,
+freeze/commit this candidate and repeat the full gate before binding review.
+The added proof files pass8/8; workflow checks pass8/8. Prior actual Linux
+Bubblewrap evidence passes43/43. CI now installs Bubblewrap explicitly in
+Ubuntu test, health, eligibility and both clean-install jobs, preserving the
+namespace setup/probe. Logs and recovery commands are in `.context/qa-closure/`.
 
 The owner already authorized the necessary fresh review and pushing this
-branch after the required gates pass. Do not ask again or bypass signing.
-Preserve author context `v6.0.0-qa-readiness-2026-10-17`, its existing review
-counter, and the rejected report. Production promotion remains separate from
-this QA PR and uses automated evidence on the exact QA commit.
+branch after required gates pass. Preserve author context
+`v6.0.0-qa-readiness-2026-10-17`, its existing attempt counter and rejected
+report. Run the final full gate, obtain/validate an exact-byte passing review,
+then push/update PR153 against qa-prod and inspect required checks on its
+exact head. No passing fresh receipt, new push or deployment is claimed by
+this checkpoint. Production promotion remains separate and uses automated
+health plus real-download clean-install evidence on the exact QA commit.
 
 Run `./.context/qa-closure/handoff.sh` for a read-only live state snapshot.
-After human signing, `./.context/qa-closure/run-verification.sh` runs the full
-gate with supported mirror variables pointing to digest-verified official
-archives. This avoids the observed Node HTTPS timeouts without weakening the
-production fetch checks. `HANDOFF.md` there has the reviewer, final delivery
-and model-transition commands. Never reset Git, delete prior evidence, use
-the human key, manufacture a receipt, or automatically retry a capped reviewer.
+`./.context/qa-closure/run-verification.sh` runs the full gate with supported
+mirror variables pointing to verified official archives, avoiding reproduced
+Node HTTPS timeouts without weakening production fetch checks. Its
+`HANDOFF.md` records final review/delivery and model-transition commands.
+Never reset Git, delete prior evidence, use the human key, manufacture a
+receipt, or automatically retry a capped reviewer.

@@ -617,24 +617,24 @@ One test may cover several rows if it demonstrates each stated boundary.
 
 | Finding | Closure scope | Status | Evidence / verification result |
 |---|---|---|---|
-| 1 | Signed approval on every apply path | Open — final verification | Real SSHSIG checks reject forged metadata, wrong key/identity/purpose and cross-repository replay. Lock-time CAS now rejects changed user bytes; pointer resume permits only reconstruction from a hash-verified preimage. `tests/advanced-apply.test.js`, `tests/remediation-apply-coverage.test.js`, `tests/remediation-review-integrity.test.js`. |
-| 2 | Approved transactional remediation and rescan | Open — final verification | Signed proposal/preimages/policy, exclusive transaction, crash recovery, rollback and real sanitation rescan are implemented. New publish-boundary edit and journal-link regressions preserve user data. `tests/remediation-apply-coverage.test.js`, `tests/remediation-review-integrity.test.js`, `tests/advanced-apply.test.js`. |
-| 3 | Empty/malformed executable bindings fail | Open — final verification | Shared runner rejects empty/mixed/malformed maps before launch and records actual counts. Real installed Path B missing-executable case remains `missing_tool`, never success. `tests/remediation-task-acceptance.test.js`, `tests/remediation-discovery-pathb.test.js`, `tests/trust-root-review-fixes.test.js`. |
-| 4 | Consent, single use and drift at real dispatch | Open — final verification | Task definitions/resources/active policy are signed; executable resolution is shared with launch. Durable clone-local consumption survives races, restart and .rig deletion. `tests/remediation-dispatch-boundaries.test.js`, `tests/remediation-task-acceptance.test.js`; current actual Linux boundary run passes 37 cases. |
-| 5 | Task filesystem/environment isolation | Open — final verification | Real macOS and Linux Bubblewrap tests cover outside home/tmp/sibling reads, child processes, escaping symlinks, protected .git/.rig aliases, environment removal and allowed contained work. `tests/task-filesystem-sandbox.test.js`; `.context/qa-closure/linux-current.log` is 37/37. |
-| 6 | Default-deny network on all binding shapes | Open — final verification | Omitted network mode denies or refuses safely. Generic network requires committed limits plus an exact signed one-use execution plan. Real listener grant/refusal oracle passes 2/2. `tests/remediation-dispatch-boundaries.test.js`, `tests/advanced-oracle.test.js`; apply-generated route evidence still needs final reconciliation. |
-| 7 | Agent-led discovery and execution scope/choice | Open — final verification | Repository inventory accepts arbitrary evidence; exact approved selection, ambiguity, scope and ignore filtering reach dispatched argv/cwd. New directory-ignore regression covers nested dist descendants. `tests/remediation-discovery-pathb.test.js`, `tests/remediation-review-runtime.test.js`. |
-| 8 | Read-only mutation detection on every route | Open — final verification | Shared snapshots include source under build/vendor and preserve before/after evidence after timeout/memory/nonzero endings; later commands stop. `tests/remediation-dispatch-boundaries.test.js`, `tests/remediation-task-acceptance.test.js`, `tests/task-filesystem-sandbox.test.js`. Final route parity remains a review obligation. |
-| 9 | Real Path B lint-format and cumulative grades | Open — final verification | Real installed Policy/Context/Evidence tests use good/bad source, missing executable, missing/current Context and mismatched/valid replay. CI now retains maximal grade and must create a fresh Evidence receipt containing formatter and linter work. `tests/remediation-discovery-pathb.test.js`, `tests/advanced-lint-format.test.js`. |
-| 10 | Installed policy-aware git/CI baseline | Open — final verification | Actual installed hook/CI exercise enabled sanitation, semantic, exact-copy and secret floors, preserved user hook and signed disable/re-enable. GITHUB_ACTIONS-only routing uses CI scope too. `tests/remediation-policy-baseline.test.js`, `tests/remediation-review-runtime.test.js`. |
-| 11 | Index-byte sanitation and current semantic review | Open — final verification | Staged blobs and context-index metadata govern commit checks. Empty/omitted context rosters fail; missing/current/stale relationship reviews are validated. Actual fallback metadata bytes bind protection evidence. `tests/remediation-policy-baseline.test.js`, `tests/remediation-review-runtime.test.js`, `tests/trust-root-review-fixes.test.js`. |
-| 12 | Atomic policy publication and signed one-use dispatch | Open — final verification | Signed policy CAS is locked and recoverable; real competing dispatch consumes a grant exactly once. Both action-grant CLI routes now require signed inputs and emit a reusable grant. `tests/remediation-policy-baseline.test.js`, `tests/remediation-action-cli.test.js`. |
-| 13 | Preserving CI integration and honest first-run state | Open — final verification | Six-provider merge/repeat/remove and malformed-shape tests pass 7/7; native Ruby YAML parser accepts all five YAML artifacts. Providers remain supported with execution unverified/first_run_required until an actual provider run exists. `tests/remediation-ci-merge.test.js`, `.context/qa-closure/ci-native-parse.log`. |
-| 14 | Output privacy and abnormal-ending taxonomy | Open — final verification | CLI/installed CI/MCP/report/metadata captures, private-key blocks and actual abnormal task endings use shared redaction and safe aggregates; invalid active triage policy refuses detail. `tests/remediation-ci-privacy.test.js`, `tests/basic-guard-scanner.test.js`. Complete final-route reconciliation is still required. |
-| 15 | Strict shared journal semantics and complete weight | Open — final verification | Shared parser now requires complete ownership/state/operation history before mutation, preserves legitimate legacy create records and truncated-tail recovery evidence. Missing ownership cannot authorize deletion; preimages count once. `tests/remediation-review-journal.test.js`, `tests/remediation-history-global-journal.test.js`. |
-| 16 | Durable coverage writes and cumulative binding | Open — final verification | Coverage verifies exact Gate 1 signatures and writes through the locked durable installer journal, with real SIGKILL recovery/removal and user-edit preservation tests. Higher grades use cumulative effective checks. `tests/remediation-apply-coverage.test.js`, `tests/remediation-task-acceptance.test.js`. |
-| 17 | Verified history scan and exact-finding waiver | Open — final verification | Pinned official Gitleaks, full-history/ref/config binding, actionable redacted finding locations, exact signed waiver, changed-input rejection and clean rescan have real scanner tests. `tests/remediation-history-global-journal.test.js`, `tests/advanced-secret.test.js`. |
-| 18 | Byte-preserving attributed global mutations | Open — final verification | Lexical JSON addition/removal retains unrelated bytes in both A/B removal orders and reinstall. Sidecar hard links are now refused and metadata publishes atomically. Native OpenClaw remains opt-in. `tests/global-mcp-writes.test.js`, `tests/remediation-history-global-journal.test.js`, `tests/remediation-review-integrity.test.js`. |
+| 1 | Signed approval on every apply path | Closed — finding proof reviewed | Real SSHSIG checks reject forged metadata, wrong key/identity/purpose and cross-repository replay. Lock-time CAS now rejects changed user bytes; pointer resume permits only reconstruction from a hash-verified preimage. `tests/advanced-apply.test.js`, `tests/remediation-apply-coverage.test.js`, `tests/remediation-review-integrity.test.js`. |
+| 2 | Approved transactional remediation and rescan | Closed — finding proof reviewed | Signed proposal/preimages/policy, exclusive transaction, crash recovery, rollback and real sanitation rescan are implemented. New publish-boundary edit and journal-link regressions preserve user data. `tests/remediation-apply-coverage.test.js`, `tests/remediation-review-integrity.test.js`, `tests/advanced-apply.test.js`. |
+| 3 | Empty/malformed executable bindings fail | Closed — finding proof reviewed | Shared runner rejects empty/mixed/malformed maps before launch and records actual counts. Real installed Path B missing-executable case remains `missing_tool`, never success. `tests/remediation-task-acceptance.test.js`, `tests/remediation-discovery-pathb.test.js`, `tests/trust-root-review-fixes.test.js`. |
+| 4 | Consent, single use and drift at real dispatch | Closed — finding proof reviewed | Task definitions/resources/active policy are signed; executable resolution is shared with launch. Durable clone-local consumption survives races, restart and .rig deletion. `tests/remediation-dispatch-boundaries.test.js`, `tests/remediation-task-acceptance.test.js`; current actual Linux boundary run passes 37 cases. |
+| 5 | Task filesystem/environment isolation | Closed — finding proof reviewed | Real macOS and Linux Bubblewrap tests cover outside home/tmp/sibling reads, child processes, escaping symlinks, protected .git/.rig aliases, environment removal and allowed contained work. `tests/task-filesystem-sandbox.test.js`; `.context/qa-closure/linux-current.log` is 37/37. |
+| 6 | Default-deny network on all binding shapes | Closed — finding proof reviewed | Omitted network mode denies or refuses safely. Generic network requires committed limits plus an exact signed one-use execution plan. Real listener grant/refusal oracle passes 2/2. `tests/remediation-dispatch-boundaries.test.js`, `tests/advanced-oracle.test.js`; `tests/remediation-installed-boundaries.test.js` adds public-apply-generated listener denial, unsigned refusal and exact signed single-use connection. |
+| 7 | Agent-led discovery and execution scope/choice | Closed — finding proof reviewed | Repository inventory accepts arbitrary evidence; exact approved selection, ambiguity, scope and ignore filtering reach dispatched argv/cwd. New directory-ignore regression covers nested dist descendants. `tests/remediation-discovery-pathb.test.js`, `tests/remediation-review-runtime.test.js`. |
+| 8 | Read-only mutation detection on every route | Closed — finding proof reviewed | Shared snapshots include source under build/vendor and preserve before/after evidence after timeout/memory/nonzero endings; later commands stop. `tests/remediation-dispatch-boundaries.test.js`, `tests/remediation-task-acceptance.test.js`, `tests/task-filesystem-sandbox.test.js`. `tests/remediation-installed-boundaries.test.js` adds installed maximal CI timeout/mutation evidence, preserved edits and second-command refusal. |
+| 9 | Real Path B lint-format and cumulative grades | Closed — finding proof reviewed | Real installed Policy/Context/Evidence tests use good/bad source, missing executable, missing/current Context and mismatched/valid replay. CI now retains maximal grade and must create a fresh Evidence receipt containing formatter and linter work. `tests/remediation-discovery-pathb.test.js`, `tests/advanced-lint-format.test.js`. |
+| 10 | Installed policy-aware git/CI baseline | Closed — finding proof reviewed | Actual installed hook/CI exercise enabled sanitation, semantic, exact-copy and secret floors, preserved user hook and signed disable/re-enable. GITHUB_ACTIONS-only routing uses CI scope too. `tests/remediation-policy-baseline.test.js`, `tests/remediation-review-runtime.test.js`. |
+| 11 | Index-byte sanitation and current semantic review | Closed — finding proof reviewed | Staged blobs and context-index metadata govern commit checks. Empty/omitted context rosters fail; missing/current/stale relationship reviews are validated. Actual fallback metadata bytes bind protection evidence. `tests/remediation-policy-baseline.test.js`, `tests/remediation-review-runtime.test.js`, `tests/trust-root-review-fixes.test.js`. |
+| 12 | Atomic policy publication and signed one-use dispatch | Closed — finding proof reviewed | Signed policy CAS is locked and recoverable; real competing dispatch consumes a grant exactly once. Both action-grant CLI routes now require signed inputs and emit a reusable grant. `tests/remediation-policy-baseline.test.js`, `tests/remediation-action-cli.test.js`. |
+| 13 | Preserving CI integration and honest first-run state | Closed — finding proof reviewed | Six-provider merge/repeat/remove and malformed-shape tests pass 7/7; native Ruby YAML parser accepts all five YAML artifacts. Providers remain supported with execution unverified/first_run_required until an actual provider run exists. `tests/remediation-ci-merge.test.js`, `.context/qa-closure/ci-native-parse.log`. |
+| 14 | Output privacy and abnormal-ending taxonomy | Closed — finding proof reviewed | CLI/installed CI/MCP/report/metadata captures, private-key blocks and actual abnormal task endings use shared redaction and safe aggregates; invalid active triage policy refuses detail. `tests/remediation-ci-privacy.test.js`, `tests/basic-guard-scanner.test.js`. `tests/remediation-signed-privacy.test.js` adds actual standalone/CLI/report captures plus disclosure-confirmed Gate 1 signed enable/disable; the standalone checker now suppresses private paths and raw exceptions. |
+| 15 | Strict shared journal semantics and complete weight | Closed — finding proof reviewed | Shared parser now requires complete ownership/state/operation history before mutation, preserves legitimate legacy create records and truncated-tail recovery evidence. Missing ownership cannot authorize deletion; preimages count once. `tests/remediation-review-journal.test.js`, `tests/remediation-history-global-journal.test.js`. |
+| 16 | Durable coverage writes and cumulative binding | Closed — finding proof reviewed | Coverage verifies exact Gate 1 signatures and writes through the locked durable installer journal, with real SIGKILL recovery/removal and user-edit preservation tests. Higher grades use cumulative effective checks. `tests/remediation-apply-coverage.test.js`, `tests/remediation-task-acceptance.test.js`. |
+| 17 | Verified history scan and exact-finding waiver | Closed — finding proof reviewed | Pinned official Gitleaks, full-history/ref/config binding, actionable redacted finding locations, exact signed waiver, changed-input rejection and clean rescan have real scanner tests. `tests/remediation-history-global-journal.test.js`, `tests/advanced-secret.test.js`. |
+| 18 | Byte-preserving attributed global mutations | Closed — finding proof reviewed | Lexical JSON addition/removal retains unrelated bytes in both A/B removal orders and reinstall. Sidecar hard links are now refused and metadata publishes atomically. Native OpenClaw remains opt-in. `tests/global-mcp-writes.test.js`, `tests/remediation-history-global-journal.test.js`, `tests/remediation-review-integrity.test.js`. |
 
 Approval of this review scope requires all eighteen rows closed, not just
 the four original blockers. It also requires the current signed oracle to
@@ -733,7 +733,7 @@ execution and independent review evidence remain incomplete, so all 18
 findings stay open.
 
 
-## Current recovery checkpoint — 2026-10-22
+## Historical recovery checkpoint — 2026-10-22
 
 The owner-provided scope and continuation procedure are in
 [the QA closure scope](2026-10-22-qa-closure-scope.md) and
@@ -750,7 +750,7 @@ This signature is pending; agents must not perform it. All eighteen rows above
 remain open. No green full-gate result, passing binding receipt, or QA-prod
 readiness is claimed.
 
-## Current candidate — 2026-10-22
+## Historical candidate — 2026-10-22
 
 Three Luna agents repaired the assigned failures, independently reviewed all
 eighteen criteria, then fixed the additional concrete reproductions. The
@@ -775,3 +775,33 @@ with the original author context and preserved counter. Owner authorization
 for necessary review is already recorded; no repeated permission prompt is
 required. The only human action identified at this checkpoint is signing.
 The branch has not been pushed or declared ready by this session.
+
+## Owner-signed verification — 2026-10-22 17:23 UTC
+
+The owner has signed the prepared amendment. Independent verification passes
+16 files and95 acceptance cases. The fresh read-only closure reconciliation
+is retained in `.context/qa-closure/owner-signed-closure-audit.md`; its
+criterion13 addendum applies the explicit honest first-run-gap contract.
+Rows6,8,14 remain open while their installed public-process proofs finish.
+Fifteen rows are closed on finding-specific evidence; this is not full-gate,
+binding-review, push or deployment approval. The complete npm gate and a
+fresh exact-byte binding receipt remain required before pushing.
+
+
+## Final candidate verification checkpoint — 2026-10-22 17:26 UTC
+
+All eighteen finding rows have reviewed implementation and regression evidence.
+The acceptance requirements in sections1–18 remain unchanged. The owner-signed
+oracle verifies16 files and95 acceptance cases. The first signed full npm run
+passed main1284, Pi15 and MCP6 with zero failures and two main-suite skips.
+That diagnostic run overlapped final proof additions, so a new full gate on the
+frozen committed candidate is required before pushing. The two new maintained
+proof files pass8/8; workflow checks pass8/8. Linux CI now explicitly installs
+Bubblewrap and enables/probes rootless namespaces before sandbox execution.
+
+Finding closure does not replace release approval. The remaining sequence is:
+commit these final bytes, run the full npm gate, obtain and validate a fresh
+binding receipt using the preserved author context and attempt history, then
+push PR153 and require green checks on its exact head. Later promotion uses
+only automated health and real-download clean-install evidence on the exact
+QA commit. No additional human signature is currently required.
