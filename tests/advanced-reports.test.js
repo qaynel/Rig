@@ -25,7 +25,7 @@ test('reports only write failed/vacuous/coverage_gap and redact secrets', () => 
     const planned = plan(target, { review: reviewPath });
     assert.equal(planned.status, 0, planned.stderr);
     assert.equal(apply(target, { review: reviewPath, plan: planned.outPath }).status, 0);
-    assert.equal(check(target, { scope: 'diff' }).status, 0);
+    assert.equal(check(target, { scope: 'diff' }).status, 1, 'missing browser executable is a reported gap');
 
     const reportsDir = path.join(target, 'reports', 'rig');
     assert.ok(fs.existsSync(reportsDir));

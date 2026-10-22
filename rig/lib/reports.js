@@ -6,6 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { redact } = require('./redaction');
 const { gitPath } = require('./path-safety');
+const { installState } = require('./journal-records');
 
 const ALLOWED = new Set(['failed', 'command_not_found', 'not_run_due_to_dependency', 'vacuous', 'coverage_gap', 'timeout', 'cancelled', 'missing_dependency', 'partial_output', 'signalled', 'memory_exceeded', 'memory_ceiling_unavailable', 'mutated', 'not_authorized', 'filesystem_isolation_unavailable', 'network_isolation_unavailable', 'missing_tool', 'runner_error', 'command_drift', 'boundary_violation', 'capability_not_authorized', 'capability_policy_invalid', 'capability_policy_not_committed']);
 
@@ -39,7 +40,7 @@ function writeReport(target, report) {
     reason: redact(report.reason || ''),
     evidence: (report.evidence || []).map((e) => redact(typeof e === 'string' ? e : JSON.stringify(e))),
     fix_context: (report.fix_context || []).map((c) => redact(typeof c === 'string' ? c : JSON.stringify(c))),
-    ...(!require('./lifecycle').installState(target).complete ? { install: 'incomplete', protection: 'withheld' } : {}),
+    ...(!installState(target).complete ? { install: 'incomplete', protection: 'withheld' } : {}),
     rerun: report.rerun || ['node', '.rig/bin/check.js', '--scope', report.scope || 'repo'],
   }, (_key, value) => typeof value === 'string' ? redact(value) : value));
   const digest = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 12);

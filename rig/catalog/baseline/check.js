@@ -40,6 +40,22 @@ function loadJson(rel) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+function writeLocalFailureReport(target, serviceId, scope, status, reason, result = {}) {
+  const { ALLOWED, writeReport } = require('../lib/reports');
+  writeReport(target, {
+    service_id: serviceId,
+    scope,
+    status: ALLOWED.has(status) ? status : 'failed',
+    summary: `${serviceId} failed`,
+    reason,
+    evidence: result.changed_paths || result.changes ? [{
+      ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+      ...(result.changes ? { changes: result.changes } : {}),
+    }] : [],
+    fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
+  });
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, '..', '..');
@@ -71,10 +87,17 @@ function main() {
 
   let failedEarlier = null;
   for (const serviceId of selected) {
-    if (failedEarlier) { fail('not_run_due_to_dependency', `${serviceId}: not_run_due_to_dependency:${failedEarlier}\n`); continue; }
+    if (failedEarlier) {
+      const reason = `${serviceId}: not_run_due_to_dependency:${failedEarlier}`;
+      writeLocalFailureReport(repoRoot, serviceId, args.scope, 'not_run_due_to_dependency', reason);
+      fail('not_run_due_to_dependency', `${reason}\n`);
+      continue;
+    }
     const binding = bindings[serviceId];
     if (!binding) {
-      fail('coverage_gap', `${serviceId}: coverage gap: binding is missing\n`);
+      const reason = `${serviceId}: coverage gap: binding is missing`;
+      writeLocalFailureReport(repoRoot, serviceId, args.scope, 'coverage_gap', reason);
+      fail('coverage_gap', `${reason}\n`);
       failedEarlier = serviceId;
       continue;
     }
@@ -87,7 +110,15 @@ function main() {
       if (!inCi()) process.stderr.write(redact(renderDiagnostic(serviceId, diagnostic)));
     }
     if (result.error || result.status !== 0) {
-      fail(result.checkId || result.kind || 'check_failed', result.reason || result.stderr || result.stdout || `${serviceId} failed`);
+      const evidence = result.changed_paths || result.changes ? {
+        service_id: serviceId,
+        ...(result.checkId ? { check_id: result.checkId } : {}),
+        ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+        ...(result.changes ? { changes: result.changes } : {}),
+      } : null;
+      const message = [result.reason || result.stderr || result.stdout || `${serviceId} failed`, evidence && `evidence: ${JSON.stringify(evidence)}`].filter(Boolean).join('\n');
+      writeLocalFailureReport(repoRoot, serviceId, args.scope, result.kind || 'failed', message, result);
+      fail(result.checkId || result.kind || 'check_failed', message);
       failedEarlier = serviceId;
     }
   }

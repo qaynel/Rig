@@ -75,6 +75,9 @@ test('source, command CLI and installed CI publish only safe aggregate output', 
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(path.join(__dirname, '../rig', entry.from), dest);
   }
+  for (const name of fs.readdirSync(path.join(__dirname, '../rig/lib')).filter(name => name.endsWith('.js'))) {
+    fs.copyFileSync(path.join(__dirname, '../rig/lib', name), path.join(target, '.rig/lib', name));
+  }
   for (const argv of [
     [path.join(__dirname, '../rig/materialize.js'), 'check', '--target', target, '--service', 'fixture'],
     [path.join(target, '.rig/bin/check.js'), '--service', 'fixture'],
@@ -89,6 +92,44 @@ test('source, command CLI and installed CI publish only safe aggregate output', 
   const clean = spawnSync(process.execPath, [path.join(__dirname, '../rig/materialize.js'), 'check', '--target', target, '--service', 'fixture'], { cwd: target, encoding: 'utf8', env: { ...process.env, CI: 'true' } });
   assert.equal(clean.status, 0, clean.stderr);
   assert.deepEqual(JSON.parse(clean.stdout), { verdict: 'pass', counts: {}, rules: [] });
+}));
+
+test('Slack credentials in failing task output and report metadata stay private through local and CI routes', () => h.withRepo(target => {
+  const { spawnSync } = require('node:child_process');
+  const { runChecks } = require('../rig/lib/checks');
+  const { redact } = require('../rig/lib/redaction');
+  const token = ['xoxb-', '123456789012-123456789012-abcdefghijklmnop'].join('');
+  assert.doesNotMatch(redact(token), /xoxb|abcdefghijklmnop/);
+
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, 'fail.js'), `process.stdout.write('xoxb-' + '123456789012-123456789012-abcdefghijklmnop'); process.stderr.write('xoxb-' + '123456789012-123456789012-abcdefghijklmnop'); process.exit(2);`);
+  const metadata = { service_id: token, summary: token, reason: token, evidence: [{ provider: token }], fix_context: [token] };
+  fs.writeFileSync(path.join(target, '.rig/service-bindings.json'), JSON.stringify({ fixture: { repo: [process.execPath, 'fail.js'], diff: [process.execPath, 'fail.js'] } }));
+  const local = runChecks(target, { service: 'fixture', scope: 'repo' });
+  assert.equal(local.status, 1);
+  assert.doesNotMatch(JSON.stringify(local), /xoxb|abcdefghijklmnop/);
+  const reports = fs.readdirSync(path.join(target, 'reports/rig')).map(file => fs.readFileSync(path.join(target, 'reports/rig', file), 'utf8'));
+  assert.ok(reports.length);
+  assert.ok(reports.every(report => !/xoxb|abcdefghijklmnop/.test(report)));
+  assert.doesNotMatch(JSON.stringify(require('../rig/lib/reports').projectForAgent(metadata)), /xoxb|abcdefghijklmnop/);
+  assert.doesNotMatch(JSON.stringify(require('../rig/lib/reports').projectCiResult(metadata)), /xoxb|abcdefghijklmnop/);
+
+  for (const entry of require('../rig/lib/baseline-payload').entries) {
+    const dest = path.join(target, entry.to);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(path.join(__dirname, '../rig', entry.from), dest);
+  }
+  for (const name of fs.readdirSync(path.join(__dirname, '../rig/lib')).filter(name => name.endsWith('.js'))) {
+    fs.copyFileSync(path.join(__dirname, '../rig/lib', name), path.join(target, '.rig/lib', name));
+  }
+  const oldCi = process.env.CI;
+  try {
+    process.env.CI = 'true';
+    const child = spawnSync(process.execPath, [path.join(target, '.rig/bin/check.js'), '--service', 'fixture', '--scope', 'repo'], { cwd: target, encoding: 'utf8' });
+    assert.equal(child.status, 1, child.stderr);
+    assert.equal(child.stderr, '');
+    assert.doesNotMatch(child.stdout, /xoxb|abcdefghijklmnop/);
+  } finally { if (oldCi === undefined) delete process.env.CI; else process.env.CI = oldCi; }
 }));
 
 test('root and installed MCP keep harness finding sentinels outside returned context', async () => {

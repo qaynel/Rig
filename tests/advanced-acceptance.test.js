@@ -174,7 +174,7 @@ test('AT-SHAPE-4 deps auto-pull razor-scoped; selected grade preserved', () => {
   });
 });
 
-test('AT-SHAPE-5 surfaceless run is vacuous green + logged reason', () => {
+test('AT-SHAPE-5 a UI-less repository still needs an executable binding or reports a gap', () => {
   withRepo((target) => {
     createRepoFixture('ui-less-library', target);
     const { reviewPath } = allowedReview(target);
@@ -190,17 +190,15 @@ test('AT-SHAPE-5 surfaceless run is vacuous green + logged reason', () => {
       scope: 'diff',
       service: 'testing.e2e.browser-automation',
     });
-    assertSubcommandAvailable(run, 'check');
+    assert.equal(run.status, 1, 'missing executable checks must not become a UI-heuristic pass');
     const reportsDir = path.join(target, 'reports', 'rig');
-    assert.ok(fs.existsSync(reportsDir), 'vacuous run must write reports/rig/');
-    const reports = fs.readdirSync(reportsDir).filter((f) => f.endsWith('.json'));
-    assert.ok(reports.length >= 1, 'expected a vacuous report file');
-    const report = readJson(path.join(reportsDir, reports[0]));
-    assert.equal(report.status, 'vacuous');
-    assert.match(
-      String(report.reason || report.summary || ''),
-      /nothing to pin|no (browser|ui)|surfaceless/i,
-    );
+    const reports = fs.readdirSync(reportsDir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => readJson(path.join(reportsDir, f)));
+    const report = reports.find((entry) => entry.service_id === 'testing.e2e.browser-automation');
+    assert.ok(report, 'missing executable binding must write an actionable report');
+    assert.equal(report.status, 'coverage_gap');
+    assert.match(report.reason, /repository-selected binding|missing.*binding/i);
   });
 });
 
@@ -563,7 +561,7 @@ test('AT-B4 adopt-time security verdict enum + fail-closed QUARANTINE', () => {
   });
 });
 
-test('AT-B5 testing run-scope + failure/vacuous reports; routine passes omitted', () => {
+test('AT-B5 testing run-scope reports missing executable checks without routine pass reports', () => {
   withRepo((target) => {
     createRepoFixture('ui-less-library', target);
     const { reviewPath } = allowedReview(target);
@@ -579,27 +577,23 @@ test('AT-B5 testing run-scope + failure/vacuous reports; routine passes omitted'
     );
 
     const diffRun = check(target, { scope: 'diff' });
-    assertSubcommandAvailable(diffRun, 'check');
+    assert.equal(diffRun.status, 1, 'missing selected check must fail in diff scope');
     const repoRun = check(target, { scope: 'repo' });
-    assertSubcommandAvailable(repoRun, 'check');
+    assert.equal(repoRun.status, 1, 'missing selected check must fail in repo scope');
 
     const reportsDir = path.join(target, 'reports', 'rig');
-    assert.ok(fs.existsSync(reportsDir), 'reports/rig must exist for actionable outcomes');
-    const reports = fs
-      .readdirSync(reportsDir)
+    const reports = fs.readdirSync(reportsDir)
       .filter((f) => f.endsWith('.json'))
       .map((f) => readJson(path.join(reportsDir, f)));
+    assert.ok(reports.length, 'missing checks must create actionable reports');
     for (const report of reports) {
-      assert.ok(
-        ['failed', 'vacuous', 'coverage_gap'].includes(report.status),
-        `routine passes must be omitted; got status=${report.status}`,
-      );
+      assert.ok(['failed', 'coverage_gap', 'not_run_due_to_dependency'].includes(report.status),
+        `routine passes must be omitted; got status=${report.status}`);
       assert.ok(report.service_id, 'report must name service_id');
       assert.ok(report.reason || report.summary || report.fix_context, 'report needs fix context');
     }
-    assert.ok(
-      reports.some((r) => r.status === 'vacuous'),
-      'UI-less E2E must produce a vacuous report',
-    );
+    assert.ok(reports.some((r) => r.status === 'coverage_gap'));
+    assert.equal(reports.some((r) => r.status === 'vacuous'), false,
+      'lack of UI recommendations cannot suppress required executable checks');
   });
 });

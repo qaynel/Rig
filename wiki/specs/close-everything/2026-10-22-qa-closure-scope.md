@@ -91,3 +91,16 @@ Node HTTPS timeouts without weakening production fetch checks. Its
 `HANDOFF.md` records final review/delivery and model-transition commands.
 Never reset Git, delete prior evidence, use the human key, manufacture a
 receipt, or automatically retry a capped reviewer.
+
+## Fresh binding review follow-up — 2026-10-22 17:46 UTC
+
+The exact signed candidate full gate passes main1292/Pi15/MCP6 and coherence66/66,
+but the fresh review rejected seven shipping-seam gaps. Read the latest
+[review trace](../../reasoning/2026-10-22-final-review-seven-shared-seam-gaps.md)
+and [report](../../sources/reviews/v6.0.0-2026-10-22-qa-candidate.failed.review.json).
+Affected acceptance-ledger rows are reopened. Three non-overlapping Luna
+lanes now repair installed dispatch/evidence, inspection/journal integrity,
+and harness/privacy. Root integrates and reruns exact-byte final verification.
+No push, passing receipt or deployment is claimed; no new human signing
+requirement has been found. Earlier closure statements above are superseded
+by this review result and the current ledger.

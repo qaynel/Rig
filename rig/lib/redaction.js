@@ -2,7 +2,7 @@
 
 const os = require('node:os');
 
-const SECRET_RE = /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[opsur]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/gi;
+const SECRET_RE = /(?<![a-z0-9])sk-[a-z0-9-]{10,}|gh[opsur]_[a-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[a-z0-9-]{10,}|-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/gi;
 
 function redact(text) {
   const home = os.homedir();

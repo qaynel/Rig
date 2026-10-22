@@ -4,7 +4,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { validateReview, VERDICTS, KNOWN_RESTRICTIONS } = require('./catalog');
+const { validateReview, VERDICTS, KNOWN_RESTRICTIONS, findingVerdict } = require('./catalog');
+const { readManifest } = require('./journal-records');
 const { discoverHosts, SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { canonical } = require('./skill-catalog');
 const { SECRET_RE, redact } = require('./redaction');
@@ -203,22 +204,16 @@ function inventoryMetadata(text, fallback) {
 }
 
 function inventoryOwnedPaths(root) {
-  const manifest = path.join(root, '.rig', 'install-manifest.jsonl');
-  if (!fs.existsSync(manifest)) return new Set();
+  const { records } = readManifest(root);
+  if (records.truncated_tail) throw new Error('inventory: install manifest has a truncated final record');
   const latest = new Map();
-  for (const line of fs.readFileSync(manifest, 'utf8').split('\n')) {
-    if (!line.trim()) continue;
-    try {
-      const record = JSON.parse(line);
-      if (record.path && record.state === 'applied') latest.set(record.path, record);
-    } catch {
-      // A malformed journal cannot make untrusted repository content disappear
-      // from inventory; it simply contributes no ownership claim.
-    }
+  for (const record of records) {
+    if (record.path && record.state) latest.set(record.path, record);
   }
-  return new Set([...latest.values()]
-    .filter((record) => record.ownership === 'create_owned' || record.ownership === 'replace_owned')
-    .map((record) => record.path));
+  return new Map([...latest.values()]
+    .filter((record) => record.state === 'applied'
+      && ['create_owned', 'replace_owned'].includes(record.ownership))
+    .map((record) => [record.path, record.digest]));
 }
 
 // Structural only: reads known harness locations, returns declared metadata,
@@ -243,7 +238,6 @@ function inventoryHarness(target) {
     const prior = seenRealPaths.get(real);
     if (prior && prior !== rawRel) throw new Error(`inventory: duplicate real path alias ${prior} and ${rawRel}`);
     seenRealPaths.set(real, rawRel);
-    if (ownedPaths.has(rawRel)) continue;
     let stat;
     try {
       stat = fs.statSync(file);
@@ -254,6 +248,14 @@ function inventoryHarness(target) {
     if (!stat.isFile()) {
       warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: 'not a regular file' });
       continue;
+    }
+    if (stat.size <= MAX_BYTES && ownedPaths.has(rawRel)) {
+      try {
+        if (sha256(fs.readFileSync(file)) === ownedPaths.get(rawRel)) continue;
+      } catch (error) {
+        warnings.push({ path: inventoryString(rawRel), code: 'unreadable', detail: inventoryString(error.code || 'unreadable') });
+        continue;
+      }
     }
     if (stat.size > MAX_BYTES) {
       warnings.push({ path: inventoryString(rawRel), code: 'oversized', detail: `exceeds ${MAX_BYTES} byte limit` });
@@ -354,34 +356,12 @@ function inspectTarget(target, { host, hosts } = {}) {
   };
 }
 
-function hostReview(inspection) {
-  if (!inspection || typeof inspection !== 'object' || inspection.schema_version !== 1) {
-    throw new Error('host-review: malformed inspection');
-  }
-  if (typeof inspection.harness_digest !== 'string' || !inspection.harness_digest) {
-    throw new Error('host-review: stale or malformed inspection');
-  }
-  const verdict = adoptionVerdict({
-    findings: inspection.findings || [],
-    unverifiable: inspection.unverifiable || [],
-  });
-  const detected = Array.isArray(inspection.hosts) && inspection.hosts[0] && inspection.hosts[0].id;
-  return {
-    schema_version: 1,
-    host: inspection.host || detected || 'generic',
-    harness_digest: inspection.harness_digest,
-    verdict: verdict.verdict,
-    findings: inspection.findings || [],
-    restrictions: inspection.restrictions || [],
-    unverifiable: inspection.unverifiable || [],
-  };
-}
-
 function adoptionVerdict({ findings = [], unverifiable = [] } = {}) {
-  const blockers = findings.filter((f) => f && f.severity === 'blocker');
-  if (blockers.length) return { verdict: 'BLOCK', findings: blockers, unverifiable };
+  const verdict = findingVerdict(findings);
+  if (verdict === 'BLOCK') return { verdict, findings, unverifiable };
+  if (verdict === 'QUARANTINE') return { verdict, findings, unverifiable };
   if (unverifiable.length) return { verdict: 'QUARANTINE', findings, unverifiable };
-  return { verdict: 'ALLOW', findings, unverifiable };
+  return { verdict, findings, unverifiable };
 }
 
 function hostReview(inspection) {

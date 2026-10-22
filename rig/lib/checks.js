@@ -193,9 +193,6 @@ function runChecksLocal(target, { scope, service = null } = {}) {
     : { order: Object.keys(bindings), services: {} };
   const order = receipt.order || Object.keys(bindings);
   const selected = service ? [service] : order;
-  const { loadCatalog, servicesOf } = require('./catalog');
-  const catalog = loadCatalog();
-  const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
   let failedEarlier = null;
   let failure = null;
   let diagnostics = '';
@@ -213,39 +210,8 @@ function runChecksLocal(target, { scope, service = null } = {}) {
       continue;
     }
 
-    const serviceMeta = byId[serviceId];
     const binding = bindings[serviceId];
-    const needsUi =
-      serviceMeta &&
-      (serviceMeta.applicability?.not_recommended_without || []).includes('ui-surface');
-    const hasUi =
-      fs.existsSync(path.join(target, 'index.html')) ||
-      fs.existsSync(path.join(target, 'public')) ||
-      (() => {
-        try {
-          const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'));
-          return /react|vue|svelte|angular|browser|next/i.test(JSON.stringify(pkg));
-        } catch {
-          return false;
-        }
-      })();
-
-    if (needsUi && !hasUi) {
-      writeReport(target, {
-        service_id: serviceId,
-        scope,
-        status: 'vacuous',
-        summary: 'Nothing to pin here.',
-        reason: serviceMeta.surfaceless_reason || 'No browser or UI surface was detected.',
-        fix_context: ['surfaceless'],
-      });
-      continue;
-    }
-
     if (!binding) {
-      // rig: dependency-only slices predate runnable slice bindings; keep their
-      // legacy skip until the first authored dependency adapter defines one.
-      if (!service && !receipt.services?.[serviceId] && !receipt.installed?.[serviceId]) continue;
       writeReport(target, {
         service_id: serviceId,
         scope,
@@ -254,8 +220,10 @@ function runChecksLocal(target, { scope, service = null } = {}) {
         reason: 'No service binding is installed',
         fix_context: ['coverage_gap'],
       });
-      const missingBinding = { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
-      return diagnostics ? { ...missingBinding, stderr: `${diagnostics}${missingBinding.stderr}` } : missingBinding;
+      const missingBinding = { status: 1, kind: 'coverage_gap', stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
+      failedEarlier = serviceId;
+      failure = missingBinding;
+      continue;
     }
     if (ci && serviceId === 'development.code-quality.lint-format' && binding.grade !== 'maximal') continue;
     const result = runBinding(serviceId, binding, scope, target);
@@ -272,9 +240,18 @@ function runChecksLocal(target, { scope, service = null } = {}) {
           require('./reports').ALLOWED.has(result.kind) ? result.kind : (result.error && /ENOENT/.test(String(result.error))) ? 'command_not_found' : 'failed',
         summary: `${serviceId} failed`,
         reason,
+        evidence: result.changed_paths || result.changes ? [{
+          ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+          ...(result.changes ? { changes: result.changes } : {}),
+        }] : [],
         fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
       });
-      failure = { status: 1, kind: result.kind || 'failed', checkId: result.checkId, stdout: result.stdout || '', stderr: result.stderr || `${reason}\n` };
+      failure = {
+        status: 1, kind: result.kind || 'failed', checkId: result.checkId,
+        stdout: result.stdout || '', stderr: result.stderr || `${reason}\n`,
+        ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+        ...(result.changes ? { changes: result.changes } : {}),
+      };
     }
   }
 

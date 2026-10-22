@@ -17,6 +17,19 @@ const KNOWN_RESTRICTIONS = new Set([
   'require-human-approval',
 ]);
 
+function findingVerdict(findings) {
+  let quarantine = false;
+  for (const finding of findings) {
+    if (finding && (finding.severity === 'blocker' || finding.kind === 'suspicious_directive')) return 'BLOCK';
+    if (!finding || ['secret_shaped', 'oversized', 'unreadable', 'non-utf8', 'malformed-frontmatter'].includes(finding.kind)) {
+      quarantine = true;
+    } else if (!['info', 'warning', 'minor'].includes(finding.severity)) {
+      quarantine = true;
+    }
+  }
+  return quarantine ? 'QUARANTINE' : 'ALLOW';
+}
+
 function loadCatalog(catalogPath = CATALOG_PATH) {
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   validateCatalog(catalog);
@@ -126,6 +139,8 @@ function validateReview(review, options = {}) {
   if (!Array.isArray(review.unverifiable)) throw new Error('unverifiable must be array');
 
   let verdict = review.verdict;
+  const detected = findingVerdict(review.findings);
+  if (detected === 'BLOCK' || (detected === 'QUARANTINE' && verdict !== 'BLOCK')) verdict = detected;
   const unknown = [];
   for (const restriction of review.restrictions) {
     const id = restriction && restriction.id;
@@ -367,6 +382,7 @@ module.exports = {
   validateRigJson,
   validateReview,
   isReviewAccepted,
+  findingVerdict,
   selectFromMenu,
   authorshipReport,
   authoredBodiesReport,

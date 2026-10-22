@@ -434,6 +434,7 @@ Relevant existing seams:
 | `rig/lib/receipt.js` | Tracks Basic-owned MCP output | Reference during adoption; add a separate catalogue receipt. |
 | `rig/lib/plan.js` / `apply.js` | Typed plan, verified approval, lock, CAS, record-before-mutate journal, receipt last | Keep selected-service grafts on this transaction spine; pending records reconcile before new work. |
 | `rig/lib/checks.js` / generated `check.js` | Selected bindings run without a shell; missing generic Policy bindings are explicit nonzero coverage gaps | Keep source and installed outcomes aligned as further leaves earn repository adapters. |
+| `rig/lib/journal-records.js` | Shared strict journal parser, legacy/current readers and installation-state calculation | Inventory, report publication and lifecycle use the same authority; inventory excludes only unchanged applied owned bytes. |
 | `rig/lib/host-capabilities.js` | 19 entries; hook support includes unintegrated vendor surfaces | Keep one axis-local registry; emit only host-consumed artifacts with byte-landing proof and name every missing adapter as `not_integrated`. |
 | `rig/lib/ci-adapters.js` | Six provider render/apply paths, separate approval, additive preservation, journaled writes, and idempotent first-wire matrix | Retain provider-native bounded insertion and fail closed when a shape cannot be classified safely. |
 | `docs/agent-portability.md` | Actual host instruction/plugin surface | Starting evidence for the capability registry. |

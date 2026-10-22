@@ -2,9 +2,13 @@
 
 const { spawnSync } = require('node:child_process');
 const { scanHarnessText } = require('./inspect');
+const { SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 
-const HARNESS_NAMES = new Set(['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.cursorrules', 'copilot-instructions.md']);
-function isHarness(rel) { return HARNESS_NAMES.has(rel) || ['.cursor/', '.claude/', '.agents/', '.kiro/', '.github/instructions/', '.github/copilot-instructions.md'].some((prefix) => rel.startsWith(prefix)); }
+const LEGACY_HARNESS_PREFIXES = ['.cursor/', '.claude/', '.agents/', '.kiro/', '.github/instructions/'];
+function isHarness(rel) {
+  return Object.hasOwn(INSTRUCTION_FILE_HOSTS, rel) || LEGACY_HARNESS_PREFIXES.some((prefix) => rel.startsWith(prefix)) ||
+    SCAN_ROOTS.some(({ root }) => rel === root || rel.startsWith(`${root}/`));
+}
 
 function stagedFiles(target) {
   const changed = spawnSync('git', ['diff', '--cached', '--name-only', '-z'], {

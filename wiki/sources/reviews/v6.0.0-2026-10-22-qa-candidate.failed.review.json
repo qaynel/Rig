@@ -1,0 +1,48 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/baseline-payload.js:3-8; rig/lib/check-runner.js:435; rig/catalog/baseline/check.js:85",
+      "detail": "The installed runner calls require('./service-catalogue').runNativeService, but the baseline payload omits service-catalogue.js. Read-only projection of both default and active payloads confirms .rig/lib/check-runner.js exists while .rig/lib/service-catalogue.js does not. Active delivery puts another copy under .rig/runtime/rig/lib, which cannot satisfy this relative require. Thus ordinary Path B native-service bindings fail with MODULE_NOT_FOUND through the installed hook/CI command. tests/catalogue-all-services.test.js and catalogue-installed.test.js import source modules or call the source onboarding handler, so their successful service checks do not prove this installed entry point."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/inspect.js:27-36,380-414; rig/lib/catalog.js:117-145",
+      "detail": "scanHarnessText emits suspicious_directive, secret_shaped and oversized findings without severity. adoptionVerdict blocks only findings whose severity equals 'blocker', quarantines only the separate unverifiable list, and otherwise returns ALLOW. A read-only call using actual suspicious detector output produced hostReview.verdict='ALLOW' and isReviewAccepted=true. Oversized inspection findings likewise do not populate unverifiable. The public host-review producer therefore admits unsafe or unverified harnesses. The AT-B5 test supplies a synthetic severity:'blocker' object instead of driving detector output, missing this incompatible seam."
+    },
+    {
+      "severity": "major",
+      "category": "architecture",
+      "anchor": "rig/lib/git-dispatch.js:6-7; rig/lib/policy-baseline.js:78-116; rig/lib/host-capabilities.js SCAN_ROOTS",
+      "detail": "Commit/CI harness classification duplicates a smaller path list instead of using the authoritative registry. Read-only evaluation confirms isHarness returns false for .windsurf/rules/x.md and .clinerules/x.md, although onboarding inventories both roots. It also omits hooks/, .github/agents/, .opencode/agents/, .devin/skills/, .gemini/extensions/ and .swival/skills/. These files bypass sanitation filtering and the required semantic-review roster, so a newly staged malicious instruction there need not fail either control. Existing installed-hook tests primarily seed root AGENTS.md and do not cover this boundary."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/redaction.js:5-11; rig/lib/guard.js FLOOR_PATTERN; rig/lib/check-runner.js withDiagnostics; rig/lib/reports.js writeReport",
+      "detail": "The deterministic secret floor recognizes Slack xox[baprs]- tokens, but the shared SECRET_RE/redact implementation does not. A harmless Slack-shaped sentinel matched FLOOR_PATTERN and survived redact byte-for-byte. Consequently a failing task printing that token can expose it through default local runner output and persisted reports; structural metadata can expose it too. This violates the default matched-content boundary even though Git secret detection recognizes the same credential family."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "rig/lib/checks.js:233-248",
+      "detail": "Before examining or executing the binding, source dispatch converts any service needing a UI signal into vacuous success when its package-name heuristic finds no UI. The catalogue marks browser automation executable, so this bypasses executable-first behavior and ignores an explicitly supplied real binding. The following missing-binding branch also silently continues for dependency-only receipt entries. Installed check.js instead executes the binding or reports a missing-binding gap. Recommendations therefore become execution gates, required checks disappear, and source versus installed outcomes contradict each other."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/inspect.js:205-221,247; rig/lib/lifecycle.js parseJournalRecords",
+      "detail": "inventoryOwnedPaths implements a separate permissive journal reader: malformed records are caught and ignored, and any applied record naming create_owned or replace_owned excludes its path from inventory without validating its structure or comparing its recorded digest with current bytes. A changed Rig-created instruction can therefore disappear from drift observation, and a planted ownership row can hide repository content. Other journal readers correctly reject corruption, but prepare and inventory verification use this weaker authority. This contradicts both fail-closed verification and the shared-journal closure claim."
+    },
+    {
+      "severity": "major",
+      "category": "testability",
+      "anchor": "rig/catalog/baseline/check.js:85-94; rig/lib/checks.js:265-277; tests/remediation-installed-boundaries.test.js installedRun",
+      "detail": "The shared runner returns changed_paths and before/after changes after a mutating task, but the real installed CLI retains only a rule and reason and writes no failure report. Source runChecks also omits those fields from its report and returned failure. Thus the public commands lose the exact mutation evidence required by AT-LF-11 and actionable local reporting. The regression named 'installed CI stops after a timed-out mutating check' calls the installed runBinding export inside a custom JSON-printing wrapper, bypassing check.js, so its evidence assertions cannot detect this public-output loss."
+    }
+  ],
+  "unresolved": []
+}

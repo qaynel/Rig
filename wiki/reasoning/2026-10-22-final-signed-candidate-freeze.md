@@ -3,7 +3,7 @@ date: 2026-10-22
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-22-owner-signature-verified-qa-verification
 tags: verification, review, signing
 summary: All eighteen findings have reviewed regression evidence and the oracle verifies16 files/95 cases; freeze the final candidate, rerun npm, obtain the binding receipt, then push PR153 and check its exact head.
