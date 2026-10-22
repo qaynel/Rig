@@ -835,7 +835,13 @@ no findings; a failure has at least one and stops before Evidence replay.
 Missing or inconsistent outcomes leave Context incomplete. Every Policy and
 Evidence command is checked for source-byte and mode changes immediately after
 execution; mutation stops subsequent commands and returns exact path and
-before/after evidence without restoring over the changed file.
+before/after evidence without restoring over the changed file. Both public
+source and installed commands retain that evidence in ignored redacted local
+reports, including CI workspaces; emitted CI output remains aggregate-only.
+Linux preserves actual child signal status through a bounded supervisor result
+separate from task output, and keeps private device/proc mounts usable by nested
+tools. Recommendation signals never suppress an explicitly selected executable
+binding; a missing ordered binding remains a nonpassing coverage gap.
 
 The disposition is `executable` (AD-15): the commodity signals are real
 repo-adapted processes run under §9.4, attempted first, never a fabricated

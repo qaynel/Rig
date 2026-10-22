@@ -239,8 +239,13 @@ node rig/materialize.js --target <repo> --manifest <basic-config.json>
 - Repository tasks run with isolated environment, filesystem/network restrictions
   and resource ceilings; unavailable isolation is a named non-passing result.
   Undeclared network access is denied. Read-only mutation halts later commands.
+  Linux execution requires Bubblewrap and enabled user namespaces; missing
+  prerequisites refuse execution. CI runner setup installs and probes them.
 - Reports under `reports/rig/` include failed, vacuous, gaps, and distinct
-  abnormal endings. CI publishes only verdict, counts and rule identities.
+  abnormal endings. Source and installed commands retain changed paths and
+  before/after digests after mutation, including timeout failures, and record
+  dependent checks as not run. Local reports remain ignored and redacted;
+  CI publishes only verdict, counts and rule identities, without report uploads.
 - First-enable history scanning accepts only SHA-pinned official Gitleaks
   8.30.1 binaries for macOS/Linux arm64/x64. Missing/untrusted binaries,
   shallow history, malformed output or changed refs fail closed. Install the

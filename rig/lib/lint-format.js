@@ -569,10 +569,12 @@ function runCommand(argv, {
   // watcher itself hanging.
   const task = taskCommandSpec({
     target, cwd, argv, env: isolatedTaskEnv(), network,
+    captureOutputLimit: outputLimit || 1024 * 1024,
   });
   if (task.unavailable) return { exit_code: 1, status: task.unavailable, output_digest: digest('') };
   const outer = spawnGuardedSync(process.execPath, [
-    MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout), task.command, ...task.args,
+    MEMORY_GUARD_SCRIPT, resultFile, String(memoryLimitMb), String(effectiveTimeout),
+    ...(task.captureSignal ? ['--capture-signal', String(outputLimit || 1024 * 1024)] : []), task.command, ...task.args,
   ], {
     cwd: target,
     env: task.env,
@@ -600,6 +602,7 @@ function runCommand(argv, {
   return {
     exit_code: meta.code == null ? 1 : meta.code,
     status: meta.killed_for || (meta.signal ? 'signalled' : 'completed'),
+    ...(meta.signal ? { signal: meta.signal } : {}),
     output_digest: digest(output),
   };
 }

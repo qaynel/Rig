@@ -159,6 +159,7 @@ test('all six actual task endings remain nonpassing in persisted reports and CI 
     ['missing_dependency', [process.execPath, '-e', ''], { dependencies: ['rig-privacy-missing-dependency-614'] }],
     ['partial_output', [process.execPath, '-e', 'process.stdout.write("output truncated")'], { maxOutputBytes: 1 }],
   ];
+  assert.equal(runCommand([process.execPath, '-e', ''], { cwd: target, memoryLimitMb: null, maxOutputBytes: 1 }).status, 'completed');
   for (const [expected, argv, options] of cases) {
     const ending = runCommand(argv, { cwd: target, memoryLimitMb: null, ...options });
     assert.equal(ending.status, expected);

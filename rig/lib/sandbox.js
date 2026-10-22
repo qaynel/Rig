@@ -18,6 +18,7 @@ const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnGuardedSync } = require('./spawn-guarded');
+const { SIGNAL_SUPERVISOR_SOURCE, parseSignalResult } = require('./memory-guarded-exec');
 
 const PROBE_TIMEOUT_MS = 8000;
 const DEFAULT_ENV_KEYS = ['PATH', 'TMPDIR', 'LANG', 'LC_ALL', 'TZ'];
@@ -75,7 +76,7 @@ function nodeReadDirs() {
   return [path.dirname(path.dirname(real)), path.dirname(real)];
 }
 
-function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd = outDir, protectedDirs = [], network = false }) {
+function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd = outDir, protectedDirs = [], network = false, captureSignal = false, captureOutputLimit = 1024 * 1024 }) {
   if (kind === 'sandbox-exec') {
     return {
       command: sandboxToolPath('sandbox-exec'),
@@ -125,7 +126,8 @@ function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd =
   }
 
   const writable = new Set(withRealPaths(...(outDirs || [outDir])));
-  const exposedSystem = systemDirs.filter((dir) => fs.existsSync(dir)).map((dir) => path.resolve(dir));
+  const exposedSystem = ['/dev', '/proc', ...systemDirs]
+    .filter((dir) => fs.existsSync(dir)).map((dir) => path.resolve(dir));
   for (const dir of withRealPaths(...readDirs)) {
     if (writable.has(dir) || exposedSystem.some((base) => dir === base || dir.startsWith(`${base}${path.sep}`))) continue;
     args.push('--ro-bind', dir, dir);
@@ -133,7 +135,8 @@ function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd =
   for (const dir of withRealPaths(outDir)) args.push('--bind', dir, dir);
   for (const dir of withRealPaths(...(outDirs || []))) if (dir !== fs.realpathSync(outDir)) args.push('--bind', dir, dir);
   for (const dir of protectedDirs) if (fs.existsSync(dir)) args.push('--ro-bind', dir, dir);
-  args.push('--chdir', cwd, '--', ...(argv || [process.execPath, script]));
+  const launch = captureSignal ? [process.execPath, '-e', SIGNAL_SUPERVISOR_SOURCE, '--', String(captureOutputLimit), ...(argv || [process.execPath, script])] : (argv || [process.execPath, script]);
+  args.push('--chdir', cwd, '--', ...launch);
   return { command: sandboxToolPath('bwrap'), args };
 }
 
@@ -214,7 +217,7 @@ function taskPath(env = {}) {
   return [...native, env.PATH ?? process.env.PATH ?? ''].filter(Boolean).join(path.delimiter);
 }
 
-function taskCommandSpec({ target, cwd, argv, env = {}, network = false, trustedReadDirs = [] }) {
+function taskCommandSpec({ target, cwd, argv, env = {}, network = false, trustedReadDirs = [], captureOutputLimit = 1024 * 1024 }) {
   const detected = detectSandboxSync();
   if (!detected.available) return { unavailable: detected.code, reason: detected.reason };
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-task-runtime-'));
@@ -240,6 +243,7 @@ function taskCommandSpec({ target, cwd, argv, env = {}, network = false, trusted
   const systemDirs = process.platform === 'darwin'
     ? ['/System/Library', '/Library/Apple/System/Library', '/Library/Developer/CommandLineTools/usr/lib', '/Library/Developer/CommandLineTools/usr/share', '/usr/lib', '/usr/bin', '/bin', '/sbin', '/dev', ...toolPaths]
     : ['/usr/lib', '/usr/lib64', '/usr/bin', '/bin', '/sbin', '/dev'];
+  const captureSignal = detected.kind === 'bwrap';
   const spec = commandFor(detected.kind, {
     outDir: target,
     outDirs: [target, scratch],
@@ -249,12 +253,14 @@ function taskCommandSpec({ target, cwd, argv, env = {}, network = false, trusted
     home: os.homedir(),
     argv,
     network,
+    captureSignal,
+    captureOutputLimit,
   });
-  return { ...spec, env: taskEnv, scratch, cleanup: () => fs.rmSync(scratch, { recursive: true, force: true }) };
+  return { ...spec, env: taskEnv, scratch, captureSignal, captureOutputLimit, cleanup: () => fs.rmSync(scratch, { recursive: true, force: true }) };
 }
 
 function runTaskSandboxed(options) {
-  const spec = taskCommandSpec(options);
+  const spec = taskCommandSpec({ ...options, captureOutputLimit: options.maxBuffer || 1024 * 1024 });
   if (spec.unavailable) return { status: 1, stdout: '', stderr: spec.reason, unavailable: spec.unavailable };
   let result;
   try {
@@ -263,16 +269,26 @@ function runTaskSandboxed(options) {
       env: spec.env,
       encoding: 'utf8',
       timeout: options.timeoutMs,
-      maxBuffer: options.maxBuffer,
+      // rig: reserve separate envelope headroom; the supervisor enforces the
+      // original per-stream task-output ceiling before encoding its result.
+      maxBuffer: spec.captureSignal ? Math.ceil((options.maxBuffer || 1024 * 1024) * 8 / 3) + 4096 : options.maxBuffer,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
   } finally { spec.cleanup(); }
+  const task = spec.captureSignal ? parseSignalResult(result.stdout) : null;
+  const expectedStatus = task?.outputLimitExceeded ? 1 : task?.code;
+  const metadataMatches = task && result.status === expectedStatus;
+  const stdout = task?.stdout ?? (spec.captureSignal ? '' : result.stdout || '');
+  const stderr = task?.stderr ?? (result.stderr || '');
+  const outputLimitExceeded = Boolean(task?.outputLimitExceeded);
+  const captureFailure = spec.captureSignal && (!metadataMatches || result.error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER');
   return {
-    status: result.status,
-    signal: result.signal,
-    stdout: result.stdout || '',
-    stderr: result.stderr || '',
-    error: result.error,
+    status: captureFailure ? 1 : task?.code ?? result.status,
+    signal: metadataMatches ? task.signal : result.signal,
+    stdout,
+    stderr,
+    error: result.error || (captureFailure ? { code: 'RIG_SIGNAL_METADATA_UNAVAILABLE' }
+      : outputLimitExceeded ? { code: 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER' } : undefined),
     unavailable: result.error?.code === 'ENOENT' ? 'sandbox-tool-missing' : null,
     scratch: spec.scratch,
   };

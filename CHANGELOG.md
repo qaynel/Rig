@@ -12,6 +12,10 @@
   user-owned host adapter collisions, and report uninstall verification from
   saved preimages. Document the review outcome and removal evidence in
   `docs/advanced/operator.md`.
+- Repair installed native-service dispatch, complete supported harness scanning,
+  shared secret redaction, strict inventory journal validation, and Linux
+  signal/child-process handling. Preserve actionable failure evidence through
+  public source and installed commands; document it in `docs/advanced/operator.md`.
 - Add exact-SHA clean-install E2E, weekly health checks, and release eligibility
   evidence.
 - Update `README.md`, `README.es.md`, `README.ko.md`, `docs/install.md`,

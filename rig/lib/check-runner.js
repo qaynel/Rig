@@ -34,6 +34,8 @@ function runArgv(command, argv, cwd, {
   timeoutMs = DEFAULT_TIMEOUT_MS,
   memoryLimitMb = DEFAULT_MEMORY_LIMIT_MB,
   env = isolatedTaskEnv(),
+  captureSignal = false,
+  captureOutputLimit = 1024 * 1024,
   cleanup,
 } = {}) {
   const resultFile = path.join(os.tmpdir(), `rig-check-mem-guard-${process.pid}-${crypto.randomBytes(6).toString('hex')}.json`);
@@ -42,6 +44,7 @@ function runArgv(command, argv, cwd, {
     resultFile,
     String(memoryLimitMb),
     String(timeoutMs),
+    ...(captureSignal ? ['--capture-signal', String(captureOutputLimit)] : []),
     command,
     ...argv,
   ], {
@@ -68,8 +71,9 @@ function runArgv(command, argv, cwd, {
     status: kind ? 1 : (meta.code == null ? 1 : meta.code),
     stdout: normalizeTaskOutput(outer.stdout),
     stderr: normalizeTaskOutput(outer.stderr),
+    ...(meta.signal ? { signal: meta.signal } : {}),
     error: outer.error || null,
-    ...(kind ? { kind, reason: `${kind}: command execution was stopped` } : {}),
+    ...(kind ? { kind, reason: `${kind}: command execution was stopped${meta.signal ? ` by ${meta.signal}` : ''}` } : {}),
   };
 }
 
@@ -263,6 +267,7 @@ function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
     argv: [command, ...argv],
     env: isolatedTaskEnv(),
     network: network === 'required',
+    captureSignal: true,
   });
   if (task.unavailable) {
     return {
@@ -274,7 +279,7 @@ function runConfiguredArgv(serviceId, target, command, argv, cwd, ...sources) {
     };
   }
   const result = {
-    ...runArgv(task.command, task.args, cwdPath, { ...limits, env: task.env, cleanup: task.cleanup }),
+    ...runArgv(task.command, task.args, cwdPath, { ...limits, env: task.env, captureSignal: task.captureSignal, captureOutputLimit: task.captureOutputLimit, cleanup: task.cleanup }),
     network_state: network,
   };
   if (network === 'undeclared') result.diagnostic = 'network capability undeclared; network is denied by default';

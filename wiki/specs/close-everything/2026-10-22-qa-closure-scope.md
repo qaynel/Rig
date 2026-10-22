@@ -104,3 +104,16 @@ and harness/privacy. Root integrates and reruns exact-byte final verification.
 No push, passing receipt or deployment is claimed; no new human signing
 requirement has been found. Earlier closure statements above are superseded
 by this review result and the current ledger.
+
+## Final repaired candidate — 2026-10-22 18:23 UTC
+
+The [final freeze trace](../../reasoning/2026-10-22-repaired-candidate-final-freeze.md)
+supersedes the earlier review-follow-up status. Seven shared-seam fixes have
+actual installed/source command proofs and independent cross-review; all18
+finding rows are reconciled. Actual Linux25/25+44/44 and final signed-network/
+signal/spawn-inventory15/15 pass; macOS integration55/55 and final signal/
+inventory12/12 pass. Original criteria and protected oracle remain unchanged,
+with signature16/95 valid. Final full npm and fresh binding review on the clean
+committed bytes remain before push; required checks must pass on PR153's exact
+head. No extra owner action is currently identified. See ignored recovery
+handoff for live logs, candidate digest, review command and model transition.

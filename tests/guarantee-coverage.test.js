@@ -246,7 +246,7 @@ test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and refuse
     const probe = path.join(target, 'network-check.js');
     fs.writeFileSync(probe, `
       const net = require('net');
-      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL']);
+      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL','ECONNREFUSED']);
       const done = (code) => process.exit(code);
       setTimeout(() => done(8), 800);
       const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
@@ -294,7 +294,7 @@ test('AT-PROC-1ac (RIG-145): runReadOnly confines each command and executes only
     fs.writeFileSync(probe, `
       const net = require('net');
       const granted = process.argv[2] === 'granted';
-      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL']);
+      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL','ECONNREFUSED']);
       const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => { socket.end(); process.exit(granted ? 0 : 9); });
       socket.on('error', (error) => process.exit(granted || !denied.has(error.code) ? 8 : 0));
       setTimeout(() => process.exit(7), 800);

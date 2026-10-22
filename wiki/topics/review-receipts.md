@@ -1,16 +1,8 @@
 # Review receipts
 
-The [cross-review checkpoint](../reasoning/2026-10-22-cross-review-dependent-reports.md) records the installed dependency-report repair (red/green10/10), independent integrity29/29, and the proven Linux signal-metadata root cause. The Linux private-channel fix is in flight; final release gates remain pending.
+The [repaired-candidate freeze](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) records all eighteen finding rows reconciled after seven binding-review repairs and actual Linux follow-ups. Signature16/95 is valid. Focused evidence includes Linux25/25+44/44, root public Linux34/34/macOS55/55 and final Linux signed-network/signal/inventory15/15. Final committed full npm, fresh exact-byte receipt and required exact-head PR checks remain delivery gates; no current release approval is claimed.
 
-The [Linux integration checkpoint](../reasoning/2026-10-22-linux-signal-taxonomy-integration.md) records macOS75/75, hygiene15/15 and spawn6/6 after all seven review fixes. Actual Linux24/26 exposes lost signal termination through the sandbox; its shared fix remains in flight before final freeze and verification.
-
-The [shared-seam integration checkpoint](../reasoning/2026-10-22-shared-seam-fixes-integration.md) records harness/privacy passes14+28+15, shared strict-parser extraction and installed public-command evidence in progress. The seven-gap review still blocks release until final integration and renewed exact-byte verification.
-
-The [fresh binding review](../reasoning/2026-10-22-final-review-seven-shared-seam-gaps.md) failed on seven shared shipping seams after the signed clean candidate passed full npm (main1292, Pi15, MCP6) and live tracker coherence66/66. The [rejected report](../sources/reviews/v6.0.0-2026-10-22-qa-candidate.failed.review.json) is preserved. Push is held; three Luna workers own installed dispatch/evidence, inspection/journal integrity, and harness/privacy fixes. No additional owner signature is needed. Re-freeze and rerun the full gate after repairs; earlier evidence does not certify changed bytes.
-
-The [final signed-candidate checkpoint](../reasoning/2026-10-22-final-signed-candidate-freeze.md) records reviewed evidence for all eighteen findings, the completed owner signature (16 files/95 cases), and a diagnostic full npm pass (main1284, Pi15, MCP6). Added installed-route proofs and workflow checks each pass8/8. Freeze/commit the final bytes, repeat the full gate, obtain the binding receipt, then push PR153 and require checks on its exact head. No passing fresh receipt or deployment is claimed here.
-
-The [closure scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) and [unchanged acceptance criteria with closure ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) hold the reviewed evidence map. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves commands and model recovery. The owner signing step is complete.
+The [scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) and [unchanged acceptance criteria with ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) hold evidence and remaining commands. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves model recovery. No new human signing step is required.
 
 ## What a receipt proves
 
@@ -20,7 +12,7 @@ The reviewer returns verdicts and findings. The wrapper computes digests, starts
 
 ## Current review state
 
-The [October 21 Codex review](../reasoning/2026-10-21-code-mode-binding-review-result.md) failed with four blockers and fourteen major findings. Its rejected report is retained at [the source JSON](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json). All eighteen findings now have reviewed closure evidence; a fresh exact-candidate binding review remains required after the final full gate. Preserve the existing author context and attempt counter (ten before that review). The acceptance requirements remain unchanged.
+The [October21 rejected review](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json) and [October22 seven-gap rejected report](../sources/reviews/v6.0.0-2026-10-22-qa-candidate.failed.review.json) are retained. The latter followed a green exact-candidate full gate1292+15+6 and exposed shipping seams that helper tests missed. Those seams now have real public-process proofs and cross-review repairs. No current passing receipt exists at this checkpoint. Preserve author context and counter11 for the necessary post-fix review; a pass is valid only on final unchanged bytes.
 
 The owner authorizes completing the existing scope without repeat permission prompts. The exact final binding review still follows the receipt path after the candidate is ready; preserve author context and counter. A provider usage limit means preserve logs and resume from the scope and handoff. It never changes a finding's status or authorizes an automatic retry.
 

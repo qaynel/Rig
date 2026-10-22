@@ -3,7 +3,7 @@ date: 2026-10-22
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-22-linux-signal-taxonomy-integration
 tags: verification, remediation, linux
 summary: Cross-review repairs the installed dependency not-run report gap with red/green10/10; Linux root cause is signal metadata lost by Bubblewrap, with private-channel preservation in flight.
