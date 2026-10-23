@@ -1,6 +1,6 @@
 # Changelog
 
-## [6.0.0] - Unreleased
+## [6.0.0] - 2026-10-24
 
 - Deliver Rig's agent workflow, catalogue services, and standards from the
   central corpus with adaptive onboarding.
