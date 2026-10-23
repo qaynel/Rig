@@ -572,7 +572,7 @@
       "source_kind": "core",
       "required": true,
       "source_rel": "rig/corpus/skills/onboarding/SKILL.md",
-      "tree_digest": "f048f56a7d27b2ecf534905609d3699f2e0301a4e5003169aac544a73b1c3e84"
+      "tree_digest": "4f018231165f19eeb54714195633755323586c870638b61fada5d2626e3c1fb7"
     },
     {
       "id": "rig-execution",

@@ -3,7 +3,7 @@ date: 2026-10-23
 source: agent
 topics: review-receipts, the-overhaul, user-presence-approvals
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-23-binding-review-integrated-proof
 tags: review, remediation, verification
 summary: Five binding-review defects have reviewed fixes and integrated host/Linux187/187 proof; final Path B126/126 plus Linux10/10, hygiene15/15 and inventory6/6 pass; commit/freeze and renew full gate/review before QA push.
