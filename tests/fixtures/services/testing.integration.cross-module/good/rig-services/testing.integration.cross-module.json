@@ -1,0 +1,10 @@
+{
+  "participating_modules": [
+    "orders",
+    "inventory"
+  ],
+  "interaction_cases": [
+    "order reserves stock"
+  ],
+  "stub_internal_contracts": false
+}

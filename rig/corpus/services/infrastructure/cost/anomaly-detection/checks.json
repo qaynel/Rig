@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cost.anomaly-detection",
+  "input": "rig-services/infrastructure.cost.anomaly-detection.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a cost baseline, deviation threshold and the missing-data flag are declared; it does not read real billing data.",
+  "offer": "Compare cost with a stable baseline and an explicit deviation threshold. Missing billing input is a gap, never evidence that spending is normal.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "cost_baseline",
+        "op": "nonempty",
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
+      }
+    ],
+    "mid": [
+      {
+        "field": "deviation_threshold_percent",
+        "op": "minimum",
+        "value": 25,
+        "reason": "Set the deviation threshold percent to at least 25. A tighter threshold alarms on ordinary variance, so choose a documented threshold of 25 or more."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_missing_billing_data",
+        "op": "equals",
+        "value": false,
+        "reason": "Set ignoring missing billing data to false. Absent billing input is a gap, never evidence that spending is normal, so surface it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "anomaly-detection-slice-floor",
+      "rule": {
+        "field": "cost_baseline",
+        "op": "nonempty",
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "anomaly-detection-slice-behavior-oracle",
+      "rule": {
+        "field": "cost_baseline",
+        "op": "nonempty",
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
+      }
+    },
+    "property-floor": {
+      "check_id": "anomaly-detection-slice-property-floor",
+      "rule": {
+        "field": "cost_baseline",
+        "op": "nonempty",
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "anomaly-detection-slice-mutation-floor",
+      "rule": {
+        "field": "cost_baseline",
+        "op": "nonempty",
+        "reason": "Declare the cost baseline anomalies are compared against. Without a stable baseline any figure looks normal, so record the reference period or amount."
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "sbom_format": "",
+  "components": [
+    "library@1.0.0"
+  ],
+  "omit_dependency_versions": false
+}

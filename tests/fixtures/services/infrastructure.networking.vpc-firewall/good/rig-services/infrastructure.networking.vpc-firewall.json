@@ -1,0 +1,7 @@
+{
+  "allowed_ingress": [
+    "443/tcp"
+  ],
+  "default_action": "deny",
+  "allow_world_admin_access": false
+}

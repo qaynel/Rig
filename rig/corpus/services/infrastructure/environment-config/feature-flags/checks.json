@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.feature-flags",
+  "input": "rig-services/infrastructure.environment-config.feature-flags.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms flag names, a rollback owner and the permanent-unowned flag are declared; it does not read live flag state.",
+  "offer": "Give feature flags an owner and a rollback route. Unowned permanent flags accumulate untested branches and should not pass as deliberate release controls.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "List the feature flags in use. Unlisted flags accumulate untested branches, so name each one."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_owner",
+        "op": "nonempty",
+        "reason": "Name who can roll each flag back. A flag without an owner cannot be turned off in an incident, so assign one."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "permanent_unowned_flags",
+        "op": "equals",
+        "value": false,
+        "reason": "Set permanent unowned flags to false. Flags that outlive their purpose are dead branches, so remove them or assign an owner."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "feature-flags-slice-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "List the feature flags in use. Unlisted flags accumulate untested branches, so name each one."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "feature-flags-slice-behavior-oracle",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "List the feature flags in use. Unlisted flags accumulate untested branches, so name each one."
+      }
+    },
+    "property-floor": {
+      "check_id": "feature-flags-slice-property-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "List the feature flags in use. Unlisted flags accumulate untested branches, so name each one."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "feature-flags-slice-mutation-floor",
+      "rule": {
+        "field": "flag_names",
+        "op": "nonempty",
+        "reason": "List the feature flags in use. Unlisted flags accumulate untested branches, so name each one."
+      }
+    }
+  }
+}

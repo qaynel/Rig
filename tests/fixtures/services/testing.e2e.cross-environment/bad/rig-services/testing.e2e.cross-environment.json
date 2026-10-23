@@ -1,0 +1,7 @@
+{
+  "environments": [],
+  "shared_cases": [
+    "install and run"
+  ],
+  "assume_platform_equivalence": false
+}

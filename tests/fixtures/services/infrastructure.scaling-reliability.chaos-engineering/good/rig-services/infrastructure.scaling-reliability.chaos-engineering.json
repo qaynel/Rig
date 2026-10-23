@@ -1,0 +1,9 @@
+{
+  "fault_scenarios": [
+    "worker unavailable"
+  ],
+  "stop_conditions": [
+    "error budget exhausted"
+  ],
+  "production_experiment_without_approval": false
+}

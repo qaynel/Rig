@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.container.service-mesh",
+  "input": "rig-services/infrastructure.container.service-mesh.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms mesh services, transport security and the plaintext-fallback flag are declared; it does not show traffic is actually encrypted.",
+  "offer": "Enumerate mesh participants and require authenticated encrypted service traffic. Plaintext fallback undermines the declared mesh boundary and must not be implicit.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
+      }
+    ],
+    "mid": [
+      {
+        "field": "transport_security",
+        "op": "nonempty",
+        "reason": "Declare the transport security mode, such as mutual TLS. Without it service traffic may be unauthenticated, so state the required mode."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_plaintext_fallback",
+        "op": "equals",
+        "value": false,
+        "reason": "Set allowing plaintext fallback to false. A silent downgrade undermines the declared boundary, so reject unencrypted connections."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "service-mesh-slice-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "service-mesh-slice-behavior-oracle",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
+      }
+    },
+    "property-floor": {
+      "check_id": "service-mesh-slice-property-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "service-mesh-slice-mutation-floor",
+      "rule": {
+        "field": "mesh_services",
+        "op": "nonempty",
+        "reason": "List the services that participate in the mesh. A service outside the list is outside the boundary, so enumerate each participant."
+      }
+    }
+  }
+}

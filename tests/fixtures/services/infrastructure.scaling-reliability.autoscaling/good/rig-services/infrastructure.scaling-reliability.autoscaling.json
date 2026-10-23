@@ -1,0 +1,5 @@
+{
+  "scaling_metric": "queue depth",
+  "maximum_replicas": 10,
+  "scale_to_zero_without_wakeup": false
+}

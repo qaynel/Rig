@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.architecture.design-review",
+  "input": "rig-services/development.architecture.design-review.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms interfaces, tradeoffs and an unresolved-tradeoff count are declared; it does not show that the review found the real design flaws.",
+  "offer": "Review interfaces and explicit tradeoffs against the intended outcomes. Resolve contradictory design assumptions before implementation instead of treating an approved diagram as proof of correctness.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces under review by name. An empty list means no boundary was reviewed, so name each interface the change touches before implementation starts."
+      }
+    ],
+    "mid": [
+      {
+        "field": "tradeoffs",
+        "op": "nonempty",
+        "reason": "Record each tradeoff as a choice with the alternative rejected. A missing list means the review accepted the diagram as correct, so write the tradeoffs the interfaces force."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unresolved_tradeoffs",
+        "op": "equals",
+        "value": 0,
+        "reason": "Unresolved tradeoffs must be exactly 0. A nonzero count means contradictory design assumptions reached implementation, so resolve or reject them in the review first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "design-review-slice-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces under review by name. An empty list means no boundary was reviewed, so name each interface the change touches before implementation starts."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "design-review-slice-behavior-oracle",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces under review by name. An empty list means no boundary was reviewed, so name each interface the change touches before implementation starts."
+      }
+    },
+    "property-floor": {
+      "check_id": "design-review-slice-property-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces under review by name. An empty list means no boundary was reviewed, so name each interface the change touches before implementation starts."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "design-review-slice-mutation-floor",
+      "rule": {
+        "field": "reviewed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces under review by name. An empty list means no boundary was reviewed, so name each interface the change touches before implementation starts."
+      }
+    }
+  }
+}

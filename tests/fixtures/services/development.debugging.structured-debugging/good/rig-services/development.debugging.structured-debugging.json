@@ -1,0 +1,9 @@
+{
+  "reproduction_steps": [
+    "run failing case"
+  ],
+  "ranked_hypotheses": [
+    "invalid input reaches parser"
+  ],
+  "change_before_reproduction": false
+}

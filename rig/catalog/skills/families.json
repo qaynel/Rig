@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "families": [
+    {
+      "id": "browser-and-research",
+      "title": "Browser and research",
+      "description": "Browser operation, authenticated sessions, extraction, and remote pairing."
+    },
+    {
+      "id": "debugging",
+      "title": "Debugging",
+      "description": "Root-cause diagnosis and bounded repair."
+    },
+    {
+      "id": "delivery-and-operations",
+      "title": "Delivery and operations",
+      "description": "Shipping, deployment, post-deploy observation, upgrades, and platform maintenance."
+    },
+    {
+      "id": "design-and-experience",
+      "title": "Design and experience",
+      "description": "Product and interface design generation and visual evaluation."
+    },
+    {
+      "id": "implementation-and-orchestration",
+      "title": "Implementation and orchestration",
+      "description": "Minimal implementation, routing, delegation, and coordinated execution."
+    },
+    {
+      "id": "knowledge-and-documentation",
+      "title": "Knowledge and documentation",
+      "description": "Context handoff, project memory, documentation, and retrospectives."
+    },
+    {
+      "id": "requirements",
+      "title": "Requirements",
+      "description": "Intent discovery, grilling, and question calibration."
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "description": "Independent code, pull-request, health, and developer-experience review."
+    },
+    {
+      "id": "safety-and-security",
+      "title": "Safety and security",
+      "description": "Destructive-action controls, edit boundaries, and security review."
+    },
+    {
+      "id": "specification-and-planning",
+      "title": "Specification and planning",
+      "description": "Executable specifications and plan interrogation."
+    },
+    {
+      "id": "testing",
+      "title": "Testing",
+      "description": "TDD, QA, evaluation, and performance regression testing."
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.dependency-management.deprecation-triage",
+  "input": "rig-services/development.dependency-management.deprecation-triage.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms deprecated APIs, replacement owners and the deadline-handling flag are declared; it does not show the migration is done.",
+  "offer": "Identify each deprecated API and assign a migration owner. Removal deadlines remain explicit; warning suppression is not a substitute for replacing a disappearing dependency.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "List each deprecated API in use by name and version. A missing list means a disappearing dependency goes unnoticed, so enumerate them."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_owners",
+        "op": "nonempty",
+        "reason": "Name an owner for each replacement. Unowned migrations stall until removal breaks the build, so assign a person or team."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_removal_deadline",
+        "op": "equals",
+        "value": false,
+        "reason": "Set ignoring the removal deadline to false. Suppressing a warning does not stop the dependency disappearing, so track the removal date explicitly."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "deprecation-triage-slice-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "List each deprecated API in use by name and version. A missing list means a disappearing dependency goes unnoticed, so enumerate them."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "deprecation-triage-slice-behavior-oracle",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "List each deprecated API in use by name and version. A missing list means a disappearing dependency goes unnoticed, so enumerate them."
+      }
+    },
+    "property-floor": {
+      "check_id": "deprecation-triage-slice-property-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "List each deprecated API in use by name and version. A missing list means a disappearing dependency goes unnoticed, so enumerate them."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "deprecation-triage-slice-mutation-floor",
+      "rule": {
+        "field": "deprecated_apis",
+        "op": "nonempty",
+        "reason": "List each deprecated API in use by name and version. A missing list means a disappearing dependency goes unnoticed, so enumerate them."
+      }
+    }
+  }
+}

@@ -51,7 +51,7 @@ test('TP-X.1 materializer writes nothing outside the target repo', () => {
   });
 });
 
-test('TP-X.2 installed repo contains static files only, with no Rig runtime', () => {
+test('TP-X.2 installed repo contains shared corpus and mandatory safety baseline without optional runtime packages', () => {
   withRepo((target) => {
     execFileSync('git', ['init', '-q'], { cwd: target, stdio: 'pipe' });
     fs.chmodSync(path.join(target, '.git', 'description'), 0o755);
@@ -60,8 +60,9 @@ test('TP-X.2 installed repo contains static files only, with no Rig runtime', ()
     materialize(target, { hosts: ['claude', 'cursor', 'codex'], mcp_servers: [exampleServer] });
 
     const files = relFiles(target).filter((rel) => rel !== '.rig-manifest.test.json' && !existingFiles.has(rel));
-    // The Tier 1 payload never ships an installer or runtime. The swallowed
-    // skill catalogue and plumbing tree (roadmap step 3) intentionally carry
+    // The shared payload includes the mandatory Git/CI safety check runtime.
+    // Optional installer/runtime packages remain absent. The curated
+    // skill catalogue and plumbing tree intentionally carry
     // per-skill support assets — `bin/`, `scripts/`, `daemon/`, and a few
     // per-tool `package.json` files under `.rig/plumbing/lib/*/`. Scope this
     // no-runtime check to the Tier-1 surface by excluding those roots.
@@ -70,20 +71,26 @@ test('TP-X.2 installed repo contains static files only, with no Rig runtime', ()
       || /(?:^|\/)\.claude\/skills\/rig-[^/]+\//.test(rel)
       || /(?:^|\/)\.agents\/skills\/rig-[^/]+\//.test(rel);
     assert.deepEqual(
-      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel) && !isVendored(rel)),
+      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel)
+        && rel !== '.rig/lib/service-catalogue.js' && !isVendored(rel)),
       [],
-      'no installer/runtime package is copied into the Tier-1 surface',
+      'no optional installer/runtime package is copied into the shared surface',
     );
+    assert.ok(files.includes('.rig/lib/service-catalogue.js'), 'the mandatory native-service check runtime is part of the baseline');
 
-    // The Tier-1 surface exposes only the git hook shim and the guard script
-    // as executables. The vendored plumbing tree and per-skill support dirs
-    // (roadmap step 3) ship executable helpers by design; the same
-    // isVendored boundary above scopes this executable-count check to Tier 1.
-    const allowedExecutable = new Set(['.git/hooks/pre-commit', '.rig/hooks/secret-guard.sh']);
+    // Only the hook and the explicit mandatory baseline entrypoints execute
+    // outside the curated skill/plumbing support directories.
+    const allowedExecutable = new Set([
+      '.git/hooks/pre-commit', '.rig/hooks/secret-guard.sh',
+      '.rig/bin/check.js', '.rig/bin/check-copies.js',
+    ]);
+    for (const rel of ['.rig/bin/check.js', '.rig/bin/check-copies.js', '.rig/lib/policy-baseline.js']) {
+      assert.ok(files.includes(rel), `${rel} is part of the mandatory baseline`);
+    }
     const unexpectedExecutables = files.filter((rel) => {
       const mode = fs.statSync(path.join(target, rel)).mode;
       return (mode & 0o111) !== 0 && !allowedExecutable.has(rel) && !isVendored(rel);
     });
-    assert.deepEqual(unexpectedExecutables, [], 'only the git hook shim and guard script are executable in the Tier-1 surface');
+    assert.deepEqual(unexpectedExecutables, [], 'only the hook, guard and mandatory baseline entrypoints execute in the shared surface');
   });
 });

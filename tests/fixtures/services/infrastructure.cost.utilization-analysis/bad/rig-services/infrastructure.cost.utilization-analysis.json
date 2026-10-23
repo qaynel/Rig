@@ -1,0 +1,5 @@
+{
+  "observed_resources": [],
+  "observation_window_days": 7,
+  "decide_from_single_peak": false
+}

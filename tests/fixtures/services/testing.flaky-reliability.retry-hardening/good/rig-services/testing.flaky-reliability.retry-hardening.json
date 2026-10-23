@@ -1,0 +1,7 @@
+{
+  "retryable_failures": [
+    "connection reset"
+  ],
+  "maximum_attempts": 3,
+  "retry_assertion_failures": false
+}

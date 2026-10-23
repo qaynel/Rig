@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.storage.tiering-lifecycle",
+  "input": "rig-services/infrastructure.storage.tiering-lifecycle.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms storage classes, retention days and the early-delete flag are declared; it does not read bucket policies.",
+  "offer": "Define storage transitions and retention from the data contract. Lifecycle rules must not destroy data before its retention requirement expires.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "List the storage classes data moves between. Unnamed tiers make transitions unreviewable, so name each class."
+      }
+    ],
+    "mid": [
+      {
+        "field": "retention_days",
+        "op": "minimum",
+        "value": 30,
+        "reason": "Set retention to at least 30 days, or the data contract's period. Deleting earlier breaks the retention promise, so declare the minimum."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_before_retention",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deleting before retention to false. A lifecycle rule that destroys data early cannot be undone, so align expiry with retention."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "tiering-lifecycle-slice-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "List the storage classes data moves between. Unnamed tiers make transitions unreviewable, so name each class."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "tiering-lifecycle-slice-behavior-oracle",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "List the storage classes data moves between. Unnamed tiers make transitions unreviewable, so name each class."
+      }
+    },
+    "property-floor": {
+      "check_id": "tiering-lifecycle-slice-property-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "List the storage classes data moves between. Unnamed tiers make transitions unreviewable, so name each class."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "tiering-lifecycle-slice-mutation-floor",
+      "rule": {
+        "field": "storage_classes",
+        "op": "nonempty",
+        "reason": "List the storage classes data moves between. Unnamed tiers make transitions unreviewable, so name each class."
+      }
+    }
+  }
+}

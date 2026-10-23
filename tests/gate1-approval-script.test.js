@@ -103,6 +103,78 @@ test('lock requires explicit confirmation of the exact oracle digest before sign
   assert.equal(gate.verifySignature(root, gate.oracleMessage(root)).principal, 'gate1-owner');
 });
 
+test('re-signing regenerates the signers file as a single pinned principal line', () => {
+  const root = tempRoot();
+  const key = makeKey(root);
+  const allowed = path.join(root, 'wiki/gate1/gate1.allowed-signers');
+
+  // A file carrying hand-written provenance and a stale key, as it looks today.
+  fs.writeFileSync(allowed, [
+    '# key-class: plain file-based ssh-ed25519 key, not hardware-backed.',
+    '# Rotation to a Secure-Enclave key was authorized but not adopted (2026-09-02).',
+    '',
+    'gate1-owner namespaces="rig-gate1" ssh-ed25519 AAAAstale placeholder',
+    '',
+  ].join('\n'));
+
+  approve.approveGate1(root, {
+    check: false,
+    env: { RIG_GATE1_SIGNING_KEY: key },
+  });
+
+  // The file is a generated pin, not a hand-maintained register: one line, no prose.
+  const after = fs.readFileSync(allowed, 'utf8');
+  const lines = after.split('\n').filter((line) => line.trim());
+  assert.equal(lines.length, 1, 'the signers file must be exactly one generated principal line');
+  assert.match(lines[0], /^gate1-owner namespaces="rig-gate1" ssh-ed25519 /);
+  assert.doesNotMatch(after, /^#/m, 'commentary belongs in the signing hub, not the generated pin');
+  assert.doesNotMatch(after, /AAAAstale/, 'stale principal key was not replaced');
+  assert.equal(gate.verifySignature(root, gate.oracleMessage(root)).principal, 'gate1-owner');
+});
+
+test('a second principal line cannot ratify a forged oracle', () => {
+  const root = tempRoot();
+  const allowed = path.join(root, 'wiki/gate1/gate1.allowed-signers');
+  approve.approveGate1(root, {
+    check: false,
+    env: { RIG_GATE1_SIGNING_KEY: makeKey(root) },
+  });
+  assert.equal(gate.verifySignature(root, gate.oracleMessage(root)).principal, 'gate1-owner');
+
+  // An agent appends its own key, leaving the owner line untouched, then moves
+  // the goalpost and re-signs the new oracle with the key it just generated.
+  const agentKey = path.join(root, 'agent-key');
+  assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', agentKey]).status, 0);
+  fs.appendFileSync(allowed, `rig-bot namespaces="rig-gate1" ${fs.readFileSync(`${agentKey}.pub`, 'utf8').trim()}\n`);
+  fs.writeFileSync(path.join(root, 'wiki/gate1/acceptance.md'), '# acceptance: goalpost moved by the agent\n');
+  const forged = path.join(root, 'forged-message');
+  fs.writeFileSync(forged, gate.oracleMessage(root));
+  assert.equal(spawnSync('ssh-keygen', ['-Y', 'sign', '-f', agentKey, '-n', 'rig-gate1', forged]).status, 0);
+  fs.renameSync(`${forged}.sig`, path.join(root, 'wiki/gate1/gate1.sig'));
+
+  assert.throws(
+    () => gate.verifySignature(root, gate.oracleMessage(root)),
+    /one principal|single principal|exactly one/i,
+    'a second signer must invalidate the pin outright, not be tried as an alternative',
+  );
+});
+
+test('an unexpected non-owner principal line is not silently dropped', () => {
+  const root = tempRoot();
+  const key = makeKey(root);
+  const allowed = path.join(root, 'wiki/gate1/gate1.allowed-signers');
+  fs.writeFileSync(
+    allowed,
+    '# provenance\nintruder namespaces="rig-gate1" ssh-ed25519 AAAAother key\n',
+  );
+
+  assert.throws(
+    () => approve.approveGate1(root, { check: false, env: { RIG_GATE1_SIGNING_KEY: key } }),
+    /unexpected principal|non-owner principal|intruder/i,
+    'a foreign principal line should stop the ceremony, not vanish',
+  );
+});
+
 test('unlock is refused because an armed gate cannot be disarmed', () => {
   assert.throws(
     () => approve.main(['unlock']),

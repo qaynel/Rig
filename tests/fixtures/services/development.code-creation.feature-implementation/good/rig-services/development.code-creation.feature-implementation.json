@@ -1,0 +1,10 @@
+{
+  "acceptance_cases": [
+    "creates an item",
+    "rejects invalid input"
+  ],
+  "change_scope": [
+    "src/items.js"
+  ],
+  "compatibility": "preserve-existing-behavior"
+}

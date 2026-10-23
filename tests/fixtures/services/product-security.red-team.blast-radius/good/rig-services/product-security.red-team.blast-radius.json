@@ -1,0 +1,9 @@
+{
+  "privilege_scopes": [
+    "read single tenant"
+  ],
+  "isolation_boundaries": [
+    "tenant id enforced"
+  ],
+  "cross_tenant_access": false
+}

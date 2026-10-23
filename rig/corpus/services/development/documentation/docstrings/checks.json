@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.documentation.docstrings",
+  "input": "rig-services/development.documentation.docstrings.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms documented symbols, parameters and failure contracts are listed; it does not show the docstrings are accurate.",
+  "offer": "Document the externally visible parameters and failure behavior of public symbols. A reader must be able to use the function without reconstructing its implementation.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
+      }
+    ],
+    "mid": [
+      {
+        "field": "parameters",
+        "op": "nonempty",
+        "reason": "Document each public parameter's meaning and type. Missing parameter notes force callers to reverse-engineer inputs, so list them."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "failure_contract",
+        "op": "nonempty",
+        "reason": "Describe the failure behavior, such as raised errors or return codes. Without it a caller cannot handle failure, so state what each symbol does when it cannot succeed."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "docstrings-slice-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "docstrings-slice-behavior-oracle",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
+      }
+    },
+    "property-floor": {
+      "check_id": "docstrings-slice-property-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "docstrings-slice-mutation-floor",
+      "rule": {
+        "field": "documented_symbols",
+        "op": "nonempty",
+        "reason": "List the public symbols that carry docstrings. An empty list means callers must read the implementation, so name the documented functions and classes."
+      }
+    }
+  }
+}

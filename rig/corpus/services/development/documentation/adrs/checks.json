@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.documentation.adrs",
+  "input": "rig-services/development.documentation.adrs.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a decision, alternatives and consequences are written; it does not show the decision is sound or still current.",
+  "offer": "Record the chosen approach, credible alternatives and concrete consequences. A decision record should explain the tradeoff that shaped the system rather than restating the implementation.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "State the chosen approach in one decision. A record that restates the implementation explains nothing, so say what was chosen and why."
+      }
+    ],
+    "mid": [
+      {
+        "field": "alternatives",
+        "op": "nonempty",
+        "reason": "List the credible alternatives that were rejected. Without them the tradeoff is invisible, so name each option and why it lost."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "consequences",
+        "op": "nonempty",
+        "reason": "Record the concrete consequences of the decision, good and bad. Omitting them hides the cost the next maintainer inherits, so list what changes."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "adrs-slice-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "State the chosen approach in one decision. A record that restates the implementation explains nothing, so say what was chosen and why."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "adrs-slice-behavior-oracle",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "State the chosen approach in one decision. A record that restates the implementation explains nothing, so say what was chosen and why."
+      }
+    },
+    "property-floor": {
+      "check_id": "adrs-slice-property-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "State the chosen approach in one decision. A record that restates the implementation explains nothing, so say what was chosen and why."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "adrs-slice-mutation-floor",
+      "rule": {
+        "field": "decision",
+        "op": "nonempty",
+        "reason": "State the chosen approach in one decision. A record that restates the implementation explains nothing, so say what was chosen and why."
+      }
+    }
+  }
+}

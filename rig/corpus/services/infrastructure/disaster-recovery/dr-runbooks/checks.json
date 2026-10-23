@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.disaster-recovery.dr-runbooks",
+  "input": "rig-services/infrastructure.disaster-recovery.dr-runbooks.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms recovery steps, an exercise schedule and the ownerless-runbook flag are declared; it does not show the runbook was ever exercised.",
+  "offer": "A disaster-recovery runbook needs ordered steps, an owner and scheduled exercises. A document that has never been exercised cannot establish actual recoverability.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
+      }
+    ],
+    "mid": [
+      {
+        "field": "exercise_schedule",
+        "op": "nonempty",
+        "reason": "Declare how often the runbook is exercised. A document never exercised cannot establish recoverability, so set a schedule."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "runbook_without_owner",
+        "op": "equals",
+        "value": false,
+        "reason": "Set runbook without owner to false. An ownerless runbook goes stale, so name the accountable person or team."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dr-runbooks-slice-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dr-runbooks-slice-behavior-oracle",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
+      }
+    },
+    "property-floor": {
+      "check_id": "dr-runbooks-slice-property-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dr-runbooks-slice-mutation-floor",
+      "rule": {
+        "field": "recovery_steps",
+        "op": "nonempty",
+        "reason": "Write the ordered recovery steps. An unordered runbook fails under pressure, so list each step in sequence."
+      }
+    }
+  }
+}

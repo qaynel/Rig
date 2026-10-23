@@ -1,0 +1,102 @@
+name: exact-qa-release-eligibility
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Exact QA commit to prove (must equal current qa-prod head)'
+        required: true
+        type: string
+      receipt:
+        description: 'Review receipt JSON for this exact commit (contents of the file review-receipt.js wrote)'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.verify.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa-prod
+          persist-credentials: false
+      - id: verify
+        env:
+          REQUESTED_SHA: ${{ inputs.sha }}
+        run: |
+          test "$REQUESTED_SHA" = "$(git rev-parse HEAD)"
+          echo "sha=$REQUESTED_SHA" >> "$GITHUB_OUTPUT"
+  health:
+    needs: resolve
+    uses: ./.github/workflows/health.yml
+    permissions:
+      contents: read
+      issues: write
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
+  e2e:
+    needs: resolve
+    uses: ./.github/workflows/e2e.yml
+    permissions:
+      contents: read
+    with:
+      ref: ${{ needs.resolve.outputs.sha }}
+  eligibility:
+    needs: [resolve, health, e2e]
+    runs-on: ubuntu-latest
+    # check-coherence compares declared tracker transitions against live issues
+    # and refuses to skip that comparison in CI.
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa-prod
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Reject stale QA evidence
+        env:
+          PROVED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          test "$PROVED_SHA" = "$(git rev-parse HEAD)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Match the full-gate runner capability used by test.yml.
+      - name: Prepare task sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+      - name: Require a changelog entry for the release version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          grep -Eq "^## \\[${version}\\]([[:space:]]|$)" CHANGELOG.md
+      - name: Prove the change-management sequence in order
+        env:
+          # The receipt is written on the authoring box and passed in here. It
+          # cannot live in the repository: the implementation digest it binds
+          # hashes every publishable file, so committing it would change them.
+          RECEIPT_JSON: ${{ inputs.receipt }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$RECEIPT_JSON" > "$RUNNER_TEMP/review-receipt.json"
+          node scripts/check-deployment-gate.js --receipt "$RUNNER_TEMP/review-receipt.json"
+
+      - name: Record exact-SHA health and clean-install evidence
+        env:
+          PROVED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          printf '{"schema_version":1,"sha":"%s","status":"pass","run_id":"%s","health_and_clean_install":"pass"}\n' "$PROVED_SHA" "$GITHUB_RUN_ID" > "$RUNNER_TEMP/release-eligibility.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-eligibility-${{ needs.resolve.outputs.sha }}
+          path: ${{ runner.temp }}/release-eligibility.json
+          if-no-files-found: error

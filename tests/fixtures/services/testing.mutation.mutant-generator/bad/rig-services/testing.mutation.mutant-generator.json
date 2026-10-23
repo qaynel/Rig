@@ -1,0 +1,7 @@
+{
+  "mutation_operators": [],
+  "target_paths": [
+    "src/parser.js"
+  ],
+  "mutate_test_code": false
+}

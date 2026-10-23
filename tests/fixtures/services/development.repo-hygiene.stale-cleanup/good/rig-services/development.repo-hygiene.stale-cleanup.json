@@ -1,0 +1,9 @@
+{
+  "candidate_paths": [
+    "unused/generated.js"
+  ],
+  "reference_checks": [
+    "search callers"
+  ],
+  "delete_without_recovery": false
+}

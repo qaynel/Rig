@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.property-fuzz.invariant-identification",
+  "input": "rig-services/testing.property-fuzz.invariant-identification.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms invariants, an input domain and the derive-from-subject flag are declared; it does not run properties.",
+  "offer": "State invariants independently of the function being tested and bound the generated input domain. Computing the expectation with the same implementation hides shared defects.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
+      }
+    ],
+    "mid": [
+      {
+        "field": "input_domain",
+        "op": "nonempty",
+        "reason": "Bound the generated input domain. An unbounded domain explores nonsense, so declare the valid ranges."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "derive_expected_from_subject",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deriving expected values from the subject to false. Computing the expectation with the implementation proves nothing, so use an independent oracle."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "invariant-identification-slice-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "invariant-identification-slice-behavior-oracle",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
+      }
+    },
+    "property-floor": {
+      "check_id": "invariant-identification-slice-property-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "invariant-identification-slice-mutation-floor",
+      "rule": {
+        "field": "invariants",
+        "op": "nonempty",
+        "reason": "State the invariants independently of the code under test. Invariants computed by the subject hide shared defects, so write them from the specification."
+      }
+    }
+  }
+}

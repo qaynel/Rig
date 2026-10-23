@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.performance-load.perf-regression-ci",
+  "input": "rig-services/testing.performance-load.perf-regression-ci.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms tracked metrics, a regression budget and the ignore-failure flag are declared; it does not run CI.",
+  "offer": "Compare stable performance metrics with an explicit regression budget in CI. A breached budget must fail visibly rather than becoming a decorative chart.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
+      }
+    ],
+    "mid": [
+      {
+        "field": "regression_budget_percent",
+        "op": "minimum",
+        "value": 10,
+        "reason": "Set the regression budget percent, at least 10. A budget that is too tight flakes, so choose a stable threshold."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_threshold_failure",
+        "op": "equals",
+        "value": false,
+        "reason": "Set ignoring threshold failure to false. A breached budget must fail the build, otherwise it is a decorative chart."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "perf-regression-ci-slice-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "perf-regression-ci-slice-behavior-oracle",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
+      }
+    },
+    "property-floor": {
+      "check_id": "perf-regression-ci-slice-property-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "perf-regression-ci-slice-mutation-floor",
+      "rule": {
+        "field": "tracked_metrics",
+        "op": "nonempty",
+        "reason": "List the metrics tracked in CI. Untracked metrics cannot regress visibly, so name each one."
+      }
+    }
+  }
+}

@@ -4,9 +4,9 @@ const { SUPPORTED_HOSTS } = require('./config');
 const { assignVariants } = require('./variants');
 const { readReceipt } = require('./receipt');
 const { evaluateAction } = require('./enforcement');
+const { loadActivePolicy } = require('./policy');
 const { MCP_HOSTS } = require('./mcp-hosts');
 
-const BASELINE_NETWORK_POLICY_PATH = path.join(__dirname, '..', 'catalog', 'baseline', 'network-policy.json');
 
 const HOST_TIER = Object.fromEntries(SUPPORTED_HOSTS.map((host) => [host, 'B']));
 Object.assign(HOST_TIER, {
@@ -198,34 +198,26 @@ const RENDERERS = {
 };
 
 
-function baselineNetworkPolicy() {
-  return JSON.parse(fs.readFileSync(BASELINE_NETWORK_POLICY_PATH, 'utf8'));
-}
-
-function activeNetworkPolicy(target) {
-  const activePath = path.join(target, '.rig', 'network-policy.json');
-  if (!fs.existsSync(activePath)) return baselineNetworkPolicy();
-  try {
-    return JSON.parse(fs.readFileSync(activePath, 'utf8'));
-  } catch {
-    return baselineNetworkPolicy();
-  }
-}
-
-// MCP is never an enforcement bypass (host-coverage-spec §3.2, §4): a
-// network-capable (http-transport) MCP entry is evaluated through the exact
-// same `evaluateAction` engine as shell/web network access, against the
-// exact same active policy. The decision is recorded on the receipt; it does
-// not block config emission, since writing config is not itself the guarded
-// network action — the runtime hook that fires when the entry is used is.
+// ADVISORY ONLY. This records what the active policy would decide for an
+// http-transport MCP entry on the config receipt. It does not block config
+// emission and enforces nothing: Rig does not install the host runtime hook that
+// would deny the call when the entry is used, so that surface is reported as
+// available but not integrated (North star 12), never as protected. The
+// decision reads only the activated policy bundle; if that evidence is missing,
+// stale, or invalid the recorded decision is a named deny, never a default grant.
 function networkPolicyDecision(target, server, variant) {
   if (variant.transport !== 'http') return null;
-  const decision = evaluateAction(activeNetworkPolicy(target), {
-    surface: 'mcp',
-    category: 'network_access',
-    target: variant.url,
-  });
-  return { serverName: server.name, url: variant.url, decision: decision.decision, rule: decision.rule };
+  let decision;
+  try {
+    decision = evaluateAction(loadActivePolicy(target).policy, {
+      surface: 'mcp',
+      category: 'outbound_network',
+      target: variant.url,
+    });
+  } catch (err) {
+    decision = { decision: 'deny', rule: 'policy_unavailable', reason: err.message };
+  }
+  return { serverName: server.name, url: variant.url, decision: decision.decision, rule: decision.rule, advisory: true, ...(decision.reason ? { reason: decision.reason } : {}) };
 }
 
 const AUTO_WRITE_HOSTS = Object.keys(MCP_HOSTS).filter((host) => MCP_HOSTS[host].autoWrite && RENDERERS[host]);

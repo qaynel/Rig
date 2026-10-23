@@ -1,0 +1,7 @@
+{
+  "environments": [],
+  "intentional_differences": [
+    "instance count"
+  ],
+  "unrecorded_differences_allowed": false
+}

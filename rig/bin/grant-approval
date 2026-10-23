@@ -7,16 +7,21 @@ const { grantApproval } = require('../lib/policy');
 
 const target = process.argv[2] || process.cwd();
 const actionFile = process.argv[3];
+const proposalFile = process.argv[4];
+const approvalFile = process.argv[5];
 
-if (!actionFile || !fs.existsSync(actionFile)) {
-  console.error('Usage: grant-approval <target-dir> <action.json>');
+if (![actionFile, proposalFile, approvalFile].every(file => file && fs.existsSync(file))) {
+  console.error('Usage: grant-approval <target-dir> <action.json> <proposal.json> <signed-approval.json>');
   process.exit(1);
 }
 
 try {
   const action = JSON.parse(fs.readFileSync(actionFile, 'utf8'));
-  const result = grantApproval(target, action);
-  console.log(JSON.stringify(result, null, 2));
+  const result = grantApproval(target, action, {
+    proposal: JSON.parse(fs.readFileSync(proposalFile, 'utf8')),
+    approval: JSON.parse(fs.readFileSync(approvalFile, 'utf8')),
+  });
+  console.log(JSON.stringify(result.approval, null, 2));
 } catch (err) {
   console.error(`Error granting approval: ${err.message}`);
   process.exit(1);

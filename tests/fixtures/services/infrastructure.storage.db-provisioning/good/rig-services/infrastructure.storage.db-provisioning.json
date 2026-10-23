@@ -1,0 +1,5 @@
+{
+  "database_version": "16",
+  "access_scope": "private-network",
+  "public_database_endpoint": false
+}

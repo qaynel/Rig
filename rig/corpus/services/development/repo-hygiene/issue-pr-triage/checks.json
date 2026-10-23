@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.repo-hygiene.issue-pr-triage",
+  "input": "rig-services/development.repo-hygiene.issue-pr-triage.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms triage labels, owners and the close-without-disposition flag are declared; it does not show issues were actually triaged.",
+  "offer": "Route issues using meaningful labels and an accountable owner. Closing a report needs a written disposition or proving fix; inactivity alone does not resolve the problem.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses."
+      }
+    ],
+    "mid": [
+      {
+        "field": "responsible_owners",
+        "op": "nonempty",
+        "reason": "Name the owner responsible for each triage lane. Without an accountable owner reports stall, so assign people or teams."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "close_without_disposition",
+        "op": "equals",
+        "value": false,
+        "reason": "Set closing without a disposition to false. Inactivity alone does not resolve a report, so close only with a written reason or a proving fix."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "issue-pr-triage-slice-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "issue-pr-triage-slice-behavior-oracle",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses."
+      }
+    },
+    "property-floor": {
+      "check_id": "issue-pr-triage-slice-property-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "issue-pr-triage-slice-mutation-floor",
+      "rule": {
+        "field": "triage_labels",
+        "op": "nonempty",
+        "reason": "List the labels used to route issues. Unlabelled reports are not routed, so name the label set the repository uses."
+      }
+    }
+  }
+}

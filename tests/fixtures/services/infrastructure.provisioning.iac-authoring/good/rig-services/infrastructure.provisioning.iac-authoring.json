@@ -1,0 +1,7 @@
+{
+  "resource_names": [
+    "app-network"
+  ],
+  "state_backend": "encrypted-remote",
+  "apply_without_reviewed_plan": false
+}

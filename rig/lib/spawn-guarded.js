@@ -90,27 +90,32 @@ function executableAvailable(command, { cwd = process.cwd(), env = process.env }
   });
 }
 
+// A present binary or an empty child exiting 0 proves nothing: only a connection
+// the wrapper observably denies earns the isolation promise. The probe dials a
+// loopback port; unisolated it is refused or connects, isolated it cannot even
+// route (EPERM under the macOS profile, ENETUNREACH in a Linux private netns).
+const DENIED_CONNECT_CODES = new Set(['EPERM', 'EACCES', 'ENETUNREACH', 'ENETDOWN', 'EADDRNOTAVAIL']);
+const NETWORK_PROBE = "const s=require('net').connect({host:'127.0.0.1',port:1});"
+  + "s.on('connect',()=>{console.log('connected');process.exit(0)});"
+  + "s.on('error',(e)=>{console.log(e.code);process.exit(0)});"
+  + "setTimeout(()=>{console.log('timeout');process.exit(0)},800);";
+
+function deniesConnection(prefix) {
+  const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', NETWORK_PROBE], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+    timeout: 2000,
+  });
+  return result.status === 0 && DENIED_CONNECT_CODES.has(String(result.stdout || '').trim());
+}
+
 // Reuses one host capability probe for both interactive and installed runners.
-// A present binary is not enough: only a successful no-network child proves
-// this host can enforce the promise the caller is about to make.
+// Returns the wrapper prefix once it has denied a connection, else null.
 function networkIsolationPrefix() {
-  if (process.platform === 'linux') {
-    const prefix = ['unshare', '--user', '--map-root-user', '--net', '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  if (process.platform === 'darwin') {
-    const prefix = ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--'];
-    const result = spawnGuardedSync(prefix[0], [...prefix.slice(1), process.execPath, '-e', ''], {
-      stdio: 'ignore',
-      timeout: 1000,
-    });
-    return result.status === 0 ? prefix : null;
-  }
-  return null;
+  const prefix = process.platform === 'linux' ? ['unshare', '--user', '--map-root-user', '--net', '--']
+    : process.platform === 'darwin' ? ['sandbox-exec', '-p', NETWORK_SANDBOX_PROFILE, '--']
+      : null;
+  return prefix && deniesConnection(prefix) ? prefix : null;
 }
 
 function linuxPdeathCommand(command, args, forceLinuxWrapper = false, options = {}) {
@@ -208,4 +213,5 @@ module.exports = {
   linuxPdeathCommand,
   isolatedTaskEnv,
   networkIsolationPrefix,
+  deniesConnection,
 };

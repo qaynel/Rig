@@ -1,0 +1,9 @@
+{
+  "unit_suites": [
+    "parser"
+  ],
+  "integration_suites": [
+    "api database"
+  ],
+  "e2e_only_strategy": false
+}

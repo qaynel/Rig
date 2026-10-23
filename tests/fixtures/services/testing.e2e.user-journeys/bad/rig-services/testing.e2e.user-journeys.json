@@ -1,0 +1,7 @@
+{
+  "journeys": [],
+  "observable_outcomes": [
+    "item appears after refresh"
+  ],
+  "assert_only_page_loaded": false
+}

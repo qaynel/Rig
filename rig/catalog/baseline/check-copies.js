@@ -5,6 +5,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { containedPath } = require('../lib/path-safety');
+const { redact } = require('../lib/redaction');
+const { projectCiResult } = require('../lib/reports');
 
 // containedPath walks every intermediate path segment, not just the leaf --
 // a leaf-only symlink check (the previous implementation here) misses a
@@ -27,33 +29,68 @@ function main() {
   const root = path.resolve(__dirname, '..', '..');
   const mapPath = path.join(root, '.rig', 'sync-map.json');
   if (!fs.existsSync(mapPath)) {
-    process.exit(0);
+    return;
   }
-  const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
-  let failed = false;
-  for (const group of map.groups || []) {
-    const canonical = inspectInside(root, group.canonical, 'canonical');
-    if (!canonical.ok) {
-      console.error(canonical.reason);
-      failed = true;
-      continue;
-    }
-    const canonBytes = fs.readFileSync(canonical.abs);
-    for (const copyRel of group.copies || []) {
-      const copy = inspectInside(root, copyRel, 'copy');
-      if (!copy.ok) {
-        console.error(copy.reason);
-        failed = true;
+  const failures = [];
+  try {
+    const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    for (const group of map.groups || []) {
+      const canonical = inspectInside(root, group.canonical, 'canonical');
+      if (!canonical.ok) {
+        failures.push({ rule: safeReason(canonical.reason), message: localDiagnostic(canonical.reason) });
         continue;
       }
-      const copyBytes = fs.readFileSync(copy.abs);
-      if (!canonBytes.equals(copyBytes)) {
-        console.error(`byte drift: ${copyRel} != ${group.canonical}`);
-        failed = true;
+      const canonBytes = fs.readFileSync(canonical.abs);
+      for (const copyRel of group.copies || []) {
+        const copy = inspectInside(root, copyRel, 'copy');
+        if (!copy.ok) {
+          failures.push({ rule: safeReason(copy.reason), message: localDiagnostic(copy.reason) });
+          continue;
+        }
+        const copyBytes = fs.readFileSync(copy.abs);
+        if (!canonBytes.equals(copyBytes)) failures.push({
+          rule: 'byte_drift', message: redact(`byte drift: ${copyRel} != ${group.canonical}`),
+        });
       }
     }
+  } catch {
+    // rig: parsing and read errors disclose no user-controlled input or stack.
+    failures.push({ rule: 'check_failed' });
   }
-  process.exit(failed ? 1 : 0);
+  if (failures.length) {
+    if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+      process.stdout.write(`${JSON.stringify(projectCiResult({ status: 1, findings: failures }))}\n`);
+    } else {
+      for (const failure of failures) process.stderr.write(`${failure.message || safeLabel(failure.rule)}\n`);
+    }
+    process.exitCode = 1;
+  }
+}
+
+function safeReason(reason) {
+  if (reason.startsWith('out-of-root canonical path:')) return 'out_of_root_canonical_path';
+  if (reason.startsWith('missing canonical:')) return 'missing_canonical';
+  if (reason.startsWith('out-of-root copy path:')) return 'out_of_root_copy_path';
+  if (reason.startsWith('missing copy:')) return 'missing_copy';
+  return 'check_failed';
+}
+
+function localDiagnostic(reason) {
+  const pathValue = reason.slice(reason.indexOf(':') + 1).trim();
+  // Absolute paths can disclose a host identity or filesystem layout. Keep the
+  // failure kind locally, and retain redacted repo-relative locations.
+  return path.isAbsolute(pathValue) || path.win32.isAbsolute(pathValue)
+    ? safeLabel(safeReason(reason))
+    : redact(reason);
+}
+
+function safeLabel(rule) {
+  if (rule === 'byte_drift') return 'byte drift detected across sync group';
+  if (rule === 'out_of_root_canonical_path') return 'out-of-root canonical path';
+  if (rule === 'missing_canonical') return 'missing canonical';
+  if (rule === 'out_of_root_copy_path') return 'out-of-root copy path';
+  if (rule === 'missing_copy') return 'missing copy';
+  return 'exact-copy check failed';
 }
 
 if (require.main === module) main();

@@ -1,0 +1,9 @@
+{
+  "mocked_boundaries": [
+    "payment network"
+  ],
+  "real_components": [
+    "order service"
+  ],
+  "mock_unit_under_test": false
+}

@@ -2,6 +2,16 @@
 name: rig-grilling
 status: ready
 description: Establish business intent, acceptance criteria, and the testing infrastructure that checks them, then freeze that oracle under one signature before implementation.
+family: requirements
+tool: host-agent
+capability: requirements.intent-discovery
+guarantees:
+  - Establishes business intent and acceptance criteria before any code is written.
+  - Freezes the agreed oracle under one signature.
+overlap_tags:
+  - acceptance-criteria
+  - grilling
+  - intent-discovery
 ---
 
 # Grilling: the gate

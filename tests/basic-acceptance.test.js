@@ -101,6 +101,9 @@ test('round-trip: materializer reproduces the Tier-1 payload byte-for-byte', () 
     seed(viaBootstrap);
     seed(viaManifest);
     execFileSync('sh', [path.join(root, 'rig', 'bootstrap.sh'), '--tier', '1', '--target', viaBootstrap]);
+    require('./helpers/semantic-review').writeFixtureSemanticReview(viaBootstrap, {
+      reason: 'These fixture entrypoints consistently delegate selected Rig work to the shared router and native skill projections; no fixture instruction assigns a conflicting workflow or authority.',
+    });
     materialize(viaManifest, { mcp_servers: [] }); // hosts omitted ⇒ all supported (PD1d)
 
     const expected = tree(viaBootstrap);

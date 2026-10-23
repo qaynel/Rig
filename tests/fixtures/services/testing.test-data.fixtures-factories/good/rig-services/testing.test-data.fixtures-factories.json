@@ -1,0 +1,9 @@
+{
+  "fixture_defaults": [
+    "valid account"
+  ],
+  "explicit_variants": [
+    "expired account"
+  ],
+  "shared_mutable_state": false
+}

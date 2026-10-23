@@ -2,13 +2,23 @@
 name: rig-debugging
 status: ready
 description: Find root causes through a tight reproduction loop, ranked hypotheses, boundary evidence, and defense in depth.
+family: debugging
+tool: host-agent
+capability: debugging.root-cause-analysis
+guarantees:
+  - Finds the root cause through a reproduction loop before changing code.
+  - Ranks hypotheses against boundary evidence.
+overlap_tags:
+  - debugging
+  - defect
+  - root-cause
 ---
 
 # Systematic Debugging
 
 Before investigation, declare the files and systems in scope. **Do not edit
 outside that boundary. Stop and renegotiate scope first.** `[gstack]` This is a
-strong prose fallback for the gstack freeze hook; Tier 1 markdown cannot enforce
+strong prose fallback for the gstack freeze hook; instructions alone cannot enforce
 it at the tool boundary.
 
 ## Six Phases

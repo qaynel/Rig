@@ -1,0 +1,7 @@
+{
+  "changed_interfaces": [],
+  "affected_suites": [
+    "order contract"
+  ],
+  "select_by_filename_only": false
+}

@@ -1,0 +1,9 @@
+{
+  "format_command": [],
+  "lint_command": [
+    "npm",
+    "run",
+    "lint"
+  ],
+  "autofix_during_check": false
+}

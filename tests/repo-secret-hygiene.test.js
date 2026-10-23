@@ -24,6 +24,16 @@ const repoRoot = path.join(__dirname, '..');
 
 // Split at source so this file never contains a literal secret-shaped value.
 const s = (...parts) => parts.join('');
+const PATCH_EXAMPLES = new Set([
+  s('-placeholder filter passes obvious docs examples (e.g. `', 'AKIAIOSFODNN7', 'EXAMPLE', '`):'),
+  s('-// keys like ', 'AKIAIOSFODNN7', 'EXAMPLE', ' are bare tokens, so the guard still catches them.'),
+  s('-  /example/i, // ', 'AKIAIOSFODNN7', 'EXAMPLE', ' etc — AWS docs convention'),
+  s('-    // The JSON-escaped form ("private_key": "-----BEGIN ', 'PRIVATE KEY-----', '\\n...)'),
+]);
+
+function knownPatchExample(rel, line) {
+  return rel === 'rig/corpus/upstream/patches/shelf-overlay.patch' && PATCH_EXAMPLES.has(line);
+}
 
 const CONTENT_RULES = [
   ['pem-private-key', /-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----/],
@@ -89,6 +99,7 @@ function findings(root, files = publishableFiles(root)) {
     }
     if (body.includes(0)) continue; // binary
     body.toString('utf8').split(/\r?\n/).forEach((line, i) => {
+      if (knownPatchExample(rel, line)) return;
       for (const [rule, re] of CONTENT_RULES) {
         if (re.test(line)) hits.push(`${rel}:${i + 1}: ${rule}`);
       }
@@ -236,4 +247,11 @@ test('the Gate 1 signer artifacts carry public material only', () => {
       `${name} contains private key material and must never be committed`,
     );
   }
+});
+
+test('publishable patch files are scanned for secret-shaped additions', () => {
+  withTempRepo((target) => {
+    fs.writeFileSync(path.join(target, 'change.patch'), `+token=${s('AKIA', '0123456789ABCDEF')}\n`);
+    assert.ok(findings(target).some((hit) => hit.endsWith(': aws-access-key-id')));
+  });
 });

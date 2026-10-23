@@ -2,6 +2,16 @@
 name: rig-tdd
 status: ready
 description: Drive one behavior at a time through a strict red-green-refactor loop using agreed seams and non-tautological tests.
+family: testing
+tool: host-agent
+capability: testing.test-driven-development
+guarantees:
+  - Drives one observable behaviour through red, green, and refactor.
+  - Does not weaken the approved oracle.
+overlap_tags:
+  - tdd
+  - test-driven-development
+  - testing
 ---
 
 # TDD
@@ -28,7 +38,7 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 5. `[superpowers]` Run the test and relevant nearby suite; inspect the output.
    The inner loop is `npm run test:rig` or the single test file for the
    behavior under test — never the full `npm test` gate, which runs once,
-   right before push. `(RIG-124)`
+   right before push.
 6. `[superpowers]` Refactor production and local test artifacts now while all
    tests stay green. Do not defer local cleanup to review.
 7. Repeat for the next behavior.

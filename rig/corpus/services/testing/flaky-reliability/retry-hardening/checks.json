@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.flaky-reliability.retry-hardening",
+  "input": "rig-services/testing.flaky-reliability.retry-hardening.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms retryable failures, an attempt cap and the retry-assertions flag are declared; it does not execute retries.",
+  "offer": "Retry only explicitly transient failures with a bounded attempt count. Repeating a failed assertion until it passes changes the test contract and hides deterministic defects.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
+      }
+    ],
+    "mid": [
+      {
+        "field": "maximum_attempts",
+        "op": "minimum",
+        "value": 3,
+        "reason": "Cap attempts at a bounded number, at least 3 declared. An unbounded retry masks permanent failure, so set the limit."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "retry_assertion_failures",
+        "op": "equals",
+        "value": false,
+        "reason": "Set retrying assertion failures to false. Repeating a failed assertion until it passes changes the test contract, so retry infrastructure errors only."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "retry-hardening-slice-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "retry-hardening-slice-behavior-oracle",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
+      }
+    },
+    "property-floor": {
+      "check_id": "retry-hardening-slice-property-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "retry-hardening-slice-mutation-floor",
+      "rule": {
+        "field": "retryable_failures",
+        "op": "nonempty",
+        "reason": "List the failure types that may be retried, such as network timeouts. Retrying everything hides real defects, so name transient causes only."
+      }
+    }
+  }
+}

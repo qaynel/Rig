@@ -1,0 +1,5 @@
+{
+  "required_gates": [],
+  "release_revision": "a1b2c3d",
+  "use_stale_gate_results": false
+}

@@ -1,0 +1,7 @@
+{
+  "retained_suites": [],
+  "retirement_reasons": [
+    "obsolete API removed"
+  ],
+  "remove_without_behavior_owner": false
+}

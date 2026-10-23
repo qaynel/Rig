@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.risk-prioritization",
+  "input": "rig-services/testing.strategy.risk-prioritization.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms high-risk behaviors, impact scores and the easy-cases-only flag are declared; it does not rank anything.",
+  "offer": "Choose checks by failure impact and likelihood. Easy happy-path cases should not displace financially or operationally costly failure modes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
+      }
+    ],
+    "mid": [
+      {
+        "field": "impact_scores",
+        "op": "nonempty",
+        "reason": "Give an impact score per behavior. Unscored risks cannot be ordered, so assign a value to each."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "prioritize_only_easy_cases",
+        "op": "equals",
+        "value": false,
+        "reason": "Set prioritizing only easy cases to false. Happy-path tests should not displace costly failure modes, so cover risk first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "risk-prioritization-slice-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "risk-prioritization-slice-behavior-oracle",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
+      }
+    },
+    "property-floor": {
+      "check_id": "risk-prioritization-slice-property-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "risk-prioritization-slice-mutation-floor",
+      "rule": {
+        "field": "high_risk_behaviors",
+        "op": "nonempty",
+        "reason": "List the high-risk behaviors. Without them effort goes to the easy cases, so name the costly failures."
+      }
+    }
+  }
+}

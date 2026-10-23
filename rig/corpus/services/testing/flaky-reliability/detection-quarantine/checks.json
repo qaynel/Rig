@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.flaky-reliability.detection-quarantine",
+  "input": "rig-services/testing.flaky-reliability.detection-quarantine.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms flaky cases, quarantine owners and the silent-quarantine flag are declared; it does not run the tests.",
+  "offer": "Track intermittent failures with an owner and a visible quarantine reason. Quarantine contains unreliable signal; it does not erase the failure or close the underlying defect.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "List the tests known to be flaky. Unlisted flakes keep poisoning signal, so name each case."
+      }
+    ],
+    "mid": [
+      {
+        "field": "quarantine_owners",
+        "op": "nonempty",
+        "reason": "Assign an owner to each quarantined test. Unowned quarantines never get fixed, so name a person or team."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "silent_quarantine",
+        "op": "equals",
+        "value": false,
+        "reason": "Set silent quarantine to false. A hidden quarantine erases the failure and leaves the defect open, so record the reason visibly."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "detection-quarantine-slice-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "List the tests known to be flaky. Unlisted flakes keep poisoning signal, so name each case."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "detection-quarantine-slice-behavior-oracle",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "List the tests known to be flaky. Unlisted flakes keep poisoning signal, so name each case."
+      }
+    },
+    "property-floor": {
+      "check_id": "detection-quarantine-slice-property-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "List the tests known to be flaky. Unlisted flakes keep poisoning signal, so name each case."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "detection-quarantine-slice-mutation-floor",
+      "rule": {
+        "field": "flaky_cases",
+        "op": "nonempty",
+        "reason": "List the tests known to be flaky. Unlisted flakes keep poisoning signal, so name each case."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.disaster-recovery.failover",
+  "input": "rig-services/infrastructure.disaster-recovery.failover.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the failover trigger, fencing strategy and the split-brain flag are declared; it does not show failover works.",
+  "offer": "Define the trigger and fencing that keep failover from creating two writers. Redundant resources without split-brain protection are not a safe failover design.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "Define what triggers failover. An undefined trigger means failover is manual or accidental, so state the health condition."
+      }
+    ],
+    "mid": [
+      {
+        "field": "fencing_strategy",
+        "op": "nonempty",
+        "reason": "Declare the fencing strategy that stops the old primary writing. Redundancy without fencing risks two writers, so name the mechanism."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "allow_split_brain",
+        "op": "equals",
+        "value": false,
+        "reason": "Set allowing split-brain to false. Two writers corrupt data, so require fencing to complete before promotion."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "failover-slice-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "Define what triggers failover. An undefined trigger means failover is manual or accidental, so state the health condition."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "failover-slice-behavior-oracle",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "Define what triggers failover. An undefined trigger means failover is manual or accidental, so state the health condition."
+      }
+    },
+    "property-floor": {
+      "check_id": "failover-slice-property-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "Define what triggers failover. An undefined trigger means failover is manual or accidental, so state the health condition."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "failover-slice-mutation-floor",
+      "rule": {
+        "field": "failover_trigger",
+        "op": "nonempty",
+        "reason": "Define what triggers failover. An undefined trigger means failover is manual or accidental, so state the health condition."
+      }
+    }
+  }
+}

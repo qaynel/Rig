@@ -1,0 +1,7 @@
+{
+  "browser_targets": [],
+  "interaction_steps": [
+    "submit form"
+  ],
+  "fixed_sleeps": false
+}

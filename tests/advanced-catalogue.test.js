@@ -5,7 +5,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { root, readJson } = require('./helpers/advanced');
-const { validateCatalog } = require('../rig/lib/catalog');
+const { validateCatalog, validateRigJson, loadCatalog, effectiveChecks, authoredBodiesReport } = require('../rig/lib/catalog');
+const { bindServices, definition } = require('../rig/lib/service-catalogue');
+const { resolve } = require('../rig/lib/resolve');
 
 const expectedPath = path.join(
   __dirname,
@@ -13,7 +15,7 @@ const expectedPath = path.join(
   'advanced',
   'expected-catalogue-ids.json',
 );
-const catalogPath = path.join(root, 'rig', 'catalog.json');
+const catalogPath = path.join(root, 'rig', 'corpus', 'catalogue.json');
 
 function flattenExpected(expected) {
   const ids = [];
@@ -44,8 +46,8 @@ test('expected-ID inventory fixture is well-formed and unique', () => {
   );
 });
 
-test('rig/catalog.json exists and matches expected-ID inventory', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+test('rig/corpus/catalogue.json exists and matches expected-ID inventory', () => {
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const services = catalog.services || catalog.entries || [];
   const actual = services.map((s) => s.id).sort();
@@ -54,7 +56,7 @@ test('rig/catalog.json exists and matches expected-ID inventory', () => {
 });
 
 test('strict grade growth: maximal ⊃ mid ⊃ minimal check IDs', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   for (const service of catalog.services || catalog.entries || []) {
     const checks = service.checks || {};
@@ -73,6 +75,44 @@ test('strict grade growth: maximal ⊃ mid ⊃ minimal check IDs', () => {
       `${service.id} maximal must strictly grow beyond minimal`,
     );
   }
+});
+
+test('selected grades enforce cumulative check ceilings and preserve the service ceiling', () => {
+  const catalog = loadCatalog();
+  const service = catalog.services.find(row => row.id === 'infrastructure.container.k8s-helm');
+  const declaredCeiling = definition(service).value.ceiling;
+  for (const grade of ['minimal', 'mid', 'maximal']) {
+    const binding = bindServices(root, { [service.id]: grade })[service.id];
+    assert.equal(binding.grade, grade);
+    assert.deepEqual(Object.keys(binding.checks), effectiveChecks(service, grade));
+    assert.equal(binding.ceiling, declaredCeiling);
+  }
+});
+
+test('retired old service IDs are rejected', () => {
+  assert.throws(() => validateRigJson({
+    schema_version: 1,
+    services: { 'testing.unit.test-case-generation-legacy': 'minimal' },
+  }), /unknown service/);
+});
+
+test('mixed current and retired service IDs reject the whole selection', () => {
+  assert.throws(() => validateRigJson({
+    schema_version: 1,
+    services: {
+      'testing.unit.test-case-generation': 'minimal',
+      'testing.unit.test-case-generation-legacy': 'minimal',
+    },
+  }), /unknown service/);
+});
+
+test('dependency-only selections retain null grade and only the named slice', () => {
+  const selected = { 'testing.mutation.mutant-generator': 'minimal' };
+  const result = resolve(loadCatalog(), selected);
+  const dependencies = result.filter(entry => entry.reason === 'dependency');
+  assert.ok(dependencies.length > 0);
+  assert.ok(dependencies.every(entry => entry.grade === null && entry.slices.length > 0));
+  assert.equal(result.find(entry => entry.id === 'testing.mutation.mutant-generator').grade, 'minimal');
 });
 
 test('catalog validator rejects missing strict grade growth', () => {
@@ -100,8 +140,36 @@ test('catalog validator rejects missing strict grade growth', () => {
   );
 });
 
+test('authored service gate rejects known boilerplate and near-duplicate bodies', () => {
+  const padded = authoredBodiesReport([
+    { id: 'product-security.secrets.toy-relaxation', part: 'minimal', text: '# Toy relaxation\n\nService-specific evidence cues:\nOffer: Limit relaxed secret policy to disposable experiments.' },
+  ]);
+  assert.ok(padded.some(failure => /boilerplate/i.test(failure.reason)), 'repeated generated cue blocks are not authored evidence');
+  const boilerplate = authoredBodiesReport([
+    { id: 'development.one', part: 'identity', text: '# One\n\nThis is generic baseline practice for the service.' },
+  ]);
+  assert.equal(boilerplate.length, 1);
+  assert.match(boilerplate[0].reason, /known boilerplate/i);
+
+  const broken = authoredBodiesReport([
+    { id: 'infrastructure.dns', part: 'slice', text: '# DNS\n\nService records must name the contract..' },
+  ]);
+  assert.ok(broken.some((failure) => /broken generated sentence/.test(failure.reason)));
+
+  const body = '# Infrastructure one\n\nInspect the deployment manifest and prove each region has an independent rollback path.';
+  const nearDuplicate = authoredBodiesReport([
+    { id: 'infrastructure.one', part: 'identity', text: body },
+    { id: 'infrastructure.two', part: 'identity', text: `${body} Keep rollback easy.` },
+  ]);
+  assert.ok(nearDuplicate.some((failure) => /shares .* of its body with infrastructure\.one/.test(failure.reason)));
+
+  const live = require('../rig/lib/catalog').authorshipReport();
+  assert.equal(live.services.length, 115);
+  assert.deepEqual(live.failures, []);
+});
+
 test('MECE scope-map spot checks (Gate 1 AT-P3)', () => {
-  assert.ok(fs.existsSync(catalogPath), 'rig/catalog.json must exist');
+  assert.ok(fs.existsSync(catalogPath), 'rig/corpus/catalogue.json must exist');
   const catalog = readJson(catalogPath);
   const services = catalog.services || catalog.entries || [];
   const owns = new Map();

@@ -1,0 +1,7 @@
+{
+  "tracked_metrics": [
+    "p95 latency"
+  ],
+  "regression_budget_percent": 10,
+  "ignore_threshold_failure": false
+}

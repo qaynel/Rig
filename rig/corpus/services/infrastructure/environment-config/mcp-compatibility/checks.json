@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.mcp-compatibility",
+  "input": "rig-services/infrastructure.environment-config.mcp-compatibility.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the MCP transport, protocol revision and the embedded-credential flag are declared; it does not perform a handshake with a live server.",
+  "offer": "Declare the MCP transport and protocol contract without embedding credential values. Descriptor checks do not establish that a live server can complete the protocol handshake.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
+      }
+    ],
+    "mid": [
+      {
+        "field": "protocol_revision",
+        "op": "nonempty",
+        "reason": "Declare the protocol revision the server speaks. A mismatch fails the handshake, so record the exact revision."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "credentials_in_descriptor",
+        "op": "equals",
+        "value": false,
+        "reason": "Set credentials in the descriptor to false. A secret in a descriptor is committed and shared, so reference it by name instead."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "mcp-compatibility-slice-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "mcp-compatibility-slice-behavior-oracle",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
+      }
+    },
+    "property-floor": {
+      "check_id": "mcp-compatibility-slice-property-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "mcp-compatibility-slice-mutation-floor",
+      "rule": {
+        "field": "transport",
+        "op": "nonempty",
+        "reason": "Declare the MCP transport, such as stdio or http. The client cannot connect without it, so state the transport."
+      }
+    }
+  }
+}

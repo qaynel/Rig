@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.language-adapter",
+  "input": "rig-services/testing.mutation.language-adapter.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms source extensions, a compiler command and the parse-error flag are declared; it does not compile anything.",
+  "offer": "Bind the mutation adapter to supported source syntax and the actual language toolchain. Parser and compiler errors are explicit gaps rather than successful mutation results.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
+      }
+    ],
+    "mid": [
+      {
+        "field": "compiler_command",
+        "op": "nonempty",
+        "reason": "Declare the compiler or toolchain command. Without it mutants cannot be checked for validity, so record the invocation."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "parse_errors_are_success",
+        "op": "equals",
+        "value": false,
+        "reason": "Set parse errors counting as success to false. A mutant that fails to parse is a gap, not a result, so report it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "language-adapter-slice-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "language-adapter-slice-behavior-oracle",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
+      }
+    },
+    "property-floor": {
+      "check_id": "language-adapter-slice-property-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "language-adapter-slice-mutation-floor",
+      "rule": {
+        "field": "source_extensions",
+        "op": "nonempty",
+        "reason": "List the source extensions the adapter mutates. Unsupported syntax yields invalid mutants, so name the file types."
+      }
+    }
+  }
+}

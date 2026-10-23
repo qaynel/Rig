@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CATALOG_PATH = path.join(ROOT, 'rig', 'catalog.json');
+const CATALOG_PATH = path.join(ROOT, 'rig', 'corpus', 'catalogue.json');
 const LINT_FORMAT = 'development.code-quality.lint-format';
 
 function list(values, fallback = 'none') {

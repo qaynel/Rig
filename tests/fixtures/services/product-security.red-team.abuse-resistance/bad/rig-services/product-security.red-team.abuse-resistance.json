@@ -1,0 +1,5 @@
+{
+  "abuse_cases": [],
+  "rate_limit_policy": "per identity and IP",
+  "unbounded_public_requests": false
+}

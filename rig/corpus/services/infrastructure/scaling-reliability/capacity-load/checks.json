@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.scaling-reliability.capacity-load",
+  "input": "rig-services/infrastructure.scaling-reliability.capacity-load.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the load workload, latency objective and the unbounded-duration flag are declared; it does not generate load.",
+  "offer": "Evaluate capacity under a declared workload and latency objective. Bound the experiment duration and stop conditions before putting pressure on an environment.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "load_workload",
+        "op": "nonempty",
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
+      }
+    ],
+    "mid": [
+      {
+        "field": "slo_latency_ms",
+        "op": "minimum",
+        "value": 250,
+        "reason": "Set the latency objective in milliseconds, at least 250. A tighter figure cannot be evidenced here, so choose a measurable limit."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unbounded_load_duration",
+        "op": "equals",
+        "value": false,
+        "reason": "Set unbounded load duration to false. An experiment without a stop time can damage the environment, so bound its length."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "capacity-load-slice-floor",
+      "rule": {
+        "field": "load_workload",
+        "op": "nonempty",
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "capacity-load-slice-behavior-oracle",
+      "rule": {
+        "field": "load_workload",
+        "op": "nonempty",
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
+      }
+    },
+    "property-floor": {
+      "check_id": "capacity-load-slice-property-floor",
+      "rule": {
+        "field": "load_workload",
+        "op": "nonempty",
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "capacity-load-slice-mutation-floor",
+      "rule": {
+        "field": "load_workload",
+        "op": "nonempty",
+        "reason": "Describe the workload used to size capacity. Capacity against an unspecified load means nothing, so state the request mix and rate."
+      }
+    }
+  }
+}

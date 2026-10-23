@@ -1,0 +1,5 @@
+{
+  "tracked_metrics": [],
+  "regression_budget_percent": 10,
+  "ignore_threshold_failure": false
+}

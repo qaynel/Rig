@@ -1,0 +1,5 @@
+{
+  "specification_path": "openapi.json",
+  "compatibility_version": "1.0.0",
+  "unknown_response_policy": "fail-explicitly"
+}

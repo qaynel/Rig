@@ -1,0 +1,8 @@
+{
+  "mesh_services": [
+    "api",
+    "worker"
+  ],
+  "transport_security": "mutual-tls",
+  "allow_plaintext_fallback": false
+}

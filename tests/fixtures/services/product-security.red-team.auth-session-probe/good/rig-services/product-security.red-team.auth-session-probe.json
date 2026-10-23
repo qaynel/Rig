@@ -1,0 +1,11 @@
+{
+  "session_cases": [
+    "expiry",
+    "logout",
+    "revocation"
+  ],
+  "protected_routes": [
+    "/account"
+  ],
+  "accept_revoked_session": false
+}

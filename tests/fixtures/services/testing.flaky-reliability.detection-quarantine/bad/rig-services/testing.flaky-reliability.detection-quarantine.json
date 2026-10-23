@@ -1,0 +1,7 @@
+{
+  "flaky_cases": [],
+  "quarantine_owners": [
+    "realtime"
+  ],
+  "silent_quarantine": false
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-quality.correctness-static",
+  "input": "rig-services/development.code-quality.correctness-static.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the analyzer command, enabled rules and failure handling are declared; it does not show the analyzer ran or found nothing.",
+  "offer": "Choose correctness rules for the language and record the actual analyzer invocation. Analyzer crashes and findings remain non-passing; a missing analyzer is a setup gap.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
+      }
+    ],
+    "mid": [
+      {
+        "field": "enabled_rules",
+        "op": "nonempty",
+        "reason": "List the correctness rules enabled for the language. An empty set analyzes nothing, so name the rule sets or checks in force."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_analyzer_failure",
+        "op": "equals",
+        "value": false,
+        "reason": "Set ignoring analyzer failure to false. A crashing analyzer must stay non-passing, otherwise a broken run reads as clean."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "correctness-static-slice-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "correctness-static-slice-behavior-oracle",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
+      }
+    },
+    "property-floor": {
+      "check_id": "correctness-static-slice-property-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "correctness-static-slice-mutation-floor",
+      "rule": {
+        "field": "analyzer_command",
+        "op": "nonempty",
+        "reason": "Record the exact analyzer command the repository runs. A missing command means a setup gap, not a clean result, so declare the real invocation."
+      }
+    }
+  }
+}

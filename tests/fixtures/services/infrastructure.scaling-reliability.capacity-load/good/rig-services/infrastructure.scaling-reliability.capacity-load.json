@@ -1,0 +1,5 @@
+{
+  "load_workload": "100 concurrent requests",
+  "slo_latency_ms": 250,
+  "unbounded_load_duration": false
+}

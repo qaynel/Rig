@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.observability.metrics-dashboards",
+  "input": "rig-services/infrastructure.observability.metrics-dashboards.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms service metrics, a dashboard owner and the omitted-error-metric flag are declared; it does not read any dashboard.",
+  "offer": "Expose user-facing latency, failure and saturation metrics with a responsible dashboard owner. A throughput-only dashboard cannot reveal whether the service is failing its users.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
+      }
+    ],
+    "mid": [
+      {
+        "field": "dashboard_owner",
+        "op": "nonempty",
+        "reason": "Name the dashboard owner. An unowned dashboard rots, so assign a person or team."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "omit_error_metrics",
+        "op": "equals",
+        "value": false,
+        "reason": "Set omitting error metrics to false. A dashboard without errors cannot reveal that users are failing, so include failure rate."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "metrics-dashboards-slice-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "metrics-dashboards-slice-behavior-oracle",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
+      }
+    },
+    "property-floor": {
+      "check_id": "metrics-dashboards-slice-property-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "metrics-dashboards-slice-mutation-floor",
+      "rule": {
+        "field": "service_metrics",
+        "op": "nonempty",
+        "reason": "List the user-facing metrics exposed, such as latency, failures and saturation. Throughput alone cannot show failure, so name them."
+      }
+    }
+  }
+}
