@@ -6,6 +6,8 @@ The [previous repaired-candidate checkpoint](../reasoning/2026-10-22-repaired-ca
 
 The GitHub test job was red on Linux for three runner-only reasons (shallow checkout, `CI=true` output mode, bwrap loopback errno), none visible on macOS; the [diagnosis](../reasoning/2026-10-23-ci-red-linux-runner-diagnosis.md) records each cause and fix. The workflows now check out full history and run the suite with the CI markers hidden, because it asserts local-mode output.
 
+PR 153's test plan found the never-run clean-install E2E and release-eligibility/health workflows stale against the code (unsigned repository binding, CI env leaking into the gate, shallow checkout, missing setup-python); the [trace](../reasoning/2026-10-23-pr153-testplan-e2e-and-eligibility-fixes.md) records the fixes and the unverified `health` label risk.
+
 ## Current release checkpoint
 
 The [October 21 code-mode review](../reasoning/2026-10-21-code-mode-binding-review-result.md) failed with four blockers and fourteen major findings. The [rejected report](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json) and attempt history are preserved. All eighteen findings now have reviewed regression evidence in the closure ledger. The signed oracle is valid; the remaining delivery conditions are a full npm pass on final committed bytes, a fresh exact-byte passing review receipt, and green required checks on the pushed PR head.
