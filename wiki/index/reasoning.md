@@ -373,5 +373,8 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 | 2026-08-31 | current | [2026-08-31-path-b-product-direction](../reasoning/2026-08-31-path-b-product-direction.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | current | [2026-08-31-path-b-follow-up-decisions](../reasoning/2026-08-31-path-b-follow-up-decisions.md) | onboarding-flow, what-rig-is | — | interdependency |
 | 2026-08-31 | historical | [2026-08-31-path-b-adapt-scope](../reasoning/2026-08-31-path-b-adapt-scope.md) | onboarding-flow, what-rig-is | — | interdependency, trap |
+| 2026-08-30 | superseded → wiki/status.md | [2026-08-30-status-before-generated-summary](../reasoning/2026-08-30-status-before-generated-summary.md) | agent-working-conventions | — | interdependency |
 | 2026-08-30 | current | [2026-08-30-rig-product-vision-and-tiered-adaptive-install](../reasoning/2026-08-30-rig-product-vision-and-tiered-adaptive-install.md) | what-rig-is, onboarding-flow, distribution-and-release | — | interdependency |
+| 2026-08-30 | historical → wiki/status.md | [2026-08-30-generated-wiki-summary-design](../reasoning/2026-08-30-generated-wiki-summary-design.md) | agent-working-conventions | — | interdependency |
+| 2026-08-30 | historical | [2026-08-30-development-process-handoff](../reasoning/2026-08-30-development-process-handoff.md) | gate1-signing, agent-working-conventions, testing-strategy | — | interdependency |
 | 2026-08-21 | historical | [2026-08-21-d24-owner-approval](../reasoning/2026-08-21-d24-owner-approval.md) | the-two-gates, authored-service-gate, delivery-plan, distribution-and-release, gate1-signing | D24 | — |
