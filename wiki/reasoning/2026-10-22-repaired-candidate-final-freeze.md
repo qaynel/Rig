@@ -3,7 +3,7 @@ date: 2026-10-22
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-22-linux-public-integration-green
 tags: verification, review, remediation
 summary: Seven binding-review gaps and Linux follow-ups have reviewed public-process evidence; all eighteen finding rows are reconciled, signature16/95 is valid, and final committed full-gate/review/push remain.

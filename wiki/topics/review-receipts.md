@@ -1,8 +1,8 @@
 # Review receipts
 
-The [repaired-candidate freeze](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) records all eighteen finding rows reconciled after seven binding-review repairs and actual Linux follow-ups. Signature16/95 is valid. Focused evidence includes Linux25/25+44/44, root public Linux34/34/macOS55/55 and final Linux signed-network/signal/inventory15/15. Final committed full npm, fresh exact-byte receipt and required exact-head PR checks remain delivery gates; no current release approval is claimed.
+The [October23 repaired freeze](../reasoning/2026-10-23-report-review-fix-final-freeze.md) records both final-gate failures repaired and reviewed, with integrated focused tests21/21. Generated reports no longer invalidate current local Context review; command report writes still fail. Mandatory native catalogue containment coverage is corrected without admitting optional runtime packages. The oracle verifies16/95 and live coherence passes66/66. Final committed-byte full verification and a fresh binding receipt remain before pushing and checking required PR CI.
 
-The [scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) and [unchanged acceptance criteria with ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) hold evidence and remaining commands. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves model recovery. No new human signing step is required.
+The [previous repaired-candidate checkpoint](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) and [scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) retain all eighteen finding mappings, cross-review and macOS/Linux evidence. The [unchanged acceptance criteria with ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) remains the closure bar. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves model recovery. No new signing action is required. Current-byte full npm, fresh passing binding receipt and required exact-head PR checks remain delivery gates.
 
 ## What a receipt proves
 

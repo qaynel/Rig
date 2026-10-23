@@ -71,10 +71,12 @@ test('TP-X.2 installed repo contains shared corpus and mandatory safety baseline
       || /(?:^|\/)\.claude\/skills\/rig-[^/]+\//.test(rel)
       || /(?:^|\/)\.agents\/skills\/rig-[^/]+\//.test(rel);
     assert.deepEqual(
-      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel) && !isVendored(rel)),
+      files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel)
+        && rel !== '.rig/lib/service-catalogue.js' && !isVendored(rel)),
       [],
       'no optional installer/runtime package is copied into the shared surface',
     );
+    assert.ok(files.includes('.rig/lib/service-catalogue.js'), 'the mandatory native-service check runtime is part of the baseline');
 
     // Only the hook and the explicit mandatory baseline entrypoints execute
     // outside the curated skill/plumbing support directories.

@@ -18,7 +18,7 @@ function snapshot(target, includeRig = false) {
       if (!rel && (entry.name === '.git' || (!includeRig && entry.name === '.rig'))) continue;
       const name = path.join(rel, entry.name);
       const abs = path.join(dir, entry.name);
-      if (!includeRig && (name === RECEIPT || name === REQUEST)) continue;
+      if (!includeRig && name === path.join('reports', 'rig')) continue;
       const stat = fs.lstatSync(abs);
       const mode = stat.mode & 0o7777;
       if (stat.isSymbolicLink()) rows.push([name, `link:${fs.readlinkSync(abs)}`, mode]);

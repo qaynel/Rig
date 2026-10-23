@@ -52,7 +52,7 @@ Prepare and sign a fresh execution approval before rerunning the check; the
 previous approval was consumed even if the run stopped at a review gap.
 A clean `mid` reports Context; `maximal` reruns the commands and writes
 `reports/rig/lint-format-evidence.json` only when their observed output and
-inputs match. A changed file, rule, or command makes the old review stale.
+inputs match. A changed file, rule, or command makes the old review stale. Generated Rig reports do not invalidate that review; read-only commands that write reports are still rejected as mutations.
 This local receipt is independent of a separately approved CI integration.
 If any command changes source bytes or modes, Rig stops before launching the
 next command and reports the changed paths and before/after evidence. It leaves

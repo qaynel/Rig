@@ -6,8 +6,10 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-23 | current → 2026-10-23-final-gate-generated-report-fix | [2026-10-23-report-review-fix-final-freeze](../reasoning/2026-10-23-report-review-fix-final-freeze.md) | review-receipts, the-overhaul | — | verification, remediation |
+| 2026-10-23 | superseded → 2026-10-22-repaired-candidate-final-freeze | [2026-10-23-final-gate-generated-report-fix](../reasoning/2026-10-23-final-gate-generated-report-fix.md) | review-receipts, the-overhaul | — | verification, remediation |
 | 2026-10-22 | superseded → 2026-10-22-final-review-seven-shared-seam-gaps | [2026-10-22-shared-seam-fixes-integration](../reasoning/2026-10-22-shared-seam-fixes-integration.md) | review-receipts, the-overhaul | — | verification, remediation |
-| 2026-10-22 | current → 2026-10-22-linux-public-integration-green | [2026-10-22-repaired-candidate-final-freeze](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) | review-receipts, the-overhaul | — | verification, review, remediation |
+| 2026-10-22 | superseded → 2026-10-22-linux-public-integration-green | [2026-10-22-repaired-candidate-final-freeze](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) | review-receipts, the-overhaul | — | verification, review, remediation |
 | 2026-10-22 | superseded → 2026-10-22-qa-closure-current-verification | [2026-10-22-qa-closure-signing-readiness](../reasoning/2026-10-22-qa-closure-signing-readiness.md) | review-receipts, the-overhaul | — | verification, recovery, signing |
 | 2026-10-22 | current → 2026-10-21-code-mode-finding-remediation-progress-11 | [2026-10-22-qa-closure-scope-and-recovery](../reasoning/2026-10-22-qa-closure-scope-and-recovery.md) | review-receipts, the-overhaul | — | review, remediation, handoff, recovery |
 | 2026-10-22 | superseded → 2026-10-22-qa-closure-signing-readiness | [2026-10-22-qa-closure-owner-signature-handoff](../reasoning/2026-10-22-qa-closure-owner-signature-handoff.md) | review-receipts, the-overhaul | — | verification, handoff, signing |

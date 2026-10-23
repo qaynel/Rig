@@ -67,13 +67,7 @@ fixed with the already-installed shared redactor and safe CI projection.
 
 The owner has signed the prepared fixture amendment. Independent verification
 passes16 files and95 acceptance cases. No additional signing action is needed.
-The first signed full npm run passes main1284, Pi15 and MCP6, with zero failures
-and two main-suite skips. Since final proof/docs changes overlapped that run,
-freeze/commit this candidate and repeat the full gate before binding review.
-The added proof files pass8/8; workflow checks pass8/8. Prior actual Linux
-Bubblewrap evidence passes43/43. CI now installs Bubblewrap explicitly in
-Ubuntu test, health, eligibility and both clean-install jobs, preserving the
-namespace setup/probe. Logs and recovery commands are in `.context/qa-closure/`.
+The earlier signed full gate passed main1292/Pi15/MCP6, then a binding review exposed seven shipping seams. Those repairs and Linux follow-ups are committed in a8f2d544/f3618aab. The final f3618aab gate then reported main1311 passes,2 failures,2 skips: mandatory native catalogue containment coverage and generated reports making current Context review stale. Independent Luna repairs now preserve optional-runtime exclusions and keep full mutation snapshots while removing generated reports from review-input hashes. The original installed review flow passes unchanged; new regression checks retain report-mutation and command-drift rejection. A new committed full gate and binding review are required. Live coherence passed66/66; no additional owner signing action is needed. Evidence and recoverable commands remain under `.context/qa-closure/`.
 
 The owner already authorized the necessary fresh review and pushing this
 branch after required gates pass. Preserve author context

@@ -6,7 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
-- **2026-10-22 — [2026-10-22-repaired-candidate-final-freeze](reasoning/2026-10-22-repaired-candidate-final-freeze.md)**: Seven binding-review gaps and Linux follow-ups have reviewed public-process evidence; all eighteen finding rows are reconciled, signature16/95 is valid, and final committed full-gate/review/push remain.
+- **2026-10-23 — [2026-10-23-report-review-fix-final-freeze](reasoning/2026-10-23-report-review-fix-final-freeze.md)**: Both final full-gate failures are repaired and reviewed; integrated focused tests pass21/21, oracle16/95 remains valid, and final committed-byte full verification and binding review are next.
 - **2026-10-22 — [2026-10-22-qa-closure-scope-and-recovery](reasoning/2026-10-22-qa-closure-scope-and-recovery.md)**: Owner directs a bounded scope to clear existing QA-prod blockers, delegate parallel Luna work, preserve recoverability across usage limits, and provide the exact human signing action without claiming readiness early.
 - **2026-10-22 — [2026-10-22-legacy-pointer-resume-guard](reasoning/2026-10-22-legacy-pointer-resume-guard.md)**: Legacy-pointer migration now passes the stale-plan guard only when the live pointer normalization exactly matches a graft from its verified preimage.
 - **2026-10-22 — [2026-10-22-journal-legacy-create-compatibility](reasoning/2026-10-22-journal-legacy-create-compatibility.md)**: Strict journal validation now preserves legitimate legacy applied create-owned records without preimage_digest while still requiring preimage evidence for replace and delete operations.

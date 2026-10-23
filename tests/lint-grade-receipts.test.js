@@ -52,6 +52,38 @@ test('installed Context and Evidence use an editable review file and local repla
   });
 });
 
+test('Context review ignores generated reports while read-only command snapshots still catch report writes', () => {
+  withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'src.js'), 'const answer = 42;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"format":"clean"}\n');
+    const changed = ['src.js'];
+    const commands = [{ argv: [process.execPath, '-e', 'process.stdout.write("clean")'], source: 'rules.json' }];
+    const request = createGradeReviewRequest({ target, changed, commands });
+    const context = { ...request, verdict: 'pass', summary: 'The changed source follows the declared rule.', findings: [] };
+    fs.mkdirSync(path.join(target, 'reports/rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, 'reports/rig/check.json'), '{"status":"coverage_gap"}\n');
+
+    const reviewed = evaluateGrade({ target, grade: 'mid', changed, commands, context, execute: () => ({ exit_code: 0, status: 'completed', output_digest: 'a'.repeat(64) }) });
+    assert.deepEqual(reviewed.completed_grades, ['Policy', 'Context']);
+    assert.equal(reviewed.verdict, 'pass');
+
+    const mutating = evaluateGrade({
+      target, grade: 'mid', changed, commands, context,
+      execute: () => {
+        fs.writeFileSync(path.join(target, 'reports/rig/check.json'), '{"status":"mutated"}\n');
+        return { exit_code: 0, status: 'completed', output_digest: 'a'.repeat(64) };
+      },
+    });
+    assert.equal(mutating.status, 'mutated');
+    assert.deepEqual(mutating.changed_paths, ['reports/rig/check.json']);
+
+    const changedCommand = [{ ...commands[0], argv: [process.execPath, '-e', 'process.stdout.write("changed")'] }];
+    const stale = evaluateGrade({ target, grade: 'mid', changed, commands: changedCommand, context, execute: () => ({ exit_code: 0, status: 'completed', output_digest: 'a'.repeat(64) }) });
+    assert.equal(stale.status, 'coverage_gap');
+    assert.deepEqual(stale.completed_grades, ['Policy']);
+  });
+});
+
 test('Context reviews current changed bytes and rule sources; Evidence replays observed commands', () => {
   withRepo((target) => {
     fs.mkdirSync(path.join(target, 'src'), { recursive: true });

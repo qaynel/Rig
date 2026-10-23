@@ -316,27 +316,22 @@ run or a committed fix, not by transcript claims.
   `tests/path-b-catalog.test.js` carry the AT-SHAPE-6, AT-LF-20, AT-PB-1 and
   AT-PB-3 amendments, and `check-advanced-spec` verifies the re-signed manifest
   (16 files, 95 cases, principal `gate1-owner`).
-- [ ] T-10.5 Fresh review receipt bound to the final bytes. Needs one run of
-  `node scripts/review-receipt.js --target <spec> --implementation-root .
-  --base origin/qa-prod --model <id> --out <receipt> --author-context <id>`:
-  it spawns a 30-minute ephemeral reviewer, and a `fail` burns one of the two
-  attempts RIG-124 allows. The owner already selected `claude-opus-5` and
-  authorized the agent to run it after signing; no new model decision is needed.
-- [ ] T-10.6 `npm test` green locally (the only full-gate run, right before push).
-  Exit 0 on 2026-10-15: secrets 15/15, main suite 1054 pass / 0 fail,
-  pi-extension 15/15, rig-mcp 6/6, and the five release validators clean
-  (`.context/npm-test-final7.log`,
-  `wiki/reasoning/2026-10-15-closure-full-gate-green.md`). Re-run on 2026-10-17
-  against the de-duplicated tree
-  (`wiki/reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md`).
+- [ ] T-10.5 Fresh review receipt bound to final bytes. The owner authorized
+  Codex `gpt-6.1-sol` and repair/rerun until accepted. Preserve author context
+  `v6.0.0-qa-readiness-2026-10-17`, counter11 and rejected reports. Seven
+  shipping findings from the latest rejection are repaired; rerun only after
+  the final full gate passes. No current passing receipt exists.
+- [ ] T-10.6 `npm test` green locally on final bytes. The f3618aab run found
+  two failures (main1311 pass/2 fail/2 skip): containment coverage rejected the
+  mandatory catalogue module, and generated reports invalidated current local
+  Context review. Both have focused repairs; renew the complete committed-byte
+  gate before pushing. Historical green runs do not cover these new bytes.
 - [ ] 🔒 T-10.7 Push, single PR to `qa-prod`, required CI green (`gate1-pin` included).
-  Push and PR done by the owner: PR #153 `qa-prod` ← `vaibhav-kodiyan/universal-issues-closure`.
-  Left on this box: re-push the de-duplication commit, confirm `test` green
-  (it needed the tracker token fix), and make `gate1-pin` a *required* status
-  check on `qa-prod` — today it is documented as required on `prod` only, so on
-  `qa-prod` it reports without blocking. The de-duplication commit `ba123844` is
-  pushed (2026-10-17) and is the PR head; confirming its checks and the
-  `gate1-pin` requirement are the owner's two remaining steps.
+  Existing PR #153 targets `qa-prod` from
+  `vaibhav-kodiyan/universal-issues-closure`; its remote head is7cb4fad8.
+  Owner authorizes the agent to push the verified repair commits and update
+  this PR. Required checks are configured, including gate1-pin; inspect them
+  on the exact new head rather than treating old failures as current evidence.
 - [ ] 🔒 T-10.8 QA promotion on exact-SHA automated evidence; tag and release;
   then the public tagged-download smoke test and tracker closures — in that
   order, per steps 7–8 of `rig/corpus/standards/change-management.md`. Nothing
@@ -347,9 +342,8 @@ run or a committed fix, not by transcript claims.
 
 ## Progress count
 
-Done: 74. Open: 12. The owner signature is verified.
-The full gate passed on f5f2ba70, but exact-SHA E2E found a real existing-report
-preservation failure after full purge. T-6.4 and T-10.6 are reopened for the
-scoped-cleanup fix and renewed exact-byte evidence. Final review, CI and
-ordered QA/publication/tracker work remain pending.
+Done: 74. Open: 12. The owner signature verifies16 files/95 cases.
+The final gate requires renewal after two reproduced failures were repaired;
+a current passing review receipt and exact-head PR checks are still pending.
+QA promotion, publication and tracker closure follow the deployment policy.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.
