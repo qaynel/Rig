@@ -28,9 +28,20 @@ rig-*.gif
 # Claude Code local settings (machine-specific permission grants)
 .claude/settings.local.json
 
-# Project wiki lives locally for agents and on the GitHub Wiki tab for the
-# community. It is not tracked in this repository.
-wiki/
+# The project wiki lives locally for agents and on the GitHub Wiki tab for the
+# community. It is not tracked here, except the Gate 1 oracle. prod's gate1-pin
+# job reads those files from the candidate commit: pull_request_target runs the
+# workflow from the base branch, so a restore step added only on this branch
+# never runs.
+wiki/*
+!wiki/gate1/
+wiki/gate1/*
+!wiki/gate1/acceptance.md
+!wiki/gate1/business-spec.md
+!wiki/gate1/gate1.allowed-signers
+!wiki/gate1/gate1.sig
+!wiki/gate1/package-scripts.json
+!wiki/gate1/testing-infrastructure.manifest
 
 # agentic benchmark workspaces (agent output, kept locally for inspection)
 benchmarks/agentic/runs/

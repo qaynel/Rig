@@ -53,6 +53,9 @@ jobs:
           persist-credentials: false
           path: candidate
 
+      # This step runs only once it is on the base branch. pull_request_target
+      # does not use the workflow file from the PR, so the candidate commit
+      # still has to contain wiki/gate1 until that base copy is current.
       - name: Restore wiki snapshot
         run: |
           if [ ! -f candidate/wiki/gate1/acceptance.md ]; then
