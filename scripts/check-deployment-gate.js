@@ -35,7 +35,9 @@ function steps(root, receiptPath) {
     ['3. the full gate is green on these bytes', () => {
       if (!receiptPath) return 'no --receipt, so nothing binds the gate run to these bytes';
       const before = implementationDigest(root).digest;
-      const run = spawnSync('npm', ['test'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+      // The suite asserts local-mode output (see test.yml), so hide the runner's CI markers from it only.
+      const { CI, GITHUB_ACTIONS, ...localEnv } = process.env;
+      const run = spawnSync('npm', ['test'], { cwd: root, env: localEnv, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
       if (run.status !== 0) return `npm test exited ${run.status}: ${(run.error?.message || run.stderr || run.stdout || '').trim().slice(-4000)}`;
       return implementationDigest(root).digest === before ? null : 'publishable files changed during npm test; freeze the candidate and rerun';
     }],
