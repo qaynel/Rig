@@ -2164,6 +2164,9 @@ configuration, mode and explicit `source` definitions remain pinned. Missing
 scope or other definition drift withholds verification as `command_drift`
 rather than treating an altered checker as successful. Discovery already emits
 this metadata; direct autofix callers must supply it for changed operands.
+Verifier-input advancement applies only to an adjacent signed fix/verify pair.
+A standalone generic mutating task keeps its existing execution result; prior
+read-only steps do not change which dispatched fix owns the verifier inputs.
 The verify command is
 required and checked **before** any mutation. Rig applies the fix, then runs the
 verify command for real and reports its actual result (`pass` or `fail`); a halt

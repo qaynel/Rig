@@ -176,7 +176,7 @@ function sourceDefinition(target, command) {
 function acceptAutofixInputs(permit, target) {
   const grant = permit && permits.get(permit);
   if (!grant || grant.target !== fs.realpathSync(target)) return false;
-  const [fix] = grant.dispatched;
+  const fix = grant.dispatched.at(-1);
   const [verify] = grant.commands;
   if (fix?.role !== 'autofix' || verify?.role !== 'verify' || fix.cwd !== verify.cwd) return false;
   let sourceFile;

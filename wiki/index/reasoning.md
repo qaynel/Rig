@@ -6,7 +6,9 @@ Every immutable reasoning trace, newest first. `current` entries feed the curren
 
 | Date | State | Trace | Topics | Decisions | Tags |
 | --- | --- | --- | --- | --- | --- |
-| 2026-10-23 | current → 2026-10-23-five-gap-final-freeze | [2026-10-23-skill-catalogue-freeze-refresh](../reasoning/2026-10-23-skill-catalogue-freeze-refresh.md) | review-receipts, the-overhaul | — | verification, remediation |
+| 2026-10-23 | superseded → 2026-10-23-skill-catalogue-freeze-refresh | [2026-10-23-standalone-task-compatibility](../reasoning/2026-10-23-standalone-task-compatibility.md) | review-receipts, the-overhaul | — | verification, remediation, regression |
+| 2026-10-23 | current → 2026-10-23-standalone-task-compatibility | [2026-10-23-standalone-compatibility-final-freeze](../reasoning/2026-10-23-standalone-compatibility-final-freeze.md) | review-receipts, the-overhaul | — | verification, remediation |
+| 2026-10-23 | superseded → 2026-10-23-five-gap-final-freeze | [2026-10-23-skill-catalogue-freeze-refresh](../reasoning/2026-10-23-skill-catalogue-freeze-refresh.md) | review-receipts, the-overhaul | — | verification, remediation |
 | 2026-10-23 | superseded → 2026-10-23-final-gate-generated-report-fix | [2026-10-23-report-review-fix-final-freeze](../reasoning/2026-10-23-report-review-fix-final-freeze.md) | review-receipts, the-overhaul | — | verification, remediation |
 | 2026-10-23 | superseded → 2026-10-23-binding-review-integrated-proof | [2026-10-23-five-gap-final-freeze](../reasoning/2026-10-23-five-gap-final-freeze.md) | review-receipts, the-overhaul, user-presence-approvals | — | review, remediation, verification |
 | 2026-10-23 | superseded → 2026-10-22-repaired-candidate-final-freeze | [2026-10-23-final-gate-generated-report-fix](../reasoning/2026-10-23-final-gate-generated-report-fix.md) | review-receipts, the-overhaul | — | verification, remediation |

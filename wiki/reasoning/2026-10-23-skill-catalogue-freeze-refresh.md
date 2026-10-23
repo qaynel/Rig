@@ -3,7 +3,7 @@ date: 2026-10-23
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-23-five-gap-final-freeze
 tags: verification, remediation
 summary: Final gate stopped before tests on a generated skill-catalogue digest after the onboarding playbook repair; regenerated the63-skill catalogue and re-entered final-byte verification without changing oracle or behavior.

@@ -6,7 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
-- **2026-10-23 — [2026-10-23-skill-catalogue-freeze-refresh](reasoning/2026-10-23-skill-catalogue-freeze-refresh.md)**: Final gate stopped before tests on a generated skill-catalogue digest after the onboarding playbook repair; regenerated the63-skill catalogue and re-entered final-byte verification without changing oracle or behavior.
+- **2026-10-23 — [2026-10-23-standalone-compatibility-final-freeze](reasoning/2026-10-23-standalone-compatibility-final-freeze.md)**: Standalone and prefixed generic execution compatibility is repaired without weakening signed verifier scope; all execution callers pass140 host/66 Linux, new prefix case and final Linux19/19; renew final full gate/review.
 - **2026-10-22 — [2026-10-22-qa-closure-scope-and-recovery](reasoning/2026-10-22-qa-closure-scope-and-recovery.md)**: Owner directs a bounded scope to clear existing QA-prod blockers, delegate parallel Luna work, preserve recoverability across usage limits, and provide the exact human signing action without claiming readiness early.
 - **2026-10-22 — [2026-10-22-legacy-pointer-resume-guard](reasoning/2026-10-22-legacy-pointer-resume-guard.md)**: Legacy-pointer migration now passes the stale-plan guard only when the live pointer normalization exactly matches a graft from its verified preimage.
 - **2026-10-22 — [2026-10-22-journal-legacy-create-compatibility](reasoning/2026-10-22-journal-legacy-create-compatibility.md)**: Strict journal validation now preserves legitimate legacy applied create-owned records without preimage_digest while still requiring preimage evidence for replace and delete operations.

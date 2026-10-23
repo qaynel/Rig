@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { withRepo } = require('./helpers/advanced');
-const { runAutofix, planAutofix } = require('../rig/lib/lint-format');
+const { runAutofix, executePlan, planExecution, planAutofix } = require('../rig/lib/lint-format');
 const { sign } = require('./helpers/task-approval');
 
 function formatter(target) {
@@ -27,6 +27,20 @@ test('approved autofix passes its changed filename operand to the verifier', () 
     const approval = sign(target, plan);
     assert.equal(plan.commands[0].definition_snapshot.find(([file]) => file === 'a.js')[1], plan.commands[1].definition_snapshot.find(([file]) => file === 'a.js')[1]);
     assert.deepEqual(runAutofix(target, cmd, approval), { verification: 'pass', status: 'completed', fix_status: 'completed' });
+  });
+});
+
+test('autofix verification follows a prior signed read-only command in a generic plan', () => {
+  withRepo((target) => {
+    const pair = planAutofix(target, formatter(target)).commands;
+    const plan = planExecution({ target, commands: [
+      { role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] },
+      ...pair,
+    ] });
+    const result = executePlan(plan, sign(target, plan));
+    assert.equal(result.status, 'executed');
+    assert.equal(result.command_results.length, 3);
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'fixed\n');
   });
 });
 

@@ -413,7 +413,8 @@ function executePlan(plan, approval) {
   const authorized = authorizeExecution(plan, approval);
   if (authorized.status !== 'authorized') return authorized;
   const command_results = [];
-  for (const cmd of plan.commands) {
+  for (let index = 0; index < plan.commands.length; index += 1) {
+    const cmd = plan.commands[index];
     let cwd;
     try { cwd = taskCwd(plan.target, cmd.cwd); }
     catch { return { status: 'boundary_violation', reason: 'approved working directory escapes repository', command_results }; }
@@ -438,7 +439,7 @@ function executePlan(plan, approval) {
       if (changed_paths.length) return { status: 'mutated', changed_paths, changes: changed_paths.map((file) => ({ path: file, before: before.get(file) || null, after: snapshotDir(plan.target).get(file) || null })), command_results: [...command_results, result] };
     }
     command_results.push(result);
-    if (cmd.role === 'autofix' && result.status === 'completed' && result.exit_code === 0 && !acceptAutofixInputs(authorized.permit, plan.target)) {
+    if (cmd.role === 'autofix' && plan.commands[index + 1]?.role === 'verify' && result.status === 'completed' && result.exit_code === 0 && !acceptAutofixInputs(authorized.permit, plan.target)) {
       return { status: 'command_drift', reason: 'approved fix changed verifier configuration or an unapproved input', command_results };
     }
     if (result.status !== 'completed' || result.exit_code !== 0) {
