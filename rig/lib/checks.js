@@ -240,9 +240,10 @@ function runChecksLocal(target, { scope, service = null } = {}) {
           require('./reports').ALLOWED.has(result.kind) ? result.kind : (result.error && /ENOENT/.test(String(result.error))) ? 'command_not_found' : 'failed',
         summary: `${serviceId} failed`,
         reason,
-        evidence: result.changed_paths || result.changes ? [{
+        evidence: result.changed_paths || result.changes || result.commands ? [{
           ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
           ...(result.changes ? { changes: result.changes } : {}),
+          ...(result.commands ? { commands: result.commands, executed_count: result.executed_count } : {}),
         }] : [],
         fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
       });
@@ -251,6 +252,7 @@ function runChecksLocal(target, { scope, service = null } = {}) {
         stdout: result.stdout || '', stderr: result.stderr || `${reason}\n`,
         ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
         ...(result.changes ? { changes: result.changes } : {}),
+        ...(result.commands ? { commands: result.commands, executed_count: result.executed_count } : {}),
       };
     }
   }

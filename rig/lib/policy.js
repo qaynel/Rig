@@ -279,7 +279,7 @@ function policyStatus(target, { candidate, prose } = {}) {
       receipt.proposal.candidate_digest === (active ? digest(fs.readFileSync(activeAbs)) : null);
   }
   // An interrupted install claims no protection, whatever the policy says.
-  const install = require('./lifecycle').installState(target);
+  const install = require('./journal-records').installState(target);
   const withheld = !install.complete;
   const triageDisclosureConfirmed = (receipt?.confirmed_disclosures || []).includes(digest(TRIAGE_DISCLOSURE));
   return {
@@ -308,6 +308,7 @@ function policyStatus(target, { candidate, prose } = {}) {
 }
 
 function currentProtectionEvidence(target, active = loadActivePolicy(target)) {
+  const installComplete = require('./journal-records').installState(target).complete;
   let evidence;
   try { evidence = readJson(policyPath(target, '.rig/policy/control-evidence.json')); } catch { evidence = null; }
   const snapshots = new Map();
@@ -326,7 +327,7 @@ function currentProtectionEvidence(target, active = loadActivePolicy(target)) {
     const runs = currentRuns.filter((run) => needed.includes(run.control));
     const passed = state === 'enabled' && needed.length > 0 && needed.every((name) => runs.some((run) => run.control === name && run.status === 'passed'));
     return [control, { status: state === 'disabled' ? 'disabled' : passed ? 'passed' : runs.some((run) => run.status === 'failed') ? 'failed' : 'pending',
-      generation: active.generation, runs, protection: passed }];
+      generation: active.generation, runs: installComplete ? runs : runs.map((run) => ({ ...run, protection: false })), protection: passed && installComplete }];
   }));
 }
 

@@ -12,6 +12,10 @@ installed regardless of that selection. The user reviews and approves the exact
 proposal before repository files change. Remediation is separate: the owner
 approves the exact proposal and preimage digests with a Gate 1 signature. A
 caller-supplied proposal digest alone is not consent.
+Path B approval also binds SHA256 of the real repository path; a signature
+for an identical proposal in another clone is refused. Prepare runs enabled
+sanitation before capability review, blocks/quarantines unsafe harness input,
+and records explicitly disabled sanitation as not run without a clean verdict.
 
 For the active 6.0.0 QA closeout, use the [eighteen-finding acceptance
 criteria](../../wiki/specs/close-everything/2026-10-21-code-mode-review-acceptance.md),
@@ -53,6 +57,19 @@ previous approval was consumed even if the run stopped at a review gap.
 A clean `mid` reports Context; `maximal` reruns the commands and writes
 `reports/rig/lint-format-evidence.json` only when their observed output and
 inputs match. A changed file, rule, or command makes the old review stale. Generated Rig reports do not invalidate that review; read-only commands that write reports are still rejected as mutations.
+Evidence replay retains every observed command outcome, including timeout or
+signal failures; a failed replay does not produce an Evidence receipt. Local
+reports keep that detail redacted, while CI emits safe aggregates only.
+
+For a separate autofix that passes source filenames, include the discovered
+`scoped_files` list in the signed fix/verify plan, for example `['a.js']` for
+`formatter --write a.js` followed by `formatter --check a.js`. Paths are relative
+to the command cwd and must be file operands in both commands. Only their
+observed post-fix bytes may become verification inputs. Executable, explicit
+`source`, configuration and modes remain pinned. Missing scope or definition
+drift reports `verification: not_run` with `command_drift`; prepare a corrected
+plan rather than treating an unlaunched verifier as a failed check.
+
 This local receipt is independent of a separately approved CI integration.
 If any command changes source bytes or modes, Rig stops before launching the
 next command and reports the changed paths and before/after evidence. It leaves

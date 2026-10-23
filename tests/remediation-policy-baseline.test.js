@@ -58,6 +58,50 @@ test('interrupted signed policy publication is incomplete then recovers the appr
   assert.equal(policy.loadActivePolicy(target).policy.enabled, false);
 }));
 
+test('incomplete reinstall withholds control protection in status and fresh baseline results', () => fixture(({ target, proposal, approval }) => {
+  const { runBaseline, baselineSnapshot } = require('../rig/lib/policy-baseline');
+  const { installState, resumeInstall } = require('../rig/lib/lifecycle');
+  fs.writeFileSync(path.join(target, '.gitignore'), '.rig/install-manifest.jsonl\n');
+  assert.equal(spawnSync('git', ['add', '.gitignore'], { cwd: target }).status, 0);
+  const committed = spawnSync('git', ['-c', 'user.name=test', '-c', 'user.email=test@example.invalid', 'commit', '--no-verify', '-qm', 'fixture'], { cwd: target, encoding: 'utf8' });
+  assert.equal(committed.status, 0, committed.stderr);
+  const activeProposal = proposal();
+  policy.activatePolicy(target, activeProposal, { approval: approval(activeProposal) });
+
+  const before = runBaseline(target, { surface: 'ci.repo', scope: 'repo' });
+  assert.equal(before.status, 0, JSON.stringify(before.results));
+  assert.ok(before.results.some((result) => result.status === 'passed' && result.protection));
+  const evidenceBefore = fs.readFileSync(path.join(target, '.rig/policy/control-evidence.json'));
+  const snapshotBefore = baselineSnapshot(target, 'repo');
+
+  const originalWrite = fs.writeFileSync;
+  fs.writeFileSync = function (file, ...args) {
+    if (String(file).endsWith('/.rig/policy/interrupted-reinstall')) throw new Error('simulated interrupted reinstall');
+    return originalWrite.call(this, file, ...args);
+  };
+  try {
+    assert.throws(() => resumeInstall(target, { operations: [{ path: '.rig/policy/interrupted-reinstall', content: 'new' }] }), /interrupted reinstall/);
+  } finally { fs.writeFileSync = originalWrite; }
+
+  assert.equal(installState(target).complete, false);
+  assert.deepEqual(baselineSnapshot(target, 'repo').inputDigest, snapshotBefore.inputDigest);
+  assert.deepEqual(baselineSnapshot(target, 'repo').implementation, snapshotBefore.implementation);
+  assert.ok(JSON.parse(evidenceBefore).results.some((result) => result.status === 'passed' && result.protection), 'valid earlier evidence remains present');
+
+  const status = policy.policyStatus(target);
+  assert.ok(Object.values(status.control_evidence).every((result) => result.protection === false), JSON.stringify(status.control_evidence));
+  assert.ok(Object.values(status.control_evidence).flatMap((result) => result.runs).every((run) => run.protection === false), JSON.stringify(status.control_evidence));
+  const after = runBaseline(target, { surface: 'ci.repo', scope: 'repo' });
+  assert.equal(after.status, 0, JSON.stringify(after.results));
+  assert.ok(after.results.every((result) => result.status === 'passed' && result.protection === false), JSON.stringify(after.results));
+
+  assert.equal(resumeInstall(target, { operations: [{ path: '.rig/policy/interrupted-reinstall', content: 'new' }] }).complete, true);
+  const completedStatus = policy.policyStatus(target);
+  assert.ok(Object.values(completedStatus.control_evidence).some((result) => result.status === 'passed' && result.protection));
+  const completed = runBaseline(target, { surface: 'ci.repo', scope: 'repo' });
+  assert.ok(completed.results.some((result) => result.status === 'passed' && result.protection));
+}));
+
 test('policy publication never follows predictable temporary-file symlinks', () => fixture(({ target, dir, proposal, approval }) => {
   fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
   const sentinel = path.join(dir, 'sentinel'); fs.writeFileSync(sentinel, 'outside unchanged');

@@ -843,3 +843,10 @@ and validate a fresh binding receipt with the preserved context/counter. Only
 then push PR153 and require green checks on its exact head. Production uses
 exact-QA automated health and real-download install evidence. No new human
 signature or external owner blocker has been identified.
+
+
+## October23 binding-review follow-up freeze
+
+The final0a4d7292 gate passed main1314/Pi15/MCP6, followed by five concrete new defects in the [retained failed review](../../sources/reviews/v6.0.0-2026-10-23-qa-candidate.failed.review.json). The [bounded follow-up criteria and proof](2026-10-23-binding-review-followup.md) cover clone-bound Path B consent, enabled adopt sanitation, explicit signed autofix operand scope, replay abnormal endings and partial-install per-control protection. The original sections1–18 above remain byte-for-byte unchanged.
+
+All five repairs now have focused evidence and integrated host/Linux187/187 passes. Final Path B additions pass all126 host cases and10 Linux/MCP cases; cross-repository rejection preserves target bytes/modes, quarantine blocks, and a genuine signed sanitation disablement reports not_run with no ALLOW verdict. Autofix's first unsafe interpreter heuristic was replaced by exact signed scope and independent replacement-script negatives. No owner signing action is pending. Commit/freeze, complete full npm and obtain a fresh passing exact-byte receipt before push/required PR checks. No current receipt, new push or readiness is claimed by this checkpoint.

@@ -11,7 +11,8 @@ Read the repository's own workflow and identify its existing authorities.
 ## Discover
 
 Run `rig onboarding` `prepare` to obtain the bounded structural inventory and
-overlap hints.
+overlap hints. Prepare applies the active sanitation policy first: resolve a
+blocking or quarantined harness verdict before continuing to capability review.
 
 ## Catalogue-read
 

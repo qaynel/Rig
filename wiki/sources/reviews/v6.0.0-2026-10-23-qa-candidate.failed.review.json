@@ -1,0 +1,36 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/onboarding.js:36-37, approvalRecord; rig/lib/onboarding-state.js:canonicalProposal",
+      "detail": "Path B signs only \"rig-plan-approval\\ndigest=<proposalDigest>\\n\". Neither the canonical proposal body nor this challenge includes the target repository or clone identity. Inventory digests contain relative paths and bytes, so identically prepared repositories can have identical proposal digests; every installation also receives the same Gate 1 public key. A genuine signature obtained for repository A therefore verifies in B and reaches B's writer when its relative preimages match. The catalogue apply path separately binds target, but the shared Path B CLI/MCP apply path does not. This violates the closure checklist's repository-bound approval requirement. Existing Path B approval tests cover changed proposals and summaries, not an identical proposal in two repositories."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/onboarding.js:562-602 and prepareContext; rig/corpus/skills/onboarding/playbook.md",
+      "detail": "The shipping Path B prepare action loads the catalogue, calls inventoryHarness, builds overlaps and returns the catalogue plus whole-repository structural inventory without consulting active sanitation policy or running adopt-time sanitation. inventoryHarness extracts structural metadata; it does not call scanHarnessText or produce an adoption verdict. The canonical playbook likewise proceeds from Understand to Discover and Catalogue-read without the sanitation gate. Thus a harness containing a deterministic blocking directive can reach capability review through the default onboarding route. The older inspect/recommend route's sanitation gate does not protect this shared CLI/MCP route. AT-BASE-1 and AT-B5 require the enabled sanitation behavior here too."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/task-consent.js:39-55,139; rig/lib/lint-format.js:733-779; tests/advanced-oracle.test.js:1317",
+      "detail": "definitions hashes every existing repository file supplied as a positional argv operand. planAutofix snapshots both fix and verify commands before the fix runs, and consumeTaskPermit compares the verifier against that original snapshot. For normal commands such as formatter --write a.js followed by formatter --check a.js, a successful fix changes a.js, so verifier consumption rejects before launching verification. runAutofix then reports verification=fail although verification never ran. A read-only plan probe confirmed that the same operand digest is embedded in both command snapshots. The current acceptance fixture hides a.js inside node -e source strings, so it misses this ordinary filename-argument case. Preserve executable/configuration drift protection while allowing the approved fix's observed source changes to become verification inputs."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/lint-grade.js:92-95",
+      "detail": "Evidence replay does not preserve replay command outcomes. Any non-mutating abnormal replay is converted to coverage_gap with \"Evidence command replay or input digest did not match\", and result.commands still contains only the successful first-run outcomes. If replay also mutates, the branch unconditionally replaces its abnormal status with mutated. A read-only invocation of the actual shared evaluator with a completed Policy observation and a timeout replay returned coverage_gap, executed_count=2 and only the completed command record, losing timeout entirely. This evaluator is used by source and installed Evidence execution. The contract requires timeout, cancellation, missing dependency, signal and partial output to retain their distinct non-passing states, including during replay."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "rig/lib/policy.js:282-300,currentProtectionEvidence; rig/lib/policy-baseline.js:121-133",
+      "detail": "Incomplete-install withholding is applied only to policyStatus's top-level protection and surfaces. It still returns currentProtectionEvidence unchanged; that function can emit status=passed and protection=true without checking install completion. runBaseline likewise publishes protection=true for successful enabled controls regardless of an incomplete journal. Consequently, after an interrupted reinstall that leaves policy/implementation/input digests unchanged, valid earlier control evidence can remain protected inside a status object that simultaneously says protection=withheld; a fresh baseline run can create the same contradiction. AT-INSTALL-1 forbids every partial-install protection claim. Its current test checks top-level protection, surfaces and report fields, but not control_evidence or baseline result protection."
+    }
+  ],
+  "unresolved": []
+}

@@ -364,6 +364,7 @@ function runBinding(serviceId, binding, scope, target) {
       const observed = runConfiguredArgv(serviceId, target, program, args, cwd, binding, command, { execution_permit: auth.permit });
       return { exit_code: Number.isInteger(observed.status) ? observed.status : 1,
         status: observed.kind || (observed.error ? 'command_not_found' : 'completed'),
+        ...(observed.signal ? { signal: observed.signal } : {}),
         output_digest: crypto.createHash('sha256').update(`${observed.stdout || ''}\n${observed.stderr || ''}`).digest('hex') };
     } });
     const executedChecks = Object.keys(binding.checks || {}).slice(0, Math.max(grade.commands?.length ? 1 : 0, (grade.completed_grades || []).length));

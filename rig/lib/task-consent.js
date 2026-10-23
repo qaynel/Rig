@@ -8,6 +8,7 @@ const { containedPath, gitPath } = require('./path-safety');
 const { verifyTrustRootApproval } = require('./trust-root');
 const permits = new WeakMap();
 const executableHashes = new Map();
+const CONFIG_FILE = /(?:\.(?:jsonc?|toml|ya?ml|cfg|ini|config\.[cm]?js)|^Makefile$|^justfile$|^\.[\w-]+rc(?:\.[\w]+)?)$/i;
 const digest = (value) => crypto.createHash('sha256').update(Buffer.isBuffer(value) || typeof value === 'string' ? value : JSON.stringify(value)).digest('hex');
 
 function activePolicy(target) {
@@ -45,7 +46,7 @@ function definitions(target, command) {
   // rig: bind the component's existing configuration files and their roster;
   // host-agent source declarations cover configuration outside that cwd.
   for (const name of fs.readdirSync(cwd)) {
-    if (/(?:\.(?:jsonc?|toml|ya?ml|cfg|ini|config\.[cm]?js)|^Makefile$|^justfile$|^\.[\w-]+rc(?:\.[\w]+)?)$/i.test(name)) {
+    if (CONFIG_FILE.test(name)) {
       const abs = containedPath(target, path.join(command.cwd || '.', name));
       if (fs.statSync(abs).isFile()) files.add(path.relative(target, abs));
     }
@@ -112,7 +113,7 @@ function authorizeExecution(plan, approval) {
   finally { if (fd !== undefined) fs.closeSync(fd); }
   require('./policy-transaction').syncDirectory(path.dirname(file));
   const permit = {};
-  permits.set(permit, { target: fs.realpathSync(plan.target), commands: JSON.parse(JSON.stringify(plan.commands)), policy: plan.policy });
+  permits.set(permit, { target: fs.realpathSync(plan.target), commands: JSON.parse(JSON.stringify(plan.commands)), policy: plan.policy, dispatched: [] });
   return { status: 'authorized', permit };
 }
 function authorizeCommands(target, commands, options = {}) {
@@ -140,7 +141,70 @@ function consumeTaskPermit(permit, target, argv, cwd, network, limits) {
   if (limits?.serviceId && command.service_id !== limits.serviceId) return false;
   if (limits && ((command.timeout_ms ?? command.timeoutMs ?? 600000) !== limits.timeoutMs ||
       (command.memory_limit_mb ?? command.memoryLimitMb ?? 2048) !== limits.memoryLimitMb)) return false;
+  grant.dispatched.push(command);
   grant.commands.shift();
   return command;
 }
-module.exports = { planExecution, createPlanApprovalChallenge, authorizeExecution, authorizeCommands, consumeTaskPermit };
+function scopedOperands(target, command) {
+  if (!Array.isArray(command.scoped_files) || command.scoped_files.some(file => typeof file !== 'string' || !file || file.includes('\0') || path.isAbsolute(file))) return null;
+  const cwd = !command.cwd || command.cwd === '.' ? target : containedPath(target, command.cwd);
+  const scoped = new Set(command.scoped_files.map(file => {
+    const abs = path.resolve(cwd, file);
+    const relative = path.relative(target, abs);
+    const fromCwd = path.relative(cwd, abs);
+    if (relative.startsWith('..') || path.isAbsolute(relative) || fromCwd.startsWith('..') || path.isAbsolute(fromCwd)) throw new Error('scoped file escapes command working directory');
+    return relative;
+  }));
+  const operands = new Set((command.argv || []).flatMap((arg) => {
+    if (typeof arg !== 'string' || arg.startsWith('-')) return [];
+    const abs = path.resolve(cwd, arg);
+    const relative = path.relative(target, abs);
+    if (relative.startsWith('..') || path.isAbsolute(relative) || !fs.existsSync(abs)) return [];
+    try { if (!fs.statSync(abs).isFile()) return []; } catch { return []; }
+    return [relative];
+  }));
+  return [...scoped].every(file => operands.has(file)) ? scoped : null;
+}
+function sourceDefinition(target, command) {
+  if (!command.source) return null;
+  const abs = path.resolve(target, command.source.split('#')[0]);
+  const relative = path.relative(target, abs);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+  containedPath(target, relative);
+  return relative;
+}
+function acceptAutofixInputs(permit, target) {
+  const grant = permit && permits.get(permit);
+  if (!grant || grant.target !== fs.realpathSync(target)) return false;
+  const [fix] = grant.dispatched;
+  const [verify] = grant.commands;
+  if (fix?.role !== 'autofix' || verify?.role !== 'verify' || fix.cwd !== verify.cwd) return false;
+  let sourceFile;
+  try {
+    if (fix.source !== verify.source) return false;
+    sourceFile = sourceDefinition(target, verify);
+  } catch { return false; }
+  let fixScoped;
+  let verifyScoped;
+  try { fixScoped = scopedOperands(target, fix); verifyScoped = scopedOperands(target, verify); } catch { return false; }
+  // rig: only exact signed changed-file scope can become verifier input; all other definitions stay pinned.
+  if (!fixScoped || !verifyScoped || JSON.stringify([...fixScoped].sort()) !== JSON.stringify([...verifyScoped].sort())) return false;
+  let current;
+  try { current = definitions(target, verify); } catch { return false; }
+  const before = verify.definition_snapshot;
+  const fixBefore = fix.definition_snapshot;
+  if (!Array.isArray(before) || !Array.isArray(fixBefore) || JSON.stringify(current[0]) !== JSON.stringify(before[0])) return false;
+  const fixFiles = new Map(fixBefore.slice(1).map((entry) => [entry[0], entry]));
+  const previousFiles = new Map(before.slice(1).map((entry) => [entry[0], entry]));
+  const next = [before[0]];
+  for (const entry of current.slice(1)) {
+    const old = previousFiles.get(entry[0]);
+    if (JSON.stringify(old) === JSON.stringify(entry)) { next.push(old); continue; }
+    if (CONFIG_FILE.test(path.basename(entry[0])) || entry[0] === sourceFile || !fixScoped.has(entry[0]) || !fixFiles.has(entry[0]) || previousFiles.get(entry[0])?.[2] !== entry[2]) return false;
+    next.push(entry);
+  }
+  if (before.slice(1).some((entry) => !current.slice(1).some((item) => item[0] === entry[0]))) return false;
+  verify.definition_snapshot = next;
+  return true;
+}
+module.exports = { planExecution, createPlanApprovalChallenge, authorizeExecution, authorizeCommands, consumeTaskPermit, acceptAutofixInputs };

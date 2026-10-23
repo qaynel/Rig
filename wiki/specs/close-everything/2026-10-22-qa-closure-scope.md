@@ -57,6 +57,8 @@ Focused evidence can be reused only when it names the tested bytes and seam.
 
 ## Current gate and recovery
 
+The [October23 five-gap follow-up](2026-10-23-binding-review-followup.md) records the latest binding-review failure after a green main1314/Pi15/MCP6 gate. That follow-up and the latest reasoning trace supersede the historical run details below. Repairs require a new committed full gate and fresh receipt; no owner command is pending.
+
 Three Luna repair/review slices and three fresh Luna evidence/audit slices have
 completed. All eighteen finding rows have reviewed implementation and
 regression evidence in the mutable acceptance ledger. The original sections

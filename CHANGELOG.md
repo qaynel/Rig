@@ -19,6 +19,10 @@
   shared secret redaction, strict inventory journal validation, and Linux
   signal/child-process handling. Preserve actionable failure evidence through
   public source and installed commands; document it in `docs/advanced/operator.md`.
+- Bind Path B consent to its clone and enforce enabled adopt sanitation before
+  capability review. Preserve explicit autofix operand scope, replay failure
+  records, and partial-install protection withholding. Update the technical
+  design and `docs/advanced/operator.md` with these boundaries.
 - Add exact-SHA clean-install E2E, weekly health checks, and release eligibility
   evidence.
 - Update `README.md`, `README.es.md`, `README.ko.md`, `docs/install.md`,

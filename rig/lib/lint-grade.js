@@ -91,7 +91,11 @@ function runGrade({ target, grade, changed, commands, context, execute }) {
       if (level > 2) {
         const replay = run();
         result.executed_count += replay.observed.length;
-        if (replay.changed_paths) return { ...result, status: 'mutated', verdict: 'fail', reason: 'read-only Evidence replay changed repository files', changed_paths: replay.changed_paths, changes: replay.changes };
+        result.commands.push(...replay.observed.map(({ cmd, result }) => ({ ...cmd, phase: 'Evidence', result })));
+        const abnormal = replay.observed.find(({ result }) => result.status !== 'completed' || result.exit_code !== 0)?.result;
+        const ending = abnormal && (abnormal.status === 'completed' ? 'failed' : abnormal.status || 'runner_error');
+        if (replay.changed_paths) return { ...result, status: ending || 'mutated', verdict: 'fail', reason: 'read-only Evidence replay changed repository files', changed_paths: replay.changed_paths, changes: replay.changes };
+        if (ending) return { ...result, status: ending, verdict: 'fail', reason: `Evidence replay command ended with ${ending}` };
         if (JSON.stringify(replay.observed.map((entry) => entry.result)) !== JSON.stringify(observed.map((entry) => entry.result)) || input.input_digest !== inputFor(target, changed, commands)?.input_digest) { result.status = 'coverage_gap'; result.verdict = 'fail'; result.reason = 'Evidence command replay or input digest did not match'; }
         else {
           const receipt = { schema_version: 1, kind: 'lint-format-evidence', input_digest: input.input_digest, context_digest: digest(context), output_digest: result.evidence.output_digest, commands: observed.map(({ cmd, result: command }) => ({ argv: cmd.argv, cwd: cmd.cwd, ...command })) };

@@ -318,14 +318,14 @@ run or a committed fix, not by transcript claims.
   (16 files, 95 cases, principal `gate1-owner`).
 - [ ] T-10.5 Fresh review receipt bound to final bytes. The owner authorized
   Codex `gpt-6.1-sol` and repair/rerun until accepted. Preserve author context
-  `v6.0.0-qa-readiness-2026-10-17`, counter11 and rejected reports. Seven
-  shipping findings from the latest rejection are repaired; rerun only after
-  the final full gate passes. No current passing receipt exists.
-- [ ] T-10.6 `npm test` green locally on final bytes. The f3618aab run found
-  two failures (main1311 pass/2 fail/2 skip): containment coverage rejected the
-  mandatory catalogue module, and generated reports invalidated current local
-  Context review. Both have focused repairs; renew the complete committed-byte
-  gate before pushing. Historical green runs do not cover these new bytes.
+  `v6.0.0-qa-readiness-2026-10-17`, counter12 and rejected reports. The latest green full gate (main1314/Pi15/MCP6)
+  was followed by five new concrete review defects. Repairs and independent
+  cross-checks are complete or in final focused verification; renew the full
+  gate and binding review. No current passing receipt exists.
+- [ ] T-10.6 `npm test` green locally on final bytes. The0a4d7292 run passed
+  main1314/Pi15/MCP6 with two Linux-only host skips. The subsequent review
+  found five new defects; the new repairs require another complete frozen-byte
+  gate before pushing. Historical green runs do not cover the new bytes.
 - [ ] 🔒 T-10.7 Push, single PR to `qa-prod`, required CI green (`gate1-pin` included).
   Existing PR #153 targets `qa-prod` from
   `vaibhav-kodiyan/universal-issues-closure`; its remote head is7cb4fad8.
@@ -343,7 +343,7 @@ run or a committed fix, not by transcript claims.
 ## Progress count
 
 Done: 74. Open: 12. The owner signature verifies16 files/95 cases.
-The final gate requires renewal after two reproduced failures were repaired;
+The final gate requires renewal after five binding-review defects were repaired;
 a current passing review receipt and exact-head PR checks are still pending.
 QA promotion, publication and tracker closure follow the deployment policy.
 Recount `[x]` and `[ ]` and update this line whenever a box changes.

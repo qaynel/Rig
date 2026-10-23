@@ -1130,10 +1130,11 @@ test('AT-LF-12r (finding 5): autofix needs a real Gate 1 plan approval bound to 
 test('AT-LF-12r (finding 5): a failing or missing verifier is reported as failed, never as skipped or passed', () => {
   withRepo((target) => {
     fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
-    const fix = [process.execPath, '-e', "require('fs').writeFileSync('a.js','still-bad\n')"];
+    const fix = [process.execPath, '-e', "require('fs').writeFileSync('a.js','still-bad\\n')"];
     const failing = approvedFix(target, { argv: fix, verify: [process.execPath, '-e', 'process.exit(1)'] });
     assert.equal(failing.verification, 'fail');
     const missing = approvedFix(target, { argv: fix, verify: ['rig-no-such-verifier-binary'] });
-    assert.equal(missing.verification, 'fail');
+    assert.equal(missing.verification, 'not_run');
+    assert.equal(missing.status, 'command_not_found');
   });
 });

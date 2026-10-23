@@ -11,13 +11,16 @@ This holds for Path B onboarding as well as for policy activation. Every
 approval verifies against one trust root, the Gate 1 key shipped as
 `.rig/trust/gate1.allowed-signers` ([one trust root](../reasoning/2026-10-20-one-trust-root-owner-decision.md)).
 Onboarding `apply` re-verifies an SSHSIG receipt over the message
-`rig-plan-approval\ndigest=<proposal digest>\n` under the `rig-plan-approval`
-namespace. A `verified: true` field in the receipt carries no weight, a missing
+`rig-plan-approval\nrepository=<SHA256(realpath(target))>\ndigest=<proposal digest>\n` under the `rig-plan-approval`
+namespace. The clone binding rejects a genuine signature copied from an identical
+proposal in another repository. See the [October23 repair scope](../specs/close-everything/2026-10-23-binding-review-followup.md). A `verified: true` field in the receipt carries no weight, a missing
 trust root is a refusal rather than a pass, an identity other than the root's
 principal is refused, and `host-native` refuses outright because no host yet
 ships an attestation Rig can re-check. There is no independent signer list, and
 the installer ships no template for one.
 [Reasoning](../reasoning/2026-09-01-path-b-hardening-issue1-approval.md)
+
+The [October23 five-gap freeze](../reasoning/2026-10-23-five-gap-final-freeze.md) verifies the clone-bound real-signature rejection and unchanged trust root.
 
 ## Why it is this way
 

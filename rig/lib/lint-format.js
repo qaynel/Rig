@@ -406,7 +406,7 @@ function finalizeSelection(recommendation, user) {
   };
 }
 
-const { planExecution, createPlanApprovalChallenge, authorizeExecution, authorizeCommands, consumeTaskPermit } = require('./task-consent');
+const { planExecution, createPlanApprovalChallenge, authorizeExecution, authorizeCommands, consumeTaskPermit, acceptAutofixInputs } = require('./task-consent');
 
 function executePlan(plan, approval) {
   if (!plan?.target) throw new Error('executePlan: valid plan and approval required');
@@ -438,6 +438,9 @@ function executePlan(plan, approval) {
       if (changed_paths.length) return { status: 'mutated', changed_paths, changes: changed_paths.map((file) => ({ path: file, before: before.get(file) || null, after: snapshotDir(plan.target).get(file) || null })), command_results: [...command_results, result] };
     }
     command_results.push(result);
+    if (cmd.role === 'autofix' && result.status === 'completed' && result.exit_code === 0 && !acceptAutofixInputs(authorized.permit, plan.target)) {
+      return { status: 'command_drift', reason: 'approved fix changed verifier configuration or an unapproved input', command_results };
+    }
     if (result.status !== 'completed' || result.exit_code !== 0) {
       return { status: result.status === 'completed' ? 'failed' : result.status, command_results };
     }
@@ -727,15 +730,18 @@ function diffSnapshots(a, b) {
 }
 
 const AUTOFIX_HALT_STATUSES = new Set(['timeout', 'memory_exceeded', 'memory_ceiling_unavailable']);
+const AUTOFIX_NOT_LAUNCHED_STATUSES = new Set(['cancelled', 'command_not_found', 'missing_dependency', 'filesystem_isolation_unavailable', 'network_isolation_unavailable']);
 
 // The approved plan binds the exact fix argv, the verify argv, the network grant,
 // the limits and the target, so a signature for one fix cannot authorise another.
 function planAutofix(target, cmd) {
   if (!cmd || !Array.isArray(cmd.argv) || cmd.argv.length === 0) throw new Error('runAutofix: fix argv required');
   if (!Array.isArray(cmd.verify) || cmd.verify.length === 0) throw new Error('runAutofix: a verification command (verify) is required before any fix runs');
+  if (cmd.scoped_files != null && (!Array.isArray(cmd.scoped_files) || cmd.scoped_files.some(file => typeof file !== 'string' || !file || file.includes('\0') || path.isAbsolute(file)))) throw new Error('runAutofix: scoped_files must contain repository-relative file paths');
   const limits = {
     cwd: cmd.cwd || '.',
     source: cmd.source,
+    scoped_files: cmd.scoped_files || [],
     network: cmd.network === true || cmd.network === 'required',
     dependencies: cmd.dependencies || [],
     timeout_ms: cmd.timeout_ms || cmd.timeoutMs || null,
@@ -759,10 +765,17 @@ function runAutofix(target, cmd, approval) {
   if (!approval) throw new Error('runAutofix: approval required');
   const plan = planAutofix(target, cmd);
   const authorised = executePlan(plan, approval);
-  if (authorised.status === 'not_authorized') {
+  if (authorised.status === 'not_authorized' && !authorised.command_results?.length) {
     throw new Error('runAutofix: approval not authorized or already consumed');
   }
+  if ((authorised.command_results?.length || 0) < 2) {
+    return { verification: 'not_run', status: authorised.status, fix_status: authorised.command_results?.[0]?.status || authorised.status };
+  }
   if (authorised.status !== 'executed') {
+    const verifyStatus = authorised.command_results[1]?.status;
+    if (AUTOFIX_NOT_LAUNCHED_STATUSES.has(verifyStatus)) {
+      return { verification: 'not_run', status: verifyStatus, fix_status: authorised.command_results[0]?.status || authorised.status };
+    }
     if (AUTOFIX_HALT_STATUSES.has(authorised.status)) {
       return { verification: 'not_run', status: authorised.status };
     }
@@ -780,6 +793,9 @@ function runAutofix(target, cmd, approval) {
     return { verification: 'not_run', status: fixResult.status };
   }
   const verifyResult = authorised.command_results[1] || { status: 'runner_error', exit_code: 1 };
+  if (AUTOFIX_NOT_LAUNCHED_STATUSES.has(verifyResult.status)) {
+    return { verification: 'not_run', status: verifyResult.status, fix_status: fixResult.status };
+  }
   if (AUTOFIX_HALT_STATUSES.has(verifyResult.status)) {
     return { verification: 'not_run', status: verifyResult.status };
   }

@@ -832,7 +832,12 @@ The local Context review is request-bound to file, rule-source and command
 digests. It requires a nonempty summary and an explicit `verdict: pass | fail`.
 Its structured findings name violations by file, rule and meaning: a pass has
 no findings; a failure has at least one and stops before Evidence replay.
-Missing or inconsistent outcomes leave Context incomplete. Every Policy and
+Missing or inconsistent outcomes leave Context incomplete. Generated Rig reports
+are excluded from review-input hashes but remain covered by read-only mutation
+snapshots. Evidence replay appends its actual command observations to the local
+result, preserving timeout, cancellation, missing dependency, signal and partial
+output as distinct nonpassing endings even when accompanied by mutation. A
+failed replay stops later commands and produces no Evidence receipt. Every Policy and
 Evidence command is checked for source-byte and mode changes immediately after
 execution; mutation stops subsequent commands and returns exact path and
 before/after evidence without restoring over the changed file. Both public
@@ -1017,10 +1022,17 @@ Before inspection, onboarding resolves policy state:
    closed;
 3. a changed candidate remains `pending_activation` while the prior snapshot
    stays active;
-4. if the active policy enables sanitation, the normal inspection/review gate
+4. if the active policy enables sanitation, Path B `prepare` runs the shared
+   bounded inspection/verdict before publishing capability inventory or state;
+   `BLOCK` and `QUARANTINE` stop adoption. Its clone-bound apply signature is
+   over `rig-plan-approval\nrepository=<SHA256(realpath(target))>\ndigest=<proposal digest>\n`
+   in the existing `rig-plan-approval` namespace. Matching relative preimages
+   in another clone do not authorize replay. The normal inspection/review gate
    runs before profile or menu;
 5. if it disables sanitation, inspection is skipped and the run records
    `disabled`/`not_run` with no inherited clean verdict.
+   Path B returns that current result as `context.sanitation` without changing
+   the frozen state schema or creating a protection claim.
 
 The shipped default is not an editable self-authorization path: it enables all
 control leaves and enforcement surfaces and denies protected network/action
@@ -1412,7 +1424,10 @@ lands. While it is false, `policy status`, the install line, and every run
 report state that the install is incomplete and report no control as enabled,
 installed, or protecting anything. An install is interrupted only by a real
 failure (a crash, a signal, a permission or disk error); no caller-supplied
-parameter truncates one.
+parameter truncates one. This withholding also applies to every per-control
+and nested-run protection flag in `control_evidence` and freshly successful
+baseline results; raw check pass/fail remains available without claiming
+partial-install protection.
 
 **Resume, not restart.** Re-running a transition-install with an incomplete
 manifest resumes from it. Each `applied` record is verified against its
@@ -2140,7 +2155,16 @@ approval is a real SSHSIG plan approval (§6.6), verified against the Gate 1
 key alone (AD-30) — a Boolean such as `{verified:true}` is refused. The plan
 (`planAutofix`) binds the exact fix argv, the verify argv, the network grant,
 the limits and the target, so a signature for one fix cannot authorise another;
-the approval is single use, and a replay is refused. The verify command is
+the approval is single use, and a replay is refused. Filename operands that the
+fix may change carry the existing `scoped_files` list in both signed commands.
+Each scoped entry is relative to the component cwd and must be an existing
+file operand in both argv lists. After a successful approved fix, only those
+observed source operand digests may advance before verification; executable,
+configuration, mode and explicit `source` definitions remain pinned. Missing
+scope or other definition drift withholds verification as `command_drift`
+rather than treating an altered checker as successful. Discovery already emits
+this metadata; direct autofix callers must supply it for changed operands.
+The verify command is
 required and checked **before** any mutation. Rig applies the fix, then runs the
 verify command for real and reports its actual result (`pass` or `fail`); a halt
 (timeout, memory ceiling, no network isolation) reports `not_run` with its

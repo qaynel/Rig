@@ -3,7 +3,7 @@ date: 2026-10-23
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: superseded
 supersedes: 2026-10-23-final-gate-generated-report-fix
 tags: verification, remediation
 summary: Both final full-gate failures are repaired and reviewed; integrated focused tests pass21/21, oracle16/95 remains valid, and final committed-byte full verification and binding review are next.

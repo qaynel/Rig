@@ -33,7 +33,7 @@ function signApproval(target, planDigest, options = {}) {
     namespace = APPROVAL_NAMESPACE,
     identity = 'test@rig',
     trustIdentity = true,
-    message = approvalMessage(planDigest),
+    message = approvalMessage(planDigest, target),
   } = options;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-approval-key-'));
   try {

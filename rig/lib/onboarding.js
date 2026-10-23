@@ -3,7 +3,8 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { inventoryHarness } = require('./inspect');
+const { inventoryHarness, inspectTarget, adoptionVerdict } = require('./inspect');
+const { loadActivePolicy, controlEnabled } = require('./policy');
 const { buildOverlaps } = require('./adapt-overlap');
 const {
   canonical: canonicalJson, readMigrations, sha256, skillsDigest, validateSkillCatalog,
@@ -33,8 +34,9 @@ const APPROVAL_NAMESPACE = 'rig-plan-approval';
 // The signed message binds the namespace and the exact proposal digest, so a
 // signature made for policy activation (or for a different proposal) cannot be
 // replayed as a plan approval.
-function approvalMessage(planDigest) {
-  return `rig-plan-approval\ndigest=${planDigest}\n`;
+function approvalMessage(planDigest, target) {
+  const repository = sha256(Buffer.from(fs.realpathSync(target)));
+  return `rig-plan-approval\nrepository=${repository}\ndigest=${planDigest}\n`;
 }
 
 function fail(message) {
@@ -131,7 +133,7 @@ function response(action, target, state, extra = {}) {
   };
 }
 
-function prepareContext(target, catalog) {
+function prepareContext(target, catalog, sanitation) {
   const playbook = containedPath(target, PLAYBOOK_REL);
   return {
     playbook: fs.existsSync(playbook) ? fs.readFileSync(playbook, 'utf8') : '',
@@ -139,6 +141,7 @@ function prepareContext(target, catalog) {
     repository_inventory: require('./lint-discovery').inventoryRepository(target),
     adopted_config: fs.readFileSync(containedPath(target, '.rig/adopted-config.md'), 'utf8'),
     overlaps: fs.readFileSync(containedPath(target, '.rig/overlaps.md'), 'utf8'),
+    sanitation,
   };
 }
 
@@ -171,7 +174,7 @@ function approvalRecord(receipt, proposalDigest, target) {
   const verified = verifyTrustRootApproval(target, {
     identity: receipt.approval.identity,
     namespace: APPROVAL_NAMESPACE,
-    message: approvalMessage(proposalDigest),
+    message: approvalMessage(proposalDigest, target),
     signature: receipt.approval.signature,
   });
   return {
@@ -562,6 +565,14 @@ function writeIfChanged(target, rel, contents) {
 function prepare(target) {
   return withOnboardingLock(target, () => {
     const { catalog, digest } = loadInstalledCatalog(target);
+    const activePolicy = loadActivePolicy(target);
+    let sanitation = { status: 'disabled', outcome: 'not_run', verdict: null };
+    if (controlEnabled(activePolicy.policy, 'sanitation', 'sanitation.harness')) {
+      const inspection = inspectTarget(target);
+      const verdict = adoptionVerdict({ findings: inspection.findings });
+      if (verdict.verdict !== 'ALLOW') fail(`adopt-time sanitation ${verdict.verdict}: resolve harness findings before capability review`);
+      sanitation = { status: 'passed', verdict: verdict.verdict };
+    }
     const inventory = inventoryHarness(target);
     const previous = readState(target);
     const inventoryState = {
@@ -575,7 +586,7 @@ function prepare(target) {
     if (unchanged) {
       return response('prepare', target, previous, {
         warnings: inventory.warnings,
-        context: prepareContext(target, catalog),
+        context: prepareContext(target, catalog, sanitation),
       });
     }
 
@@ -598,7 +609,7 @@ function prepare(target) {
     writeState(target, state);
     return response('prepare', target, state, {
       warnings: inventory.warnings,
-      context: prepareContext(target, catalog),
+      context: prepareContext(target, catalog, sanitation),
     });
   });
 }

@@ -127,6 +127,9 @@ function runBaseline(target, { surface = 'ci.repo', scope = surface === 'ci.repo
     catch (error) { findings = [{ kind: 'check_unavailable', reason: error.message }]; }
     results.push({ ...evidence, status: findings.length ? 'failed' : 'passed', protection: findings.length === 0, findings });
   }
+  if (!require('./journal-records').installState(target).complete) {
+    for (const result of results) result.protection = false;
+  }
   // A fresh run is the only evidence that can claim the current generation.
   // Merely disabling/re-enabling policy never republishes a prior success.
   atomicWrite(target, '.rig/policy/control-evidence.json', `${JSON.stringify({ schema_version: 1, results }, null, 2)}\n`);
