@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnGuardedSync } = require('../rig/lib/spawn-guarded');
+const { approvalMessage } = require('../rig/lib/onboarding');
 const { pathToFileURL } = require('node:url');
 const root = path.resolve(__dirname, '..');
 const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
@@ -45,7 +46,7 @@ function fixtureApproval(work, target, planDigest) {
   const key = path.join(work, 'fixture-key');
   const message = path.join(work, 'approval-message');
   const identity = 'disposable-clean-install@rig';
-  fs.writeFileSync(message, `rig-plan-approval\ndigest=${planDigest}\n`);
+  fs.writeFileSync(message, approvalMessage(planDigest, target));
   if (fs.existsSync(`${message}.sig`)) fs.unlinkSync(`${message}.sig`);
   run('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-plan-approval', message]);
   return { schema_version: 1, kind: 'plan-approval', plan_digest: planDigest, approval: { method: 'external-sshsig', identity, signature: fs.readFileSync(`${message}.sig`, 'utf8') } };
