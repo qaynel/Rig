@@ -1,0 +1,7 @@
+{
+  "surviving_mutants": [],
+  "missing_assertions": [
+    "exact limit rejected"
+  ],
+  "ignore_equivalence_question": false
+}

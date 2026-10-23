@@ -1,0 +1,13 @@
+{
+  "format_command": [
+    "npm",
+    "run",
+    "format:check"
+  ],
+  "lint_command": [
+    "npm",
+    "run",
+    "lint"
+  ],
+  "autofix_during_check": false
+}

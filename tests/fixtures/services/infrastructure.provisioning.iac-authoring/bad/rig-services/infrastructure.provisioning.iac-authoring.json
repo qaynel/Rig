@@ -1,0 +1,5 @@
+{
+  "resource_names": [],
+  "state_backend": "encrypted-remote",
+  "apply_without_reviewed_plan": false
+}

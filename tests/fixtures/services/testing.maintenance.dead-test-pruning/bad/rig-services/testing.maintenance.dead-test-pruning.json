@@ -1,0 +1,7 @@
+{
+  "obsolete_cases": [],
+  "replacement_evidence": [
+    "new endpoint contract passes"
+  ],
+  "delete_live_regressions": false
+}

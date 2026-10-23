@@ -1,0 +1,8 @@
+{
+  "workload": "",
+  "measured_metrics": [
+    "latency_ms",
+    "allocations"
+  ],
+  "optimize_without_measurement": false
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.documentation.onboarding-docs",
+  "input": "README.md",
+  "format": "text",
+  "ceiling": "Checks documented setup, run and verification instructions; does not execute installation or prove that the instructions work on another machine.",
+  "offer": "Offer when a new contributor cannot locate installation and execution instructions.",
+  "checks": {
+    "minimal": [
+      {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b",
+        "reason": "Add a setup section that states the prerequisites and installation command."
+      }
+    ],
+    "mid": [
+      {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Run|Usage|Development)\\b",
+        "reason": "Document the repository-owned command that starts the project."
+      }
+    ],
+    "maximal": [
+      {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Check|Test(?:ing)?|Verification)\\b",
+        "reason": "Document how a contributor runs the proving checks."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "onboarding-docs-slice-floor",
+      "rule": {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b",
+        "reason": "Add a setup section that states the prerequisites and installation command."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "onboarding-docs-slice-behavior-oracle",
+      "rule": {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b",
+        "reason": "Add a setup section that states the prerequisites and installation command."
+      }
+    },
+    "property-floor": {
+      "check_id": "onboarding-docs-slice-property-floor",
+      "rule": {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b",
+        "reason": "Add a setup section that states the prerequisites and installation command."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "onboarding-docs-slice-mutation-floor",
+      "rule": {
+        "op": "matches",
+        "value": "(?:^|\\n)##?\\s+(?:Setup|Install(?:ation)?|Getting started)\\b",
+        "reason": "Add a setup section that states the prerequisites and installation command."
+      }
+    }
+  }
+}

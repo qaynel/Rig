@@ -1,0 +1,9 @@
+{
+  "golden_paths": [
+    "fixtures/order.json"
+  ],
+  "reviewed_diffs": [
+    "field addition"
+  ],
+  "automatic_snapshot_acceptance": false
+}

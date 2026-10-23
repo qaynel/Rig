@@ -1,0 +1,10 @@
+{
+  "triage_labels": [
+    "bug",
+    "needs-reproduction"
+  ],
+  "responsible_owners": [
+    "maintainers"
+  ],
+  "close_without_disposition": false
+}

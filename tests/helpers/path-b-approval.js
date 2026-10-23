@@ -12,7 +12,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const {
-  ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage,
+  TRUST_ROOT_REL, APPROVAL_NAMESPACE, approvalMessage,
 } = require('../../rig/lib/onboarding');
 
 function run(command, args) {
@@ -23,8 +23,9 @@ function run(command, args) {
   return result;
 }
 
-// Generates a throwaway ed25519 key, appends its public half to the target's
-// `.rig/allowed-signers`, and signs the plan-approval message for `planDigest`.
+// Generates a throwaway ed25519 key, installs its public half as the target's
+// Gate 1 trust root (`.rig/trust/gate1.allowed-signers`, which holds exactly one
+// key, so the fixture replaces the shipped key), and signs the plan-approval message for `planDigest`.
 // Overrides exist so tests can produce receipts that are structurally valid but
 // must still be refused (wrong namespace, unlisted identity, wrong digest).
 function signApproval(target, planDigest, options = {}) {
@@ -32,7 +33,7 @@ function signApproval(target, planDigest, options = {}) {
     namespace = APPROVAL_NAMESPACE,
     identity = 'test@rig',
     trustIdentity = true,
-    message = approvalMessage(planDigest),
+    message = approvalMessage(planDigest, target),
   } = options;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-approval-key-'));
   try {
@@ -40,9 +41,9 @@ function signApproval(target, planDigest, options = {}) {
     run('ssh-keygen', ['-t', 'ed25519', '-N', '', '-C', identity, '-f', keyFile]);
     if (trustIdentity) {
       const [keyType, keyBody] = fs.readFileSync(`${keyFile}.pub`, 'utf8').trim().split(/\s+/);
-      const allowed = path.join(target, ALLOWED_SIGNERS_REL);
+      const allowed = path.join(target, TRUST_ROOT_REL);
       fs.mkdirSync(path.dirname(allowed), { recursive: true });
-      fs.appendFileSync(allowed, `${identity} ${keyType} ${keyBody}\n`);
+      fs.writeFileSync(allowed, `${identity} ${keyType} ${keyBody}\n`);
     }
     const messageFile = path.join(dir, 'msg');
     fs.writeFileSync(messageFile, message);
@@ -62,4 +63,4 @@ function signApproval(target, planDigest, options = {}) {
   }
 }
 
-module.exports = { APPROVAL_NAMESPACE, ALLOWED_SIGNERS_REL, approvalMessage, signApproval };
+module.exports = { APPROVAL_NAMESPACE, TRUST_ROOT_REL, approvalMessage, signApproval };

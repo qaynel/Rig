@@ -1,64 +1,29 @@
 # Review receipts
 
-## What it is
+The [standalone compatibility freeze](../reasoning/2026-10-23-standalone-compatibility-final-freeze.md) records the final shared-seam repair: only an actual adjacent fix/verifier pair advances inputs; standalone mutation and preceding read-only steps keep their correct semantics. Execution callers pass140 host/66 Linux, final Linux autofix/dispatch19/19 and oracle16/95. Complete verification and a fresh passing receipt on final bytes remain before push/required PR checks. Original criteria/counter12 are intact; no owner command or QA readiness is claimed.
 
-A release review receipt is wrapper-authored, report-only evidence from a fresh
-review context. It binds the exact technical-spec digest, a digest over the
-catalogue plus every referenced fragment, a deterministic digest of the exact
-PR implementation worktree and its base, the reviewer context and timestamp,
-one verdict per current acceptance case, findings, and unresolved cases.
+The [previous repaired-candidate checkpoint](../reasoning/2026-10-22-repaired-candidate-final-freeze.md) and [scope](../specs/close-everything/2026-10-22-qa-closure-scope.md) retain all eighteen finding mappings, cross-review and macOS/Linux evidence. The [unchanged acceptance criteria with ledger](../specs/close-everything/2026-10-21-code-mode-review-acceptance.md) remains the closure bar. Run `.context/qa-closure/handoff.sh`; [HANDOFF.md](../../.context/qa-closure/HANDOFF.md) preserves model recovery. No new signing action is required. Current-byte full npm, fresh passing binding receipt and required exact-head PR checks remain delivery gates.
 
-## Validation
+## What a receipt proves
 
-Producer and validator now use the same `report-only` schema. Validation
-requires distinct author/reviewer contexts, exact current spec, catalogue, and
-implementation digests, the expected PR base, exact
-acceptance-ID set equality with no duplicates, a passing verdict for every
-case, `unresolved: []`, and no blocker finding. Missing, extra, stale, failing,
-or unresolved reviews fail closed. The wrapper validates the reviewer result
-before it writes a receipt, so an incomplete file is never release evidence.
+A release receipt is wrapper-authored, report-only evidence from a fresh review context. It binds the technical-spec digest, catalogue and referenced fragments, exact PR implementation worktree and base, reviewer context, timestamp, one verdict per current acceptance case, findings and unresolved cases. It is valid only for those exact bytes. It does not authorize implementation or sign Gate 1.
 
-The reviewer supplies semantic verdicts and findings only. The wrapper can
-launch Claude or Codex as an ephemeral read-only driver; driver choice changes
-neither the prompt nor receipt contract. It computes digests, creates the fresh
-context identifier, records the driver and model for audit, and writes the
-timestamp. A model label is not the independence mechanism; the fresh context
-and report-only authority are. Review receipt files are excluded
-from the implementation digest to avoid a self-referential hash; all other
-tracked and publishable untracked files are covered.
+The reviewer returns verdicts and findings. The wrapper computes digests, starts the fresh context, records reviewer/model metadata and writes the receipt. Validation requires distinct author and reviewer contexts, current byte bindings, the exact acceptance-ID set, a passing verdict for every case, `unresolved: []`, and no blocker. Review receipts are excluded from the implementation digest to avoid self-reference; other tracked and publishable untracked files are included.
 
-## Re-review cap and interim passes (RIG-124)
+## Current review state
 
-The wrapper is a release-only gate, never a mid-development inner loop. It
-tracks failures per `--author-context` in a sibling `<out>.attempts.json`
-file: a `fail` verdict increments the count, a `pass` clears it, and a prior
-count above one refuses to spawn another reviewer — "at most one re-review
-after a fix," enforced by the script itself rather than agent discipline.
-`--force-rereview` overrides the cap as an explicit, visible step. `--interim`
-runs the same review with a cheap `--model` for a fix-and-recheck cycle but
-never writes the binding receipt (prints verdict and findings, exits non-zero
-on fail); only a run without `--interim` produces AT-GATE-3 evidence, using
-the model the release designates. Default behavior with neither flag is
-unchanged from before RIG-124.
+The [October21 rejected review](../sources/reviews/v6.0.0-2026-10-21-code-mode.failed.review.json) and [October22 seven-gap rejected report](../sources/reviews/v6.0.0-2026-10-22-qa-candidate.failed.review.json) are retained. The latter followed a green exact-candidate full gate1292+15+6 and exposed shipping seams that helper tests missed. Those seams now have real public-process proofs and cross-review repairs. No current passing receipt exists at this checkpoint. Preserve author context and counter11 for the necessary post-fix review; a pass is valid only on final unchanged bytes.
 
-**RIG-124.1 is now Done (2026-08-26):** the cap-scoping fix and the
-reviewer process-group fix both landed with named regression tests; a killed
-or timed-out reviewer spawn is persisted before the cap is evaluated. See
-[[2026-08-26-rig124-cap-lost-update]].
+The owner authorizes completing the existing scope without repeat permission prompts. The exact final binding review still follows the receipt path after the candidate is ready; preserve author context and counter. A provider usage limit means preserve logs and resume from the scope and handoff. It never changes a finding's status or authorizes an automatic retry.
 
-## Authorities and sources
+## Re-review cap
+
+`review-receipt.js` tracks failures per `--author-context` in a sibling attempts file. A failed review increments the count; a pass clears it. Once capped, another attempt requires an explicit owner-authorized `--force-rereview`. `--interim` is non-binding and cannot write a receipt. The wrapper tests and historical RIG-124 evidence are linked from the [decision index](../index/decisions.md) and [reasoning index](../index/reasoning.md).
+
+## Authorities
 
 - Review intent: [business specification](../gate1/business-spec.md)
 - Working mechanism: [technical specification](../gate2/technical-spec.md)
-- Historical receipts: [review sources](../sources/reviews/)
-- Latest rejected implementation review: [v0.16 failed review](../sources/reviews/a-la-carte-v0.16-implementation.failed.review.json)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- PR review binding: [owner decision](../reasoning/2026-08-23-triage-disclosure-and-pr-review.md)
-- Re-review cap / interim passes: [RIG-124](../tickets/RIG-124.md), [implementation trace](../reasoning/2026-08-25-rig124-implementation.md), token-burn source: [investigation](../reasoning/2026-08-25-token-burn-investigation.md)
-
-## Remaining work
-
-The `v5.0.0` receipt is
-[`rig-120-v5.0.0-2026-08-29-fresh.review.json`](../sources/reviews/rig-120-v5.0.0-2026-08-29-fresh.review.json):
-`verdict: pass`, no unresolved cases, bound to the tagged commit. Historical
-receipts remain historical because they bind older bytes.
+- Acceptance IDs: [acceptance index](../index/acceptance-cases.md)
+- Historical review sources: [reviews](../sources/reviews/)
+- Delivery sequence: [change-management policy](../../rig/corpus/standards/change-management.md)

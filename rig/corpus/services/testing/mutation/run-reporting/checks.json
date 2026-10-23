@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.run-reporting",
+  "input": "rig-services/testing.mutation.run-reporting.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms reported outcomes, the input revision and the raw-secret flag are declared; it does not produce a report.",
+  "offer": "Report mutation outcomes against the exact input revision and include inconclusive states. Redact sensitive input before any report leaves the producing environment.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
+      }
+    ],
+    "mid": [
+      {
+        "field": "input_revision",
+        "op": "nonempty",
+        "reason": "Record the exact input revision of the run. A report without a revision cannot be tied to code, so name the commit."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "publish_raw_secrets",
+        "op": "equals",
+        "value": false,
+        "reason": "Set publishing raw secrets to false. Reports leave the producing environment, so redact sensitive input first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "run-reporting-slice-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "run-reporting-slice-behavior-oracle",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
+      }
+    },
+    "property-floor": {
+      "check_id": "run-reporting-slice-property-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "run-reporting-slice-mutation-floor",
+      "rule": {
+        "field": "reported_outcomes",
+        "op": "nonempty",
+        "reason": "List the outcomes reported, including inconclusive states. Hiding some inflates the score, so include every category."
+      }
+    }
+  }
+}

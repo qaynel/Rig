@@ -1,0 +1,7 @@
+{
+  "changed_behaviors": [],
+  "updated_cases": [
+    "reject missing owner"
+  ],
+  "tests_follow_output_blindly": false
+}

@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { mergeHostGlobalMcp, GLOBAL_MCP_CONTRACTS } = require('../rig/lib/global-writes');
+const { mergeHostGlobalMcp, removeGlobalMcp, GLOBAL_MCP_CONTRACTS } = require('../rig/lib/global-writes');
 const { uninstall } = require('../rig/lib/lifecycle');
 
 const server = { command: 'node', args: ['/tmp/rig-mcp.js'], env: { TOKEN: '${TOKEN}' } };
@@ -149,5 +149,40 @@ test('RIG-111 uninstall preserves a user-changed owned value and malformed ledge
     fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), '{bad ledger}\n');
     assert.doesNotThrow(() => uninstall(target));
     assert.equal(fs.readFileSync(path.join(target, '.rig', 'global-writes.json'), 'utf8'), '{bad ledger}\n');
+  });
+});
+
+test('RIG-111 shared JSON appends and removes entries without reserializing user bytes', () => {
+  withFixture(({ home }) => {
+    const contract = GLOBAL_MCP_CONTRACTS.windsurf;
+    const file = path.join(home, contract.relative_path);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const seed = '{\n  "precise" : 9007199254740993,\n  "exponent" : 1e+09,\n  "escaped" : "line\\nquote\\\" slash\\\\",\n  "mcpServers" : {\n    "keep" : {"command" : "keep"}\n  }\n}\n';
+    fs.writeFileSync(file, seed);
+
+    const ownedA = mergeHostGlobalMcp('windsurf', home, {
+      install_id: 'repo-a', server_name: 'example-db', value: server,
+    });
+    const ownedB = mergeHostGlobalMcp('windsurf', home, {
+      install_id: 'repo-b', server_name: 'example-db', value: { command: 'node', args: ['/tmp/b.js'] },
+    });
+    const shared = fs.readFileSync(file, 'utf8');
+    for (const raw of [
+      '"precise" : 9007199254740993',
+      '"exponent" : 1e+09',
+      '"escaped" : "line\\nquote\\\" slash\\\\"',
+      '"keep" : {"command" : "keep"}',
+    ]) assert.ok(shared.includes(raw), `pre-existing lexical bytes survive: ${raw}`);
+    assert.doesNotThrow(() => JSON.parse(shared));
+
+    assert.equal(removeGlobalMcp(ownedA).removed, true);
+    const afterA = fs.readFileSync(file, 'utf8');
+    assert.doesNotMatch(afterA, /rig-repo-a-example-db/);
+    assert.match(afterA, /rig-repo-b-example-db/);
+    for (const raw of ['9007199254740993', '1e+09', '"keep" : {"command" : "keep"}']) {
+      assert.ok(afterA.includes(raw), `pre-existing bytes survive A removal: ${raw}`);
+    }
+    assert.equal(removeGlobalMcp(ownedB).removed, true);
+    assert.equal(fs.readFileSync(file, 'utf8'), seed, 'removing both attributed entries restores the original bytes exactly');
   });
 });

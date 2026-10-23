@@ -26,7 +26,7 @@ implemented and green — see [status](../status.md).
 `AT-PB-1`–`AT-PB-10`, taking the set to **83**. Their 55 direct checks are red
 before implementation (54 product failures plus one green catalogue-preservation
 guard). The oracle covering this amendment was signed 2026-09-01.
-[Path B acceptance-oracle trace](../reasoning/2026-08-31-path-b-acceptance-oracle.md)
+[Path B acceptance-oracle trace](../archive/2026-08/path-a-and-path-b-onboarding.md)
 
 **Amended 2026-09-03, onboarding hardening:** eight concrete adversarial cases
 and four recurrence-prevention cases, `AT-HD-1`–`AT-HD-12`, take the set to
@@ -123,7 +123,7 @@ Path B's seventh business-level property is covered directly by
 |---|---|---|
 | `AT-CLAIM-1` | Build the whole roster uniformly; activate exactly the detected or explicitly requested host trees. | [host and CI coverage](../topics/host-and-ci-coverage.md) |
 | `AT-PRESENCE-1` | No presence, no activation. Three terminal states, refusal being one. | [user-presence approvals](../topics/user-presence-approvals.md) |
-| `AT-PRESENCE-2` | Lost policy signer: recovery is real, bounded, and terminates. | [policy-signer recovery](../topics/policy-signer-recovery.md) |
+| `AT-PRESENCE-2` | One trust root: only the Gate 1 key approves (owner amendment pending). | [one trust root](../topics/policy-signer-recovery.md) |
 | `AT-HOME-1` | Global writes append, never overwrite, and the install line names the file. | [user-global writes](../topics/user-global-writes.md) |
 | `AT-HOME-2` | Multi-repository attribution, required from the **first** install. | [user-global writes](../topics/user-global-writes.md) |
 | `AT-DIST-1` | A stranger installs named-tag `5.0.0`, all 55 named skills, and required MIT notice/provenance without `curl | sh`. | [distribution and release](../topics/distribution-and-release.md) |

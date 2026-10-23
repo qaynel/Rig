@@ -36,9 +36,8 @@ risks or state that expires unchanged user intent. [Rejected approaches](../inde
 ## What is still open
 
 **Resolved** for the in-process one-use path: clone-local storage, exact-action
-binding, and atomic consumption pass the green full test suite. Policy recovery
-invalidates pending one-use approvals only after an authorized recovery receipt
-commits, per [policy-signer recovery](policy-signer-recovery.md).
+binding, and atomic consumption pass the green full test suite. There is no policy-signer recovery to invalidate approvals; see
+[the one trust root](policy-signer-recovery.md).
 
 The lint-format plan/execute flow is a second consumption site. Branch
 `rig-115-at-lf-20-single-use-approval` (RIG-115, AT-LF-20) set
@@ -46,10 +45,10 @@ The lint-format plan/execute flow is a second consumption site. Branch
 persistence, so the flag did not survive the process boundary a real
 plan/execute flow crosses. It was one instance of a larger pattern, not an
 isolated bug: see [guarantee sharding](../mistakes/guarantee-sharding.md) and
-[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md).
 
 Fixed in `rig/lib/lint-format.js`'s `executePlan`/`consumePlanApproval`
-([reasoning trace](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md),
+([reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md),
 closes [RIG-138 / #93](https://github.com/qaynel/Rig/issues/93)): consumption
 is now a clone-local file at
 `target/.rig/lint-format/executions/<sha256(plan_digest)>.json`, created with
@@ -61,3 +60,8 @@ touched by this fix and still have the matching defect for their own
 callers: `grantApproval` writes a durable approval file, but nothing reads it
 back and durably marks it used — the write half of this pattern exists
 generically, the consume half does not, for anything outside lint-format.
+
+2026-10-13: frozen AT-LF-20 reuses one approval object, so the in-memory flag
+rejects before the durable record is consulted. A candidate amendment with two
+independent approval objects and a recorded mutation check is filed unsigned
+for the owner's batched re-sign ([trace](../reasoning/2026-10-13-rig-127-145-147-146-bug-fixes.md)).

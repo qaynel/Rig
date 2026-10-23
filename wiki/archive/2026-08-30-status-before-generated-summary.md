@@ -169,7 +169,7 @@ The GitHub release is latest:
 https://github.com/qaynel/Rig/releases/tag/v5.0.0
 Tag CI on that ref is green. The installer resolves this tag by name or as
 `latest`. [[RIG-120]] is Done. Trace:
-[[reasoning/2026-08-29-v5.0.0-tag]].
+[[archive/2026-08/release-install-and-distribution|2026-08-29-v5.0.0-tag]].
 
 The ceremony PR remains open against `qa-prod-finishing-up`; `origin/prod`
 does not yet contain this commit. Named-tag installs do not need that merge.
@@ -293,13 +293,13 @@ GA-38, revert the on-branch oracle re-sign rather than justify it, iterate
 locally via `--interim` before spending the real capped review) and asked
 for an execution handoff. Full brief, all 8 findings mapped to fixes, and
 the local-iteration-loop mechanics:
-[[reasoning/2026-08-29-rig120-fresh-review-v2-handoff]]. Not started yet —
+[[archive/2026-08/uninstall-ownership-and-ci-journal-trust|2026-08-29-rig120-fresh-review-v2-handoff]]. Not started yet —
 next session/agent should pick up there.
 
 ## RIG-120 autofix isolation/caps gap closed (2026-08-29)
 
 Fixed the "major" finding from the 2026-08-29 force-rereview
-([[reasoning/2026-08-29-rig120-force-rereview-fail]]): `runAutofix`
+([[archive/2026-08/uninstall-ownership-and-ci-journal-trust|2026-08-29-rig120-force-rereview-fail]]): `runAutofix`
 (`rig/lib/lint-format.js:777`) called bare `spawnTask` for both its fix and
 verify commands, with no `networkIsolationPrefix`, `timeoutMs`, or
 `memoryLimitMb` — the only one of the three execution seams (read/grade/fix)
@@ -349,7 +349,7 @@ stale oracle pin; verifier red. (2) major — `runAutofix` still uses bare
 `spawnTask` with no network isolation or resource caps. Three minors (undeclared
 catalogue network, uninstall throw on escaping journal path, "68" prose vs 73
 IDs) are not receipt-blocking. Attempts file is at failures: 3. Trace:
-[[reasoning/2026-08-29-rig120-force-rereview-fail]].
+[[archive/2026-08/uninstall-ownership-and-ci-journal-trust|2026-08-29-rig120-force-rereview-fail]].
 
 ## RIG-120 capability close-out in flight (2026-08-29)
 
@@ -358,7 +358,7 @@ now applies per-binding timeout and memory ceilings, three-state network
 handling, committed exact-service authority for raised ceilings or required
 network, and named fail-closed refusals. Direct and materialized-runner tests
 are green, as is the full code suite; only the owner release ceremony remains.
-[[reasoning/2026-08-29-rig120-capability-policy-close-out]].
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig120-capability-policy-close-out]].
 
 ## rig-120 symlink-escape blocker fixed; shipping-path-bypass blocker still open, needs owner scoping (2026-08-29, latest)
 
@@ -458,7 +458,7 @@ not inferred: whether the new network-deny-by-default should apply
 immediately (breaks any of the ~115 existing catalog service packs that need
 network and don't yet declare it) or additively (opt-in now, audit catalog
 packs over time) — recommended additive. Full draft:
-[[reasoning/2026-08-29-rig144-capability-policy-grilling]]. No testing
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig144-capability-policy-grilling]]. No testing
 infrastructure or implementation started yet; waiting on the owner's
 acceptance-criteria sign-off and the one decision, per the gate contract
 (an agent may draft the oracle, the human signature is what makes it safe to
@@ -492,7 +492,7 @@ files verify cleanly against the registered owner signing key. One flagged
 item (non-GitHub CI provider removal downgraded to best-effort) matches a
 scope decision already recorded elsewhere in this log, likely not new
 information. Full trace and unverified minor items:
-[[reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass]].
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig120-fresh-review-fails-shipping-path-bypass]].
 
 **Net: RIG-120 does not clear the ceremony on this worktree.** This is a new
 kind of finding for this ticket — every prior review round found and closed
@@ -701,7 +701,7 @@ No frozen oracle file was edited; no re-sign is required. Full AT-PROC-1a–1i
 focused suite: 9/9 passed. Full `npm test` gate: 501/504 root tests pass, 1
 expected Linux-only skip, 2 pre-existing failures (AT-B3 git-hooks workspace
 leak, AT-HOME-1 rig-mcp node_modules not installed) — identical to the
-pre-fix baseline. Reasoning trace: [[reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean]].
+pre-fix baseline. Reasoning trace: [[archive/2026-08/shell-trust-and-capability-policy|2026-08-28-runReadOnly-memory-ceiling-unavailable-clean]].
 
 ## Linux CI regression isolated and fixed locally (2026-08-28, latest)
 
@@ -840,7 +840,7 @@ fixture). Owner ruled this workspace's async version canonical;
 hash — `node scripts/approve-gate1.js` correctly refuses here (no
 `RIG_GATE1_SIGNING_KEY` in this session). Once signed: full `npm test`, then
 this closes RIG-137/#91 and clears PR #83's G1 gating item. Record:
-[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
 
 
 ## RIG-137 (G1 blocker) decided: Option A, scoped to AT-LF-22 (2026-08-28)
@@ -859,7 +859,7 @@ later ticket. Draft test rewrite is written and owner-approved (async
 hash, then implement — delete the `net.Server.prototype.listen` patch from
 `rig/lib/lint-format.js`, land the drafted test, run the full gate. This
 closes PR #83's G1 gating item. Full record:
-[[reasoning/2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
+[[archive/2026-08/shell-trust-and-capability-policy|2026-08-28-rig137-option-a-scope]], [ticket](tickets/RIG-137.md).
 
 ## RIG-143 complete; runGrade network contract now matches runReadOnly (2026-08-28)
 
@@ -1087,7 +1087,7 @@ now [[RIG-136]] / GitHub #92, not in scope for that wiki-only pass).
 RIG-124.1 (the other thing RIG-120.md
 listed as an open blocker) was already Done in an earlier entry below; that
 ticket's stale references were corrected too. Full trace:
-[[2026-08-27-wiki-code-sync-at-lf-24]].
+[[archive/2026-08/wiki-and-agent-working-conventions|2026-08-27-wiki-code-sync-at-lf-24]].
 
 **Net: RIG-115 is DONE. RIG-120's only remaining blockers are the three
 owner-controlled ceremony inputs** — a fresh independent review receipt bound
@@ -1156,7 +1156,7 @@ resource/time caps, refused symlink escapes (`GA-37`, `D28`). `AT-LF-20`
 through `AT-LF-24` are authored in `wiki/gate1/acceptance.md`, traced in
 `wiki/gate2/technical-spec.md` §9.4, and tested in
 `tests/advanced-oracle.test.js`; the acceptance ID set is now **73**, up from
-68. Trace: [[2026-08-26-rig115-shell-trust-guarantees]].
+68. Trace: [[archive/2026-08/shell-trust-and-capability-policy|2026-08-26-rig115-shell-trust-guarantees]].
 
 None of the five is implemented. `node scripts/check-advanced-spec.js` now
 reports `oracle signature does not verify` — expected, not a regression: the
@@ -1196,7 +1196,7 @@ pending-triage pass (`rig/lib/checks.js`, `rig/lib/lint-format.js`,
 `separate-follow-up` sites stay excluded, deferred to RIG-135.1/.2/.3
 (#78/#79/#80) as before; the 18 `allowlisted` sites are unaffected. No new
 investigation — every debt site was already individually traced and
-classified. Reasoning: [[reasoning/2026-08-26-rig135-scope-expansion]].
+classified. Reasoning: [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig135-scope-expansion]].
 GitHub issue #75 was previously synced to match; the implementation now
 closes the ticket's mandatory scope.
 
@@ -1328,7 +1328,7 @@ implementation). Findings and deliverables:
 ## RIG-125/130/132/133 re-evaluated from committed evidence only, since the citations can't be recovered yet (2026-08-26)
 
 Follow-up to the re-investigation below, per owner request. Full trace:
-[[2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]].
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-committed-evidence-reevaluation]].
 
 Two more dead citations found (RIG-132 cited two source files by plain markdown
 link, not `[[...]]`, missed by the first grep — neither exists). Everything else
@@ -1350,7 +1350,7 @@ specific figures are treated as verified.
 
 ## RIG-125/130/132/133 re-investigated; two are further along than their board status said (2026-08-26)
 
-Full trace: [[2026-08-26-rig125-130-132-133-reinvestigation]].
+Full trace: [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig125-130-132-133-reinvestigation]].
 
 **Defect found:** all four tickets cite eight 2026-08-25 reasoning documents
 ([[2026-08-25-branch-code-review-snapshot]], round-3 receipt/map, structural
@@ -1440,7 +1440,7 @@ that plausibly forks children of its own; the same gap means a review the
 tool believes it cancelled may keep running unsupervised in the background.
 Added as a second fix, alongside the already-filed cap bug, to [[RIG-124]]
 **124.1** — both are about the same kill path being incomplete. Still blocks
-[[RIG-120]]. Trace: [[2026-08-26-rig124-timeout-duration-investigation]].
+[[RIG-120]]. Trace: [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-timeout-duration-investigation]].
 
 ## RIG-127.11 / 127.12 and RIG-124.1 filed as follow-ups (2026-08-26)
 
@@ -1465,7 +1465,7 @@ Root cause: `scripts/review-receipt.js` only persists a failed attempt to
 spawn killed by its own 30-minute timeout exits the process first, so that
 failure is silently dropped and the next same-`author-context` attempt gets an
 extra, uncounted retry past the cap. Confirmed with a deterministic repro.
-Full trace: [[2026-08-26-rig124-cap-lost-update]].
+Full trace: [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-cap-lost-update]].
 
 - [[RIG-124]] **124.1** → [GitHub #73](https://github.com/qaynel/Rig/issues/73) — killed/timed-out reviewer attempt is dropped from the re-review cap.
 - [[RIG-135]] → [GitHub #75](https://github.com/qaynel/Rig/issues/75) — general fix: create a shared process-cleanup helper to ensure all spawned subprocesses and their children are properly killed when cancelled or timed out.
@@ -1475,7 +1475,7 @@ suite went green. New invariant [[index/invariants|I-16]]. This sits directly on
 the RIG-120 path (exactly the "reviewer subprocess times out" case); it defeats
 RIG-124's one-retry cap when it does. **RIG-120's fresh review-receipt run should
 not proceed until RIG-124.1 is fixed or the owner explicitly accepts the residual
-risk**. Trace: [[2026-08-26-review-round-code-level-findings]], [[2026-08-26-rig124-cap-lost-update]].
+risk**. Trace: [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-review-round-code-level-findings]], [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-cap-lost-update]].
 
 ## Wiki and GitHub issue sync (2026-08-26)
 
@@ -1485,8 +1485,8 @@ tickets), plus RIG-126/127/128/129/131/134. GitHub #45–#61 closed to match.
 **Open follow-ups:** RIG-127.11 (#69), RIG-127.12 (#70), RIG-135 (#75), and
 RIG-135's three spawn-site sub-tickets RIG-135.1 (#78), RIG-135.2 (#79),
 RIG-135.3 (#80). RIG-124.1 (#73) is Done. Defects found in the post-merge hand-verification and
-gate-rerun passes ([[2026-08-26-review-round-code-level-findings]],
-[[2026-08-26-rig124-cap-lost-update]]). **Still blocked:** RIG-120
+gate-rerun passes ([[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-review-round-code-level-findings]],
+[[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-26-rig124-cap-lost-update]]). **Still blocked:** RIG-120
 (release ceremony), RIG-110–116, RIG-122.
 **Structural backlog:** RIG-125, RIG-130, RIG-132, RIG-133.
 
@@ -1560,7 +1560,7 @@ regression coverage.
 | Distribution test never runs the installer/archive | The regression builds a tagged archive, transports it through fake `curl`, executes the real installer under `dash`, and checks tag, skills, catalogue, and runtime in the installed target. |
 | Installer requires Bash | The root stub is POSIX `sh` with no Bash shebang, `pipefail`, substring expansion, or `[[ ... ]]`. |
 
-[Intent-owner findings](reasoning/2026-08-23-production-release-blockers.md)
+[Intent-owner findings](2026-08/release-install-and-distribution.md)
 
 ## Release boundary
 
@@ -1582,7 +1582,7 @@ markdown-only end to end: per-skill code and `.rig/plumbing` are gated behind
 `active_delivery` alongside the runtime engine, and `.tmpl`/`TODOS-format.md`
 never land. All 55 `SKILL.md` files still land unconditionally, so the frozen
 oracle's 55-skill reading is unaffected and no re-sign was required
-([AD-37](index/decisions.md), [lean-install protocol](reasoning/2026-08-23-lean-install-protocol.md)).
+([AD-37](index/decisions.md), [lean-install protocol](2026-08/release-install-and-distribution.md)).
 
 ## Current mechanics
 
@@ -1616,7 +1616,7 @@ RIG-138/139/140. This does not touch the 73-case oracle above and needed no
 re-sign — the acceptance text for these cases was already correctly scoped
 where it exists; the gap was in tests and implementation written against it
 on sibling branches. [Guarantee sharding](mistakes/guarantee-sharding.md) and
-[reasoning trace](reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md).
+[reasoning trace](2026-08/shell-trust-and-capability-policy.md).
 
 **Owner sign-off on the RIG-144 capability-policy plan, with corrections
 (2026-08-29, latest):** owner reviewed the grilling draft and approved it
@@ -1648,7 +1648,7 @@ Not yet done: `AT-CAP-1`/`2` (configurable resource ceilings), `AT-CAP-3`
 (three-state network + diagnostic), `AT-CAP-4` (`.rig/execution-policy.json`
 + capability evaluator), `AT-CAP-5` (fail-closed applied to the new
 mechanisms) — these still need their own red-before/green-after pass. Full
-trace: [[reasoning/2026-08-29-rig144-capability-policy-sign-off]]. Tickets:
+trace: [[archive/2026-08/shell-trust-and-capability-policy|2026-08-29-rig144-capability-policy-sign-off]]. Tickets:
 [[tickets/RIG-144]]. Decision: [[index/decisions|GA-38]]. Trap update:
 [[index/traps|the oracle is green at a seam the product does not use]] (the
 "add a drift test" instinct itself is now recorded as the wrong default).
@@ -1659,7 +1659,7 @@ as every prior run), plus the pi-extension and rig-mcp suites both green.
 No regression from moving `runArgv`/`runBinding` into `rig/lib/check-runner.js`.
 
 **Handoff brief written for the remaining RIG-120 code blocker
-(2026-08-29):** [[reasoning/2026-08-29-rig120-close-out-handoff]] compresses
+(2026-08-29):** [[archive/2026-08/uninstall-ownership-and-ci-journal-trust|2026-08-29-rig120-close-out-handoff]] compresses
 what's closed, the five remaining `AT-CAP` criteria and exactly which
 existing mechanism each should reuse, the vertical (per-criterion, proven
 against materialized bytes) and horizontal (no new duplication, materialized

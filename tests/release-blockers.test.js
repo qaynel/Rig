@@ -12,13 +12,12 @@ const { spawnSync } = require('node:child_process');
 const { remediate } = require('../rig/lib/apply');
 const { resumeInstall, uninstall } = require('../rig/lib/lifecycle');
 const { applyCoverage } = require('../rig/lib/lint-format');
-const { runGrade } = require('../rig/lib/lint-format');
+const { runGrade: production_runGrade } = require('../rig/lib/lint-format');
+const { runGrade } = require('./helpers/approved-lint');
 const { projectForAgent } = require('../rig/lib/reports');
 const { runPayload } = require('../rig/lib/payload');
-const { listVendoredSkills } = require('../rig/lib/skills');
 const {
-  activatePolicy, activationMessage, policyStatus, proposePolicy,
-  proposeRecovery, recoverPolicy, recoveryMessage,
+  activatePolicy, activationMessage, effectiveStatus, policyStatus, proposePolicy,
 } = require('../rig/lib/policy');
 const { actionDigest, consumeOneUseApproval } = require('../rig/lib/enforcement');
 const { mergeGlobalConfig } = require('../rig/lib/global-writes');
@@ -38,8 +37,89 @@ function withTarget(fn) {
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
+function appliedJournalRecord(seq, path, body, ownership = 'create_owned') {
+  const digest = body === null ? null : sha256(body);
+  return { seq, path, ownership, operation: ownership, transaction_kind: 'install', state: 'applied',
+    preimage_digest: null, desired_digest: digest, digest };
+}
 
-function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub }) {
+test('effective policy status applies global and section switches and explains inactive leaves', () => {
+  assert.deepEqual(effectiveStatus().reasons.policy, ['missing']);
+  assert.equal(effectiveStatus({}).protected, false);
+
+  const defaultPolicy = JSON.parse(fs.readFileSync(path.join(__dirname, '../rig/catalog/baseline/network-policy.json'), 'utf8'));
+  assert.equal(effectiveStatus(defaultPolicy).protected, true);
+  const incompleteDefault = { ...defaultPolicy, controls: { ...defaultPolicy.controls } };
+  delete incompleteDefault.controls.drift;
+  assert.equal(effectiveStatus(incompleteDefault).protected, false);
+  assert.deepEqual(effectiveStatus(incompleteDefault).reasons['controls.drift'], ['missing']);
+
+  const policy = {
+    enabled: true,
+    controls: {
+      enabled: true,
+      'sanitation.harness': true,
+      'drift.exact_copy': true,
+      'drift.semantic': true,
+      'secrets.deterministic': true,
+      'network.action_policy': true,
+    },
+    enforcement: {
+      enabled: true,
+      'host.shell': true,
+      'host.web': true,
+      'host.mcp': true,
+      'git.pre_commit': true,
+      'ci.repo': true,
+    },
+    network: {
+      enabled: true,
+      categories: {
+        outbound_network: 'deny',
+        remote_content_execution: 'deny',
+        sensitive_environment_read: 'deny',
+        guardrail_bypass: 'deny',
+      },
+    },
+  };
+  assert.equal(effectiveStatus(policy).protected, true);
+
+  const networkOff = effectiveStatus({ ...policy, network: { ...policy.network, enabled: false } });
+  assert.equal(networkOff.network.outbound_network, 'disabled');
+  assert.deepEqual(networkOff.reasons['network.categories.outbound_network'], ['network.enabled=false']);
+  assert.equal(networkOff.protected, false);
+
+  const controlsOff = effectiveStatus({ ...policy, controls: { ...policy.controls, enabled: false } });
+  assert.equal(controlsOff.controls['secrets.deterministic'], 'disabled');
+  assert.deepEqual(controlsOff.reasons['controls.secrets.deterministic'], ['controls.enabled=false']);
+  assert.equal(controlsOff.protected, false);
+
+  const incompleteCurrent = { ...policy, controls: { ...policy.controls } };
+  delete incompleteCurrent.controls['network.action_policy'];
+  assert.equal(effectiveStatus(incompleteCurrent).protected, false);
+  assert.deepEqual(effectiveStatus(incompleteCurrent).reasons['controls.network.action_policy'], ['missing']);
+
+  const allOff = effectiveStatus({ ...policy, enabled: false });
+  assert.equal(allOff.enforcement['host.shell'], 'disabled');
+  assert.deepEqual(allOff.reasons['enforcement.host.shell'], ['enabled=false']);
+  assert.equal(allOff.protected, false);
+});
+
+test('unknown host capabilities fail closed while registered hosts retain their disposition', () => {
+  const { getCapabilities, materializeHostAdapters } = require('../rig/lib/host-capabilities');
+  assert.equal(getCapabilities('generic').instruction, 'unsupported');
+  const unknown = getCapabilities('nope-not-a-host');
+  assert.equal(unknown.instruction, 'unsupported');
+  assert.equal(unknown.native_skill, 'unsupported');
+  assert.equal(unknown.mcp_config.scope, 'unsupported');
+  assert.equal(getCapabilities('constructor').instruction, 'unsupported');
+
+  const result = materializeHostAdapters('/tmp', 'nope-not-a-host', () => {});
+  assert.deepEqual(result.emitted_axes, []);
+  assert.deepEqual(result.pointers, []);
+});
+
+function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub, reported: reportOverride }) {
   const root = path.join(__dirname, '..');
   const bin = path.join(target, 'bin');
   if (!fs.existsSync(bin)) fs.mkdirSync(bin);
@@ -47,7 +127,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
   const invocationMarker = path.join(invocations, 'called');
   const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
   const ids = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))].sort();
-  const reported = JSON.stringify({
+  const reported = JSON.stringify(reportOverride || {
     verdict,
     verdicts: ids.map((id) => ({ id, verdict: verdict === 'fail' ? 'fail' : 'pass', note: 'stub' })),
     findings: verdict === 'fail' ? [{ severity: 'blocker', category: 'correctness', anchor: 'x', detail: 'stub failure' }] : [],
@@ -72,7 +152,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
   const run = spawnSync(process.execPath, [
     path.join(root, 'scripts/review-receipt.js'),
     '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
-    '--catalogue', path.join(root, 'rig/catalog.json'),
+    '--catalogue', path.join(root, 'rig/corpus/catalogue.json'),
     '--implementation-root', root,
     '--base', 'origin/implement-advanced-a-la-carte-catalogue',
     '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
@@ -89,12 +169,12 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
 function signPolicyProposal(target, proposal) {
   const key = path.join(target, 'policy-test-key');
   const message = path.join(target, 'policy-approval-message');
-  const policyDir = path.join(target, '.rig/policy');
-  fs.mkdirSync(policyDir, { recursive: true });
+  fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
+  fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
   const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
   assert.equal(generated.status, 0, generated.stderr);
   const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim();
-  fs.writeFileSync(path.join(policyDir, 'allowed-signers'), `owner namespaces="rig-policy-activation" ${publicKey}\n`);
+  fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `owner ${publicKey}\n`);
   fs.writeFileSync(message, activationMessage(proposal));
   const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
   assert.equal(signed.status, 0, signed.stderr);
@@ -119,17 +199,25 @@ test('one-use approvals mutate their durable state and reject replay', () => {
   assert.throws(() => consumeOneUseApproval(approval, action), /used|replay/i);
 });
 
-test('lint grade evidence comes from spawned argv and cannot fake a clean exit', () => {
-  const result = runGrade({
-    grade: 'maximal',
-    changed: ['a.js'],
-    commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.stdout.write("real-output")'], result: { exit_code: 99 } }],
-    context: { findings: [] },
+test('lint grade evidence comes from spawned argv but missing higher-grade work cannot be claimed', () => {
+  withTarget((target) => {
+    require('node:child_process').execFileSync('git', ['init', '-q'], { cwd: target });
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const result = runGrade({
+      target,
+      grade: 'maximal',
+      changed: ['a.js'],
+      commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.stdout.write("real-output")'], source: 'rules.json', network: true, result: { exit_code: 99 } }],
+      context: { findings: [] },
+    });
+    assert.equal(result.verdict, 'fail');
+    assert.equal(result.status, 'coverage_gap');
+    assert.deepEqual(result.completed_grades, ['Policy']);
+    assert.equal(result.commands[0].result.source, undefined);
+    assert.equal(result.commands[0].result.exit_code, 0);
+    assert.equal(result.commands[0].result.output_digest, sha256('real-output\n'));
   });
-  assert.equal(result.verdict, 'pass');
-  assert.equal(result.commands[0].result.source, undefined);
-  assert.equal(result.commands[0].result.exit_code, 0);
-  assert.equal(result.evidence.output_digest, sha256('real-output\n'));
 });
 
 test('all repository mutation paths refuse ancestor symlinks that leave the target', () => {
@@ -138,11 +226,11 @@ test('all repository mutation paths refuse ancestor symlinks that leave the targ
     (target) => {
       fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
       fs.writeFileSync(path.join(target, '.rig/install-manifest.json'), JSON.stringify({
-        records: [{ seq: 1, path: 'escape/victim', ownership: 'create_owned' }],
+        records: [appliedJournalRecord(1, 'escape/victim', 'changed')],
       }));
       return uninstall(target);
     },
-    (target) => applyCoverage(target, { writes: [{ path: 'escape/victim', content: 'changed' }] }),
+    (target) => require('./helpers/approved-lint').applyCoverage(target, { writes: [{ path: 'escape/victim', content: 'changed' }] }, {}),
     (target) => {
       const proposal = { actions: [{ op: 'rewrite', path: 'escape/victim', content: 'changed' }] };
       return remediate(target, proposal, sha256(JSON.stringify(proposal)));
@@ -166,12 +254,7 @@ test('OpenClaw runtime preservation cannot bypass journal path containment', () 
     fs.symlinkSync(outside, path.join(target, 'escape'));
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: `${runtime}/victim`,
-      state: 'applied',
-      transaction_kind: 'install',
-      ownership: 'create_owned',
-      digest: sha256('outside\n'),
+      ...appliedJournalRecord(1, `${runtime}/victim`, 'outside\n'),
     })}\n`);
     fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({ entries: [{
       kind: 'openclaw-mcp',
@@ -219,7 +302,7 @@ test('uninstall does not crash when `.git` is a file, as in a linked worktree', 
     fs.writeFileSync(path.join(target, '.git'), 'gitdir: /elsewhere/.git/worktrees/example\n');
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      { seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: sha256('shim') },
+      appliedJournalRecord(1, '.git/hooks/pre-commit', 'shim'),
     ].map(JSON.stringify).join('\n') + '\n');
 
     const result = uninstall(target);
@@ -241,8 +324,8 @@ test('the shipping CLI restores chained hooks and removes only attributed global
     fs.writeFileSync(path.join(target, '.git/hooks/pre-commit'), shim);
     fs.writeFileSync(path.join(target, '.git/hooks/pre-commit.rig-chained'), originalHook);
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      { seq: 1, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: sha256(originalHook) },
-      { seq: 2, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: sha256(shim) },
+      appliedJournalRecord(1, '.git/hooks/pre-commit.rig-chained', originalHook),
+      appliedJournalRecord(2, '.git/hooks/pre-commit', shim),
     ].map(JSON.stringify).join('\n') + '\n');
     const global = path.join(outside, 'host.json');
     fs.writeFileSync(global, '{"user":true}\n');
@@ -271,11 +354,7 @@ test('forged journal record cannot delete unrelated in-repository file with matc
     fs.writeFileSync(victim, content);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: 'package.json',
-      state: 'applied',
-      transaction_kind: 'install',
-      digest: sha256(content),
+      ...appliedJournalRecord(1, 'package.json', content),
     })}\n`);
     const result = uninstall(target);
     assert.equal(fs.readFileSync(victim, 'utf8'), content);
@@ -363,20 +442,8 @@ test('OpenClaw global unregister failure preserves retry state through the shipp
     fs.writeFileSync(path.join(bin, 'openclaw'), '#!/bin/sh\nexit 1\n', { mode: 0o755 });
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), [
-      {
-        seq: 1,
-        path: '.rig/runtime/rig-mcp/index.js',
-        state: 'applied',
-        transaction_kind: 'install',
-        digest: sha256('server\n'),
-      },
-      {
-        seq: 2,
-        path: '.rig/routing.md',
-        state: 'applied',
-        transaction_kind: 'install',
-        digest: sha256('routing\n'),
-      },
+      appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'),
+      appliedJournalRecord(2, '.rig/routing.md', 'routing\n'),
     ].map(JSON.stringify).join('\n') + '\n');
     fs.writeFileSync(path.join(target, '.rig/global-writes.json'), `${JSON.stringify({
       entries: [{
@@ -559,7 +626,7 @@ test('a partial OpenClaw set remains removable through the pending ledger', () =
     fs.writeFileSync(path.join(runtime, 'package.json'), '{}\n');
     fs.writeFileSync(path.join(runtime, 'package-lock.json'), '{}\n');
     fs.writeFileSync(server, 'server\n');
-    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
     fs.writeFileSync(path.join(bin, 'openclaw'), [
       '#!/bin/sh',
       'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then if [ -e "$OPENCLAW_CONFIG_PATH" ]; then cat "$OPENCLAW_CONFIG_PATH"; else printf "{}"; fi; exit 0; fi',
@@ -569,13 +636,7 @@ test('a partial OpenClaw set remains removable through the pending ledger', () =
       '',
     ].join('\n'), { mode: 0o755 });
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: '.rig/runtime/rig-mcp/index.js',
-      state: 'applied',
-      transaction_kind: 'install',
-      digest: sha256('server\n'),
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify(appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'))}\n`);
 
     const oldPath = process.env.PATH;
     const oldConfig = process.env.OPENCLAW_CONFIG_PATH;
@@ -658,9 +719,7 @@ test('OpenClaw uninstall preserves a user-replaced named server and runtime', ()
       kind: 'openclaw-mcp', path: config, server_key: 'rig-known', install_id: 'known', runtime: '.rig/runtime/rig-mcp',
       value: { command: 'node', args: [server] }, state: 'applied',
     }] })}\n`);
-    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1, path: '.rig/runtime/rig-mcp/index.js', state: 'applied', transaction_kind: 'install', digest: sha256('server\n'),
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig/install-manifest.jsonl'), `${JSON.stringify(appliedJournalRecord(1, '.rig/runtime/rig-mcp/index.js', 'server\n'))}\n`);
     fs.writeFileSync(path.join(bin, 'openclaw'), [
       '#!/bin/sh',
       'if [ "$1" = "mcp" ] && [ "$2" = "show" ]; then printf \'{"rig-known":{"command":"user"}}\'; exit 0; fi',
@@ -696,7 +755,7 @@ test('shipping OpenClaw bootstrap discloses the configured path before registrat
       'exit 2',
       '',
     ].join('\n'), { mode: 0o755 });
-    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
 
     const run = spawnSync('/bin/dash', [path.join(root, 'rig/bootstrap.sh'), '--target', target, '--with-runtime', '--openclaw-mcp'], {
       encoding: 'utf8',
@@ -722,7 +781,7 @@ test('payload post-step failures keep the install journal incomplete', () => {
   });
 });
 
-test('purge lists usage artifacts first and preserves user-owned policy', () => {
+test('purge drops the report scope and preserves user-owned data outside it', () => {
   withTarget((target) => {
     fs.mkdirSync(path.join(target, '.rig/run-history'), { recursive: true });
     fs.mkdirSync(path.join(target, 'reports/rig'), { recursive: true });
@@ -734,9 +793,12 @@ test('purge lists usage artifacts first and preserves user-owned policy', () => 
       purge: true,
       beforePurge: (paths) => observed.push({ paths, policy: fs.existsSync(path.join(target, '.rig/network-policy.json')) }),
     });
-    assert.deepEqual(observed, [{ paths: ['reports/rig', '.rig/run-history'], policy: true }]);
-    assert.deepEqual(result.purge_list, ['reports/rig', '.rig/run-history']);
+    assert.deepEqual(observed, [{ paths: ['reports/rig', 'journal-owned runtime evidence'], policy: true }]);
+    assert.deepEqual(result.purge_list, ['reports/rig', 'journal-owned runtime evidence']);
     assert.equal(fs.readFileSync(path.join(target, '.rig/network-policy.json'), 'utf8'), '{"user":true}\n');
+    // AT-UNINSTALL-3: an explicit purge drops the whole report scope.
+    assert.equal(fs.existsSync(path.join(target, 'reports/rig')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/run-history/a')), true);
   });
 });
 
@@ -773,15 +835,15 @@ test('a bare repository receives the neutral skills, catalogue, and safety runti
     const result = runPayload(target, undefined, { activeDelivery: true });
 
     assert.deepEqual(result.hosts, []);
-    for (const skill of listVendoredSkills()) {
-      assert.ok(fs.existsSync(path.join(target, '.rig/skills', skill.name, 'SKILL.md')), skill.name);
+    for (const skill of ['onboarding']) {
+      assert.ok(fs.existsSync(path.join(target, '.rig/skills', skill, 'SKILL.md')), skill);
     }
+    assert.equal(fs.existsSync(path.join(target, '.rig/skills/setup-browser-cookies')), false);
     for (const rel of [
       '.rig/bin/rig',
       '.rig/runtime/rig/materialize.js',
-      '.rig/runtime/rig/catalog.json',
       '.rig/runtime/rig/catalog/baseline/check.js',
-      '.rig/runtime/rig/catalog/services/development/code-quality/lint-format/minimal.md',
+      '.rig/runtime/rig/corpus/services/development/code-quality/lint-format/minimal.md',
       '.rig/runtime/rig/lib/policy.js',
       '.rig/runtime/rig/lib/enforcement.js',
       '.rig/runtime/rig/lib/lifecycle.js',
@@ -808,7 +870,7 @@ test('the active MCP runtime reads its packaged canonical Rig instructions', () 
 
 test('catalogue packs contain service-specific policy and check contracts', () => {
   const root = path.join(__dirname, '..');
-  const catalog = JSON.parse(fs.readFileSync(path.join(root, 'rig/catalog.json'), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(path.join(root, 'rig/corpus/catalogue.json'), 'utf8'));
   const bodiesSeen = new Map();
 
   for (const service of catalog.services) {
@@ -850,7 +912,7 @@ test('all six CI providers render and apply a working additive adapter', () => {
     'github-actions': ['.github/workflows/ci.yml', 'name: user-ci\njobs:\n  user:\n    runs-on: ubuntu-latest\n'],
     gitlab_ci: ['.gitlab-ci.yml', 'stages:\n  - test\n# user-ci\n'],
     circleci: ['.circleci/config.yml', 'version: 2.1\n# user-ci\n'],
-    jenkins: ['Jenkinsfile', '// user-ci\n'],
+    jenkins: ['Jenkinsfile', "// user-ci\npipeline { agent any; stages { stage('Build') { steps { sh 'make' } } } }\n"],
     buildkite: ['.buildkite/pipeline.yml', '# user-ci\nsteps:\n'],
     azure_pipelines: ['azure-pipelines.yml', '# user-ci\njobs:\n'],
   };
@@ -864,7 +926,7 @@ test('all six CI providers render and apply a working additive adapter', () => {
 
       const plan = planCiIntegration(target, { provider, approved: true });
       assert.equal(plan.status, 'integrated', provider);
-      assert.equal(plan.evidence, 'verified', provider);
+      assert.equal(plan.evidence, 'unverified', provider);
       assert.ok(plan.artifact, provider);
       applyCiPlan(target, plan);
       const first = fs.readFileSync(file, 'utf8');
@@ -1046,46 +1108,6 @@ test('policy CLI shows disclosure before activating model-assisted triage', () =
   });
 });
 
-test('shipping recovery verifies a pre-registered SSHSIG before committing consequences', () => {
-  withTarget((target) => {
-    const policyDir = path.join(target, '.rig/policy');
-    const key = path.join(target, 'recovery-key');
-    const message = path.join(target, 'recovery-message');
-    fs.mkdirSync(policyDir, { recursive: true });
-    assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]).status, 0);
-    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim();
-    fs.writeFileSync(path.join(policyDir, 'recovery.allowed-signers'), `recovery-one namespaces="rig-policy-recovery" ${publicKey}\n`);
-    const fingerprintOutput = spawnSync('ssh-keygen', ['-lf', `${key}.pub`], { encoding: 'utf8' });
-    const fingerprint = fingerprintOutput.stdout.match(/\bSHA256:[A-Za-z0-9+/=]+/)[0];
-    fs.writeFileSync(path.join(policyDir, 'trust.json'), `${JSON.stringify({
-      schema_version: 1,
-      signer: { fingerprint: 'SHA256:ordinary' },
-      recovery: [{
-        identity: 'recovery-one', fingerprint,
-        declared_class: 'ssh-ed25519', registration_receipt: { signed_before_loss: true },
-      }],
-      approvals: ['stale'],
-      evidence_epoch: 3,
-      recovery_sequence: 0,
-      previous_recovery_receipt_digest: null,
-    }, null, 2)}\n`);
-    const challenge = proposeRecovery(target, { fingerprint: 'SHA256:replacement', identity: 'new-owner' }, 'recovery-one');
-    fs.writeFileSync(message, recoveryMessage(challenge));
-    assert.equal(spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-recovery', message]).status, 0);
-    const result = recoverPolicy(target, challenge, {
-      challenge_digest: challenge.digest,
-      identity: 'recovery-one',
-      signature: fs.readFileSync(`${message}.sig`, 'utf8'),
-    });
-    assert.equal(result.trust.signer.fingerprint, 'SHA256:replacement');
-    assert.deepEqual(result.trust.approvals, []);
-    assert.equal(result.trust.evidence_epoch, 4);
-    assert.equal(result.receipt.recovery_credential_fingerprint, fingerprint);
-    assert.ok(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')));
-    assert.throws(() => recoverPolicy(target, challenge, {}), /stale|foreign|challenge/i);
-  });
-});
-
 test('implementation digest covers publishable worktree bytes but excludes review receipts', () => {
   const { implementationDigest } = require('../rig/lib/release-evidence');
   withTarget((target) => {
@@ -1135,7 +1157,7 @@ test('review wrapper output validates without schema translation', () => {
     const run = spawnSync(process.execPath, [
       path.join(root, 'scripts/review-receipt.js'),
       '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
-      '--catalogue', path.join(root, 'rig/catalog.json'),
+      '--catalogue', path.join(root, 'rig/corpus/catalogue.json'),
       '--implementation-root', root,
       '--base', 'origin/implement-advanced-a-la-carte-catalogue',
       '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
@@ -1149,7 +1171,7 @@ test('review wrapper output validates without schema translation', () => {
     const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
     assert.equal(validateReviewReceipt(receipt, {
       technical_spec_digest: sha256(fs.readFileSync(path.join(root, 'wiki/gate2/technical-spec.md'))),
-      catalogue_digest: catalogueDigest(path.join(root, 'rig/catalog.json')),
+      catalogue_digest: catalogueDigest(path.join(root, 'rig/corpus/catalogue.json')),
       implementation_digest: implementationDigest(root).digest,
       implementation_base: 'origin/implement-advanced-a-la-carte-catalogue',
       acceptance_ids: ids,
@@ -1164,12 +1186,12 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
     assert.match(source, /^#!\/bin\/sh\n/);
     assert.doesNotMatch(source, /pipefail|\$\{[^}]+:[0-9]+(?::[0-9]+)?\}|^\s*\[\[/m);
 
-    const staging = path.join(target, 'staging', 'Rig-v5.0.0');
+    const staging = path.join(target, 'staging', 'Rig-v6.0.0');
     fs.mkdirSync(staging, { recursive: true });
     for (const rel of ['rig', '.agents', '.claude', 'skills']) {
-      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true });
+      fs.cpSync(path.join(root, rel), path.join(staging, rel), { recursive: true, filter: (src) => !src.split(path.sep).includes('node_modules') });
     }
-    const archive = path.join(target, 'rig-v5.0.0.tar.gz');
+    const archive = path.join(target, 'rig-v6.0.0.tar.gz');
     const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(staging), path.basename(staging)], { encoding: 'utf8' });
     assert.equal(packed.status, 0, packed.stderr);
 
@@ -1189,8 +1211,12 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
       '',
     ].join('\n'), { mode: 0o755 });
 
+    // Network downloads belong to clean-install E2E; this unit isolates tag
+    // resolution/extraction and supplies an empty dependency staging tree.
+    fs.writeFileSync(path.join(bin, 'npm'), '#!/bin/sh\nmkdir -p node_modules\n', { mode: 0o755 });
+
     const installed = spawnSync('/bin/dash', [
-      path.join(root, 'install.sh'), '--version', 'v5.0.0', '--target', installTarget,
+      path.join(root, 'install.sh'), '--version', 'v6.0.0', '--target', installTarget,
     ], {
       encoding: 'utf8',
       env: {
@@ -1201,10 +1227,13 @@ test('the POSIX installer downloads and executes a named tagged archive', { time
       },
     });
     assert.equal(installed.status, 0, installed.stderr);
-    assert.match(fs.readFileSync(downloadLog, 'utf8'), /refs\/tags\/v5\.0\.0\.tar\.gz/);
-    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v5.0.0', hosts: [] });
-    assert.equal(fs.readdirSync(path.join(installTarget, '.rig/skills'), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md'))).length, 56);
+    assert.match(fs.readFileSync(downloadLog, 'utf8'), /refs\/tags\/v6\.0\.0\.tar\.gz/);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installTarget, '.rig/release.json'), 'utf8')), { tag: 'v6.0.0', hosts: [] });
+    const neutralSkills = fs.readdirSync(path.join(installTarget, '.rig/skills'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(installTarget, '.rig/skills', entry.name, 'SKILL.md')))
+      .map((entry) => entry.name);
+    assert.deepEqual(neutralSkills, ['onboarding']);
+    assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/corpus/services')));
     assert.ok(fs.existsSync(path.join(installTarget, '.rig/runtime/rig/lib/policy.js')));
     const inspection = path.join(installTarget, 'inspection.json');
     const runtime = spawnSync(path.join(installTarget, '.rig/bin/rig'), [
@@ -1257,6 +1286,31 @@ test('review-receipt cap is scoped per author-context and clears on a passing ve
 
     const again = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
     assert.equal(again.invocationCount, 1, 'a passing verdict resets the cap for later, unrelated review needs');
+  });
+});
+
+test('review-receipt keeps the retry cap when a pass report fails receipt validation', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const authorContext = 'release-attempt-invalid-pass';
+
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    const invalidPass = runReviewReceipt(target, {
+      verdict: 'pass',
+      authorContext,
+      out,
+      reported: { verdict: 'pass', verdicts: [], findings: [], unresolved: [] },
+    });
+    assert.notEqual(invalidPass.run.status, 0);
+    assert.match(invalidPass.run.stderr, /coverage mismatch/);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
+
+    const capped = runReviewReceipt(target, { verdict: 'pass', authorContext, out });
+    assert.notEqual(capped.run.status, 0);
+    assert.match(capped.run.stderr, /re-review cap reached/);
+    assert.equal(capped.invocationCount, 0);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
   });
 });
 

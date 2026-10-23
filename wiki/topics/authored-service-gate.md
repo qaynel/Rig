@@ -1,5 +1,28 @@
 # The authored-service gate
 
+The [October 20 cleanup](../reasoning/2026-10-20-qa-closeout-runtime-and-host-remediation.md)
+removes repeated cue scaffolding and speculative binding prose while retaining
+the actual offers and predicates. Two zero-change policy boundaries now reject
+positive counts. Mechanical checks pass; full fresh semantic signoff remains
+separate from those checks.
+
+The [current semantic review](../reasoning/2026-10-18-qa-review-runtime-corrections.md)
+found repeated sentence artifacts and disposition-label drift that the green
+mechanical gate did not detect. Their correction and the active-corpus digest
+refresh are in flight; a passing presence check alone is not release evidence.
+The [alignment checkpoint](../reasoning/2026-10-18-qa-catalogue-alignment-checkpoint.md)
+records all corrected identity labels and a regression for the reproduced
+broken-sentence pattern; group-level semantic review continues.
+
+The signed oracle checks the current service-specific corpus: AT-SHAPE-6 rejects
+generic-baseline wording in authored fragments (lint-format retains its
+evidence-backed exception), and AT-PB-1 pins `rig/corpus/catalogue.json` plus
+its service definitions. The 2026-10-14 candidate amendments and their trace
+are historical records of the changes before they were signed:
+[`AT-SHAPE-6 candidate`](../specs/close-everything/candidate-amendments/04-catalogue/AT-SHAPE-6.md) ·
+[`AT-PB-1 candidate`](../specs/close-everything/candidate-amendments/04-catalogue/AT-PB-1.md) ·
+[candidate trace](../reasoning/2026-10-14-closure-catalogue-candidates.md).
+
 ## What it is
 
 All 115 catalogue leaves must carry service-specific identity, owned scope,
@@ -8,15 +31,13 @@ evidence targets. Presence alone is not authorship.
 
 ## Current implementation
 
-Every non-lint leaf is explicitly Policy-grade generic baseline practice and
-states that it is not tailored to the installing repository. Identity fragments
-name exact owned scopes, exclusions, applicability signals, disposition, and
-dependencies. Grade fragments name leaf-specific boundary,
-repository-context, and evidence-receipt checks. Each catalogue entry carries
-distinct minimal/mid/maximal acceptance targets with explicit given/pass/fail
-conditions. Slice fragments state the owned invariant and the checks they
-activate. Lint/format retains its separately authored Context and Evidence
-behavior.
+Every leaf has service-specific guidance, declared applicability and a named
+assurance ceiling. Identity fragments name exact owned scopes, exclusions,
+applicability signals, disposition, and dependencies. Grade fragments name
+leaf-specific boundary, repository-context, and evidence-receipt checks. Each
+catalogue entry carries distinct minimal/mid/maximal acceptance targets with
+explicit given/pass/fail conditions. Slice fragments state the owned invariant
+and the checks they activate.
 
 The deterministic gate opens every declared file and rejects missing or empty
 markdown, placeholders, the previous repeated boilerplate phrases, generic
@@ -25,6 +46,7 @@ metadata, omitted dispositions, missing grade checks, and duplicate bodies. It
 returns exact leaf/fragment failures. Catalogue apply never substitutes an
 unconditional success command: an unbound generic Policy service is a named,
 nonzero coverage gap.
+[Current authorship proof](../reasoning/2026-10-14-closure-authorship-complete.md)
 
 ## Why
 
@@ -37,9 +59,9 @@ repository coverage.
 
 - Frozen service obligation: [acceptance](../gate1/acceptance.md)
 - Working authored-service contract: [technical specification](../gate2/technical-spec.md#56-authored-service-gate)
-- D24 ruling: [intent-owner trace](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- D23, the one-release exception D24 later retired: [intent-owner trace](../reasoning/2026-08-21-at-shape-6-one-release-exception.md)
+- D24 ruling: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- D23, the one-release exception D24 later retired: [intent-owner trace](../archive/2026-08/gate-model-and-the-one-lock.md)
 
 ## Remaining work
 

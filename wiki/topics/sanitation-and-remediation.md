@@ -42,4 +42,4 @@ restored digests after rollback so install resume cannot mistake reverted work
 for a live artifact — the contract v0.11 fixed after the earlier transaction
 contradiction.
 [Gate 2 Slice 6](../gate2/technical-spec.md#slice-6---real-sanitation-remediation-and-policy-aware-transaction)
-[v0.11 correction](../reasoning/2026-08-21-gate2-v0.11-carried-review-corrections.md)
+[v0.11 correction](../archive/2026-08/gate-model-and-the-one-lock.md)

@@ -129,14 +129,15 @@ test('AT-PB-1 malformed metadata and guessed legacy prefixes are refused', async
 
 test('AT-PB-1 the governed 115-service catalogue remains byte-identical', () => {
   const files = [
-    path.join(h.root, 'rig/catalog.json'),
-    ...h.walk(path.join(h.root, 'rig/catalog/services')),
+    path.join(h.root, 'rig/corpus/catalogue.json'),
+    ...h.walk(path.join(h.root, 'rig/corpus/services')),
   ].sort((a, b) => path.relative(h.root, a).localeCompare(path.relative(h.root, b)));
   const bytes = [];
   for (const file of files) {
     bytes.push(path.relative(h.root, file).split(path.sep).join('/'), '\0', fs.readFileSync(file), '\0');
   }
-  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '9cb13bfddfdc645028b197d39383a3fd654e459d2793bec47649b6123717f7aa');
+  assert.equal(files.length, 1042);
+  assert.equal(h.sha256(Buffer.concat(bytes.map((part) => Buffer.isBuffer(part) ? part : Buffer.from(part)))), '84cec4d43458fae2a5eb24bca255f9db44d728cdd340d11274c98d881c9799a7');
 });
 
 test('AT-PB-3 generated catalogue bytes are deterministic and content-addressed', () => {
@@ -158,16 +159,20 @@ test('AT-PB-3 install pins one non-discoverable shelf and projects only mandator
   await h.withRepo((target) => {
     const source = path.join(h.root, 'rig/catalog/skills/catalog.json');
     assert.deepEqual(fs.readFileSync(path.join(target, '.rig/catalog.json')), fs.readFileSync(source));
+    // North star 6: the shelf is pinned at install and fetched during
+    // onboarding, so no skill tree is staged before approval.
+    assert.ok(fs.existsSync(path.join(target, '.rig/upstream/gstack-shelf.json')));
     const staged = h.walk(path.join(target, '.rig/runtime/rig/catalog/skills'))
       .filter((file) => path.basename(file) === 'SKILL.md');
-    assert.equal(staged.length, 55);
+    assert.equal(staged.length, 0);
     const discovered = fs.readdirSync(path.join(target, '.agents/skills'), { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(target, '.agents/skills', entry.name, 'SKILL.md')))
       .map(({ name }) => name)
       .sort();
     assert.deepEqual(discovered, [
       'rig-code-review', 'rig-debugging', 'rig-execution', 'rig-grilling',
-      'rig-implementation', 'rig-onboarding', 'rig-product-design', 'rig-tdd',
+      'rig-implementation', 'rig-onboarding', 'rig-product-design', 'rig-router',
+      'rig-tdd',
     ]);
   }, { install: true });
 });

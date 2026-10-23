@@ -18,7 +18,8 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { withRepo, writeJson } = require('./helpers/advanced');
-const { executePlan, planExecution, runCommand, runGrade, runReadOnly, runAutofix } = require('../rig/lib/lint-format');
+const { executePlan, planExecution, createPlanApprovalChallenge, runCommand: production_runCommand, runGrade: production_runGrade, runReadOnly: production_runReadOnly, runAutofix, planAutofix } = require('../rig/lib/lint-format');
+const { runGrade, runReadOnly, runCommand } = require('./helpers/approved-lint');
 const { cleanupReceiptArtifacts } = require('../rig/lib/uninstall');
 const { rssBytesTree, isChildRunning } = require('../rig/lib/memory-guarded-exec');
 const { runBinding, semanticDrift } = require('../rig/lib/checks');
@@ -36,58 +37,128 @@ const { runArgv } = require('../rig/lib/check-runner');
 // that layout, not straight from its source location, to exercise the
 // actual bytes CI actually runs.
 const materializedCheckDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-materialized-check-'));
-fs.mkdirSync(path.join(materializedCheckDir, '.rig', 'bin'), { recursive: true });
-fs.mkdirSync(path.join(materializedCheckDir, '.rig', 'lib'), { recursive: true });
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'catalog', 'baseline', 'check.js'),
-  path.join(materializedCheckDir, '.rig', 'bin', 'check.js'),
-);
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'catalog', 'baseline', 'check-copies.js'),
-  path.join(materializedCheckDir, '.rig', 'bin', 'check-copies.js'),
-);
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'lib', 'spawn-guarded.js'),
-  path.join(materializedCheckDir, '.rig', 'lib', 'spawn-guarded.js'),
-);
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'lib', 'path-safety.js'),
-  path.join(materializedCheckDir, '.rig', 'lib', 'path-safety.js'),
-);
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'lib', 'check-runner.js'),
-  path.join(materializedCheckDir, '.rig', 'lib', 'check-runner.js'),
-);
-fs.copyFileSync(
-  path.join(__dirname, '..', 'rig', 'lib', 'memory-guarded-exec.js'),
-  path.join(materializedCheckDir, '.rig', 'lib', 'memory-guarded-exec.js'),
-);
+for (const entry of require('../rig/lib/baseline-payload').entries) {
+  const destination = path.join(materializedCheckDir, entry.to);
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.copyFileSync(path.join(__dirname, '../rig', entry.from), destination);
+}
 const catalogCheck = require(path.join(materializedCheckDir, '.rig', 'bin', 'check.js'));
 const catalogCheckCopies = require(path.join(materializedCheckDir, '.rig', 'bin', 'check-copies.js'));
 
-test('AT-PROC-1a (AT-LF-20): one-use approval survives an independent approval object for the same plan, not just object identity', () => {
-  withRepo((target) => {
-    const plan = { plan_digest: 'digest-guarantee-coverage', target, commands: [] };
+function signedPlanApproval(target, plan, identity = 'rig-test-owner') {
+  const key = path.join(target, '.test-approval-key');
+  const allowed = path.join(target, '.rig', 'trust', 'gate1.allowed-signers');
+  if (!fs.existsSync(key)) {
+    execFileSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]);
+    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
+    fs.mkdirSync(path.dirname(allowed), { recursive: true });
+    fs.writeFileSync(allowed, `${identity} namespaces="rig-plan-approval" ${publicKey}\n`);
+  }
+  const challenge = createPlanApprovalChallenge(plan);
+  const message = path.join(target, '.test-approval-message');
+  fs.writeFileSync(message, challenge.message);
+  if (fs.existsSync(`${message}.sig`)) fs.unlinkSync(`${message}.sig`);
+  execFileSync('ssh-keygen', ['-q', '-Y', 'sign', '-f', key, '-n', 'rig-plan-approval', message]);
+  return {
+    schema_version: 1,
+    kind: 'plan-approval',
+    plan_digest: plan.plan_digest,
+    approval_id: challenge.approval_id,
+    approval: { method: 'external-sshsig', identity, signature: fs.readFileSync(`${message}.sig`, 'utf8') },
+  };
+}
 
-    // Process A: approves and executes once.
-    const approvalA = { plan_digest: plan.plan_digest, used: false };
+const NOOP = [process.execPath, '-e', 'process.exit(0)'];
+// A binding that does something: generic-success stubs are coverage gaps (AD-15), so fixtures read the repository.
+const REAL_CHECK = "require('fs').readdirSync('.')";
+const approvedFix = (target, cmd) => runAutofix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
+
+test('AT-PROC-1a (AT-LF-20): signed approval replay is refused and a fresh approval can rerun the unchanged plan', () => {
+  withRepo((target) => {
+    const plan = planExecution({ target, commands: [] });
+    const approvalA = signedPlanApproval(target, plan);
     const first = executePlan(plan, approvalA);
     assert.equal(first.status, 'executed');
 
-    // Process B: independently re-derives an approval for the *same plan*
-    // (e.g. reloaded from disk, or a second agent turn). It was never
-    // mutated by process A, so a fix that only sets `.used` on the object it
-    // was handed cannot see this. Durable one-use requires state keyed by
-    // plan_digest, not by JS object identity. Refusal is a reported status,
-    // matching every other outcome in this function (command_drift,
-    // executed) rather than a thrown exception.
-    const approvalB = { plan_digest: plan.plan_digest, used: false };
+    // Reconstructing the same signed receipt in another turn is still replay.
+    const approvalB = { ...approvalA, approval: { ...approvalA.approval } };
     const second = executePlan(plan, approvalB);
-    assert.notEqual(
-      second.status,
-      'executed',
-      'a plan already executed under one approval object executed again under an independently-constructed approval for the same plan_digest',
-    );
+    assert.equal(second.status, 'not_authorized');
+
+    // A genuinely new signature for the same current plan digest is fresh consent.
+    const approvalC = signedPlanApproval(target, plan);
+    assert.equal(executePlan(plan, approvalC).status, 'executed');
+  });
+});
+
+test('finding 4: the approved plan dispatches its exact command and replay launches nothing', () => {
+  withRepo((target) => {
+    const nonce = `dispatched-${process.pid}`;
+    const plan = planExecution({ target, selected: true, commands: [{
+      role: 'lint', cwd: '.', argv: [process.execPath, '-e', `process.stdout.write(${JSON.stringify(nonce)})`],
+    }] });
+    const approval = signedPlanApproval(target, plan);
+    const first = executePlan(plan, approval);
+    assert.equal(first.status, 'executed', JSON.stringify(first));
+    assert.equal(first.command_results.length, 1);
+    assert.equal(first.command_results[0].exit_code, 0);
+    assert.notEqual(first.command_results[0].output_digest, require('node:crypto').createHash('sha256').update('\n').digest('hex'));
+    const replay = executePlan(plan, { ...approval, approval: { ...approval.approval } });
+    assert.equal(replay.status, 'not_authorized');
+  });
+});
+
+test('finding 4: an approved empty plan cannot claim execution without launching a command', () => {
+  withRepo((target) => {
+    const plan = planExecution({ target, selected: true, commands: [] });
+    const result = executePlan(plan, signedPlanApproval(target, plan));
+    assert.equal(result.status, 'coverage_gap');
+    assert.equal(result.executed_count, 0);
+  });
+});
+
+test('finding 4: autofix approval dispatch records both the fix and its verifier', () => {
+  withRepo((target) => {
+    const file = path.join(target, 'fix-target.txt');
+    fs.writeFileSync(file, 'before\n');
+    const plan = planAutofix(target, {
+      argv: [process.execPath, '-e', "require('fs').writeFileSync('fix-target.txt','after\\n')"],
+      verify: [process.execPath, '-e', "process.exit(require('fs').readFileSync('fix-target.txt','utf8')==='after\\n'?0:1)"],
+    });
+    const result = executePlan(plan, signedPlanApproval(target, plan));
+    assert.equal(result.status, 'executed', JSON.stringify(result));
+    assert.equal(result.command_results.length, 2);
+    assert.equal(fs.readFileSync(file, 'utf8'), 'after\n');
+  });
+});
+
+test('runGrade requires observed commands and leaves unsupported Context/Evidence grades incomplete', () => {
+  const forged = runGrade({
+    grade: 'minimal',
+    changed: ['a.js'],
+    commands: [{ role: 'lint', result: { exit_code: 0, output_digest: 'a'.repeat(64) } }],
+  });
+  assert.equal(forged.verdict, 'fail');
+  assert.equal(forged.status, 'coverage_gap');
+  assert.deepEqual(forged.completed_grades, []);
+  assert.equal(forged.evidence, undefined, 'unobserved caller results create no evidence');
+
+  withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const plannedHigher = runGrade({
+      target,
+      grade: 'maximal',
+      changed: ['a.js'],
+      commands: [{ role: 'lint', network: true, source: 'rules.json', argv: [process.execPath, '-e', 'process.stdout.write("observed")'] }],
+      context: { findings: [], verdict: 'pass', evidence_digest: 'b'.repeat(64) },
+    });
+    assert.equal(plannedHigher.verdict, 'fail');
+    assert.equal(plannedHigher.status, 'coverage_gap');
+    assert.equal(plannedHigher.grade, 'Policy');
+    assert.deepEqual(plannedHigher.completed_grades, ['Policy']);
+    assert.deepEqual(plannedHigher.steps, ['policy_checks']);
+    assert.match(plannedHigher.evidence.input_digest, /^[a-f0-9]{64}$/);
   });
 });
 
@@ -131,7 +202,7 @@ test('AT-PROC-1c (AT-LF-23): a command exceeding a configured memory ceiling is 
     // test cannot itself exhaust memory even if nothing enforces the cap.
     const cmd = {
       role: 'lint',
-      network: true,
+      network: 'none',
       argv: [
         process.execPath,
         '-e',
@@ -166,58 +237,89 @@ test('AT-PROC-1c (AT-LF-23): a command exceeding a configured memory ceiling is 
   });
 });
 
-test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and preserves granted commands', () => {
+test('AT-PROC-1d (AT-LF-22): runGrade denies ungranted network access and refuses when filesystem isolation is disabled', () => {
   const net = require('node:net');
   withRepo((target) => {
     const server = net.createServer((socket) => socket.end());
     server.listen(0);
     const { port } = server.address();
-    const marker = path.join(target, 'connected.marker');
     const probe = path.join(target, 'network-check.js');
     fs.writeFileSync(probe, `
       const net = require('net');
-      const done = () => process.exit(0);
-      setTimeout(done, 800);
+      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL','ECONNREFUSED']);
+      const done = (code) => process.exit(code);
+      setTimeout(() => done(8), 800);
       const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
-        require('fs').writeFileSync(${JSON.stringify(marker)}, 'connected');
         socket.end();
-        done();
+        done(9);
       });
-      socket.on('error', done);
+      socket.on('error', (error) => done(denied.has(error.code) ? 0 : 8));
     `);
 
     try {
-      runGrade({
+      const denied = runGrade({
         grade: 'minimal',
         changed: [],
         commands: [{ role: 'lint', argv: [process.execPath, probe] }],
         target,
       });
-      assert.equal(fs.existsSync(marker), false, 'an ungranted grade command reached the listener');
+      assert.equal(denied.verdict, 'pass', 'an ungranted grade command must observe network denial');
 
-      const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
-      const savedPath = process.env.PATH;
+      const savedDisabled = process.env.RIG_SANDBOX_DISABLE;
       try {
-        process.env.PATH = emptyBin;
-        const mixed = runGrade({
-          grade: 'minimal',
-          changed: [],
-          commands: [
-            { role: 'lint', argv: [process.execPath, '-e', ''] },
-            { role: 'lint', argv: [process.execPath, '-e', ''], network: true },
-          ],
-          target,
-        });
-        assert.equal(mixed.verdict, 'fail');
-        assert.equal(mixed.commands[0].result.status, 'network_isolation_unavailable');
-        assert.equal(mixed.commands[1].result.exit_code, 0);
+        process.env.RIG_SANDBOX_DISABLE = '1';
+        for (const network of [false, true]) {
+          const isolated = runGrade({ grade: 'minimal', changed: [], target,
+            commands: [{ role: 'lint', argv: [process.execPath, '-e', ''], network }] });
+          assert.equal(isolated.verdict, 'fail');
+          assert.equal(isolated.commands[0].result.status, 'filesystem_isolation_unavailable');
+        }
       } finally {
-        process.env.PATH = savedPath;
-        fs.rmSync(emptyBin, { recursive: true, force: true });
+        if (savedDisabled == null) delete process.env.RIG_SANDBOX_DISABLE;
+        else process.env.RIG_SANDBOX_DISABLE = savedDisabled;
       }
     } finally {
       server.close();
     }
+  });
+});
+
+test('AT-PROC-1ac (RIG-145): runReadOnly confines each command and executes only the explicitly network-granted command', () => {
+  const net = require('node:net');
+  withRepo((target) => {
+    const server = net.createServer((socket) => socket.end());
+    server.listen(0);
+    const { port } = server.address();
+    const probe = path.join(target, 'network-check.js');
+    fs.writeFileSync(probe, `
+      const net = require('net');
+      const granted = process.argv[2] === 'granted';
+      const denied = new Set(['EPERM','EACCES','ENETUNREACH','ENETDOWN','EADDRNOTAVAIL','ECONNREFUSED']);
+      const socket = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => { socket.end(); process.exit(granted ? 0 : 9); });
+      socket.on('error', (error) => process.exit(granted || !denied.has(error.code) ? 8 : 0));
+      setTimeout(() => process.exit(7), 800);
+    `);
+    try {
+      const result = runReadOnly(target, [
+        { argv: [process.execPath, probe] },
+        { argv: [process.execPath, probe, 'granted'], network: true },
+      ]);
+      assert.equal(result.status, 'clean', JSON.stringify(result));
+      assert.deepEqual(result.changed_paths, []);
+      assert.equal(result.commands[0].status, 'clean');
+      assert.equal(result.commands[1].status, 'clean');
+      assert.equal(result.commands[1].exit_code, 0, 'the explicitly granted command connected to the listener');
+    } finally {
+      server.close();
+    }
+  });
+});
+
+test('finding 8: runReadOnly reports a completed nonzero command as failed', () => {
+  withRepo((target) => {
+    const result = runReadOnly(target, [{ argv: [process.execPath, '-e', 'process.exit(7)'], network: false }]);
+    assert.equal(result.status, 'failed');
+    assert.equal(result.commands.at(-1).exit_code, 7);
   });
 });
 
@@ -242,26 +344,27 @@ test('AT-PROC-1r (2026-08-29 review): runAutofix denies ungranted network access
     `);
 
     try {
-      runAutofix(target, { argv: [process.execPath, probe] }, { verified: true });
+      approvedFix(target, { argv: [process.execPath, probe], verify: NOOP });
       assert.equal(
         fs.existsSync(marker),
         false,
         'runAutofix reached an outbound listener from an ungranted fix command -- the fix seam has no network isolation, unlike runGrade/runReadOnly',
       );
 
-      const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
-      const savedPath = process.env.PATH;
+      const savedDisabled = process.env.RIG_SANDBOX_DISABLE;
       try {
-        process.env.PATH = emptyBin;
-        const result = runAutofix(target, { argv: [process.execPath, '-e', ''] }, { verified: true });
+        const quiet = { argv: [process.execPath, '-e', ''], verify: NOOP };
+        const approval = signedPlanApproval(target, planAutofix(target, quiet));
+        process.env.RIG_SANDBOX_DISABLE = '1';
+        const result = runAutofix(target, quiet, approval);
         assert.equal(
           result.status,
-          'network_isolation_unavailable',
-          'runAutofix ran an ungranted fix command with no OS network isolation available instead of refusing',
+          'filesystem_isolation_unavailable',
+          'runAutofix ran without the required filesystem and network sandbox',
         );
       } finally {
-        process.env.PATH = savedPath;
-        fs.rmSync(emptyBin, { recursive: true, force: true });
+        if (savedDisabled == null) delete process.env.RIG_SANDBOX_DISABLE;
+        else process.env.RIG_SANDBOX_DISABLE = savedDisabled;
       }
     } finally {
       server.close();
@@ -288,12 +391,12 @@ test('AT-PROC-1s (2026-08-29 review): runAutofix kills and reports a fix command
           require('fs').writeFileSync(${JSON.stringify(marker)}, 'completed');
         `,
       ],
-      network: true,
+      network: 'none',
       memory_limit_mb: 32,
       timeout_ms: 10000,
       verify: [process.execPath, '-e', 'process.exit(0)'],
     };
-    const result = runAutofix(target, cmd, { verified: true });
+    const result = approvedFix(target, cmd);
 
     assert.equal(
       fs.existsSync(marker),
@@ -329,16 +432,79 @@ test('AT-PROC-1t (2026-08-29 review): installed and interactive check runners do
   });
 });
 
-test('AT-PROC-1u (2026-08-29 review): the undeclared network compatibility state is returned as a diagnostic', () => {
+test('AT-PROC-1u: an omitted network declaration returns the default-deny diagnostic', () => {
   withRepo((target) => {
     for (const runner of [runBinding, catalogCheck.runBinding]) {
       const result = runner('undeclared-network-service', {
-        repo: [process.execPath, '-e', ''],
+        repo: [process.execPath, '-e', REAL_CHECK],
       }, 'repo', target);
       assert.equal(result.status, 0);
       assert.equal(result.network_state, 'undeclared');
-      assert.match(result.diagnostic, /network capability undeclared/);
+      assert.match(result.diagnostic, /network capability undeclared; network is denied by default/);
     }
+  });
+});
+
+function installedCheckRun(env) {
+  const { spawnSync } = require('node:child_process');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-installed-check-'));
+  try {
+    fs.cpSync(materializedCheckDir, dir, { recursive: true });
+    execFileSync('git', ['init', '-q'], { cwd: dir });
+    fs.rmSync(path.join(dir, '.rig', 'bin', 'check-copies.js'), { force: true });
+    fs.writeFileSync(path.join(dir, '.rig', 'service-bindings.json'), JSON.stringify({
+      'undeclared-network-service': { repo: [process.execPath, '-e', REAL_CHECK] },
+    }));
+    const cleanEnv = { ...process.env };
+    delete cleanEnv.GITHUB_ACTIONS;
+    return spawnSync(process.execPath, [path.join(dir, '.rig', 'bin', 'check.js'), '--scope', 'repo'], {
+      cwd: dir, encoding: 'utf8', env: { ...cleanEnv, ...env },
+    });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('AT-PROC-1ad (RIG-147): the library runner stays silent on an undeclared network; the installed CLI warns once', () => {
+  withRepo((target) => {
+    const warnings = [];
+    const savedWarn = console.warn;
+    console.warn = (...args) => warnings.push(args.join(' '));
+    try {
+      for (const runner of [runBinding, catalogCheck.runBinding]) {
+        runner('undeclared-network-service', { repo: [process.execPath, '-e', REAL_CHECK] }, 'repo', target);
+      }
+    } finally {
+      console.warn = savedWarn;
+    }
+    assert.deepEqual(warnings, [], 'the library runner wrote its own stderr warning instead of leaving it to the caller');
+  });
+
+  const cli = installedCheckRun({});
+  assert.equal(cli.status, 0, cli.stderr);
+  const lines = cli.stderr.split('\n').filter((line) => /network capability undeclared/.test(line));
+  assert.equal(lines.length, 1, `expected exactly one caller-level diagnostic, got: ${JSON.stringify(cli.stderr)}`);
+  assert.match(lines[0], /undeclared-network-service/);
+  assert.doesNotMatch(cli.stderr, /::warning/);
+});
+
+test('AT-PROC-1ae: installed CI emits only safe aggregate output', () => {
+  const ci = installedCheckRun({ GITHUB_ACTIONS: 'true' });
+  assert.equal(ci.status, 0, ci.stderr);
+  assert.equal(ci.stderr, '');
+  assert.deepEqual(JSON.parse(ci.stdout), { verdict: 'pass', counts: {}, rules: [] });
+});
+
+test('AT-PROC-1af (RIG-147): interactive runChecks returns the undeclared-network diagnostic on stderr once', () => {
+  const { runChecks } = require('../rig/lib/checks');
+  withRepo((target) => {
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'service-bindings.json'), JSON.stringify({
+      'undeclared-network-service': { repo: [process.execPath, '-e', REAL_CHECK] },
+    }));
+    const result = runChecks(target, { scope: 'repo' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal((result.stderr.match(/network capability undeclared/g) || []).length, 1, result.stderr);
   });
 });
 
@@ -411,7 +577,7 @@ test('AT-PROC-1y (2026-08-29 review): the guarded Linux wrapper preserves missin
 test('AT-PROC-1z (2026-08-29 review): a materialized CI runner enforces the same capability floor', () => {
   withRepo((target) => {
     const binding = {
-      repo: [process.execPath, '-e', ''],
+      repo: [process.execPath, '-e', REAL_CHECK],
       timeout_ms: 10 * 60 * 1000 + 1,
     };
     const result = catalogCheck.runBinding('ci-floor-service', binding, 'repo', target);
@@ -434,7 +600,7 @@ test('AT-PROC-1aa (AT-LF-24): a source symlink escape is refused before approval
       assert.equal(planned.commands[0].source_snapshot, null);
       assert.equal(planned.commands[0].source_boundary_violation, true);
 
-      const result = executePlan(planned, { plan_digest: planned.plan_digest });
+      const result = executePlan(planned, signedPlanApproval(target, planned));
       assert.equal(result.status, 'boundary_violation');
       assert.equal(
         fs.existsSync(path.join(target, '.rig', 'lint-format', 'executions')),
@@ -458,7 +624,7 @@ test('AT-PROC-1e (AT-LF-20/AT-LF-14 cleanup): a drift-aborted plan does not perm
     // Source drifts after planning (e.g. a concurrent edit) -- execution must
     // abort without ever running anything.
     writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(1)"' } });
-    const aborted = executePlan(planned, { plan_digest: planned.plan_digest });
+    const aborted = executePlan(planned, signedPlanApproval(target, planned));
     assert.equal(aborted.status, 'command_drift');
 
     // Source reverts to exactly what was originally approved (the drift was
@@ -466,7 +632,7 @@ test('AT-PROC-1e (AT-LF-20/AT-LF-14 cleanup): a drift-aborted plan does not perm
     // approval object for the same plan_digest must be able to execute --
     // the earlier aborted attempt must not have durably consumed it.
     writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
-    const retried = executePlan(planned, { plan_digest: planned.plan_digest });
+    const retried = executePlan(planned, signedPlanApproval(target, planned));
     assert.equal(
       retried.status,
       'executed',
@@ -820,7 +986,7 @@ test('AT-CAP-2 (RIG-144): every check command has an enforced, configurable memo
   });
 });
 
-test('AT-CAP-3 (RIG-144): explicit network denial is isolated, while an undeclared binding remains a visibly distinct compatibility state', () => {
+test('AT-CAP-3 (RIG-144): explicit and omitted network declarations both deny access', () => {
   const net = require('node:net');
   withRepo((target) => {
     const server = net.createServer((socket) => socket.end());
@@ -846,12 +1012,14 @@ test('AT-CAP-3 (RIG-144): explicit network denial is isolated, while an undeclar
         );
         assert.equal(denied.network_state, 'none');
 
+        const undeclaredMarker = path.join(target, `network-undeclared-${Math.random()}.marker`);
         const undeclared = runner('legacy-network-service', {
-          repo: [process.execPath, '-e', ''],
+          repo: [process.execPath, '-e', `const s=require('node:net').createConnection({host:'127.0.0.1',port:${port}},()=>{require('node:fs').writeFileSync(${JSON.stringify(undeclaredMarker)},'connected');s.end()});setTimeout(()=>process.exit(0),300);s.on('error',()=>process.exit(0));`],
         }, 'repo', target);
         assert.equal(undeclared.status, 0);
         assert.equal(undeclared.network_state, 'undeclared');
-        assert.match(undeclared.diagnostic, /network capability undeclared/);
+        assert.equal(fs.existsSync(undeclaredMarker), false, 'an omitted network field reached a local listener');
+        assert.match(undeclared.diagnostic, /network capability undeclared; network is denied by default/);
       }
     } finally {
       server.close();
@@ -886,7 +1054,10 @@ test('AT-CAP-4 (RIG-144): elevated network and resource requests run only when a
 
       execFileSync('git', ['add', '.rig/execution-policy.json'], { cwd: target });
       execFileSync('git', ['commit', '-m', 'grant elevated check capability'], { cwd: target, stdio: 'pipe' });
-      const authorized = runner('elevated-service', binding, 'repo', target);
+      const unsigned = runner('elevated-service', binding, 'repo', target);
+      assert.equal(unsigned.kind, 'not_authorized', 'a committed file is not an exact signed network grant');
+      const auth = require('./helpers/task-approval').approved(target, [{ service_id: 'elevated-service', argv: binding.repo, cwd: '.', network: 'required', timeout_ms: 700000, memory_limit_mb: 3072 }]);
+      const authorized = runner('elevated-service', { ...binding, execution_plan: auth.plan, execution_approval: auth.approval }, 'repo', target);
       assert.equal(authorized.status, 0);
       assert.equal(authorized.network_state, 'required');
       assert.equal(fs.existsSync(marker), true, 'a committed exact policy grant did not authorize its matching binding');
@@ -909,17 +1080,61 @@ test('AT-CAP-5 (RIG-144): malformed or unenforceable capability controls refuse 
       assert.equal(invalidPolicy.kind, 'capability_policy_invalid');
       assert.equal(fs.existsSync(marker), false, 'an invalid policy silently downgraded to an allowed elevated command');
 
-      const savedPath = process.env.PATH;
+      const savedDisabled = process.env.RIG_SANDBOX_DISABLE;
       try {
-        process.env.PATH = '';
+        process.env.RIG_SANDBOX_DISABLE = '1';
         const unavailable = runner('denied-service', {
-          repo: [process.execPath, '-e', ''], network: 'none',
+          repo: [process.execPath, '-e', REAL_CHECK], network: 'none',
         }, 'repo', target);
         assert.equal(unavailable.status, 1);
-        assert.equal(unavailable.kind, 'network_isolation_unavailable');
+        assert.equal(unavailable.kind, 'filesystem_isolation_unavailable');
       } finally {
-        process.env.PATH = savedPath;
+        if (savedDisabled == null) delete process.env.RIG_SANDBOX_DISABLE;
+        else process.env.RIG_SANDBOX_DISABLE = savedDisabled;
       }
     });
   }
+});
+
+test('AT-LF-12r (finding 5): autofix needs a real Gate 1 plan approval bound to this exact fix and verify, single use, and reports the real verification result', () => {
+  withRepo((target) => {
+    const write = (body) => [process.execPath, '-e', `require('fs').writeFileSync('a.js',${JSON.stringify(body)})`];
+    const check = (want) => [process.execPath, '-e', `process.exit(require('fs').readFileSync('a.js','utf8')===${JSON.stringify(want)}?0:1)`];
+    fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
+    const cmd = { argv: write('good\n'), verify: check('good\n') };
+    const plan = planAutofix(target, cmd);
+    const approval = signedPlanApproval(target, plan);
+
+    // A boolean, a null, or a forged signature never runs the fix.
+    assert.throws(() => runAutofix(target, cmd, { verified: true }), /approval/);
+    assert.throws(() => runAutofix(target, cmd, null), /approval/);
+    assert.throws(() => runAutofix(target, cmd, { ...approval, approval: { ...approval.approval, signature: 'forged' } }), /SSHSIG|signature|verif/i);
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n');
+
+    // A signature for this fix does not authorise a different fix command.
+    assert.throws(() => runAutofix(target, { ...cmd, argv: write('evil\n') }, approval), /approval/);
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n');
+
+    // A fix with no verification command is refused before it mutates anything.
+    assert.throws(() => planAutofix(target, { argv: cmd.argv }), /verif/);
+    assert.throws(() => runAutofix(target, { argv: cmd.argv }, approval), /verif/);
+
+    // The approved fix runs, is re-verified for real, and the signature is single use.
+    const done = runAutofix(target, cmd, approval);
+    assert.equal(done.verification, 'pass');
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'good\n');
+    assert.throws(() => runAutofix(target, cmd, approval), /not authorized/);
+  });
+});
+
+test('AT-LF-12r (finding 5): a failing or missing verifier is reported as failed, never as skipped or passed', () => {
+  withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
+    const fix = [process.execPath, '-e', "require('fs').writeFileSync('a.js','still-bad\\n')"];
+    const failing = approvedFix(target, { argv: fix, verify: [process.execPath, '-e', 'process.exit(1)'] });
+    assert.equal(failing.verification, 'fail');
+    const missing = approvedFix(target, { argv: fix, verify: ['rig-no-such-verifier-binary'] });
+    assert.equal(missing.verification, 'not_run');
+    assert.equal(missing.status, 'command_not_found');
+  });
 });

@@ -28,9 +28,13 @@ test('check.js skeleton exists with --scope repo contract', () => {
   assert.match(fs.readFileSync(runnerPath, 'utf8'), /shell:\s*false/);
 });
 
-test('every emitted adapter has doc/first-wire evidence; unverified degrade', () => {
+test('adapter support is separate from real provider first-run verification', () => {
   for (const provider of Object.values(PROVIDERS)) {
-    if (provider.status === 'verified') {
+    if (provider.status === 'supported') {
+      assert.equal(provider.evidence.execution, 'unverified');
+      assert.equal(provider.evidence.kind, 'render_test');
+      assert.ok(provider.evidence.test);
+    } else if (provider.status === 'verified') {
       assert.ok(provider.evidence, `${provider.id} verified without evidence`);
       assert.ok(
         provider.evidence.kind === 'official_doc' ||
@@ -57,7 +61,7 @@ test('a detected provider still requires separate approval before CI changes', (
   const os = require('node:os');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-ci-'));
   try {
-    fs.writeFileSync(path.join(tmp, '.gitlab-ci.yml'), 'image: node\n');
+    fs.writeFileSync(path.join(tmp, '.gitlab-ci.yml'), 'image: node\nuser:\n  script:\n    - echo user\n');
     const plan = planCiIntegration(tmp);
     assert.equal(plan.status, 'approval_required');
     assert.equal(plan.artifact, null);

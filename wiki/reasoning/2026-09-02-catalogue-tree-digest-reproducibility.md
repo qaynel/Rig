@@ -128,6 +128,6 @@ Two rules, both generalizable past this bug:
   compare is a self-consistency check, not a reproducibility check.
 
 This is the same family as the `AT-HOME-1` fixture-prerequisite trap
-([[2026-08-31-rig-154-fresh-checkout-npm-test-design]]): a gate that is green
+([[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-31-rig-154-fresh-checkout-npm-test-design]]): a gate that is green
 in the dev/CI environment and red on a fresh clone because an environmental
 assumption was never made explicit.

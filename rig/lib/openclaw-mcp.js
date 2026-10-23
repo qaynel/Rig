@@ -75,14 +75,6 @@ function removeLedgerEntry(target, entry, writeFile = null) {
   else fs.writeFileSync(file, body);
 }
 
-function journalTree(target, source, destRel, writeFile) {
-  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
-    const src = path.join(source, entry.name);
-    const rel = path.join(destRel, entry.name);
-    if (entry.isDirectory()) journalTree(target, src, rel, writeFile);
-    else if (entry.isFile()) writeFile(target, rel, fs.readFileSync(src), fs.statSync(src).mode & 0o777);
-  }
-}
 
 function openClawServers() {
   const result = spawnSync('openclaw', ['mcp', 'show', '--json'], {
@@ -139,7 +131,8 @@ function registerOpenClawMcp(target, opts = {}) {
     && entry.install_id === id && entry.server_key === name);
   const servers = openClawServers();
   if (owned) {
-    if (owned.path !== configPath() || !hasExpectedServer(servers, owned)) {
+    const absentPendingRetry = owned.state === 'pending' && !Object.hasOwn(servers, name);
+    if (owned.path !== configPath() || (!hasExpectedServer(servers, owned) && !absentPendingRetry)) {
       throw new Error(`rig: refusing to overwrite changed OpenClaw server ${name}`);
     }
   } else if (Object.hasOwn(servers, name)) {
@@ -161,41 +154,32 @@ function registerOpenClawMcp(target, opts = {}) {
   }, opts.writeFile);
   const restoreLedger = () => {
     if (owned) {
-      writeLedger(target, { ...owned, state: 'applied' }, opts.writeFile);
+      writeLedger(target, owned, opts.writeFile);
     } else {
       removeLedgerEntry(target, { kind: 'openclaw-mcp', path: configPath(), install_id: id }, opts.writeFile);
     }
   };
-  const installDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-mcp-runtime-'));
   try {
-    fs.copyFileSync(path.join(runtimeDir, 'package.json'), path.join(installDir, 'package.json'));
-    fs.copyFileSync(path.join(runtimeDir, 'package-lock.json'), path.join(installDir, 'package-lock.json'));
-    const installed = spawnSync('npm', ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund', '--prefix', installDir], {
-      encoding: 'utf8',
-      shell: false,
-    });
-    if (installed.status !== 0) {
-      throw new Error(`rig: npm ci failed for bundled rig-mcp runtime: ${installed.stderr || installed.stdout}`);
-    }
-    const installedModules = path.join(installDir, 'node_modules');
-    if (fs.existsSync(installedModules)) {
-      if (opts.writeFile) journalTree(target, installedModules, path.join(runtime, 'node_modules'), opts.writeFile);
-      else fs.cpSync(installedModules, path.join(runtimeDir, 'node_modules'), { recursive: true });
-    }
+    require('./mcp-dependencies').setupMcp(target, { writeFile: opts.writeFile });
   } catch (error) {
     restoreLedger();
     throw error;
-  } finally {
-    fs.rmSync(installDir, { recursive: true, force: true });
   }
   const set = spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(server)], {
     encoding: 'utf8',
     shell: false,
   });
   if (set.status !== 0) {
-    const rollback = owned
-      ? spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0
-      : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
+    let rollback;
+    if (owned) {
+      rollback = spawnSync('openclaw', ['mcp', 'set', name, JSON.stringify(owned.value)], { encoding: 'utf8', shell: false }).status === 0;
+    } else {
+      let serversAfterFailure;
+      try { serversAfterFailure = openClawServers(); } catch { serversAfterFailure = null; }
+      rollback = serversAfterFailure && !Object.hasOwn(serversAfterFailure, name)
+        ? true
+        : removeOpenClawMcp(target, { kind: 'openclaw-mcp', server_key: name, install_id: id, value: server }).removed;
+    }
     if (rollback) restoreLedger();
     throw new Error(`rig: openclaw mcp set failed: ${set.stderr || set.stdout}`);
   }

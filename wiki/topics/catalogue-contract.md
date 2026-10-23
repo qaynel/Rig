@@ -7,6 +7,24 @@ dependency a canonical identity. Grades are cumulative and dependencies pull
 only named slices; a dependency never replaces the user's selection or raises
 its grade. [Gate 2 §5.1–5.4](../gate2/technical-spec.md#5-catalogue-contract)
 
+The signed AT-PB-1 oracle pins the active 115-service corpus at
+`rig/corpus/catalogue.json` and `rig/corpus/services/`. The corpus has
+service-specific identity, minimal, mid, maximal, and slice guidance, and the
+signed AT-SHAPE-6 oracle rejects generic-baseline wording in authored service
+fragments. Coherence and corpus-contract proofs also pass
+([closeout trace](../reasoning/2026-10-14-closure-coherence-green.md)). The
+current [semantic review correction](../reasoning/2026-10-18-qa-review-runtime-corrections.md)
+found disposition-label drift and repeated sentence artifacts in those files;
+the [alignment checkpoint](../reasoning/2026-10-18-qa-catalogue-alignment-checkpoint.md)
+records corrected identity labels and a gate for the reproduced sentence defect.
+Those changes require an owner-signed digest refresh.
+The
+older unsigned-candidate account is preserved as historical evidence
+([candidate evidence](../reasoning/2026-10-14-closure-candidate-advisories.md)).
+The [QA candidate-preparation checkpoint](../reasoning/2026-10-18-qa-closeout-followup-candidate-prep.md)
+records a disposable-install assertion for the shipped skills README and direct
+checks of these signed authority statements.
+
 ## Why it is this way
 
 Stable leaf identities make selection, receipts, reports, and compatibility
@@ -45,44 +63,32 @@ either user-choice violations or unnecessary machinery. [Gate 2 §2.1](../gate2/
 - Business rules: [Gate 1 §2 and §5](../gate1/business-spec.md)
 - Exact schema and algorithms: [Gate 2 §5](../gate2/technical-spec.md#5-catalogue-contract)
 - Original rulings: [advanced grilling](../sources/logs/advanced-grilling.md)
-- First convention-leaf ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-confirmations.md)
+- First convention-leaf ruling: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 - Bounded first-leaf design: [lint-format vertical slice](../specs/lint-format-vertical-slice.md)
-- Lint-format hybrid-plus product promise: [reasoning trace](../reasoning/2026-08-20-lint-format-hybrid-plus.md)
-- Open-ended, repository-derived ecosystem scope: [reasoning trace](../reasoning/2026-08-20-lint-format-open-ecosystem.md)
-- Whole-repository discovery boundary: [reasoning trace](../reasoning/2026-08-20-lint-format-whole-repository.md)
-- Semantic command discovery: [reasoning trace](../reasoning/2026-08-20-lint-format-semantic-discovery.md)
-- Exact Policy → Context → Evidence capability model: [reasoning trace](../reasoning/2026-08-20-linting-harness-capability-model.md)
-- Universal model with lint-format-only current focus: [reasoning trace](../reasoning/2026-08-20-universal-capability-model-leaf-first.md)
+- Lint-format hybrid-plus product promise: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Open-ended, repository-derived ecosystem scope: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Whole-repository discovery boundary: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Semantic command discovery: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Exact Policy → Context → Evidence capability model: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Universal model with lint-format-only current focus: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 - Strict duplicate skill names: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-dupname.md)
 - Frozen-test drift during duplicate-name hardening: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md)
 - Final duplicate-name hardening review: [reasoning trace](../reasoning/2026-09-02-path-b-hardening-final-review.md)
-- Partial, truthful lint-format coverage: [reasoning trace](../reasoning/2026-08-20-lint-format-partial-coverage.md)
-- Gate 2 grade-ladder and lint-format mechanism design: [reasoning trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
+- Partial, truthful lint-format coverage: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Gate 2 grade-ladder and lint-format mechanism design: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md), [Gate 2 §5.7–§5.8](../gate2/technical-spec.md#57-the-policy--context--evidence-grade-ladder-d21-ga-2223)
 
-## What is still open
+## Current delivery
 
-The contract is designed and still pre-freeze — which is the **normal default**,
-not a pending action. By doctrine ([the gate](the-two-gates.md), D27) nothing
-locks until its solution, acceptance criteria, and tests are all in place and the
-owner agrees; until then "not frozen" simply describes healthy in-progress work
-and is **not** an open "freeze now?" decision. (RIG-112 was a mis-raised question
-generated by reading this state as an action — see the
-[process doctrine trace](../reasoning/2026-08-24-process-doctrine-and-one-lock.md).)
-The remaining design work: the authored-service gate must later prove that
-mechanically valid leaves also carry real, service-specific meaning.
-[Authored-service gate](authored-service-gate.md)
+The [semantic-service checkpoint](../reasoning/2026-10-18-qa-semantic-service-review.md)
+records the first 13 service reviews, their fixture checks, and the remaining
+Policy-grade acceptance-metadata mismatch.
 
-For lint-format, the product promise is hybrid-plus. Rig preserves and adapts to
-the repository's existing toolchain by default. If no supported setup exists,
-Rig may offer one; if Rig knows a better supported alternative, it brings that
-choice to the user. Setup or replacement never happens without the user's
-decision. The exact meaning of “better” and the generated setup contract still
-need to be bounded in the lint-format grilling.
-
-Ecosystem breadth itself is not bounded by a predetermined language or package
-manager list. Rig must derive and build what is relevant from the repository it
-lands in. Truthful failure behavior when the needed capability cannot be built
-remains open.
+The catalogue is implemented as a completed family → group → service → grade
+contract. All 115 services have service-specific guidance, declared checks and
+an explicit assurance ceiling. A selected service uses available repository
+tools; a missing tool is a named coverage gap with setup guidance, never a
+passing result. The historical lint-format-first discussion below explains the
+origin of the model; it is not current delivery scope.
 
 The repository boundary is whole-repository: root projects, workspaces, nested
 packages, and polyglot components all participate in discovery and the proposed
@@ -106,19 +112,20 @@ higher assurance), but a clean lower-grade result runs through to the selected
 grade, and the reported assurance is the highest grade actually completed. A
 clean Policy pass under a Context or Evidence selection never becomes the final
 verdict while the selected grade's own work is still unrun (Gate 2 v0.7,
-[reasoning trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md)).
+[reasoning trace](../archive/2026-08/gate-model-and-the-one-lock.md)).
 Conventional syntax, formatting, type, and ordinary static analysis are commodity
 inputs rather than this ladder's differentiator.
 
 This method is universal across catalogue services, but domain ownership stays
-per leaf. Policy, context, and evidence for lint-format must concern only the
+per leaf. Policy, context, and evidence for lint-format concern only the
 lint-format domain; examples from security or infrastructure illustrate the
-method without transferring those capabilities into this leaf. Current work
-specifies and proves only lint-format. The other leaves inherit the universal
-method later and are not being authored now.
+method without transferring those capabilities into this leaf.
 
 If Rig cannot build the minimum Policy level for every discovered component,
 lint-format may still install for the covered components. The proposed plan
 names every excluded component for user approval, reports it as unprotected,
 and suppresses the whole-repository support claim. An advisory-only fallback
 does not count as coverage.
+
+The earlier closure work is retained as historical reasoning in
+[2026-10-13-catalogue-04-discovery](../reasoning/2026-10-13-catalogue-04-discovery.md).

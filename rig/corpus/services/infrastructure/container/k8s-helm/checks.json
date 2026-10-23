@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.container.k8s-helm",
+  "input": "rig-services/infrastructure.container.k8s-helm.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms resource limits, a readiness probe and the latest-tag flag are declared; it does not show the workload schedules or becomes ready.",
+  "offer": "Declare Kubernetes resource bounds and readiness independently of process existence. Pin deployed images rather than selecting mutable latest tags.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
+      }
+    ],
+    "mid": [
+      {
+        "field": "readiness_probe",
+        "op": "nonempty",
+        "reason": "Declare a readiness probe. Process existence is not readiness, so define the endpoint or command that proves the service can take traffic."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "latest_image_tag",
+        "op": "equals",
+        "value": false,
+        "reason": "Set a latest image tag to false. A mutable tag changes what is deployed without a change record, so pin an exact version or digest."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "k8s-helm-slice-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "k8s-helm-slice-behavior-oracle",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
+      }
+    },
+    "property-floor": {
+      "check_id": "k8s-helm-slice-property-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "k8s-helm-slice-mutation-floor",
+      "rule": {
+        "field": "resource_limits",
+        "op": "nonempty",
+        "reason": "Declare CPU and memory limits for the workload. Unbounded pods can starve the node, so set resource limits."
+      }
+    }
+  }
+}

@@ -40,7 +40,7 @@ apply leaves completed writes in place, records progress in the install
 manifest, and resumes on retry. `rig/lib/apply.js` implements that
 record-before-mutate path for the writes apply performs. Remaining lifecycle
 work is the full preimage/removal side of Slice 12, not the rollback/resume
-boundary. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md) ·
+boundary. [Resolution trace](../archive/2026-08/release-install-and-distribution.md) ·
 [Status](../status.md)
 
 **Managed-block caller resolved 2026-08-24.** Catalogue apply now routes its
@@ -81,7 +81,7 @@ design call the ownership-class model above doesn't yet make: gitignore
 Rig-owned output (tool-cache model — regenerable, never reviewed, re-synced
 by rerunning bootstrap) versus commit it (vendored-config model — reviewed
 and diffed like any other checked-in convention). Recommendation and full
-evidence: [Path A bug investigation](../reasoning/2026-08-30-path-a-bug-investigation.md).
+evidence: [Path A bug investigation](../archive/2026-08/path-a-and-path-b-onboarding.md).
 
 **Onboarding apply now removes graft sections, not only upserts them
 (2026-09-01).** `removeGraftSection` had exactly one production caller —
@@ -105,3 +105,17 @@ so a cleanly finished install can never excuse a proposal built on a stale
 view. A resumed run promotes the pending record instead of leaving it pending,
 and closes the transaction it inherited.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
+
+2026-10-13 central corpus (subplan 03): every file a repository receives,
+including graft-adjacent host entrypoints, is projected from `rig/corpus/` by
+one pure `project()`; the installer and onboarding share its scope table and
+naming functions, and a golden v5 inventory pins the installed bytes. Generated
+host files in this repo are reproducible via `scripts/project-repo.js` and
+policed by `scripts/check-rule-copies.js`.
+([expand](../reasoning/2026-10-13-corpus-03-slice1-expand.md) ·
+[migrate](../reasoning/2026-10-13-corpus-03-slice2-migrate.md) ·
+[contract](../reasoning/2026-10-13-corpus-03-slice6-contract.md))
+
+The closeout migration correction rejects hard-linked mutation targets and
+non-regular temporary collisions, and replay verifies the planned live state
+again before adoption or final-marker writes. [Remediation trace](../reasoning/2026-10-18-qa-closeout-remediation.md)

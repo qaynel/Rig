@@ -1,8 +1,14 @@
 ---
-status: draft
+status: historical
 ---
 
 # Rig — Production Foundational Design
+
+Historical July/August design, retained for provenance. Its tier, credential,
+shipping and freeze instructions are superseded by [the current closeout
+specification](close-everything/specification-sheet.md), [CLAUDE.md](../../CLAUDE.md)
+and the [change-management policy](../../rig/corpus/standards/change-management.md).
+Do not execute this historical plan.
 
 Consolidated 2026-07-17 as the Gate 2 plan for shipping Rig to production.
 Folds together the initial plan (`../sources/superseded/foundational/rig-foundational-design.md`, 13 decided /

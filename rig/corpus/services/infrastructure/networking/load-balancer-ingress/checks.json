@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.networking.load-balancer-ingress",
+  "input": "rig-services/infrastructure.networking.load-balancer-ingress.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the backend health path, request timeout and the admin-route flag are declared; it does not probe a live balancer.",
+  "offer": "Route only healthy backends with bounded request handling. Administrative routes remain outside the public ingress surface.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "Declare the backend health path. The balancer cannot drop unhealthy backends without it, so give the endpoint it polls."
+      }
+    ],
+    "mid": [
+      {
+        "field": "request_timeout_ms",
+        "op": "minimum",
+        "value": 5000,
+        "reason": "Set the request timeout to at least 5000 ms. A shorter timeout cuts off legitimate slow requests, so bound it deliberately."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "expose_admin_route",
+        "op": "equals",
+        "value": false,
+        "reason": "Set exposing an admin route to false. Administrative routes on the public ingress invite takeover, so keep them internal."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "load-balancer-ingress-slice-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "Declare the backend health path. The balancer cannot drop unhealthy backends without it, so give the endpoint it polls."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "load-balancer-ingress-slice-behavior-oracle",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "Declare the backend health path. The balancer cannot drop unhealthy backends without it, so give the endpoint it polls."
+      }
+    },
+    "property-floor": {
+      "check_id": "load-balancer-ingress-slice-property-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "Declare the backend health path. The balancer cannot drop unhealthy backends without it, so give the endpoint it polls."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "load-balancer-ingress-slice-mutation-floor",
+      "rule": {
+        "field": "backend_health_path",
+        "op": "nonempty",
+        "reason": "Declare the backend health path. The balancer cannot drop unhealthy backends without it, so give the endpoint it polls."
+      }
+    }
+  }
+}

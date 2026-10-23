@@ -2,11 +2,14 @@
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+// Installed uninstall removes its own runtime; load cleanup before removal.
+const { cleanupEvidence, writeEvidence } = require('./evidence-artifacts');
 const path = require('node:path');
 const { containedPath, gitPath } = require('./path-safety');
 const { removeGlobalConfig, removeGlobalMcp } = require('./global-writes');
 const { removeOpenClawMcp } = require('./openclaw-mcp');
-const { PROVIDERS: CI_PROVIDERS, GITHUB_WORKFLOW_POINTER } = require('./ci-adapters');
+const { PROVIDERS: CI_PROVIDERS, GITHUB_WORKFLOW_POINTER, ciRegions, stripCiRegions } = require('./ci-adapters');
+const { parseJournalRecords, readManifest, installState, latestOperations } = require('./journal-records');
 
 const MANIFEST_REL = '.rig/install-manifest.jsonl';
 const LEGACY_MANIFEST_REL = '.rig/install-manifest.json';
@@ -20,6 +23,13 @@ const INSTALL_GRAFT_FILES = new Set([
   'AGENTS.md', 'CLAUDE.md', 'GEMINI.md', '.github/copilot-instructions.md', '.gitignore',
 ]);
 const INSTALL_UNIQUE_CI_FILES = new Set([CI_PROVIDERS['github-actions'].file]);
+// Provider files Rig only ever merges a marked job into; never deleted wholesale.
+const MERGED_CI_FILES = new Set([
+  ...Object.values(CI_PROVIDERS).map((provider) => provider.file).filter((file) => !INSTALL_UNIQUE_CI_FILES.has(file)),
+  'azure-pipelines.yaml',
+]);
+const hasManagedRegions = (record) => record.ownership === 'merge_namespaced'
+  && Array.isArray(record.managed_regions) && record.managed_regions.length > 0;
 const INSTALL_HOOK_PATHS = new Set([
   '.git/hooks/pre-commit',
   '.git/hooks/pre-commit.rig-chained',
@@ -65,33 +75,21 @@ function isRigInstallPath(rel, record = {}) {
       && record.managed_line === GITHUB_WORKFLOW_POINTER)
       || (INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned');
   }
+  if (MERGED_CI_FILES.has(rel)) return hasManagedRegions(record);
   return INSTALL_TOP_LEVEL.has(top);
 }
 
-function parseJournalRecords(text) {
-  const lines = String(text).split('\n');
-  const records = [];
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (!line.trim()) continue;
-    try {
-      records.push(JSON.parse(line));
-    } catch {
-      const later = lines.slice(i + 1).some((next) => next.trim());
-      if (later) throw new Error(`manifest record is not valid JSON (line ${i + 1})`);
-    }
+function canonicalJournalText(text) {
+  const records = parseJournalRecords(text);
+  if (records.truncated_tail) {
+    const at = text.lastIndexOf('\n');
+    const tail = text.slice(at + 1);
+    // The recovery event retains the interrupted fragment without echoing it
+    // in diagnostics, and prevents a preceding complete:true becoming clean.
+    return text.slice(0, at + 1) + JSON.stringify({ kind: 'install_state', complete: false,
+      recovery: 'truncated-final-record', truncated_record_base64: Buffer.from(tail).toString('base64') }) + '\n';
   }
-  return records;
-}
-
-function readManifest(target) {
-  const file = containedPath(target, MANIFEST_REL);
-  if (fs.existsSync(file)) {
-    return { format: 'jsonl', records: parseJournalRecords(fs.readFileSync(file, 'utf8')) };
-  }
-  const legacy = containedPath(target, LEGACY_MANIFEST_REL);
-  if (!fs.existsSync(legacy)) return { format: 'jsonl', records: [] };
-  return { format: 'json', records: JSON.parse(fs.readFileSync(legacy, 'utf8')).records || [] };
+  return text && !text.endsWith('\n') ? `${text}\n` : text;
 }
 
 function appendRecord(target, record) {
@@ -108,16 +106,16 @@ function currentDigest(abs) {
   return fs.existsSync(abs) ? digestOf(fs.readFileSync(abs)) : null;
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// The installers add one "\n" before an appended block when the user's file lacked a final newline.
+// Drop it again, but only when that restores the journaled preimage byte-for-byte.
+function withoutAddedSeparator(stripped, record) {
+  if (record.preimage_digest && stripped.endsWith('\n') && digestOf(Buffer.from(stripped)) !== record.preimage_digest
+      && digestOf(Buffer.from(stripped.slice(0, -1))) === record.preimage_digest) return stripped.slice(0, -1);
+  return stripped;
 }
 
-function latestOperations(records) {
-  const bySeq = new Map();
-  for (const record of records) {
-    if (Number.isInteger(record.seq)) bySeq.set(record.seq, record);
-  }
-  return [...bySeq.values()].sort((a, b) => a.seq - b.seq);
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function resumeInstall(target, opts) {
@@ -126,15 +124,16 @@ function resumeInstall(target, opts) {
   const latest = latestOperations(existing.records);
   const byPath = new Map(latest.map((record) => [record.path, record]));
   let seq = latest.reduce((max, record) => Math.max(max, record.seq), 0);
+  const manifestPath = containedPath(target, MANIFEST_REL);
+  if (fs.existsSync(manifestPath)) {
+    const text = fs.readFileSync(manifestPath, 'utf8');
+    const canonical = canonicalJournalText(text);
+    if (canonical !== text) fs.writeFileSync(manifestPath, canonical);
+  }
   appendRecord(target, { kind: 'install_state', complete: false });
-  // rig: `interrupt_after` is a test-shaped hook still shipped in production;
-  // the fix pairs with the frozen oracle's `AT-INSTALL-1` case, which passes
-  // this parameter directly. Replace with an injected fault hook when that
-  // oracle case is re-signed.
-  const remaining = operations.filter((op) => byPath.get(op.path)?.state !== 'applied');
-  const limit = opts.interrupt_after !== undefined ? opts.interrupt_after : remaining.length;
-  let attempted = 0;
-  for (let i = 0; i < operations.length && attempted < limit; i += 1) {
+  // An install stops only when a real write fails or the process dies; the
+  // pending record and install_state:false it leaves are what the next run resumes.
+  for (let i = 0; i < operations.length; i += 1) {
     const op = operations[i];
     const abs = containedPath(target, op.path);
     const desired = Buffer.from(op.content);
@@ -146,7 +145,6 @@ function resumeInstall(target, opts) {
       }
       continue;
     }
-    attempted += 1;
     if (prior?.state === 'pending') {
       if (prior.desired_digest !== desiredDigest) {
         throw new Error(`resumeInstall: changed pending operation ${op.path}`);
@@ -232,6 +230,26 @@ function pruneEmptyParents(target, rel) {
   }
 }
 
+// RIG-127.12: a legacy record names no block, so a wildcard strip would delete
+// any other `rig:*` block in the file. Remove a block only when taking it out
+// restores exactly the preimage digest the record journaled; otherwise leave
+// the file untouched (the caller reports best-effort).
+const LEGACY_BLOCK_PATTERNS = [
+  /<!-- rig:([^\n]*?):start -->\n[\s\S]*?<!-- rig:\1:end -->\n?/g,
+  /# rig:([^\n]*?):start\n[\s\S]*?# rig:\1:end\n?/g,
+];
+
+function stripLegacyNamelessBlock(body, record) {
+  for (const pattern of LEGACY_BLOCK_PATTERNS) {
+    for (const match of body.matchAll(pattern)) {
+      const candidate = body.slice(0, match.index) + body.slice(match.index + match[0].length);
+      const created = !record.preimage_digest && !candidate.trim();
+      if (created || digestOf(Buffer.from(candidate)) === record.preimage_digest) return candidate;
+    }
+  }
+  return body;
+}
+
 function dropEmptyOrWrite(abs, stripped) {
   if (!stripped.trim()) {
     fs.rmSync(abs, { force: true });
@@ -242,7 +260,9 @@ function dropEmptyOrWrite(abs, stripped) {
 }
 
 function uninstall(target, opts = {}) {
+  if (opts.purge && opts.purgeGenerated) throw new Error('rig: choose either --purge or --purge-generated');
   const manifest = readManifest(target);
+  if (manifest.records.truncated_tail) throw new Error('manifest final record is truncated; resume installation before removal');
   const latestByPath = new Map();
   for (const record of latestOperations(manifest.records)) {
     if ((record.transaction_kind || 'install') === 'install') latestByPath.set(record.path, record);
@@ -252,9 +272,53 @@ function uninstall(target, opts = {}) {
     record,
     resolveRecordPath(target, record.path),
   ]));
+  // rig: capture first-write evidence before teardown removes the store;
+  // snapshots prove differences and are never restored over current bytes.
+  const origins = new Map();
+  for (const record of latestOperations(manifest.records)) {
+    if ((record.transaction_kind || 'install') !== 'install') continue;
+    if (record.operation === 'delete_owned' && record.state === 'applied') origins.delete(record.path);
+    else if (!origins.has(record.path)) origins.set(record.path, record);
+  }
+  const preimages = Object.create(null);
+  for (const record of records) {
+    const origin = origins.get(record.path) || record;
+    const digest = (record.operation === 'delete_owned' && record.state === 'applied')
+      || record.path === '.git/hooks/pre-commit.rig-chained' ? null
+      : Object.hasOwn(origin, 'preimage_digest') ? origin.preimage_digest
+        : origin.ownership === 'create_owned' ? null : undefined;
+    const snapshot = { digest, reason: null };
+    // Hooks already keep their original bytes in a journaled chained backup.
+    const chained = record.path === '.git/hooks/pre-commit'
+      && records.find(row => row.path === '.git/hooks/pre-commit.rig-chained');
+    if (chained) {
+      const backup = resolvedRecordPaths.get(chained);
+      if (fs.existsSync(backup) && currentDigest(backup) === (chained.digest || chained.desired_digest)) {
+        snapshot.digest = currentDigest(backup);
+        preimages[record.path] = snapshot;
+        continue;
+      }
+    }
+    if (digest !== null) {
+      if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) snapshot.reason = 'preimage-unavailable';
+      else {
+        try {
+          const file = containedPath(target, `.rig/preimages/${digest}`);
+          const stat = fs.lstatSync(file);
+          if (!stat.isFile() || stat.isSymbolicLink() || currentDigest(file) !== digest) snapshot.reason = 'preimage-corrupt';
+        } catch {
+          snapshot.reason = records.some(row => row.path === `.rig/preimages/${digest}`)
+            ? 'preimage-missing' : 'preimage-unavailable';
+        }
+      }
+    }
+    preimages[record.path] = snapshot;
+  }
   const bestEffort = [];
   const bestEffortDetails = [];
-  const removed = [];
+  const setupRecovery = require('./lint-format-setup').recoverSetup(target, records);
+  bestEffort.push(...setupRecovery.conflicts);
+  const removed = [...setupRecovery.removed];
   const deletedRels = [];
   const preservePrefixes = [];
   let stopped = false;
@@ -310,6 +374,8 @@ function uninstall(target, opts = {}) {
   // best-effort shim still needs it for a later retry.
   let retainChainedBackup = false;
   if (!stopped) for (const record of records) {
+    if (setupRecovery.handled.includes(record.path)) continue;
+    if (setupRecovery.protectedPaths.includes(record.path)) continue;
     if (record.path === '.git/hooks/pre-commit.rig-chained') continue;
     // An *applied* journalled delete already restored absence for this path.
     // There is nothing left to reclaim, and routing it through the attribution
@@ -383,6 +449,12 @@ function uninstall(target, opts = {}) {
         continue;
       }
     }
+    if (MERGED_CI_FILES.has(rel) && hasManagedRegions(record)) {
+      const stripped = stripCiRegions(fs.readFileSync(abs, 'utf8'), record.managed_regions);
+      if (stripped === null) bestEffort.push(record.path);
+      else { fs.writeFileSync(abs, stripped); removed.push(record.path); }
+      continue;
+    }
     const uniqueCi = INSTALL_UNIQUE_CI_FILES.has(rel) && record.ownership === 'create_owned';
     const pointerStrip = rel.startsWith('.github/workflows/')
       && record.ownership === 'append_managed'
@@ -407,27 +479,29 @@ function uninstall(target, opts = {}) {
       deletedRels.push(rel);
     } else if (record.managed_line) {
       const body = fs.readFileSync(abs, 'utf8');
-      const stripped = body.split('\n').filter((line) => line !== record.managed_line).join('\n');
+      const stripped = withoutAddedSeparator(body.split('\n').filter((line) => line !== record.managed_line).join('\n'), record);
       if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
       removed.push(record.path);
     } else if (record.managed_block || record.ownership === 'append_managed') {
       const body = fs.readFileSync(abs, 'utf8');
-      const name = typeof record.managed_block === 'string'
-        ? escapeRegExp(record.managed_block)
-        : '[^\\n]*';
-      const marker = record.managed_block === 'rig' ? 'rig' : `rig:${name}`;
-      let stripped = body.replace(
-        new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
-        '',
-      );
-      if (stripped === body) {
+      let stripped;
+      if (typeof record.managed_block === 'string') {
+        const marker = record.managed_block === 'rig' ? 'rig' : `rig:${escapeRegExp(record.managed_block)}`;
         stripped = body.replace(
-          new RegExp(`# ${marker}:start\\n[\\s\\S]*?# ${marker}:end\\n?`, 'g'),
+          new RegExp(`<!-- ${marker}:start -->\\n[\\s\\S]*?<!-- ${marker}:end -->\\n?`, 'g'),
           '',
         );
+        if (stripped === body) {
+          stripped = body.replace(
+            new RegExp(`# ${marker}:start\\n[\\s\\S]*?# ${marker}:end\\n?`, 'g'),
+            '',
+          );
+        }
+      } else {
+        stripped = stripLegacyNamelessBlock(body, record);
       }
       if (stripped === body) bestEffort.push(record.path);
-      else if (dropEmptyOrWrite(abs, stripped) === 'deleted') deletedRels.push(record.path);
+      else if (dropEmptyOrWrite(abs, withoutAddedSeparator(stripped, record)) === 'deleted') deletedRels.push(record.path);
       if (stripped !== body) removed.push(record.path);
     } else {
       const expected = record.digest || record.desired_digest || null;
@@ -457,6 +531,22 @@ function uninstall(target, opts = {}) {
     }
   }
   for (const rel of deletedRels) pruneEmptyParents(target, rel);
+  // Graft removal itself journals a fresh snapshot; reclaim only those new,
+  // unchanged owned copies after all original preimages have been consumed.
+  const lastInstallSeq = records.reduce((max, record) => Math.max(max, record.seq), 0);
+  for (const record of latestOperations(readManifest(target).records)) {
+    if (record.seq <= lastInstallSeq || record.ownership !== 'create_owned'
+      || !record.path?.startsWith('.rig/preimages/')) continue;
+    const abs = containedPath(target, record.path);
+    if (!fs.existsSync(abs)) continue;
+    const stat = fs.lstatSync(abs);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || currentDigest(abs) !== record.digest) bestEffort.push(record.path);
+    else {
+      fs.rmSync(abs);
+      removed.push(record.path);
+      pruneEmptyParents(target, record.path);
+    }
+  }
   const evidence = {
     schema_version: 1,
     kind: 'uninstall',
@@ -465,16 +555,45 @@ function uninstall(target, opts = {}) {
     best_effort_details: bestEffortDetails,
     at: new Date().toISOString(),
   };
-  const evidenceDir = path.join(target, 'reports/rig');
-  fs.mkdirSync(evidenceDir, { recursive: true });
-  fs.writeFileSync(path.join(evidenceDir, 'last-uninstall.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   let purgeList = [];
-  if (opts.purge) {
-    purgeList = ['reports/rig', '.rig/run-history'].filter((rel) => fs.existsSync(path.join(target, rel)));
+  if (opts.purge || opts.purgeGenerated) {
+    // A seed is user-owned after editing. Only the unchanged, newly-created
+    // network policy can restore its original absence during scoped cleanup.
+    for (const record of latestOperations(manifest.records)) {
+      if (record.transaction_kind !== 'user_seed' || record.path !== '.rig/network-policy.json'
+          || record.preimage_digest !== null) continue;
+      const seed = containedPath(target, record.path);
+      if (!fs.existsSync(seed)) continue;
+      const st = fs.lstatSync(seed);
+      if (!st.isFile() || st.isSymbolicLink() || st.nlink !== 1
+          || currentDigest(seed) !== (record.digest || record.desired_digest)) bestEffort.push(record.path);
+      else { fs.unlinkSync(seed); removed.push(record.path); }
+    }
+    purgeList = [...(opts.purge ? ['reports/rig'] : []), 'journal-owned runtime evidence'];
     if (typeof opts.beforePurge === 'function') opts.beforePurge([...purgeList]);
-    for (const rel of purgeList) fs.rmSync(containedPath(target, rel), { recursive: true, force: true });
+    bestEffort.push(...cleanupEvidence(target));
+    if (opts.purge) {
+      // AT-UNINSTALL-3: only explicit broad purge authorizes deleting all reports.
+      const reports = containedPath(target, 'reports/rig');
+      if (fs.existsSync(reports)) fs.rmSync(reports, { recursive: true, force: true });
+      pruneEmptyParents(target, 'reports/rig');
+    }
   }
-  if (bestEffort.length === 0) {
+  const verification = records.length ? verifyRemoval(target, { records, preimages, best_effort: bestEffort }) : {
+    status: 'best_effort', files: [MANIFEST_REL],
+    differences: [{ path: MANIFEST_REL, preimage_digest: null, postimage_digest: null, status: 'best_effort', reason: 'manifest-unavailable' }],
+  };
+  for (const difference of verification.differences || []) {
+    // Legacy journals without snapshot fields retain their teardown status,
+    // but verification still discloses that unavailable evidence separately.
+    if (difference.status === 'best_effort' && !['preimage-unavailable', 'manifest-unavailable'].includes(difference.reason)
+      && !bestEffort.includes(difference.path)) bestEffort.push(difference.path);
+  }
+  evidence.verification = verification;
+  if (!opts.purge && !opts.purgeGenerated) {
+    writeEvidence(target, 'reports/rig/last-uninstall.json', `${JSON.stringify(evidence, null, 2)}\n`);
+  }
+  if (bestEffort.length === 0 && !(verification.differences || []).some(row => row.reason && row.reason !== 'preimage-unavailable')) {
     const mfile = containedPath(target, MANIFEST_REL);
     if (fs.existsSync(mfile)) fs.rmSync(mfile, { force: true });
     const legacy = containedPath(target, LEGACY_MANIFEST_REL);
@@ -488,12 +607,61 @@ function uninstall(target, opts = {}) {
     best_effort: bestEffort,
     best_effort_details: bestEffortDetails,
     purge_list: purgeList,
+    verification,
   };
 }
 
 function verifyRemoval(target, evidence) {
   if (evidence && Array.isArray(evidence.missing_markers) && evidence.missing_markers.length) {
     return { status: 'best_effort', files: [...evidence.missing_markers] };
+  }
+  if (evidence?.preimages && Object.keys(evidence.preimages).length) {
+    const files = new Set(evidence.best_effort || []);
+    const differences = [];
+    for (const record of evidence.records || []) {
+      const snapshot = evidence.preimages[record.path];
+      let reason = snapshot?.reason;
+      let postimage = null;
+      try {
+        const abs = resolveRecordPath(target, record.path);
+        if (fs.existsSync(abs)) {
+          const stat = fs.lstatSync(abs);
+          if (!stat.isFile() || stat.isSymbolicLink()) reason ||= 'remaining-unsafe-path';
+          else {
+            const bytes = fs.readFileSync(abs);
+            postimage = digestOf(bytes);
+            const body = bytes.toString('utf8');
+            const managedRemains = hasManagedRegions(record) ? ciRegions(body).some((region) => record.managed_regions.includes(region.digest))
+              : record.managed_line ? body.split('\n').includes(record.managed_line)
+              : record.ownership === 'graft_managed'
+                ? (record.managed_grafts || []).some(({ capability }) => body.includes(`<!-- rig:graft capability="${capability}"`))
+                : record.managed_block || record.ownership === 'append_managed'
+                  ? files.has(record.path)
+                  : postimage !== snapshot?.digest;
+            if (managedRemains) reason ||= 'managed-content-remains';
+          }
+        }
+      } catch { reason ||= 'post-removal-unreadable'; }
+      if (files.has(record.path)) reason ||= 'removal-best-effort';
+      if (reason) files.add(record.path);
+      differences.push({
+        path: record.path,
+        preimage_digest: snapshot?.digest ?? null,
+        postimage_digest: postimage,
+        status: reason ? 'best_effort' : postimage === (snapshot?.digest ?? null) ? 'unchanged' : postimage === null ? 'removed' : 'outside_changes',
+        ...(reason ? { reason } : {}),
+      });
+    }
+    // Only paths needing attention are listed: a runtime install records thousands of removed files, and the public result must stay bounded.
+    const counts = {};
+    for (const row of differences) counts[row.status] = (counts[row.status] || 0) + 1;
+    return {
+      status: files.size ? 'best_effort' : 'verified_clean',
+      files: [...files],
+      checked: differences.length,
+      counts,
+      differences: differences.filter((row) => row.status === 'outside_changes' || row.status === 'best_effort'),
+    };
   }
   // Walk any records still handed in and check the filesystem. A record whose
   // file is still on disk after uninstall is a real failure, not verified.
@@ -509,4 +677,4 @@ function verifyRemoval(target, evidence) {
   return { status: 'verified_clean', files: [] };
 }
 
-module.exports = { parseJournalRecords, readManifest, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };
+module.exports = { canonicalJournalText, parseJournalRecords, readManifest, installState, resumeInstall, uninstall, verifyRemoval, isRigInstallPath };

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.execution-orchestrator",
+  "input": "rig-services/testing.mutation.execution-orchestrator.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a worker limit, per-mutant timeout and the shared-worktree flag are declared; it does not run workers.",
+  "offer": "Bound mutation workers and timeouts while isolating each modified source tree. Shared mutable worktrees allow one mutant to contaminate another verdict.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
+      }
+    ],
+    "mid": [
+      {
+        "field": "per_mutant_timeout_ms",
+        "op": "minimum",
+        "value": 1000,
+        "reason": "Set a per-mutant timeout of at least 1000 ms. A mutant can loop forever, so bound each run."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "share_mutable_worktrees",
+        "op": "equals",
+        "value": false,
+        "reason": "Set sharing mutable worktrees to false. A shared tree lets one mutant contaminate another's verdict, so isolate each."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "execution-orchestrator-slice-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "execution-orchestrator-slice-behavior-oracle",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
+      }
+    },
+    "property-floor": {
+      "check_id": "execution-orchestrator-slice-property-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "execution-orchestrator-slice-mutation-floor",
+      "rule": {
+        "field": "worker_limit",
+        "op": "minimum",
+        "value": 2,
+        "reason": "Bound the worker count, at least 2 declared. Unbounded workers exhaust the machine, so set a limit."
+      }
+    }
+  }
+}

@@ -41,6 +41,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { TEMP_DIR } from './platform';
+import { spawnTreeGuarded } from './process-tree';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -857,65 +858,107 @@ export async function importCookiesViaCdp(
   // check the Chrome version logged below — Chrome's ABE key format (v20)
   // or /json/list shape can change between major versions.
   const debugPort = 9222 + Math.floor(Math.random() * 100);
-  const chromeProc = Bun.spawn([
+  return launchChromeAndExtract({
     exePath,
-    `--remote-debugging-port=${debugPort}`,
-    `--user-data-dir=${userDataDir}`,
-    `--profile-directory=${profile}`,
-    '--headless=new',
-    '--no-first-run',
-    '--disable-background-networking',
-    '--disable-default-apps',
-    '--disable-extensions',
-    '--disable-sync',
-    '--no-default-browser-check',
-  ], { stdout: 'pipe', stderr: 'pipe' });
+    args: [
+      `--remote-debugging-port=${debugPort}`,
+      `--user-data-dir=${userDataDir}`,
+      `--profile-directory=${profile}`,
+      '--headless=new',
+      '--no-first-run',
+      '--disable-background-networking',
+      '--disable-default-apps',
+      '--disable-extensions',
+      '--disable-sync',
+      '--no-default-browser-check',
+    ],
+    debugPort,
+    browserName: browser.name,
+    domains,
+  });
+}
 
-  // Wait for Chrome to start, then find a page target's WebSocket URL.
-  // Network.getAllCookies is only available on page targets, not browser.
-  let wsUrl: string | null = null;
-  const startTime = Date.now();
-  let loggedVersion = false;
-  while (Date.now() - startTime < 15_000) {
-    try {
-      // One-time version log for future diagnostics when Chrome changes v20 format.
-      if (!loggedVersion) {
-        try {
-          const versionResp = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
-          if (versionResp.ok) {
-            const v = await versionResp.json() as { Browser?: string };
-            console.log(`[cookie-import] CDP fallback: ${browser.name} ${v.Browser || 'unknown version'}`);
-            loggedVersion = true;
-          }
-        } catch {}
-      }
-      const resp = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
-      if (resp.ok) {
-        const targets = await resp.json() as Array<{ type: string; webSocketDebuggerUrl?: string }>;
-        const page = targets.find(t => t.type === 'page');
-        if (page?.webSocketDebuggerUrl) {
-          wsUrl = page.webSocketDebuggerUrl;
-          break;
-        }
-      }
-    } catch {
-      // Not ready yet
-    }
-    await new Promise(r => setTimeout(r, 300));
-  }
+export interface ChromeLaunchOptions {
+  exePath: string;
+  args: string[];
+  debugPort: number;
+  browserName: string;
+  domains: string[];
+  /** Wait for the debug endpoint this long. Default 15s. */
+  startupTimeoutMs?: number;
+  /** Abort to cancel: Chrome and all descendants are killed. */
+  signal?: AbortSignal;
+  /** Replaceable CDP reader (tests); defaults to the real extractor. */
+  extract?: (wsUrl: string, domains: string[]) => Promise<PlaywrightCookie[]>;
+}
 
-  if (!wsUrl) {
-    chromeProc.kill();
-    throw new CookieImportError(
-      `${browser.name} headless did not start within 15s`,
-      'cdp_timeout',
-      'retry',
-    );
-  }
-
+/**
+ * Launch Chrome headless against the real profile, read cookies, and stop it.
+ * Split out of importCookiesViaCdp so a forking stub can stand in for Chrome.
+ */
+export async function launchChromeAndExtract(opts: ChromeLaunchOptions): Promise<ImportResult> {
+  const { exePath, args, debugPort, browserName, domains } = opts;
+  // Rig local patch (RIG-135.1): Chromium runs against the user's REAL profile,
+  // so a surviving renderer/GPU descendant keeps the profile locked and blocks
+  // their own browser. Spawn it tree-guarded: stop() kills every descendant on
+  // success, timeout, and cancel; the watchdog does the same if we die first.
+  const chromeProc = spawnTreeGuarded(exePath, args);
+  const cancelled = new Promise<never>((_, reject) => {
+    const onAbort = () => reject(new CookieImportError('Cookie import cancelled', 'cancelled'));
+    if (opts.signal?.aborted) onAbort();
+    else opts.signal?.addEventListener('abort', onAbort, { once: true });
+  });
+  cancelled.catch(() => {});
   try {
+    return await launchAndExtract();
+  } finally {
+    chromeProc.stop();
+  }
+
+  async function launchAndExtract(): Promise<ImportResult> {
+    // Wait for Chrome to start, then find a page target's WebSocket URL.
+    // Network.getAllCookies is only available on page targets, not browser.
+    let wsUrl: string | null = null;
+    const startTime = Date.now();
+    let loggedVersion = false;
+    while (Date.now() - startTime < (opts.startupTimeoutMs ?? 15_000)) {
+      try {
+        // One-time version log for future diagnostics when Chrome changes v20 format.
+        if (!loggedVersion) {
+          try {
+            const versionResp = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
+            if (versionResp.ok) {
+              const v = await versionResp.json() as { Browser?: string };
+              console.log(`[cookie-import] CDP fallback: ${browserName} ${v.Browser || 'unknown version'}`);
+              loggedVersion = true;
+            }
+          } catch {}
+        }
+        const resp = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+        if (resp.ok) {
+          const targets = await resp.json() as Array<{ type: string; webSocketDebuggerUrl?: string }>;
+          const page = targets.find(t => t.type === 'page');
+          if (page?.webSocketDebuggerUrl) {
+            wsUrl = page.webSocketDebuggerUrl;
+            break;
+          }
+        }
+      } catch {
+        // Not ready yet
+      }
+      await Promise.race([new Promise(r => setTimeout(r, 300)), cancelled]);
+    }
+
+    if (!wsUrl) {
+      throw new CookieImportError(
+        `${browserName} headless did not start within 15s`,
+        'cdp_timeout',
+        'retry',
+      );
+    }
+
     // Connect via CDP WebSocket
-    const cookies = await extractCookiesViaCdp(wsUrl, domains);
+    const cookies = await Promise.race([(opts.extract ?? extractCookiesViaCdp)(wsUrl, domains), cancelled]);
 
     const domainCounts: Record<string, number> = {};
     for (const c of cookies) {
@@ -923,8 +966,6 @@ export async function importCookiesViaCdp(
     }
 
     return { cookies, count: cookies.length, failed: 0, domainCounts };
-  } finally {
-    chromeProc.kill();
   }
 }
 

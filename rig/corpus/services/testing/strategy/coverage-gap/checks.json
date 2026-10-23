@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.coverage-gap",
+  "input": "rig-services/testing.strategy.coverage-gap.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms uncovered behaviors, risk owners and the line-coverage-complete flag are declared; it does not measure coverage.",
+  "offer": "Map untested behavior to business risk and owners. Line coverage can locate unused paths, but it does not prove that important outcomes are asserted.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
+      }
+    ],
+    "mid": [
+      {
+        "field": "risk_owners",
+        "op": "nonempty",
+        "reason": "Name an owner for each gap's risk. Unowned gaps are never closed, so assign a person or team."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "claim_complete_from_line_coverage",
+        "op": "equals",
+        "value": false,
+        "reason": "Set claiming completeness from line coverage to false. Executed lines are not asserted outcomes, so do not equate them."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "coverage-gap-slice-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "coverage-gap-slice-behavior-oracle",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
+      }
+    },
+    "property-floor": {
+      "check_id": "coverage-gap-slice-property-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "coverage-gap-slice-mutation-floor",
+      "rule": {
+        "field": "uncovered_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that lack tests. Line coverage locates unused code, not unasserted outcomes, so name the behaviors."
+      }
+    }
+  }
+}

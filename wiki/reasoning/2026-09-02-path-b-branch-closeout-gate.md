@@ -19,7 +19,7 @@ probe (`unshare --user --map-root-user --net --`) fails in this sandbox
 because unprivileged user namespaces are not permitted here
 (`unshare: write failed /proc/self/uid_map: Operation not permitted`). This
 is the exact, previously-diagnosed condition in
-[2026-08-28 linux-network-isolation-ci](2026-08-28-linux-network-isolation-ci.md):
+[2026-08-28 linux-network-isolation-ci](../archive/2026-08/shell-trust-and-capability-policy.md):
 GitHub Actions' Ubuntu 24.04 runner explicitly disables the AppArmor
 restriction on unprivileged user namespaces for the test job so this probe
 succeeds in real CI; a locked-down local sandbox without that workaround

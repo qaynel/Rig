@@ -3,11 +3,12 @@
 Everything this project knows about itself: what it is, why every part of it is
 shaped the way it is, and what is true right now.
 
-**Start here:** [the overhaul](topics/the-overhaul.md) if you are picking up the 2026-09 workstream ·
+**Start here:** [agent primer](agent-primer.md) if you are starting work ·
 [quick reference](index/quick-reference.md) if you already know what you are about to do ·
 [status](status.md) if you are picking the work up cold ·
 [Tickets](Tickets.md) for the live board ·
-[the MVP roadmap](specs/mvp-roadmap.md) if you are here to build ·
+[current release checkpoint](topics/the-overhaul.md) for QA/prod closeout ·
+[the release task list](specs/close-everything/task-list.md) if you are here to build ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
 [glossary](glossary.md) if a term or ID is unfamiliar ·
@@ -63,7 +64,7 @@ topic is wrong.
 [the safety baseline](topics/safety-baseline.md) ·
 [the policy model](topics/policy-model.md) ·
 [user-presence approvals](topics/user-presence-approvals.md) ·
-[policy-signer recovery](topics/policy-signer-recovery.md) ·
+[one trust root (formerly policy-signer recovery)](topics/policy-signer-recovery.md) ·
 [one-use approvals](topics/one-use-approvals.md) ·
 [the action evaluator](topics/action-evaluator.md) ·
 [enforcement and git-dispatch wiring](topics/enforcement-and-git-dispatch-wiring.md) ·
@@ -93,7 +94,7 @@ topic is wrong.
 
 - [**Decisions**](index/decisions.md) — all decision IDs across four schemes, one line each.
 - [**Reasoning trace index**](index/reasoning.md) — generated current and historical trace lookup.
-- [**Acceptance cases**](index/acceptance-cases.md) — all 95 cases and where each is traced; the twelve onboarding-hardening additions are corrected and awaiting owner re-sign.
+- [**Acceptance cases**](index/acceptance-cases.md) — the 95-case oracle and its Gate 2 traceability.
 - [**Rejected**](index/rejected.md) — every approach considered and turned down, with the reason.
 - [**Traps**](index/traps.md) — the things that have already cost this project time.
 - [**Mistakes**](mistakes/) — named anti-patterns with a direct example and a check, not a chronological log.
@@ -112,11 +113,11 @@ rather than frozen.
 
 | Document | Standing |
 |---|---|
-| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Onboarding-hardening correction awaiting owner re-sign.** The 16-file, 95-case oracle bytes are corrected per the [oracle review](reasoning/2026-09-03-onboarding-hardening-oracle-review.md); the prior signature covered defective bytes and does not carry forward. Implementation of the eight hardening findings is blocked until the owner re-signs. |
+| [`gate1/business-spec.md`](gate1/business-spec.md) + [`gate1/acceptance.md`](gate1/acceptance.md) + testing infrastructure | **Owner signature verified on 2026-10-17.** The 16-file, 95-case oracle includes the test:e2e package-script amendment. Current-byte full-gate and final review evidence are being renewed before delivery. |
 | [`gate2/technical-spec.md`](gate2/technical-spec.md) | **Checked for presence, not frozen.** The working technical design the code adapts to. No longer a second freeze and no longer blocks implementation; its open review findings are ordinary design work. |
 | [`specs/`](specs/) | Subordinate. Scope, status, coverage, and roadmap aids. They may describe work; they cannot override the gate. |
 
-See [status](status.md) for current work. `v5.0.0` is published.
+See [status](status.md) for current work and [the release checkpoint](topics/the-overhaul.md) for the remaining QA/prod sequence. The current candidate version is `6.0.0`; publication and tracker closure follow the deployment policy.
 
 ---
 

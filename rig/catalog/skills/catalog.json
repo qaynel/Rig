@@ -3,7 +3,7 @@
   "catalog_kind": "skill-shelf",
   "release": {
     "version": "v5.0.0",
-    "skills_digest": "2bd7d8ec6483b49a7c0eed232e12771ee2ad2468c712903ab08b8849dcbcb360"
+    "skills_digest": "12425893c907724a30f0cd22d8d104996bb3310849120c1e537b726362661e25"
   },
   "taxonomy": {
     "id": "skill-shelf-v1",
@@ -109,7 +109,7 @@
       "source_kind": "optional",
       "required": false,
       "source_rel": "rig/catalog/skills/browser-and-research/browser-automation/browse/SKILL.md",
-      "tree_digest": "4c6c90e23f387b52fdc08d9affecc8747302f27855b83544faac9549b9e40c0c"
+      "tree_digest": "a6b5fc39efb4a1e33a54bf182f6e8b82f95ca5a91ecd946a6166cb9002a26cf0"
     },
     {
       "id": "connect-chrome",
@@ -262,8 +262,8 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/debugging/SKILL.md",
-      "tree_digest": "e68ed9ea433b6eca0d25cb6f89232d8b590ca7ad47cb462ba840fa614ca3e727"
+      "source_rel": "rig/corpus/skills/debugging/SKILL.md",
+      "tree_digest": "2874037bf8afbbb132c91aab4f5674d19619bce050743fd876f4a8b1a7c211c3"
     },
     {
       "id": "setup-deploy",
@@ -571,8 +571,8 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/onboarding/SKILL.md",
-      "tree_digest": "f048f56a7d27b2ecf534905609d3699f2e0301a4e5003169aac544a73b1c3e84"
+      "source_rel": "rig/corpus/skills/onboarding/SKILL.md",
+      "tree_digest": "4f018231165f19eeb54714195633755323586c870638b61fada5d2626e3c1fb7"
     },
     {
       "id": "rig-execution",
@@ -593,7 +593,7 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/execution/SKILL.md",
+      "source_rel": "rig/corpus/skills/execution/SKILL.md",
       "tree_digest": "76ecc3f40cdcb076c18b7c5f1cc3581678a2ea4fb513e08fbd59b9c7fca59c28"
     },
     {
@@ -946,7 +946,7 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/grilling/SKILL.md",
+      "source_rel": "rig/corpus/skills/grilling/SKILL.md",
       "tree_digest": "6d788070ecc16e01572bb709f8a9d4ba5c93553763fd0fde2a7a44499f621e55"
     },
     {
@@ -991,7 +991,7 @@
       "source_kind": "optional",
       "required": false,
       "source_rel": "rig/catalog/skills/review/code-and-pull-request/review/SKILL.md",
-      "tree_digest": "a5049f62f835a1156cf3850e2fc938060233bd063f35440e14f66137cff0feae"
+      "tree_digest": "aaa3d41c53e5e6867ad641be5923410d1d9395a0870e263f7eba60b45c5ad6cb"
     },
     {
       "id": "rig-code-review",
@@ -1012,7 +1012,7 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/code-review/SKILL.md",
+      "source_rel": "rig/corpus/skills/code-review/SKILL.md",
       "tree_digest": "214d017ec85555a93a6a8c22d97e22754966c0cc55b1a05ef2285fd3ee7791df"
     },
     {
@@ -1188,7 +1188,7 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/product-design/SKILL.md",
+      "source_rel": "rig/corpus/skills/product-design/SKILL.md",
       "tree_digest": "4f808d5626175f7bf691f172718e7cf509f68a290064e1e27ab08d5ffe710cd5"
     },
     {
@@ -1409,7 +1409,7 @@
       "aliases": [],
       "source_kind": "core",
       "required": true,
-      "source_rel": "rig/tier-1/skills/tdd/SKILL.md",
+      "source_rel": "rig/corpus/skills/tdd/SKILL.md",
       "tree_digest": "246eafa08393e061ab343d4313bf765a2a30c6d4db271146817a0bc9c783168d"
     },
     {

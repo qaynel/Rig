@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cost.utilization-analysis",
+  "input": "rig-services/infrastructure.cost.utilization-analysis.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms observed resources, the observation window and the single-peak flag are declared; it does not read utilization data.",
+  "offer": "Measure utilization over a representative window and inspect multiple constrained resources. A single peak does not establish steady-state capacity or an opportunity to reduce it.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
+      }
+    ],
+    "mid": [
+      {
+        "field": "observation_window_days",
+        "op": "minimum",
+        "value": 7,
+        "reason": "Observe for at least 7 days. A shorter window misses weekly cycles, so cover a representative period."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "decide_from_single_peak",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deciding from a single peak to false. One spike does not establish steady-state capacity, so use the distribution."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "utilization-analysis-slice-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "utilization-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
+      }
+    },
+    "property-floor": {
+      "check_id": "utilization-analysis-slice-property-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "utilization-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "observed_resources",
+        "op": "nonempty",
+        "reason": "List the resources observed, such as CPU and memory. Watching one resource misses the constrained one, so name each."
+      }
+    }
+  }
+}

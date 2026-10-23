@@ -1,0 +1,99 @@
+name: weekly-health
+on:
+  schedule:
+    - cron: '35 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'QA branch or exact QA commit to verify'
+        required: true
+        default: qa-prod
+        type: string
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Exact candidate or QA commit SHA'
+        required: true
+        type: string
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'qa-prod' }}
+          persist-credentials: false
+      - id: resolve
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  health:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Match the full-gate runner capability used by test.yml.
+      - name: Prepare task sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+      - name: Full repository gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: env -u CI -u GITHUB_ACTIONS npm test
+      - name: Exact-SHA clean-install E2E
+        env:
+          HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/clean-install-e2e.js --sha "$HEALTH_SHA" --out "$RUNNER_TEMP/e2e-evidence.json"
+      # Root and pi-extension use Node built-ins; both MCP dependency trees ship.
+      - name: Dependency audit
+        run: |
+          npm --prefix rig-mcp audit --omit=dev --audit-level=high
+          npm --prefix rig/mcp-runtime audit --omit=dev --audit-level=high
+      - name: Lockfile dry runs
+        run: |
+          npm ci --prefix rig-mcp --dry-run --ignore-scripts
+          npm ci --prefix rig/mcp-runtime --dry-run --ignore-scripts
+      - name: Wiki budget
+        run: node --test tests/wiki-budget.test.js
+  report:
+    if: always() && needs.resolve.result == 'success'
+    needs: [resolve, health]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Open or update one health issue for this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
+          HEALTH_RUN_ID: ${{ github.run_id }}
+          HEALTH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          HEALTH_RESULT: ${{ needs.health.result }}
+        run: node scripts/report-health-issue.js

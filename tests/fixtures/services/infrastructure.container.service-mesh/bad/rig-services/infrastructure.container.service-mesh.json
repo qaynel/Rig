@@ -1,0 +1,5 @@
+{
+  "mesh_services": [],
+  "transport_security": "mutual-tls",
+  "allow_plaintext_fallback": false
+}

@@ -43,7 +43,7 @@ const reviewerDriver = arg('reviewer') || 'claude';
 if (!['claude', 'codex'].includes(reviewerDriver)) fail('--reviewer must be claude or codex');
 const outPath = arg('out') || fail('--out is required');
 const authorContext = arg('author-context') || fail('--author-context is required');
-const cataloguePath = arg('catalogue') || 'rig/catalog.json';
+const cataloguePath = arg('catalogue') || 'rig/corpus/catalogue.json';
 const implementationRoot = arg('implementation-root') || fail('--implementation-root is required');
 const implementationBase = arg('base') || fail('--base is required');
 const gate1Paths = (arg('gate1') || '').split(',').filter(Boolean);
@@ -159,7 +159,7 @@ ${targetBytes.toString('utf8')}
 
 const reviewerCommand = reviewerDriver === 'codex' ? 'codex' : 'claude';
 const reviewerArgs = reviewerDriver === 'codex'
-  ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--disable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
+  ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--enable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
   : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob,Bash'];
 
 // RIG-124.1: write the failure optimistically, before the spawn, and only
@@ -204,25 +204,8 @@ try {
   fail(`reviewer json did not parse: ${e.message}`);
 }
 
-// The optimistic write above already recorded this attempt as a failure.
-// Only a confirmed pass clears the cap; a fail (or anything short of pass)
-// leaves the count in place.
-if (reported.verdict !== 'fail' && existsSync(attemptsPath)) {
-  unlinkSync(attemptsPath);
-}
-
-if (interim) {
-  const findings = reported.findings || [];
-  const blockers = findings.filter((f) => f.severity === 'blocker').length;
-  console.log(
-    `review-receipt: interim pass — no receipt written\n` +
-      `  target   ${targetPath} (${targetDigest.slice(0, 12)})\n` +
-      `  reviewer ${model}\n` +
-      `  verdict  ${reported.verdict} — ${findings.length} finding(s), ${blockers} blocker(s), ` +
-      `${(reported.unresolved || []).length} unresolved`
-  );
-  if (findings.length) console.log(JSON.stringify(findings, null, 2));
-  process.exit(reported.verdict === 'fail' ? 1 : 0);
+if (!['pass', 'fail'].includes(reported.verdict)) {
+  fail('reviewer returned an invalid verdict');
 }
 
 const receipt = {
@@ -264,6 +247,21 @@ try {
   fail(`reviewer returned an invalid or failing receipt: ${error.message}`);
 }
 
+if (interim) {
+  const findings = reported.findings || [];
+  const blockers = findings.filter((f) => f.severity === 'blocker').length;
+  console.log(
+    `review-receipt: interim pass — no receipt written\n` +
+      `  target   ${targetPath} (${targetDigest.slice(0, 12)})\n` +
+      `  reviewer ${model}\n` +
+      `  verdict  ${reported.verdict} — ${findings.length} finding(s), ${blockers} blocker(s), ` +
+      `${(reported.unresolved || []).length} unresolved`
+  );
+  if (findings.length) console.log(JSON.stringify(findings, null, 2));
+  if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
+  process.exit(0);
+}
+
 // The receipt is assembled here. Only case verdicts, the global verdict,
 // findings, and unresolved items come from the reviewer.
 writeFileSync(
@@ -274,6 +272,8 @@ writeFileSync(
     2
   )}\n`
 );
+
+if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
 
 const findings = reported.findings || [];
 const blockers = findings.filter((f) => f.severity === 'blocker').length;

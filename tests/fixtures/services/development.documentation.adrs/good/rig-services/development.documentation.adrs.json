@@ -1,0 +1,9 @@
+{
+  "decision": "Use the existing journal for recovery",
+  "alternatives": [
+    "overwrite files directly"
+  ],
+  "consequences": [
+    "recoverable preimages"
+  ]
+}

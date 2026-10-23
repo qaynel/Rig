@@ -1,0 +1,260 @@
+diff --git a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/cookie-import-browser.ts b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/cookie-import-browser.ts
+index 66328432..677af55e 100644
+--- a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/cookie-import-browser.ts
++++ b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/cookie-import-browser.ts
+@@ -41,6 +41,7 @@ import * as fs from 'fs';
+ import * as path from 'path';
+ import * as os from 'os';
+ import { TEMP_DIR } from './platform';
++import { spawnTreeGuarded } from './process-tree';
+ 
+ // ─── Types ──────────────────────────────────────────────────────
+ 
+@@ -857,65 +858,107 @@ export async function importCookiesViaCdp(
+   // check the Chrome version logged below — Chrome's ABE key format (v20)
+   // or /json/list shape can change between major versions.
+   const debugPort = 9222 + Math.floor(Math.random() * 100);
+-  const chromeProc = Bun.spawn([
++  return launchChromeAndExtract({
+     exePath,
+-    `--remote-debugging-port=${debugPort}`,
+-    `--user-data-dir=${userDataDir}`,
+-    `--profile-directory=${profile}`,
+-    '--headless=new',
+-    '--no-first-run',
+-    '--disable-background-networking',
+-    '--disable-default-apps',
+-    '--disable-extensions',
+-    '--disable-sync',
+-    '--no-default-browser-check',
+-  ], { stdout: 'pipe', stderr: 'pipe' });
+-
+-  // Wait for Chrome to start, then find a page target's WebSocket URL.
+-  // Network.getAllCookies is only available on page targets, not browser.
+-  let wsUrl: string | null = null;
+-  const startTime = Date.now();
+-  let loggedVersion = false;
+-  while (Date.now() - startTime < 15_000) {
+-    try {
+-      // One-time version log for future diagnostics when Chrome changes v20 format.
+-      if (!loggedVersion) {
+-        try {
+-          const versionResp = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
+-          if (versionResp.ok) {
+-            const v = await versionResp.json() as { Browser?: string };
+-            console.log(`[cookie-import] CDP fallback: ${browser.name} ${v.Browser || 'unknown version'}`);
+-            loggedVersion = true;
++    args: [
++      `--remote-debugging-port=${debugPort}`,
++      `--user-data-dir=${userDataDir}`,
++      `--profile-directory=${profile}`,
++      '--headless=new',
++      '--no-first-run',
++      '--disable-background-networking',
++      '--disable-default-apps',
++      '--disable-extensions',
++      '--disable-sync',
++      '--no-default-browser-check',
++    ],
++    debugPort,
++    browserName: browser.name,
++    domains,
++  });
++}
++
++export interface ChromeLaunchOptions {
++  exePath: string;
++  args: string[];
++  debugPort: number;
++  browserName: string;
++  domains: string[];
++  /** Wait for the debug endpoint this long. Default 15s. */
++  startupTimeoutMs?: number;
++  /** Abort to cancel: Chrome and all descendants are killed. */
++  signal?: AbortSignal;
++  /** Replaceable CDP reader (tests); defaults to the real extractor. */
++  extract?: (wsUrl: string, domains: string[]) => Promise<PlaywrightCookie[]>;
++}
++
++/**
++ * Launch Chrome headless against the real profile, read cookies, and stop it.
++ * Split out of importCookiesViaCdp so a forking stub can stand in for Chrome.
++ */
++export async function launchChromeAndExtract(opts: ChromeLaunchOptions): Promise<ImportResult> {
++  const { exePath, args, debugPort, browserName, domains } = opts;
++  // Rig local patch (RIG-135.1): Chromium runs against the user's REAL profile,
++  // so a surviving renderer/GPU descendant keeps the profile locked and blocks
++  // their own browser. Spawn it tree-guarded: stop() kills every descendant on
++  // success, timeout, and cancel; the watchdog does the same if we die first.
++  const chromeProc = spawnTreeGuarded(exePath, args);
++  const cancelled = new Promise<never>((_, reject) => {
++    const onAbort = () => reject(new CookieImportError('Cookie import cancelled', 'cancelled'));
++    if (opts.signal?.aborted) onAbort();
++    else opts.signal?.addEventListener('abort', onAbort, { once: true });
++  });
++  cancelled.catch(() => {});
++  try {
++    return await launchAndExtract();
++  } finally {
++    chromeProc.stop();
++  }
++
++  async function launchAndExtract(): Promise<ImportResult> {
++    // Wait for Chrome to start, then find a page target's WebSocket URL.
++    // Network.getAllCookies is only available on page targets, not browser.
++    let wsUrl: string | null = null;
++    const startTime = Date.now();
++    let loggedVersion = false;
++    while (Date.now() - startTime < (opts.startupTimeoutMs ?? 15_000)) {
++      try {
++        // One-time version log for future diagnostics when Chrome changes v20 format.
++        if (!loggedVersion) {
++          try {
++            const versionResp = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
++            if (versionResp.ok) {
++              const v = await versionResp.json() as { Browser?: string };
++              console.log(`[cookie-import] CDP fallback: ${browserName} ${v.Browser || 'unknown version'}`);
++              loggedVersion = true;
++            }
++          } catch {}
++        }
++        const resp = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
++        if (resp.ok) {
++          const targets = await resp.json() as Array<{ type: string; webSocketDebuggerUrl?: string }>;
++          const page = targets.find(t => t.type === 'page');
++          if (page?.webSocketDebuggerUrl) {
++            wsUrl = page.webSocketDebuggerUrl;
++            break;
+           }
+-        } catch {}
+-      }
+-      const resp = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+-      if (resp.ok) {
+-        const targets = await resp.json() as Array<{ type: string; webSocketDebuggerUrl?: string }>;
+-        const page = targets.find(t => t.type === 'page');
+-        if (page?.webSocketDebuggerUrl) {
+-          wsUrl = page.webSocketDebuggerUrl;
+-          break;
+         }
++      } catch {
++        // Not ready yet
+       }
+-    } catch {
+-      // Not ready yet
++      await Promise.race([new Promise(r => setTimeout(r, 300)), cancelled]);
+     }
+-    await new Promise(r => setTimeout(r, 300));
+-  }
+ 
+-  if (!wsUrl) {
+-    chromeProc.kill();
+-    throw new CookieImportError(
+-      `${browser.name} headless did not start within 15s`,
+-      'cdp_timeout',
+-      'retry',
+-    );
+-  }
++    if (!wsUrl) {
++      throw new CookieImportError(
++        `${browserName} headless did not start within 15s`,
++        'cdp_timeout',
++        'retry',
++      );
++    }
+ 
+-  try {
+     // Connect via CDP WebSocket
+-    const cookies = await extractCookiesViaCdp(wsUrl, domains);
++    const cookies = await Promise.race([(opts.extract ?? extractCookiesViaCdp)(wsUrl, domains), cancelled]);
+ 
+     const domainCounts: Record<string, number> = {};
+     for (const c of cookies) {
+@@ -923,8 +966,6 @@ export async function importCookiesViaCdp(
+     }
+ 
+     return { cookies, count: cookies.length, failed: 0, domainCounts };
+-  } finally {
+-    chromeProc.kill();
+   }
+ }
+ 
+diff --git a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/process-tree.ts b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/process-tree.ts
+index cdf73f98..6a5a01e4 100644
+--- a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/process-tree.ts
++++ b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/process-tree.ts
+@@ -11,7 +11,7 @@
+  * `taskkill /T /F` walks the parent-pid tree instead.
+  */
+ 
+-import { spawnSync } from 'node:child_process';
++import { spawn, spawnSync } from 'node:child_process';
+ 
+ export const TERM_GRACE_MS = 100;
+ 
+@@ -35,3 +35,66 @@ export function killProcessTree(pid: number | undefined): void {
+   if (process.platform === 'win32') return; // taskkill /F is already forceful
+   setTimeout(() => signalProcessTree(pid, 'SIGKILL'), TERM_GRACE_MS).unref();
+ }
++
++/**
++ * Watchdog body, run as `node -e`. The parent holds the write end of the
++ * watchdog's stdin. If that pipe closes without a "done" line (parent crashed,
++ * was killed, or lost the OS handle), the watchdog kills the child tree. The
++ * OS closes the pipe on any parent death, so this holds without a native Job
++ * Object binding; it works identically on POSIX and Windows.
++ */
++const WATCHDOG_SOURCE = `
++const { spawnSync } = require('node:child_process');
++const pid = Number(process.argv[1]);
++let done = false;
++process.stdin.on('data', (d) => { if (String(d).includes('done')) done = true; });
++process.stdin.on('end', () => {
++  if (!done) {
++    if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
++    else { try { process.kill(-pid, 'SIGKILL'); } catch {} }
++  }
++  process.exit(0);
++});
++`;
++
++export interface GuardedChild {
++  pid: number;
++  /** Kill the whole tree now and retire the watchdog. Idempotent. */
++  stop(): void;
++}
++
++/**
++ * Spawn a child that may fork (headless Chromium) so that every descendant
++ * dies on any exit path: stop() on success/timeout/cancel, and the watchdog if
++ * this process dies first. Rig local patch (RIG-135.1): replaces the leader-only
++ * Bun.spawn(...).kill() against the user's real browser profile.
++ */
++export function spawnTreeGuarded(command: string, args: string[]): GuardedChild {
++  const child = spawn(command, args, {
++    stdio: 'ignore',
++    detached: process.platform !== 'win32',
++    windowsHide: true,
++  });
++  child.on('error', () => {}); // surfaced to callers by the startup wait, never uncaught
++  const pid = child.pid;
++  if (!pid) throw new Error(`failed to start ${command}`);
++
++  const watchdog = spawn(process.execPath, ['-e', WATCHDOG_SOURCE, String(pid)], {
++    stdio: ['pipe', 'ignore', 'ignore'],
++    windowsHide: true,
++  });
++  watchdog.on('error', () => {});
++  watchdog.stdin?.on('error', () => {});
++  watchdog.unref();
++
++  let stopped = false;
++  return {
++    pid,
++    stop() {
++      if (stopped) return;
++      stopped = true;
++      signalProcessTree(pid, 'SIGKILL');
++      try { watchdog.stdin?.end('done\n'); } catch {}
++    },
++  };
++}

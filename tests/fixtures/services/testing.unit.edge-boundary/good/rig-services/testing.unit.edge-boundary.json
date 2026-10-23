@@ -1,0 +1,10 @@
+{
+  "boundary_cases": [
+    "empty input",
+    "maximum length"
+  ],
+  "invalid_cases": [
+    "negative count"
+  ],
+  "normal_only_tests": false
+}

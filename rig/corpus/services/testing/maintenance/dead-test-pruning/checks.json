@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.maintenance.dead-test-pruning",
+  "input": "rig-services/testing.maintenance.dead-test-pruning.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms obsolete cases, replacement evidence and the delete-live-regression flag are declared; it does not run the suite.",
+  "offer": "Remove tests only when their behavior is retired or equivalent protection is demonstrated. Age and inconvenience do not make a live regression dead.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_evidence",
+        "op": "nonempty",
+        "reason": "Record the evidence that equivalent protection remains. Age alone does not make a regression dead, so cite the replacement."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_live_regressions",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deleting live regressions to false. Removing a test that still guards behavior reopens a defect, so keep it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "dead-test-pruning-slice-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "dead-test-pruning-slice-behavior-oracle",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
+      }
+    },
+    "property-floor": {
+      "check_id": "dead-test-pruning-slice-property-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "dead-test-pruning-slice-mutation-floor",
+      "rule": {
+        "field": "obsolete_cases",
+        "op": "nonempty",
+        "reason": "List the tests judged obsolete. Without names nothing is reviewable, so identify each case."
+      }
+    }
+  }
+}

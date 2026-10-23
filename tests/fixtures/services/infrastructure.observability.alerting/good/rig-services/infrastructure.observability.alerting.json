@@ -1,0 +1,7 @@
+{
+  "alert_conditions": [
+    "error budget burn"
+  ],
+  "runbook_path": "docs/runbook.md",
+  "alert_without_owner": false
+}

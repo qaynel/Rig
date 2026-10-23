@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.unit.edge-boundary",
+  "input": "rig-services/testing.unit.edge-boundary.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms boundary cases, invalid cases and the normal-only flag are declared; it does not run the tests.",
+  "offer": "Probe the values immediately beside each accepted boundary as well as ordinary input. Empty, oversized and invalid cases expose contract holes that normal-path examples miss.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values."
+      }
+    ],
+    "mid": [
+      {
+        "field": "invalid_cases",
+        "op": "nonempty",
+        "reason": "List the invalid inputs, such as empty and oversized. Untested invalid input crashes in production, so add them."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "normal_only_tests",
+        "op": "equals",
+        "value": false,
+        "reason": "Set normal-only tests to false. Tests that never leave the happy path miss boundary bugs, so include edges."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "edge-boundary-slice-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "edge-boundary-slice-behavior-oracle",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values."
+      }
+    },
+    "property-floor": {
+      "check_id": "edge-boundary-slice-property-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "edge-boundary-slice-mutation-floor",
+      "rule": {
+        "field": "boundary_cases",
+        "op": "nonempty",
+        "reason": "List the values on each side of every boundary. Normal inputs miss contract holes, so name the edge values."
+      }
+    }
+  }
+}

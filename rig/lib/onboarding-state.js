@@ -4,12 +4,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { canonical, sha256 } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
+const { validateScriptSlot } = require('./projection-script');
 
 const STATE_REL = '.rig/state.json';
 
 const ALLOWED_STATE_KEYS = new Set([
   'applied', 'approval', 'checks', 'inventory', 'last_error',
-  'phase', 'proposal', 'release', 'revision', 'schema_version',
+  'migration', 'phase', 'proposal', 'release', 'revision', 'schema_version',
 ]);
 
 const VALID_PHASES = new Set([
@@ -33,24 +34,12 @@ function jsonText(value) {
 }
 
 function atomicWrite(target, rel, contents) {
-  const file = containedPath(target, rel);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.tmp`;
-  let fd;
-  try {
-    fd = fs.openSync(temporary, 'wx', 0o600);
-  } catch (error) {
-    if (error.code === 'EEXIST') {
-      fail(`onboarding temp file already exists (EEXIST); remove ${temporary} to recover`);
-    }
-    throw error;
-  }
-  try {
-    fs.writeSync(fd, contents);
-  } finally {
-    fs.closeSync(fd);
-  }
-  fs.renameSync(temporary, file);
+  require('./evidence-artifacts').writeEvidence(
+    target,
+    rel,
+    contents,
+    (temp, mode) => fs.openSync(temp, 'wx', mode),
+  );
 }
 
 function readJson(file, label) {
@@ -194,16 +183,35 @@ function validateDecision(row) {
   return { ...row };
 }
 
+function validateUpstreamFetch(rows) {
+  if (!Array.isArray(rows) || !rows.length || rows.length > 8) fail('proposal upstream_fetch must list 1 to 8 fetches');
+  const seen = new Set();
+  return rows.map((row) => {
+    exactKeys(row, new Set(['id', 'tar_sha256', 'metadata_sha256']), 'upstream fetch');
+    if (typeof row.id !== 'string' || !/^[a-z0-9][a-z0-9-]{0,40}$/.test(row.id) || seen.has(row.id)) fail('upstream fetch id is invalid or repeated');
+    seen.add(row.id);
+    if (typeof row.tar_sha256 !== 'string' || !DIGEST_RE.test(row.tar_sha256)) fail('upstream fetch tar_sha256 is not a SHA-256 digest');
+    if (typeof row.metadata_sha256 !== 'string' || !DIGEST_RE.test(row.metadata_sha256)) fail('upstream metadata digest is not a SHA-256 digest');
+    return { id: row.id, tar_sha256: row.tar_sha256, metadata_sha256: row.metadata_sha256 };
+  }).sort((a, b) => a.id.localeCompare(b.id));
+}
+
 // `bindSkills` receives the canonical selection and returns the per-skill
 // digest rows the proposal freezes. It is a callback, not an argument, because
 // the binding is derived from the sorted selection and must land inside the
 // digested body: what the approver signs has to include the bytes.
-function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
+function canonicalProposal(input, state, summaryDigest, bindSkills = () => [], bindServices = () => ({}), serviceOutputPreimages = () => ({})) {
   exactKeys(input, new Set([
     'inventory_digest', 'catalog_digest', 'capabilities', 'selected_skills', 'grafts', 'owned_files', 'critical_decisions',
     // Accepted so a stored proposal can be resubmitted verbatim, never read:
     // the binding below is always recomputed from the repository.
     'skill_bindings',
+    // Optional agent-written projection script for a host the corpus has no
+    // projector for. Absent proposals keep their exact v5 body and digest.
+    'projection_script',
+    // Optional list of pinned third-party fetches to perform at apply.
+    'upstream_fetch',
+    'selected_services', 'service_bindings', 'service_output_preimages',
   ]), 'proposal');
   if (input.inventory_digest !== state.inventory.digest || input.catalog_digest !== state.release.catalog_digest) {
     fail('proposal inventory or catalog digest is stale');
@@ -222,6 +230,13 @@ function canonicalProposal(input, state, summaryDigest, bindSkills = () => []) {
     grafts: input.grafts.map(validateGraft).sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
     owned_files: input.owned_files.map(validateOwnedFile).sort((a, b) => a.path.localeCompare(b.path)),
     critical_decisions: input.critical_decisions.map(validateDecision).sort((a, b) => a.id.localeCompare(b.id)),
+    ...(input.projection_script === undefined ? {} : { projection_script: validateScriptSlot(input.projection_script) }),
+    ...(input.upstream_fetch === undefined ? {} : { upstream_fetch: validateUpstreamFetch(input.upstream_fetch) }),
+    ...(input.selected_services === undefined ? {} : {
+      selected_services: input.selected_services,
+      service_bindings: bindServices(input.selected_services),
+      service_output_preimages: serviceOutputPreimages(),
+    }),
   };
   return { digest: sha256(canonical(body)), ...body };
 }

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.survivor-rca",
+  "input": "rig-services/testing.mutation.survivor-rca.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms surviving mutants, missing assertions and the equivalence-question flag are declared; it does not examine survivors.",
+  "offer": "Explain each surviving mutation as a test gap or an independently justified equivalence. Treating every survivor alike misses both false positives and real unasserted outcomes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "List the surviving mutants analyzed. Unlisted survivors stay unexplained, so name each."
+      }
+    ],
+    "mid": [
+      {
+        "field": "missing_assertions",
+        "op": "nonempty",
+        "reason": "List the assertions each survivor shows to be missing. A survivor with no stated gap is unresolved, so write the missing check."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "ignore_equivalence_question",
+        "op": "equals",
+        "value": false,
+        "reason": "Set ignoring the equivalence question to false. Some survivors are equivalent and some are real gaps, so decide which for each."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "survivor-rca-slice-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "List the surviving mutants analyzed. Unlisted survivors stay unexplained, so name each."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "survivor-rca-slice-behavior-oracle",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "List the surviving mutants analyzed. Unlisted survivors stay unexplained, so name each."
+      }
+    },
+    "property-floor": {
+      "check_id": "survivor-rca-slice-property-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "List the surviving mutants analyzed. Unlisted survivors stay unexplained, so name each."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "survivor-rca-slice-mutation-floor",
+      "rule": {
+        "field": "surviving_mutants",
+        "op": "nonempty",
+        "reason": "List the surviving mutants analyzed. Unlisted survivors stay unexplained, so name each."
+      }
+    }
+  }
+}

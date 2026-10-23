@@ -17,6 +17,7 @@ function api(file, name) {
   assert.ok(fs.existsSync(absolute), `missing public module rig/lib/${file}`);
   const fn = require(absolute)[name];
   assert.equal(typeof fn, 'function', `missing public function ${file}:${name}`);
+  if (file === 'lint-format.js' && ['runReadOnly', 'runGrade', 'applyCoverage'].includes(name)) return require('./helpers/approved-lint')[name];
   return fn;
 }
 
@@ -58,6 +59,82 @@ function withRepo(kind, fn) {
     h.createRepoFixture(kind, target);
     return fn(target);
   });
+}
+
+function signedPlanApproval(target, planned) {
+  const createChallenge = api('lint-format.js', 'createPlanApprovalChallenge');
+  const key = path.join(target, '.rig-test-plan-approval');
+  const message = path.join(target, '.rig-test-plan-approval-message');
+  const identity = 'rig-test-owner@fixture';
+  if (!fs.existsSync(key)) {
+    const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
+    assert.equal(generated.status, 0, generated.stderr);
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
+    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
+    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${identity} ${publicKey}\n`);
+  }
+  const challenge = createChallenge(planned);
+  fs.writeFileSync(message, challenge.message);
+  if (fs.existsSync(`${message}.sig`)) fs.unlinkSync(`${message}.sig`);
+  const signed = spawnSync('ssh-keygen', ['-q', '-Y', 'sign', '-f', key, '-n', 'rig-plan-approval', message], { encoding: 'utf8' });
+  assert.equal(signed.status, 0, signed.stderr);
+  return {
+    schema_version: 1,
+    kind: 'plan-approval',
+    plan_digest: planned.plan_digest,
+    approval_id: challenge.approval_id,
+    approval: {
+      method: 'external-sshsig',
+      identity,
+      signature: fs.readFileSync(`${message}.sig`, 'utf8'),
+    },
+  };
+}
+
+// Disposable SSHSIG identities exercise verification only; they do not claim a
+// hardware touch or authorize any action outside the temporary fixture.
+function withTestSigner(namespace, fn) {
+  h.withTempDir('rig-oracle-TEST-key-', (dir) => {
+    const key = path.join(dir, 'TEST-id');
+    must(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' }), 'TEST key');
+    const publicKey = fs.readFileSync(`${key}.pub`, 'utf8').trim().split(/\s+/).slice(0, 2).join(' ');
+    const fingerprint = must(spawnSync('ssh-keygen', ['-lf', `${key}.pub`], { encoding: 'utf8' }), 'TEST fingerprint').stdout.match(/SHA256:[A-Za-z0-9+/=]+/)[0];
+    const identity = 'TEST-oracle-owner';
+    const sign = (message, signedNamespace = namespace) => {
+      const file = path.join(dir, 'TEST-message');
+      fs.writeFileSync(file, message); fs.rmSync(`${file}.sig`, { force: true });
+      must(spawnSync('ssh-keygen', ['-q', '-Y', 'sign', '-f', key, '-n', signedNamespace, file], { encoding: 'utf8' }), 'TEST signature');
+      return fs.readFileSync(`${file}.sig`, 'utf8');
+    };
+    fn({ identity, fingerprint, publicKey, sign, line: `${identity} namespaces="${namespace}" ${publicKey}\n` });
+  });
+}
+
+// TEST-only synthetic authenticator protocol. The real OpenSSH verifier checks
+// signatures, namespaces and fingerprints. The injected enrollment models the
+// platform boundary; no software fixture proves physical hardware or a touch.
+function testUint(n) { const b = Buffer.alloc(4); b.writeUInt32BE(n); return b; }
+function testString(value) { const b = Buffer.from(value); return Buffer.concat([testUint(b.length), b]); }
+function testHash(type, value) { return crypto.createHash(type).update(value).digest(); }
+function protocolTestSigner(identity, securityKey = false) {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  const type = securityKey ? 'sk-ssh-ed25519@openssh.com' : 'ssh-ed25519';
+  const raw = publicKey.export({ format: 'der', type: 'spki' }).subarray(-32);
+  const pub = Buffer.concat([testString(type), testString(raw), ...(securityKey ? [testString('ssh:')] : [])]);
+  return { identity, public_key: `${type} ${pub.toString('base64')}`, sign(message, namespace) {
+    const data = Buffer.concat([Buffer.from('SSHSIG'), testString(namespace), testString(''), testString('sha512'), testString(testHash('sha512', message))]);
+    const flags = Buffer.from([5]), counter = testUint(1);
+    const input = securityKey ? Buffer.concat([testHash('sha256', 'ssh:'), flags, counter, testHash('sha256', data)]) : data;
+    const signature = Buffer.concat([testString(type), testString(crypto.sign(null, input, privateKey)), ...(securityKey ? [flags, counter] : [])]);
+    const blob = Buffer.concat([Buffer.from('SSHSIG'), testUint(1), testString(pub), testString(namespace), testString(''), testString('sha512'), testString(signature)]);
+    return `-----BEGIN SSH SIGNATURE-----\n${blob.toString('base64').match(/.{1,70}/g).join('\n')}\n-----END SSH SIGNATURE-----\n`;
+  } };
+}
+
+function fixtureBytes(dir) {
+  return Object.fromEntries(h.walk(dir).filter((file) => fs.lstatSync(file).isFile()).map((file) => [path.relative(dir, file), {
+    bytes: digest(fs.readFileSync(file)), mode: fs.statSync(file).mode & 0o777,
+  }]));
 }
 
 function allServiceFiles() {
@@ -120,6 +197,11 @@ test('AT-SHAPE-5 every selected service reports one honest disposition', () => {
   assert.deepEqual(validateDisposition({ kind: 'executable', argv: ['node', '--version'] }), { kind: 'executable' });
   assert.throws(() => validateDisposition({ kind: 'executable', argv: [] }), /coverage gap/);
   assert.throws(() => validateDisposition({ kind: 'convention', reason: 'generic convention' }), /service-specific/);
+  assert.throws(() => validateDisposition({ kind: 'convention', reason: 'service-specific' }), /service-specific/, 'the keyword alone is not a reason');
+  for (const argv of [['true'], ['echo', 'ok'], ['sh', '-c', 'true'], [process.execPath, '-e', 'process.exit(0)'], ['']]) {
+    assert.throws(() => validateDisposition({ kind: 'executable', argv }), /coverage gap/, `${JSON.stringify(argv)} is a generic-success stub`);
+  }
+  assert.deepEqual(validateDisposition({ kind: 'executable', argv: ['npm', 'run', 'lint'] }), { kind: 'executable' });
   assert.deepEqual(validateDisposition({ kind: 'surfaceless', reason: 'No UI surface exists.' }), { kind: 'surfaceless' });
 });
 
@@ -130,11 +212,8 @@ test('AT-SHAPE-6 all 115 leaves are authored at their declared grade', () => {
   assert.deepEqual(report.failures, []);
   for (const { service, file } of allServiceFiles()) {
     const text = fs.readFileSync(file, 'utf8');
-    if (service.id !== 'development.code-quality.lint-format') {
-      assert.match(text, /Policy(?:-| )grade/i, file);
-      assert.match(text, /generic baseline|not repository-tailored|not tailored/i, file);
-    }
     assert.doesNotMatch(text, /TODO|TBD|Concrete convention/i, file);
+    assert.doesNotMatch(text, /generic baseline|not repository-tailored|not tailored/i, file);
   }
 });
 
@@ -146,13 +225,30 @@ test('AT-BASE-1 sanitation precedes profiling unless exactly disabled', () => {
 
 test('AT-BASE-2 one policy governs shell web and MCP surfaces', () => {
   const evaluate = api('enforcement.js', 'evaluateAction');
-  const policy = policyFixture();
-  for (const surface of ['shell', 'web', 'mcp']) {
-    const result = evaluate(policy, { surface, category: 'network_access', target: 'example.invalid' });
-    assert.equal(result.decision, 'deny');
-    assert.equal(result.rule, 'network_access');
+  const { validatePolicy, effectiveStatus, policyStatus } = require('../rig/lib/policy');
+  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
+  const categories = ['outbound_network', 'remote_content_execution', 'sensitive_environment_read', 'guardrail_bypass'];
+  assert.doesNotThrow(() => validatePolicy(shipped), 'the shipped default is a valid policy');
+  assert.equal(effectiveStatus(shipped).protected, true);
+  for (const surface of ['shell', 'web', 'mcp']) for (const category of categories) {
+    const result = evaluate(shipped, { surface, category, target: 'example.invalid' });
+    assert.equal(result.decision, 'deny', `${surface}/${category}`);
+    assert.equal(result.rule, category);
   }
-  assert.equal(evaluate(policyFixture({ enforcement: { web: false } }), { surface: 'web', category: 'network_access' }).decision, 'disabled');
+  const noWeb = JSON.parse(JSON.stringify(shipped)); noWeb.enforcement.web = false;
+  assert.equal(evaluate(noWeb, { surface: 'web', category: 'outbound_network' }).decision, 'disabled');
+  assert.equal(evaluate(noWeb, { surface: 'shell', category: 'outbound_network' }).decision, 'deny');
+  assert.equal(evaluate({ ...shipped, enabled: false }, { surface: 'mcp', category: 'outbound_network' }).decision, 'disabled');
+  // North star 12: a decision is a block only where a hook is integrated; the rest is a named gap.
+  h.withRepo((target) => {
+    const { surfaces } = policyStatus(target);
+    assert.equal(surfaces.git_pre_commit.state, 'integrated');
+    for (const surface of ['shell', 'web', 'mcp']) {
+      assert.equal(surfaces[surface].state, 'available_not_integrated', surface);
+      assert.match(surfaces[surface].claim, /nothing is blocked automatically/);
+      assert.match(surfaces[surface].setup, /policy evaluate/);
+    }
+  });
 });
 
 test('AT-BASE-3 structured active policy is authoritative and discoverable', () => {
@@ -180,10 +276,17 @@ test('AT-BASE-4 activation binds exact revision and current-session proposal aut
 
 test('AT-BASE-5 disabled controls stop blocking and status says unprotected', () => {
   const status = api('policy.js', 'effectiveStatus');
+  const evaluate = api('enforcement.js', 'evaluateAction');
   const result = status(policyFixture({ controls: { secrets: false }, enforcement: { shell: false } }));
   assert.equal(result.controls.secrets, 'disabled');
   assert.equal(result.enforcement.shell, 'disabled');
   assert.equal(result.protected, false);
+  const shipped = json(path.join(h.root, 'rig/catalog/baseline/network-policy.json'));
+  const action = { surface: 'shell', category: 'outbound_network' };
+  assert.equal(evaluate(shipped, action).decision, 'deny', 'enabled: the restricted action is denied');
+  const released = JSON.parse(JSON.stringify(shipped)); released.enforcement.shell = false;
+  assert.equal(status(released).protected, false);
+  assert.equal(evaluate(released, action).decision, 'disabled', 'disabled: the same action stops being blocked');
 });
 
 test('AT-BASE-6 re-enable creates a fresh evidence epoch', () => {
@@ -201,11 +304,44 @@ test('AT-BASE-7 policy schema cannot authorize agent self-activation', () => {
 });
 
 test('AT-P1 no-blowout is proved by the real graft contract', () => {
-  const ensureManagedBlock = api('graft.js', 'ensureManagedBlock');
-  const before = '# User\nKeep me.\n';
-  const after = ensureManagedBlock(before, 'routing', 'Read .rig/catalog-routing.md');
-  assert.ok(after.startsWith(before));
-  assert.equal(ensureManagedBlock(after, 'routing', 'Read .rig/catalog-routing.md'), after);
+  const pb = require('./helpers/path-b');
+  const { signApproval } = require('./helpers/path-b-approval');
+  withRepo('existing-agents-router', (target) => {
+    const file = path.join(target, 'AGENTS.md');
+    const original = Buffer.from('# User\r\nKeep this final byte');
+    fs.writeFileSync(file, original); fs.chmodSync(file, 0o640);
+    const untouched = ['CLAUDE.md', '.cursor/rules/project.mdc'].map((rel) => [rel, fs.readFileSync(path.join(target, rel))]);
+    pb.installRuntime(target, ['codex']);
+    const bootstrap = fs.readFileSync(file);
+    assert.ok(bootstrap.subarray(0, original.length).equals(original), 'bootstrap preserves every original byte');
+    assert.match(bootstrap.toString(), /Before acting, read `\.rig\/routing\.md`/);
+    assert.equal(fs.existsSync(path.join(target, '.rig/state.json')), false, 'bootstrap performs no onboarding');
+    const { proposed } = pb.prepareAndPropose(target, { proposal: {
+      selected_skills: [],
+      capabilities: [{ capability: 'testing.web-quality-assurance', family: 'testing', disposition: 'graft', existing_paths: ['AGENTS.md'], rig_skills: [], reason: 'Reuse existing repository guidance with one approved quality guarantee.' }],
+    } });
+    assert.deepEqual(fs.readFileSync(file), bootstrap, 'propose writes no user instructions');
+    assert.throws(() => pb.handle({ schema_version: 1, action: 'apply', target, expected_revision: proposed.revision, approval: pb.approval(proposed.proposal_digest) }), /signature|identity|approval/i);
+    assert.deepEqual(fs.readFileSync(file), bootstrap, 'refused approval preserves user bytes');
+    const approval = signApproval(target, proposed.proposal_digest);
+    const applied = pb.handle({ schema_version: 1, action: 'apply', target, expected_revision: proposed.revision, approval });
+    assert.equal(applied.phase, 'applied');
+    const after = fs.readFileSync(file);
+    assert.ok(after.subarray(0, original.length).equals(original));
+    assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+    const sections = api('payload.js', 'parseGraftSections')(after).sections;
+    assert.equal(sections.length, 1); assert.equal(sections[0].capability, 'testing.web-quality-assurance');
+    assert.match(sections[0].content, /approved Rig pipeline/);
+    const records = api('lifecycle.js', 'readManifest')(target).records;
+    assert.ok(records.some((record) => record.path === 'AGENTS.md' && record.state === 'applied' && record.ownership === 'graft_managed'));
+    const checked = pb.handle({ schema_version: 1, action: 'check', target, expected_revision: applied.revision });
+    assert.equal(checked.phase, 'checked'); assert.deepEqual(checked.hard_failures, []);
+    pb.handle({ schema_version: 1, action: 'apply', target, expected_revision: checked.revision, approval });
+    assert.deepEqual(fs.readFileSync(file), after, 'repeat apply is byte-identical');
+    for (const [rel, bytes] of untouched) assert.deepEqual(fs.readFileSync(path.join(target, rel)), bytes, rel);
+    assert.equal(fs.existsSync(path.join(target, '.claude')), false, 'absent host tree is not invented');
+    assert.equal(h.walk(path.join(target, '.rig/runtime/rig/catalog/skills')).filter((name) => path.basename(name) === 'SKILL.md').length, 0, 'unselected optional skill source remains unstaged');
+  });
 });
 
 test('AT-P2 safety remains user-controlled and truthfully reported', () => {
@@ -228,11 +364,64 @@ test('AT-P3 catalogue scope ownership is MECE', () => {
 });
 
 test('AT-P4 host and CI coverage is the uniform detected-host contract', () => {
+  const install = api('payload.js', 'runPayload');
   const discover = api('host-capabilities.js', 'discoverHosts');
-  h.withRepo((target) => {
-    fs.mkdirSync(path.join(target, '.claude'), { recursive: true });
-    fs.mkdirSync(path.join(target, '.cursor'), { recursive: true });
-    assert.deepEqual(discover(target).map((entry) => entry.id), ['claude', 'cursor']);
+  // Expected fixture markers and actual host-consumed paths are independent of
+  // the registry being tested. Null means an explicit integration gap.
+  const hosts = {
+    claude: ['.claude/fixture', 'CLAUDE.md'], codex: ['.codex/fixture', 'AGENTS.md'],
+    'vscode-codex': ['.vscode/mcp.json', null], cursor: ['.cursor/fixture', '.cursor/rules/rig.mdc'],
+    copilot: ['.github/copilot-instructions.md', '.github/copilot-instructions.md'],
+    'copilot-cli': ['.github/mcp.json', null], kiro: ['.kiro/fixture', '.kiro/steering/rig.md'],
+    opencode: ['.opencode/fixture', null], openclaw: ['openclaw.json', null],
+    antigravity: ['.agents/rules/fixture', 'AGENTS.md'], gemini: ['GEMINI.md', 'GEMINI.md'],
+    devin: ['.devin/fixture', null], windsurf: ['.windsurf/fixture', '.windsurf/rules/rig.md'],
+    cline: ['.clinerules/fixture', '.clinerules/rig.md'], swival: ['.swival/fixture', null],
+    codewhale: ['.codewhale/fixture', 'AGENTS.md'], hermes: ['plugin.yaml', null],
+    pi: ['.pi/fixture', null], generic: [null, null],
+  };
+  assert.deepEqual(Object.keys(require('../rig/lib/host-capabilities').REGISTRY).sort(), Object.keys(hosts).sort());
+  for (const [host, [marker, instruction]] of Object.entries(hosts)) h.withRepo((target) => {
+    if (marker) { fs.mkdirSync(path.dirname(path.join(target, marker)), { recursive: true }); fs.writeFileSync(path.join(target, marker), '# USER marker\n'); }
+    const detected = discover(target);
+    assert.deepEqual(detected.map((entry) => entry.id), marker ? [host] : [], host);
+    const result = install(target, marker ? undefined : [host], { activeDelivery: true, releaseTag: 'v6.0.0' });
+    assert.deepEqual(result.hosts.map((entry) => entry.id), [host]);
+    if (instruction) {
+      const bytes = fs.readFileSync(path.join(target, instruction), 'utf8');
+      assert.match(bytes, /\.rig\/(routing|catalog-routing)\.md/, `${host} actual instruction points at installed routing`);
+      if (marker === instruction) assert.ok(bytes.startsWith('# USER marker\n'), host);
+    }
+    for (const absent of ['.claude', '.cursor', '.kiro', '.windsurf', '.clinerules']) {
+      if (!marker?.startsWith(absent + '/') && !instruction?.startsWith(absent + '/')) assert.equal(fs.existsSync(path.join(target, absent)), false, `${host}: no absent-host tree ${absent}`);
+    }
+    const repeated = install(target, [host], { activeDelivery: true, releaseTag: 'v6.0.0' });
+    assert.equal(repeated.writes, 0, `${host} repeated install does not write`);
+  });
+  const fixtures = {
+    'github-actions': ['.github/workflows/user.yml', 'name: user-ci\njobs:\n  user:\n    runs-on: ubuntu-latest\n'],
+    gitlab_ci: ['.gitlab-ci.yml', 'stages:\n  - test\n# user-ci\n'],
+    circleci: ['.circleci/config.yml', 'version: 2.1\n# user-ci\n'],
+    jenkins: ['Jenkinsfile', "pipeline {\n  agent any\n  // user-ci\n  stages {\n    stage('User') { steps { echo 'user' } }\n  }\n}\n"], buildkite: ['.buildkite/pipeline.yml', '# user-ci\nsteps:\n'],
+    azure_pipelines: ['azure-pipelines.yml', '# user-ci\njobs:\n'],
+  };
+  const { planCiIntegration, applyCiPlan } = require('../rig/lib/ci-adapters');
+  for (const [provider, [rel, initial]] of Object.entries(fixtures)) h.withRepo((target) => {
+    const { reviewPath } = h.allowedReview(target); h.writeSelection(target, {});
+    const planned = must(h.plan(target, { review: reviewPath }), 'CI floor plan');
+    must(h.apply(target, { review: reviewPath, plan: planned.outPath }), 'CI floor apply');
+    const file = path.join(target, rel); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, initial);
+    const refused = planCiIntegration(target, { provider }); assert.equal(refused.status, 'approval_required');
+    assert.throws(() => applyCiPlan(target, refused), /approval/); assert.equal(fs.readFileSync(file, 'utf8'), initial);
+    applyCiPlan(target, planCiIntegration(target, { provider, approved: true }));
+    const artifact = provider === 'github-actions' ? '.github/workflows/rig.yml' : rel;
+    const first = fs.readFileSync(path.join(target, artifact));
+    assert.match(first.toString(), /node \.rig\/bin\/check\.js --scope repo/, provider);
+    assert.match(fs.readFileSync(file, 'utf8'), /user-ci/, provider);
+    applyCiPlan(target, planCiIntegration(target, { provider, approved: true }));
+    assert.deepEqual(fs.readFileSync(path.join(target, artifact)), first);
+    const run = spawnSync(process.execPath, ['.rig/bin/check.js', '--scope', 'repo'], { cwd: target, encoding: 'utf8' });
+    assert.equal(run.status, 0, `${provider}: ${run.stderr || run.stdout}`);
   });
 });
 
@@ -304,13 +493,28 @@ test('AT-B5 adopt-time uncertainty quarantines', () => {
 
 test('AT-B6 remediation applies only the approved bounded diff and rolls back failure', () => {
   const remediate = api('apply.js', 'remediate');
+  const signedFixtures = require('./helpers/advanced-signed');
   h.withRepo((target) => {
     fs.writeFileSync(path.join(target, 'AGENTS.md'), 'bad\n');
-    const proposal = { schema_version: 1, actions: [{ op: 'rewrite', path: 'AGENTS.md', before: digest('bad\n'), content: 'clean\n' }] };
+    fs.writeFileSync(path.join(target, 'other.md'), 'same\n');
+    const proposal = { schema_version: 1, actions: [
+      { op: 'rewrite', path: 'AGENTS.md', before: digest('bad\n'), content: 'clean\n' },
+      { op: 'rewrite', path: 'other.md', before: digest('same\n'), content: 'same\n' },
+    ] };
+    const proposalPath = path.join(target, '.rig-test', 'remediation-proposal.json');
+    const approvalPath = path.join(target, '.rig-test', 'remediation-approval.json');
+    h.writeJson(proposalPath, proposal);
     assert.throws(() => remediate(target, proposal, '0'.repeat(64)), /approval|digest/);
-    const result = remediate(target, proposal, digest(JSON.stringify(proposal)));
-    assert.equal(result.status, 'applied');
-    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'clean\n');
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'bad\n', 'unapproved plan writes nothing');
+    signedFixtures.writeRemediationApproval(target, proposalPath);
+    assert.throws(() => remediate(target, proposal, h.readJson(approvalPath)), /no-op/);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'bad\n', 'no-op proposal writes nothing');
+    assert.equal(fs.readFileSync(path.join(target, 'other.md'), 'utf8'), 'same\n', 'no-op target remains unchanged');
+    const success = { schema_version: 1, actions: [{ op: 'rewrite', path: 'AGENTS.md', before: digest('bad\n'), content: 'clean\n' }] };
+    h.writeJson(proposalPath, success);
+    signedFixtures.writeRemediationApproval(target, proposalPath);
+    const applied = remediate(target, success, h.readJson(approvalPath));
+    assert.equal(applied.status, 'clean'); assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'clean\n', 'observed result matches the approved content');
   });
 });
 
@@ -321,13 +525,80 @@ test('AT-B7 development runs diff scope and CI runs repository scope', () => {
 });
 
 test('AT-HOST-1 every emitted axis has a complete contract', () => {
-  const validate = api('host-capabilities.js', 'validateRegistryContracts');
-  const result = validate();
-  assert.equal(result.hosts, 19);
-  assert.deepEqual(result.failures, []);
-  assert.ok(result.contracts.every((entry) =>
-    entry.path !== undefined && entry.input_schema && entry.deny_behavior &&
-    entry.proceed_protocol && entry.merge_boundary && entry.first_apply && entry.repeat_apply));
+  const result = api('host-capabilities.js', 'validateRegistryContracts')();
+  const { materializeHostAdapters } = require('../rig/lib/host-capabilities');
+  const { runPayload } = require('../rig/lib/payload');
+  const { renderMcp } = require('../rig/lib/renderers');
+  assert.equal(result.hosts, 19); assert.deepEqual(result.failures, []);
+  const failures = [];
+  for (const contract of result.contracts) { try { h.withRepo((target) => {
+    const sentinel = '# USER sentinel: keep this exact byte sequence\n';
+    const seeded = new Map();
+    for (const [axis, value] of Object.entries(contract.axes)) {
+      assert.ok(['emitted', 'unsupported', 'not_integrated'].includes(value.emission), `${contract.id}:${axis}`);
+      const rel = value.emission === 'emitted' ? value.output.path : value.supported_surface;
+      if (!rel || rel.startsWith('~') || /[+*]|\s/.test(rel)) continue;
+      const file = path.join(target, rel.endsWith('/') ? `${rel}TEST-user.md` : rel);
+      if (seeded.has(file)) continue;
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      const bytes = rel.endsWith('.json') ? '{"TEST_user":{"preserve":true}}\n' : sentinel;
+      fs.writeFileSync(file, bytes); seeded.set(file, bytes);
+    }
+    const adapterPaths = new Set(['.cursor/rules/rig.mdc', '.kiro/steering/rig.md', '.agents/rules/rig.md', '.windsurf/rules/rig.md', '.clinerules/rig.md']);
+    const collisions = [...seeded].filter(([file]) => adapterPaths.has(path.relative(target, file)));
+    if (collisions.length) {
+      for (const [file] of collisions) fs.chmodSync(file, 0o640);
+      assert.throws(() => runPayload(target, [contract.id], { activeDelivery: true, releaseTag: 'v6.0.0' }), (error) => /unowned|owned|edited|conflict/i.test(error.message) && collisions.some(([file]) => error.message.includes(path.relative(target, file))), `${contract.id}: an unowned dedicated adapter must refuse by name`);
+      for (const [file, bytes] of collisions) {
+        assert.equal(fs.readFileSync(file, 'utf8'), bytes, 'refused install preserves exact user adapter bytes');
+        assert.equal(fs.statSync(file).mode & 0o777, 0o640, 'refused install preserves user adapter mode');
+        fs.unlinkSync(file); seeded.delete(file); // Remove only our TEST collision, then resume the real install.
+      }
+    }
+    runPayload(target, [contract.id], { activeDelivery: true, releaseTag: 'v6.0.0' });
+    const server = { name: 'TEST_oracle_server', variants: [{ id: 'TEST-stdio', transport: 'stdio', command: 'node', args: ['TEST-server.js'], credentials: [], credential_safety: 'config_only_safe' }] };
+    renderMcp(target, { hosts: [contract.id], mcp_servers: [server] });
+    const materialized = materializeHostAdapters(target, contract.id);
+    assert.deepEqual(materialized.emitted_live_hooks, [], 'internal records cannot claim a host hook');
+    for (const [axis, value] of Object.entries(contract.axes)) {
+      if (value.emission === 'emitted') {
+        assert.ok(value.output.path); assert.ok(value.evidence.byte_landing_test.target);
+        const abs = path.join(target, value.output.path);
+        assert.ok(fs.existsSync(abs), `${contract.id}:${axis} real declared host artifact exists`);
+        if (axis === 'native_skill') {
+          const skills = h.walk(abs).filter((file) => path.basename(file) === 'SKILL.md');
+          assert.equal(skills.length, 9, `${contract.id} mandatory native skills land`);
+          assert.ok(skills.every((file) => /^name: rig-/m.test(fs.readFileSync(file, 'utf8'))));
+        } else if (axis === 'instruction') {
+          assert.match(fs.readFileSync(abs, 'utf8'), /\.rig\/(routing|catalog-routing)\.md/, contract.id);
+        } else if (axis === 'mcp_config') {
+          const body = fs.readFileSync(abs, 'utf8');
+          if (value.output.format === 'toml') assert.match(body, /\[mcp_servers\.TEST_oracle_server\]/);
+          else {
+            const key = value.output.key.split('.').reduce((node, part) => node?.[part], JSON.parse(body));
+            assert.ok(key?.TEST_oracle_server, `${contract.id}: server lands at host-consumed key`);
+          }
+        } else assert.fail(`${contract.id}:${axis}: emitted live hook requires a real writer and behavioral fixture`);
+      } else if (value.emission === 'not_integrated') {
+        assert.match(value.gap, /does not write/i); assert.equal(value.output, undefined); assert.equal(value.evidence, undefined);
+        const record = json(path.join(target, `.rig/host-contracts/${contract.id}/${axis}.json`));
+        assert.equal(record.emission, 'not_integrated'); assert.match(record.gap, /Available but not integrated/);
+      } else assert.ok(value.evidence.official_citation);
+    }
+    for (const [file, bytes] of seeded) {
+      const now = fs.readFileSync(file, 'utf8');
+      if (file.endsWith('.json')) assert.deepEqual(JSON.parse(now).TEST_user, { preserve: true }, file);
+      else assert.ok(now.includes(bytes), file);
+    }
+    const hostFiles = new Set([...seeded.keys(), ...Object.values(contract.axes).filter((axis) => axis.emission === 'emitted').flatMap((axis) => { const file = path.join(target, axis.output.path); return fs.statSync(file).isDirectory() ? h.walk(file) : [file]; }), ...h.walk(path.join(target, '.rig/host-contracts'))].map((file) => path.relative(target, file)));
+    const snapshot = () => Object.fromEntries(Object.entries(fixtureBytes(target)).filter(([file]) => hostFiles.has(file)));
+    const first = snapshot();
+    runPayload(target, [contract.id], { activeDelivery: true, releaseTag: 'v6.0.0' });
+    renderMcp(target, { hosts: [contract.id], mcp_servers: [server] });
+    materializeHostAdapters(target, contract.id);
+    assert.deepEqual(snapshot(), first, `${contract.id}: repeated writers preserve artifact bytes and user sentinels`);
+  }); } catch (error) { failures.push(`${contract.id}: ${error.message}`); } }
+  assert.deepEqual(failures, [], 'every declared host path must land, preserve user sentinels, and repeat unchanged');
 });
 
 test('AT-HOST-2 evaluator denies boundaries and honors exact one-use approval once', () => {
@@ -356,17 +627,38 @@ test('AT-HOST-5 unsupported MCP emits nothing and preserves user files', () => {
 });
 
 test('AT-CI-1 existing CI integration is additive and detail-free', () => {
-  h.withRepo((target) => {
-    const workflow = path.join(target, '.github/workflows/ci.yml');
-    fs.mkdirSync(path.dirname(workflow), { recursive: true });
-    fs.writeFileSync(workflow, 'name: user-ci\njobs:\n  user:\n    runs-on: ubuntu-latest\n');
-    const plan = require('../rig/lib/ci-adapters').planCiIntegration(target, { provider: 'github-actions', approved: true });
-    const output = api('ci-adapters.js', 'applyCiPlan')(target, plan);
-    const after = fs.readFileSync(workflow, 'utf8');
-    assert.match(after, /user-ci/);
-    assert.match(after, /rig/);
-    assert.doesNotMatch(after, /reports\/rig|upload-artifact/);
-    assert.equal(output.status, 'integrated');
+  const { PROVIDERS, planCiIntegration, applyCiPlan } = require('../rig/lib/ci-adapters');
+  const { uninstall } = require('../rig/lib/lifecycle');
+  const seeds = {
+    'github-actions': ['.github/workflows/ci.yml', 'name: user-ci\non: push\njobs:\n  user:\n    runs-on: ubuntu-latest\n    steps:\n      - run: make test\n'],
+    gitlab_ci: ['.gitlab-ci.yml', 'stages:\n  - build\nbuild:\n  script:\n    - make\n'],
+    circleci: ['.circleci/config.yml', 'version: 2.1\njobs:\n  build:\n    docker:\n      - image: cimg/base:stable\n    steps:\n      - checkout\nworkflows:\n  main:\n    jobs:\n      - build\n'],
+    jenkins: ['Jenkinsfile', "pipeline {\n  agent any\n  stages {\n    stage('Build') {\n      steps { sh 'make' }\n    }\n  }\n}\n"],
+    buildkite: ['.buildkite/pipeline.yml', 'steps:\n  - label: "build"\n    command: "make"\n'],
+    azure_pipelines: ['azure-pipelines.yml', 'trigger:\n  - main\njobs:\n  - job: build\n    steps:\n      - script: make\n'],
+  };
+  assert.deepEqual(Object.keys(seeds).sort(), Object.keys(PROVIDERS).sort(), 'every release provider is seeded');
+  for (const [provider, [rel, seed]] of Object.entries(seeds)) h.withRepo((target) => {
+    const file = path.join(target, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, seed);
+    const output = api('ci-adapters.js', 'applyCiPlan')(target, planCiIntegration(target, { provider, approved: true }));
+    assert.equal(output.status, 'integrated', provider);
+    const merged = fs.readFileSync(file, 'utf8');
+    const integrated = provider === 'github-actions' ? fs.readFileSync(path.join(target, PROVIDERS[provider].file), 'utf8') : merged;
+    assert.match(integrated, /node \.rig\/bin\/check\.js --scope repo/, `${provider} carries the Rig gate`);
+    assert.doesNotMatch(integrated, /reports\/rig|upload-artifact/, provider);
+    const lines = merged.split('\n');
+    let cursor = 0;
+    for (const line of seed.split('\n')) {
+      const at = lines.indexOf(line, cursor);
+      assert.notEqual(at, -1, `${provider}: user line survives in order: ${line}`);
+      cursor = at + 1;
+    }
+    const removed = uninstall(target);
+    assert.equal(removed.status, 'removed', `${provider}: ${JSON.stringify(removed.best_effort)}`);
+    assert.equal(fs.readFileSync(file, 'utf8'), seed, `${provider}: every unrelated user byte survives uninstall`);
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /rig-check/, `${provider}: the inserted job is gone`);
   });
 });
 
@@ -424,26 +716,66 @@ test('AT-CLAIM-1 detected hosts only, whole roster reachable', () => {
 });
 
 test('AT-PRESENCE-1 activation refuses when no verified presence path exists', () => {
-  const choose = api('policy.js', 'choosePresenceMethod');
-  assert.equal(choose({ native: { verified: true }, external: false }), 'native');
-  assert.equal(choose({ native: null, external: { configured: true } }), 'external_signature');
-  assert.equal(choose({ native: { verified: false }, external: false }), 'unavailable');
+  const { proposePolicy, activatePolicy, activationMessage, policyStatus } = require('../rig/lib/policy');
+  h.withRepo((target) => withTestSigner('rig-policy-activation', (signer) => {
+    const policyDir = path.join(target, '.rig/policy'); fs.mkdirSync(policyDir, { recursive: true });
+    const original = Buffer.from('{"schema_version":1,"controls":{},"enforcement":{},"allow":[]}\n');
+    const proposal = proposePolicy(target, original, { explicit_request: true });
+    const before = fixtureBytes(policyDir);
+    assert.throws(() => activatePolicy(target, proposal), /approval|unavailable/i);
+    assert.deepEqual(fixtureBytes(policyDir), before, 'no configured presence writes nothing');
+    const native = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'host-native', attestation: { verified: true } } };
+    assert.throws(() => activatePolicy(target, proposal, { approval: native }), /cryptographic|unavailable/i);
+    assert.deepEqual(fixtureBytes(policyDir), before, 'self-asserted native presence cannot activate');
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig/trust/gate1.allowed-signers'), `${signer.identity} ${signer.publicKey}\n`);
+    const approval = { schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity: signer.identity, signature: signer.sign(activationMessage(proposal), 'TEST-wrong-namespace') } };
+    const configured = fixtureBytes(policyDir);
+    assert.throws(() => activatePolicy(target, proposal, { approval }), /SSHSIG/);
+    assert.deepEqual(fixtureBytes(policyDir), configured, 'invalid signature has no activation side effect');
+    approval.approval.signature = signer.sign(activationMessage(proposal));
+    const activated = activatePolicy(target, proposal, { approval });
+    assert.deepEqual(fs.readFileSync(path.join(policyDir, 'active.json')), original);
+    assert.equal(activated.receipt.signer.fingerprint, signer.fingerprint);
+    assert.equal(policyStatus(target).activation_receipt.proposal_digest, proposal.digest);
+    const after = fixtureBytes(policyDir);
+    assert.throws(() => activatePolicy(target, proposal, { approval }), /sequence|prior|changed/i);
+    assert.deepEqual(fixtureBytes(policyDir), after, 'activation approval cannot replay');
+    const next = proposePolicy(target, policyFixture(), { explicit_request: true });
+    const attestation = { challenge: activationMessage(next), TEST_verified_by_host: true };
+    const nativeApproval = { schema_version: 1, kind: 'policy-approval', proposal_digest: next.digest, approval: { method: 'host-native', attestation } };
+    // No host ships an attestation Rig can re-verify, so even a verifier that says yes mints nothing:
+    // a receipt the active-policy loader cannot verify is not an activation.
+    const beforeNative = fixtureBytes(policyDir);
+    assert.throws(() => activatePolicy(target, next, { approval: nativeApproval, verifyHostAttestation: () => true }), /unavailable/);
+    assert.deepEqual(fixtureBytes(policyDir), beforeNative, 'a refused host-native approval writes nothing');
+  }));
 });
 
-test('AT-PRESENCE-2 recovery is pre-registered distinct and terminal', () => {
-  const recover = api('policy.js', 'recoverSigner');
-  const state = {
-    signer: 'everyday',
-    recovery: [{ fingerprint: 'recovery-1', registered_under: 'everyday', user_verification: true }],
-    approvals: ['a'],
-    evidence_epoch: 2,
-  };
-  const recovered = recover(state, { fingerprint: 'recovery-1', signature_valid: true, replacement: 'new-signer' });
-  assert.equal(recovered.signer, 'new-signer');
-  assert.deepEqual(recovered.approvals, []);
-  assert.equal(recovered.evidence_epoch, 3);
-  assert.ok(recovered.receipt);
-  assert.throws(() => recover({ ...state, recovery: [] }, { fingerprint: 'fresh' }), /exhausted|terminal/);
+test('AT-PRESENCE-2 one trust root: only the Gate 1 key approves and no other signer mechanism exists', () => {
+  const policy = require('../rig/lib/policy');
+  const { readTrustRoot } = require('../rig/lib/trust-root');
+  for (const retired of ['proposeSignerSetup', 'setupPolicySigner', 'registerRecoveryCredential', 'generateRecoveryCredential', 'proposeRecovery', 'recoverPolicy', 'recoverSigner']) {
+    assert.equal(policy[retired], undefined, `${retired} is retired`);
+  }
+  h.withRepo((target) => withTestSigner('rig-policy-activation', (owner) => withTestSigner('rig-policy-activation', (other) => {
+    const root = path.join(target, '.rig/trust/gate1.allowed-signers');
+    fs.mkdirSync(path.dirname(root), { recursive: true });
+    fs.writeFileSync(root, `${owner.identity} ${owner.publicKey}\n`);
+    assert.equal(readTrustRoot(target).identity, owner.identity);
+    const policyDir = path.join(target, '.rig/policy'); fs.mkdirSync(policyDir, { recursive: true });
+    // A repository writer plants the retired signer lists and trust record for another key.
+    for (const planted of [path.join(policyDir, 'allowed-signers'), path.join(target, '.rig/allowed-signers')]) fs.writeFileSync(planted, other.line);
+    fs.writeFileSync(path.join(policyDir, 'trust.json'), '{"schema_version":1,"chain":[],"signer":null,"recovery":[]}\n');
+    const proposal = policy.proposePolicy(target, Buffer.from('{"schema_version":1,"controls":{},"enforcement":{},"allow":[]}\n'), { explicit_request: true });
+    const approval = (signer, identity = owner.identity) => ({ schema_version: 1, kind: 'policy-approval', proposal_digest: proposal.digest, approval: { method: 'external-sshsig', identity, signature: signer.sign(policy.activationMessage(proposal)) } });
+    const before = fixtureBytes(policyDir);
+    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other) }), /SSHSIG/);
+    assert.throws(() => policy.activatePolicy(target, proposal, { approval: approval(other, 'TEST-other-signer') }), /Gate 1 key holder/);
+    assert.deepEqual(fixtureBytes(policyDir), before, 'no other key, list, or record approves');
+    assert.equal(policy.activatePolicy(target, proposal, { approval: approval(owner) }).receipt.signer.identity, owner.identity);
+    assert.equal(fs.existsSync(path.join(policyDir, 'recovery-receipt-1.json')), false, 'no recovery receipt can exist');
+  })));
 });
 
 test('AT-HOME-1 global writes append and disclose the exact path', () => {
@@ -613,7 +945,7 @@ test('AT-DIST-1 stranger installs complete named-tag release', () => {
   // authority across every version-bearing file. Pinning a literal version
   // here duplicates that authority and goes stale on every release.
   const packageJson = json(path.join(__dirname, '..', 'package.json'));
-  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(packageJson.version, '6.0.0');
   const skills = api('skills.js', 'listVendoredSkills')();
   assert.equal(skills.length, 55);
   assert.equal(new Set(skills.map((entry) => entry.name)).size, 55);
@@ -623,33 +955,155 @@ test('AT-DIST-1 stranger installs complete named-tag release', () => {
 });
 
 test('AT-INSTALL-1 interrupted installs resume without premature claims', () => {
+  const lifecycle = path.join(__dirname, '..', 'rig', 'lib', 'lifecycle.js');
   const resume = api('lifecycle.js', 'resumeInstall');
+  const { policyStatus } = require('../rig/lib/policy');
+  const operations = [{ path: '.rig/a', content: 'a' }, { path: '.rig/b', content: 'b' }, { path: '.rig/c', content: 'c' }];
   h.withRepo((target) => {
-    const state = resume(target, { interrupt_after: 2, operations: [{ path: '.rig/a', content: 'a' }, { path: '.rig/b', content: 'b' }, { path: '.rig/c', content: 'c' }] });
+    fs.writeFileSync(path.join(target, 'notes.txt'), 'user data\n');
+    // The install process is killed while writing the second file: a real crash, not a caller-supplied truncation.
+    const script = String.raw`
+      const fs = require('node:fs');
+      const real = fs.writeFileSync;
+      fs.writeFileSync = function (file, ...rest) {
+        if (/[\\/]\.rig[\\/]b$/.test(String(file))) process.kill(process.pid, 'SIGKILL');
+        return real.call(this, file, ...rest);
+      };
+      require(process.argv[2]).resumeInstall(process.argv[1], { operations: JSON.parse(process.argv[3]) });
+    `;
+    const crashed = spawnSync(process.execPath, ['-e', script, target, lifecycle, JSON.stringify(operations)], { encoding: 'utf8' });
+    assert.notEqual(crashed.status, 0, 'the installer really died mid-install');
+    const state = api('lifecycle.js', 'installState')(target);
     assert.equal(state.complete, false);
-    assert.equal(state.protected, false);
-    const done = resume(target, { operations: state.operations });
+    const status = policyStatus(target);
+    assert.equal(status.protection, 'withheld', 'policy status claims no protection while the install is incomplete');
+    assert.ok(Object.values(status.surfaces).every((surface) => surface.state === 'withheld_install_incomplete'));
+    const report = json(api('reports.js', 'writeReport')(target, { status: 'failed', service_id: 'x.y.z', summary: 's', reason: 'r' }));
+    assert.deepEqual([report.install, report.protection], ['incomplete', 'withheld'], 'a run report discloses the incomplete install');
+    const done = resume(target, { operations });
     assert.equal(done.complete, true);
     assert.equal(done.records.length, 3);
+    assert.equal(fs.readFileSync(path.join(target, 'notes.txt'), 'utf8'), 'user data\n', 'resume does not clobber unrelated data');
+    assert.equal(policyStatus(target).protection, 'per_surface');
   });
 });
 
 test('AT-UNINSTALL-1 uninstall removes exactly manifest-owned content', () => {
-  const remove = api('lifecycle.js', 'uninstall');
-  h.withRepo((target) => {
-    fs.writeFileSync(path.join(target, 'AGENTS.md'), 'user\n<!-- rig:start -->\nrig\n<!-- rig:end -->\nuser-after\n');
-    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    h.writeJson(path.join(target, '.rig/install-manifest.json'), { records: [{ seq: 1, path: 'AGENTS.md', managed_block: 'rig' }] });
-    remove(target);
-    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), 'user\nuser-after\n');
-  });
+  const { planCiIntegration, applyCiPlan } = require('../rig/lib/ci-adapters');
+  const { mergeHostGlobalMcp, GLOBAL_MCP_CONTRACTS } = require('../rig/lib/global-writes');
+  const materializer = path.join(__dirname, '..', 'rig', 'materialize.js');
+  const install = (target, home) => {
+    h.createRepoFixture('generic-git', target);
+    const hook = path.join(spawnSync('git', ['rev-parse', '--absolute-git-dir'], { cwd: target, encoding: 'utf8' }).stdout.trim(), 'hooks', 'pre-commit');
+    const user = {
+      'AGENTS.md': '# User agents file\r\nKeep final byte',
+      '.gitlab-ci.yml': 'stages:\n  - build\nbuild:\n  script:\n    - make\n',
+      [path.relative(target, hook)]: '#!/bin/sh\necho user-hook\n',
+    };
+    fs.mkdirSync(path.dirname(hook), { recursive: true });
+    for (const [rel, body] of Object.entries(user)) fs.writeFileSync(path.join(target, rel), body, { mode: rel.endsWith('pre-commit') ? 0o755 : 0o644 });
+    const { reviewPath } = h.allowedReview(target, { host: 'codex' });
+    h.writeSelection(target, {});
+    const planned = must(h.plan(target, { review: reviewPath }), 'plan');
+    must(h.apply(target, { review: reviewPath, plan: planned.outPath }), 'apply');
+    applyCiPlan(target, planCiIntegration(target, { provider: 'gitlab_ci', approved: true }));
+    const host = Object.keys(GLOBAL_MCP_CONTRACTS)[0];
+    const contract = GLOBAL_MCP_CONTRACTS[host];
+    const globalFile = path.join(home, contract.relative_path);
+    fs.mkdirSync(path.dirname(globalFile), { recursive: true });
+    const globalSeed = `${JSON.stringify({ userSetting: true, [contract.server_key]: { keep: { command: 'keep' } } }, null, 2)}\n`;
+    fs.writeFileSync(globalFile, globalSeed);
+    const owned = mergeHostGlobalMcp(host, home, { install_id: 'repo-a', server_name: 'example-db', value: { command: 'node', args: ['/tmp/rig-mcp.js'] } });
+    h.writeJson(path.join(target, '.rig', 'global-writes.json'), { schema_version: 1, entries: [owned] });
+    assert.match(fs.readFileSync(hook, 'utf8'), /Rig secret guard shim/, 'the hook surface is installed');
+    assert.match(fs.readFileSync(path.join(target, '.gitlab-ci.yml'), 'utf8'), /rig-check/, 'the CI job is installed');
+    assert.notEqual(fs.readFileSync(globalFile, 'utf8'), globalSeed, 'the user-global entry is installed');
+    return { hook, user, globalFile, globalSeed };
+  };
+  const withHome = (fn) => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-uninstall-home-'));
+    const saved = process.env.HOME;
+    process.env.HOME = home;
+    try { return fn(home); } finally {
+      if (saved === undefined) delete process.env.HOME; else process.env.HOME = saved;
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  };
+  h.withRepo((target) => withHome((home) => {
+    const { hook, user, globalFile, globalSeed } = install(target, home);
+    must(h.runMaterialize(['--target', target, '--uninstall']), 'uninstall');
+    for (const [rel, body] of Object.entries(user)) assert.equal(fs.readFileSync(path.join(target, rel), 'utf8'), body, `${rel}: every user byte survives`);
+    assert.equal(fs.readFileSync(globalFile, 'utf8'), globalSeed);
+    assert.equal(fs.existsSync(path.join(path.dirname(hook), 'pre-commit.rig-chained')), false);
+    assert.equal(fs.existsSync(path.join(target, '.rig/install-manifest.jsonl')), false);
+    const report = json(path.join(target, 'reports/rig/last-uninstall.json'));
+    assert.deepEqual(report.best_effort, []);
+    for (const rel of ['AGENTS.md', '.gitlab-ci.yml', '.git/hooks/pre-commit', '.rig/catalog-receipt.json']) assert.ok(report.removed.includes(rel), `the report names ${rel}`);
+    assert.equal(report.verification.status, 'verified_clean');
+  }));
+  // Killed partway, an uninstall never leaves the hook pointing at a Rig file it already removed, and re-running finishes the job.
+  h.withRepo((target) => withHome((home) => {
+    const { hook } = install(target, home);
+    const killer = String.raw`
+      const fs = require('node:fs');
+      for (const name of ['rmSync', 'unlinkSync']) {
+        const real = fs[name];
+        fs[name] = function (file, ...rest) {
+          if (/[\\/]\.rig[\\/](?!preimages|install-manifest)/.test(String(file)) && !/\.tmp$/.test(String(file))) process.kill(process.pid, 'SIGKILL');
+          return real.call(this, file, ...rest);
+        };
+      }
+      require(process.argv[2]).uninstall(process.argv[1]);
+    `;
+    const crashed = spawnSync(process.execPath, ['-e', killer, target, path.join(__dirname, '..', 'rig', 'lib', 'lifecycle.js')], { encoding: 'utf8' });
+    assert.notEqual(crashed.status, 0, 'the uninstall really died partway');
+    const body = fs.readFileSync(hook, 'utf8');
+    if (/Rig secret guard shim/.test(body) && /\.rig\//.test(body)) {
+      assert.ok(fs.existsSync(path.join(target, /\.rig\/[\w./-]+/.exec(body)[0])), 'a surviving hook still has the Rig file it runs');
+    }
+    assert.equal(api('lifecycle.js', 'uninstall')(target).status, 'removed');
+  }));
+  // Deleting .rig/ removes the journal; uninstall must not then declare the repository clean.
+  h.withRepo((target) => withHome((home) => {
+    install(target, home);
+    fs.rmSync(path.join(target, '.rig'), { recursive: true, force: true });
+    const result = api('lifecycle.js', 'uninstall')(target);
+    assert.notEqual(result.verification.status, 'verified_clean');
+    assert.equal(result.verification.differences[0].reason, 'manifest-unavailable');
+  }));
 });
 
 test('AT-UNINSTALL-2 uninstall reports verified clean or named best effort', () => {
-  const verify = api('lifecycle.js', 'verifyRemoval');
-  h.withRepo((target) => {
-    assert.deepEqual(verify(target, { preimages: {}, records: [] }), { status: 'verified_clean', files: [] });
-    assert.deepEqual(verify(target, { missing_markers: ['AGENTS.md'] }), { status: 'best_effort', files: ['AGENTS.md'] });
+  const { journalWriter, upsertGraftSection } = require('../rig/lib/payload');
+  const { uninstall } = require('../rig/lib/lifecycle');
+  for (const missing of [true, false]) h.withRepo((target) => {
+    const file = path.join(target, 'AGENTS.md');
+    const before = Buffer.from('# USER before\r\nKeep final byte');
+    fs.writeFileSync(file, before); fs.chmodSync(file, 0o640);
+    const writer = journalWriter(target);
+    upsertGraftSection(target, { path: 'AGENTS.md', capability: 'testing.test-driven-development', version: 1, content: 'Approved managed guarantee.', expected_file_digest: digest(before) }, writer); writer.finish();
+    const records = api('lifecycle.js', 'readManifest')(target).records;
+    assert.ok(records.some((record) => record.path === 'AGENTS.md' && record.preimage_digest === digest(before)), 'installer records actual original preimage');
+    const preimage = path.join(target, '.rig/preimages', digest(before));
+    assert.deepEqual(fs.readFileSync(preimage), before);
+    const subsequent = Buffer.from('\r\nUSER subsequent edit\r\n');
+    fs.appendFileSync(file, subsequent);
+    if (missing) fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replaceAll('rig:graft', 'USER:rewritten-marker'));
+    const edited = fs.readFileSync(file);
+    const result = uninstall(target);
+    assert.equal(fs.statSync(file).mode & 0o777, 0o640, 'user mode survives removal');
+    if (missing) {
+      assert.equal(result.status, 'best_effort'); assert.ok(result.best_effort.includes('AGENTS.md'));
+      assert.equal(result.verification.status, 'best_effort'); assert.ok(result.verification.files.includes('AGENTS.md'));
+      assert.deepEqual(fs.readFileSync(file), edited, 'unlocatable markers retain every user byte');
+    } else {
+      assert.deepEqual(fs.readFileSync(file), Buffer.concat([before, subsequent]), 'uninstall removes the graft without restoring over subsequent edits');
+      assert.deepEqual(result.best_effort, []);
+      assert.equal(result.verification?.status, 'verified_clean', 'actual uninstall must derive and report verification from retained preimages');
+      assert.deepEqual(result.verification.files, []);
+      assert.ok(result.verification.differences.some((entry) => entry.path === 'AGENTS.md' && entry.status === 'outside_changes' && entry.preimage_digest === digest(before) && entry.postimage_digest === digest(Buffer.concat([before, subsequent]))), 'verification discloses the actual post-install user difference');
+    }
+    assert.deepEqual(json(path.join(target, 'reports/rig/last-uninstall.json')).verification, result.verification);
   });
 });
 
@@ -695,11 +1149,12 @@ test('AT-SECRET-1 matched secret content stays out of model context by default',
     const key = path.join(target, 'policy-test-key');
     const message = path.join(target, 'policy-approval-message');
     fs.mkdirSync(path.join(target, '.rig/policy'), { recursive: true });
+    fs.mkdirSync(path.join(target, '.rig/trust'), { recursive: true });
     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
     assert.equal(generated.status, 0, generated.stderr);
     fs.writeFileSync(
-      path.join(target, '.rig/policy/allowed-signers'),
-      `owner namespaces="rig-policy-activation" ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
+      path.join(target, '.rig/trust/gate1.allowed-signers'),
+      `owner ${fs.readFileSync(`${key}.pub`, 'utf8').trim()}\n`,
     );
     fs.writeFileSync(message, activationMessage(proposal));
     const signed = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', 'rig-policy-activation', message], { encoding: 'utf8' });
@@ -781,28 +1236,60 @@ test('AT-LF-6 partial coverage requires exact exclusion approval and journals wr
 
 test('AT-LF-7 Policy grade produces a real changed-file verdict', () => {
   const run = api('lint-format.js', 'runGrade');
-  const result = run({ grade: 'minimal', changed: ['a.js'], commands: [{ role: 'lint', result: { exit_code: 0, output_digest: 'a'.repeat(64) } }] });
-  assert.equal(result.grade, 'Policy');
-  assert.equal(result.verdict, 'pass');
-  assert.deepEqual(result.files, ['a.js']);
-  assert.ok(result.evidence.output_digest);
+  h.withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const commands = [{ argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.', source: 'rules.json', network: true }];
+    const result = run({ target, grade: 'minimal', changed: ['a.js'], commands });
+    assert.equal(result.grade, 'Policy'); assert.equal(result.verdict, 'pass');
+    assert.deepEqual(result.files, ['a.js']); assert.match(result.evidence.output_digest, /^[a-f0-9]{64}$/);
+    const forged = run({ target, grade: 'minimal', changed: ['a.js'], commands: [{ result: { exit_code: 0, output_digest: 'a'.repeat(64) } }] });
+    assert.equal(forged.verdict, 'fail'); assert.equal(forged.status, 'coverage_gap');
+  });
 });
 
 test('AT-LF-8 Context is a cumulative superset and runs after clean Policy', () => {
   const run = api('lint-format.js', 'runGrade');
-  const result = run({ grade: 'mid', changed: ['a.js'], commands: [{ role: 'lint', result: { exit_code: 0 } }], context: { findings: [] } });
-  assert.deepEqual(result.completed_grades, ['Policy', 'Context']);
-  assert.ok(result.steps.includes('policy_checks'));
-  assert.ok(result.steps.includes('context_understanding'));
+  const request = api('lint-format.js', 'createGradeReviewRequest');
+  h.withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n'); fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const commands = [{ argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.', source: 'rules.json', network: true }];
+    const context = { ...request({ target, changed: ['a.js'], commands }), summary: 'Reviewed the changed declaration.', verdict: 'pass', findings: [] };
+    const result = run({ target, grade: 'mid', changed: ['a.js'], commands, context });
+    assert.deepEqual(result.completed_grades, ['Policy', 'Context']);
+    const finding = { file: 'a.js', rule: 'rules.json', meaning: 'The changed declaration violates the repository rule.' };
+    const failed = run({ target, grade: 'maximal', changed: ['a.js'], commands, context: { ...context, verdict: 'fail', findings: [finding] } });
+    assert.equal(failed.verdict, 'fail'); assert.equal(failed.status, 'failed');
+    assert.deepEqual(failed.completed_grades, ['Policy', 'Context']);
+    assert.equal(fs.existsSync(path.join(target, 'reports/rig/lint-format-evidence.json')), false, 'a failing Context review cannot produce Evidence');
+    const contradictory = run({ target, grade: 'mid', changed: ['a.js'], commands, context: { ...context, findings: [finding] } });
+    assert.equal(contradictory.status, 'coverage_gap'); assert.equal(contradictory.verdict, 'fail');
+    const missingVerdict = run({ target, grade: 'mid', changed: ['a.js'], commands, context: { ...context, verdict: undefined } });
+    assert.equal(missingVerdict.status, 'coverage_gap');
+    fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"changed"}\n');
+    const stale = run({ target, grade: 'mid', changed: ['a.js'], commands, context });
+    assert.deepEqual(stale.completed_grades, ['Policy']); assert.equal(stale.status, 'coverage_gap');
+  });
 });
 
 test('AT-LF-9 Evidence is cumulative and verifiable without requiring a CI graft', () => {
-  const run = api('lint-format.js', 'runGrade');
-  const result = run({ grade: 'maximal', changed: ['a.js'], commands: [{ role: 'lint', result: { exit_code: 0, output_digest: 'b'.repeat(64) } }], context: { findings: [] }, ci: { status: 'absent' } });
-  assert.deepEqual(result.completed_grades, ['Policy', 'Context', 'Evidence']);
-  assert.equal(result.verdict, 'pass');
-  assert.equal(result.ci_graft, 'not_installed');
-  assert.ok(result.evidence.input_digest && result.evidence.output_digest);
+  const run = api('lint-format.js', 'runGrade'); const request = api('lint-format.js', 'createGradeReviewRequest');
+  h.withRepo((target) => {
+    fs.writeFileSync(path.join(target, 'a.js'), 'const value = 1;\n'); fs.writeFileSync(path.join(target, 'rules.json'), '{"lint":"fixture"}\n');
+    const commands = [{ argv: [process.execPath, '-e', 'process.stdout.write("clean")'], cwd: '.', source: 'rules.json', network: true }];
+    const context = { ...request({ target, changed: ['a.js'], commands }), summary: 'Reviewed the changed declaration.', verdict: 'pass', findings: [] };
+    const result = run({ target, grade: 'maximal', changed: ['a.js'], commands, context, ci: { status: 'absent' } });
+    assert.deepEqual(result.completed_grades, ['Policy', 'Context', 'Evidence']); assert.equal(result.verdict, 'pass'); assert.equal(result.ci_graft, 'not_installed');
+    const receipt = JSON.parse(fs.readFileSync(path.join(target, 'reports/rig/lint-format-evidence.json'), 'utf8'));
+    assert.equal(receipt.kind, 'lint-format-evidence'); assert.equal(receipt.input_digest, context.input_digest); assert.match(receipt.output_digest, /^[a-f0-9]{64}$/);
+    assert.equal(receipt.context_digest, digest(JSON.stringify(context)), 'receipt binds the exact Context review');
+    const unstable = [{ argv: [process.execPath, '-e', 'process.stdout.write(String(Math.random()))'], cwd: '.', source: 'rules.json', network: true }];
+    const review = { ...request({ target, changed: ['a.js'], commands: unstable }), summary: 'Reviewed the same declaration against its rule.', verdict: 'pass', findings: [] };
+    const mismatch = run({ target, grade: 'maximal', changed: ['a.js'], commands: unstable, context: review });
+    assert.equal(mismatch.verdict, 'fail'); assert.equal(mismatch.status, 'coverage_gap');
+    assert.deepEqual(mismatch.completed_grades, ['Policy', 'Context']);
+    assert.match(mismatch.reason, /replay|match/i);
+  });
 });
 
 test('AT-LF-10 checks default to diff scope and honor component ignores and cwd', () => {
@@ -829,25 +1316,41 @@ test('AT-LF-11 a read-only check that mutates halts with preserved evidence', ()
 
 test('AT-LF-12 autofix is separately approved and rechecked without committing', () => {
   const fix = api('lint-format.js', 'runAutofix');
+  const planAutofix = api('lint-format.js', 'planAutofix');
   h.withRepo((target) => {
     fs.writeFileSync(path.join(target, 'a.js'), 'bad\n');
-    assert.throws(() => fix(target, { argv: [process.execPath, '-e', ''] }, null), /approval/);
-    const result = fix(target, {
+    const cmd = {
       argv: [process.execPath, '-e', "require('fs').writeFileSync('a.js','good\\n')"],
       verify: [process.execPath, '-e', "process.exit(require('fs').readFileSync('a.js','utf8')==='good\\n'?0:1)"],
-    }, { verified: true });
+    };
+    assert.throws(() => fix(target, cmd, null), /approval/);
+    assert.throws(() => fix(target, cmd, { verified: true }), /approval/);
+    assert.throws(() => fix(target, { argv: cmd.argv }, signedPlanApproval(target, planAutofix(target, cmd))), /verif/, 'a fix with no verifier never runs');
+    assert.equal(fs.readFileSync(path.join(target, 'a.js'), 'utf8'), 'bad\n', 'refused approvals mutate nothing');
+    const result = fix(target, cmd, signedPlanApproval(target, planAutofix(target, cmd)));
     assert.equal(result.verification, 'pass');
     assert.match(require('node:child_process').execFileSync('git', ['status', '--porcelain'], { cwd: target, encoding: 'utf8' }), /a\.js/);
+    const failing = fix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] }, signedPlanApproval(target, planAutofix(target, { ...cmd, verify: [process.execPath, '-e', 'process.exit(1)'] })));
+    assert.equal(failing.verification, 'fail', 'the real verifier result is reported, never skipped');
   });
 });
 
 test('AT-LF-13 Evidence CI is additive separately approved and grade-aware', () => {
   const plan = api('lint-format.js', 'planCi');
-  assert.equal(plan({ grade: 'minimal', ci: 'existing' }).action, 'none');
-  assert.equal(plan({ grade: 'mid', ci: 'existing' }).action, 'none');
-  assert.equal(plan({ grade: 'maximal', ci: 'existing' }).action, 'additive_merge');
-  assert.equal(plan({ grade: 'maximal', ci: 'absent' }).status, 'approval_required');
-  assert.equal(plan({ grade: 'maximal', ci: 'unknown' }).action, 'preserve_and_report');
+  h.withRepo((target) => {
+    assert.equal(plan({ grade: 'minimal', target }).action, 'none');
+    assert.equal(plan({ grade: 'mid', target }).action, 'none');
+    const proposed = plan({ grade: 'maximal', target });
+    assert.equal(proposed.status, 'approval_required');
+    const declined = plan({ grade: 'maximal', target, provider: 'github-actions' });
+    assert.equal(declined.status, 'approval_required');
+    assert.equal(declined.approved, false);
+    assert.equal(declined.artifact, null);
+    const approved = plan({ grade: 'maximal', target, provider: 'github-actions', approved: true });
+    assert.equal(approved.status, 'integrated');
+    assert.equal(approved.always_install_check_command, true);
+    assert.equal(approved.artifact.relativePath, '.github/workflows/rig.yml');
+  });
 });
 
 test('AT-LF-14 command drift stops before execution and requires a new plan', () => {
@@ -856,7 +1359,7 @@ test('AT-LF-14 command drift stops before execution and requires a new plan', ()
     h.writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "process.exit(0)"' } });
     const planned = api('lint-format.js', 'planExecution')({ target, commands: [{ role: 'lint', argv: ['npm', 'run', 'lint'], source: 'package.json#scripts.lint' }] });
     h.writeJson(path.join(target, 'package.json'), { scripts: { lint: 'node -e "require(\'fs\').writeFileSync(\'ran\',\'x\')"' } });
-    const result = execute(planned, { plan_digest: planned.plan_digest });
+    const result = execute(planned, signedPlanApproval(target, planned));
     assert.equal(result.status, 'command_drift');
     assert.equal(fs.existsSync(path.join(target, 'ran')), false);
   });
@@ -884,8 +1387,12 @@ test('AT-LF-16 every abnormal ending is distinct and non-passing', () => {
 test('AT-LF-17 reinstall is an idempotent resume with no premature support claim', () => {
   const install = api('lint-format.js', 'install');
   h.withRepo((target) => {
-    const partial = install(target, { interrupt_after: 1 });
-    assert.equal(partial.supported, false);
+    // A real write failure at the second artifact (a directory sits where binding.json must go), not a caller-supplied flag.
+    const blocker = path.join(target, '.rig/lint-format/binding.json');
+    fs.mkdirSync(blocker, { recursive: true });
+    assert.throws(() => install(target), /EISDIR|directory/i);
+    assert.equal(api('lifecycle.js', 'installState')(target).complete, false, 'no support is claimed while the install is incomplete');
+    fs.rmSync(blocker, { recursive: true });
     const complete = install(target);
     const repeated = install(target);
     assert.equal(complete.supported, true);
@@ -921,11 +1428,16 @@ test('AT-LF-20 a plan approval authorizes exactly one execution', () => {
   const executePlan = api('lint-format.js', 'executePlan');
   h.withRepo((target) => {
     const planned = planExecution({ target, commands: [{ role: 'lint', argv: [process.execPath, '-e', 'process.exit(0)'] }] });
-    const approval = { plan_digest: planned.plan_digest };
-    const first = executePlan(planned, approval);
-    assert.equal(first.status, 'executed');
-    const second = executePlan(planned, approval);
-    assert.notEqual(second.status, 'executed');
+    // Re-presenting the exact verified receipt is replay, even as a new object.
+    const firstApproval = signedPlanApproval(target, planned);
+    const replayApproval = { ...firstApproval, approval: { ...firstApproval.approval } };
+    assert.equal(executePlan(planned, firstApproval).status, 'executed');
+    assert.equal(executePlan(planned, replayApproval).status, 'not_authorized');
+
+    // A new challenge ID is covered by a new SSHSIG and can authorize the same plan.
+    const freshApproval = signedPlanApproval(target, planned);
+    assert.notEqual(freshApproval.approval_id, firstApproval.approval_id);
+    assert.equal(executePlan(planned, freshApproval).status, 'executed');
   });
 });
 
@@ -972,17 +1484,15 @@ test('AT-LF-22 a task has no network reachability without an explicit grant', as
       const probe = path.join(target, 'net-check.js');
       fs.writeFileSync(probe, `
         const net = require('net');
-        const done = () => process.exit(0);
-        setTimeout(done, 800);
-        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => {
-          require('fs').writeFileSync('connected', 'x');
-          sock.end();
-          done();
-        });
-        sock.on('error', done);
+        const denied = new Set(['EPERM', 'EACCES', 'ENETUNREACH', 'ENETDOWN', 'EADDRNOTAVAIL']);
+        setTimeout(() => process.exit(9), 800);
+        const sock = net.createConnection({ host: '127.0.0.1', port: ${port} }, () => { sock.end(); process.exit(9); });
+        sock.on('error', (error) => process.exit(denied.has(error.code) ? 0 : 8));
       `);
-      runReadOnly(target, [{ argv: [process.execPath, probe] }]);
-      assert.equal(fs.existsSync(path.join(target, 'connected')), false);
+      const outcome = runReadOnly(target, [{ argv: [process.execPath, probe] }]);
+      if (outcome.status === 'filesystem_isolation_unavailable' || outcome.status === 'network_isolation_unavailable') {
+        assert.equal(outcome.commands[0].status, outcome.status, 'an unavailable sandbox must refuse the task before launch');
+      } else assert.equal(outcome.status, 'clean', JSON.stringify(outcome));
     } finally {
       await new Promise((resolve, reject) => {
         server.close((err) => (err ? reject(err) : resolve()));
@@ -1022,51 +1532,45 @@ test('AT-LF-24 a repository symlink escaping the repository is refused', () => {
     // fix would let this fall through to 'command_drift' (a recoverable
     // state) after actually reading the outside file's bytes; assert the
     // hard refusal and that the outside command's side effect never ran.
-    const result = executePlan(planned, { plan_digest: planned.plan_digest });
+    const result = executePlan(planned, signedPlanApproval(target, planned));
     assert.equal(result.status, 'boundary_violation');
     assert.equal(fs.existsSync(path.join(target, 'ran')), false);
     assert.equal(fs.existsSync(path.join(outside, 'ran')), false);
   });
 });
 
-// RIG-141: runReadOnly over-blocks when sandbox absent.
-// AT-LF-22 requires denying ungranted tasks but permits granted ones;
-// the early-return must not fire for cmd.network === true.
-// PATH is emptied to force networkIsolationPrefix() → null without platform dependency.
-test('RIG-141 granted-network task runs when no sandbox tool is present', () => {
-  const runReadOnly = api('lint-format.js', 'runReadOnly');
-  h.withRepo((target) => {
-    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
-    const savedPath = process.env.PATH;
+// An explicit network grant must reach the local listener under the task sandbox.
+test('RIG-141 granted-network task reaches a local listener', async () => {
+  const net = require('node:net'); const runReadOnly = api('lint-format.js', 'runReadOnly');
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-network-TEST-'));
+  must(spawnSync('git', ['init', '-q'], { cwd: target, encoding: 'utf8' }), 'initialize consent storage');
+  try {
+    const server = net.createServer((socket) => socket.end('ok'));
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
     try {
-      process.env.PATH = emptyBin;
-      const result = runReadOnly(target, [
-        { argv: [process.execPath, '-e', ''], network: true },
-      ]);
-      assert.equal(result.status, 'clean',
-        'granted task must run (not be refused) when sandbox tools are absent');
-    } finally {
-      process.env.PATH = savedPath;
-      fs.rmdirSync(emptyBin);
-    }
-  });
+      const code = "const net=require('net');const s=net.connect({host:'127.0.0.1',port:"+port+"},()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(2));";
+      const result = runReadOnly(target, [{ argv: [process.execPath, '-e', code], network: true, timeout_ms: 3000 }]);
+      assert.equal(result.status, 'clean', JSON.stringify(result));
+    } finally { await new Promise((resolve) => server.close(resolve)); }
+  } finally { fs.rmSync(target, { recursive: true, force: true }); }
 });
 
-test('RIG-141 ungranted task still refuses when no sandbox tool is present', () => {
+test('RIG-141 ungranted task refuses when filesystem isolation is unavailable', () => {
   const runReadOnly = api('lint-format.js', 'runReadOnly');
   h.withRepo((target) => {
-    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nobin-'));
-    const savedPath = process.env.PATH;
+    const marker = path.join(target, 'should-not-run');
+    const savedDisabled = process.env.RIG_SANDBOX_DISABLE;
     try {
-      process.env.PATH = emptyBin;
+      process.env.RIG_SANDBOX_DISABLE = '1';
       const result = runReadOnly(target, [
-        { argv: [process.execPath, '-e', ''] },
+        { argv: [process.execPath, '-e', `require('fs').writeFileSync(${JSON.stringify(marker)}, 'ran')`] },
       ]);
-      assert.equal(result.status, 'network_isolation_unavailable',
-        'ungranted task must still be refused when sandbox tools are absent');
+      assert.equal(result.status, 'filesystem_isolation_unavailable', JSON.stringify(result));
+      assert.equal(fs.existsSync(marker), false, 'ungranted task ran without filesystem isolation');
     } finally {
-      process.env.PATH = savedPath;
-      fs.rmdirSync(emptyBin);
+      if (savedDisabled == null) delete process.env.RIG_SANDBOX_DISABLE;
+      else process.env.RIG_SANDBOX_DISABLE = savedDisabled;
     }
   });
 });

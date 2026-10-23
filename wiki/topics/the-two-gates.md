@@ -1,113 +1,37 @@
-# The gate
+# Gate 1 and Gate 2
 
-*(Formerly "the two gates." The two-gate model was collapsed into one freeze on
-2026-08-21 to streamline the development cycle. Filename kept so inbound links
-survive.)*
+Gate 1 owns the acceptance oracle: criteria and the tests that check them are
+frozen together under the owner's signature. Preserve those artifacts unless
+the owner explicitly routes a correction back through grilling. Gate 2 is the
+working technical design; it is checked for presence and remains editable as
+implementation teaches us more. The code must satisfy the frozen oracle.
+[Gate 1](../gate1/business-spec.md) · [Gate 2](../gate2/technical-spec.md) ·
+[Rig router](../../rig/corpus/routing.md)
 
-## What it is
+## Current release state
 
-There is **one freeze** — the gate. It locks the **oracle**: acceptance
-criteria and the testing infrastructure that deterministically checks them,
-signed with one key before any code exists. Business intent is **highly
-recommended but optional** (D25); the **technical specification** owns *how* and
-is only **checked for presence**, never locked. The code adapts to the spec, and
-the spec adapts to what the code learns, as long as the frozen tests stay green.
-[oracle](../gate1/business-spec.md) · [acceptance](../gate1/acceptance.md) · [technical spec](../gate2/technical-spec.md) · [router](../../rig/tier-1/routing.md)
+The owner re-signed the `test:e2e` package-script amendment on 2026-10-17,
+and the checker verifies all 16 files and 95 cases. Agents prepare checks and
+report changes; only the owner signs frozen changes. Gate 2
+remains a working design record. See the [QA/prod checkpoint](the-overhaul.md)
+for the ordered release steps.
 
-### The pipeline into the lock
+## How work enters
 
-A task enters either as a **new feature** (get the business specs — the use
-cases) or an **identified problem** (bug report → root cause → solution). Then in
-both cases: **explore the codebase and existing docs**; write the **technical
-spec as genuine open questions only** — the architectural forks that *cannot* be
-inferred from the code or the docs, never a restatement of intent, each layer
-adding new context; state **acceptance criteria** (the observable "this works",
-or for a bug the exact failure never recurring); and derive the **testing
-infrastructure from the acceptance criteria** — a near-automatic step lined up
-with authoring acceptance, not a separate phase (90–100% of the test strategy
-falls out of acceptance directly). **Only then** does the single lock close.
-[process doctrine](../reasoning/2026-08-24-process-doctrine-and-one-lock.md)
+Route through [`rig/corpus/routing.md`](../../rig/corpus/routing.md). For a new
+feature, establish intent and acceptance before implementation. For a bug,
+reproduce it, trace the shared root cause, and make the corrected behavior
+testable. Read existing code and documentation before adding design. Preserve
+Gate 1 unless the owner explicitly reopens it; keep Gate 2 aligned with the
+implementation.
 
-Requests framed as "spec this out" use that same pipeline rather than a
-separate spec skill: grilling establishes Why and Scope, product design performs
-code-grounded Technical interrogation, both artifacts receive Draft review,
-and the existing Gate is the fifth checkpoint. This preserves one owner per
-phase and adds no runtime to Tier 1.
+## Why the gates are separate
 
-### One lock (D26), and freeze timing (D27)
-
-There is **one lock**: it locks the tests and acceptance together, and the only
-way to change a locked expectation is the owner through the hardware key — that
-is why the key exists. Nothing is locked until three things are in place **and
-sound**: a solution/spec the owner agrees with, refined acceptance criteria, and
-tests built on that acceptance. **"Not yet frozen" is the normal default for
-in-progress design — it is a state, never a pending "freeze now?" decision.**
-
-## Why it is this way
-
-The gate protects exactly one property: **an agent cannot move its own
-goalpost** — it cannot weaken a difficult requirement or write tests that merely
-bless its own code. Rig guards the human from the agent, not the human from the
-human; the developer owns the code and is their own product manager with a team
-of interns. That ownership is why one gate is enough.
-
-The property is enforced by **human signature before code plus oracle
-immutability after** — not by independent authorship. An agent may draft the
-oracle, because the informed human signature is the safeguard; grilling declares
-anything it inferred so that sign-off is never blind. The second freeze on the
-technical spec was retired because it guarded nothing this property needs and
-cost the velocity the cycle exists to protect.
-[one-gate intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md)
-
-## What binds it
-
-`D10`, `D17`, and `D19` protect the signature-over-digest integrity mechanism.
-The escape hatch — a wrong locked test is corrected only by the key holder as a
-quick re-sign, never a full return to grilling; an agent may propose but never
-make the change — is [Option A](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md).
-[Decision index](../index/decisions.md)
-
-## What was rejected
-
-- **Two separate freezes** (the prior Gate 1 → Gate 2 model): retired 2026-08-21;
-  the second freeze guarded nothing the goalpost property needs and stalled work
-  behind repeated technical-spec review rounds.
-- **Independent authorship as the safeguard**: replaced by signature-before-code
-  plus immutability, which defeats the same threat without forbidding an agent
-  from drafting the oracle.
-- **Option B** (a wrong locked test forces a full return to grilling): rebuilds
-  the gate friction the collapse removes.
-- Branch protection as the trust root and self-declared reviewer identity remain
-  rejected — neither establishes integrity outside a repo an agent can modify.
-[Rejected approaches](../index/rejected.md)
-
-## Authorities and sources
-
-- The oracle: [business intent](../gate1/business-spec.md) and [acceptance](../gate1/acceptance.md)
-- Technical spec (checked, not frozen): [technical specification](../gate2/technical-spec.md)
-- Workflow doctrine: [router](../../rig/tier-1/routing.md), [grilling](../../rig/tier-1/skills/grilling/SKILL.md), [product-design](../../rig/tier-1/skills/product-design/SKILL.md)
-- The collapse: [intent](../reasoning/2026-08-21-one-gate-streamlining-intent.md), [escape hatch](../reasoning/2026-08-21-one-gate-escape-hatch-resolved.md)
-
-## What is still open
-
-The doctrine and both Gate 1 files now describe one gate. The intent owner
-approved D24 and the one-gate amendment on 2026-08-21; the approval is filed
-[verbatim](../reasoning/2026-08-21-d24-owner-approval.md). Path B's complete
-deterministic testing infrastructure is manifested and its amended 95-case
-oracle has received the live-human signature, so the protected implementation
-work is now underway. The technical spec remains a non-blocking design record.
-[Implementation resumption](../reasoning/2026-09-01-path-b-implementation-resumption.md)
-
-**Root cause named for the re-sign cost (2026-09-04).** The office-hours
-structural design traces this page's re-sign-multiplier symptom (already a
-documented contributor to PR #143's 74 commits) to the same asymmetry as the
-project's other workflow symptoms: the signature covers one document that
-mixes frozen acceptance criteria with unfrozen prose, with no addressable
-boundary between the two, so a prose-only edit still costs a human ceremony.
-The design explicitly retires "decouple the oracle from prose" as the fix —
-the owner wants the signature tied to the document — in favor of separate
-signing-UX work: bulk re-sign (clear one, some, or all invalidated items at
-once) and single-physical-auth packaging (one Touch ID instead of two
-approvals). That signing-UX work is scoped as a follow-on PR, not part of the
-four-slice workflow fix, and nothing here is implemented yet.
-[Structural workflow fix design](../reasoning/2026-09-04-structural-workflow-fix-design.md)
+The signed oracle prevents an implementation from moving its own goalposts.
+The technical design guides the implementation without imposing a second
+freeze on details that can be learned from the code. The historical transition
+from the former two-freeze model, its owner decisions, and the signature-UX
+follow-up remain in their source records.
+[One-lock decision](../archive/2026-08/gate-model-and-the-one-lock.md) ·
+[signature-UX design](../reasoning/2026-09-04-structural-workflow-fix-design.md) ·
+[decision index](../index/decisions.md)

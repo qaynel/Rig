@@ -1,0 +1,13 @@
+# testing.mutation.score-metrics — identity
+
+Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.
+
+Policy grade. Compute sensitivity from valid mutants and make denominator exclusions explicit. Including invalid mutants can distort the score without measuring test sensitivity.
+
+Applicable surface: source-code.
+
+Owned scope: `mutation.score-metrics`. Keep adjacent mutation concerns separate; this service covers the declared mutation policy only.
+
+Disposition: executable. The installed native checks evaluate the declared fields; they do not demonstrate tool behavior. Configuration validation only, so it confirms killed and valid mutant counts and the invalid-in-score flag are declared; it does not compute a score.
+
+Policy checks: minimal requires `killed_mutants` = `8`; mid adds `valid_mutants` = `10`; maximal requires `include_invalid_mutants_in_score` = `false`.

@@ -5,162 +5,67 @@
 </figcaption>
 </figure>
 
----
-Rig es una caja de herramientas curada e independiente del host para agentes de
-programación. Ofrece dos superficies de entrega:
+# Rig
 
-1. **Bootstrap solo Markdown (Tier 1)** — un router compartido, una regla de
-   implementación Ponytail siempre activa y skills enfocadas para intención,
-   diseño, ejecución, TDD, depuración y revisión de código. Sin procesos, claves
-   de API ni dependencias.
-2. **Línea base + catálogo à-la-carte** — primero hace seguro el harness del
-   agente; luego el usuario elige capacidades como
-   `familia → grupo → servicio → grado` (Development · Testing · Infrastructure ·
-   Product-Security). Los paquetes fijos Basic / mid / Advanced están retirados;
-   el catálogo es el producto.
+Rig es una caja de herramientas para agentes de programación. Ofrece instrucciones
+de flujo de trabajo compartidas, una línea base de seguridad obligatoria para el
+agente y un catálogo à-la-carte de servicios de ingeniería. El agente de tu repositorio
+inspecciona el proyecto y propone los servicios y grados relevantes; tú revisas y
+apruebas la adaptación exacta. Rig no instala niveles de capacidad fijos.
 
-## Instalar el bootstrap Markdown
+## Instalar
 
-Desde este checkout:
+En una máquina con Git, ejecuta este comando para obtener el instalador de la versión
+6.0.0 e instalar Rig en un repositorio:
 
 ```sh
-sh rig/bootstrap.sh --target /path/to/repository
+git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0 && /tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
 ```
 
-Por defecto el bootstrap local es solo Markdown: el `SKILL.md` de cada skill se
-instala, pero su código y el árbol `.rig/plumbing` quedan fuera. Agrega
-`--with-runtime` para instalarlos también:
+El instalador detecta la configuración de agente existente y añade las instrucciones
+compartidas de Rig, la línea base de seguridad, el catálogo y el runtime activo.
+Registra los archivos instalados en `.rig/install-manifest.jsonl`.
 
-```sh
-sh rig/bootstrap.sh --target /path/to/repository --with-runtime
-```
+## Instalar la distribución completa de plugins
 
-El script raíz `install.sh` resuelve una release con nombre, la descarga antes
-de ejecutarla, y siempre invoca el bootstrap con `--with-runtime`, de modo que
-el catálogo activo y el runtime de seguridad quedan incluidos:
+Rig también incluye adaptadores nativos para hosts que soportan plugins, extensiones,
+comandos, hooks o integraciones de barra de estado. La instalación del corpus anterior
+es la capa base; usa estas integraciones de host cuando quieras su superficie de
+instalación nativa.
 
-```sh
-sh install.sh --version v5.0.0 --target /path/to/repository
-```
-
-El bootstrap pregunta por el tier cuando se ejecuta de forma interactiva. La
-automatización puede tomar la misma decisión explícitamente:
-
-```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository
-```
-
-Sin `--hosts`, Rig detecta mecánicamente la configuración de host existente en
-el registro de 19 hosts y no instala ningún árbol de host ausente. Limita o
-sobrescribe esa selección explícitamente con una lista separada por comas:
-
-```sh
-sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
-# o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
-```
-
-El bootstrap requiere `node` en el `PATH`. Su salida nombra cada host
-detectado o explícito y registra cada escritura de payload en
-`.rig/install-manifest.jsonl`.
-
-Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
-host:
-
-- Claude Code recibe skills de proyecto en `.claude/skills/` y un puntero al
-  router en `CLAUDE.md`.
-- Codex recibe skills nativas de proyecto en `.agents/skills/` más el puntero
-  siempre activo al router en `AGENTS.md`.
-- Antigravity co-lee ese mismo árbol `.agents/` (skills/rules), más `GEMINI.md`
-  (los overrides específicos de Antigravity ganan sobre `AGENTS.md`) y workflows
-  de slash commands en `.agents/workflows/`.
-- OpenCode, CodeWhale, Swival y otros lectores de `AGENTS.md` reciben un puntero
-  raíz.
-- Gemini CLI recibe un puntero en `GEMINI.md`.
-- Cursor, Windsurf, Cline, GitHub Copilot, Kiro y lectores de `.agents/rules`
-  reciben sus archivos nativos de instrucciones de proyecto.
-
-Cada adaptador lee `.rig/routing.md`. Claude y Codex también descubren las
-mismas siete skills de forma nativa desde sus directorios de host. Los
-entrypoints de host existentes se preservan.
-
-Esos árboles de skills nativas están versionados en este repositorio en
-`.claude/skills/` y `.agents/skills/`; el bootstrap los copia sin cambios en los
-repositorios destino.
-
-| Host | Entrypoint instalado |
+| Host | Ruta de instalación / carga |
 |---|---|
-| Claude Code | `CLAUDE.md`, `.claude/skills/rig-*/SKILL.md` |
-| Cursor | `.cursor/rules/rig.mdc` |
-| Windsurf | `.windsurf/rules/rig.md` |
-| Cline | `.clinerules/rig.md` |
-| GitHub Copilot editor/CLI | `.github/copilot-instructions.md`, `AGENTS.md` |
-| Codex / VS Code Codex | `AGENTS.md`, `.agents/skills/rig-*/SKILL.md` |
-| Gemini CLI | `GEMINI.md` |
-| Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/` |
-| Kiro | `.kiro/steering/rig.md` |
-| OpenCode, CodeWhale, Swival | `AGENTS.md` |
-| Otros agentes | Configura el host para leer `.rig/routing.md`, o agrega el puntero de una línea de `rig/tier-1/adapters/pointer.md` a sus instrucciones de proyecto. |
+| GitHub Copilot CLI | `copilot plugin marketplace add qaynel/Rig`, luego `copilot plugin install rig@rig` |
+| Hermes Agent | Plugin nativo en `plugin.yaml`; ver más abajo |
+| Swival | `swival skills add https://github.com/qaynel/Rig` |
+| OpenClaw | `clawhub install rig` |
+| Devin | `devin plugins install qaynel/Rig` |
 
 ### Hermes Agent
 
-Instala Rig como plugin nativo de Hermes (`plugin.yaml`): inyecta el modo
-activo vía `pre_llm_call`, registra el cambio de modo `/rig` y expone las
-skills como `rig:<skill>`.
+Instala Rig como plugin nativo de Hermes (`plugin.yaml`). Inyecta el modo activo
+mediante `pre_llm_call`, registra el cambio de modo `/rig` y expone las skills
+como `rig:<skill>`.
 
-## Línea base + catálogo à-la-carte
+## Después de instalar
 
-Tras sanear el harness, Rig ofrece un menú recomendado por el escaneo. El
-usuario elige servicios hoja y grados en `rig.json`; las dependencias faltantes
-solo arrastran las slices exactas requeridas. La instalación se injerta en la
-infraestructura de agentes existente y siempre conserva los suelos de
-sanitation, drift, secretos, git y CI.
+En tu agente, invoca `rig-onboarding`. Inspecciona el repositorio y prepara una
+propuesta de adaptación, incluyendo los servicios y grados del catálogo relevantes.
+Revisa y aprueba esa propuesta antes de que modifique el repositorio; no hay un
+paso de selección de servicios por separado.
 
-```text
-inspect → host review → recommend → select (rig.json) → plan → apply → check
-```
+## Por dónde continuar
 
-Detalles del operador: [`docs/advanced/operator.md`](docs/advanced/operator.md).
-Diseño y razonamiento: [`wiki/`](wiki/).
+**Instalando Rig** — Configuración paso a paso con comandos y explicaciones. → [Guía de instalación](docs/install.md)
 
-La CLI legacy del configurador MCP sigue disponible como compatibilidad; ya no
-es un tier de instalación separado.
+**Entendiendo el producto** — Qué hace Rig por tu equipo y por qué. → [Visión del producto](docs/vision.md)
 
-## Columna vertebral de curaduría
+**Entendiendo la arquitectura** — Cómo funciona Rig internamente, con diagramas. → [Arquitectura](docs/architecture.md)
 
-| Fase | Owner de Rig |
-|---|---|
-| Intención y pruebas de aceptación | Grilling |
-| Diseño de producto y técnico | Product design |
-| Implementación | Ponytail |
-| Ejecución y paralelismo | Execution |
-| TDD | Injerto curado |
-| Depuración | Injerto curado |
-| Revisión de código | Injerto curado |
+**Profundizando** — Entrypoints por host, configuración MCP, guía avanzada del operador.
+→ [Portabilidad de host](docs/agent-portability.md) · [Guía del operador](docs/advanced/operator.md) · [Wiki del proyecto](wiki/agent-primer.md)
 
-Las skills curadas etiquetan sus checks por fase del flujo de trabajo. Fusionan
-las partes distintivas de cada flujo en vez de concatenar documentos fuente.
+## Comunidad
 
-## Límite del bootstrap Markdown
-
-El bootstrap Tier 1 es intencionalmente una instalación tonta con una lista fija
-de archivos. No tiene resolvedor de catálogo, runtime, claves ni manejo de
-`.env`. El layout compartido es predecible para que el materializer del
-catálogo lo describa sin cambiar la forma instalada.
-
-El flujo de trabajo es asesor porque el bootstrap solo entrega Markdown. Claude
-y otros hosts con hooks pueden proveer enforcement real donde el host lo
-soporta; Cursor no. Rig afirma esa limitación en vez de pretender que la prosa
-es un hard guardrail.
-
-## Verificar
-
-```sh
-npm run test:rig
-```
-
-El test arranca un repositorio temporal fresco y comprueba el payload
-compartido completo, cada adaptador de instrucciones, la preservación de
-archivos de host existentes, el límite solo-Markdown y la ausencia de
-placeholders de secretos.
-
-La aceptación del catálogo vive en `tests/advanced-*.test.js` e `npm test`.
+Políticas del proyecto y cómo participar. Los documentos están en inglés.
+→ [Código de conducta](CODE_OF_CONDUCT.md) · [Contribuir](CONTRIBUTING.md) · [Seguridad](SECURITY.md) · [Accesibilidad](ACCESSIBILITY.md) · [Soporte](SUPPORT.md) · [Licencia](LICENSE)

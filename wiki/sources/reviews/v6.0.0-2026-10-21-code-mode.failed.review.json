@@ -1,0 +1,114 @@
+{
+  "verdict": "fail",
+  "findings": [
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/apply.js:134-150; rig/lib/cli-advanced.js apply",
+      "detail": "validatePlanApproval checks only the plan digest, method label, and caller-supplied approval.approval.verified === true. It never verifies SSHSIG against the Gate 1 key and even accepts host-native. An agent can manufacture this JSON and apply repository changes without human approval. The stronger onboarding verifier does not protect this still-callable public path."
+    },
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/apply.js:573 remediate; rig/lib/cli-advanced.js remediate",
+      "detail": "Remediation treats SHA-256(JSON.stringify(proposal)) supplied through --approve as consent. It never checks action.before, acquires no transaction lock, journals no writes, and returns applied without rescanning. Thus an agent can self-authorize stale-input rewrites; successful changes and crash-interrupted changes have no required remediation journal state."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/check-runner.js:runBinding",
+      "detail": "The runner returns success after iterating zero runnable commands. Read-only calls with {checks:{}}, {checks:{missing:{}}}, and {checks:{empty:{commands:[]}}} each returned status:0 and executed_count:0. The branches 'if (!argv) continue' and empty loops allow missing or malformed executable behavior to become green, contrary to AT-SHAPE-5."
+    },
+    {
+      "severity": "blocker",
+      "category": "architecture",
+      "anchor": "rig/lib/lint-format.js:executePlan/runGrade/runReadOnly; rig/lib/check-runner.js:runBinding",
+      "detail": "executePlan verifies and consumes consent but merely returns status:'executed'; it launches no listed command. The actual grade, read-only, and installed runners do not require that approval or invoke its drift/consumption checks. Normal checks can therefore run repeatedly without execution approval, and installed tasks changed after apply execute under stale bindings. AT-LF-5/14/20 tests exercise the detached approval helper rather than this dispatch boundary."
+    },
+    {
+      "severity": "blocker",
+      "category": "correctness",
+      "anchor": "rig/lib/spawn-guarded.js:NETWORK_SANDBOX_PROFILE/networkIsolationPrefix; rig/lib/lint-format.js:spawnTask",
+      "detail": "The lint-task sandbox restricts only networking: macOS uses '(allow default)(deny network*)', and Linux unshares only user/network namespaces. Neither confines filesystem reads/writes. An approved task can read credentials outside the repository, use absolute paths, or follow an escaping repository symlink. Checking cwd/source paths and filtering environment variables does not enforce AT-LF-21/24. The separate projection-script sandbox is not used here."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/check-runner.js:runConfiguredArgv",
+      "detail": "An absent network declaration runs unrestricted under 'temporary compatibility mode'. Generated component commands do not declare the runner's none/required field. Consequently repository-owned lint tasks can reach the network without an explicit plan grant, despite AT-LF-22's default-deny requirement."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/lint-format.js:discoverComponents/finalizeSelection/resolveScope; rig/lib/lint-grade.js:runInstalledGrade",
+      "detail": "Discovery uses ECOSYSTEM_SIGNALS, TASK_FILES, TOOL_CONFIG and known-tool regexes rather than open-ended repository-derived discovery. More critically, finalizeSelection and resolveScope are detached helpers: createPlan rebuilds all components, and installed execution passes unchanged commands such as eslint '.' and prettier '--check' '.' without changed-file filtering. User component exclusions, requested scope, and component ignore semantics do not govern actual execution."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/check-runner.js:component check.commands branch; rig/lib/lint-format.js:runReadOnly",
+      "detail": "Component commands at Policy grade and in CI run without mutation snapshots; the read_only snapshot branch covers a different binding shape. runReadOnly itself labels completed nonzero/signalled commands clean and reports no before/after evidence. A mutating formatter can therefore pass or continue through later commands on shipping paths even though the separate grade helper detects mutations."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "rig/lib/service-catalogue.js:bindServices/runNativeService; rig/corpus/services/development/code-quality/lint-format/checks.json",
+      "detail": "Path B can bind lint-format at minimal/mid/maximal to JSON declaration tests: nonempty format_command, nonempty lint_command, and autofix_during_check === false. These can pass with nonexistent commands and no source check, Context review, or Evidence replay. Honest configuration-only ceiling text does not supply the mandatory executable lint-format vertical or make requested higher grades valid."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/catalog/baseline/check.js:main; rig/lib/guard.js:SHIM; rig/lib/checks.js:runChecks",
+      "detail": "The installed pre-commit shim invokes only secret-guard.sh. The CI runner invokes exact-copy and selected bindings, omitting sanitation, semantic drift, and the deterministic secret floor. Neither runner loads activated policy to disable controls or applies evidence generations. CI also lacks active-grade filtering, so Policy/Context lint-format runs there. The source CLI defaults to repo scope. Small helper tests do not establish the required baseline dispatch."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/git-dispatch.js:stagedHarnessFiles/runPreCommit; rig/lib/checks.js:semanticDrift",
+      "detail": "The optional sanitation dispatcher enumerates staged names but scans fs.readFileSync of working-tree files, allowing malicious staged bytes to be masked by clean unstaged bytes. It uses a separate narrow regex instead of the common detector. semanticDrift accepts documents with no review at all and validates neither review input_digest nor current semantic findings; unmarked contradictory contexts can pass."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/policy.js:activatePolicy; rig/lib/enforcement.js:consumeOneUseApproval; rig/lib/policy.js:grantApproval",
+      "detail": "Policy activation checks sequence before writing but has no exclusive lock/CAS; it publishes active bytes and receipt with two separate renames and writes predictable temporary files without exclusive creation. Concurrent approvals can overwrite state or leave an unusable mismatched pair. Action approvals are separately minted without a signature into .rig/approvals, while consumption only flips an in-memory used Boolean; cloning the object permits replay and no atomic dispatch consumes it."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/ci-adapters.js:detectProvider/mergeExisting/planCiIntegration",
+      "detail": "Existing CI is classified by path existence. Approved explicit-provider planning bypasses malformed/unknown-shape validation, and GitLab integration simply appends text; Jenkins can append a second pipeline when no stages block is found. The API reports integrated/verified without any real provider run. Tests of emitted text cannot establish AT-CI-4's required preservation and first-run execution behavior."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/checks.js:runChecks; rig/lib/cli-advanced.js:check; rig/lib/guard.js:GUARD_SCRIPT; rig/lib/reports.js",
+      "detail": "The source check CLI returns and prints raw child stdout/stderr, including in CI, outside projectForAgent's triage gate. External staged scanners also inherit output streams without enforced redaction. The installed copy-check failure path prints raw error output. Report writing alone cannot prevent matched secrets or finding detail from reaching agent context/job logs. Reports additionally accept only failed/vacuous/coverage_gap, collapsing the required abnormal-ending taxonomy."
+    },
+    {
+      "severity": "major",
+      "category": "correctness",
+      "anchor": "rig/lib/payload.js:359 journalWriter; rig/lib/onboarding-check.js:readJournal/calculateWeight",
+      "detail": "Both readers catch JSON parse failures and silently discard records, including malformed non-final history. Resume/check may proceed with missing ownership or interruption evidence, whereas lifecycle.readManifest correctly rejects that condition. This duplicates journal authority with incompatible failure semantics. Weight calculation also omits preimage files written outside the ordinary journaled-output set, understating required attributable overhead."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/lint-format.js:applyCoverage; rig/lib/apply.js:generic service binding generation",
+      "detail": "applyCoverage accepts a caller-computable digest, writes files directly, then returns an in-memory manifest_records array; a crash leaves unrecorded writes and removal cannot consume that array. Separately, catalogue apply builds generic bindings from service.checks[grade] rather than cumulative effectiveChecks, dropping lower-grade checks when a higher grade is selected."
+    },
+    {
+      "severity": "major",
+      "category": "coverage",
+      "anchor": "rig/lib/secret-history.js:scanBeforeActivation",
+      "detail": "History activation selects the first executable named gitleaks/trufflehog and treats stable-history exit 0 as verified. It does not validate supported scanner version, structured output, scanner/configuration identity, or provide the required exact-current-findings waiver. Failure evidence is reduced to an output hash and literal 'redacted', losing actionable locations and rule identities."
+    },
+    {
+      "severity": "major",
+      "category": "contradiction",
+      "anchor": "rig/lib/global-writes.js:writeJson and global JSON merge paths",
+      "detail": "Global JSON merges parse and serialize the entire shared file with JSON.stringify. This is a wholesale rewrite, changing pre-existing lexical bytes such as number representations and formatting, contrary to AT-HOME-1's explicit ban. Namespaced keys protect semantic ownership but do not satisfy the required byte-preserving additive write boundary."
+    }
+  ],
+  "unresolved": []
+}

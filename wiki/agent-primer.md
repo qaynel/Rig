@@ -4,6 +4,10 @@ The one page you read before touching this project. Skim it, follow the
 handful of links it holds, and you have everything you need to route the
 work without re-deriving context from the code.
 
+**Settled product decisions are listed under "North star" at the top of
+`CLAUDE.md`. Never re-ask or contradict them** — above all: Rig is one central
+corpus the user's agent unpacks; never scope or test per host.
+
 ## Read these first (in this order)
 
 1. **[Home](Home.md)** — what lives where in this wiki, and the rule that
@@ -11,13 +15,19 @@ work without re-deriving context from the code.
    immutable).
 2. **[Status](status.md)** — what is true on this branch right now. Generated
    from current reasoning traces; do not hand-edit.
-3. **[The overhaul](topics/the-overhaul.md)** — the live 2026-09 workstream:
-   diagnosis, plan, what was rejected, and the five open decisions that gate
-   it. Read this before proposing workflow, product, or architecture changes.
-4. **[Quick reference](index/quick-reference.md)** — routing by task rather
+3. **[Quick reference](index/quick-reference.md)** — routing by task rather
    than by date, with a line count beside every link so you can budget before
    you open anything. Capped at 150 lines. Start here when you know what you
    are about to do; it usually replaces the hub-hunting step below.
+4. **[Current release checkpoint](topics/the-overhaul.md)** — the remaining
+   owner and exact-QA-commit steps for the 6.0.0 closeout. Use the linked
+   deployment policy as the release sequence.
+
+Rig ships one central corpus. Install projects its skills, standards, and
+onboarding instructions into the repository; the user's host agent then
+inspects that repository and proposes the smallest useful set to graft onto
+what already exists. Rig's installer does not infer project needs. See
+[What Rig is](topics/what-rig-is.md) and [Onboarding flow](topics/onboarding-flow.md).
 
 ## Then, only the hubs the task actually touches
 
@@ -58,5 +68,5 @@ what is true, file the trace and update the hub in the same change —
 A single-step task — a one-line fix, a factual question, a small edit
 confined to one file, with no cross-file coordination and nothing that
 changes what's true in the wiki — is on the lightweight path in
-`rig/tier-1/routing.md` § Task weight and skips this primer. Everything else
+`rig/corpus/routing.md` § Task weight and skips this primer. Everything else
 reads this page first.

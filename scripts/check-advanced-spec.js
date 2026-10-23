@@ -90,6 +90,9 @@ function verifySignature(root, message) {
   // Enforce exactly one principal
   assert.equal(principals.length, 1, `oracle requires exactly one principal, found ${principals.length}`);
   const principal = principals[0];
+  const selected = allowedText.split('\n').map((line) => line.trim()).find((line) => line && !line.startsWith('#') && line.split(/\s+/, 1)[0].split(',').includes(principal));
+  const namespaceField = selected?.split(/\s+/).find((field) => field.startsWith('namespaces='));
+  assert.equal(namespaceField, 'namespaces="rig-gate1"', 'Gate 1 signer must be restricted to the rig-gate1 namespace');
 
   // Verify against the single principal
   const result = spawnSync('ssh-keygen', [

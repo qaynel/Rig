@@ -1,5 +1,31 @@
 # Install manifest and removal
 
+A fresh October 22 independent review found that the shared parser accepted
+valid-JSON operation records with missing ownership/state/operation fields; a
+matching digest could then let uninstall delete user-created `.rig` data.
+Strict structural validation and public-uninstall byte-preservation tests are
+in progress. The new tests pass; adjacent older handcrafted fixtures are
+incomplete under the validated operation schema and remain unresolved pending
+fixture ownership and reconciliation.
+[Latest journal integrity checkpoint](../reasoning/2026-10-22-journal-integrity-fix-progress.md)
+
+The [QA follow-up checkpoint](../reasoning/2026-10-18-qa-closeout-followup-progress.md)
+records that migration retains its temporary record with a named recovery state;
+pathname cleanup cannot atomically prove the entry still names the validated inode.
+The [integration checkpoint](../reasoning/2026-10-18-qa-closeout-followup-migration-integration.md)
+and [platform verification checkpoint](../reasoning/2026-10-18-qa-closeout-followup-platform-verification.md)
+record that migration protects approved projected files and that its maintained
+suite passes on macOS, with Linux publication and replacement cases also passing.
+
+The corpus parity run now compares every v5 configuration with explicitly
+explained path-family changes, and the real migration round trip restores the
+complete initial fixture inventory after removing only generated uninstall
+evidence. [2026-10-14 closure trace](../reasoning/2026-10-14-closure-corpus-parity.md)
+
+The install projector no longer reads or emits optional upstream shelf files;
+the active onboarding path still carries verified fetch metadata.
+[2026-10-14 shelf trace](../reasoning/2026-10-14-closure-shelf-removal.md)
+
 ## What it is
 
 Rig records repository mutations in `.rig/install-manifest.jsonl`, an
@@ -24,8 +50,9 @@ payload, and CI mutations.
 
 Path B's `graft_managed` ownership records the named capability sections inside
 one existing Markdown instruction file, including each section's canonical
-content digest. Reversal removes only a digest-matching recorded section;
-unmanaged bytes and an edited managed body survive as best-effort preservation.
+content digest. Reversal removes recorded managed sections even if their managed
+body was edited; bytes outside valid recorded markers survive. Malformed or
+rewritten markers are preserved and reported as best-effort cases.
 [Slice 4 trace](../reasoning/2026-09-01-path-b-slice4-graft.md)
 
 Removal walks the last record for each sequence in reverse. It deletes only
@@ -40,9 +67,11 @@ legacy Basic MCP leftovers. The journal is retained while best-effort files
 remain and is deleted last in both ordinary and purge modes. Preimage
 backups, install-id, and shared hook writes are journaled so they reverse.
 The shipping `uninstall` command writes removal evidence. Reports and
-user-owned policy files survive ordinary removal; `--purge` lists
-reports/run history before deleting those usage artifacts and still
-preserves the user policy.
+user-owned policy files survive ordinary removal. `--purge-generated` restores
+ledger-recorded preimages and removes unchanged generated evidence, preserving
+unowned reports and edits; `--purge` additionally deletes the complete
+`reports/rig/` scope. Both preserve edited user policy.
+[Generated-only cleanup](../reasoning/2026-10-17-qa-readiness-scoped-removal-design.md)
 
 Uninstall resolves every ordinary journal path through the symlink-aware
 containment guard before applying its install-namespace allow-list, so an
@@ -60,11 +89,11 @@ existing workflow, and only for that append-managed write. Common GitLab,
 CircleCI, Jenkins, Buildkite, and Azure pipeline files, other files inside
 provider directories, lexical path aliases, unique-path symlinks, and forged
 managed-line records are retained as named best-effort cases.
-[Safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
-[Intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+[Safety follow-up](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[Intent-owner safety ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI managed-line ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI path-identity ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI realpath ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 ## Why
 
@@ -78,12 +107,12 @@ beyond the selected target.
 - Frozen lifecycle intent: [business specification](../gate1/business-spec.md)
 - Working mechanism: [technical specification](../gate2/technical-spec.md#76-install-manifest-resume-and-removal)
 - Original lifecycle ruling: [advanced grilling](../sources/logs/advanced-grilling.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- Safety follow-up: [reasoning trace](../reasoning/2026-08-28-rig120-safety-followup.md)
-- Editable-journal ruling: [intent-owner trace](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-- CI managed-line ruling: [reasoning trace](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-- CI path-identity ruling: [reasoning trace](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-- CI realpath ruling: [reasoning trace](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+- Production findings: [intent-owner trace](../archive/2026-08/release-install-and-distribution.md)
+- Safety follow-up: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- Editable-journal ruling: [intent-owner trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI managed-line ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI path-identity ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+- CI realpath ruling: [reasoning trace](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 ## A recorded absence is not something to reclaim
 
@@ -137,3 +166,25 @@ every later run keeps a resume licence it should have surrendered.
 [Resume trace](../reasoning/2026-09-01-path-b-hardening-issue4-resume.md)
 
 <!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+
+2026-10-13 close-everything bug fixes ([trace](../reasoning/2026-10-13-rig-127-145-147-146-bug-fixes.md)):
+a corrupted global config now makes uninstall report that path best-effort and
+leave it byte-identical (RIG-127.11); a nameless legacy managed-block record
+strips a block only when removing it restores the journaled preimage digest,
+otherwise best-effort (RIG-127.12).
+
+2026-10-13 (subplan 03): a v5 install upgrades through `rig/lib/migrate.js`
+(`sh rig/bootstrap.sh` or `rig migrate`): strict journal validation, corpus
+staged first, files replaced or retired only when journal-owned and
+byte-unchanged, a persisted resumable plan, marker-last completion, and an
+uninstall round trip that restores the full pre-install inventory.
+([trace](../reasoning/2026-10-13-corpus-03-slice5-migration.md))
+
+Closure work in progress: [2026-10-13-lint-standards-start](../reasoning/2026-10-13-lint-standards-start.md).
+
+2026-10-22: Lifecycle rejects malformed operation ownership/history before
+uninstall mutation, while accepting valid legacy applied creates without a
+preimage digest; replacements still require one
+([checkpoint](../reasoning/2026-10-22-journal-legacy-create-compatibility.md)).
+Resume accepts a pointer graft matching its verified preimage
+([checkpoint](../reasoning/2026-10-22-legacy-pointer-resume-guard.md)).

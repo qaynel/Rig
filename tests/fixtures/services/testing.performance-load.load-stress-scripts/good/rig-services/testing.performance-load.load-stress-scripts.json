@@ -1,0 +1,7 @@
+{
+  "load_profile": "ramp 10 to 100 users",
+  "stop_conditions": [
+    "error rate above 5 percent"
+  ],
+  "target_production_by_default": false
+}

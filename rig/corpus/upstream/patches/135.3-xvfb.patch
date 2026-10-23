@@ -1,0 +1,85 @@
+diff --git a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/xvfb.ts b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/xvfb.ts
+index 3e0dad8a..1fe8cbf8 100644
+--- a/rig/catalog/skills/browser-and-research/browser-automation/browse/src/xvfb.ts
++++ b/rig/catalog/skills/browser-and-research/browser-automation/browse/src/xvfb.ts
+@@ -22,7 +22,9 @@
+ import * as fs from 'fs';
+ import * as path from 'path';
+ import * as os from 'os';
+-import { safeKill, isProcessAlive } from './error-handling';
++import { spawn } from 'node:child_process';
++import { isProcessAlive } from './error-handling';
++import { signalProcessTree } from './process-tree';
+ 
+ export interface XvfbHandle {
+   pid: number;
+@@ -133,10 +135,18 @@ export async function spawnXvfb(displayNum: number): Promise<XvfbHandle> {
+ 
+   // Spawn detached: Xvfb's lifetime is tied to whether we've explicitly
+   // killed it via the handle's close() method, not to the parent process.
+-  const proc = Bun.spawn(['Xvfb', display, '-screen', '0', '1920x1080x24', '-ac'], {
+-    stdio: ['ignore', 'ignore', 'ignore'],
++  // Rig local patch (RIG-135.3): detached:true makes Xvfb the leader of its own
++  // process group so close() can tear the whole group down; the original
++  // comment said "detached" but never passed the option.
++  const proc = spawn('Xvfb', [display, '-screen', '0', '1920x1080x24', '-ac'], {
++    stdio: 'ignore',
++    detached: true,
+   });
+   proc.unref();
++  // A missing binary surfaces as an 'error' event; keep it from being uncaught
++  // and report it through the startup wait below.
++  let spawnError: Error | null = null;
++  proc.once('error', (err) => { spawnError = err; });
+ 
+   // Wait for the X server to become reachable — Xvfb takes a few hundred ms
+   // to bind. Probe via xdpyinfo with retries.
+@@ -146,21 +156,24 @@ export async function spawnXvfb(displayNum: number): Promise<XvfbHandle> {
+     await Bun.sleep(100);
+     if (!isDisplayFree(displayNum)) { ready = true; break; }
+     // If Xvfb crashed during startup, fail fast.
++    if (spawnError) {
++      throw new Error(`Xvfb on ${display} failed to start (${(spawnError as Error).message}). Hint: install xvfb (apt-get install xvfb / yum install xorg-x11-server-Xvfb).`);
++    }
+     if (proc.exitCode != null) {
+       throw new Error(`Xvfb on ${display} exited during startup (code ${proc.exitCode}). Hint: install xvfb (apt-get install xvfb / yum install xorg-x11-server-Xvfb).`);
+     }
+   }
+   if (!ready) {
+-    try { proc.kill('SIGKILL'); } catch { /* ignore */ }
++    try { signalProcessTree(proc.pid, 'SIGKILL'); } catch { /* ignore */ }
+     throw new Error(`Xvfb on ${display} never became reachable within 3s timeout`);
+   }
+ 
+-  const startTime = readPidStartTime(proc.pid);
++  const startTime = readPidStartTime(proc.pid!);
+   return {
+-    pid: proc.pid,
++    pid: proc.pid!,
+     startTime,
+     display,
+-    close: () => cleanupXvfb({ pid: proc.pid, startTime, display }),
++    close: () => cleanupXvfb({ pid: proc.pid!, startTime, display }),
+   };
+ }
+ 
+@@ -173,15 +186,14 @@ export async function spawnXvfb(displayNum: number): Promise<XvfbHandle> {
+ export function cleanupXvfb(state: { pid: number; startTime: string; display: string }): void {
+   if (!state.pid) return;
+   if (!isOurXvfb(state.pid, state.startTime)) return;
+-  try { safeKill(state.pid, 'SIGTERM'); } catch { /* swallow */ }
+-  // Wait briefly for Xvfb to exit, then SIGKILL if still alive.
++  // Rig local patch (RIG-135.3): signal the process group, not just the leader.
++  try { signalProcessTree(state.pid, 'SIGTERM'); } catch { /* swallow */ }
++  // Wait briefly for Xvfb to exit, then SIGKILL the group (a no-op if empty).
+   const deadline = Date.now() + 1000;
+   while (Date.now() < deadline) {
+     if (!isProcessAlive(state.pid)) break;
+   }
+-  if (isProcessAlive(state.pid)) {
+-    try { safeKill(state.pid, 'SIGKILL'); } catch { /* swallow */ }
+-  }
++  try { signalProcessTree(state.pid, 'SIGKILL'); } catch { /* swallow */ }
+ }
+ 
+ /**

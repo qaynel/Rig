@@ -1,0 +1,9 @@
+{
+  "observed_conditions": [
+    "parallel runs"
+  ],
+  "reproduction_attempts": [
+    "repeat with scheduler seed"
+  ],
+  "blame_randomness_without_evidence": false
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.test-data.anonymization",
+  "input": "rig-services/testing.test-data.anonymization.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms sensitive fields, a replacement strategy and the re-identification-map flag are declared; it does not read any data.",
+  "offer": "Identify every sensitive field and replace it irreversibly while preserving useful data shape. A retained lookup from synthetic values to people defeats anonymization.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
+      }
+    ],
+    "mid": [
+      {
+        "field": "replacement_strategy",
+        "op": "nonempty",
+        "reason": "Declare the replacement strategy, which must be irreversible while preserving data shape. Reversible masking is not anonymization, so name the method."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "retain_reidentification_map",
+        "op": "equals",
+        "value": false,
+        "reason": "Set retaining a re-identification map to false. A lookup from synthetic values to people defeats anonymization, so delete it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "anonymization-slice-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "anonymization-slice-behavior-oracle",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
+      }
+    },
+    "property-floor": {
+      "check_id": "anonymization-slice-property-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "anonymization-slice-mutation-floor",
+      "rule": {
+        "field": "sensitive_fields",
+        "op": "nonempty",
+        "reason": "List every sensitive field, such as emails and names. An unlisted field leaks, so enumerate them."
+      }
+    }
+  }
+}

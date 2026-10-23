@@ -1,6 +1,6 @@
 {
   "name": "rig-agent-toolbox",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "private": true,
   "description": "A curated, host-agnostic markdown toolbox for coding agents.",
   "keywords": ["rig", "agent", "skills", "claude", "cursor"],
@@ -12,6 +12,7 @@
     "test": "node scripts/check-advanced-spec.js && npm run test:code",
     "test:code": "npm run test:secrets && node scripts/check-rule-copies.js && node scripts/check-versions.js && PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension && npm test --prefix rig-mcp",
     "test:rig": "node --test tests/rig-bootstrap.test.js",
+    "test:e2e": "node scripts/clean-install-e2e.js",
     "test:secrets": "node --test tests/repo-secret-hygiene.test.js tests/repo-secret-fixtures.test.js"
   }
 }

@@ -18,7 +18,7 @@ overlap_tags:
 
 Before investigation, declare the files and systems in scope. **Do not edit
 outside that boundary. Stop and renegotiate scope first.** `[gstack]` This is a
-strong prose fallback for the gstack freeze hook; Tier 1 markdown cannot enforce
+strong prose fallback for the gstack freeze hook; instructions alone cannot enforce
 it at the tool boundary.
 
 ## Six Phases

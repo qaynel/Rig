@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
-const routing = fs.readFileSync(path.join(root, 'rig/tier-1/routing.md'), 'utf8');
+const routing = fs.readFileSync(path.join(root, 'rig/corpus/routing.md'), 'utf8');
 const packageScripts = require(path.join(root, 'package.json')).scripts;
 
 function section(name) {
@@ -61,6 +61,7 @@ test('the router defines the signed human-in-the-loop ten-step SOP', () => {
     'rig-debugging',
     'rig-code-review',
     'rig-onboarding',
+    'rig-router',
   ]);
   for (const name of routing.match(/rig-[a-z]+(?:-[a-z]+)*/g) ?? []) {
     assert.ok(knownSkills.has(name), `routing.md must not introduce unknown skill ${name}`);

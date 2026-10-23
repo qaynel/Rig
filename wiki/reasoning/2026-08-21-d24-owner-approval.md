@@ -4,6 +4,7 @@ source: intent owner
 topics: the-two-gates, authored-service-gate, delivery-plan, distribution-and-release, gate1-signing
 decisions: D24
 status: historical
+summary: Owner approves D24 and MIT distribution.
 ---
 
 # D24 and MIT distribution approval

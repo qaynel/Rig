@@ -13,6 +13,16 @@ const { FLOOR_PATTERN } = require('../rig/lib/guard');
 const repoRoot = path.join(__dirname, '..');
 const floor = new RegExp(FLOOR_PATTERN);
 const secret = (...parts) => parts.join('');
+const PATCH_EXAMPLES = new Set([
+  secret('-placeholder filter passes obvious docs examples (e.g. `', 'AKIAIOSFODNN7', 'EXAMPLE', '`):'),
+  secret('-// keys like ', 'AKIAIOSFODNN7', 'EXAMPLE', ' are bare tokens, so the guard still catches them.'),
+  secret('-  /example/i, // ', 'AKIAIOSFODNN7', 'EXAMPLE', ' etc — AWS docs convention'),
+  secret('-    // The JSON-escaped form ("private_key": "-----BEGIN ', 'PRIVATE KEY-----', '\\n...)'),
+]);
+
+function knownPatchExample(rel, line) {
+  return rel === 'rig/corpus/upstream/patches/shelf-overlay.patch' && PATCH_EXAMPLES.has(line);
+}
 
 function git(cwd, args) {
   return execFileSync('git', args, { cwd, stdio: 'pipe' });
@@ -36,6 +46,7 @@ function secretShapedLines(root, files = publishableFiles(root)) {
     }
     if (body.includes(0)) continue;
     body.toString('utf8').split(/\r?\n/).forEach((line, index) => {
+      if (knownPatchExample(rel, line)) return;
       if (floor.test(line)) hits.push(`${rel}:${index + 1}`);
     });
   }
@@ -95,6 +106,13 @@ test('untracked publishable fixtures are scanned before commit', () => {
     fs.writeFileSync(path.join(target, 'new-fixture.txt'), `fixture=${secret('xox', 'b-123456789012-123456789012-abcdefghijklmnopqrstuvwx')}\n`);
 
     assert.deepEqual(secretShapedLines(target), ['new-fixture.txt:1']);
+  });
+});
+
+test('publishable patch files are scanned for secret-shaped values', () => {
+  withTempRepo((target) => {
+    fs.writeFileSync(path.join(target, 'change.patch'), `+token=${secret('AKIA', '0123456789ABCDEF')}\n`);
+    assert.deepEqual(secretShapedLines(target), ['change.patch:1']);
   });
 });
 

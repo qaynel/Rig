@@ -1,0 +1,8 @@
+{
+  "resource_limits": [
+    "cpu",
+    "memory"
+  ],
+  "readiness_probe": "/health",
+  "latest_image_tag": false
+}

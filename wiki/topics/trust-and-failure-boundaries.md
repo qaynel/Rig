@@ -1,11 +1,15 @@
 # Trust and failure boundaries
 
+Repeated boundary exposition was shortened to keep its hub within the existing
+budget. [Wiki-budget trace](../reasoning/2026-10-14-closure-wiki-budget.md)
+
+Timed repository subprocesses use the shared process-tree guard.
+[Spawn-guard trace](../reasoning/2026-10-14-closure-spawn-guard.md)
+
 ## What it is
 
-Rig treats repository paths, config bytes, policy candidates, signatures, host
-events, catalogue fragments, existing harness content, user files, commands,
-bindings, CI config, reports, and concurrent writes as explicit boundaries with
-defined validation and failure behavior. [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
+Rig validates repository paths, bytes, commands, approvals, bindings, and writes
+at explicit boundaries. [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 
 ## Why it is this way
 
@@ -37,8 +41,8 @@ refusals, not degraded success.
 - Product invariants: [Gate 1](../gate1/business-spec.md)
 - Boundary table: [Gate 2 §10](../gate2/technical-spec.md#10-trust-safety-and-failure-boundaries)
 - Security sources: [`sources/reference/`](../sources/reference/)
-- Lint-format execution-consent ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-plan-bound-execution.md)
-- Untrusted repository-task ruling: [reasoning trace](../reasoning/2026-08-20-lint-format-untrusted-task-execution.md)
+- Lint-format execution-consent ruling: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
+- Untrusted repository-task ruling: [reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 - Approved-byte binding: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue2-bytebinding.md)
 - Binding-row validation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-binding-validation.md)
 - Duplicate-name oracle adaptation: [reasoning trace](../reasoning/2026-09-01-path-b-hardening-issue5-test-drift.md)
@@ -63,7 +67,7 @@ approved on its own. Rig offers it for both formatting and safe lint fixes,
 then re-verifies by re-running the read-only check instead of assuming the fix
 held. The changes land as ordinary uncommitted working-tree edits the user owns
 and reviews; Rig never commits them or claims ownership of the source.
-[reasoning trace](../reasoning/2026-08-21-lint-format-autofix.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Because consent binds to exact commands, a task that drifts from what was
 approved is out of authorization (`GA-31`). When the underlying repository task
@@ -74,37 +78,21 @@ freshly rediscovered plan the user reviews and approves before execution
 resumes. Rig neither silently rediscovers and runs under the old approval nor
 runs stale approved text against a repository that no longer defines it. A
 changed command is a new command.
-[reasoning trace](../reasoning/2026-08-21-lint-format-command-drift.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 `shell: false` protects Rig's outer argument boundary; it says nothing about the
 behavior of a package-manager task or tool that may invoke a shell internally.
 Repository-owned tasks remain untrusted and execute under Rig's policy,
 least-privilege, secret-isolation, network, and resource/time controls.
 
-Those five words are now five concrete, testable guarantees (`GA-37`, `D28`):
-a plan approval authorizes exactly one execution of its exact digest and does
-not carry over to a later run; a task's working directory and every path it
-touches must resolve inside the repository even through a symlink, and it
-receives no ambient environment variable beyond an explicit allowlist; a task
-has no outbound network reachability unless the plan explicitly grants it; a
-task exceeding a configured memory ceiling or wall-clock timeout is killed
-and reported as its own distinct non-passing state (`GA-33`); a
-repository-supplied symlink resolving outside the repository is refused like
-any other escape attempt. `AT-LF-20`–`AT-LF-24` are the deterministic cases,
-and all five are implemented as of 2026-08-28: `AT-LF-20` in `executePlan`
-(consumes the approval on a successful run and refuses replay), `AT-LF-21` at
-task spawn (cwd/path containment plus an explicit env allowlist, both
-`runGrade` and `runReadOnly`), `AT-LF-22` in `runGrade` and `runReadOnly`
-(default-deny network with per-command grants), `AT-LF-23` (timeoutMs
-kill-and-report plus memory ceiling), and
-`AT-LF-24` in `planExecution` (refuses a read whose target escapes the
-repository through a symlink). The five guarantees are complete on the
-interactive lint-format plan/grade path. The installed CI floor intentionally
-has no plan/approval seam under GA-38; its shared runner enforces containment,
-resource ceilings, three-state network handling, and committed-policy
-capability authority. Remaining shard gaps are closed in the same file — see
+The concrete guarantees are single-use exact approvals, cwd/path containment
+and env allowlisting, default-deny network, memory/time limits, and symlink
+escape refusal (`GA-37`, `D28`, `GA-33`; `AT-LF-20`–`AT-LF-24`). They hold on
+the interactive plan/grade path. The installed CI floor has no plan-approval
+seam (`GA-38`); its runner enforces containment, resource limits, network
+handling, and committed-policy authority. Remaining shard gaps are listed
 below.
-[reasoning trace](../reasoning/2026-08-26-rig115-shell-trust-guarantees.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 On Linux, the default-deny path uses `unshare --user --map-root-user --net`
 and probes that exact prefix by launching Node before wrapping a task. This
@@ -113,7 +101,7 @@ host refuses rootless namespaces, Rig returns
 `network_isolation_unavailable`, which is a blocking non-pass rather than a
 false clean result. GitHub Actions explicitly enables the runner setting that
 Ubuntu 24.04 restricts and verifies the namespace before the test suite.
-[reasoning trace](../reasoning/2026-08-28-linux-network-isolation-ci.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 A check approved as read-only that changes the working tree is a failure, not a
 tolerated side effect (`GA-27`). Rig detects the mutation, stops before any
@@ -123,7 +111,7 @@ that would clobber concurrent user work and erase the forensic record of a
 misbehaving or compromised tool — and it does not let the check continue. The
 read-only guarantee is externally observable: mutation detected, execution
 stopped, evidence preserved, repository state reported truthfully.
-[reasoning trace](../reasoning/2026-08-21-lint-format-read-only-guarantee.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 Not every check reaches a clean pass or fail, and each messy ending is its own
 truthful, non-passing state (`GA-33`): timeout, cancellation, missing
@@ -131,22 +119,32 @@ dependency, signalled process, partial output, and command-not-found each
 resolve to a distinct reported result rather than collapsing into "pass" or a
 generic "failed" that loses the actionable cause. Treating an inconclusive end
 as non-blocking is rejected as reintroducing false green.
-[reasoning trace](../reasoning/2026-08-21-lint-format-failure-semantics.md)
+[reasoning trace](../archive/2026-08/lint-format-vertical-slice.md)
 
 The network guarantee has the same shape at both approved-command call sites.
 `runGrade` now uses the shared isolation prefix and per-command grant gate:
 ungranted commands are refused when the host cannot provide isolation, while
 explicitly granted commands still run. AT-PROC-1d proves the grade path's
 network conjunct without changing the signed oracle.
-[reasoning trace](../reasoning/2026-08-28-runGrade-network-isolation-grilling.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 The CI/git-floor runner now has a matching capability boundary design: all
 commands receive timeout and memory ceilings; explicit network denial is
 isolated, explicit network access and raised ceilings need a committed
 per-service grant, and an undeclared network state remains visibly diagnostic
-during the compatibility rollout. A host that cannot enforce a promised
+during the compatibility rollout. Bare, named, and component-command bindings
+retain unique warnings through successful and failed service runs, and the
+reporting caller emits each warning once. A host that cannot enforce a promised
 control, malformed policy bytes, or policy that is not committed is a named
-refusal rather than a downgrade. [Execution-policy design](../reasoning/2026-08-29-rig144-execution-policy-design.md)
+refusal rather than a downgrade. [Execution-policy design](../archive/2026-08/shell-trust-and-capability-policy.md)
+The [Review Received resolution trace](../reasoning/2026-10-17-review-received-resolution-findings.md)
+records named/component diagnostic propagation through later failures and the
+installed caller.
+The [verification trace](../reasoning/2026-10-17-review-received-resolution-verification.md)
+records the full focused run and independent re-review of migration and
+diagnostic failure boundaries.
+The [full-gate trace](../reasoning/2026-10-17-review-received-resolution-full-gate.md)
+records the full repository result after preserving the fresh-install MCP gate.
 
 RIG-115's per-AT-LF-case branches sharded this section's guarantees rather
 than proving them whole: the symlink-containment check (AT-LF-21/24) was
@@ -157,10 +155,10 @@ executes lint/format commands — reading `cmd.cwd` unguarded
 anywhere ([RIG-140 / #95](https://github.com/qaynel/Rig/issues/95)). Each
 branch's own test passed; neither proved the boundary this page states. See
 [guarantee sharding](../mistakes/guarantee-sharding.md) and
-[reasoning trace](../reasoning/2026-08-27-guarantee-sharding-mistake.md).
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md).
 
 Both are now fixed directly in `rig/lib/lint-format.js`
-([reasoning trace](../reasoning/2026-08-27-rig138-139-140-shell-trust-fix.md)):
+([reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)):
 a shared `taskCwd()` (wrapping `containedPath`) is called from both
 `runGrade` and `runReadOnly`, and a configured `memory_limit_mb` is enforced
 by a separate watcher process (`rig/lib/memory-guarded-exec.js`) polling RSS,
@@ -182,7 +180,7 @@ AT-PROC-1i proves the full path end-to-end (strips `ps` from PATH, calls
 `runReadOnly` with `memory_limit_mb`, asserts the result is
 `memory_ceiling_unavailable`). `runGrade` was unaffected: its `anyFail`
 check propagates the non-zero exit code and `'fail'` verdict correctly.
-[reasoning trace](../reasoning/2026-08-28-runReadOnly-memory-ceiling-unavailable-clean.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 The watchdog now also rejects incomplete process evidence: a non-zero `ps`
 exit, an empty parsed listing, or a listing that no longer contains the guarded
@@ -202,11 +200,11 @@ to the exact GitHub workflow pointer Rig wrote. Classification uses the
 contained, realpathed relative path, not a lexical alias or directory-symlink
 trampoline, and unique-file removal is digest-checked whole-file delete that
 does not follow a symlink or extra hard link.
-[safety follow-up](../reasoning/2026-08-28-rig120-safety-followup.md)
-[intent-owner safety ruling](../reasoning/2026-08-28-editable-journal-is-not-ownership-proof.md)
-[CI managed-line ruling](../reasoning/2026-08-28-ci-managed-line-is-not-ownership-proof.md)
-[CI path-identity ruling](../reasoning/2026-08-28-ci-path-identity-is-the-mutation-object.md)
-[CI realpath ruling](../reasoning/2026-08-28-ci-realpath-is-the-mutation-object.md)
+[safety follow-up](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[intent-owner safety ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI managed-line ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI path-identity ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
+[CI realpath ruling](../archive/2026-08/uninstall-ownership-and-ci-journal-trust.md)
 
 `AT-LF-22`'s guarantee **used to** ship alongside a production defect
 ([[RIG-137]] / #91, now closed): `rig/lib/lint-format.js` globally
@@ -227,7 +225,7 @@ generalizing it is deferred to whenever a second test actually needs an async
 fixture lifetime. The key-holder re-sign this required, since both plausible
 homes for any patch relocation sit inside the byte-pinned oracle manifest,
 has landed — the oracle verifies clean on current HEAD.
-[reasoning trace](../reasoning/2026-08-28-rig137-option-a-scope.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 `AT-LF-24`'s symlink-escape refusal **used to** degrade to a recoverable
 state instead of a hard refusal: `lint-format.js`'s `planExecution` silently
@@ -243,7 +241,7 @@ snapshot was empty — equally true for a missing file — and never exercised
 `executePlan` at all; rewritten to assert the actual refusal and that the
 outside command's side effect never ran. `wiki/gate1/gate1.sig` is stale
 pending owner re-sign, same as every oracle-test edit in this project.
-[reasoning trace](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 A 2026-08-29 fresh independent review found a structurally different problem
 from every prior round on this boundary: the five shell-trust guarantees
@@ -264,7 +262,7 @@ for the path the shipping product actually runs. The other three axes
 not implemented against a guess: [[RIG-144]] already recorded why blindly
 porting `lint-format.js`'s defaults could break legitimate CI (network
 installs, long/heavy real test suites) rather than protect anything.
-[fresh-review reasoning trace](../reasoning/2026-08-29-rig120-fresh-review-fails-shipping-path-bypass.md)
+[fresh-review reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 The containment fix above initially covered only `rig/lib/checks.js`, missing
 that `rig/catalog/baseline/check.js` — a second, hand-maintained, not
@@ -275,7 +273,7 @@ companion. Both fixed; `apply.js` now also materializes `path-safety.js` so
 `containedPath()` exists at the installed layout. Whether the two runner
 copies should be unified rather than kept in independent hand-sync is an open
 question feeding the [[RIG-144]] capability-policy scoping, not decided yet.
-[reasoning trace](../reasoning/2026-08-29-rig120-symlink-escape-and-checks-realpath-containment.md)
+[reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 That question is now decided (`GA-38`): unify, don't just drift-test. The
 owner rejected a parity-test-between-two-copies fix as accepting the defect
@@ -291,12 +289,12 @@ axes (three-state network declaration with a visible diagnostic for the
 undeclared/legacy state, configurable-not-fixed resource ceilings, and
 committed-policy-only capability authority for the non-interactive CI path)
 are scoped and owner-signed-off but not yet implemented.
-[sign-off reasoning trace](../reasoning/2026-08-29-rig144-capability-policy-sign-off.md)
+[sign-off reasoning trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 Those scoped capability controls are now implemented in the one canonical
 runner, with direct and installed-byte evidence for resource ceilings,
 three-state network handling, committed authority, and fail-closed outcomes.
-[Close-out trace](../reasoning/2026-08-29-rig120-capability-policy-close-out.md)
+[Close-out trace](../archive/2026-08/shell-trust-and-capability-policy.md)
 
 ## Onboarding hardening ratchets (2026-09-03)
 
@@ -338,7 +336,7 @@ each *scope* has its own naming rule. A core skill's catalogue name is already
 `rig-`-prefixed at the source (`rig-debugging`); an optional skill's is not
 (`qa`). Both project as `rig-<canonical-name>` under a native scope and as
 `<canonical-name>` (no prefix) under the instruction-only scope, matching
-`rig/tier-1/routing.md`'s router contract. The corrected `AT-HD-4` fixture now
+`rig/corpus/routing.md`'s router contract. The corrected `AT-HD-4` fixture now
 selects both an optional skill and the mandatory `rig-debugging` core skill
 across a Codex+Cursor install and asserts all four resulting paths plus the
 `applied.projections` host-scope set.
@@ -408,3 +406,7 @@ with a test that crashes one proposal, abandons it, and applies a second,
 unrelated proposal against a drifted repo — checked-verified to fail against
 the pre-fix unscoped form and pass against the fix. See
 [review gaps closed trace](../reasoning/2026-09-03-onboarding-hardening-phase1-review-gaps-closed.md).
+
+The [Review Received late findings trace](../reasoning/2026-10-17-review-received-resolution-late-findings.md)
+records migration temp collision recovery, parent-swap containment, and MCP
+retry-marker ownership checks.

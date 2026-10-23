@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.strategy.pyramid-balance",
+  "input": "rig-services/testing.strategy.pyramid-balance.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms unit suites, integration suites and the e2e-only flag are declared; it does not count tests.",
+  "offer": "Place fast local contract checks below focused integration and user-journey tests. An all-E2E strategy makes diagnosis slower and leaves many edge cases expensive to exercise.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
+      }
+    ],
+    "mid": [
+      {
+        "field": "integration_suites",
+        "op": "nonempty",
+        "reason": "List the focused integration suites above them. A pyramid needs a middle, so name the integration layer."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "e2e_only_strategy",
+        "op": "equals",
+        "value": false,
+        "reason": "Set e2e-only strategy to false. Relying only on end-to-end tests makes failures slow to diagnose, so keep lower layers."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "pyramid-balance-slice-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "pyramid-balance-slice-behavior-oracle",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
+      }
+    },
+    "property-floor": {
+      "check_id": "pyramid-balance-slice-property-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "pyramid-balance-slice-mutation-floor",
+      "rule": {
+        "field": "unit_suites",
+        "op": "nonempty",
+        "reason": "List the fast local unit suites. Without them diagnosis is slow, so name each suite."
+      }
+    }
+  }
+}

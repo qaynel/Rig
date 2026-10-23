@@ -1,0 +1,9 @@
+{
+  "equivalence_evidence": [
+    "unreachable branch by domain proof"
+  ],
+  "review_owners": [
+    "parser maintainer"
+  ],
+  "classify_by_survival_only": false
+}

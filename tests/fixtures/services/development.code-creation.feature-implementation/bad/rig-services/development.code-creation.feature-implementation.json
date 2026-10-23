@@ -1,0 +1,7 @@
+{
+  "acceptance_cases": [],
+  "change_scope": [
+    "src/items.js"
+  ],
+  "compatibility": "preserve-existing-behavior"
+}

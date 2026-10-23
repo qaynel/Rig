@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.red-team.abuse-resistance",
+  "input": "rig-services/product-security.red-team.abuse-resistance.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms abuse cases, a rate-limit policy and the unbounded-requests flag are declared; it does not test any live limit.",
+  "offer": "Model misuse and enforce bounded access at the relevant public boundary. A documented limit needs separate live evidence before it can claim effective abuse resistance.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "abuse_cases",
+        "op": "nonempty",
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rate_limit_policy",
+        "op": "nonempty",
+        "reason": "Declare the rate-limit policy at the public boundary. An undeclared limit means unbounded use, so state the thresholds."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unbounded_public_requests",
+        "op": "equals",
+        "value": false,
+        "reason": "Set unbounded public requests to false. A public endpoint with no bound invites abuse, so enforce a limit."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "abuse-resistance-slice-floor",
+      "rule": {
+        "field": "abuse_cases",
+        "op": "nonempty",
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "abuse-resistance-slice-behavior-oracle",
+      "rule": {
+        "field": "abuse_cases",
+        "op": "nonempty",
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
+      }
+    },
+    "property-floor": {
+      "check_id": "abuse-resistance-slice-property-floor",
+      "rule": {
+        "field": "abuse_cases",
+        "op": "nonempty",
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "abuse-resistance-slice-mutation-floor",
+      "rule": {
+        "field": "abuse_cases",
+        "op": "nonempty",
+        "reason": "List the abuse cases modelled, such as credential stuffing. Without scenarios limits are guesses, so name each misuse."
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "comment": "Where the canonical repository instruction body (repo-instructions.md) is projected for this repository's own agents. Frontmatter is the only per-file difference.",
+  "copies": {
+    ".cursor/rules/rig.mdc": "---\ndescription: Rig, lazy senior dev mode. Always pick the simplest solution that works.\nglobs:\nalwaysApply: true\n---\n\n",
+    ".windsurf/rules/rig.md": "",
+    ".clinerules/rig.md": "",
+    ".agents/rules/rig.md": "",
+    ".github/copilot-instructions.md": "",
+    ".kiro/steering/rig.md": "---\ntitle: Rig, lazy senior dev mode\ninclusion: always\n---\n\n"
+  },
+  "agents_md": {
+    "comment": "AGENTS.md keeps its own first line (the per-checkout pointer, hand-authored); the rest is the canonical body plus this note.",
+    "suffix": "(Yes, this file also applies when you develop the Rig repo itself: run `npm test`\nlocally and confirm it is green before pushing. That is the full CI gate — the\nrule-copy check, the version check, the Node suite, and the pi-extension tests,\nthe same commands `.github/workflows/test.yml` runs. Do not push on a red or\nunrun suite.)\n"
+  },
+  "mirrors": {
+    "comment": "Plugin-distribution files that are verbatim copies of one corpus file; generated so they cannot drift or become a second authoring site.",
+    "files": {
+      ".opencode/command/rig.md": "rig/corpus/workflows/rig.md",
+      ".opencode/command/rig-review.md": "rig/corpus/workflows/rig-review.md",
+      ".opencode/command/rig-audit.md": "rig/corpus/workflows/rig-audit.md",
+      ".opencode/command/rig-debt.md": "rig/corpus/workflows/rig-debt.md",
+      ".opencode/command/rig-gain.md": "rig/corpus/workflows/rig-gain.md",
+      ".opencode/command/rig-help.md": "rig/corpus/workflows/rig-help.md",
+      "antigravity-plugin/rules/rig.md": "rig/corpus/projections/adapters/pointer.md"
+    }
+  }
+}

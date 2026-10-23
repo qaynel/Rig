@@ -24,6 +24,15 @@ function materialize(target, manifest) {
     '--target', target,
     '--manifest', manifestPath,
   ], { stdio: 'pipe' });
+  const reviewed = require('./semantic-review').writeFixtureSemanticReview(target, {
+    reason: 'These fixture entrypoints consistently delegate selected Rig work to the shared router and native skill projections; no fixture instruction assigns a conflicting workflow or authority.',
+  });
+  if (spawnSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: target, stdio: 'ignore' }).status === 0) {
+    git(target, ['add', '-f', '.rig/context-index.json', ...reviewed.documents.map((document) => document.path)]);
+    if (spawnSync('git', ['diff', '--cached', '--quiet'], { cwd: target }).status !== 0) {
+      git(target, ['-c', 'user.name=Reviewed Fixture', '-c', 'user.email=fixture@example.test', 'commit', '--quiet', '-m', 'prepare reviewed fixture instructions']);
+    }
+  }
 }
 
 // The uninstall seam — the inverse of materialize(), same frozen entry point.

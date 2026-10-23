@@ -1,0 +1,10 @@
+{
+  "external_contracts": [
+    "payment authorization"
+  ],
+  "failure_cases": [
+    "timeout",
+    "malformed response"
+  ],
+  "require_production_account": false
+}

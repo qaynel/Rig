@@ -35,9 +35,9 @@ coverage. Gate 2 records that path. It is not authoritative yet: frozen Gate 1
 still says all 115 leaves are release-blocking, and Gate 2 cannot narrow Gate 1.
 **All twenty lint-format product decisions are now closed**; the remaining work
 is authoring the acceptance and re-freezing Gate 1 before this roadmap can
-become an implementation plan. [Production context](../reasoning/2026-08-20-lint-format-production-context.md)
-[Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
-[Release-contract reconciliation](../reasoning/2026-08-20-lint-format-grilling-release-contract.md)
+become an implementation plan. [Production context](../archive/2026-08/lint-format-vertical-slice.md)
+[Grilling audit](../archive/2026-08/lint-format-vertical-slice.md)
+[Release-contract reconciliation](../archive/2026-08/lint-format-vertical-slice.md)
 [Active grilling handoff](lint-format-grilling-handoff.md)
 
 ---
@@ -66,11 +66,11 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
    product decisions are closed; follow the two-stage
    [acceptance-authoring handoff](lint-format-grilling-handoff.md) to author
    observable examples and runnable `AT-LF-*` case specs, then land them as one
-   amendment. [Grilling audit](../reasoning/2026-08-20-lint-format-production-grilling-audit.md)
+   amendment. [Grilling audit](../archive/2026-08/lint-format-vertical-slice.md)
 2. **Reconcile Gate 1 and Gate 2.** ✅ **Done.** D21 re-froze Gate 1, and Gate 2
    v0.6 (2026-08-21) re-traced `AT-LF-1`–`AT-LF-19` into §13 at exact 68-case
    equality and narrowed §12.3/§17.2 to make lint-format the single
-   release-blocking leaf. [Re-trace trace](../reasoning/2026-08-21-gate2-lint-format-retrace.md)
+   release-blocking leaf. [Re-trace trace](../archive/2026-08/lint-format-vertical-slice.md)
 3. **Correct and re-review Gate 2.** ⚠️ **Partly corrected (v0.10, `69c38149…`).**
    Round 4 failed at `645e5536…`; v0.7 clarified that a clean lower-grade pass
    continues through the user's selected cumulative grade (§5.7/AD-32) and made
@@ -82,9 +82,9 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
    Slice 2/freeze/recovery-test issues. The remaining round-5 findings still
    need product-design resolution before a clean exact-digest review is
    plausible.
-   [Correction trace](../reasoning/2026-08-21-gate2-v0.7-round4-corrections.md) ·
-   [D22 trace](../reasoning/2026-08-21-evidence-only-lint-format-ci.md) ·
-   [Round-6 correction trace](../reasoning/2026-08-21-gate2-v0.10-round6-corrections.md) ·
+   [Correction trace](../archive/2026-08/gate-model-and-the-one-lock.md) ·
+   [D22 trace](../archive/2026-08/lint-format-vertical-slice.md) ·
+   [Round-6 correction trace](../archive/2026-08/gate-model-and-the-one-lock.md) ·
    [Status](../status.md#ordered-next-steps)
 4. **Arm Gate 1 integrity.** The intent owner signs Gate 1 once the verifier
    exists; this is not delegable.
@@ -110,7 +110,7 @@ become an implementation plan. [Production context](../reasoning/2026-08-20-lint
 - The `AT-INSTALL-1` rollback-vs-resume contradiction the round-3 review
   flagged was confirmed live in running code by probing this leaf's own
   install path (a deliberate mid-apply interrupt), and is now fixed in both
-  Gate 2's text and `rig/lib/apply.js`. [Resolution trace](../reasoning/2026-08-20-resolve-at-install-1.md)
+  Gate 2's text and `rig/lib/apply.js`. [Resolution trace](../archive/2026-08/release-install-and-distribution.md)
 - The discovery-first check/binding shape (read repo-owned commands, name
   missing ones as coverage gaps, keep checks and CI read-only, keep autofix
   explicit-only) held up under real formatter/linter commands and a real

@@ -6,6 +6,7 @@ const { parseGraftSections, enumerateGraftMarkers } = require('./payload');
 const { containedPath } = require('./path-safety');
 const { SCAN_ROOTS, INSTRUCTION_FILE_HOSTS } = require('./host-capabilities');
 const { inventoryHarness } = require('./inspect');
+const { parseJournalRecords } = require('./lifecycle');
 
 const PROJECTION_ROOTS = ['.agents/skills', '.claude/skills', '.rig/skills'];
 
@@ -16,18 +17,9 @@ function failure(code, pathValue, detail) {
 function readJournal(target) {
   const file = containedPath(target, '.rig/install-manifest.jsonl');
   if (!fs.existsSync(file)) return { latest: new Map(), bytes: 0 };
-  const latest = new Map();
-  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-    if (!line.trim()) continue;
-    try {
-      const record = JSON.parse(line);
-      if (Number.isInteger(record.seq) && record.path) latest.set(record.path, record);
-    } catch {
-      // The install journal is append-only; malformed history is not allowed
-      // to make the current weight look smaller.
-    }
-  }
-  return { latest, bytes: fs.statSync(file).size };
+  const records = parseJournalRecords(fs.readFileSync(file, 'utf8'));
+  const latest = new Map(records.filter((record) => Number.isInteger(record.seq)).map((record) => [record.path, record]));
+  return { latest, bytes: fs.statSync(file).size, truncated_tail: records.truncated_tail === true };
 }
 
 function walkFiles(root, out = []) {
@@ -71,11 +63,13 @@ function managedBytes(file, record) {
 function calculateWeight(target, catalog, journal) {
   let files = 0;
   let bytes = 0;
+  const counted = new Set();
   for (const record of journal.latest.values()) {
     if (record.state !== 'applied') continue;
     const file = containedPath(target, record.path);
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
     files += 1;
+    counted.add(file);
     bytes += ['append_managed', 'graft_managed'].includes(record.ownership)
       ? managedBytes(file, record)
       : fs.statSync(file).size;
@@ -87,6 +81,15 @@ function calculateWeight(target, catalog, journal) {
   if (fs.existsSync(journalFile)) {
     files += 1;
     bytes += journal.bytes;
+  }
+
+  for (const file of walkFiles(containedPath(target, '.rig/preimages'))) {
+    if (counted.has(file)) continue;
+    const stat = fs.lstatSync(file);
+    if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('unsafe stored preimage');
+    files += 1;
+    bytes += stat.size;
+    counted.add(file);
   }
 
   const budget = catalog.soft_budget || {};
@@ -345,6 +348,7 @@ function inventoryDriftFailures(target, state) {
 function checkOnboarding(target, state, catalog) {
   const journal = readJournal(target);
   const hardFailures = [
+    ...(journal.truncated_tail ? [failure('journal-truncated-tail', '.rig/install-manifest.jsonl', 'interrupted final journal record; resume installation before claiming complete')] : []),
     ...projectionFailures(target, state, journal),
     ...danglingReferences(target, journal),
     ...unapprovedGraftFailures(target, state),

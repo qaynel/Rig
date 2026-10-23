@@ -1,0 +1,9 @@
+{
+  "service_metrics": [
+    "latency",
+    "errors",
+    "saturation"
+  ],
+  "dashboard_owner": "operations",
+  "omit_error_metrics": false
+}

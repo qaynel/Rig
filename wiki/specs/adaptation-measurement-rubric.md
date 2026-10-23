@@ -3,7 +3,7 @@
 **Version**: 0.1 (2026-08-31)  
 **Rig anchor SHA**: `38493a9bf3087cfd4959b37579d24d721bf40fd3` (branch `qa-prod-v5`)  
 **Target anchor**: eyaltoledano/claude-task-master (`inspo/claude-task-master-main/`)  
-**Spec trace**: `wiki/reasoning/2026-08-31-rig-153-instrument-spec.md`
+**Spec trace**: `wiki/archive/2026-08/path-a-and-path-b-onboarding.md`
 
 ---
 

@@ -64,6 +64,57 @@ test('AT-GATE-2 signed oracle runs before code', () => {
   const verified = gate.verifySignature(root, gate.oracleMessage(root));
   assert.equal(verified.principal, 'owner');
   assert.match(verified.fingerprint, /^SHA256:/);
+  const allowed = path.join(root, 'wiki/gate1/gate1.allowed-signers');
+  const originalSigner = fs.readFileSync(allowed, 'utf8');
+  fs.writeFileSync(allowed, originalSigner.replace('namespaces="rig-gate1" ', ''));
+  assert.throws(() => gate.verifySignature(root, gate.oracleMessage(root)), /namespace/);
+  fs.writeFileSync(allowed, originalSigner);
+  for (const relative of ['wiki/gate1/business-spec.md', 'wiki/gate1/acceptance.md', 'wiki/gate1/testing-infrastructure.manifest']) {
+    const file = path.join(root, relative); const original = fs.readFileSync(file);
+    fs.appendFileSync(file, '// TEST mutated frozen bytes\n');
+    assert.throws(() => gate.verifySignature(root, gate.oracleMessage(root)), /signature does not verify/, relative);
+    fs.writeFileSync(file, original);
+  }
+  const signatureFile = path.join(root, 'wiki/gate1/gate1.sig');
+  const signatureBytes = fs.readFileSync(signatureFile);
+  fs.writeFileSync(signatureFile, 'TEST malformed SSHSIG');
+  assert.throws(() => gate.verifySignature(root, gate.oracleMessage(root)), /signature does not verify/);
+  fs.writeFileSync(signatureFile, signatureBytes);
+  const namespaceRoot = tempRoot();
+  const sentinelRoot = tempRoot();
+  try {
+    writeManifest(namespaceRoot, ['tests/oracle.test.js']);
+    sign(namespaceRoot, 'TEST-wrong-namespace');
+    assert.throws(() => gate.verifySignature(namespaceRoot, gate.oracleMessage(namespaceRoot)), /signature does not verify/);
+    const namespaceAllowed = path.join(namespaceRoot, 'wiki/gate1/gate1.allowed-signers');
+    const originalAllowed = fs.readFileSync(namespaceAllowed, 'utf8');
+    fs.writeFileSync(allowed, originalAllowed);
+    assert.throws(() => gate.verifySignature(root, gate.oracleMessage(root)), /signature does not verify/, 'substituting another TEST signer cannot validate the original signature');
+    fs.writeFileSync(allowed, originalSigner);
+    for (const restriction of ['namespaces="*"', 'namespaces="rig-gate1,other"', 'namespaces="other"']) {
+      fs.writeFileSync(namespaceAllowed, originalAllowed.replace('namespaces="rig-gate1"', restriction));
+      assert.throws(() => gate.verifySignature(namespaceRoot, gate.oracleMessage(namespaceRoot)), /namespace/);
+    }
+    // The actual npm entrypoint must stop before its code command. These are
+    // disposable TEST keys and scripts, never the repository's signing helper.
+    fs.mkdirSync(path.join(sentinelRoot, 'scripts'));
+    fs.copyFileSync(path.join(__dirname, '../scripts/check-advanced-spec.js'), path.join(sentinelRoot, 'scripts/check-advanced-spec.js'));
+    const scripts = { test: 'node scripts/check-advanced-spec.js && npm run test:code', 'test:code': 'node code-sentinel.js' };
+    fs.writeFileSync(path.join(sentinelRoot, 'package.json'), JSON.stringify({ private: true, scripts }));
+    fs.writeFileSync(path.join(sentinelRoot, 'code-sentinel.js'), "require('node:fs').writeFileSync('CODE-RAN', 'unexpected')");
+    fs.writeFileSync(path.join(sentinelRoot, 'wiki/gate1/package-scripts.json'), JSON.stringify(scripts));
+    writeManifest(sentinelRoot, ['tests/oracle.test.js', 'wiki/gate1/package-scripts.json']);
+    sign(sentinelRoot);
+    const runnable = spawnSync('npm', ['run', 'test:code', '--ignore-scripts'], { cwd: sentinelRoot, encoding: 'utf8' });
+    assert.equal(runnable.status, 0, runnable.stderr); assert.equal(fs.readFileSync(path.join(sentinelRoot, 'CODE-RAN'), 'utf8'), 'unexpected');
+    fs.unlinkSync(path.join(sentinelRoot, 'CODE-RAN'));
+    fs.appendFileSync(path.join(sentinelRoot, 'tests/oracle.test.js'), '// corrupted oracle\n');
+    const stopped = spawnSync('npm', ['test', '--ignore-scripts'], { cwd: sentinelRoot, encoding: 'utf8' });
+    assert.notEqual(stopped.status, 0); assert.match(stopped.stderr, /changed oracle file/);
+    assert.equal(fs.existsSync(path.join(sentinelRoot, 'CODE-RAN')), false, 'invalid frozen bytes prevent test:code');
+  } finally {
+    fs.rmSync(namespaceRoot, { recursive: true, force: true }); fs.rmSync(sentinelRoot, { recursive: true, force: true });
+  }
   gate.verifyManifest(root);
   fs.appendFileSync(path.join(root, 'tests/oracle.test.js'), '// changed\n');
   assert.throws(() => gate.verifyManifest(root), /changed oracle file/);

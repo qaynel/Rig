@@ -1,0 +1,5 @@
+{
+  "authoritative_sources": [],
+  "comparison_schedule": "daily",
+  "silent_drift_acceptance": false
+}

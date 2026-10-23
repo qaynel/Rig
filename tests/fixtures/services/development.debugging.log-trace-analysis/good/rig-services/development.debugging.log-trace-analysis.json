@@ -1,0 +1,10 @@
+{
+  "trace_fields": [
+    "correlation_id",
+    "timestamp"
+  ],
+  "redacted_fields": [
+    "authorization"
+  ],
+  "log_credentials": false
+}

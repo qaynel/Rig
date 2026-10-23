@@ -18,12 +18,12 @@ function launcher() {
 
 function installFixture() {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-path-b-install-'));
-  const source = path.join(fixture, 'archive-root', 'Rig-v5.0.0');
+  const source = path.join(fixture, 'archive-root', 'Rig-v6.0.0');
   fs.mkdirSync(source, { recursive: true });
   for (const rel of ['rig', '.agents', '.claude', 'skills']) {
     fs.cpSync(path.join(h.root, rel), path.join(source, rel), { recursive: true });
   }
-  const archive = path.join(fixture, 'rig-v5.0.0.tar.gz');
+  const archive = path.join(fixture, 'rig-v6.0.0.tar.gz');
   const packed = spawnSync('tar', ['-czf', archive, '-C', path.dirname(source), path.basename(source)], { encoding: 'utf8' });
   assert.equal(packed.status, 0, packed.stderr);
   const bin = path.join(fixture, 'bin');
@@ -62,7 +62,7 @@ function targetUnder(fixture, name, hosts = []) {
 }
 
 function runInstall(env, target, args = []) {
-  return spawnSync('/bin/sh', [launcher(), 'rig', '--version', 'v5.0.0', '--target', target, ...args], {
+  return spawnSync('/bin/sh', [launcher(), 'rig', '--version', 'v6.0.0', '--target', target, ...args], {
     encoding: 'utf8',
     env,
   });
@@ -86,6 +86,8 @@ test('AT-PB-6 omitted host preserves bounded detection and does not auto-onboard
     assert.ok(fs.existsSync(path.join(target, '.claude/skills/rig-onboarding/SKILL.md')));
     assert.equal(fs.existsSync(path.join(target, '.agents')), false);
     assert.equal(fs.existsSync(path.join(target, '.rig/catalog.json')), true);
+    assert.ok(fs.existsSync(path.join(target, '.rig/upstream/gstack-shelf.json')), 'pinned upstream metadata is installed');
+    assert.equal(h.walk(path.join(target, '.rig/runtime/rig/catalog/skills')).filter((file) => path.basename(file) === 'SKILL.md').length, 0, 'optional skill bytes are fetched only during approved onboarding');
     assert.equal(fs.existsSync(path.join(target, '.rig/runtime/rig/lib/onboarding.js')), true);
     assert.equal(fs.existsSync(path.join(target, '.rig/state.json')), false);
     assert.equal(fs.existsSync(path.join(target, '.rig/onboarding-summary.md')), false);
@@ -101,11 +103,16 @@ test('AT-PB-6 repeated hosts map once in first-seen order and replace detection'
   const f = installFixture();
   try {
     const target = targetUnder(f.fixture, 'explicit', ['.cursor']);
+    const existing = fs.readFileSync(path.join(target, 'AGENTS.md'));
     const result = runInstall(f.env, target, ['--host', 'codex', '--host', 'claude', '--host', 'codex']);
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.ok(fs.existsSync(path.join(target, '.agents/skills/rig-onboarding/SKILL.md')));
     assert.ok(fs.existsSync(path.join(target, '.claude/skills/rig-onboarding/SKILL.md')));
     assert.equal(fs.existsSync(path.join(target, '.cursor/rules/rig.mdc')), false, 'explicit hosts must replace detection');
+    const instructions = fs.readFileSync(path.join(target, 'AGENTS.md'));
+    assert.ok(instructions.subarray(0, existing.length).equals(existing), 'selected Codex preserves every original instruction byte');
+    assert.match(instructions.toString(), /Before acting, read `\.rig\/routing\.md`/);
+    assert.equal(h.walk(path.join(target, '.rig/runtime/rig/catalog/skills')).filter((file) => path.basename(file) === 'SKILL.md').length, 0, 'bootstrap stages zero optional skill bodies');
     const codex = result.stdout.indexOf('host: codex');
     const claude = result.stdout.indexOf('host: claude');
     assert.ok(codex >= 0 && claude > codex, 'host order must preserve first occurrence');

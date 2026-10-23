@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.mutation.score-metrics",
+  "input": "rig-services/testing.mutation.score-metrics.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms killed and valid mutant counts and the invalid-in-score flag are declared; it does not compute a score.",
+  "offer": "Calculate mutation sensitivity from valid mutants and identify excluded outcomes. Invalid mutations must not inflate or depress the score through an unexplained denominator.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "killed_mutants",
+        "op": "minimum",
+        "value": 8,
+        "reason": "Declare killed mutants, at least 8. A score from too few kills is noise, so record the count."
+      }
+    ],
+    "mid": [
+      {
+        "field": "valid_mutants",
+        "op": "minimum",
+        "value": 10,
+        "reason": "Declare valid mutants, at least 10. The denominator must exclude invalid mutants, so count only valid ones."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "include_invalid_mutants_in_score",
+        "op": "equals",
+        "value": false,
+        "reason": "Set including invalid mutants in the score to false. Invalid mutations distort the denominator, so exclude and report them."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "score-metrics-slice-floor",
+      "rule": {
+        "field": "killed_mutants",
+        "op": "minimum",
+        "value": 8,
+        "reason": "Declare killed mutants, at least 8. A score from too few kills is noise, so record the count."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "score-metrics-slice-behavior-oracle",
+      "rule": {
+        "field": "killed_mutants",
+        "op": "minimum",
+        "value": 8,
+        "reason": "Declare killed mutants, at least 8. A score from too few kills is noise, so record the count."
+      }
+    },
+    "property-floor": {
+      "check_id": "score-metrics-slice-property-floor",
+      "rule": {
+        "field": "killed_mutants",
+        "op": "minimum",
+        "value": 8,
+        "reason": "Declare killed mutants, at least 8. A score from too few kills is noise, so record the count."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "score-metrics-slice-mutation-floor",
+      "rule": {
+        "field": "killed_mutants",
+        "op": "minimum",
+        "value": 8,
+        "reason": "Declare killed mutants, at least 8. A score from too few kills is noise, so record the count."
+      }
+    }
+  }
+}

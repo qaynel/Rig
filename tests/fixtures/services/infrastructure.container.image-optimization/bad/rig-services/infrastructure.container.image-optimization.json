@@ -1,0 +1,5 @@
+{
+  "base_image_digest": "",
+  "runtime_user": "nonroot",
+  "include_build_secrets": false
+}

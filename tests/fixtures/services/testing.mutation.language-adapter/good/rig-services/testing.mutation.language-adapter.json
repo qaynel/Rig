@@ -1,0 +1,10 @@
+{
+  "source_extensions": [
+    ".js"
+  ],
+  "compiler_command": [
+    "node",
+    "--check"
+  ],
+  "parse_errors_are_success": false
+}

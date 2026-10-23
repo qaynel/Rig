@@ -1,0 +1,7 @@
+{
+  "documented_endpoints": [],
+  "error_responses": [
+    "400 invalid input"
+  ],
+  "authentication_documented": true
+}

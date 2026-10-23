@@ -3,17 +3,24 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { inventoryHarness } = require('./inspect');
+const { inventoryHarness, inspectTarget, adoptionVerdict } = require('./inspect');
+const { loadActivePolicy, controlEnabled } = require('./policy');
 const { buildOverlaps } = require('./adapt-overlap');
 const {
   canonical: canonicalJson, readMigrations, sha256, skillsDigest, validateSkillCatalog,
 } = require('./skill-catalog');
 const { containedPath } = require('./path-safety');
-const { verifySshsig } = require('./policy');
+const { TRUST_ROOT_REL, verifyTrustRootApproval } = require('./trust-root');
 const {
   journalResumeDigest, journalWriter, parseGraftSections, removeGraftSection, upsertGraftSection,
 } = require('./payload');
 const { checkOnboarding } = require('./onboarding-check');
+const { bindServices, serviceOutputPreimages, preflightServices, applyServices, checkServices } = require('./service-catalogue');
+const { fetchUpstreamSync, loadUpstream } = require('./upstream-fetch');
+const { runProjectionScript, assertOutputOutsideProtected } = require('./projection-script');
+const {
+  NATIVE_SKILL_SCOPES, INSTRUCTION_ONLY_SCOPE, canonicalSkillName, scopedSkillName, projectSkillFiles,
+} = require('./project');
 const {
   atomicWrite, canonicalProposal, proposalBodyDigest, readState, renderAdoptedConfig, renderGrafts, renderOverlaps,
   validateSummary, writeState,
@@ -22,14 +29,14 @@ const {
 const ACTIONS = new Set(['prepare', 'propose', 'apply', 'check']);
 const CATALOG_REL = '.rig/catalog.json';
 const PLAYBOOK_REL = '.rig/skills/onboarding/SKILL.md';
-const ALLOWED_SIGNERS_REL = '.rig/allowed-signers';
 const APPROVAL_NAMESPACE = 'rig-plan-approval';
 
 // The signed message binds the namespace and the exact proposal digest, so a
 // signature made for policy activation (or for a different proposal) cannot be
 // replayed as a plan approval.
-function approvalMessage(planDigest) {
-  return `rig-plan-approval\ndigest=${planDigest}\n`;
+function approvalMessage(planDigest, target) {
+  const repository = sha256(Buffer.from(fs.realpathSync(target)));
+  return `rig-plan-approval\nrepository=${repository}\ndigest=${planDigest}\n`;
 }
 
 function fail(message) {
@@ -126,13 +133,15 @@ function response(action, target, state, extra = {}) {
   };
 }
 
-function prepareContext(target, catalog) {
+function prepareContext(target, catalog, sanitation) {
   const playbook = containedPath(target, PLAYBOOK_REL);
   return {
     playbook: fs.existsSync(playbook) ? fs.readFileSync(playbook, 'utf8') : '',
     catalog,
+    repository_inventory: require('./lint-discovery').inventoryRepository(target),
     adopted_config: fs.readFileSync(containedPath(target, '.rig/adopted-config.md'), 'utf8'),
     overlaps: fs.readFileSync(containedPath(target, '.rig/overlaps.md'), 'utf8'),
+    sanitation,
   };
 }
 
@@ -144,9 +153,9 @@ function currentDigest(target, rel) {
 // A receipt is only evidence of user presence if something outside the caller
 // can be re-checked. `verified: true` was a caller-controlled Boolean: anyone
 // who could hand `apply` a JSON object could assert it. The trust envelope now
-// carries a signature that this process re-verifies against a repository-owned
-// allowed-signers file, so approval means "a listed human key signed exactly
-// this proposal digest under the plan-approval namespace" and nothing weaker.
+// carries a signature that this process re-verifies against the Gate 1 trust
+// root, so approval means "the Gate 1 key signed exactly this proposal digest
+// under the plan-approval namespace" and nothing weaker.
 function approvalRecord(receipt, proposalDigest, target) {
   if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)
     || receipt.schema_version !== 1 || receipt.kind !== 'plan-approval'
@@ -162,15 +171,10 @@ function approvalRecord(receipt, proposalDigest, target) {
     // the real gap rather than reading as a schema typo.
     fail('host-native approval has no configured verifier for plan approval; use external-sshsig');
   }
-  const allowedSigners = containedPath(target, ALLOWED_SIGNERS_REL);
-  if (!fs.existsSync(allowedSigners)) {
-    fail(`approval verifier not configured: ${ALLOWED_SIGNERS_REL} is missing`);
-  }
-  const verified = verifySshsig({
-    allowedSigners,
+  const verified = verifyTrustRootApproval(target, {
     identity: receipt.approval.identity,
     namespace: APPROVAL_NAMESPACE,
-    message: approvalMessage(proposalDigest),
+    message: approvalMessage(proposalDigest, target),
     signature: receipt.approval.signature,
   });
   return {
@@ -202,16 +206,12 @@ function installedHostIds(target) {
   return hosts;
 }
 
-// Native skill-discovery scopes Rig writes to directly. Only Codex and Claude
-// have a Rig-managed native skill directory today (the installed wrapper
-// markers this function checks for).
+// Native skill-discovery scopes come from the one table project() installs
+// through (Codex and Claude have a Rig-managed native skill directory); a scope
+// applies only when its installed wrapper marker is present.
 function nativeScope(target, host) {
-  if (host === 'codex' && fs.existsSync(containedPath(target, '.agents/skills/rig-onboarding/SKILL.md'))) {
-    return { host_scope: 'codex', root: '.agents/skills' };
-  }
-  if (host === 'claude' && fs.existsSync(containedPath(target, '.claude/skills/rig-onboarding/SKILL.md'))) {
-    return { host_scope: 'claude', root: '.claude/skills' };
-  }
+  const scope = NATIVE_SKILL_SCOPES[host];
+  if (scope && fs.existsSync(containedPath(target, `${scope.root}/rig-onboarding/SKILL.md`))) return { ...scope };
   return null;
 }
 
@@ -228,7 +228,7 @@ function nativeScope(target, host) {
 // both present and usable.
 function instructionOnlyScope(target, _host) {
   if (!fs.existsSync(containedPath(target, PLAYBOOK_REL))) return null;
-  return { host_scope: 'instruction-only', root: '.rig/skills' };
+  return { ...INSTRUCTION_ONLY_SCOPE };
 }
 
 // Per-host, per-item decision — never an aggregate "any native host present"
@@ -244,33 +244,16 @@ function installedSkillScopes(target) {
   return [...scopes.values()];
 }
 
-// The canonical, scope-independent identity of a skill: 'rig' stays 'rig'
-// (it names itself, not a namespace); every other skill's canonical name has
-// any leading "rig-" stripped, so re-adding it per scope is idempotent.
-function canonicalSkillName(skill) {
-  if (skill.name === 'rig') return 'rig';
-  return skill.name.startsWith('rig-') ? skill.name.slice('rig-'.length) : skill.name;
+// Selected skills keep their canonical, scope-independent identity; naming and
+// frontmatter rewriting per scope are project()'s (rig/lib/project.js).
+function skillIdentity(skill) {
+  return canonicalSkillName(skill.name);
 }
 
-// Naming is scope-specific, not skill-specific (rig/tier-1/routing.md's
-// router contract): native layouts project as `rig-<name>`; the
-// instruction-only layout projects unprefixed, since `rig-<name>` there maps
-// to `.rig/skills/<name>/SKILL.md`.
-function scopedSkillName(canonicalName, scope) {
-  if (canonicalName === 'rig') return 'rig';
-  return scope.host_scope === 'instruction-only' ? canonicalName : `rig-${canonicalName}`;
-}
-
-function rewriteProjectedName(bytes, name) {
-  const source = bytes.toString('utf8');
-  const pattern = /^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m;
-  // A scope whose target name equals the source's own unprefixed name (the
-  // instruction-only scope, when the skill's canonical name has no "rig-"
-  // prefix to strip) rewrites to byte-identical output — that is a correct,
-  // idempotent rewrite, not evidence the pattern failed to match. Check the
-  // match itself, not whether the replacement changed anything.
-  if (!pattern.test(source)) fail('selected skill has no rewriteable frontmatter name');
-  return Buffer.from(source.replace(pattern, (_match, start) => `${start}${name}`));
+function assertRewriteable(bytes) {
+  if (!/^(---\n(?:(?!---\n)[^\n]*\n)*?name:\s*)[^\n]+/m.test(bytes.toString('utf8'))) {
+    fail('selected skill has no rewriteable frontmatter name');
+  }
 }
 
 function sourceFiles(root, prefix = '') {
@@ -280,19 +263,64 @@ function sourceFiles(root, prefix = '') {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
     const absolute = path.join(root, entry.name);
     if (entry.isDirectory()) files.push(...sourceFiles(absolute, rel));
-    else if (!entry.name.endsWith('.tmpl') && entry.name !== 'TODOS-format.md') files.push({ rel, bytes: fs.readFileSync(absolute) });
+    else if (!entry.name.endsWith('.tmpl') && entry.name !== 'TODOS-format.md') files.push({ rel, bytes: fs.readFileSync(absolute), mode: fs.statSync(absolute).mode & 0o777 });
   }
   return files;
 }
 
-function optionalProjectionSource(target, skill) {
+function optionalProjectionSource(target, skill, cache) {
   if (skill.source_kind !== 'optional' || !skill.source_rel.startsWith('rig/catalog/skills/')) {
     fail(`selected skill "${skill.id}" is not an installed optional runtime skill`);
   }
   const installed = `.rig/runtime/rig/${skill.source_rel.slice('rig/'.length)}`;
   const skillFile = containedPath(target, installed);
-  if (!fs.existsSync(skillFile)) fail(`selected skill "${skill.id}" is missing from the installed runtime shelf`);
-  return sourceFiles(path.dirname(skillFile));
+  if (fs.existsSync(skillFile)) return sourceFiles(path.dirname(skillFile)); // v5 compatibility
+  const id = 'gstack-shelf';
+  const meta = loadUpstream(id, containedPath(target, '.rig/upstream'));
+  const prefix = skill.source_rel.slice('rig/catalog/skills/'.length).replace(/SKILL\.md$/, '');
+  const receiptPath = containedPath(target, `.rig/fetched/${id}/receipt.json`);
+  let files;
+  if (fs.existsSync(receiptPath)) {
+    files = new Map();
+    for (const row of meta.files.filter((row) => row.output.startsWith(prefix))) {
+      const file = containedPath(target, `.rig/fetched/${id}/${row.output}`);
+      if (!fs.existsSync(file) || sha256(fs.readFileSync(file)) !== row.final_sha256) fail(`fetched skill "${skill.id}" has changed; rebuild its proposal`);
+      files.set(row.output, fs.readFileSync(file));
+    }
+  } else {
+    if (!cache.has(id)) {
+      const result = fetchUpstreamSync(id, { metaDir: containedPath(target, '.rig/upstream'), licencePath: containedPath(target, '.rig/skills/LICENSE.upstream') });
+      if (result.status !== 'ok') fail(`upstream fetch refused (${result.gaps[0].code}): ${result.gaps[0].detail}`);
+      cache.set(id, result.files);
+    }
+    files = cache.get(id);
+  }
+  const modes = new Map(meta.files.map((row) => [row.output, row.mode]));
+  return [...files].filter(([output]) => output.startsWith(prefix)).map(([output, bytes]) => ({ rel: output.slice(prefix.length), bytes, mode: modes.get(output) || 0o644 }));
+}
+
+function optionalSharedSource(target, cache) {
+  const id = 'gstack-shelf';
+  const meta = loadUpstream(id, containedPath(target, '.rig/upstream'));
+  const receiptPath = containedPath(target, `.rig/fetched/${id}/receipt.json`);
+  let files;
+  if (fs.existsSync(receiptPath)) {
+    files = new Map();
+    for (const row of meta.files.filter((row) => row.output.startsWith('plumbing/'))) {
+      const file = containedPath(target, `.rig/fetched/${id}/${row.output}`);
+      if (!fs.existsSync(file) || sha256(fs.readFileSync(file)) !== row.final_sha256) fail(`fetched shared helper "${row.output}" has changed; rebuild its proposal`);
+      files.set(row.output, fs.readFileSync(file));
+    }
+  } else {
+    if (!cache.has(id)) {
+      const result = fetchUpstreamSync(id, { metaDir: containedPath(target, '.rig/upstream'), licencePath: containedPath(target, '.rig/skills/LICENSE.upstream') });
+      if (result.status !== 'ok') fail(`upstream fetch refused (${result.gaps[0].code}): ${result.gaps[0].detail}`);
+      cache.set(id, result.files);
+    }
+    files = cache.get(id);
+  }
+  const modes = new Map(meta.files.map((row) => [row.output, row.mode]));
+  return [...files].filter(([output]) => output.startsWith('plumbing/')).map(([output, bytes]) => ({ rel: output.slice('plumbing/'.length), bytes, mode: modes.get(output) || 0o644 }));
 }
 
 function selectedCatalogSkills(catalog, selected) {
@@ -333,13 +361,14 @@ function planSkillProjections(target, catalog, selected, writer) {
   const plans = [];
   const rows = [];
   const projectedFiles = new Map();
+  const sourceCache = new Map();
   const record = (skill, rel, digest) => {
     const entries = projectedFiles.get(skill.id) || [];
     entries.push({ path: rel, sha256: digest });
     projectedFiles.set(skill.id, entries);
   };
   for (const skill of skills) {
-    const canonicalName = canonicalSkillName(skill);
+    const canonicalName = skillIdentity(skill);
     if (skill.source_kind === 'core') {
       for (const scope of scopes) {
         const name = scopedSkillName(canonicalName, scope);
@@ -351,22 +380,28 @@ function planSkillProjections(target, catalog, selected, writer) {
       }
       continue;
     }
-    const files = optionalProjectionSource(target, skill);
+    const files = optionalProjectionSource(target, skill, sourceCache);
     const skillFile = files.find(({ rel }) => rel === 'SKILL.md');
     if (!skillFile) fail(`selected skill "${skill.id}" has no SKILL.md`);
+    assertRewriteable(skillFile.bytes);
     for (const scope of scopes) {
       const name = scopedSkillName(canonicalName, scope);
-      const root = `${scope.root}/${name}`;
-      for (const source of files) {
-        const rel = `${root}/${source.rel}`;
-        const bytes = source.rel === 'SKILL.md' ? rewriteProjectedName(source.bytes, name) : source.bytes;
+      const projected = projectSkillFiles({ files, dir: `${scope.root}/${name}`, declaredName: name });
+      projected.forEach(({ path: rel, bytes, mode }, index) => {
         if (writer) cleanProjection(target, writer, rel);
-        plans.push({ skill: skill.id, rel, bytes, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
-        record(skill, source.rel, sha256(bytes));
-        if (source.rel === 'SKILL.md') {
+        plans.push({ skill: skill.id, rel, bytes, mode, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
+        record(skill, files[index].rel, sha256(bytes));
+        if (files[index].rel === 'SKILL.md') {
           rows.push({ skill: skill.id, host_scope: scope.host_scope, path: rel, sha256: sha256(bytes) });
         }
-      }
+      });
+    }
+  }
+  if (skills.some((skill) => skill.source_kind === 'optional')) {
+    for (const file of optionalSharedSource(target, sourceCache)) {
+      const rel = `.rig/plumbing/${file.rel}`;
+      if (writer) cleanProjection(target, writer, rel);
+      plans.push({ skill: null, rel, bytes: file.bytes, mode: file.mode, ownership: currentDigest(target, rel) === null ? 'create_owned' : 'replace_owned' });
     }
   }
   const digests = new Map([...projectedFiles].map(([id, entries]) => [id, projectedDigest(entries)]));
@@ -464,6 +499,63 @@ function preflightOwnedFiles(target, ownedFiles, writer) {
   }
 }
 
+// Approved script outputs are repository files, not `.rig/` artifacts: the
+// approval pinned the digest each one had when it was approved. A file that
+// moved since is the user's, not ours to overwrite.
+function preflightScriptOutputs(target, slot, writer) {
+  for (const output of slot.approved_outputs) {
+    assertOutputOutsideProtected(target, output.path);
+    const digest = currentDigest(target, output.path);
+    if (digest !== null && journalResumeDigest(writer, output.path) === digest) continue;
+    if (digest !== output.preimage_digest) fail(`projection output "${output.path}" has a stale preimage digest`);
+    if (digest !== null && (!writer.latest(output.path) || writer.latest(output.path).digest !== digest)) {
+      fail(`projection output "${output.path}" is not journal-proven Rig ownership`);
+    }
+  }
+}
+
+const UPSTREAM_META_REL = '.rig/upstream';
+const UPSTREAM_LICENCE_REL = '.rig/skills/LICENSE.upstream';
+
+// The signature binds the pinned archive digest; it must be the digest the
+// installed metadata pins, so a proposal cannot ask for a different revision.
+function checkUpstreamPins(target, rows) {
+  for (const row of rows || []) {
+    let meta;
+    try { meta = loadUpstream(row.id, containedPath(target, UPSTREAM_META_REL)); } catch (error) { fail(error.message.replace(/^rig: /, '')); }
+    if (meta.archive.tar_sha256 !== row.tar_sha256) fail(`upstream "${row.id}" is pinned to a different archive digest than the proposal`);
+    if (row.metadata_sha256 !== sha256(fs.readFileSync(containedPath(target, `${UPSTREAM_META_REL}/${row.id}.json`)))) fail(`upstream "${row.id}" metadata digest has changed since proposal`);
+  }
+}
+
+function fetchedRel(id, output) {
+  return `.rig/fetched/${id}/${output}`;
+}
+
+// Fetch, verify and patch every requested upstream. Any gap refuses the whole
+// apply before a byte is written: a missing capability is never installed.
+function fetchApprovedUpstreams(target, rows, writer) {
+  const fetched = [];
+  for (const row of rows || []) {
+    const result = fetchUpstreamSync(row.id, {
+      metaDir: containedPath(target, UPSTREAM_META_REL),
+      licencePath: containedPath(target, UPSTREAM_LICENCE_REL),
+    });
+    if (result.status !== 'ok') {
+      const first = result.gaps[0];
+      fail(`upstream fetch refused (${first.code}): ${first.detail}${first.guidance ? ` — ${first.guidance}` : ''}`);
+    }
+    for (const output of result.files.keys()) cleanProjection(target, writer, fetchedRel(row.id, output));
+    cleanProjection(target, writer, fetchedRel(row.id, 'receipt.json'));
+    fetched.push(result);
+  }
+  return fetched;
+}
+
+function scriptRel(slot) {
+  return `.rig/projections/${slot.host}.js`;
+}
+
 function writeIfChanged(target, rel, contents) {
   const file = containedPath(target, rel);
   const next = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
@@ -473,6 +565,14 @@ function writeIfChanged(target, rel, contents) {
 function prepare(target) {
   return withOnboardingLock(target, () => {
     const { catalog, digest } = loadInstalledCatalog(target);
+    const activePolicy = loadActivePolicy(target);
+    let sanitation = { status: 'disabled', outcome: 'not_run', verdict: null };
+    if (controlEnabled(activePolicy.policy, 'sanitation', 'sanitation.harness')) {
+      const inspection = inspectTarget(target);
+      const verdict = adoptionVerdict({ findings: inspection.findings });
+      if (verdict.verdict !== 'ALLOW') fail(`adopt-time sanitation ${verdict.verdict}: resolve harness findings before capability review`);
+      sanitation = { status: 'passed', verdict: verdict.verdict };
+    }
     const inventory = inventoryHarness(target);
     const previous = readState(target);
     const inventoryState = {
@@ -486,7 +586,7 @@ function prepare(target) {
     if (unchanged) {
       return response('prepare', target, previous, {
         warnings: inventory.warnings,
-        context: prepareContext(target, catalog),
+        context: prepareContext(target, catalog, sanitation),
       });
     }
 
@@ -502,13 +602,14 @@ function prepare(target) {
       proposal: null,
       approval: null,
       applied: previous?.applied || { proposal_digest: null, skills: [], grafts: [], owned_files: [] },
+      ...(previous?.migration ? { migration: previous.migration } : {}),
       checks: null,
       last_error: null,
     };
     writeState(target, state);
     return response('prepare', target, state, {
       warnings: inventory.warnings,
-      context: prepareContext(target, catalog),
+      context: prepareContext(target, catalog, sanitation),
     });
   });
 }
@@ -531,10 +632,20 @@ function propose(request) {
     // The caller proposes skill names; the engine — not the caller — computes
     // the digests those names resolve to, so a proposal cannot be approved for
     // one set of bytes and applied against another.
+    const proposed = { ...request.proposal };
+    const upstreams = [...(proposed.upstream_fetch || [])];
+    if (selectedCatalogSkills(catalog, proposed.selected_skills || []).some((skill) => skill.source_kind === 'optional') && !upstreams.some((row) => row.id === 'gstack-shelf')) {
+      const meta = loadUpstream('gstack-shelf', containedPath(request.target, UPSTREAM_META_REL));
+      upstreams.push({ id: 'gstack-shelf', tar_sha256: meta.archive.tar_sha256 });
+    }
+    if (upstreams.length) proposed.upstream_fetch = upstreams.map((row) => ({ ...row, metadata_sha256: sha256(fs.readFileSync(containedPath(request.target, `${UPSTREAM_META_REL}/${row.id}.json`))) }));
     const stored = canonicalProposal(
-      request.proposal, state, sha256(Buffer.from(summary)),
+      proposed, state, sha256(Buffer.from(summary)),
       (selected) => skillBindings(request.target, catalog, selected),
+      (selected) => bindServices(request.target, selected),
+      () => serviceOutputPreimages(request.target),
     );
+    checkUpstreamPins(request.target, stored.upstream_fetch);
     const summaryFile = containedPath(request.target, '.rig/onboarding-summary.md');
     const identical = state.proposal && state.proposal.digest === stored.digest
       && fs.existsSync(summaryFile) && fs.readFileSync(summaryFile, 'utf8') === summary;
@@ -603,7 +714,7 @@ function planRemovals(target, state, projection, writer, catalog) {
     ...projection.projections.map((row) => row.path),
     ...projection.plans.map((plan) => plan.rel),
   ]);
-  const removals = { projections: [], grafts: [], unreconciled: [] };
+  const removals = { projections: [], services: [], grafts: [], unreconciled: [] };
   const seen = new Set();
   for (const row of previousProjections) {
     if (seen.has(row.path)) continue;
@@ -627,6 +738,18 @@ function planRemovals(target, state, projection, writer, catalog) {
       removals.projections.push({ path: rel, digest: live, root });
     }
   }
+  const desiredServices = new Set(Object.keys(state.proposal.service_bindings || {}));
+  for (const row of state.applied?.owned_files || []) {
+    if (!row.path.startsWith('.rig/services/') || !row.path.endsWith('.md')) continue;
+    const id = row.path.slice('.rig/services/'.length, -'.md'.length);
+    if (desiredServices.has(id)) continue;
+    const live = currentDigest(target, row.path);
+    if (live !== null && live !== row.sha256) {
+      removals.unreconciled.push({ path: row.path, detail: HAND_EDITED });
+      continue;
+    }
+    removals.services.push({ path: row.path, digest: live, root: '.rig/services' });
+  }
   const desiredGrafts = new Set(state.proposal.grafts.map((graft) => `${graft.path}\0${graft.capability}`));
   for (const row of state.applied?.grafts || []) {
     if (!desiredGrafts.has(`${row.path}\0${row.capability}`)) removals.grafts.push(row);
@@ -636,6 +759,13 @@ function planRemovals(target, state, projection, writer, catalog) {
 
 function applyRemovals(target, removals, writer, graftDigests) {
   for (const row of removals.projections) {
+    const result = typeof writer.remove === 'function'
+      ? writer.remove(target, row.path, row.digest)
+      : { removed: false };
+    if (result.removed) pruneEmptyDirs(target, row.path, row.root);
+    else removals.unreconciled.push({ path: row.path, detail: NOT_RIG_CREATED });
+  }
+  for (const row of removals.services) {
     const result = typeof writer.remove === 'function'
       ? writer.remove(target, row.path, row.digest)
       : { removed: false };
@@ -716,6 +846,19 @@ function apply(request) {
     verifySkillBindings(state.proposal, catalog, projection);
     preflightGrafts(request.target, state.proposal.grafts, writer);
     preflightOwnedFiles(request.target, state.proposal.owned_files, writer);
+    preflightServices(request.target, state.proposal, writer);
+    // The agent-script slot: every check above has already passed and the
+    // approval is verified, so this is the first moment the approved bytes may
+    // run. A refusal (no sandbox, bad artifact) throws here, before any write.
+    const slot = state.proposal.projection_script || null;
+    let scriptRun = null;
+    if (slot) {
+      preflightScriptOutputs(request.target, slot, writer);
+      scriptRun = runProjectionScript({ target: request.target, slot });
+      preflightScriptOutputs(request.target, slot, writer);
+    }
+    checkUpstreamPins(request.target, state.proposal.upstream_fetch);
+    const fetchedUpstreams = fetchApprovedUpstreams(request.target, state.proposal.upstream_fetch, writer);
     const removals = planRemovals(request.target, state, projection, writer, catalog);
 
     const graftDigests = new Map();
@@ -723,7 +866,7 @@ function apply(request) {
     const appliedOwnedFiles = [];
     try {
       for (const projectionFile of projection.plans) {
-        writer(request.target, projectionFile.rel, projectionFile.bytes, 0o644, projectionFile.ownership);
+        writer(request.target, projectionFile.rel, projectionFile.bytes, projectionFile.mode || 0o644, projectionFile.ownership);
       }
       for (const graft of state.proposal.grafts) {
         const expected = graftDigests.has(graft.path) ? graftDigests.get(graft.path) : graft.preimage_digest;
@@ -740,6 +883,25 @@ function apply(request) {
       for (const owned of state.proposal.owned_files) {
         writer(request.target, owned.path, owned.content, 0o644, owned.preimage_digest === null ? 'create_owned' : 'replace_owned');
         appliedOwnedFiles.push({ path: owned.path, sha256: sha256(owned.content) });
+      }
+      appliedOwnedFiles.push(...applyServices(request.target, state.proposal, writer, currentDigest));
+      for (const result of fetchedUpstreams) {
+        for (const [output, bytes] of result.files) {
+          const rel = fetchedRel(result.id, output);
+          const pinned = result.receipt.files.find((file) => file.path === output);
+          writer(request.target, rel, bytes, pinned?.mode || 0o644, currentDigest(request.target, rel) === null ? 'create_owned' : 'replace_owned');
+        }
+        const receiptRel = fetchedRel(result.id, 'receipt.json');
+        writer(request.target, receiptRel, `${JSON.stringify(result.receipt, null, 2)}\n`, 0o644, currentDigest(request.target, receiptRel) === null ? 'create_owned' : 'replace_owned');
+      }
+      if (slot) {
+        // The approved script itself is kept (reviewable, re-runnable, and
+        // offerable back to Rig as a projector), then its approved artifacts.
+        writer(request.target, scriptRel(slot), slot.source, 0o644, currentDigest(request.target, scriptRel(slot)) === null ? 'create_owned' : 'replace_owned');
+        for (const artifact of scriptRun.artifacts) {
+          const approved = slot.approved_outputs.find((row) => row.path === artifact.path);
+          writer(request.target, artifact.path, artifact.bytes, 0o644, approved.preimage_digest === null ? 'create_owned' : 'replace_owned');
+        }
       }
     } catch (error) {
       // Keep a pending journal transaction if any mutation landed. It is the
@@ -772,8 +934,27 @@ function apply(request) {
         proposal_digest: state.proposal.digest,
         skills: projection.rows,
         projections: projection.projections,
+        projection_files: projection.plans.map((file) => ({ path: file.rel, sha256: sha256(file.bytes), mode: file.mode || 0o644 })),
         grafts: appliedGrafts.sort((a, b) => a.path.localeCompare(b.path) || a.capability.localeCompare(b.capability)),
         owned_files: appliedOwnedFiles.sort((a, b) => a.path.localeCompare(b.path)),
+        ...(fetchedUpstreams.length ? {
+          upstream: fetchedUpstreams.map((result) => ({
+            id: result.id,
+            revision: result.receipt.revision,
+            tar_sha256: result.receipt.tar_sha256,
+            receipt_path: fetchedRel(result.id, 'receipt.json'),
+            receipt_sha256: sha256(`${JSON.stringify(result.receipt, null, 2)}\n`),
+            files: result.receipt.files.map((file) => ({ path: fetchedRel(result.id, file.path), sha256: file.sha256, mode: file.mode })),
+          })),
+        } : {}),
+        ...(slot ? {
+          projection_script: {
+            host: slot.host,
+            script_digest: slot.script_digest,
+            script_path: scriptRel(slot),
+            outputs: scriptRun.artifacts.map((artifact) => ({ path: artifact.path, sha256: sha256(artifact.bytes) })),
+          },
+        } : {}),
         inventory_snapshot: inventorySnapshot,
         // Recorded, not just returned, so every later check keeps naming the
         // obsolete artifact this apply refused to delete.
@@ -829,6 +1010,11 @@ function reconcileApplied(target, state) {
       hardFailures.push(failure('state-incomplete', row.path, `selected skill "${row.skill}" is missing or has changed`));
     }
   }
+  for (const row of state.applied.projection_files || []) {
+    if (currentDigest(target, row.path) !== row.sha256 || (fs.statSync(containedPath(target, row.path)).mode & 0o777) !== row.mode) {
+      hardFailures.push(failure('state-incomplete', row.path, 'selected skill file is missing, changed, or has a changed mode'));
+    }
+  }
   // A ledger row only proves the SKILL.md still holds the bytes the ledger
   // itself echoed. Re-derive the whole projected tree and compare it to the
   // digest the approval was granted for, so an edited sibling — or a file
@@ -854,6 +1040,45 @@ function reconcileApplied(target, state) {
   for (const row of state.applied.owned_files || []) {
     if (currentDigest(target, row.path) !== row.sha256) {
       hardFailures.push(failure('state-incomplete', row.path, 'Rig-owned applied file is missing or has changed'));
+    }
+  }
+  for (const upstream of state.applied.upstream || []) {
+    const approved = (state.proposal?.upstream_fetch || []).find((row) => row.id === upstream.id);
+    if (!approved || approved.tar_sha256 !== upstream.tar_sha256) {
+      hardFailures.push(failure('state-incomplete', '.rig/state.json', `applied upstream "${upstream.id}" is not the approved pin`));
+    }
+    for (const file of [...upstream.files, { path: upstream.receipt_path, sha256: upstream.receipt_sha256 }]) {
+      const live = currentDigest(target, file.path);
+      if (live === null || (file.sha256 !== null && live !== file.sha256)) {
+        hardFailures.push(failure('state-incomplete', file.path, `fetched upstream "${upstream.id}" file is missing or has changed`));
+      }
+      if (file.mode !== undefined && live !== null && (fs.statSync(containedPath(target, file.path)).mode & 0o777) !== file.mode) {
+        hardFailures.push(failure('state-incomplete', file.path, `fetched upstream "${upstream.id}" file mode has changed`));
+      }
+    }
+    try {
+      const receipt = JSON.parse(fs.readFileSync(containedPath(target, upstream.receipt_path), 'utf8'));
+      if (receipt.id !== upstream.id || receipt.revision !== upstream.revision || receipt.tar_sha256 !== upstream.tar_sha256
+        || !Array.isArray(receipt.files) || receipt.files.some((file) => !upstream.files.some((expected) => expected.path === fetchedRel(upstream.id, file.path) && expected.sha256 === file.sha256 && expected.mode === file.mode))) {
+        hardFailures.push(failure('upstream-receipt-invalid', upstream.receipt_path, `fetched upstream "${upstream.id}" receipt does not match applied evidence`));
+      }
+    } catch {
+      hardFailures.push(failure('upstream-receipt-invalid', upstream.receipt_path, `fetched upstream "${upstream.id}" receipt is unreadable`));
+    }
+  }
+  const scriptApplied = state.applied.projection_script;
+  if (scriptApplied) {
+    const approved = state.proposal?.projection_script;
+    if (!approved || approved.script_digest !== scriptApplied.script_digest) {
+      hardFailures.push(failure('state-incomplete', '.rig/state.json', 'the applied projection script is not the approved one'));
+    }
+    if (currentDigest(target, scriptApplied.script_path) !== scriptApplied.script_digest) {
+      hardFailures.push(failure('state-incomplete', scriptApplied.script_path, 'the approved projection script is missing or has changed'));
+    }
+    for (const row of scriptApplied.outputs) {
+      if (currentDigest(target, row.path) !== row.sha256) {
+        hardFailures.push(failure('state-incomplete', row.path, 'a projection script output is missing or has changed'));
+      }
     }
   }
   for (const row of state.applied.grafts || []) {
@@ -891,11 +1116,16 @@ function check(request) {
       ? checkOnboarding(request.target, state, catalog)
       : { hardFailures: [], warnings: [], weight: { files: 0, bytes: 0, previous_release_files: 0, previous_release_bytes: 0 } };
     const hardFailures = [...reconcileApplied(request.target, state), ...supplemental.hardFailures];
+    const serviceChecks = hardFailures.length ? { executed_count: 0, results: [] } : checkServices(request.target, state.proposal);
+    for (const result of serviceChecks.results) if (result.status !== 0) {
+      hardFailures.push(failure('service-check-failed', result.service_id, result.reason || 'service check failed'));
+    }
     const checks = {
       status: hardFailures.length ? 'fail' : 'pass',
       hard_failures: hardFailures,
       warnings: [...supplemental.warnings, ...unreconciledWarnings(state)],
       weight: supplemental.weight,
+      ...(state.proposal?.selected_services === undefined ? {} : { service_checks: serviceChecks }),
     };
     const phase = hardFailures.length ? 'failed' : 'checked';
     const unchanged = state.phase === phase && JSON.stringify(state.checks) === JSON.stringify(checks);
@@ -908,8 +1138,75 @@ function check(request) {
       last_error: hardFailures[0]?.detail || null,
     };
     writeIfChanged(request.target, '.rig/grafts.md', renderGrafts(next));
-    writeState(request.target, next);
+    try {
+      writeState(request.target, next);
+    } catch (error) {
+      // A detected state edit is evidence of tampering. Return the failed
+      // reconciliation without overwriting the edited state that must be
+      // repaired by its owner.
+      if (hardFailures.length && error.message === 'rig: edited evidence .rig/state.json') {
+        return response('check', request.target, next, { hard_failures: hardFailures, warnings: checks.warnings });
+      }
+      throw error;
+    }
     return response('check', request.target, next, { hard_failures: hardFailures, warnings: checks.warnings });
+  });
+}
+
+// Called by the v5 -> corpus migration after the new layout is on disk. The
+// repository's valid selections survive; any approval, applied or checked
+// result whose bytes the new layout changed is invalidated, so the old
+// apply early return can never claim the new layout was applied.
+function migrateState(target, { fromTag, toTag }) {
+  return withOnboardingLock(target, () => {
+    const state = readState(target);
+    if (!state) return { status: 'none' };
+    if (state.migration?.to === toTag) return { status: 'already-migrated' };
+    const invalidated = [];
+    let catalogInfo = null;
+    try { catalogInfo = loadInstalledCatalog(target); } catch { invalidated.push('catalog-unreadable'); }
+    if (catalogInfo && catalogInfo.digest !== state.release.catalog_digest) invalidated.push('catalog-digest');
+    const proposal = state.proposal;
+    let selected = proposal ? proposal.selected_skills : [];
+    if (catalogInfo && proposal) {
+      const known = new Set(catalogInfo.catalog.skills.flatMap((skill) => [skill.id, skill.name]));
+      selected = selected.filter((id) => known.has(id));
+      if (selected.length !== proposal.selected_skills.length) invalidated.push('selected-skill-removed');
+      try {
+        const now = new Map(skillBindings(target, catalogInfo.catalog, selected).map((row) => [row.id, row]));
+        for (const binding of proposal.skill_bindings || []) {
+          const row = now.get(binding.id);
+          if (!row || row.tree_digest !== binding.tree_digest || row.projected_digest !== binding.projected_digest) invalidated.push(`binding:${binding.id}`);
+        }
+      } catch { invalidated.push('bindings-unverifiable'); }
+    }
+    const preserved = proposal ? {
+      selected_skills: selected,
+      capabilities: proposal.capabilities,
+      grafts: proposal.grafts.map(({ capability, path: graftPath, version, content }) => ({ capability, path: graftPath, version, content })),
+      owned_files: proposal.owned_files.map(({ path: filePath, kind }) => ({ path: filePath, kind })),
+      ...(proposal.upstream_fetch ? { upstream_fetch: proposal.upstream_fetch } : {}),
+      ...(proposal.projection_script ? { projection_script: { host: proposal.projection_script.host, script_digest: proposal.projection_script.script_digest } } : {}),
+    } : null;
+    const migration = {
+      from: fromTag, to: toTag, invalidated, preserved_selection: preserved,
+    };
+    if (!invalidated.length) {
+      writeState(target, { ...state, revision: state.revision + 1, release: { ...state.release, version: toTag }, migration });
+      return { status: 'kept', invalidated };
+    }
+    writeState(target, {
+      ...state,
+      revision: state.revision + 1,
+      phase: 'prepared',
+      release: { version: toTag, catalog_digest: catalogInfo ? catalogInfo.digest : state.release.catalog_digest },
+      proposal: null,
+      approval: null,
+      checks: null,
+      last_error: null,
+      migration,
+    });
+    return { status: 'invalidated', invalidated };
   });
 }
 
@@ -925,5 +1222,5 @@ function handleOnboarding(request) {
 }
 
 module.exports = {
-  ALLOWED_SIGNERS_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
+  migrateState, TRUST_ROOT_REL, APPROVAL_NAMESPACE, approvalMessage, handleOnboarding, loadInstalledCatalog,
 };

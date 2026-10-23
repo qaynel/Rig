@@ -1,24 +1,65 @@
-Before acting, read `rig/tier-1/routing.md` and route this task through its skill table.
+Before acting, read `rig/corpus/routing.md` and route this task through its skill table.
 
 # Rig Agent Instructions
 
+## North star — locked by the owner; never re-ask, never contradict
+
+These are settled. Re-raising any of them has repeatedly cost the owner time.
+Before any scope, design, test, or support question, check it against this list.
+
+1. **Rig is one central corpus.** Skills, pipeline, catalogue services,
+   standards, and grafting instructions live once, in the Rig corpus. The
+   user's own coding agent unpacks it onto their repository with clear
+   onboarding instructions — a mechanical projector for known hosts, the agent
+   itself for unknown ones. Never frame scope, tests, docs, or support per host
+   or by counting hosts. Design: `wiki/reasoning/2026-09-08-dynamic-offboarding-architecture-brainstorm.md`.
+2. **Onboarding is agent-driven and adaptive.** The host agent grafts the
+   smallest useful set onto what the repository already has; Rig code does not
+   infer. `wiki/reasoning/2026-08-31-path-b-product-direction.md`.
+3. **Markdown-only Tier 1 is retired.** Rig may ship scripts, markdown, and MCP;
+   a sync engine is wanted. Do not reject an approach on markdown-only grounds.
+   `wiki/reasoning/2026-09-04-structural-workflow-fix-grilling.md` (B2).
+4. **The human-signed oracle is the gate.** Agents never edit frozen tests; the
+   owner re-signs, batched into one session. (B3)
+5. **Close bar:** code is cheap. Fix it; "replaced" needs a strong written
+   reason; difficulty or priority is never a reason.
+   `wiki/reasoning/2026-10-13-close-everything-owner-answers-round1.md`.
+6. **Third-party skills are fetched during onboarding for this release.**
+   `wiki/reasoning/2026-10-13-close-everything-review-owner-fetch.md`.
+7. **The canonical corpus uses one new root, `rig/corpus/`.**
+   `wiki/reasoning/2026-10-13-close-everything-review-owner-corpus-root.md`.
+8. **Remove tier wording now; keep the existing flag compatible for one release.**
+   `wiki/reasoning/2026-10-13-close-everything-review-owner-tier.md`.
+9. **Service checks use available tools; missing tools are named gaps with setup guidance.**
+   `wiki/reasoning/2026-10-13-close-everything-review-owner-tools.md`.
+10. **Proven duplicate services may merge with written reasons and selection compatibility.**
+    The count may fall below 115; required capabilities remain covered.
+    `wiki/reasoning/2026-10-13-close-everything-review-owner-merges.md`.
+11. **QA-to-production promotion uses automated checks only on the exact QA commit.**
+    Include automated health and real-download clean-install checks; no outside-repository manual install gate.
+    `wiki/reasoning/2026-10-13-close-everything-review-owner-promotion.md`.
+
+When the owner states a product decision, add it here in the same change.
+
 This repository is **Rig**, a curated, host-agnostic toolbox for coding agents.
-It uses a two-gate workflow:
+Follow `rig/corpus/standards/ai-sdlc.md` for the development lifecycle and use
+the Rig skills it routes to for each phase.
 
-1. `rig-grilling` freezes intent and acceptance tests.
-2. `rig-product-design` freezes the technical approach.
-3. `rig-implementation` implements the smallest correct diff.
-4. `rig-execution`, `rig-tdd`, `rig-debugging`, and `rig-code-review` handle
-   coordinated execution, test-driven slices, root-cause work, and review.
+## Delivery SOP
 
-`rig-implementation` is still always active for implementation, but it is one
-skill inside Rig's broader workflow. Do not treat every task as only a
-`rig-implementation` task.
+Releases follow `rig/corpus/standards/change-management.md` — one ordered
+sequence from candidate freeze to tracker closure, enforced by
+`node scripts/check-deployment-gate.js --receipt <path>`. Do not reorder it and
+do not carry evidence across a code change.
+
+Follow `rig/corpus/standards/delivery-sop.md` for multi-step changes. The live
+closeout artifacts are in `wiki/specs/close-everything/` (`task-list.md`,
+`agent-prompt.md`).
 
 ## Project Context
 
-- Tier 1 is the markdown-only bootstrap: fixed file list, no catalogue
-  resolver, no runtime, no keys, no `.env` handling.
+- Rig ships from one central corpus that the user's agent unpacks (North
+  star 1). No keys and no `.env` handling are ever installed.
 - Active delivery beyond the bootstrap is **mandatory agent-tech-safety
   baseline + à-la-carte catalogue** (`family → group → service → grade`).
   Fixed Basic / mid / Advanced install packages are deprecated (GA-9g).
@@ -31,7 +72,7 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 
 ## Working Rules
 
-- Route through `rig/tier-1/routing.md` first; do not substitute a nearby skill
+- Route through `rig/corpus/routing.md` first; do not substitute a nearby skill
   for the named owner.
 - Preserve Gate 1 acceptance artifacts unless the task is explicitly routed back
   to grilling.

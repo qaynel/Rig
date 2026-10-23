@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.debugging.root-cause-analysis",
+  "input": "rig-services/development.debugging.root-cause-analysis.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the failure boundary, causal evidence and the symptom-only-fix flag are declared; it does not show the cause is correct.",
+  "offer": "Locate the first boundary where expected behavior diverges and record the causal observation. Fix the shared cause and retain a reproduction rather than masking the final symptom.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong."
+      }
+    ],
+    "mid": [
+      {
+        "field": "causal_evidence",
+        "op": "nonempty",
+        "reason": "Record the observation that links cause to failure, such as a log line or failing input. Claims without evidence cannot be re-checked, so attach the trace."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "symptom_only_fix",
+        "op": "equals",
+        "value": false,
+        "reason": "Set symptom-only fix to false. Masking the final symptom leaves the shared cause in place, so fix the cause and keep a reproduction."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "root-cause-analysis-slice-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "root-cause-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong."
+      }
+    },
+    "property-floor": {
+      "check_id": "root-cause-analysis-slice-property-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "root-cause-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "failure_boundary",
+        "op": "nonempty",
+        "reason": "Name the first boundary where behavior diverged from expectation. Without it the fix targets the final symptom, so record the component and input where it first went wrong."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.data-schema.db-migrations",
+  "input": "rig-services/development.data-schema.db-migrations.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms migration order, rollback steps and the destructive-change flag are declared; it does not show migrations apply or roll back.",
+  "offer": "Keep migration ordering deterministic and preserve a tested recovery route. Destructive schema operations require their own explicit approval rather than inheriting ordinary migration consent.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_steps",
+        "op": "nonempty",
+        "reason": "Write the rollback steps for a failed migration. Without a tested recovery route a bad migration is permanent, so list the exact reverse steps."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "destructive_change_approved",
+        "op": "equals",
+        "value": false,
+        "reason": "Destructive changes must be marked not approved by default. A drop or truncate needs its own explicit approval, so keep this false until a separate sign-off exists."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "db-migrations-slice-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "db-migrations-slice-behavior-oracle",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
+      }
+    },
+    "property-floor": {
+      "check_id": "db-migrations-slice-property-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "db-migrations-slice-mutation-floor",
+      "rule": {
+        "field": "migration_order",
+        "op": "nonempty",
+        "reason": "State the migration order explicitly. Nondeterministic ordering can corrupt a schema, so declare the sequence or numbering the tool follows."
+      }
+    }
+  }
+}

@@ -13,8 +13,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # check-coherence compares the declared tracker transitions against the
+    # live issue list and refuses to skip that comparison in CI.
+    permissions:
+      contents: read
+      issues: read
     steps:
+      # Full history: the v5 migration tests read the v5.0.0 installer commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -27,8 +35,10 @@ jobs:
       # Ubuntu 24.04 restricts rootless user namespaces through AppArmor.
       # Rig's ungranted-task network boundary uses a rootless network namespace,
       # so enable the native runner capability and verify it before the suite.
-      - name: Enable rootless network namespaces
+      - name: Prepare task sandbox
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
 
@@ -40,5 +50,10 @@ jobs:
       - name: Secret hygiene (no credentials tracked or publishable)
         run: npm run test:secrets
 
+      # The suite asserts local-mode output, not the CI-projected aggregate JSON
+      # or ::warning annotations that CI=true selects, so the runner's CI markers
+      # are hidden from it. Tests that cover CI mode set them explicitly.
       - name: Run tests
-        run: npm test
+        run: env -u CI -u GITHUB_ACTIONS npm test
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

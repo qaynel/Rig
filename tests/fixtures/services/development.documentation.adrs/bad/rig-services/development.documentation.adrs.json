@@ -1,0 +1,9 @@
+{
+  "decision": "",
+  "alternatives": [
+    "overwrite files directly"
+  ],
+  "consequences": [
+    "recoverable preimages"
+  ]
+}

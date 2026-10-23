@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.test-data.fixtures-factories",
+  "input": "rig-services/testing.test-data.fixtures-factories.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms fixture defaults, explicit variants and the shared-mutable-state flag are declared; it does not build fixtures.",
+  "offer": "Keep fixture defaults valid and make behavioral variants explicit. Shared mutable fixtures allow one test to change another test outcome and obscure the scenario being checked.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
+      }
+    ],
+    "mid": [
+      {
+        "field": "explicit_variants",
+        "op": "nonempty",
+        "reason": "List the explicit variants for each behavior. Implicit variants obscure what is tested, so name them."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "shared_mutable_state",
+        "op": "equals",
+        "value": false,
+        "reason": "Set shared mutable state to false. Tests changing shared fixtures affect each other, so build fresh data per test."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "fixtures-factories-slice-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "fixtures-factories-slice-behavior-oracle",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
+      }
+    },
+    "property-floor": {
+      "check_id": "fixtures-factories-slice-property-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "fixtures-factories-slice-mutation-floor",
+      "rule": {
+        "field": "fixture_defaults",
+        "op": "nonempty",
+        "reason": "Keep fixture defaults valid and list them. Invalid defaults hide the scenario, so declare the baseline record."
+      }
+    }
+  }
+}

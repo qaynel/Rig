@@ -1,0 +1,7 @@
+{
+  "scenario_names": [],
+  "shared_helpers": [
+    "create valid account"
+  ],
+  "hide_assertions_in_helpers": false
+}

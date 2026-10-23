@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const FLOOR_PATTERN = [
-  'sk-[A-Za-z0-9_-]{16,}',
+  '\\bsk-[A-Za-z0-9_-]{16,}',
   'ghp_[A-Za-z0-9]{20,}',
   'gho_[A-Za-z0-9]{20,}',
   'AKIA[0-9A-Z]{16}',
@@ -25,12 +25,12 @@ if git diff --cached -U0 --no-color | grep -E '^\\+' | grep -Ev '^\\+\\+\\+' | g
 fi
 
 if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks protect --staged --no-banner
+  gitleaks protect --staged --no-banner >/dev/null 2>&1
   code=$?
   if [ "$code" -eq 1 ]; then block "gitleaks flagged staged content"; fi
   if [ "$code" -gt 1 ]; then echo "rig warn: gitleaks failed; falling back to floor" >&2; fi
 elif command -v trufflehog >/dev/null 2>&1; then
-  trufflehog git file://. --since-commit HEAD --only-verified --fail
+  trufflehog git file://. --since-commit HEAD --only-verified --fail >/dev/null 2>&1
   code=$?
   if [ "$code" -ne 0 ]; then block "trufflehog flagged staged content"; fi
 fi
@@ -41,7 +41,11 @@ exit 0
 const SHIM = `#!/bin/sh
 # Rig secret guard shim. Managed by Rig; runs the guard then any chained hook.
 DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-"$DIR/.rig/hooks/secret-guard.sh" "$@" || exit $?
+if [ -f "$DIR/.rig/bin/check.js" ]; then
+  node "$DIR/.rig/bin/check.js" --scope diff --surface git.pre_commit || exit $?
+else
+  "$DIR/.rig/hooks/secret-guard.sh" "$@" || exit $?
+fi
 if [ -x "$DIR/.git/hooks/pre-commit.rig-chained" ]; then
   "$DIR/.git/hooks/pre-commit.rig-chained" "$@" || exit $?
 fi

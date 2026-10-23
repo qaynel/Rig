@@ -1,0 +1,9 @@
+{
+  "scenario_names": [
+    "expired token is rejected"
+  ],
+  "shared_helpers": [
+    "create valid account"
+  ],
+  "hide_assertions_in_helpers": false
+}

@@ -2,104 +2,64 @@
 
 ## What it is
 
-Rig offers four families, groups within those families, and 115 independently
-selectable services. Each service has cumulative `minimal / mid / maximal`
-packaging, mapped to Policy, Context, and Evidence assurance inside that
-service's owned domain. Scan recommendations are advisory; the user may select
-any leaf and grade.
+Rig provides one canonical engineering-services catalogue with 115 services,
+organized as `family → group → service → grade`. Each service offers
+cumulative `minimal / mid / maximal` guidance, mapped to Policy, Context, and
+Evidence assurance within its declared scope. Recommendations are advisory;
+the user's host agent proposes relevant services and the user can review the
+selection. [Catalogue contract](catalogue-contract.md)
 
-The separate 55-skill shelf is vendored operating method. It is installed by
-Rig name with upstream notice/provenance, but it does not replace the 115-leaf
-selection and evidence model.
-
-## The skill shelf is its own taxonomy
-
-Since Path B slice 1 the shelf is a second, entirely separate catalogue. Its
-source lives at `rig/catalog/skills/<family>/<capability-leaf>/<source-dir>/SKILL.md`
-under eleven doctrine families declared as data in
-`rig/catalog/skills/families.json`. Each `SKILL.md` self-declares `family`,
-`tool`, `capability`, `guarantees`, and `overlap_tags`; nothing is inferred
-from a directory name or a vendor prefix.
-
-`scripts/build-skill-catalog.js` generates `rig/catalog/skills/catalog.json`
-(63 skills: 55 optional + 7 core workflow + `rig-onboarding`), and
-`--check` runs inside the `npm test` gate so the committed artefact cannot
-drift from its sources. The adaptive install pins those exact bytes at
-`.rig/catalog.json` and refuses to overwrite a user-edited copy. This shelf
-never imports, rewrites, or reads a 115-service selection — `rig/catalog.json`
-and `rig/catalog/services/**` stay byte-identical.
-[Slice 1 trace](../reasoning/2026-09-01-path-b-slice1-catalogue.md)
+The skill catalogue is separate from service selection. Core workflow skills
+come from the central corpus; optional third-party skills are fetched from
+pinned upstream sources during onboarding when selected. The skill index and
+upstream metadata are not a second services catalogue.
+[Onboarding flow](onboarding-flow.md) ·
+[upstream trace](../reasoning/2026-10-14-closure-shelf-removal.md)
 
 ## Current release shape
 
-D24 makes the beta broad and shallow: all 115 leaves ship at Policy grade and
-declare themselves generic, untailored baseline practice. Lint/format is the
-only leaf currently backed for higher-grade claims. Every other leaf names its
-owned scope, applicability, dependencies, disposition, exact checks, and slice
-behavior; a missing repository binding reports a coverage gap instead of
-passing vacuously.
+The service definitions and authored guidance live in
+[`rig/corpus/catalogue.json`](../../rig/corpus/catalogue.json) and
+[`rig/corpus/services/`](../../rig/corpus/services/). Each entry names its
+scope, dependencies, grade guidance, checks, evidence, and coverage limits.
+The authored-service gate checks for boilerplate and repeated content. A
+configuration-only check does not claim live-infrastructure assurance.
+[Authored-service gate](authored-service-gate.md) ·
+[authorship proof](../reasoning/2026-10-14-closure-authorship-complete.md)
 
-The tagged-release payload installs `catalog.json`, every service fragment,
-baseline assets, the safety/runtime modules, all 55 neutral skills, and their
-plumbing even when no host marker is detected. Detected hosts receive only
-their additional native skill/instruction tree. The local Tier-1 bootstrap
-keeps its static-only boundary: by default it installs all 55 skills as
-markdown only (`SKILL.md` plus docs), leaving per-skill code and the plumbing
-tree out unless `--with-runtime` is passed — the same `active_delivery` gate
-that already covered the runtime engine ([AD-37](../index/decisions.md)).
+The earlier duplicate service catalogue and its untailored fragments under
+`rig/catalog/` were removed; `rig/corpus/` is the sole services source. The
+separate skill index remains for pinned optional upstream metadata.
+[Duplicate retirement](../reasoning/2026-10-17-retire-the-duplicate-services-catalogue.md)
 
 ## Why
 
-Fixed Basic/mid/Advanced packages could not express repository-specific needs.
-The catalogue preserves individual user choice and razor-scoped dependencies,
-while the Policy/Context/Evidence ladder states how much of each selected
-service has actually been proven.
+Fixed install bundles could not express repository-specific needs. Services
+remain individually selectable, and their grades show what evidence is
+available for each selected service. The user's host agent uses repository
+context to propose a small useful set; the installer does not choose services
+from repository shape.
+[Owner-locked direction](../reasoning/2026-08-31-path-b-product-direction.md)
+
+## What was rejected
+
+Installing every optional skill into every repository, replacing existing
+tooling with parallel copies, and inferring project needs from language or
+framework labels were rejected. The installed agent receives the capability
+catalogue and makes a contextual proposal for the user to review. The first
+adaptation evaluation records the evidence that led to this direction; its
+old recommendation to prune at install time is historical.
+[Adaptation evaluation](../archive/2026-08/path-a-and-path-b-onboarding.md)
 
 ## Authorities and sources
 
-- Frozen inventory and choice model: [business specification](../gate1/business-spec.md)
-- Working catalogue contract: [technical specification](../gate2/technical-spec.md#5-catalogue-contract)
-- D24 broad Policy release: [intent-owner trace](../reasoning/2026-08-21-mvp-agent-discretion-build.md)
-- Vendored-skill approval: [owner approval](../reasoning/2026-08-21-d24-owner-approval.md)
-- Production findings: [intent-owner trace](../reasoning/2026-08-23-production-release-blockers.md)
-- Lean default install: [lean-install protocol](../reasoning/2026-08-23-lean-install-protocol.md)
+- Frozen intent: [business specification](../gate1/business-spec.md)
+- Working design: [technical specification](../gate2/technical-spec.md#5-catalogue-contract)
+- Historical catalogue direction: [D24 record](../archive/2026-08/release-install-and-distribution.md)
+- Current release state: [QA/prod closeout](the-overhaul.md)
 
-## Remaining work
+## What is still open
 
-The current packs meet the Policy authorship contract. Beta use determines
-which leaves earn repository-specific Context and rerunnable Evidence next; the
-grade must never advance from prose alone.
-
-The first real adaptation run (2026-08-30, `inspo/claude-task-master-main/`,
-+12/100) put a number on the à-la-carte model's failure mode: installing the
-full catalogue onto a Node/TS CLI monorepo scored signal-vs-noise as *poor —
-~85% dead weight by skill count* (ios-qa, make-pdf, design-shotgun, office-hours,
-scrape … on a repo that needs ~7 of 65 skills). This is the concrete case for
-pruning the installed set to what the repo's stack implies rather than shipping
-everything, and it stands against the "Rig has everything" framing.
-[Adaptation eval](../reasoning/2026-08-30-adaptation-eval-claude-task-master.md)
-
-## Deletion case sharpened, not yet actioned (2026-09-04)
-
-Office-hours architecture analysis restates the pruning case above in deeper
-terms and adds a second target: `rig/catalog/services/` (the 115-leaf matrix
-this page describes) is 805 files / 4,520 lines generated by
-`scripts/author-policy-catalogue.js`, mean 5.6 lines each, and each file's own
-text discloses it is "not a claim of repository-tailored Context or Evidence
-coverage." Combined with the 55-skill shelf, vendoring both catalogues
-accounts for roughly 165k of the 185k lines under `rig/`. The deletion test
-(does complexity reappear across callers?) says no for the services matrix —
-the grading vocabulary fits a 30-line table — and no for the vendored shelf,
-which a user could install directly from upstream. Recommendation: collapse
-the services matrix to a generated table and reference the skill shelf rather
-than vendor it. **Not implemented**: Part 6 Q4 of the design trace records
-this as needing an explicit owner veto/approval before any deletion runs.
-[Finished-product design](../reasoning/2026-09-04-finished-product-design.md) ·
-[Landscape research](../reasoning/2026-09-04-landscape-research-in-flight.md)
-
-The 2026-09-05 scope measurement confirms that renaming the vendored shelf is
-a licensing and provenance decision, not a cleanup: its upstream notices cover
-6.9M bytes of third-party skills, so a mass `rig-*` rename would re-badge work
-without reducing the maintenance burden. [Scope measurement](../reasoning/2026-09-05-overhaul-scope-measurements.md)
-
-<!-- Reviewed 2026-09-02 during wiki-maintenance step 2; hub already reflects newest current-trace decisions. -->
+The 115 services meet the current Policy authorship contract. Any future grade
+advancement needs repository use and additional evidence; prose alone does not
+raise a service's assurance. [Release checkpoint](the-overhaul.md)

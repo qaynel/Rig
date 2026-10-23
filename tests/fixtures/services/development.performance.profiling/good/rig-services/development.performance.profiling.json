@@ -1,0 +1,8 @@
+{
+  "workload": "1000 item reads",
+  "measured_metrics": [
+    "latency_ms",
+    "allocations"
+  ],
+  "optimize_without_measurement": false
+}

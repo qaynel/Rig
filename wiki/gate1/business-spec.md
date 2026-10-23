@@ -220,6 +220,16 @@ infrastructure form the oracle that is signed once before implementation.
 > this file and [`../acceptance.md`](../acceptance.md) at their current
 > 49-case set, under a re-signed combined digest (§8).
 
+> **Revision note (2026-10-20) — D29, one trust root; D20 withdrawn.** The
+> intent owner locked a single signing authority: the key that signs the Gate 1
+> lock is the only signing key Rig uses, and the only key that signs, approves
+> or recovers anything. Plan approvals, lint-format plan and setup approvals,
+> and policy activation verify against that key alone. The separate
+> policy-signer setup, recovery registration and recovery (D20), the
+> trust-on-first-use fallback, `trust.json`, and a repository-local
+> allowed-signers file as an independent trust list are removed. `AT-PRESENCE-2`
+> is rewritten to state the one-root rule; the ID set stays at **49**.
+
 > **Revision note (2026-08-21) — D21, the lint-format vertical release
 > boundary.** Re-grilled with [`../acceptance.md`](../acceptance.md) after a
 > readiness audit found this file made release conditional on all 115
@@ -303,23 +313,13 @@ infrastructure form the oracle that is signed once before implementation.
 > re-signed combined digest (§8), before the specification gate may implement
 > this exception.
 
-> **Revision note (2026-08-21, final ruling that day) — D24, broad Policy MVP
-> and one gate.** Re-grilled with [`acceptance.md`](acceptance.md) after the
-> intent owner approved the complete MVP handoff. This revision supersedes
-> D21's lint-format-only release boundary and retires D23's temporary
-> `AT-SHAPE-6` exception. The MVP release now includes all 115 catalogue leaves
-> at the Policy rung, all 55 vendored skills wired and callable by Rig name,
-> context-aware onboarding that writes only into detected host trees, and a
-> named-tag distribution path at version `5.0.0`.
+> **Revision note (2026-10-20) — host scope under the locked owner decision (North star 12).** "Rig builds and emits for every host" and "built adapters and emitted configuration for all 19 hosts" are read per axis, not as a universal-emission promise. For each host axis the status is `emitted` only when Rig writes the declared host-consumed artifact and a test inspects the landed bytes; `not_integrated` when the vendor surface exists but Rig installs no adapter — reported as a named coverage gap with setup guidance, never as protection; `unsupported` only when the vendor surface does not exist. This adds no all-host hook-integration requirement. `AT-HOST-1` and `AT-BASE-2` state the same contract.
+
+> **Revision note (ratified by the owner's verified signature) — D24 release and catalogue alignment.** The current owner-locked release direction is Rig 6.0.0 from one central corpus. The 115 catalogue leaves remain release-blocking at the Policy assurance ceiling; each fragment must state its actual service coverage and evidence limit in specific language. Repeated filler, interpolation artifacts, TODOs, and fabricated Context or Evidence claims fail. Higher grades require separate observed review and replayable evidence.
 >
-> Every D24-authored fragment states that it is generic Policy-grade baseline
-> practice, not repository-tailored Context or Evidence coverage. The honesty
-> floor is unchanged: missing or malformed bindings are named nonzero coverage
-> gaps, never silent skips or fabricated passes. Lint-format alone may retain
-> its already-evidenced Context and Evidence behavior. Sequential per-leaf
-> authorship is suspended for this release; the owner accepts that this MVP
-> therefore does not itself demonstrate that an agent cannot set its own test
-> bar. Later promotion restores ordinary per-leaf review.
+> Optional upstream skills retain their 55-entry pinned inventory and attribution metadata, but are fetched during approved onboarding. Fresh install projects the nine mandatory workflow/onboarding skills and compact catalogue; it does not stage optional source bytes or expose optional skills before approval. The release resolves and downloads a named tag before execution, currently version `6.0.0`, and includes the upstream notice and provenance record without an endorsement claim. The user’s agent performs adaptive onboarding; Rig does not infer repository needs.
+>
+> Missing or malformed bindings are named nonzero coverage gaps, never silent skips or fabricated passes. The signed oracle remains this file, acceptance, and the deterministic testing infrastructure manifest; Gate 2 is present but not frozen.
 >
 > The two-gate workflow is replaced by one freeze. The signed oracle consists
 > of this file, [`acceptance.md`](acceptance.md), and the deterministic testing
@@ -537,30 +537,14 @@ human presence approves its exact bytes and exact summary.
     external signature. Where neither is available, activation is **refused and
     reported unavailable**. Rig specifies the signer interface and verifies
     signatures; it ships no signing binary and stores no key material.
-  - **A lost policy signer has one authorised recovery path, and it terminates
-    (D20).** Recovering from a lost or compromised policy-activation signer
-    requires proof of human presence at least as strong as the floor Gate 1
-    already sets for protecting these frozen documents themselves — a key no
-    agent on the user's machine can operate without a live human act, never an
-    ordinary confirmation prompt. The credential that proves it must be
-    cryptographically distinct from the everyday signing key, kept outside any
-    storage the repository, Rig, or the agent can reach on its own, and
-    counts as a recovery credential only if it was registered while an
-    already-valid credential was in force — an agent cannot designate its own
-    replacement key as recovery and call that a fix. Rig offers to generate a
-    set of recovery credentials the first time the everyday signer is set up,
-    and offers the same option to add more every time signer setup runs again
-    while a valid credential still exists. If the everyday signer and every
-    registered recovery credential are ever all lost together, recovery is
-    **refused permanently** for that policy trust state: no forced override,
-    no silent reset, and no new fallback invented to route around the
-    exhausted list. Recovery's consequences — invalidating pending policy
-    edits, burning one-use approvals, and resetting evidence-epoch tracking —
-    follow only from an authorised recovery event and are never something an
-    agent triggers on its own by asserting one is needed, and every recovery
-    is disclosed to the user rather than applied silently. This is a distinct
-    trust domain from the Gate 1 integrity signer (D10/D19): that signer keeps
-    no recovery path at all, and this decision does not add one.
+  - **One trust root: the Gate 1 key is the only key that approves (D29).**
+    Plan approvals, lint-format plan and setup approvals, and policy activation
+    verify against the key that signs the Gate 1 lock and against no other. Rig
+    has no separate policy-signer setup, no recovery registration, no
+    trust-on-first-use fallback, and no repository-local signer list that could
+    name a different approver; a list or record planted in a repository changes
+    nothing. The Gate 1 signer keeps no recovery path (D10/D19), and neither
+    does any other signer.
   - **Agent prompts must not invent policy consent.** Every installed base
     prompt states that prior approvals, delegated edit mode, chat wording, tool
     access, urgency, or a broad task request never authorize activation. The
@@ -644,25 +628,9 @@ pre-modification copies, and the uninstall path that consumes them. This is the
 counterpart to D7: a product a stranger can install without this checkout must
 also be one they can remove without it.
 
-**Also in scope (D24) — the broad Policy MVP.** All 115 catalogue leaves ship
-at the Policy rung; each states that its content is generic baseline practice,
-not repository-tailored Context or Evidence coverage. All 55 vendored skills
-are wired into materialization and host discovery and remain callable by their
-Rig names. Onboarding detects existing host trees mechanically and writes only
-to those trees. The root installer resolves and downloads a named released tag
-before execution, and the release version is `5.0.0`. The upstream MIT notice
-and provenance record for the modified partial vendored suite ship in every
-installed copy, without an upstream-endorsement claim.
+**Also in scope (D24) — release and authored catalogue.** All 115 catalogue leaves remain release-blocking at the Policy assurance ceiling. Each must state service-specific coverage and its evidence limit; repeated filler and unsupported higher-grade claims fail. Optional upstream skills retain a 55-entry pinned inventory and attribution metadata, and are fetched during approved onboarding. A fresh install projects nine mandatory workflow/onboarding skills and the compact catalogue, with no optional source shelf staged or exposed before approval. The named-tag installer downloads before execution; the current release is 6.0.0. The upstream notice and provenance ship without an endorsement claim.
 
-**Also in scope (Path B) — agent-led adaptive onboarding.** The released
-payload carries the complete skill source shelf once outside host discovery, a
-deterministic compact capability catalogue, bounded structural inventory and
-overlap reports, repository-local onboarding state/reports, versioned graft
-mechanics, a shared `prepare` / `propose` / `apply` / `check` domain used by CLI
-and MCP, selective approved skill projections, one canonical router and
-onboarding playbook, the `install rig [--host <host>]` operator path, and the
-warning/correctness check. The public flow has no install tiers and no
-auto-trigger.
+**Also in scope (Path B) — agent-led adaptive onboarding.** The released payload carries pinned source metadata for the optional skill shelf, a deterministic compact capability catalogue, bounded structural inventory and overlap reports, repository-local onboarding state/reports, versioned graft mechanics, a shared `prepare` / `propose` / `apply` / `check` domain used by CLI and MCP, selective approved skill projections, one canonical router and onboarding playbook, and the `install rig [--host <host>]` operator path. Optional skill bytes are fetched only during approved onboarding. The public flow has no install tiers and no auto-trigger.
 
 **Lint-format remains the evidenced vertical.** Its whole-repository discovery,
 semantic command binding, cumulative Policy → Context → Evidence behavior,
@@ -739,15 +707,7 @@ The determinism ladder (unit → property → mutation → contract → chaos �
 inter-service **dependencies** (auto-pull), orthogonal to grade. **The catalogue is mutually exclusive
 (MECE)** — every capability is owned by exactly one service.
 
-All **115 frozen leaves are release-blocking for this MVP** (D24). Each ships
-at Policy grade with service-specific identity, owned scope and adjacent
-exclusions, applicability, dependencies, cumulative grade behavior, execution
-disposition, checks, and acceptance evidence. Each D24-authored fragment names
-its Policy grade and says explicitly that it is generic baseline practice, not
-repository-tailored Context or Evidence coverage. A TODO fragment, generic
-filler presented as coverage, repeated boilerplate, or merely non-empty file
-does not constitute an authored service pack. Lint-format is the only leaf that
-may claim Context or Evidence from its existing evidence.
+All **115 frozen leaves remain release-blocking** (D24). Each ships at Policy grade with service-specific identity, scope and exclusions, applicability, dependencies, cumulative grade behavior, execution disposition, checks, and acceptance evidence. Each fragment states its actual coverage and evidence limit in service-specific language. A TODO, interpolation artifact, repeated filler, or merely non-empty file fails. Context or Evidence is claimed only when the corresponding review and evidence receipt can be verified.
 
 **Four families → groups** (service-level detail in `../../archive/grilling/advanced-grilling.md` §GA-9k/9l/9m/9n and the
 `references/` taxonomies):
@@ -956,12 +916,6 @@ mistake them for oversights.
   repository and out of CI artifacts means a team has no shared history of what
   its checks found, and a CI failure tells a reviewer only that something failed
   and how much. Reproducing the detail requires running the check locally.
-- **An exhausted recovery-credential list is a deliberate dead end (D20).** If
-  a user loses the everyday policy signer and every credential they ever
-  registered for recovery, Rig will not invent a further fallback to let them
-  back in — the same choice already made for the Gate 1 integrity signer
-  (D10), applied here to a separate trust domain. The mitigation is upfront:
-  Rig offers a set of recovery credentials at setup and again at every later
-  signer setup, so a user who takes the offer has more than one chance to
-  avoid this state, but taking none of them is still possible, and it still
-  ends here.
+- **Losing the Gate 1 key is a deliberate dead end (D29).** Rig has one trust
+  root and invents no fallback, rotation, or recovery for it, so a lost key
+  cannot be routed around by any agent or setup flow.

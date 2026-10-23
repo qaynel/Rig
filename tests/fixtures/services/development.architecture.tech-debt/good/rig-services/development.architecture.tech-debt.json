@@ -1,0 +1,11 @@
+{
+  "debt_items": [
+    "replace duplicated parser"
+  ],
+  "owners": [
+    "platform"
+  ],
+  "exit_criteria": [
+    "single parser with compatibility checks"
+  ]
+}

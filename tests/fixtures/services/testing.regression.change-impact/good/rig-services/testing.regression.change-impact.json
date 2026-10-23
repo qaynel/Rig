@@ -1,0 +1,9 @@
+{
+  "changed_interfaces": [
+    "order serializer"
+  ],
+  "affected_suites": [
+    "order contract"
+  ],
+  "select_by_filename_only": false
+}

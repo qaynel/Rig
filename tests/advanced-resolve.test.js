@@ -12,7 +12,7 @@ function loadResolve() {
 
 test('named-slice resolution auto-pulls exact dependency slice only', () => {
   const { resolve } = loadResolve();
-  const catalog = require(path.join(root, 'rig', 'catalog.json'));
+  const catalog = require(path.join(root, 'rig', 'corpus', 'catalogue.json'));
   const result = resolve(catalog, {
     'testing.mutation.mutant-generator': 'minimal',
   });
@@ -44,7 +44,7 @@ test('named-slice resolution auto-pulls exact dependency slice only', () => {
 
 test('selected grade is preserved when dependency requests a lower slice', () => {
   const { resolve } = loadResolve();
-  const catalog = require(path.join(root, 'rig', 'catalog.json'));
+  const catalog = require(path.join(root, 'rig', 'corpus', 'catalogue.json'));
   const result = resolve(catalog, {
     'testing.unit.test-case-generation': 'maximal',
     'testing.mutation.mutant-generator': 'minimal',
@@ -59,7 +59,7 @@ test('selected grade is preserved when dependency requests a lower slice', () =>
 
 test('ladder bundles expand earlier rungs without whole-group pulls', () => {
   const { resolve } = loadResolve();
-  const catalog = require(path.join(root, 'rig', 'catalog.json'));
+  const catalog = require(path.join(root, 'rig', 'corpus', 'catalogue.json'));
   const result = resolve(catalog, {
     'testing.mutation.execution-orchestrator': 'minimal',
   });
@@ -106,7 +106,7 @@ test('cycle detection reports full path', () => {
 
 test('stable topological ordering with canonical ID tie-break', () => {
   const { resolve } = loadResolve();
-  const catalog = require(path.join(root, 'rig', 'catalog.json'));
+  const catalog = require(path.join(root, 'rig', 'corpus', 'catalogue.json'));
   const input = {
     'testing.unit.test-case-generation': 'minimal',
     'testing.property-fuzz.invariant-identification': 'minimal',

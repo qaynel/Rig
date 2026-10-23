@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.provisioning.environment-parity",
+  "input": "rig-services/infrastructure.provisioning.environment-parity.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms environments, intentional differences and the unrecorded-difference flag are declared; it does not compare deployed resources.",
+  "offer": "Compare environments against their intentional differences and keep unexplained drift visible. Identical filenames are not evidence that deployed settings or resources agree.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
+      }
+    ],
+    "mid": [
+      {
+        "field": "intentional_differences",
+        "op": "nonempty",
+        "reason": "Record the differences that are intentional. Unexplained differences are drift, so document each deliberate one."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unrecorded_differences_allowed",
+        "op": "equals",
+        "value": false,
+        "reason": "Set unrecorded differences allowed to false. A hidden difference makes staging results meaningless, so record or remove it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "environment-parity-slice-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "environment-parity-slice-behavior-oracle",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
+      }
+    },
+    "property-floor": {
+      "check_id": "environment-parity-slice-property-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "environment-parity-slice-mutation-floor",
+      "rule": {
+        "field": "environments",
+        "op": "nonempty",
+        "reason": "List the environments compared. An unnamed environment is outside the check, so enumerate dev, staging and production as applicable."
+      }
+    }
+  }
+}

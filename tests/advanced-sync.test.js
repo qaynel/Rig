@@ -15,7 +15,7 @@ const {
   writeJson,
   check,
 } = require('./helpers/advanced');
-const { runChecks } = require('../rig/lib/checks');
+const { runChecks, checkCopies } = require('../rig/lib/checks');
 
 test('byte-exact copy check fails when a registered duplicate drifts', () => {
   withRepo((target) => {
@@ -67,9 +67,10 @@ test('runChecks reports sync-group drift as a failure instead of crashing', () =
     fs.writeFileSync(path.join(target, 'b.md'), 'two\n');
     writeJson(path.join(target, '.rig', 'sync-map.json'), { groups: [['a.md', 'b.md']] });
 
-    const result = runChecks(target);
+    assert.throws(() => checkCopies(target), /drift detected/);
+    const result = runChecks(target, { scope: 'repo' });
     assert.equal(result.status, 1, 'drift must be reported, not thrown');
-    assert.match(result.stderr, /drift detected/);
+    assert.match(result.stderr, /baseline failed:.*exact-copy/);
 
     const reportsDir = path.join(target, 'reports', 'rig');
     assert.ok(fs.existsSync(reportsDir), 'a failure report must be written, like every other check failure');
@@ -89,9 +90,10 @@ test('copy check refuses a sync-map entry that is a symlink out of the repositor
     fs.symlinkSync(outside, path.join(target, 'linked.md'));
     writeJson(path.join(target, '.rig', 'sync-map.json'), { groups: [['inside.md', 'linked.md']] });
 
-    const result = runChecks(target);
+    assert.throws(() => checkCopies(target), /outside symlink|escapes|escaping/i);
+    const result = runChecks(target, { scope: 'repo' });
     assert.equal(result.status, 1, 'an escaping symlink must fail the check, not be followed');
-    assert.match(result.stderr, /outside symlink|escapes|escaping/i);
+    assert.match(result.stderr, /baseline failed:.*exact-copy/);
   });
 });
 

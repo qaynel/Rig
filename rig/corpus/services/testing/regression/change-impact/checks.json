@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.regression.change-impact",
+  "input": "rig-services/testing.regression.change-impact.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms changed interfaces, affected suites and the filename-only flag are declared; it does not trace callers.",
+  "offer": "Trace a change through callers and contracts to determine the affected checks. Filename similarity alone misses downstream behavior and must not become the selection oracle.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
+      }
+    ],
+    "mid": [
+      {
+        "field": "affected_suites",
+        "op": "nonempty",
+        "reason": "List the suites affected by tracing callers and contracts. An incomplete list skips downstream behavior, so map each interface to suites."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "select_by_filename_only",
+        "op": "equals",
+        "value": false,
+        "reason": "Set selecting by filename only to false. Filename similarity misses downstream effects, so select by the dependency trace."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "change-impact-slice-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "change-impact-slice-behavior-oracle",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
+      }
+    },
+    "property-floor": {
+      "check_id": "change-impact-slice-property-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "change-impact-slice-mutation-floor",
+      "rule": {
+        "field": "changed_interfaces",
+        "op": "nonempty",
+        "reason": "List the interfaces that changed. Impact starts from the change, so name each one."
+      }
+    }
+  }
+}

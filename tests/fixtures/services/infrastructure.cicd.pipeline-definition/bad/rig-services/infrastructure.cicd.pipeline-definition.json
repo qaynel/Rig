@@ -1,0 +1,7 @@
+{
+  "stages": [],
+  "required_checks": [
+    "test"
+  ],
+  "deploy_after_failed_checks": false
+}

@@ -1,0 +1,7 @@
+{
+  "service_records": [
+    "api.internal"
+  ],
+  "ttl_seconds": 60,
+  "hardcode_ephemeral_addresses": false
+}

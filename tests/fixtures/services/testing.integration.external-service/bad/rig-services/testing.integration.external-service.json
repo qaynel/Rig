@@ -1,0 +1,8 @@
+{
+  "external_contracts": [],
+  "failure_cases": [
+    "timeout",
+    "malformed response"
+  ],
+  "require_production_account": false
+}

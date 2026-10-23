@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cost.rightsizing",
+  "input": "rig-services/infrastructure.cost.rightsizing.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms candidate resources, headroom and the no-evidence-resize flag are declared; it does not read workload measurements.",
+  "offer": "Choose resizing candidates from workload measurements while retaining headroom. Resource configuration alone cannot justify shrinking a production service.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
+      }
+    ],
+    "mid": [
+      {
+        "field": "minimum_headroom_percent",
+        "op": "minimum",
+        "value": 20,
+        "reason": "Keep minimum headroom of at least 20 percent. Shrinking to zero headroom risks outages on a spike, so retain the margin."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "resize_without_workload_evidence",
+        "op": "equals",
+        "value": false,
+        "reason": "Set resizing without workload evidence to false. Configuration alone cannot justify shrinking production, so require measurements."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "rightsizing-slice-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "rightsizing-slice-behavior-oracle",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
+      }
+    },
+    "property-floor": {
+      "check_id": "rightsizing-slice-property-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "rightsizing-slice-mutation-floor",
+      "rule": {
+        "field": "candidate_resources",
+        "op": "nonempty",
+        "reason": "List the resources considered for resizing. Without candidates nothing is selected from data, so name each resource."
+      }
+    }
+  }
+}

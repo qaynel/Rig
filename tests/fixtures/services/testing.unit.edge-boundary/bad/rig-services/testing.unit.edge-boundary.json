@@ -1,0 +1,7 @@
+{
+  "boundary_cases": [],
+  "invalid_cases": [
+    "negative count"
+  ],
+  "normal_only_tests": false
+}

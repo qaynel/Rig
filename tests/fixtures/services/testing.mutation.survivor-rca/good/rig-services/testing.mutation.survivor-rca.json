@@ -1,0 +1,9 @@
+{
+  "surviving_mutants": [
+    "boundary comparison changed"
+  ],
+  "missing_assertions": [
+    "exact limit rejected"
+  ],
+  "ignore_equivalence_question": false
+}
