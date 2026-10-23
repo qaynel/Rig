@@ -64,3 +64,8 @@ paso de selección de servicios por separado.
 
 **Profundizando** — Entrypoints por host, configuración MCP, guía avanzada del operador.
 → [Portabilidad de host](docs/agent-portability.md) · [Guía del operador](docs/advanced/operator.md) · [Wiki del proyecto](wiki/agent-primer.md)
+
+## Comunidad
+
+Políticas del proyecto y cómo participar. Los documentos están en inglés.
+→ [Código de conducta](CODE_OF_CONDUCT.md) · [Contribuir](CONTRIBUTING.md) · [Seguridad](SECURITY.md) · [Accesibilidad](ACCESSIBILITY.md) · [Soporte](SUPPORT.md) · [Licencia](LICENSE)

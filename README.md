@@ -57,3 +57,8 @@ separate service-picker step.
 
 **Going deeper** — Per-host entrypoints, MCP config, advanced operator guide.
 → [Host portability](docs/agent-portability.md) · [Operator guide](docs/advanced/operator.md) · [Project wiki](wiki/agent-primer.md)
+
+## Community
+
+Project policies and how to take part.
+→ [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Accessibility](ACCESSIBILITY.md) · [Support](SUPPORT.md) · [License](LICENSE)

@@ -132,10 +132,29 @@ function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd =
     if (writable.has(dir) || exposedSystem.some((base) => dir === base || dir.startsWith(`${base}${path.sep}`))) continue;
     args.push('--ro-bind', dir, dir);
   }
+  // Both tmpfs mounts above (the root and, separately, the scratch tmpdir)
+  // are writable by default, so an unbound path anywhere in either of them
+  // (e.g. a sibling of outDir under the same tmpdir) stays writable unless
+  // remounted read-only here, before the writable binds below layer back on
+  // top of it for only outDir/outDirs.
+  args.push('--remount-ro', '/');
+  if (fs.existsSync(tempRoot)) args.push('--remount-ro', tempRoot);
   for (const dir of withRealPaths(outDir)) args.push('--bind', dir, dir);
   for (const dir of withRealPaths(...(outDirs || []))) if (dir !== fs.realpathSync(outDir)) args.push('--bind', dir, dir);
   for (const dir of protectedDirs) if (fs.existsSync(dir)) args.push('--ro-bind', dir, dir);
-  const launch = captureSignal ? [process.execPath, '-e', SIGNAL_SUPERVISOR_SOURCE, '--', String(captureOutputLimit), ...(argv || [process.execPath, script])] : (argv || [process.execPath, script]);
+  let launch = captureSignal ? [process.execPath, '-e', SIGNAL_SUPERVISOR_SOURCE, '--', String(captureOutputLimit), ...(argv || [process.execPath, script])] : (argv || [process.execPath, script]);
+  if (!network) {
+    // bwrap always brings the namespace's own loopback up with 127.0.0.1
+    // assigned, so a denied task that probes it would otherwise reach a real
+    // (if empty) loopback instead of getting a network-unreachable error.
+    // Setting lo administratively down is not enough: the kernel then drops
+    // the packets with no response at all (the connect attempt hangs rather
+    // than erroring), which is indistinguishable from a wedged sandbox.
+    // Flushing the address removes the route outright, so the same attempt
+    // fails immediately and explicitly with ENETUNREACH. A missing `ip` is a
+    // no-op, not a failure.
+    launch = ['/bin/sh', '-c', 'ip addr flush dev lo 2>/dev/null; exec "$@"', 'sh', ...launch];
+  }
   args.push('--chdir', cwd, '--', ...launch);
   return { command: sandboxToolPath('bwrap'), args };
 }

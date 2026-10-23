@@ -60,3 +60,8 @@ Hermes 네이티브 플러그인(`plugin.yaml`)으로 Rig을 설치한다. `pre_
 
 **더 깊이 알아보기** — 호스트별 진입점, MCP 설정, 고급 운영자 가이드.
 → [호스트 이식성](docs/agent-portability.md) · [운영자 가이드](docs/advanced/operator.md) · [프로젝트 위키](wiki/agent-primer.md)
+
+## 커뮤니티
+
+프로젝트 정책과 참여 방법. 문서는 영어입니다.
+→ [행동 강령](CODE_OF_CONDUCT.md) · [기여](CONTRIBUTING.md) · [보안](SECURITY.md) · [접근성](ACCESSIBILITY.md) · [지원](SUPPORT.md) · [라이선스](LICENSE)

@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a problem in Rig
+title: "Bug: "
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Rig version or commit
+      placeholder: v6.0.0
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, shell, and Node.js version.
+    validations:
+      required: false
