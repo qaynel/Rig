@@ -144,16 +144,21 @@ function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd =
   for (const dir of protectedDirs) if (fs.existsSync(dir)) args.push('--ro-bind', dir, dir);
   let launch = captureSignal ? [process.execPath, '-e', SIGNAL_SUPERVISOR_SOURCE, '--', String(captureOutputLimit), ...(argv || [process.execPath, script])] : (argv || [process.execPath, script]);
   if (!network) {
-    // bwrap always brings the namespace's own loopback up with 127.0.0.1
-    // assigned, so a denied task that probes it would otherwise reach a real
-    // (if empty) loopback instead of getting a network-unreachable error.
-    // Setting lo administratively down is not enough: the kernel then drops
-    // the packets with no response at all (the connect attempt hangs rather
-    // than erroring), which is indistinguishable from a wedged sandbox.
-    // Flushing the address removes the route outright, so the same attempt
-    // fails immediately and explicitly with ENETUNREACH. A missing `ip` is a
-    // no-op, not a failure.
-    launch = ['/bin/sh', '-c', 'ip addr flush dev lo 2>/dev/null; exec "$@"', 'sh', ...launch];
+    // bwrap brings the namespace's own loopback up with 127.0.0.1 assigned, so
+    // a denied task probing it would get ECONNREFUSED from an empty loopback
+    // rather than a network-unreachable error. Setting lo down is not enough
+    // (the kernel then drops packets and connect() hangs); flushing the
+    // address removes the route so connect() fails at once with ENETUNREACH.
+    // Flushing needs CAP_NET_ADMIN, which bwrap only keeps for in-namespace
+    // root, so the wrapper runs as uid 0 with that one capability (plus
+    // CAP_SETPCAP) and drops every capability before it execs the task.
+    // Without `ip` and `setpriv` the namespace is still empty: skip, no-op.
+    const ip = hostTool('ip');
+    const setpriv = hostTool('setpriv');
+    if (ip && setpriv) {
+      args.splice(args.indexOf('--tmpfs'), 0, '--uid', '0', '--gid', '0', '--cap-add', 'CAP_NET_ADMIN', '--cap-add', 'CAP_SETPCAP');
+      launch = ['/bin/sh', '-c', `${ip} addr flush dev lo && exec ${setpriv} --bounding-set=-all --inh-caps=-all "$@"`, 'sh', ...launch];
+    }
   }
   args.push('--chdir', cwd, '--', ...launch);
   return { command: sandboxToolPath('bwrap'), args };
@@ -169,6 +174,12 @@ function toolFor(platform) {
   if (platform === 'darwin') return 'sandbox-exec';
   if (platform === 'linux') return 'bwrap';
   return null;
+}
+
+function hostTool(name) {
+  return ['/usr/sbin', '/sbin', '/usr/bin', '/bin'].map((dir) => path.join(dir, name)).find((file) => {
+    try { fs.accessSync(file, fs.constants.X_OK); return true; } catch { return false; }
+  }) || null;
 }
 
 function sandboxToolPath(kind, env = process.env) {

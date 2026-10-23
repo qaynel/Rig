@@ -1704,7 +1704,7 @@ test('migration replay refuses an unowned deferred marker', () => withTarget((ta
   assert.equal(fs.readFileSync(marker, 'utf8'), 'user marker\n');
 }));
 
-test('migration refreshes an untouched v5 network policy default but keeps a user-edited one', () => {
+test('migration refreshes an untouched v5 network policy default but keeps a user-edited one', { skip: hasV5 ? false : `commit ${V5_COMMIT} is not in this clone` }, () => {
   const v5Default = spawnSync('git', ['show', `${V5_COMMIT}:rig/catalog/baseline/network-policy.json`], { cwd: root });
   assert.equal(v5Default.status, 0, String(v5Default.stderr));
   for (const edited of [false, true]) withTarget((target) => {

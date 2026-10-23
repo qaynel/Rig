@@ -19,7 +19,10 @@ jobs:
       contents: read
       issues: read
     steps:
+      # Full history: the v5 migration tests read the v5.0.0 installer commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -47,7 +50,10 @@ jobs:
       - name: Secret hygiene (no credentials tracked or publishable)
         run: npm run test:secrets
 
+      # The suite asserts local-mode output, not the CI-projected aggregate JSON
+      # or ::warning annotations that CI=true selects, so the runner's CI markers
+      # are hidden from it. Tests that cover CI mode set them explicitly.
       - name: Run tests
-        run: npm test
+        run: env -u CI -u GITHUB_ACTIONS npm test
         env:
           GITHUB_TOKEN: ${{ github.token }}

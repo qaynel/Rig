@@ -40,6 +40,7 @@ jobs:
         with:
           ref: ${{ needs.resolve.outputs.sha }}
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -53,7 +54,7 @@ jobs:
       - name: Full repository gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm test
+        run: env -u CI -u GITHUB_ACTIONS npm test
       - name: Exact-SHA clean-install E2E
         env:
           HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
