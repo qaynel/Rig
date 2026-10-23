@@ -42,6 +42,9 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
 
+      - name: Restore local wiki
+        run: node scripts/ensure-wiki.js
+
       # Runs on its own, before everything else. `npm test` chains with `&&`, so
       # a failure in an unrelated check would otherwise stop the secret guard
       # from ever executing. A leaked credential is the one failure here that

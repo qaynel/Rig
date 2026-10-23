@@ -53,6 +53,12 @@ jobs:
           persist-credentials: false
           path: candidate
 
+      - name: Restore wiki snapshot
+        run: |
+          if [ ! -f candidate/wiki/gate1/acceptance.md ]; then
+            git clone --depth 1 "https://github.com/${{ github.repository }}.wiki.git" candidate/wiki
+          fi
+
       - name: Verify the Gate 1 pin
         env:
           GATE1_EXPECTED_FINGERPRINT: ${{ secrets.GATE1_FINGERPRINT }}

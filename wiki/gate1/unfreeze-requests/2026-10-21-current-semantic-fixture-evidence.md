@@ -1,7 +1,0 @@
-# Positive fixture amendment: current semantic evidence
-
-The owner's existing instruction is to resolve the eighteen findings without weakening their acceptance criteria. Finding11 requires missing or stale host semantic review to fail. Legacy positive fixtures currently install indexed context without any host review and then require their unrelated positive scanner, CI or vacuity cases to pass. The focused suite correctly fails those cases at the new mandatory boundary.
-
-Affected frozen files: tests/helpers/advanced.js and tests/advanced-oracle.test.js. After a successful fixture apply, record the fixture author's explicit judgment that the known instructions consistently delegate to the installed central routing, with exact current document hashes and all-pairs relationships. Use the real durable journal writer and stage reviewed fixture instructions when the case requires a Git index. AT-P4 also uses a real, supported Jenkins declarative pipeline in place of a comment-only non-pipeline fixture. No assertion is removed, no business criterion changes, no missing review is accepted in product code, and dedicated negative semantic tests remain direct.
-
-A key holder reviews and re-signs the batched final oracle digest using scripts/approve-gate1.js. The agent neither accesses the human signing key nor signs the oracle. This request records the concrete proposed fixture change before editing it.

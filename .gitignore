@@ -28,9 +28,9 @@ rig-*.gif
 # Claude Code local settings (machine-specific permission grants)
 .claude/settings.local.json
 
-# Obsidian local app/plugin state for the wiki (editor cache + vendored plugin
-# binaries); the board markdown is tracked, this machine-specific state is not.
-wiki/.obsidian/
+# Project wiki lives locally for agents and on the GitHub Wiki tab for the
+# community. It is not tracked in this repository.
+wiki/
 
 # agentic benchmark workspaces (agent output, kept locally for inspection)
 benchmarks/agentic/runs/
