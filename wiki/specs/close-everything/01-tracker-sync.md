@@ -4,6 +4,16 @@ Part of the [master plan](00-master-plan.md). Goal: GitHub issues, the wiki
 board (`wiki/Tickets.md`), and ticket files (`wiki/tickets/RIG-*.md`) agree
 with code and release evidence.
 
+## Attachment after the QA merge (2026-10-24)
+
+`0256c663` is on `qa-prod`. PR #153's closing keywords did not attach. Delivered
+issues now have evidence comments, and PR #157 carries `Closes` so they close
+when that pull request merges to `prod`. Live issue state is still open, which
+matches `github_from` in the candidate tracker. Redesign issues are commented
+and stay open until the post-tag not-planned closure. #125 and #126 have their
+corrective evidence comments. Detail:
+[2026-10-24 attachment](../../reasoning/2026-10-24-qa-closeout-issue-attachment.md).
+
 ## Current state (read-only audit, 2026-10-17)
 
 The board and ticket files are reconciled to the candidate. GitHub Phase A is

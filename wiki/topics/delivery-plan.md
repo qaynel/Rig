@@ -26,8 +26,10 @@ contains concrete release commands.
 The owner has re-signed the test:e2e script amendment, and the 16-file, 95-case
 oracle verifies. Existing test results belong to their earlier bytes; the full
 gate, final review and required CI evidence must be renewed after cleanup. The public install and tagged-download smoke checks
-require the published tag. Tracker closures remain prepared until promotion,
-publication and smoke testing complete.
+require the published tag.
+
+PR #153 is on `qa-prod` at `0256c663`. Its closing keywords did not attach, because `prod` is the default branch. Each delivered issue now has a comment naming that SHA and its proving test, and [PR #157](https://github.com/qaynel/Rig/pull/157) carries the keywords so GitHub closes those issues when `qa-prod` merges to `prod`. The five redesign issues stay open for a not-planned closure after the tag. The conflict with `prod` is resolved in `683fbc00`; the August 30 process traces came across as historical records.
+[2026-10-24 attachment](../reasoning/2026-10-24-qa-closeout-issue-attachment.md)
 
 The local agent chooses relevant capabilities from one central corpus and
 proposes approved grafts into existing repository setup. Optional third-party

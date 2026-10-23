@@ -9,72 +9,72 @@ kanban-plugin: board
 - [ ] **RIG-155 — Real-`npm` clean-container E2E of the customer install path**
 	**Delivery state (RIG-155):** open
 	**Status:** OPEN (2026-08-31; GitHub #151 created 2026-10-14) — follow-up from [[RIG-154]]; explicit non-goal of that ticket · [Solution](tickets/RIG-155.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** TEST INFRASTRUCTURE / COVERAGE GAP. `AT-HOME-1` proves the installed `rig-mcp` server works but only through a fake `npm` shim that `cp`s a pre-built `node_modules`. Nothing exercises the real customer path — real `install.sh` → real `npm ci` from `rig-mcp/package-lock.json` → MCP server boots → tool call — in a clean container with a live registry. RIG-154 deliberately kept the fake-`npm` fixture; this ticket tracks the missing real-network E2E so the customer guarantee is tested, not assumed.
 - [ ] **RIG-156 — (Low priority / deferred) Re-baseline the adaptation score against post-fix Rig (RIG-153 option B)**
 	**Delivery state (RIG-156):** redesign
 	**Status:** OPEN (2026-08-31; GitHub #152 created 2026-10-14) — deferred, low priority — carved out of [[RIG-153]] on close · [Solution](tickets/RIG-156.md)
-	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub #152 is labeled `redesign`; close as not planned after QA delivery · **Delivery:** none (not a delivered fix)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub #152 is labeled `redesign` and commented; close as not planned after the tag, not by PR #157 · **Delivery:** none (not a delivered fix)
 	**Class:** MEASUREMENT / PROCESS. Run the frozen RIG-153 instrument to produce a post-fix per-axis profile against the +12/100 baseline. Deferred: the six hygiene tests already prove the RIG-148..152 defect shapes are fixed, so a re-baseline now would just flip the G2 gate; the interesting run is after adaptive integration (prune-to-stack, reconcile-with-existing-config) is built — a Path B question. Blockers: no clean in-workspace target copy, unpinned Rig SHA, human-operated judge, model pin string source. Hold until Path A + Path B are fully decided. [[archive/2026-08/path-a-and-path-b-onboarding|2026-08-31-rig-153-close-option-b-deferred]]
 - [ ] **RIG-157 — Automated QA-to-production promotion gate and weekly health check**
 	**Delivery state (RIG-157):** open
 	**Status:** OPEN (2026-10-17; GitHub #154) — closeout ticket for branch work that had none · [Solution](tickets/RIG-157.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E and 10 review-sign-ship) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 06 clean-install E2E and 10 review-sign-ship) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** PROMOTION / RELEASE SAFETY. QA-to-production promotion rests on automated checks of the exact QA commit: automated health and a real-download clean-install check, with no outside-repository manual install gate (north star 11).
 - [ ] **RIG-158 — Coherence and test-evidence checks keep code, docs, corpus and tracker in sync**
 	**Delivery state (RIG-158):** open
 	**Status:** OPEN (2026-10-17; GitHub #155) — closeout ticket for branch work that had none · [Solution](tickets/RIG-158.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 08 coherence and upkeep) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 08 coherence and upkeep) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** COHERENCE / UPKEEP. A horizontal coherence check and a test-evidence check run in the CI gate, including the declared tracker-transition table compared against live GitHub state.
 - [ ] **RIG-159 — Ship Rig's AI-SDLC and delivery standards inside the corpus**
 	**Delivery state (RIG-159):** open
 	**Status:** OPEN (2026-10-17; GitHub #156) — closeout ticket for branch work that had none · [Solution](tickets/RIG-159.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 07 AI-SDLC standards) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 07 AI-SDLC standards) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** STANDARDS / CORPUS. The AI-SDLC and delivery standards Rig uses on itself ship in the corpus; a standard is offered as enforced only when its check ships with it.
 - [ ] **RIG-145 — runReadOnly batch-aborts the command list on isolation-unavailable where runGrade marks per command**
 	**Delivery state (RIG-145):** open
 	**Status:** OPEN (2026-08-29) — GitHub #108 — accepted follow-up from the passing v5.0.0 review; non-blocking; latent (no non-test caller yet) · [Solution](tickets/RIG-145.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** CORRECTNESS / SHELL TRUST (parity). `runReadOnly` (`lint-format.js:696-700`) does a function-level return of `network_isolation_unavailable` on the first ungranted command when no OS isolation is present, skipping every later command — including a `network: true` one that `runGrade`'s per-command check (`:627-628`, inside `.map`) would still run. Same guarantee-sharding pattern as [[RIG-139]]/[[RIG-143]]. Not a safety hole (nothing ungranted runs); a granted command is silently skipped. Neither runner has a non-test caller yet, so latent. Fix touches `runReadOnly`'s single-status return shape — owner call. Secondary nit: that early return omits `changed_paths`.
 - [ ] **RIG-147 — Undeclared-network diagnostic is written to stderr via console.warn on top of the structured result field**
 	**Delivery state (RIG-147):** open
 	**Status:** OPEN (2026-08-29) — GitHub #110 — accepted follow-up from the passing v5.0.0 review; non-blocking · [Solution](tickets/RIG-147.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** ARCHITECTURE / DIAGNOSTIC HYGIENE (minor). `runConfiguredArgv` (`check-runner.js:196-200`) already returns `network_state: 'undeclared'` + `diagnostic` (AD-39 / `GA-38`; `AT-CAP-3` + `AT-PROC-1u` assert it) but also calls `console.warn` — a redundant stderr side channel CI can bury under the checked command's output. Drop the `console.warn`; have the installed CI path route `network_state === 'undeclared'` from the return value into a visible annotation. No spec or oracle change.
 - [ ] **RIG-127.11 — Uninstall hard-crashes on a corrupted legacy global config**
 	**Delivery state (RIG-127.11):** open
 	**Status:** OPEN (2026-08-26, re-verified 2026-08-29) — GitHub #69 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** DELIVERABILITY / v5-observable. `removeGlobalConfig()` (`global-writes.js:200`) calls `readJson()` (`:35`) — raw `JSON.parse`, no try/catch — unguarded from `lifecycle.js` `uninstall()`; a corrupted global file throws uncaught mid-uninstall. Sibling `removeGlobalMcp` already catches this; no test exercises the path. Confirmed still present on HEAD `9d1ea45`.
 - [ ] **RIG-127.12 — Legacy pre-RIG-104 managed-block records over-strip on uninstall**
 	**Delivery state (RIG-127.12):** open
 	**Status:** OPEN (2026-08-26) — GitHub #70 — follow-up to closed [[RIG-127]] (#36); found after roundtrip suite went green · [Solution](tickets/RIG-127.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** DELIVERABILITY / v5-observable. A nameless managed-block record falls back to a wildcard regex matching any block in the file, not just the owned one. Narrow upgrade path only, but real.
 - [ ] **RIG-146 — Frozen AT-LF-20 proves one-use only via the in-memory flag, never the durable on-disk record**
 	**Delivery state (RIG-146):** open
 	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #109 — accepted follow-up from the passing v5.0.0 review; non-blocking; needs owner re-sign; dev-process/oracle workstream · [Solution](tickets/RIG-146.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** TEST QUALITY / SHELL TRUST. [[RIG-138]] landed the durable `consumePlanApproval` on-disk record, but `AT-LF-20` (`tests/advanced-oracle.test.js:916-927`) reuses one `approval` object, so the second `executePlan` is rejected by the in-memory `approval.used` guard before the on-disk check. `AT-LF-20` would still pass with the whole durable block deleted; the real cross-process case is covered only by non-frozen `AT-PROC-1a`. **Re-evaluation 2026-08-30:** reclassified from Bucket 1 (install bugs) to dev-process/oracle workstream — fixing `AT-LF-20` edits a byte-pinned oracle file so it needs a key-holder re-sign and rides [[RIG-133]]/[[RIG-136]]'s ceremony, not Path A tester-observable fixes.
 - [ ] **RIG-122 — (Low priority / deferred) Offer the wiki-knowledge system as a Rig tool family**
 	**Delivery state (RIG-122):** redesign
 	**Status:** OPEN (2026-08-30, re-evaluated) — GitHub #62 — approved post-release work; [[RIG-120]] is Done and `v5.0.0` is published; unblocked but gated on product vision (à-la-carte/prune) · [Solution](tickets/RIG-122.md)
-	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub is labeled `redesign` and commented; close as not planned after the tag, not by PR #157 · **Delivery:** none (not a delivered fix)
 	**Class:** POST-RELEASE. Optional markdown wiki graft. **Re-evaluation 2026-08-30:** the blocker (RIG-120 Done, v5.0.0 published) is satisfied, so this is unblocked. However, building another installable family graft is exactly the "does the vision want everything installed" question the adaptation eval put in question — hold for Path B grilling gate decision on à-la-carte/prune vision.
 - [ ] **RIG-135.1 — Cookie-import Chromium launch orphans a lock on the user's real browser profile**
 	**Delivery state (RIG-135.1):** open
 	**Status:** OPEN — reopened 2026-10-14 (the defect is fixed on this branch) — GitHub #78 · [Solution](tickets/RIG-135.md)
-	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** DELIVERABILITY, browse-skill owned (AD-37). Windows-only CDP cookie import; `--with-runtime` only. Do not build: shared cleanup helper (RIG-135) makes the design constraint explicit in code, and runtime-only debt respects the rejected-approaches decision.
 - [ ] **RIG-135.2 — Browse skill scripts spawn through Bun's API, which RIG-135's helper design can't group-kill**
 	**Delivery state (RIG-135.2):** open
 	**Status:** OPEN — reopened 2026-10-14 (the defect is fixed on this branch) — GitHub #79 · [Solution](tickets/RIG-135.md)
-	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** DELIVERABILITY, browse-skill owned. `browser-skill-commands.ts`'s `spawnSkill` via `Bun.spawn`; Bun's `Subprocess#kill()` has no negative-pid group-kill ([oven-sh/bun#15791](https://github.com/oven-sh/bun/issues/15791)). Owner chooses: shim through `node:child_process`, or build Bun-native group-kill (do not build in Tier 1).
 - [ ] **RIG-135.3 — Xvfb daemon isn't actually detached despite a comment claiming it is**
 	**Delivery state (RIG-135.3):** open
 	**Status:** OPEN — reopened 2026-10-14 (the defect is fixed on this branch) — GitHub #80 · [Solution](tickets/RIG-135.md)
-	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** REOPEN, then FIX on this branch, 6.0.0 (subplan 02 bug fixes) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Class:** DELIVERABILITY (minor), browse-skill owned. `xvfb.ts` missing `detached: true`; runtime-only, minor. Do not build: same Bun-native group-kill gap as RIG-135.2; lower blast radius since Xvfb rarely forks descendants.
 
 - [x] **RIG-115 — Author lint-format acceptance for applicability, execution consent, and shell trust**
@@ -148,7 +148,7 @@ kanban-plugin: board
 - [ ] **RIG-132 — One authority per semantic fact: collapse the duplicate inventory, generate the projections**
 	**Delivery state (RIG-132):** open
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #41 — awaiting owner approve-for-Coding; do before RIG-133 then RIG-125 · [Solution](tickets/RIG-132.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Pre-v5 ratchet slice (`rig/raw-registry-access.json` + checker + 5/5 tests) landed alongside RIG-134; v5.1 migration untouched.
 	**Acceptance:**
 	- One home per fact with generated projections; new duplication ships with its generator or doesn't ship.
@@ -156,14 +156,14 @@ kanban-plugin: board
 - [ ] **RIG-133 — The signature freezes 68 samples; it should freeze the properties and a case generator**
 	**Delivery state (RIG-133):** redesign
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #42 — awaiting owner approve-for-Coding; do after RIG-132, before RIG-125 · [Solution](tickets/RIG-133.md)
-	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub is labeled `redesign` and commented; close as not planned after the tag, not by PR #157 · **Delivery:** none (not a delivered fix)
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Tests now **73** signed acceptance IDs but still enumerated sample list; requires key-holder re-sign to fix.
 	**Acceptance:**
 	- Sign the **properties + case generator** instead of enumerated samples; adding a host extends coverage with no signed byte changed.
 - [ ] **RIG-125 — Structural: parallel sources of truth + no equivalence test keep re-opening "Done" work**
 	**Delivery state (RIG-125):** open
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #44 — awaiting owner approve-for-Coding; do after RIG-132/RIG-133 · [Solution](tickets/RIG-125.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Blocker:** Blocked on owner decision to approve implementation strategy. Loop-breaker implementation substantially landed (all 3 tests green) but not promoted into signed oracle (blocked on RIG-133).
 	**Acceptance:**
 	- One MCP-disposition authority + equivalence test; one uninstall authority; real install→uninstall roundtrip inside signed oracle.
@@ -171,7 +171,7 @@ kanban-plugin: board
 - [ ] **RIG-130 — The review loop has no memory, so convergence is unmeasurable**
 	**Delivery state (RIG-130):** redesign
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #43 — awaiting owner approve-for-Coding; do alongside RIG-132 · [Solution](tickets/RIG-130.md)
-	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub is labeled `redesign` and commented; close as not planned after the tag, not by PR #157 · **Delivery:** none (not a delivered fix)
 	**Blocker:** Blocked on owner decision to approve implementation strategy. No finding-ledger exists; review convergence metric is unmeasurable.
 	**Acceptance:**
 	- Append-only finding-class ledger; closed-class feed-in to next reviewer; convergence metric becomes release stopping rule.
@@ -180,7 +180,7 @@ kanban-plugin: board
 - [ ] **RIG-110 — Prove first-wire + live-hook contracts for every supported host**
 	**Delivery state (RIG-110):** open
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #67 — Path B gate; corpus-first tension (GA-36) may reshape "prove all 19 wires" · [Solution](tickets/RIG-110.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 03 central corpus) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Blocker:** **Re-evaluated 2026-08-30.** Old blocker (owner host-roster + vendor access) still holds, but **GA-36** ("one analysis emitted per host") may shrink or reshape the model. Route to Path B gate, not a stale owner-access wait.
 	**Acceptance:**
 	- Each of the 19 researched hosts + 6 CI providers has an exact live-hook/instruction/skills/MCP contract with a byte-landing test and at least one real first-wire verification (or is explicitly recorded as pointer-only/unsupported).
@@ -188,7 +188,7 @@ kanban-plugin: board
 - [ ] **RIG-112 — Freeze and implement the catalogue contract + authored-service gate**
 	**Delivery state (RIG-112):** open
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #66 — Path B gate; D27 defers freeze, vision may reshape catalogue · [Solution](tickets/RIG-112.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 04 catalogue services) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 04 catalogue services) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Blocker:** **Re-evaluated 2026-08-30.** D27 legitimately defers the freeze; the vision now adds a second reason — freezing the 115-leaf catalogue before the à-la-carte/prune direction settles would freeze the wrong artifact. Hold for B-gate. **Do not close** (mechanical gate is real and green).
 	**Acceptance:**
 	- The catalogue contract is frozen and enforced in code; a leaf that is mechanically valid but generic (no repository binding / no service-specific check) fails the authored-service gate as a coverage gap.
@@ -196,7 +196,7 @@ kanban-plugin: board
 - [ ] **RIG-113 — Bound the lint-format setup/replacement (hybrid-plus) contract**
 	**Delivery state (RIG-113):** open
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #65 — Path B gate; owner must approve ranked lists + backup semantics · [Solution](tickets/RIG-113.md)
-	**Disposition:** FIX on this branch, 6.0.0 (subplan 05 lint-format setup) · **Delivery:** not yet ready-for-QA · **QA delivery:** pending
+	**Disposition:** FIX on this branch, 6.0.0 (subplan 05 lint-format setup) · **Delivery:** on qa-prod at `0256c663` · **QA delivery:** issue commented; closes when PR #157 merges to prod
 	**Blocker:** **Re-evaluated 2026-08-30.** Genuinely pending an owner product-policy decision (ranked lists + backup semantics). Move to B-gate so the decision is actually scheduled rather than aging in Blocked.
 	**Acceptance:**
 	- "Better alternative" has a defined, testable decision rule; a proposed setup/replacement never lands without an explicit user decision.
@@ -204,7 +204,7 @@ kanban-plugin: board
 - [ ] **RIG-116 — Promote the non-lint-format leaves Policy → Context → Evidence**
 	**Delivery state (RIG-116):** redesign
 	**Status:** BLOCKED (2026-08-30, re-evaluated) — GitHub #63 — Path B gate; Path C supplies demand signal, but prune-all vs universal is a B-gate call · [Solution](tickets/RIG-116.md)
-	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub closes as not planned with label `redesign` (pending owner approval) · **Delivery:** none (not a delivered fix)
+	**Disposition:** REDESIGN — never started; owner deferred to the redesign, 2026-10-13 · [Redesign backlog](specs/redesign-backlog.md) · GitHub is labeled `redesign` and commented; close as not planned after the tag, not by PR #157 · **Delivery:** none (not a delivered fix)
 	**Blocker:** **Re-evaluated 2026-08-30.** Path C is exactly the demand-evidence stream it waited on, so old blocker is on its way to being answered — but the vision reframes the question from "promote which family first" to "does promote-all survive prune-to-stack." Hold for B-gate. **Do not close:** GA-23 freezes Policy→Context→Evidence as the universal model.
 	**Acceptance:**
 	- A prioritized, family-batched plan promotes leaves beyond Policy on evidence of use, each under the ordinary gate.
@@ -224,18 +224,18 @@ kanban-plugin: board
 	**Done:** `tests/rig-bootstrap.test.js::vendored rig router installs addressable as 'rig' on native hosts, matching routing.md fallback (RIG-149)`; `tests/installed-router-hygiene.test.js::RIG-149 — the routing fallback projects the skill it names on native hosts`.
 - [x] **RIG-154 — Fresh-checkout `npm test` fails: AT-HOME-1's fake npm needs a `rig-mcp/node_modules` tree nothing in the root run creates**
 	**Delivery state (RIG-154):** delivered
-	**Status:** CLOSED (2026-08-31) — GitHub #138 (still open; closes at ship) — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
-	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #138 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
+	**Status:** CLOSED (2026-08-31) — GitHub #138 commented 2026-10-24; closes when PR #157 merges to prod — shipped in PR #140 / `a15d4267`; Gate-1 re-signed in the same commit; fresh-checkout `npm test` proof recorded · [Solution](tickets/RIG-154.md)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** on qa-prod at `0256c663` · **Tracker:** GitHub #138 commented; `Closes #138` is on PR #157
 	**Done:** `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent`; `tests/rig-mcp-bootstrap.test.js::CI relies on the root pretest bootstrap instead of a duplicate install step`; `manual: fresh-clone npm test exit 0 with AT-HOME-1 green, recorded in [[archive/2026-08/review-receipts-and-test-infrastructure|2026-08-31-rig-154-close-out]]`. Follow-up [[RIG-155]] (real-`npm` clean-container E2E).
 - [x] **RIG-153 — No frozen instrument exists to measure adaptation quality**
 	**Delivery state (RIG-153):** delivered
 	**Status:** DONE (2026-08-31) — GitHub #130 — found during Path A install-bug investigation · [Solution](tickets/RIG-153.md)
-	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #130 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** on qa-prod at `0256c663` · **Tracker:** GitHub #130 commented; `Closes #130` is on PR #157
 	**Done:** option A delivered and frozen (`592f4eed`). `tests/installed-router-hygiene.test.js` — all six RIG-148→152 defect-shape blocks green (`RIG-124.2 …`, `RIG-151 …`, `RIG-152 …`, `RIG-150 …`, `RIG-149 — the routing fallback projects the skill it names on native hosts`, `RIG-148 — manifest writes a gitignore block for Rig-owned install paths`); `wiki/specs/adaptation-measurement-rubric.md` frozen (2 gates, 3 equal-weight axes, per-axis profile, clean-checkout procedure, pinned dated model). The re-baseline run (option B) is carved out as [[RIG-156]], deferred. [[archive/2026-08/path-a-and-path-b-onboarding|2026-08-31-rig-153-close-option-b-deferred]]
 - [x] **RIG-150 — `.rig/rules/rig.md` points at a path the common install never writes**
 	**Delivery state (RIG-150):** delivered
 	**Status:** DONE (2026-08-31) — GitHub #127 — found during Path A install-bug investigation · [Solution](tickets/RIG-150.md)
-	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** n/a · **Tracker:** GitHub #127 still open; close with test evidence at ship (see `specs/close-everything/github-actions-pending.md`)
+	**Disposition:** verified-fixed · **Delivery:** shipped before this branch · **QA delivery:** on qa-prod at `0256c663` · **Tracker:** GitHub #127 commented; `Closes #127` is on PR #157
 	**Done:** `tests/installed-router-hygiene.test.js::RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path`; `tests/basic-payload-gating.test.js::RIG-150 — rig.md reference resolves after claude-only install`.
 - [x] **RIG-151 — routing.md's full-cadence branch asserts a wiki/status.md convention the target repo doesn't have**
 	**Delivery state (RIG-151):** delivered

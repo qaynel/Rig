@@ -6,6 +6,7 @@ This page is generated from current reasoning traces. Read the linked trace for 
 
 ## Current
 
+- **2026-10-24 — [2026-10-24-qa-closeout-issue-attachment](reasoning/2026-10-24-qa-closeout-issue-attachment.md)**: PR #153's closing keywords never attached; each closeout issue now has QA-SHA evidence, and PR #157 carries the keywords into prod.
 - **2026-10-23 — [2026-10-23-standalone-compatibility-final-freeze](reasoning/2026-10-23-standalone-compatibility-final-freeze.md)**: Standalone and prefixed generic execution compatibility is repaired without weakening signed verifier scope; all execution callers pass140 host/66 Linux, new prefix case and final Linux19/19; renew final full gate/review.
 - **2026-10-23 — [2026-10-23-pr153-testplan-e2e-and-eligibility-fixes](reasoning/2026-10-23-pr153-testplan-e2e-and-eligibility-fixes.md)**: Running PR 153's test plan found the never-run clean-install E2E and release-eligibility/health workflows stale against the code; fixed on the branch, pushed; CI re-run pending.
 - **2026-10-23 — [2026-10-23-ci-red-linux-runner-diagnosis](reasoning/2026-10-23-ci-red-linux-runner-diagnosis.md)**: GitHub test job is red (33 fails, identical on push and PR) from three Linux-runner causes, none reproduced on the author's macOS: shallow checkout hides the v5 commit, CI=true switches Rig to CI-projected output the tests don't expect, and bwrap's loopback gives ECONNREFUSED not ENETUNREACH.

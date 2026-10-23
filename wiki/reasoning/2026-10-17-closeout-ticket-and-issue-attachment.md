@@ -4,7 +4,7 @@ source: agent
 topics: [delivery-plan]
 decisions: []
 status: historical
-summary: PR #153 now closes 17 GitHub issues; three branch themes with no ticket got RIG-157/158/159 (GitHub #154-#156).
+summary: PR #153 lists 17 closing keywords that do not fire on qa-prod; RIG-157/158/159 are GitHub #154-#156.
 ---
 
 # Attaching issues and tickets to the v6.0.0 closeout branch

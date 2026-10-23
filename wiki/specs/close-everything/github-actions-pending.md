@@ -1,11 +1,26 @@
 # GitHub tracker closeout
 
-Part of [01 tracker sync](01-tracker-sync.md). This file records read-only
-state and the owner-run closure procedure. **No tracker writes have been run by
-this closeout agent.** The owner chose to close issues only after the exact QA
-commit is promoted, the release tag is published, and the public tagged-download
-smoke test passes ([owner answer Q4](owner-questionnaire.md)). Follow step 8 of
-the [change-management policy](../../../rig/corpus/standards/change-management.md).
+Part of [01 tracker sync](01-tracker-sync.md). This file records the attachment
+done on 2026-10-24 and the owner-run closure procedure that is still waiting on
+the tag. The owner chose to close issues only after the exact QA commit is
+promoted, the release tag is published, and the public tagged-download smoke
+test passes ([owner answer Q4](owner-questionnaire.md)). Follow step 8 of the
+[change-management policy](../../../rig/corpus/standards/change-management.md).
+
+## Attached 2026-10-24, not closed
+
+QA merge `0256c663` (PR #153) listed closing keywords. GitHub did not attach
+them because `qa-prod` is not the default branch. On 2026-10-24 each delivered
+issue received a `[rig-qa-attach:…]` comment naming that SHA and the proving
+test below. #125 and #126 received their `[rig-closeout:…]` corrections.
+Redesign issues received deferral comments and are not closing keywords.
+
+[PR #157](https://github.com/qaynel/Rig/pull/157) now carries `Closes` for the
+delivered issues, so they close as completed when `qa-prod` merges to `prod`.
+Until that merge, live state stays open and matches the candidate
+`github_from` column. Do not close them by hand before the promotion. The
+redesign five still close as not planned only after the tag and smoke test.
+Detail: [2026-10-24 attachment](../../reasoning/2026-10-24-qa-closeout-issue-attachment.md).
 
 ## Current read-only audit (2026-10-17)
 
@@ -27,10 +42,9 @@ precondition means stop and reconcile the board, ticket, and
 Phase A is complete: the `redesign` label exists; #62, #63, #42, #43 and #152
 carry it; #78–80 are reopened; and RIG-155/#151 and RIG-156/#152 exist and are
 linked from the local board and ticket files. No Phase B or C closure has been
-run. The latest comments on #125 and #126 were also read: #125 still claims the
-uninstall test is red and describes three `ensure_line` entries; #126 records
-the router fix but does not name its proving test. The corrective comments are
-still due after the release smoke test.
+run. The corrective comments on #125 and #126 were posted on 2026-10-24 with
+marker `[rig-closeout:RIG-148]` and `[rig-closeout:RIG-149]`; the idempotent
+helper below will not add a second copy.
 
 ## Redesign closure reasons
 
@@ -186,11 +200,11 @@ Use these proof references for the prepared calls, after verifying each on
 | #78 | `tests/browse-cookie-import-descendants.test.js::no descendant survives a successful import (RIG-135.1)`; include platform CI |
 | #79 | `tests/browse-skill-spawn-descendants.test.js::a timed-out browse skill leaves no forked descendant (RIG-135.2)`; include platform CI |
 | #80 | `tests/browse-xvfb-descendants.test.js::stopping Xvfb leaves no process from its group (RIG-135.3)`; requires Linux evidence |
-| #108 | `tests/guarantee-coverage.test.js::AT-PROC-1ac (RIG-145): runReadOnly decides network isolation per command, at parity with runGrade, and reports changed_paths` |
-| #109 | `tests/guarantee-coverage.test.js::AT-PROC-1a (AT-LF-20): one-use approval survives an independent approval object for the same plan, not just object identity` |
+| #108 | `tests/guarantee-coverage.test.js::AT-PROC-1ac (RIG-145): runReadOnly confines each command and executes only the explicitly network-granted command` |
+| #109 | `tests/advanced-oracle.test.js::AT-LF-20 a plan approval authorizes exactly one execution`; `tests/guarantee-coverage.test.js::AT-PROC-1a (AT-LF-20): signed approval replay is refused and a fresh approval can rerun the unchanged plan` |
 | #110 | `tests/guarantee-coverage.test.js::AT-PROC-1ad (RIG-147): the library runner stays silent on an undeclared network; the installed CLI warns once` |
 | #127 | `tests/installed-router-hygiene.test.js::RIG-150 — rig.md implementation rule names the skill, not a raw .rig/ path` |
-| #130 | `tests/installed-router-hygiene.test.js::RIG-149 — the routing fallback projects the skill it names on native hosts`; RIG-156 remains a redesign deferral |
+| #130 | `tests/standards-contracts.test.js::adaptation rubric preserves distinct gates axes repeatability and calibration ceiling`; RIG-156 remains a redesign deferral |
 | #138 | `tests/rig-mcp-bootstrap.test.js::root pretest bootstraps rig-mcp dependencies when absent` |
 | #151 | Exact-SHA Linux/macOS clean-install workflow plus post-tag download evidence |
 | #154 | Exact-QA release-eligibility and health run URLs, including clean-install E2E |

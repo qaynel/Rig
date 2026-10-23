@@ -8,9 +8,10 @@ in the redesigned backlog"
 ledger: [master plan §4](close-everything/00-master-plan.md);
 sync plan: [01 tracker sync](close-everything/01-tracker-sync.md)).
 
-Every item below is closed on GitHub as **not planned** with the `redesign`
-label and a link to this page. None is a delivered fix, so none may be closed as
-completed. The list is exactly these five; adding to it is an owner decision.
+Every item below is labeled `redesign` and closes on GitHub as **not planned**
+after the v6.0.0 tag and public-download smoke, with a link to this page. None
+is a delivered fix, so none may be closed as completed and none is in PR #157's
+closing keywords. The list is exactly these five; adding to it is an owner decision.
 
 Reason for every entry: **never started; owner deferred to the redesign,
 2026-10-13.** The entries add what each item is and where its analysis lives.
