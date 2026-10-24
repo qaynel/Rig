@@ -95,7 +95,8 @@ function installArchive(repo, archive) {
   if (typeof archive !== 'string' || !fs.existsSync(archive) || !fs.statSync(archive).isFile()) {
     throw new Error(`archive is not a file: ${archive}`);
   }
-  const files = readTar(zlib.gunzipSync(fs.readFileSync(archive), { maxOutputLength: ARCHIVE_MAX_BYTES }));
+  // rig: the GitHub source archive includes rig-brain-reader as a symlink alias; ignore it — the target ships as a regular file.
+  const files = readTar(zlib.gunzipSync(fs.readFileSync(archive), { maxOutputLength: ARCHIVE_MAX_BYTES }), { ignoredLinks: { 'rig/catalog/plumbing/bin/rig-brain-reader': 'rig-brain-consumer' } });
   portableNames(files);
   if (!files.has(ARCHIVE_META)) throw new Error(`archive has no ${ARCHIVE_META}`);
   const meta = JSON.parse(files.get(ARCHIVE_META).toString('utf8'));
