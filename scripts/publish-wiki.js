@@ -21,8 +21,10 @@ function git(args, cwd, extra = {}) {
   return spawnSync('git', args, { cwd, encoding: 'utf8', ...extra });
 }
 
+// The wiki clone is not this product checkout. A machine-wide hooks path would
+// look for this repo's secret guard and fail. Override it for that clone only.
 function must(args, cwd) {
-  const result = git(args, cwd, { stdio: 'inherit' });
+  const result = git(['-c', 'core.hooksPath=', ...args], cwd, { stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status === null ? 1 : result.status);
 }
 
