@@ -32,8 +32,10 @@ skill inside Rig's broader workflow. Do not treat every task as only a
   `wiki/gate2/`. The Gate 1 oracle under `wiki/gate1/` stays in git so the pin
   can read it from a candidate commit. The rest of `wiki/` is gitignored and
   stays on the machine; it is not shipped in this git repository. A community
-  snapshot lives on the GitHub Wiki tab and is not updated from ordinary
-  commits. If `wiki/agent-primer.md` is missing, restore the local wiki with
+  snapshot lives on the GitHub Wiki tab. After changing the local wiki, publish
+  it with `node scripts/publish-wiki.js`. A GitHub Action on this repository
+  cannot see gitignored pages, so ordinary code commits do not publish it. If
+  `wiki/agent-primer.md` is missing, restore the local wiki with
   `node scripts/ensure-wiki.js`. The operator guide remains at
   `docs/advanced/operator.md`.
 - The legacy MCP-configurator CLI remains as a compatibility path; its

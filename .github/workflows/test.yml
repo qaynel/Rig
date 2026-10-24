@@ -43,7 +43,9 @@ jobs:
           unshare --user --map-root-user --net -- true
 
       - name: Restore local wiki
-        run: node scripts/ensure-wiki.js
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/build-wiki-index.js
 
       # Runs on its own, before everything else. `npm test` chains with `&&`, so
       # a failure in an unrelated check would otherwise stop the secret guard

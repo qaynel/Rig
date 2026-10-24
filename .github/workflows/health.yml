@@ -55,7 +55,9 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
       - name: Restore local wiki
-        run: node scripts/ensure-wiki.js
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/build-wiki-index.js
       - name: Full repository gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
