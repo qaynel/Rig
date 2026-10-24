@@ -10,6 +10,33 @@ const { definition, detectService } = require('../rig/lib/service-catalogue');
 const catalog = loadCatalog();
 const LINT = 'development.code-quality.lint-format';
 
+// Node's --test-shard assigns whole files. This suite is one file, so a
+// shard flag would let four of five jobs exit 0 without running a test.
+// CATALOGUE_SHARD=1/5 slices the service list; unset runs every service.
+function inShard(index, spec = process.env.CATALOGUE_SHARD) {
+  if (!spec) return true;
+  const match = /^([1-9]\d*)\/([1-9]\d*)$/.exec(spec);
+  if (!match) throw new Error(`CATALOGUE_SHARD must look like 1/5, got ${JSON.stringify(spec)}`);
+  const part = Number(match[1]);
+  const parts = Number(match[2]);
+  if (part > parts) throw new Error(`CATALOGUE_SHARD ${spec} is out of range`);
+  return index % parts === part - 1;
+}
+
+test('catalogue shards partition the service list', () => {
+  const n = catalog.services.length;
+  const seen = Array(n).fill(0);
+  for (let part = 1; part <= 5; part += 1) {
+    for (let i = 0; i < n; i += 1) if (inShard(i, `${part}/5`)) seen[i] += 1;
+  }
+  assert.deepEqual(seen, Array(n).fill(1));
+  // An explicit empty spec means "every service". Passing undefined would
+  // reuse the process default and fail inside a shard job.
+  assert.equal(inShard(0, ''), true);
+  assert.throws(() => inShard(0, '0/5'), /1\/5/);
+  assert.throws(() => inShard(0, '6/5'), /out of range/);
+});
+
 function lintFixture(target, variant) {
   fs.writeFileSync(path.join(target, 'lint-rules.json'), '{"forbidden":"BAD"}\n');
   fs.writeFileSync(path.join(target, 'source.txt'), variant === 'good' ? 'clean source\n' : 'BAD source\n');
@@ -44,7 +71,8 @@ function applyLintAndCheck(target, selection) {
   return { prepared, proposed, applied, checked };
 }
 
-for (const service of catalog.services) {
+catalog.services.forEach((service, index) => {
+  if (!inShard(index)) return;
   test(`installed ${service.id} discriminates configuration across every grade`, async () => {
     for (const grade of ['minimal', 'mid', 'maximal']) for (const variant of ['good', 'bad']) {
       await h.withRepo(target => {
@@ -92,4 +120,4 @@ for (const service of catalog.services) {
       }, { install: true });
     }
   });
-}
+});

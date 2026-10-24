@@ -1,0 +1,25 @@
+{
+  "description": "Example validation function - before fails on negatives, check catches them",
+  "positive": [
+    {
+      "id": "negative-input",
+      "input": -1,
+      "fails_before": false,
+      "note": "before(-1) returns true (bug), check(-1) returns false (fixed)"
+    }
+  ],
+  "negative": [
+    {
+      "id": "valid-input",
+      "input": 50,
+      "fails_before": true,
+      "note": "Both before(50) and check(50) return true (valid input)"
+    },
+    {
+      "id": "boundary-upper",
+      "input": 100,
+      "fails_before": false,
+      "note": "Both before(100) and check(100) return false (out of range)"
+    }
+  ]
+}

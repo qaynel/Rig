@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add explicit user sign-off selection and bind signed mode changes to key
+  protection. Platform sign-off refuses approval until a verified adapter exists.
+- Require current security and review readiness before public publication in
+  every sign-off mode.
+- Document these boundaries in `docs/install.md`, `docs/vision.md`, and
+  `docs/architecture.md`.
+
 ## [6.0.0] - 2026-10-24
 
 - Deliver Rig's agent workflow, catalogue services, and standards from the

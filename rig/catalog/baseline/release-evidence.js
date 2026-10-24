@@ -42,7 +42,7 @@ function stateDir(repo) {
 const SKIP_AT_ROOT = new Set(['.git', '.context', '.venv', 'node_modules']);
 // rig: ordinary run/memory state is mutable; installed code, trust and oracle
 // stay in the digest. Add new mutable stores explicitly rather than hiding .rig.
-const MUTABLE_RIG = new Set(['memory', 'release', 'workers', 'learning', 'evidence', 'tdd', 'review', 'journeys', 'archive', 'knowledge', 'efficiency', 'discovery', 'journal.json', 'run.json', 'complete', 'spend.json', 'model-routing-log.jsonl', 'catalog-install.lock', 'catalog-install.lock.recovery', 'work-packages-audit.json']);
+const MUTABLE_RIG = new Set(['memory', 'release', 'workers', 'learning', 'evidence', 'tdd', 'review', 'journeys', 'archive', 'knowledge', 'efficiency', 'discovery', 'signoff', 'journal.json', 'run.json', 'complete', 'spend.json', 'model-routing-log.jsonl', 'catalog-install.lock', 'catalog-install.lock.recovery', 'work-packages-audit.json']);
 
 function listFiles(repo, dir = repo, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -162,52 +162,69 @@ function eligible(repo, { commit } = {}) {
   return { eligible: true, reason: '' };
 }
 
+function refused(reason) {
+  return { published: false, reason, cryptographic_signature: false };
+}
+
 function publish(repo, { commit, authorization } = {}) {
   requireRepo(repo);
   requireCommit(commit);
-  if (!authorization || (!authorization.signed_by && typeof authorization.signature !== 'string')) {
-    return { published: false, reason: 'protected action requires owner authorization; a readiness report is not authorization' };
-  }
-  if (!/^sha256:[a-f0-9]{64}$/.test(commit)) return { published: false, reason: 'authorization requires an exact candidate digest' };
+  const hasMaterial = authorization && (authorization.signed_by || typeof authorization.signature === 'string'
+    || authorization.acknowledgement || authorization.receipt);
+  if (!hasMaterial) return refused('protected action requires owner authorization; a readiness report is not authorization');
+  if (!/^sha256:[a-f0-9]{64}$/.test(commit)) return refused('authorization requires an exact candidate digest');
 
-  const trustRootPath = path.join(repo, '.rig', 'trust', 'gate1.allowed-signers');
-  if (fs.existsSync(trustRootPath)) {
-    // Deployed key present: require a real cryptographic signature and full public readiness.
-    if (typeof authorization.signature !== 'string') {
-      return { published: false, reason: 'protected action requires owner authorization; a readiness report is not authorization' };
-    }
-    try {
-      verifyTrustRootApproval(repo, {
-        identity: authorization.identity,
-        namespace: 'rig-release',
-        message: authorizationMessage(repo, { ...authorization, commit }),
-        signature: authorization.signature,
-      });
-    } catch {
-      // Never echo identities, signatures, key paths or caller-supplied secrets.
-      return { published: false, reason: 'owner authorization did not verify against the single Gate 1 trust root' };
-    }
+  // Lazy require: user-signoff verifies release signatures through this module.
+  const signoff = require('./user-signoff');
+  const policy = signoff.current(repo);
+  let assurance;
+  if (policy) {
+    const decision = signoff.authorizeRelease(repo, { commit, authorization });
+    if (!decision.ok) return refused(decision.reason);
     const readiness = publicReadiness(repo, { commit });
-    if (!readiness.ready) return { published: false, reason: readiness.reason };
+    if (!readiness.ready) return refused(readiness.reason);
+    assurance = decision.assurance;
+  } else {
+    const trustRootPath = path.join(repo, '.rig', 'trust', 'gate1.allowed-signers');
+    if (fs.existsSync(trustRootPath)) {
+      if (typeof authorization.signature !== 'string') {
+        return refused('protected action requires owner authorization; a readiness report is not authorization');
+      }
+      try {
+        verifyTrustRootApproval(repo, {
+          identity: authorization.identity,
+          namespace: 'rig-release',
+          message: authorizationMessage(repo, { ...authorization, commit }),
+          signature: authorization.signature,
+        });
+      } catch {
+        // Never echo identities, signatures, key paths or caller-supplied secrets.
+        return refused('owner authorization did not verify against the single Gate 1 trust root');
+      }
+      const readiness = publicReadiness(repo, { commit });
+      if (!readiness.ready) return refused(readiness.reason);
+      assurance = signoff.signatureAssurance(repo, 'unspecified');
+    } else {
+      return refused('protected action requires owner authorization; a readiness report is not authorization');
+    }
   }
-  // shortcut: signed_by name accepted when no deployed key exists; verify against the Gate 1 key once deployed
 
   const verdict = eligible(repo, { commit });
-  if (!verdict.eligible) return { published: false, reason: verdict.reason };
+  if (!verdict.eligible) return refused(verdict.reason);
 
   const artifact = path.posix.join('.rig', 'release', 'published', `${commit.slice(COMMIT_PREFIX.length)}.json`);
   const abs = containedPath(repo, artifact);
-  if (fs.existsSync(abs)) return { published: false, reason: `commit already published: ${artifact}` };
+  if (fs.existsSync(abs)) return refused(`commit already published: ${artifact}`);
 
   const now = new Date().toISOString();
   const final = snapshot(repo);
-  if (final.digest !== commit) return { published: false, reason: 'candidate changed during authorization; rerun evidence and approval' };
-  const bytes = Buffer.from(`${JSON.stringify({ commit, files: final.files, authorized: true, published_at: now }, null, 2)}\n`);
+  if (final.digest !== commit) return refused('candidate changed during authorization; rerun evidence and approval');
+  const bytes = Buffer.from(`${JSON.stringify({ commit, files: final.files, authorized: true, published_at: now, assurance }, null, 2)}\n`);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, bytes, { flag: 'wx' });
   const artifact_digest = COMMIT_PREFIX + sha256(bytes);
   appendRow(repo, 'evidence.jsonl', { kind: 'publish', status: 'pass', commit, artifact, artifact_digest, recorded_at: now });
-  return { published: true, commit, artifact, artifact_digest };
+  return { published: true, commit, artifact, artifact_digest, assurance, cryptographic_signature: assurance.cryptographic_signature === true };
 }
 
 function publicReadiness(repo, { commit } = {}) {

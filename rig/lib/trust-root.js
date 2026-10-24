@@ -48,4 +48,8 @@ function verifyTrustRootApproval(target, { identity, namespace, message, signatu
   }
 }
 
-module.exports = { TRUST_ROOT_REL, readTrustRoot, verifyTrustRootApproval };
+function keyTypeAllowed(type) {
+  return KEY_TYPE.test(type);
+}
+
+module.exports = { TRUST_ROOT_REL, readTrustRoot, verifyTrustRootApproval, keyTypeAllowed };

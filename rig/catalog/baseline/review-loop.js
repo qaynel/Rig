@@ -3,8 +3,12 @@
 // Independent review loop for one repository. A round either completes with a
 // verdict (consuming one attempt) or fails as an infrastructure event (consuming
 // nothing). Open findings carry forward across rounds, re-anchored to the current
-// file bytes so line drift does not erase them, and the author context can never
-// certify its own work. State lives in <repo>/.rig/review/ledger.json.
+// file bytes so line drift does not erase them. Review independence is enforced
+// by procedural separation: the author context identifier cannot match the
+// reviewer identifier. The default is one user in separate sessions, including
+// the same model. A repository may require a different provider by writing
+// `.rig/review/independence.json` as `{ "level": "provider" }`. State lives in
+// <repo>/.rig/review/ledger.json.
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -96,7 +100,20 @@ function openOf(ledger) {
   return ledger.findings.filter((f) => f.status === 'open').map((f) => ({ ...f }));
 }
 
-function record(repo, { round, verdict, findings = [], reviewer, error } = {}) {
+function independencePolicy(repo) {
+  const file = path.join(repo, '.rig', 'review', 'independence.json');
+  if (!fs.existsSync(file)) return { level: 'session', same_model: true };
+  let parsed;
+  try { parsed = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {
+    throw new Error('review independence policy is not valid JSON');
+  }
+  if (!parsed || (parsed.level !== 'session' && parsed.level !== 'provider')) {
+    throw new Error('review independence level must be session or provider');
+  }
+  return { level: parsed.level, same_model: parsed.level === 'session' };
+}
+
+function record(repo, { round, verdict, findings = [], reviewer, reviewer_provider, author_provider, error } = {}) {
   assertRepo(repo);
   const ledger = loadLedger(repo);
 
@@ -106,7 +123,12 @@ function record(repo, { round, verdict, findings = [], reviewer, error } = {}) {
     throw new Error(infraMessage(error, verdict));
   }
   if (reviewer && reviewer === ledger.author) {
-    throw new Error('review must be independent: the author cannot certify its own work (self-review refused)');
+    throw new Error('review must be independent: procedural separation requires author and reviewer identifiers differ (self-review refused)');
+  }
+  const independence = independencePolicy(repo);
+  if (independence.level === 'provider' && (typeof reviewer_provider !== 'string' || !reviewer_provider.trim()
+    || typeof author_provider !== 'string' || !author_provider.trim() || reviewer_provider === author_provider)) {
+    throw new Error('review independence requires a different provider from the author session');
   }
   if (verdict === 'pass' && (typeof reviewer !== 'string' || !reviewer.trim() || !Array.isArray(findings) || findings.length)) {
     throw new Error('completed passing review requires an independent reviewer and no open findings');
@@ -183,7 +205,10 @@ function prepare(repo, { round, diff } = {}) {
   const ledger = loadLedger(repo);
   const unresolved = ledger.findings.filter((f) => f.status === 'open').map((f) => reanchor(repo, f));
   saveLedger(repo, ledger);
-  return { round, author: ledger.author, diff: diffText(repo, diff), unresolved, attempts: ledger.attempts };
+  return {
+    round, author: ledger.author, diff: diffText(repo, diff), unresolved, attempts: ledger.attempts,
+    independence: independencePolicy(repo),
+  };
 }
 
 // Read-only: reports 0 for a repository with no ledger and creates no state.
@@ -193,4 +218,4 @@ function attempts(repo) {
   return ledger ? ledger.attempts : 0;
 }
 
-module.exports = { record, prepare, attempts };
+module.exports = { record, prepare, attempts, independencePolicy };

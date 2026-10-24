@@ -114,14 +114,11 @@ Before any scope, design, test, or support question, check it against this list.
     model-serving framework or provider dependency without a requirement that
     demands it. Same owner authorisation.
 
-24. **Human authentication need not be hardware-backed.** The requirement is
-    only that an agent cannot perform it: any prompt that separates a human
-    from an agent qualifies — `sudo`, a macOS Touch ID prompt, a Windows
-    administrator prompt, the Secure Enclave key the owner already signs with.
-    Pick the easiest to set up. Do not require a plug-in USB security key; the
-    owner will not buy one. The existing signed oracle demands the FIDO
-    security-key algorithm specifically and must be amended to this broader
-    rule at the next re-sign.
+24. **Human authentication need not be a plug-in USB security key.** The
+    owner will not buy one. This owner's own configuration remains the enrolled
+    Secure Enclave key gated by Touch ID. Which other mechanisms count, and
+    which do not, is decision 27. The signed contract still names one
+    security-key algorithm and must be amended before that text changes.
     `wiki/reasoning/2026-10-24-human-authentication-owner-decision.md`.
 
 25. **Ship the whole kit; the host agent decides what to graft.** Rig is a
@@ -142,6 +139,21 @@ Before any scope, design, test, or support question, check it against this list.
     and its key are both part of the check. No identity, key material or
     secret may be written into the repository, a commit, or anything that
     reaches GitHub. Same trace.
+27. **User sign-off is configurable.** During onboarding the agent explains
+    the modes and records an explicit choice. There is no silent default and
+    no automatic downgrade when a strong key is missing. The modes are: a
+    verified signature (security-key algorithms prove a person was present;
+    an ordinary algorithm proves the key and the bytes, and a platform prompt
+    such as Touch ID is designated rather than proven by the algorithm); a
+    platform prompt, which must not be described as human presence when the
+    agent could supply it, including `sudo` and a cached password; and a
+    written acknowledgement, which is a declaration the owner may choose and
+    which an agent with file access can forge. Weakening the current mode
+    requires authorisation under that mode. One trust root verifies
+    signatures. A release that must be signed still requires a real signature
+    even when everyday approval is a lower mode. A typed name is not a
+    signature.
+    `wiki/reasoning/2026-10-24-configurable-user-signoff-owner-directive.md`.
 
 When the owner states a product decision, add it here in the same change.
 

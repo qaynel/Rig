@@ -40,12 +40,27 @@ test('PT-060 before/after fixture and positive/negative replay are attached', ()
   const learning = capability('learning');
   const [candidate] = learning.candidates(repo).filter((c) => c.class === 'unchecked-null');
 
-  const evaluation = learning.evaluate(repo, candidate.id);
+  const gap = learning.evaluate(repo, candidate.id);
+  assert.equal(gap.replay.pos.caught, null, 'a declared flag is not a caught failure');
+  assert.match(gap.gap, /execution evidence/);
+  assert.equal(gap.admits_learning, false);
 
-  assert.ok(evaluation.before_fixture && evaluation.after_fixture, 'both fixtures are attached');
-  assert.equal(evaluation.replay.pos.caught, true, 'the previously failing case is caught');
+  write(repo, '.rig/history.json', {
+    findings: [
+      { id: 'f1', class: 'unchecked-null', where: 'src/a.js', round: 1 },
+      { id: 'f2', class: 'unchecked-null', where: 'src/b.js', round: 7 },
+    ],
+    cases: [{ id: 'pos', fails_before: true, input: null }, { id: 'neg', fails_before: false, input: 1 }],
+  });
+  write(repo, 'before.js', 'module.exports = () => false;\n');
+  write(repo, 'check.js', 'module.exports = (value) => value === null;\n');
+  const evaluation = learning.evaluate(repo, candidate.id, { before: 'before.js', check: 'check.js' });
+
+  assert.equal(evaluation.evidence_kind, 'executed');
+  assert.equal(evaluation.replay.pos.caught, true, 'the previously failing case is caught by running the check');
   assert.equal(evaluation.replay.neg.caught, false, 'a known-good case is not newly flagged');
-  assert.ok(['helped', 'hurt', 'no observed effect', 'confounded'].includes(evaluation.outcome));
+  assert.equal(evaluation.outcome, 'helped');
+  assert.equal(evaluation.admits_learning, true);
 });
 
 test('PT-061 promotion fails on regression or missing proof', () => {

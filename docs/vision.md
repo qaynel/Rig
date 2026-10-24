@@ -12,6 +12,11 @@ Coding agents left to their own defaults are inconsistent: every developer gets 
 2. **Review the proposal.** Your coding agent (Claude, Copilot, Cursor, and others) runs `rig-onboarding`, inspects your project, and proposes the smallest useful set of changes, including relevant services and grades from the 115-service catalogue. You review and approve that exact adaptation.
 3. **Apply and check.** The agent applies the approved adaptation and records its state under `.rig/state.json`. Each selected service reports what it can verify and names missing tools or coverage gaps. Later changes to the selection go through an updated proposal.
 
+Sensitive actions also require an explicit sign-off choice. Cryptographic
+sign-off verifies the enrolled owner key; acknowledgement records a declaration
+without proving human presence. Platform sign-off is available as a choice but
+cannot approve actions until a verified adapter is installed.
+
 ## What you get
 
 - **Workflow consistency.** Every agent follows the same engineering process, regardless of who runs it or which AI model powers it.

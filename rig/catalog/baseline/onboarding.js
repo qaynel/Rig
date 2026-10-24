@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const signoff = require('./user-signoff');
 
 const INSTRUCTION_FILES = [
   ['CLAUDE.md', 'instructions'],
@@ -109,7 +110,10 @@ function propose(repo) {
   }
   const sources = observations.map((o) => o.source);
   const changes = [{ path: ADAPTATION, because: sources.length ? sources : NOTHING }];
-  return { observations, changes, overlaps, digest: digestOf({ observations, changes, overlaps }) };
+  return {
+    observations, changes, overlaps, digest: digestOf({ observations, changes, overlaps }),
+    signoff: signoff.interview(repo),
+  };
 }
 
 // Refuse a path whose nearest existing ancestor resolves outside <repo>/.rig (symlink escape).

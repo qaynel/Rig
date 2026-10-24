@@ -6,8 +6,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const release = require('../rig/catalog/baseline/release-evidence');
+const signoff = require('../rig/catalog/baseline/user-signoff');
 
-function fixture(t) {
+function fixture(t, mode) {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-release-security-'));
   t.after(() => fs.rmSync(repo, { recursive: true, force: true }));
   fs.writeFileSync(path.join(repo, 'app.js'), 'module.exports = 1;\n');
@@ -17,6 +18,7 @@ function fixture(t) {
   assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]).status, 0);
   fs.mkdirSync(path.join(repo, '.rig/trust'), { recursive: true });
   fs.writeFileSync(path.join(repo, '.rig/trust/gate1.allowed-signers'), `test-owner ${fs.readFileSync(key + '.pub', 'utf8')}`);
+  if (mode) signoff.select(repo, { confirm: true, mode, release_integrity: 'self-attestation' });
   const commit = release.record(repo, { kind: 'qa-commit' }).commit;
   for (const kind of ['full-gate', 'security', 'independent-review', 'scenario-coherence', 'health', 'clean-install']) {
     release.record(repo, { kind, status: 'pass', commit, source: 'real-download' });
@@ -70,6 +72,17 @@ test('failed current evidence and missing public evidence prevent publication', 
   const authorization = signed(f);
   release.record(f.repo, { kind: 'security', status: 'fail', commit: f.commit });
   assert.equal(release.publish(f.repo, { commit: f.commit, authorization }).published, false);
+});
+
+test('acknowledgement publication requires public security and review evidence', (t) => {
+  const f = fixture(t, 'acknowledgement');
+  for (const kind of ['security', 'independent-review', 'scenario-coherence']) {
+    release.record(f.repo, { kind, status: 'fail', commit: f.commit });
+  }
+  const authorization = { acknowledgement: signoff.acknowledge(f.repo, { action: signoff.releaseAction(f.commit) }).id };
+  const result = release.publish(f.repo, { commit: f.commit, authorization });
+  assert.equal(result.published, false);
+  assert.match(result.reason, /security.*independent-review.*scenario-coherence/);
 });
 
 test('labels from another candidate cannot be relabelled as passing evidence', (t) => {

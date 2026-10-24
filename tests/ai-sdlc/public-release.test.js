@@ -27,9 +27,14 @@ test('PT-072 post-release failure is recorded and follows rollback/recovery poli
   const repo = tempRepo('rig-post-release-');
   write(repo, 'src/app.js', 'exports.version = "1.0.0";\n');
   const release = capability('release-evidence');
+  const signoff = capability('user-signoff');
+  signoff.select(repo, { confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation' });
   const commit = release.record(repo, { kind: 'qa-commit' }).commit;
   for (const kind of CLASSES) release.record(repo, { kind, status: 'pass', commit, source: 'real-download' });
-  const published = release.publish(repo, { commit, authorization: { signed_by: 'gate1-owner' } });
+  const ack = signoff.acknowledge(repo, { action: signoff.releaseAction(commit) });
+  const published = release.publish(repo, { commit, authorization: { acknowledgement: ack.id } });
+  assert.equal(published.published, true, published.reason);
+  assert.equal(published.assurance.cryptographic_signature, false);
 
   const validation = release.validatePublished(repo, { artifact: published.artifact, health: 'fail' });
 

@@ -61,6 +61,12 @@ rig-onboarding
 ```
 
 The agent reads your repository and proposes the smallest useful adaptation — which services to enable, which workflow steps apply to your stack.
+Before a sensitive action, it also asks you to select a sign-off mode. The choice
+is explicit and recorded; a missing signing key never switches to a weaker mode.
+Cryptographic mode verifies the enrolled owner key. Acknowledgement is only a
+self-declaration that an agent with file access could forge. Platform mode is
+currently selectable but refuses approvals until a verified platform adapter
+is available.
 
 ### Step 4 — Review and approve
 

@@ -315,6 +315,10 @@ function repairSource(parsed, name) {
 function rootCause(repo, { symptom, seam }) {
   const parsed = parseSymptom(symptom);
   if (parsed.handoff) return { reproduced: false, handoff: parsed.handoff };
+  // containedPath realpaths the repo root (on macOS os.tmpdir() is /var/...,
+  // realpath /private/var/...); normalise once so seamRel and requiresSeam's
+  // path comparisons share that root instead of mismatching across the symlink.
+  repo = fs.realpathSync(repo);
   const seamAbs = containedPath(repo, seam);
   const seamRel = toPosix(path.relative(repo, seamAbs));
   const callers = trackedFiles(repo)

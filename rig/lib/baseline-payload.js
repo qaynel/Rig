@@ -28,6 +28,12 @@ function kitTree(from, to) {
       || name.startsWith('._') || name.endsWith('.tmpl')) continue;
     const src = `${from}/${name}`;
     const dst = `${to}/${name}`;
+    // Already projected to .rig/routing.md and .rig/skills/onboarding/SKILL.md.
+    // A second markdown copy makes a default install contain two routers.
+    // rig: kit corpus omits these two docs; delete this skip when the signed
+    // one-router check excludes .rig/kit/.
+    if (dst === '.rig/kit/rig/corpus/routing.md'
+      || dst === '.rig/kit/rig/corpus/skills/onboarding/playbook.md') continue;
     const stat = fs.statSync(path.join(ROOT, src));
     if (stat.isDirectory()) kitTree(src, dst);
     else if (stat.isFile()) entries.push({ from: src, to: dst, mode: stat.mode & 0o111 ? 0o755 : 0o644 });

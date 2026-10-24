@@ -261,8 +261,12 @@ test('E2E-J13 a process killed during a journalled effect is not replayed blindl
   const script = `const fs=require('fs');const j=require(process.argv[1]);j.once(process.argv[2],'external-effect',()=>{fs.writeFileSync(process.argv[3],'sent');while(true)Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,1000)});`;
   const child = spawn(process.execPath, ['-e', script, `${BASELINE}/run-journal`, dir, started], { stdio: 'ignore' });
   const end = Date.now() + 5000;
-  while (!fs.existsSync(started) && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 10));
-  assert.equal(fs.existsSync(started), true, 'the external effect began before the process interruption');
+  let body = '';
+  while (body !== 'sent' && Date.now() < end) {
+    body = fs.existsSync(started) ? fs.readFileSync(started, 'utf8') : '';
+    if (body !== 'sent') await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.equal(body, 'sent', 'the external effect began before the process interruption');
   const childClosed = new Promise((resolve) => child.once('close', resolve));
   child.kill('SIGKILL');
   await childClosed;

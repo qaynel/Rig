@@ -86,6 +86,7 @@ function evaluate(repo, id, { before, check } = {}) {
   for (const c of h.cases || []) replay[c.id] = { caught: null, before: null, expected: c.fails_before === true };
   const candidate_digest = sourceDigest(repo);
   let failure = null;
+  let evidence_kind = 'gap';
   if (before && check && (h.cases || []).every((c) => Object.hasOwn(c, 'input') && typeof c.fails_before === 'boolean')) {
     const script = `const fs=require('node:fs'); const p=JSON.parse(fs.readFileSync(0,'utf8'));
       const before=require(p.before), after=require(p.check);
@@ -103,12 +104,13 @@ function evaluate(repo, id, { before, check } = {}) {
       } catch (e) { failure = e.message; }
     }
     if (sourceDigest(repo) !== candidate_digest) failure = 'candidate bytes changed during replay';
+    evidence_kind = failure ? 'gap' : 'executed';
   } else if ((h.cases || []).length > 0 && (h.cases || []).every((c) => typeof c.fails_before === 'boolean' && !Object.hasOwn(c, 'input'))) {
-    // Simulate from historical data when no inputs are recorded (simple before/after fixture only).
-    // Defect was uncaught before (before=false); proposed check catches positives, leaves negatives clean.
-    for (const c of h.cases) Object.assign(replay[c.id], { before: false, caught: c.fails_before === true });
+    failure = 'declared fails_before is not execution evidence';
+    evidence_kind = 'synthetic-fixture';
   } else {
     failure = 'executable before/after checks and case inputs are required for replay';
+    evidence_kind = 'gap';
   }
   const cases = Object.values(replay);
   const positives = cases.filter((r) => r.expected);
@@ -119,9 +121,12 @@ function evaluate(repo, id, { before, check } = {}) {
     if (negatives.some((r) => r.caught)) outcome = 'hurt';
     else outcome = positives.every((r) => r.caught) ? 'helped' : 'no observed effect';
   }
+  const admits_learning = evidence_kind === 'executed' && outcome === 'helped';
   const evaluation = {
     candidate: id,
     candidate_digest,
+    evidence_kind,
+    admits_learning,
     ...(failure ? { gap: failure } : {}),
     mechanism: { before: before || null, check: check || null },
     before_fixture: { where, expect: 'defect present, uncaught' },
@@ -142,6 +147,7 @@ function promote(repo, id, { full_gate, evaluation } = {}) {
   }
   const proof = evaluation === undefined ? load(path.join(dir(repo), 'evaluations', `${id}.json`), null) : evaluation;
   if (!proof || proof.outcome !== 'helped') return no('missing proof: no passing positive/negative evaluation is attached');
+  if (proof.evidence_kind !== 'executed' || proof.admits_learning !== true) return no('missing proof: evaluation has no executed red/green evidence');
   const recorded = load(path.join(dir(repo), 'evaluations', `${id}.json`), null);
   if (!recorded || JSON.stringify(recorded) !== JSON.stringify(proof)
     || proof.candidate !== id || proof.candidate_digest !== sourceDigest(repo)) return no('missing proof: evaluation is unrecorded or stale');

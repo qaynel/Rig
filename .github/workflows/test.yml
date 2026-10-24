@@ -62,3 +62,34 @@ jobs:
         run: env -u CI -u GITHUB_ACTIONS npm test
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  # One catalogue file cannot be split by Node's file-level --test-shard:
+  # four of five jobs would run zero tests and exit 0. CATALOGUE_SHARD slices
+  # the 115 service tests inside the file. Unset, the same file runs them all.
+  catalogue-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Restore local wiki
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/build-wiki-index.js
+
+      - name: Run catalogue tests (shard ${{ matrix.shard }}/5)
+        run: CATALOGUE_SHARD=${{ matrix.shard }}/5 node --test tests/catalogue-all-services.test.js
+        timeout-minutes: 10

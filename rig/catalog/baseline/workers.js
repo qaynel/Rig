@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 const { acquireLock } = require('../../lib/apply');
 const { containedPath } = require('../../lib/path-safety');
 const { sourceDigest } = require('./release-evidence');
@@ -167,6 +168,34 @@ function ownerAlive(pid) {
   try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'ESRCH' ? false : null; }
 }
 
+// Start time distinguishes a recycled PID from the process that reserved the work.
+// rig: Windows has no portable start-time read here, so a live PID stays "alive"
+// and is not reclaimed. Upgrade with a process-creation counter when that OS is in the lane.
+function observeProcess(pid) {
+  const alive = ownerAlive(pid);
+  if (alive !== true) return { alive, started_at: null };
+  let started_at = null;
+  if (process.platform === 'linux') {
+    try {
+      const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
+      const fields = stat.slice(stat.lastIndexOf(')') + 2).trim().split(/\s+/);
+      started_at = fields[19] || null;
+    } catch { started_at = null; }
+  } else if (process.platform === 'darwin') {
+    const result = spawnSync('ps', ['-p', String(pid), '-o', 'lstart='], { encoding: 'utf8' });
+    if (result.status === 0) started_at = result.stdout.trim() || null;
+  }
+  return { alive, started_at };
+}
+
+function classifyOwner(recorded, observed) {
+  if (!observed || observed.alive === null) return 'unknown';
+  if (observed.alive === false) return 'exited';
+  if (recorded && recorded.started_at && observed.started_at && recorded.started_at !== observed.started_at) return 'reused';
+  if (observed.alive === true) return 'alive';
+  return 'unknown';
+}
+
 const workersDir = (repo) => containedPath(repo, '.rig/workers');
 const leasesFile = (repo) => path.join(workersDir(repo), 'leases.json');
 const stateFile = (repo) => path.join(workersDir(repo), 'state.json');
@@ -241,7 +270,10 @@ function reserve(repo, { package: pkg, owns, lease_seconds: leaseSeconds = DEFAU
       }
     }
     if (conflicts.length) return { granted: false, conflict: conflicts.join('; ') };
-    for (const f of keys) leases[f] = { package: pkg, owner_pid, source_snapshot: ownedSnapshot(repo, f).digest, expires_at_ms: now + leaseSeconds * 1000 };
+    const observed = observeProcess(owner_pid);
+    for (const f of keys) leases[f] = {
+      package: pkg, owner_pid, owner_started_at: observed.started_at, source_snapshot: ownedSnapshot(repo, f).digest, expires_at_ms: now + leaseSeconds * 1000,
+    };
     save(leasesFile(repo), leases);
     return { granted: true };
   });
@@ -258,15 +290,13 @@ function reclaim(repo, { package: pkg, owns, evidence }) {
     if (!held.length) return { granted: false, reason: 'no recorded owner to recover; reserve unowned paths normally' };
     const live = held.filter((f) => leases[f].expires_at_ms > now);
     if (live.length) return { granted: false, reason: `held by an unexpired lease: ${live.join(', ')}` };
-    if (ev.owner_exited !== true || ev.no_pending_writes !== true) {
-      return { granted: false, reason: 'reclaim needs owner_exited and no_pending_writes evidence' };
-    }
+    const owner_verdicts = [];
     for (const f of held) {
-      // Skip the alive check only for same-process owners (lease_seconds=0 same-process workers).
-      // External worker PIDs must be verified dead before reclaim.
-      if (leases[f].owner_pid !== process.pid && ownerAlive(leases[f].owner_pid) !== false) {
-        return { granted: false, reason: 'recorded owner PID is alive or unknown; cannot verify owner exit' };
+      const verdict = classifyOwner({ started_at: leases[f].owner_started_at || null }, observeProcess(leases[f].owner_pid));
+      if (verdict !== 'exited' && verdict !== 'reused') {
+        return { granted: false, reason: 'recorded owner is still alive or its exit cannot be verified' };
       }
+      owner_verdicts.push(verdict);
       const snapshot = ownedSnapshot(repo, f);
       if (!leases[f].source_snapshot || snapshot.digest !== leases[f].source_snapshot) return { granted: false, reason: `owned source snapshot changed or missing for ${f}; reconcile partial worker writes` };
       if (snapshot.locks.length) return { granted: false, reason: `pending file locks require reconciliation: ${snapshot.locks.join(', ')}` };
@@ -280,7 +310,7 @@ function reclaim(repo, { package: pkg, owns, evidence }) {
         return { granted: false, reason: 'pending journal side effects require reconciliation before recovery' };
       }
     }
-    const checked = { ...ev, owner_pid: leases[held[0]].owner_pid,
+    const checked = { ...ev, owner_pid: leases[held[0]].owner_pid, owner_verdicts,
       verified_owner_pids: [...new Set(held.map((f) => leases[f].owner_pid))], journal_reconciled: true, owned_sources_unchanged: true };
     for (const f of held) delete leases[f];
     for (const f of keys) {
@@ -292,4 +322,4 @@ function reclaim(repo, { package: pkg, owns, evidence }) {
   });
 }
 
-module.exports = { brief, publish, accept, state, reserve, reclaim, verification, ownershipKey, overlaps };
+module.exports = { brief, publish, accept, state, reserve, reclaim, verification, ownershipKey, overlaps, classifyOwner, observeProcess };

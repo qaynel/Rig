@@ -64,5 +64,21 @@ test('PT-046 a readiness report alone cannot execute a protected action', () => 
   const attempt = release.publish(repo, { commit });
   assert.equal(attempt.published, false);
   assert.match(attempt.reason, /authoriz/i, 'readiness is not authorization');
-  assert.equal(release.publish(repo, { commit, authorization: { signed_by: 'gate1-owner' } }).published, true);
+  const named = release.publish(repo, { commit, authorization: { signed_by: 'gate1-owner' } });
+  assert.equal(named.published, false, 'a typed name is not a signature and is not a selected mode');
+  assert.equal(named.cryptographic_signature, false);
+
+  const signoff = capability('user-signoff');
+  signoff.select(repo, { confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation' });
+  const chosen = release.record(repo, { kind: 'qa-commit' }).commit;
+  for (const kind of ['health', 'clean-install', 'review', 'security']) {
+    release.record(repo, { kind, status: 'pass', commit: chosen, source: 'real-download' });
+  }
+  const forged = release.publish(repo, { commit: chosen, authorization: { signed_by: 'gate1-owner', owner_approved: true } });
+  assert.equal(forged.published, false, 'agent-supplied flags do not satisfy acknowledgement');
+  const ack = signoff.acknowledge(repo, { action: signoff.releaseAction(chosen) });
+  const declared = release.publish(repo, { commit: chosen, authorization: { acknowledgement: ack.id } });
+  assert.equal(declared.published, true, declared.reason);
+  assert.equal(declared.assurance.cryptographic_signature, false);
+  assert.equal(declared.assurance.artifact_integrity, 'unsigned');
 });

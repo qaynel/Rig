@@ -8,14 +8,15 @@ const approve = require('../../scripts/approve-gate1');
 // F08 — a real supported hardware-backed SSH key in an explicit integration
 // lane, and an absent-device fixture in local CI. No software fixture may
 // stand in for a touch-required device.
-const HARDWARE_TYPE = 'sk-ssh-ed25519@openssh.com';
+const { keyTypeAllowed } = require('../../rig/lib/trust-root');
 
-function hardwareKeyFromEnv() {
-  const configured = process.env.RIG_GATE1_HARDWARE_KEY;
+function configuredKey() {
+  const configured = process.env.RIG_GATE1_SIGNING_KEY || process.env.RIG_GATE1_HARDWARE_KEY;
   if (!configured) return null;
   const pub = configured.endsWith('.pub') ? configured : `${configured}.pub`;
   if (!fs.existsSync(pub)) return null;
-  return fs.readFileSync(pub, 'utf8').trim().startsWith(HARDWARE_TYPE) ? configured : null;
+  const type = fs.readFileSync(pub, 'utf8').trim().split(/\s+/)[0];
+  return keyTypeAllowed(type) ? configured : null;
 }
 
 function signCurrentContract(repo, key) {
@@ -34,16 +35,17 @@ function signCurrentContract(repo, key) {
   }
 }
 
-test('PT-017 a real sk-ssh-ed25519@openssh.com key signs and verifies with the existing path', () => {
-  const key = hardwareKeyFromEnv();
+test('PT-017 an enrolled allowed key signs and verifies with the existing path', () => {
+  const key = configuredKey();
   if (!key) {
-    environmentBound('set RIG_GATE1_HARDWARE_KEY to a present sk-ssh-ed25519@openssh.com key; this lane never simulates a security-key touch');
+    environmentBound('set RIG_GATE1_SIGNING_KEY to the enrolled owner key; this lane never simulates a touch or substitutes a software fixture');
   }
   const repo = tempRepo('rig-hw-');
   signCurrentContract(repo, key);
 
   const allowed = fs.readFileSync(path.join(repo, 'wiki/gate1/gate1.allowed-signers'), 'utf8');
-  assert.ok(allowed.includes(HARDWARE_TYPE), 'the enrolled key must be the hardware-backed type');
+  const type = allowed.trim().split('\n').find((line) => line && !line.startsWith('#'))?.split(/\s+/).find((field) => keyTypeAllowed(field));
+  assert.ok(type, 'the enrolled key uses an algorithm the single trust root accepts');
   const verify = spawnSync('ssh-keygen', [
     '-Y', 'verify', '-f', path.join(repo, 'wiki/gate1/gate1.allowed-signers'),
     '-I', 'gate1-owner', '-n', 'rig-gate1', '-s', path.join(repo, 'wiki/gate1/ai-sdlc/ai-sdlc.sig'),

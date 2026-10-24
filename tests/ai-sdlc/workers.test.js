@@ -1,6 +1,7 @@
 'use strict';
 
 const test = require('node:test');
+const { spawn } = require('node:child_process');
 const { assert, capability, tempRepo, write, read, SECRET_FIXTURE } = require('./_harness');
 
 // F13 — worker scope with allowed sources, an unrelated secret and a false
@@ -66,17 +67,28 @@ test('PT-029 concurrent writers with overlapping ownership stop before conflicti
   assert.equal(read(repo, 'src/allowed.js'), 'module.exports = 1;\n', 'no conflicting mutation occurred');
 });
 
-test('PT-030 an expired owner is reported and reclaimed only after evidence check', () => {
+test('PT-030 an expired owner is reported and reclaimed only after the process is gone and the bytes match', async () => {
   const repo = workerRepo();
   const workers = capability('workers');
-  workers.reserve(repo, { package: 'WP01', owns: ['src/allowed.js'], lease_seconds: 0 });
-
-  const stale = workers.reserve(repo, { package: 'WP02', owns: ['src/allowed.js'] });
-  assert.equal(stale.granted, false);
-  assert.match(stale.conflict, /stale|expired/i, 'an expired owner is reported, not silently overwritten');
-
-  const reclaimed = workers.reclaim(repo, { package: 'WP02', owns: ['src/allowed.js'], evidence: { owner_exited: true, no_pending_writes: true } });
+  const child = spawn(process.execPath, ['-e', "process.stdout.write('ready');setInterval(()=>{},1000);"]);
+  await new Promise((resolve, reject) => { child.stdout.once('data', resolve); child.once('error', reject); });
+  try {
+    workers.reserve(repo, { package: 'WP01', owns: ['src/allowed.js'], lease_seconds: 0, owner_pid: child.pid });
+    const stale = workers.reserve(repo, { package: 'WP02', owns: ['src/allowed.js'] });
+    assert.equal(stale.granted, false);
+    assert.match(stale.conflict, /stale|expired/i, 'an expired owner is reported, not silently overwritten');
+    const flags = workers.reclaim(repo, { package: 'WP02', owns: ['src/allowed.js'], evidence: { owner_exited: true, no_pending_writes: true } });
+    assert.equal(flags.granted, false, 'a self-declared exit flag does not reclaim a live owner');
+  } finally {
+    child.kill();
+    await new Promise((resolve) => child.once('close', resolve));
+  }
+  write(repo, 'src/allowed.js', 'changed by a stale worker\n');
+  const changed = workers.reclaim(repo, { package: 'WP02', owns: ['src/allowed.js'], evidence: {} });
+  assert.equal(changed.granted, false);
+  assert.match(changed.reason, /changed|snapshot/i);
+  write(repo, 'src/allowed.js', 'module.exports = 1;\n');
+  const reclaimed = workers.reclaim(repo, { package: 'WP02', owns: ['src/allowed.js'], evidence: {} });
   assert.equal(reclaimed.granted, true);
-  assert.ok(reclaimed.evidence_checked, 'reclaim records the evidence it relied on');
-  assert.equal(workers.reclaim(repo, { package: 'WP03', owns: ['src/allowed.js'], evidence: {} }).granted, false, 'no lock theft without evidence');
+  assert.ok(reclaimed.evidence_checked.owner_verdicts.includes('exited'));
 });
