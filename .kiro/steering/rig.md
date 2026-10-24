@@ -28,7 +28,13 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 - Project knowledge starts at `wiki/agent-primer.md`; that page routes you to
   `wiki/Home.md`, `wiki/status.md`, and the hubs and indexes the task's
   decision needs. Current authorities live under `wiki/gate1/` and
-  `wiki/gate2/`. The operator guide remains at `docs/advanced/operator.md`.
+  `wiki/gate2/`. The Gate 1 oracle under `wiki/gate1/` stays in git so the pin
+  can read it from a candidate commit. The rest of `wiki/` is gitignored and
+  stays on the machine; it is not shipped in this git repository. A community
+  snapshot lives on the GitHub Wiki tab and is not updated from ordinary
+  commits. If `wiki/agent-primer.md` is missing, restore the local wiki with
+  `node scripts/ensure-wiki.js`. The operator guide remains at
+  `docs/advanced/operator.md`.
 - The legacy MCP-configurator CLI remains as a compatibility path; its
   historical design is archived under `wiki/archive/deprecated-tier-taxonomy/`.
 

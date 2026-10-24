@@ -53,6 +53,15 @@ jobs:
           persist-credentials: false
           path: candidate
 
+      # This step runs only once it is on the base branch. pull_request_target
+      # does not use the workflow file from the PR, so the candidate commit
+      # still has to contain wiki/gate1 until that base copy is current.
+      - name: Restore wiki snapshot
+        run: |
+          if [ ! -f candidate/wiki/gate1/acceptance.md ]; then
+            git clone --depth 1 "https://github.com/${{ github.repository }}.wiki.git" candidate/wiki
+          fi
+
       - name: Verify the Gate 1 pin
         env:
           GATE1_EXPECTED_FINGERPRINT: ${{ secrets.GATE1_FINGERPRINT }}
