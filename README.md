@@ -56,7 +56,7 @@ separate service-picker step.
 **Understanding the architecture** — How Rig works under the hood, with diagrams. → [Architecture](docs/architecture.md)
 
 **Going deeper** — Per-host entrypoints, MCP config, advanced operator guide.
-→ [Host portability](docs/agent-portability.md) · [Operator guide](docs/advanced/operator.md) · [Project wiki](wiki/agent-primer.md)
+→ [Host portability](docs/agent-portability.md) · [Operator guide](docs/advanced/operator.md) · [Project wiki](https://github.com/qaynel/Rig/wiki)
 
 ## Community
 
