@@ -65,6 +65,24 @@ to make routine adaptation choices and escalates consequential decisions;
 Rig's installer remains deterministic. The earlier design history is retained
 for provenance in the [August onboarding archive](../archive/2026-08/path-a-and-path-b-onboarding.md).
 
+## Proposed profile transfer
+
+The AI-SDLC expansion adds a portable developer preference/workflow profile to the existing agent-led graft. Import is untrusted, scoped data; the agent reports conflicts with local conventions and never transfers project acceptance, secrets or signer authority. The 8 KB active view is generated from richer source records, so export does not lose history. This is proposed, not shipped. [Product-first directive](../reasoning/2026-10-23-ai-sdlc-product-first-owner-directive.md) · [profile specification](../specs/ai-sdlc-harness/03-capabilities.md)
+
+The [final-definition directive](../reasoning/2026-10-24-final-product-definition-owner-directive.md)
+extends the planned journey through public installation, upgrade, removal and
+transfer. The [architecture checkpoint](../reasoning/2026-10-24-final-product-architecture-checkpoint.md)
+and [complete lifecycle](../specs/ai-sdlc-harness/17-customer-lifecycle.md)
+specify those outcomes without claiming they are shipped.
+The [planning handoff](../reasoning/2026-10-24-final-product-planning-handoff.md)
+separates this proposal from the existing install/release evidence.
+The [coverage refinement](../reasoning/2026-10-24-final-product-coverage-refinement.md)
+is the current planning checkpoint.
+The [offline-search owner ruling](../reasoning/2026-10-24-offline-semantic-search-owner-decision.md)
+adds packaged local inference assets to the proposed public install. Its clean
+install must provide meaning-based, cited recall without network access or a
+provider account; the existing bootstrap has not yet implemented this.
+
 ## What remains
 
 The onboarding flow is implemented. QA-to-production readiness is governed by

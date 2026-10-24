@@ -3,7 +3,7 @@ date: 2026-10-18
 source: review
 topics: the-overhaul, review-receipts
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-final-candidate-review
 tags: review, acceptance
 summary: Candidate 082d8467 still requires changes for two reproduced recovery defects, normative design drift and failing size hints; findings 17–20 have acceptance criteria.

@@ -3,7 +3,7 @@ date: 2026-10-20
 source: intent owner
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, acceptance, verification
 summary: The owner requests evidence for every QA deployment blocker and step-by-step instructions for owner-dependent work.

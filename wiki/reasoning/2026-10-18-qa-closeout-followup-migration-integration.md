@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, install-manifest-removal, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, migration, integration
 summary: Integrated migration checks exposed stale cleanup expectations and projected-file protection; the protection fix passes its focused onboarding-state case.

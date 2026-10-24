@@ -8,6 +8,7 @@ supersedes:
 tags: interdependency, trap
 summary: Measurements against the intent owner's proposed overhaul (kill the tier system, rename vendored files, make the wiki an active reference) — the wiki-maintenance pass grew the wiki by +2,334 lines net, the navigation layer is now ~500K on its own, Tier 1 is 17 files/76K against a 128-file rename blast radius, and rig/catalog/skills ships LICENSE.upstream and UPSTREAM.md so a mass rename is a licensing decision rather than a cleanup.
 ---
+<!-- needs-human-review: status -->
 
 # Overhaul scope — measurements
 

@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: testing-strategy, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, lint-format, evidence
 summary: A new local lint Context review request binds current files and rules; Evidence reruns observed commands and writes a scoped receipt, with installed-path integration still pending.

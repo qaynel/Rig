@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: audit, tracker-sync
 summary: Reality audit of every tracker item for the close-everything branch — 5 trackers disagree with the code, 6 concrete defects are genuinely open, 4 items are blocked on owner-only inputs, 4 are structural, 3 browse-runtime items were closed below the owner's new bar; no tracker state changed yet.

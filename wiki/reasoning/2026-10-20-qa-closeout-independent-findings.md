@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification, defect
 summary: Fresh review reproduces four runtime gaps and thin oracle cases; original migration acceptance passes on macOS and Linux, while remediation continues.

@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: catalogue-contract, services-and-reports
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: Specific configuration contracts have been authored for every original capability; actual behavior assurance still needs repository-owned tool bindings and must not be inferred from those configuration checks.
 ---

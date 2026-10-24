@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, catalogue-contract
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, catalogue, evidence
 summary: Networking and mutation service fragments were rewritten against their actual rules and fixtures; local lint-format Evidence is now separate from CI but remains an explicit gap until a replay receipt exists.

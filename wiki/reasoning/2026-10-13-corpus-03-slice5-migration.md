@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, install-manifest-removal
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, migration, trap
 summary: Subplan 03 slice 5 — v5 to corpus-layout migration (rig/lib/migrate.js): strict journal validation, in-memory staging, ownership-by-digest planning, persisted resumable plan, journaled writes, marker-last completion, onboarding state migration that preserves selections and invalidates changed approvals; proven against the real v5 installer and an uninstall inventory round trip.

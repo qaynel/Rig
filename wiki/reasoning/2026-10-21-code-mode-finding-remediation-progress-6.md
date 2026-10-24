@@ -3,7 +3,7 @@ date: 2026-10-21
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-21-code-mode-finding-remediation-progress-5
 tags: review, remediation, progress
 summary: Empty lint-format execution plans now fail closed, while the Gate 1 oracle and focused apply suite pass; the eighteen-finding closure review remains open.

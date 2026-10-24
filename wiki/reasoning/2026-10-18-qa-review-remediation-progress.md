@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, binding-review, remediation
 summary: Policy-status checks were tightened; an unsigned batched oracle amendment now covers release, catalogue, host emission, approval identity, and verifier conflicts.

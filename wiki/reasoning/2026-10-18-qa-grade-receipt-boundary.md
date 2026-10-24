@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: testing-strategy, gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, lint-format, evidence
 summary: Lint Policy runs observed commands; Context and Evidence require a host review receipt and replayable command evidence before they can pass.

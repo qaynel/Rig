@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: Service authorship failures are corrected; installed lint grades and the owner amendment candidate have focused proof, with architecture and final-byte checks still open.

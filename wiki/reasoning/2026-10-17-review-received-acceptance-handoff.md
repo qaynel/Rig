@@ -3,7 +3,7 @@ date: 2026-10-17
 source: intent owner
 topics: the-overhaul, review-receipts
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review
 summary: Owner requests agent-ready resolution criteria; all four Review Received findings now have observable checks, regression evidence requirements and a final approval checklist.

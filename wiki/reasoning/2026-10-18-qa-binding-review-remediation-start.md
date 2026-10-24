@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, gate1-signing, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, binding-review, remediation
 summary: Exact-commit engineering checks passed, but the owner-designated review failed and exhausted the author-context attempt cap; signed-oracle contradictions and runtime findings now require remediation.

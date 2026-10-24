@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: rejected, trap, interdependency
 summary: Owner asked to remove the allowed-signers list and accept any human-generated key; pushed back (pin is un-forgeable-by-agent, ssh verify needs a specific key); narrowed to "purely generated one-line file, provenance in the wiki". Awaiting confirmation.

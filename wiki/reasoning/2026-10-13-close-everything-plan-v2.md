@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: plan, self-review, handoff
 summary: The close-everything spec was self-reviewed and restructured into one master plan with ten subplans plus a self-contained reviewer handoff; the review fixed build order (corpus first), added a v5 migration, a 6.0.0 release, a frozen-test strategy (10 of 16 signed files reference the current layout), a trust boundary for agent-written projection scripts, and six owner open points.

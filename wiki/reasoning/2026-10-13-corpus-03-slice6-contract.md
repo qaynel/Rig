@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, graft-mechanics, distribution-and-release
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, contract, rejected
 summary: Subplan 03 slice 6 (Contract) — rig/tier-1 deleted, core skill sources point into rig/corpus, check-rule-copies.js rewritten as the reproducible-projection plus no-twin gate (kept by name because package scripts are pinned), mirrors generated, tier wording removed with --tier 1 deprecated-but-accepted, intended parity differences recorded.

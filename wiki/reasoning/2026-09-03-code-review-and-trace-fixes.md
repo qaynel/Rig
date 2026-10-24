@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: gate1-signing, testing-strategy, onboarding-flow, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification, qa-prod, code-review
 summary: Four-axis code review of path-b-adaptive-onboarding-oracle against qa-prod; four stale AT-HD trace titles fixed (CI blockers after re-sign); three human-only blockers remain before CI can be green.

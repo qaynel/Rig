@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, provider-limit
 summary: The additional authorized binding review could not complete because the reviewer hit its session limit; no verdict or receipt, and the preserved counter is five.

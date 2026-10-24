@@ -3,7 +3,7 @@ date: 2026-10-20
 source: intent owner
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, authorization
 summary: Owner authorizes one additional binding review after the provider-limit failure, preserving the existing counter at five.

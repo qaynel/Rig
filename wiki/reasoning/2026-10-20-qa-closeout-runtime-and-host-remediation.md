@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: the-overhaul, testing-strategy, authored-service-gate
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification, defect
 summary: Runtime grade/status fixes pass focused checks; real host installation exposed adapter clobber, catalogue padding is removed, and recovery/removal proofs are being completed.

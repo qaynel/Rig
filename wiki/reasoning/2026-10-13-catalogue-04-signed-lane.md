@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: catalogue-contract, services-and-reports
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: The unsigned catalogue tracer rejects selected_services before implementation; the signed Path B service lane now binds canonical definitions and grades, journals selected guidance and binding files, and returns executed check counts.
 ---

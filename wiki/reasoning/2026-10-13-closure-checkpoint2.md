@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 summary: Coherence adversarial checks pass; lint recovery and standards checks are green; clean installer now verifies candidate digests and preserves prior reports, with catalogue still in progress.
 ---
 

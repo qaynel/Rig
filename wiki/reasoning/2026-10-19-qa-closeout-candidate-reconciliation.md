@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: The catalogue corpus is frozen for the proposed pin; focused policy and traceability checks pass after reconciling metadata and retaining exact test titles.

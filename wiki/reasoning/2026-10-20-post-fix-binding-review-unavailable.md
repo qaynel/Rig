@@ -3,7 +3,7 @@ date: 2026-10-20
 source: review
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification, provider-limit
 summary: The single authorized post-fix binding review stopped at the provider weekly limit; no verdict or receipt, preserved counter seven.

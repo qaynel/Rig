@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: the-overhaul, testing-strategy, policy-signer-recovery
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, migration, policy
 summary: Resumed after a usage-limit cutoff; fixed the migration drop of the new host-adapter op and wired the signer-setup CLI actions; candidate and full-gate renewal in flight.

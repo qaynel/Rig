@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: grilling, in-flight
 summary: Grilling opened for the owner's "close every open issue" branch — two axes (horizontal: every item spec'd and closed; depth: end-product finish), inventory taken, first question round sent; no code or tracker state changed yet.

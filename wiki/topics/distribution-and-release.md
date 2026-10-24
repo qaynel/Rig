@@ -132,3 +132,36 @@ QA and review steps.
 
 The closeout correction makes healthy health runs non-mutating and renews the
 current installed guidance and delivery checks. [Remediation trace](../reasoning/2026-10-18-qa-closeout-remediation.md)
+
+Offline meaning-based memory search ships inside the public archive. The
+selected model is `minishlab/potion-base-2M` (MIT), a model2vec static
+distillation of `baai/bge-base-en-v1.5`, int8-quantised to 2,007,904 bytes and
+paired with its published `vocab.txt`; inference is a wordpiece tokenisation, a
+table lookup and a mean, so there is no ONNX runtime, no native binary, no
+model server and no first-run download on any supported platform. Assets,
+licence, sizes and sha256 digests are declared in
+`rig/catalog/baseline/assets/potion-base-2m/model.json`, and
+`scripts/build-public-archive.js` packs them with a per-file digest manifest.
+[Implementation trace](../reasoning/2026-10-24-ai-sdlc-implementation-wave1.md)
+records why the heavier MiniLM/ONNX and GloVe options were rejected against the
+owner's smallest-complete-footprint test, and states the one leg still open:
+the archive has been built and installed clean offline, but not yet downloaded
+from a published release, so the real-download half of PT-077 is unproven.
+
+The [deployment handoff](../reasoning/2026-10-24-ai-sdlc-deployment-handoff.md)
+turns that open leg into an ordered procedure:
+[archived handoff](../archive/2026-10-24-implementation-handoff/NEXT-AGENT-INSTRUCTIONS.md) names the five phases
+between the current branch and a publishable candidate, and the four owner
+decisions that gate them.
+
+The [readiness remediation](../reasoning/2026-10-24-ai-sdlc-readiness-remediation-start.md) starts independent review and fresh verification; signatures remain intact. Owner amendment is needed for hardware-only signing and name-only release assertions. No deployment readiness is claimed.
+
+The [security checkpoint](../reasoning/2026-10-24-ai-sdlc-readiness-security-checkpoint.md) records eighteen independently found defects, active repairs, and the additional protected replay/publication contradictions.
+
+The [current owner directive](../reasoning/2026-10-24-ai-sdlc-readiness-owner-directive.md) authorises implementation, independent subagents, verification and cleanup before deployment, while preserving acceptance tests.
+
+The [baseline and relocation checkpoint](../reasoning/2026-10-24-ai-sdlc-readiness-baseline-and-relocation.md) records the completed quiet-machine baseline and preserved handoff. The [live tracker](../specs/ai-sdlc-harness/23-deployment-tracker.md) owns current readiness; the [amendment request](../specs/ai-sdlc-harness/22-oracle-amendment-request.md) remains unapplied.
+
+The [integration checkpoint](../reasoning/2026-10-24-ai-sdlc-readiness-integration-checkpoint.md) records complete kit staging, genuine inference/source adaptations, memory preservation and independent rereview. Four protected assertions remain red; no final readiness claim is made.
+
+The [rereview checkpoint](../reasoning/2026-10-24-ai-sdlc-readiness-rereview-checkpoint.md) records the further evidence-lineage repairs and the stale-lease fixture conflict.

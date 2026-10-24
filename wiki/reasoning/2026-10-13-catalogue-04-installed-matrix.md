@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: catalogue-contract, services-and-reports
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: All 115 canonical service definitions and good/bad configuration fixtures are present; the signed installed matrix is running 690 selection/approval/apply/check paths across the three grades.
 ---

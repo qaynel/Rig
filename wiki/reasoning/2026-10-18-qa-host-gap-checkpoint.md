@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: host-and-ci-coverage, gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, host-contract
 summary: Hook axes with a vendor surface but no Rig adapter now report not_integrated; remaining non-hook claims and the frozen oracle still need review.

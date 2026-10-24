@@ -8,6 +8,7 @@ supersedes:
 tags: interdependency, design, office-hours
 summary: Office-hours design against the C4 finished-product expectation — the 2026 verification literature and the SDD competitive map say Rig's wedge is the human-signed oracle (owner's B1 #2), not adaptive onboarding (B1 #1); three approaches costed, one recommended, plus four architecture findings worth ~165k lines.
 ---
+<!-- needs-human-review: status -->
 
 # Finished-product design — office hours against C4
 

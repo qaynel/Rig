@@ -3,7 +3,7 @@ date: 2026-09-03
 source: review
 topics: testing-strategy, gate1-signing, trust-and-failure-boundaries, onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: Report-only review of the unsigned AT-HD-1..12 hardening oracle — three cases cannot pass under their own spec, one spec-vs-test contradiction, and a latent instruction-only core-skill regression F4 would widen; do not sign yet.

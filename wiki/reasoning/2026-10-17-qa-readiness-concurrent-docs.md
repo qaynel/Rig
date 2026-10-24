@@ -3,7 +3,7 @@ date: 2026-10-17
 source: intent owner
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 summary: Owner confirms a second agent is editing documentation in this workspace; final candidate evidence waits for its write freeze.
 ---
 

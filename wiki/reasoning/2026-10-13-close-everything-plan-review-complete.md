@@ -3,7 +3,7 @@ date: 2026-10-13
 source: review
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, complete, plan-amendment
 summary: Review handoff is complete: 12 verified findings, proposed amendments to ten subplans, all six owner answers recorded, automated-only QA promotion, and wiki checks green; product implementation remains future work.

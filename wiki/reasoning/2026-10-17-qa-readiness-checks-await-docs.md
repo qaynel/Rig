@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul, distribution-and-release
 decisions:
-status: current
+status: historical
 summary: Full advisory gate passes 1073 tests, shipped dependencies now audit clean and parity regressions pass; final candidate checks await the documentation write freeze.
 ---
 

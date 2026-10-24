@@ -3,7 +3,7 @@ date: 2026-10-21
 source: intent owner
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, acceptance, handoff
 summary: Owner requests concrete acceptance criteria for every finding of the eighteen-item Codex review and an explicit approval bar.

@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: catalogue-contract, services-and-reports
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: Catalogue execution work starts on the canonical corpus spine; protected legacy catalogue stays unchanged while new authored service definitions and installed checks are developed.
 ---

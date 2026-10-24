@@ -3,7 +3,7 @@ date: 2026-10-18
 source: review
 topics: the-overhaul, review-receipts
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, acceptance-verification
 summary: Bounded fix verification leaves C1, C3, C4 and C8 incomplete, plus the C7 maintained retry check; approval remains withheld.

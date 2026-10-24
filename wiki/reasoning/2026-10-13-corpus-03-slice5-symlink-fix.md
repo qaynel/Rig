@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: install-manifest-removal
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, migration, trap
 summary: Follow-up to the 03 slice 5 trace — the automated "symlink-following write in migrate.js" finding was partly real; a resumed migration, appended pointer lines and the migration's own bookkeeping paths could be redirected through a symlink; every mutation is now lstat-guarded at plan time and again immediately before it.

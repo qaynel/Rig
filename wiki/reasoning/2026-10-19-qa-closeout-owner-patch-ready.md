@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: The owner-only patch now covers the frozen lint fixtures exposed by the broad run; 17 amended cases and all manifest and trace checks pass in isolation.

@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, testing-strategy, catalogue-contract
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, candidate, verification
 summary: Report-only audits found a shipped README test gap, now covered by a disposable-install assertion; final candidate verification is next.

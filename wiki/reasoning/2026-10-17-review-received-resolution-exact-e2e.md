@@ -2,7 +2,7 @@
 date: 2026-10-17
 source: agent
 topics: distribution-and-release
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-resolution-clean-install.md
 summary: The committed clean-install candidate passed exact-SHA local-archive E2E and real-npm public-upgrade checks.
 ---

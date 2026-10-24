@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul, review-receipts, trust-and-failure-boundaries
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-resolution-verification
 tags: review, verification
 summary: The full local gate passed after restoring the fresh-install MCP host check; exact-commit, QA platform, review-receipt, and owner delivery evidence remain.

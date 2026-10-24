@@ -38,7 +38,7 @@ for (const route of ['source', 'installed']) test(`${route} entrypoint preserves
   const { spawn, execFileSync } = require('node:child_process');
   const { once } = require('node:events');
   const lines = require('node:readline');
-  const server = spawn(process.execPath, ['-e', `let n=0;require('node:net').createServer(s=>s.end(++n<=Number(process.argv[1])?'ok':'hang')).listen(0,'127.0.0.1',function(){console.log(this.address().port)});`, route === 'source' ? '1' : '2'], { stdio: ['ignore', 'pipe', 'inherit'] });
+  const server = spawn(process.execPath, ['-e', `let n=0;require('node:net').createServer(s=>s.end(++n<=Number(process.argv[1])?'ok':'hang')).listen(0,'127.0.0.1',function(){console.log(String(this.address().port))});`, route === 'source' ? '1' : '2'], { stdio: ['ignore', 'pipe', 'inherit'] });
   try {
     const reader = lines.createInterface({ input: server.stdout });
     const [port] = await once(reader, 'line');

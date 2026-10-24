@@ -3,7 +3,7 @@ date: 2026-10-20
 source: review
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification
 summary: The one owner-authorized binding retry failed with four blocker and five major findings; no receipt was written and the preserved counter is three.

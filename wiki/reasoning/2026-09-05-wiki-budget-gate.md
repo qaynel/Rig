@@ -3,7 +3,7 @@ date: 2026-09-05
 source: agent
 topics: agent-working-conventions, the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-05-wiki-budget-gate-plan
 tags: interdependency
 summary: The wiki budget gate ships — caps on hub bytes, index rows and bytes, trace summaries, and total orientation cost, enforced from tests/wiki-budget.test.js behind a ratchet-only waiver ledger, plus scripts/wiki-query.js as the bounded read that replaces hub browsing.

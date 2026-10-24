@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, catalogue-contract, authored-service-gate
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, catalogue, remediation
 summary: All 115 service identities now declare the executable configuration checks their catalogue records specify; the authorship gate rejects the reproduced broken-sentence pattern.

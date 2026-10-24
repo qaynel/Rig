@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: onboarding-flow, graft-mechanics, testing-strategy, distribution-and-release
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, remediation
 summary: The consolidated closeout defects are corrected with public-boundary regressions; final candidate verification is in flight.

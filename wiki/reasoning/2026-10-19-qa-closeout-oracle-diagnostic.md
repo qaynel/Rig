@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy, gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: The full gate revealed frozen lint-case fixtures that predate nonce approval and target-aware CI behavior; the owner-only patch is being reconciled.

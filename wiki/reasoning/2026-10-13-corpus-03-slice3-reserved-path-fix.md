@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, sandbox, trap
 summary: Follow-up to the 03 slice 3 trace — the reserved-path guard for projection-script outputs was case-sensitive (.GIT, .Rig, .ENV, Node_Modules, NTFS trailing dot/space bypassed it); now case-insensitive, rejects dot/space-suffixed components, and apply re-checks each output's real parent against the real .rig/.git.

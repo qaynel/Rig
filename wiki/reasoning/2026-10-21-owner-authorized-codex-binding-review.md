@@ -3,7 +3,7 @@ date: 2026-10-21
 source: intent owner
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, authorization, codex
 summary: Owner authorizes one forced binding review with Codex 6.1 Sol, retaining the existing author context and counter at eight.

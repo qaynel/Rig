@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, graft-mechanics
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, projection, rejected
 summary: Subplan 03 slice 2 (Migrate) — payload.js and onboarding.js now install through project(); rig/manifest.json lists only the neutral layer; MCP one-table equivalence test added; materializeSelectedHosts deleted (frozen AT-HOST-5 goes red, amendment A1 filed); stale markdown-only line fixed once in the canonical body.

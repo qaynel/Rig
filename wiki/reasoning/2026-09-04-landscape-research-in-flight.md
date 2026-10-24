@@ -3,7 +3,7 @@ date: 2026-09-04
 source: agent
 topics: what-rig-is, testing-strategy, distribution-and-release
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, research
 summary: In-flight research trace — 2026 SDD landscape and verification research place Rig's differentiator on human-signed verification, not adaptive onboarding; adaptive onboarding is a well-served commodity while the signed oracle maps to a named, unserved research problem.

@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: All maintained migration, host-contract, optional-helper and health checks pass; the signed oracle verifier is restored while installed lint grade and authored catalogue work continue.

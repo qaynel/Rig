@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: gate1, wording-fix, signing-ceremony
 summary: Owner-authorized wording fix on acceptance.md and business-spec.md ("AWAITING ORACLE SIGNATURE" -> "ORACLE SIGNED", the submitted-for-approval line -> approved) invalidates the current signature by design; re-sign ceremony instructions prepared for the Ubuntu-side owner, including the Secretive-agent-forwarding path since the signing key is non-exportable.

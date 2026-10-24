@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, sandbox, trap
 summary: Subplan 03 slice 3 — agent onboarding instructions (README + unpack.md) ship in the corpus; unknown hosts get an agent-script proposal slot whose script digest is signed, which runs only under a probe-verified filesystem+network sandbox and whose artifacts are validated before journaled writes; adversarial tests prove it on macOS sandbox-exec.

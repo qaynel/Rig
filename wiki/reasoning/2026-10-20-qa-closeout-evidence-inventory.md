@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification, owner-action
 summary: The retained full run has eight frozen-case failures; new acceptance and binding-delta reviews are in flight, with owner signing and capped review still pending.

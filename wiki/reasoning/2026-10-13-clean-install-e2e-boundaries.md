@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: distribution-and-release, install-manifest-removal
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: Actual network installation reaches installed MCP and signed service onboarding; npm staging compatibility is fixed and exact check-ID/inventory completion remains in flight.
 ---

@@ -3,7 +3,7 @@ date: 2026-10-15
 source: agent
 topics: the-overhaul, release-readiness
 decisions:
-status: current
+status: historical
 summary: The full gate is green on the closeout tree — 1054 pass, 0 fail, plus the secret, pi-extension and rig-mcp suites — against the owner's re-signed oracle, so T-10.6 is met and no further signing session is needed.
 ---
 Done: ran `npm test` to completion four times, fixing one defect per run until it

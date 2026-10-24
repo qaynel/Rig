@@ -3,7 +3,7 @@ date: 2026-10-21
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-21-code-mode-finding-remediation-progress-6
 tags: review, remediation, progress
 summary: Focused apply, remediation, empty-binding, default-deny, and permission-mutation checks pass; autofix still fails and all eighteen findings remain open.

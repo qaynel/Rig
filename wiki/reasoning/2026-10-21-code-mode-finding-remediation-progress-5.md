@@ -3,7 +3,7 @@ date: 2026-10-21
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-21-code-mode-finding-remediation-progress-4
 tags: review, remediation, progress
 summary: Signed apply/remediation and selected runner regressions pass, but repository-wide verification is blocked by legacy unsigned fixture expectations and most findings remain open.

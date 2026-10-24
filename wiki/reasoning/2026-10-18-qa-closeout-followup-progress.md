@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, install-manifest-removal, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, migration, progress
 summary: The follow-up is being fixed as one batch; migration temp cleanup now retains the record and focused normal/resume replacement checks pass, with integrated verification still pending.

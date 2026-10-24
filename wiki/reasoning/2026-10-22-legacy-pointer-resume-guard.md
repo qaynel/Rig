@@ -7,6 +7,7 @@ status: current
 tags: journal, graft, preimage, security
 summary: Legacy-pointer migration now passes the stale-plan guard only when the live pointer normalization exactly matches a graft from its verified preimage.
 ---
+<!-- needs-human-review: status -->
 
 The strict journal schema accepted the actual `append_managed` producer record;
 the failure was in `resumablePointerGraft`, which required the current file

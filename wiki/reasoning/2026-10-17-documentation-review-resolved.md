@@ -3,7 +3,7 @@ date: 2026-10-17
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-17-documentation-review-verified-mirror
 tags: documentation, verification
 summary: All nine documentation findings are resolved; full npm test passes with 1074 main tests, two skips, 15 secret tests, 15 Pi tests and six MCP tests using the supported digest-verified upstream mirror.

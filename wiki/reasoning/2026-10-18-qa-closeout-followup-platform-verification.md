@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, install-manifest-removal, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, migration, verification
 summary: The maintained migration suite passes on macOS and the interrupted-publication and replacement cases pass on Linux; final candidate checks remain.

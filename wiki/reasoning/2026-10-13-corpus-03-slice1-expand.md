@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, graft-mechanics
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, projection, interdependency
 summary: Subplan 03 slice 1 (Expand) — rig/corpus/ now exists with one pure project(corpus, host, selection) and a projector per served host; a golden v5 inventory proves it reproduces the v5 installer bytes for 26 configurations with zero intended differences; frozen pins decided what stays where.

@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 summary: Resumed closure delivery from committed corpus spine; three owners complete catalogue, lint and standards, and clean-install evidence while coordinator handles coherence and remaining fetch migration.
 ---
 

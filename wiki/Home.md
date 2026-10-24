@@ -9,6 +9,7 @@ shaped the way it is, and what is true right now.
 [Tickets](Tickets.md) for the live board ·
 [current release checkpoint](topics/the-overhaul.md) for QA/prod closeout ·
 [the release task list](specs/close-everything/task-list.md) if you are here to build ·
+[the AI-SDLC planning package](specs/ai-sdlc-harness/README.md) if you are here for the proposed harness scope ·
 [what Rig is](topics/what-rig-is.md) if you have never seen this project ·
 [the two gates](topics/the-two-gates.md) if you want to know how decisions get made ·
 [glossary](glossary.md) if a term or ID is unfamiliar ·

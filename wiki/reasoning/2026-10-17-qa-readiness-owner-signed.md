@@ -3,7 +3,7 @@ date: 2026-10-17
 source: intent owner
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 summary: Owner reports completing the requested test-command amendment signing ceremony.
 ---
 

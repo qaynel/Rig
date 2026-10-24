@@ -8,6 +8,7 @@ supersedes:
 tags: ci, regression, trap, verification
 summary: GitHub test job is red (33 fails, identical on push and PR) from three Linux-runner causes, none reproduced on the author's macOS: shallow checkout hides the v5 commit, CI=true switches Rig to CI-projected output the tests don't expect, and bwrap's loopback gives ECONNREFUSED not ENETUNREACH.
 ---
+<!-- needs-human-review: status -->
 
 Reproduced the red job in a Linux container (ubuntu 24.04, node 22, bubblewrap, python venv, shallow clone, CI=true GITHUB_ACTIONS=true). Failures cluster into:
 

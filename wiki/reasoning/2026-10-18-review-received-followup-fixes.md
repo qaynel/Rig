@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: distribution-and-release, testing-strategy, review-receipts
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, migration, recovery
 summary: Findings 17 and 18 now have durable regressions and root-cause fixes; active design and clean-install documentation match the current release model, with final verification underway.

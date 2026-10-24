@@ -152,3 +152,24 @@ digest-pinned run continues.
 The [CI binding correction](../reasoning/2026-10-19-qa-closeout-ci-binding-correction.md)
 records the installed CI invocation added to the maximal lint regression and
 the approved-path binding it exercises.
+
+The AI-SDLC acceptance lane lives in `tests/ai-sdlc/` and is deliberately
+outside the repository gate: `npm test` runs `tests/*.test.js`, which does not
+match a subdirectory, so a new programme's expected red never turns the
+existing CI red. The lane is run on its own with
+`node --test tests/ai-sdlc/*.test.js`. Its harness resolves each proving test's
+capability from `rig/catalog/baseline/`, so an unimplemented requirement fails
+by naming the exact missing module.
+[Implementation trace](../reasoning/2026-10-24-ai-sdlc-implementation-wave1.md)
+records the twenty modules that close it, the 85-of-88 state on a plain
+checkout, and the three criteria that are environment-bound rather than failing:
+PT-017 needs a real hardware security key, and PT-068 and PT-077 need
+`RIG_PUBLIC_ARCHIVE` to point at a built public archive. With that archive
+present the lane is 87 of 88.
+
+The acceptance lane reads 88 tests, 87 pass, 1 fail with `RIG_PUBLIC_ARCHIVE`
+pointing at a built archive, and 85 pass, 3 fail without one — PT-068 and
+PT-077 take the harness's environment-bound branch when no archive exists. The
+[deployment handoff](../reasoning/2026-10-24-ai-sdlc-deployment-handoff.md)
+records both numbers so a bare run is not mistaken for a regression. PT-017
+stays red everywhere but a machine holding a hardware security key.

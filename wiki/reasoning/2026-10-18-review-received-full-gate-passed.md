@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: distribution-and-release, review-receipts, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-18-review-received-final-gate-retry.md
 tags: review, verification, release-gate
 summary: Full local npm gate passed with 1,111 main tests, 15 Pi-extension tests, and six MCP tests after the migration and MCP recovery fixes.

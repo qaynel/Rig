@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: the-overhaul, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: Closeout resumed from the committed C1–C8 fix; maintained migration, optional-helper and health checks pass, while catalogue authorship and unsigned oracle work remain.

@@ -257,7 +257,7 @@ kanban-plugin: board
 - [x] **RIG-124.1 — Killed/timed-out reviewer attempt is dropped from the re-review cap instead of counting toward it**
 	**Delivery state (RIG-124.1):** delivered
 	**Status:** DONE (2026-08-26) — GitHub #73 closed by PR #74; general process-cleanup helper remains [[RIG-135]] (#75) · [Solution](tickets/RIG-124.md)
-	**Done:** `tests/release-blockers.test.js::review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)`.
+	**Done:** `tests/release-blockers.test.js::a killed/timed-out reviewer spawn is recorded but spends no authorization (RIG-124.3)` — the original cap-charging criterion was superseded 2026-10-23 by RIG-124.3; the no-silently-dropped-attempt guarantee it protected is still asserted.
 - [x] **RIG-126 — Onboarding is not runnable end-to-end**
 	**Delivery state (RIG-126):** delivered
 	**Status:** DONE (2026-08-26) — GitHub #35 closed by PR #32; 126.1–126.4; 126.5 remains debt · [Solution](tickets/RIG-126.md)

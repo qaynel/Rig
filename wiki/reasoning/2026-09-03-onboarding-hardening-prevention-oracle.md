@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, trap
 summary: Onboarding hardening now has eight real adversarial behaviors and four manifested pattern ratchets prepared for owner approval

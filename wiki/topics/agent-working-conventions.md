@@ -22,6 +22,32 @@ one runnable check for non-trivial behavior. Communication gives the user the
 real options and consequences, one recommendation, and one decision at a time.
 The canonical rules are in `rig/corpus/rules/`; host entrypoints project them.
 
+## Proposed full-product workflow
+
+The owner directed a complete agent-led journey from onboarding and intent to signed acceptance, editable design, implementation, verification, release and continuous learning. The three-minute trace cadence remains; a later local compactor will retain source fidelity while moving old records out of the active view. Deterministic scripts and a suitable low-cost model come first, with bounded escalation to stronger judgement. This is a planning requirement, not current shipped behavior. [Owner directive](../reasoning/2026-10-23-ai-sdlc-product-first-owner-directive.md) · [source and journey checkpoint](../reasoning/2026-10-24-product-first-source-and-journey-checkpoint.md)
+
+[Acceptance reconciliation checkpoint](../reasoning/2026-10-24-product-first-acceptance-reconciliation-checkpoint.md) records the current planning state and remaining checks.
+
+The [final-definition owner ruling](../reasoning/2026-10-24-final-product-definition-owner-directive.md)
+requires a deterministic bidirectional graph check before signing and before
+worker dispatch. The [architecture checkpoint](../reasoning/2026-10-24-final-product-architecture-checkpoint.md)
+records the proposed coordinator/worker boundaries, six interaction sequences
+and public-release work packages; none is implemented by the planning pass.
+The [validation checkpoint](../reasoning/2026-10-24-final-product-traceability-validation.md)
+records the current draft coverage and wiki checks.
+The [planning handoff](../reasoning/2026-10-24-final-product-planning-handoff.md)
+states the next authorized preparation steps; its pending choice is now settled.
+The [coverage refinement](../reasoning/2026-10-24-final-product-coverage-refinement.md)
+records the current graph count and four newly explicit behaviors.
+The [offline-search owner ruling](../reasoning/2026-10-24-offline-semantic-search-owner-decision.md)
+requires a shipped local meaning-search path in the public product. The
+current 84-row draft adds offline clean-install, zero-call, index-upgrade and
+token-efficiency checks; lexical recall remains a cited failure fallback.
+
+The [signing-readiness record](../reasoning/2026-10-24-ai-sdlc-signing-ready.md)
+records the complete derived signing set, expected preimplementation-red
+baseline and green repository gate.
+
 ## Why it is this way
 
 One corpus avoids competing lifecycle instructions. Repository-aware choices

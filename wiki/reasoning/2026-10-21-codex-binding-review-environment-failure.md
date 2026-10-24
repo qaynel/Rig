@@ -3,7 +3,7 @@ date: 2026-10-21
 source: review
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, verification, codex, environment-failure
 summary: The single authorized Codex 6.1 Sol binding review could not inspect the implementation because its tool call was rejected; no receipt, preserved counter nine.

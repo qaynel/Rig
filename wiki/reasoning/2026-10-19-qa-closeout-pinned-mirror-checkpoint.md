@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: The broad diagnostic was restarted with a local copy of the exact digest-pinned upstream archive to avoid repeated network timeouts.

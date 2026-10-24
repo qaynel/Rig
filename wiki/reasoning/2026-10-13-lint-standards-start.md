@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, install-manifest-removal, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency
 summary: Setup replacement uses typed journal records and explicit separate approval; standards completion evidence will execute referenced tests rather than inspect titles.

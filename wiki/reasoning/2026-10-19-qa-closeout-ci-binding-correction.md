@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy, host-and-ci-coverage
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: An approved maximal lint CI job now receives an executable binding while the local Evidence verdict remains independent of CI approval.

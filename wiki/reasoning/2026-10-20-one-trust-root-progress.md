@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: gate1-signing, review-receipts
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trust, progress
 summary: Progress trace for the one-trust-root change and the failed-binding-review fixes (started 16:10 IST).

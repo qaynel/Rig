@@ -1,0 +1,76 @@
+name: AI-SDLC acceptance (advisory)
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check CI preparation
+        run: node --test scripts/ci-preparation.test.js
+      - name: Build self-contained archive
+        run: node scripts/build-public-archive.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rig-public-${{ github.sha }}
+          path: |
+            .context/dist/rig-public-*.tar.gz
+            .context/dist/rig-public-*.tar.gz.sha256
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+
+  acceptance:
+    name: AI-SDLC advisory (${{ matrix.os }})
+    needs: archive
+    runs-on: ${{ matrix.os }}
+    # PT-017 contradicts the owner's current human-authentication decision.
+    # Preserve its failure until the owner amends/re-signs; no test filters.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # This job never builds the archive. Only downloaded bytes supply evidence.
+      - uses: actions/download-artifact@v4
+        with:
+          name: rig-public-${{ github.sha }}
+          path: .context/downloaded
+      - name: Select downloaded archive
+        shell: bash
+        run: |
+          node -e 'const fs=require("node:fs"),path=require("node:path");const dir=path.resolve(".context/downloaded");const files=fs.readdirSync(dir).filter(f=>f.endsWith(".tar.gz"));if(files.length!==1)throw new Error("Expected one downloaded public archive");fs.appendFileSync(process.env.GITHUB_ENV,`RIG_PUBLIC_ARCHIVE=${path.join(dir,files[0])}\n`);'
+      - name: Run complete acceptance lane (failures remain visible)
+        id: acceptance
+        run: node scripts/run-ai-sdlc.js
+      - name: Record step outcome
+        if: always()
+        shell: bash
+        env:
+          ACCEPTANCE_OUTCOME: ${{ steps.acceptance.outcome }}
+        run: |
+          node -e 'require("node:fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\nAcceptance step outcome: **${process.env.ACCEPTANCE_OUTCOME}**. Artifact download is CI transport evidence, not a published-release download.\n`);'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-sdlc-results-${{ matrix.os }}-${{ github.sha }}
+          path: .context/ai-sdlc/
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14

@@ -1289,34 +1289,43 @@ test('review-receipt cap is scoped per author-context and clears on a passing ve
   });
 });
 
-test('review-receipt keeps the retry cap when a pass report fails receipt validation', () => {
+test('a pass report that fails receipt validation is an execution failure, not a spent authorization (RIG-124.3)', () => {
   withTarget((target) => {
     const out = path.join(target, 'receipt.json');
     const attemptsPath = `${out}.attempts.json`;
     const authorContext = 'release-attempt-invalid-pass';
+    const malformedPass = { verdict: 'pass', verdicts: [], findings: [], unresolved: [] };
 
     runReviewReceipt(target, { verdict: 'fail', authorContext, out });
-    const invalidPass = runReviewReceipt(target, {
-      verdict: 'pass',
-      authorContext,
-      out,
-      reported: { verdict: 'pass', verdicts: [], findings: [], unresolved: [] },
-    });
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 1);
+
+    // A pass that cannot be bound to the acceptance ids is a self-contradictory
+    // report. It must not be able to buy a completed-review authorization by
+    // being malformed, and it must not be able to burn one either.
+    const invalidPass = runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
     assert.notEqual(invalidPass.run.status, 0);
     assert.match(invalidPass.run.stderr, /coverage mismatch/);
-    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
+    assert.match(invalidPass.run.stderr, /authorization not spent/);
+    const afterInvalid = JSON.parse(fs.readFileSync(attemptsPath, 'utf8'));
+    assert.equal(afterInvalid.failures, 1, 'a malformed pass is not a completed review');
+    assert.equal(afterInvalid.infra_streak, 1);
+    assert.equal(afterInvalid.in_flight, null, 'the attempt is closed, not left in flight');
+    assert.equal(afterInvalid.attempts.at(-1).state, 'failed');
 
-    const capped = runReviewReceipt(target, { verdict: 'pass', authorContext, out });
-    assert.notEqual(capped.run.status, 0);
-    assert.match(capped.run.stderr, /re-review cap reached/);
-    assert.equal(capped.invocationCount, 0);
-    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 2);
+    // Uncharged does not mean unlimited: three in a row stop the loop.
+    runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
+    runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
+    const blocked = runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
+    assert.notEqual(blocked.run.status, 0);
+    assert.match(blocked.run.stderr, /BLOCKER: 3 consecutive infrastructure failures/);
+    assert.equal(blocked.invocationCount, 0, 'the bounded retry must not spawn a fourth reviewer');
   });
 });
 
-test('review-receipt counts a killed/timed-out reviewer spawn toward the re-review cap (RIG-124.1)', () => {
+test('a killed/timed-out reviewer spawn is recorded but spends no authorization (RIG-124.3)', () => {
   withTarget((target) => {
     const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
     const authorContext = 'release-attempt-timeout';
     const hangingStub = '#!/bin/sh\ncat >/dev/null\nsleep 3600\n';
 
@@ -1332,9 +1341,18 @@ test('review-receipt counts a killed/timed-out reviewer spawn toward the re-revi
     });
     assert.notEqual(timedOut.run.status, 0, 'a hung reviewer spawn must still end the process with a failure');
 
+    // RIG-124.1 required that the attempt never be silently dropped; RIG-124.3
+    // keeps that guarantee by persisting it, while refusing to call a reviewer
+    // that produced no verdict a completed review of these bytes.
+    const state = JSON.parse(fs.readFileSync(attemptsPath, 'utf8'));
+    assert.equal(state.failures, 1, 'the timeout said nothing about the reviewed bytes');
+    assert.equal(state.infra_streak, 1);
+    assert.equal(state.in_flight, null);
+    assert.equal(state.attempts.at(-1).state, 'failed');
+    assert.match(state.attempts.at(-1).reason, /timed out/);
+
     const third = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
-    assert.equal(third.invocationCount, 0, 'a killed/timed-out attempt must still count toward the cap');
-    assert.match(third.run.stderr, /re-review cap reached/);
+    assert.equal(third.invocationCount, 1, 'the one genuine re-review is still available');
   });
 });
 
@@ -1374,5 +1392,262 @@ test('review-receipt --interim never writes the binding receipt (RIG-124)', () =
     const failing = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-2', out, extraArgs: ['--interim'] });
     assert.notEqual(failing.run.status, 0);
     assert.ok(!fs.existsSync(out));
+  });
+});
+
+test('review-receipt does not spend an authorization on a provider failure (RIG-124.2)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const authorContext = 'release-attempt-provider';
+    // Exactly the shape of the three recorded losses: the reviewer announces an
+    // exhausted usage window and exits non-zero without reviewing anything.
+    const limitStub = '#!/bin/sh\ncat >/dev/null\necho "You have hit your weekly limit, resets at Oct 23 9:30am" >&2\nexit 1\n';
+
+    const providerFail = runReviewReceipt(target, { verdict: 'fail', authorContext, out, stub: limitStub });
+    assert.notEqual(providerFail.run.status, 0, 'the run still fails loudly');
+    assert.match(providerFail.run.stderr, /authorization not spent/);
+    assert.equal(
+      JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures,
+      0,
+      'a reviewer that never reviewed must leave the cap untouched',
+    );
+
+    // Two genuine failing reviews are still available afterwards.
+    const real1 = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(real1.invocationCount, 1);
+    const real2 = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(real2.invocationCount, 1, 'the provider failure did not eat the allowed re-review');
+    const capped = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(capped.invocationCount, 0, 'two genuine failures still cap');
+    assert.match(capped.run.stderr, /re-review cap reached/);
+  });
+});
+
+test('classification uses process and output evidence, never vendor error text (RIG-124.3)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const authorContext = 'release-attempt-plain-exit';
+    // No provider signature anywhere in the output: under the old regex rules
+    // this was charged as review signal. A non-zero exit still means no verdict
+    // was produced, so there is nothing to charge.
+    const brokenStub = '#!/bin/sh\ncat >/dev/null\necho "assertion failed in reviewer" >&2\nexit 2\n';
+
+    const broken = runReviewReceipt(target, { verdict: 'fail', authorContext, out, stub: brokenStub });
+    assert.notEqual(broken.run.status, 0);
+    assert.match(broken.run.stderr, /authorization not spent/);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 0);
+
+    // Exit 0 with no parseable verdict is equally not a review.
+    const emptyStub = '#!/bin/sh\ncat >/dev/null\nexit 0\n';
+    const empty = runReviewReceipt(target, { verdict: 'fail', authorContext, out, stub: emptyStub });
+    assert.notEqual(empty.run.status, 0);
+    assert.match(empty.run.stderr, /no json report/);
+    const afterEmpty = JSON.parse(fs.readFileSync(attemptsPath, 'utf8'));
+    assert.equal(afterEmpty.failures, 0);
+    assert.equal(afterEmpty.infra_streak, 2, 'consecutive infrastructure failures accumulate');
+
+    // Exit 0 with a report whose verdict is not pass/fail is not a review either.
+    const nonsense = runReviewReceipt(target, {
+      verdict: 'fail',
+      authorContext,
+      out,
+      reported: { verdict: 'maybe', verdicts: [], findings: [], unresolved: [] },
+    });
+    assert.match(nonsense.run.stderr, /no valid verdict/);
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 0);
+  });
+});
+
+test('review-receipt carries finding classes into the next round and flags graduation (RIG-124.2)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const historyPath = `${out}.history.json`;
+    const authorContext = 'release-attempt-history';
+
+    const first = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.notEqual(first.run.status, 0);
+    const history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+    const key = 'correctness|x';
+    assert.deepEqual(history[authorContext].items[key].rounds, [1], 'the finding fired in round 1');
+    assert.equal(history[authorContext].items[key].anchor, 'x');
+    assert.equal(history[authorContext].categories.correctness, 1, 'category tally is a secondary hint');
+
+    // Second round: the prompt the reviewer receives must name the prior class.
+    const promptLog = path.join(target, 'prompt.txt');
+    const capturePromptStub = [
+      '#!/usr/bin/env node',
+      "'use strict';",
+      'const fs = require("node:fs");',
+      'let buf = "";',
+      'process.stdin.on("data", (d) => { buf += d; });',
+      'process.stdin.on("end", () => {',
+      `  fs.writeFileSync(${JSON.stringify(promptLog)}, buf);`,
+      '  process.stdout.write("no report\\n");',
+      '});',
+      '',
+    ].join('\n');
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out, stub: capturePromptStub });
+    const prompt = fs.readFileSync(promptLog, 'utf8');
+    assert.match(prompt, /PRIOR ROUNDS/, 'the next round is told what already fired');
+    assert.match(prompt, /correctness — fired in 1 prior round/);
+    assert.match(prompt, /at: x/, 'the anchor travels with the finding');
+
+    // A real second finding of the same class reaches the graduation threshold.
+    // No --force-rereview needed: the prompt-probe round produced no verdict, so
+    // it was an infrastructure failure and spent no authorization.
+    const second = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.match(second.run.stdout, /due to graduate into an automated check/);
+    // Rounds 1 and 2, not 1 and 3: the prompt-probe run above produced no
+    // parseable report, so it never reached the recording step.
+    assert.match(second.run.stdout, /correctness ×2 \(rounds 1, 2\)/);
+    assert.deepEqual(
+      JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds,
+      [1, 2],
+      'the same finding is tracked per round, not as a bare count',
+    );
+  });
+});
+
+test('an interrupted in-flight attempt is recovered exactly once (RIG-124.3)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const authorContext = 'release-attempt-interrupted';
+
+    // What a process killed mid-spawn leaves behind: a marker and no outcome.
+    fs.writeFileSync(attemptsPath, JSON.stringify({
+      authorContext,
+      failures: 0,
+      infra_streak: 0,
+      in_flight: { nonce: 'stale-nonce-1', started_at: '2026-10-23T00:00:00.000Z' },
+      attempts: [{ nonce: 'stale-nonce-1', state: 'running', at: '2026-10-23T00:00:00.000Z' }],
+    }));
+
+    const recovered = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.match(recovered.run.stderr, /recovered an interrupted attempt \(stale-nonce-1/);
+    const state = JSON.parse(fs.readFileSync(attemptsPath, 'utf8'));
+    const interrupted = state.attempts.filter((entry) => entry.nonce === 'stale-nonce-1');
+    assert.equal(interrupted.length, 1, 'the interrupted attempt is accounted for exactly once');
+    assert.equal(interrupted[0].state, 'interrupted');
+    assert.equal(state.in_flight, null, 'the marker is cleared in the same write');
+    assert.equal(state.failures, 1, 'the real review that followed is what was charged');
+
+    // Re-running must not rediscover the same interruption.
+    const again = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.doesNotMatch(again.run.stderr, /recovered an interrupted attempt/);
+    assert.equal(
+      JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).attempts
+        .filter((entry) => entry.state === 'interrupted').length,
+      1,
+      'no duplicate accounting after recovery',
+    );
+  });
+});
+
+test('review-receipt --interim reports findings and leaves no authorization spent (RIG-124.3)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const historyPath = `${out}.history.json`;
+    const authorContext = 'release-attempt-interim';
+
+    // A failing interim run is still a completed review: it is charged, its
+    // findings are recorded, and it writes no receipt.
+    const failing = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--interim'] });
+    assert.notEqual(failing.run.status, 0);
+    assert.ok(!fs.existsSync(out));
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 1);
+    assert.deepEqual(JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds, [1]);
+
+    const passing = runReviewReceipt(target, { verdict: 'pass', authorContext, out, extraArgs: ['--interim'] });
+    assert.equal(passing.run.status, 0, passing.run.stderr);
+    assert.match(passing.run.stdout, /interim pass — no receipt written/);
+    assert.match(passing.run.stdout, /verdict  pass — 0 finding\(s\), 0 blocker\(s\), 0 unresolved/);
+    assert.ok(!fs.existsSync(out), 'an interim pass never writes the binding receipt');
+    assert.ok(!fs.existsSync(attemptsPath), 'an interim pass clears the cap like any pass');
+    assert.deepEqual(
+      JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds,
+      [1],
+      'the interim pass does not erase what the interim fail found',
+    );
+  });
+});
+
+test('--ingest reconciles a supplied report without making it authoritative (RIG-124.3)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const attemptsPath = `${out}.attempts.json`;
+    const historyPath = `${out}.history.json`;
+    const authorContext = 'release-attempt-ingest';
+    const supplied = path.join(target, 'supplied-review.md');
+
+    // Cap the context out first: a hand-supplied report is exactly what arrives
+    // after automatic reviewing has stopped, so --ingest must stay reachable.
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    const capped = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.match(capped.run.stderr, /re-review cap reached/);
+    const historyBefore = fs.readFileSync(historyPath, 'utf8');
+    const stateBefore = fs.readFileSync(attemptsPath, 'utf8');
+
+    fs.writeFileSync(supplied, [
+      'Here is what the reviewer said:',
+      '```json',
+      JSON.stringify({
+        verdict: 'fail',
+        verdicts: [{ id: 'AT-GATE-3', verdict: 'fail', note: 'n' }],
+        findings: [
+          { severity: 'blocker', category: 'correctness', anchor: 'x', detail: 'same class as round 1' },
+          { severity: 'major', category: 'coverage', anchor: 'y', detail: 'never seen before' },
+        ],
+        unresolved: [],
+      }),
+      '```',
+    ].join('\n'));
+
+    const ingested = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--ingest', supplied] });
+    assert.equal(ingested.run.status, 0, ingested.run.stderr);
+    assert.equal(ingested.invocationCount, 0, 'ingestion never spawns a reviewer');
+    assert.match(ingested.run.stdout, /read-only, history and authorization unchanged/);
+    assert.match(ingested.run.stdout, /already seen 1\n {4}correctness\|x/);
+    assert.match(ingested.run.stdout, /new to me {4}1\n {4}coverage\|y/);
+    assert.equal(fs.readFileSync(historyPath, 'utf8'), historyBefore, 'protected history is not overwritten');
+    assert.equal(fs.readFileSync(attemptsPath, 'utf8'), stateBefore, 'no authorization is spent or refunded');
+    assert.ok(!fs.existsSync(out), 'ingestion never produces a receipt');
+
+    // A report that cannot be interpreted is reported as such, not accepted.
+    fs.writeFileSync(supplied, JSON.stringify({ verdict: 'probably', findings: [{ severity: 'blocker' }] }));
+    const bad = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--ingest', supplied] });
+    assert.notEqual(bad.run.status, 0);
+    assert.match(bad.run.stderr, /not a valid completed review/);
+    assert.match(bad.run.stderr, /verdict is "probably"/);
+    assert.match(bad.run.stderr, /verdicts is not an array/);
+    assert.match(bad.run.stderr, /1 finding\(s\) carried no evidence, anchor or detail/);
+    assert.equal(fs.readFileSync(historyPath, 'utf8'), historyBefore);
+
+    fs.writeFileSync(supplied, 'no json here at all');
+    const unparseable = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--ingest', supplied] });
+    assert.notEqual(unparseable.run.status, 0);
+    assert.match(unparseable.run.stderr, /no parseable reviewer json/);
+  });
+});
+
+test('review-receipt finding-class history survives a passing verdict (RIG-124.2)', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const historyPath = `${out}.history.json`;
+    const authorContext = 'release-attempt-history-pass';
+
+    runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    const passing = runReviewReceipt(target, { verdict: 'pass', authorContext, out });
+    assert.equal(passing.run.status, 0, passing.run.stderr);
+    assert.ok(!fs.existsSync(`${out}.attempts.json`), 'a pass clears the cap');
+    assert.deepEqual(
+      JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds,
+      [1],
+      'a pass must NOT erase what earlier rounds found: that finding is exactly what to re-check',
+    );
   });
 });

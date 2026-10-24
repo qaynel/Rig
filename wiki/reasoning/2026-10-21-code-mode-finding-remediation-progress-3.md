@@ -3,7 +3,7 @@ date: 2026-10-21
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-21-code-mode-finding-remediation-progress-2
 tags: review, remediation, progress
 summary: The remediation path now requires signed consent and supports rollback/restart recovery, while approved plan execution now launches its commands and rejects replay; installed lint-grade dispatch remains unfinished.

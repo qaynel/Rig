@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: the-overhaul, testing-strategy, policy-signer-recovery
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification, recovery
 summary: Real host, grade, CI and removal candidate cases pass; signed recovery registration and historical signer verification are being integrated without hardware-proof claims.

@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: Focused integration, coherence, and the full catalogue matrix pass; the full repository gate is running on the editable candidate.

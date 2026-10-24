@@ -3,7 +3,7 @@ date: 2026-09-08
 source: agent
 topics: onboarding-flow, what-rig-is, the-catalogue, delivery-plan
 decisions:
-status: current
+status: historical
 supersedes:
 tags: feasibility, test, evidence
 summary: "Feasibility test round 2: agent writes a deterministic conversion script, then the script does the mechanical projection. Tests dynamic-intelligence + deterministic-execution split."

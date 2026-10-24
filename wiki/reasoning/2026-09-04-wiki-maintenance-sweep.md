@@ -3,7 +3,7 @@ date: 2026-09-04
 source: agent
 topics: agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: interdependency, chore
 summary: Wiki maintenance sweep — lifecycle sweep cut status.md from 60 traces to 18, a real defect made every link on the generated status page dead and is now fixed, a bounded task-addressable quick reference was added, ten phantom trace references were identified as never-filed, and the glossary gained ten live terms.

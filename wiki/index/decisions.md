@@ -30,7 +30,7 @@ Workflow rulings change router/skills, not the frozen catalogue intent.
 
 ## Product-integration rulings
 
-Owner delivery rulings; these do not amend the frozen oracle or invent numbered architecture decisions.
+Owner rulings do not amend the frozen oracle. The [product-first directive](../reasoning/2026-10-23-ai-sdlc-product-first-owner-directive.md) settles full journey, 8 KB memory, lock-before-design, hardware key, safe learning, trace compaction, cost routing and source reuse ([D-01–D-07](../specs/ai-sdlc-harness/09-decision-register.md)). North star 19–23: atomic traceability, offline recall, bounded Gate 1 prep, shipped traceability, reused embeddings — [definition](../reasoning/2026-10-24-final-product-definition-owner-directive.md), [search](../reasoning/2026-10-24-offline-semantic-search-owner-decision.md), [prep](../reasoning/2026-10-24-gate1-preparation-owner-authorisation.md).
 
 | Date | Ruling | Source |
 |---|---|---|

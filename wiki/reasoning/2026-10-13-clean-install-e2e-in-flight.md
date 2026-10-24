@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: distribution-and-release, install-manifest-removal
 decisions:
-status: current
+status: historical
 tags: interdependency
 summary: Clean-install E2E implementation in flight; candidate archive verification and scoped runtime evidence cleanup have focused green checks, real installed service run pending.
 ---

@@ -3,7 +3,7 @@ date: 2026-10-14
 source: agent
 topics: the-overhaul, agent-working-conventions
 decisions:
-status: current
+status: historical
 summary: Task list with verified ticks, executor prompt and a Delivery SOP (spec, SOW, task list, acceptance, then work) filed; two prior executor sessions stopped at usage limits mid-catalogue.
 ---
 

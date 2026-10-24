@@ -3,7 +3,7 @@ date: 2026-10-21
 source: agent
 topics: review-receipts, the-overhaul
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-21-code-mode-finding-remediation-progress-7
 tags: review, remediation, progress
 summary: Autofix dispatch and shared journal parsing regressions pass; findings 4, 8, 15 and 16 have partial evidence and all eighteen remain open.

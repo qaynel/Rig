@@ -3,7 +3,7 @@ date: 2026-09-08
 source: agent
 topics: onboarding-flow, what-rig-is, the-catalogue, delivery-plan
 decisions:
-status: current
+status: historical
 supersedes:
 tags: feasibility, test, evidence
 summary: "Feasibility test: can an agent dynamically render host-native harness files from the canonical corpus? Tested with Sonnet on Cursor (known host) and Zed (unknown host). Result: YES — body content is invariant, only the envelope changes."

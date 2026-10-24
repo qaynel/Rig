@@ -3,7 +3,7 @@ date: 2026-09-02
 source: agent
 topics: gate1-signing
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap
 summary: Grill for the fix to approve-gate1.js clobbering human comment lines in gate1.allowed-signers on every re-sign; tests are red, three low-risk defaults proposed, awaiting owner sign-off.

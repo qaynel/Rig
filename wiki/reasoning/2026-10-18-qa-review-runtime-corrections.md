@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: the-overhaul, catalogue-contract, authored-service-gate, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, binding-review, remediation
 summary: The policy runner now refuses fabricated higher-grade passes; catalogue declarations and fragment defects are being reconciled while frozen cases await owner amendment.

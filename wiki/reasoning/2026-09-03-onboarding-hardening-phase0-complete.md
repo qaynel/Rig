@@ -3,7 +3,7 @@ date: 2026-09-03
 source: agent
 topics: onboarding-flow, gate1-signing, trust-and-failure-boundaries, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes: 2026-09-03-onboarding-hardening-phase0-corrections
 tags: interdependency
 summary: Phase 0 oracle corrections complete — all eight owner-itemized fixes applied to the AT-HD-* oracle and its two dependent frozen files; production untouched; owner re-sign is the only remaining blocker before Phase 1.

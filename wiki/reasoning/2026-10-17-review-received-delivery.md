@@ -3,7 +3,7 @@ date: 2026-10-17
 source: review
 topics: the-overhaul, review-receipts
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-17-review-received-findings
 tags: review
 summary: Review Received is complete locally with four findings and 39 focused tests passing; GitHub denies review and comment publication with HTTP 403, so no approval was submitted.

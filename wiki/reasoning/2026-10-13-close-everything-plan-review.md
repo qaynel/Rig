@@ -3,7 +3,7 @@ date: 2026-10-13
 source: review
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, plan-amendment, pending-owner-input
 summary: Independent review found 12 plan defects and produced amendments to ten subplans; all six owner decisions and final handoff are recorded in the review-complete trace.

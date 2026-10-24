@@ -3,7 +3,7 @@ date: 2026-10-19
 source: agent
 topics: testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: qa-closeout, verification
 summary: The restarted broad run confirms AT-LF-5 now passes and is processing the service matrix with the digest-pinned mirror.

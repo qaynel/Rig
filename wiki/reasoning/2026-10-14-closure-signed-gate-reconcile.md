@@ -3,7 +3,7 @@ date: 2026-10-14
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 summary: The re-signed Gate 1 signature covers the un-amended oracle, so five candidate amendments are still outside the signed bytes; four of the twelve reds are fixable in editable code and are being fixed now.
 ---
 Done: verified the gate. `node scripts/check-advanced-spec.js` passes

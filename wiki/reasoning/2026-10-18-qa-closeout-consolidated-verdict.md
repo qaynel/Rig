@@ -3,7 +3,7 @@ date: 2026-10-18
 source: review
 topics: the-overhaul, review-receipts
 decisions:
-status: current
+status: historical
 supersedes: 2026-10-18-qa-closeout-managed-section-correction.md
 tags: review, acceptance, closeout
 summary: One consolidated QA handoff contains eight proven root-cause findings with acceptance criteria; earlier reviews are reconciled and production-only evidence is separated.

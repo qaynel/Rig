@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: the-overhaul
 decisions:
-status: current
+status: historical
 supersedes:
 tags: specification, sow, applied-amendments
 summary: Applied the reviewed amendments to ten plan files and created one consolidated specification sheet plus an engineering SOW; all six owner decisions are settled and product implementation remains pending.

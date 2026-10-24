@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: testing-strategy, agent-working-conventions
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trap, interdependency
 summary: Strict proving-test execution exposed historical manual evidence and genuine installed runtime failures; heading parser false positives corrected before tracker edits.

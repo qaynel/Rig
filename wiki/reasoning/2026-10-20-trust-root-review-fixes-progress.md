@@ -3,7 +3,7 @@ date: 2026-10-20
 source: agent
 topics: gate1-signing, review-receipts
 decisions:
-status: current
+status: historical
 supersedes:
 tags: trust, progress
 summary: Progress trace for fixing the nine findings of the failed trust-root binding review (started 20:05 IST).

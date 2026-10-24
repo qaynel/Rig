@@ -3,7 +3,7 @@ date: 2026-10-13
 source: agent
 topics: onboarding-flow, distribution-and-release
 decisions:
-status: current
+status: historical
 supersedes:
 tags: corpus, upstream, interdependency
 summary: Subplan 03 slice 4 — pinned third-party fetch at onboarding: staging download, tar-digest verify, strict tar extraction, base-digest check, RIG-135 patches applied to fetched bytes and checked against pinned results, named gaps, journaled receipt that check enforces; whole-shelf replacement deferred with a recorded gap.

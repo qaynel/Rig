@@ -3,7 +3,7 @@ date: 2026-10-15
 source: agent
 topics: the-overhaul, catalogue-contract
 decisions:
-status: current
+status: historical
 summary: The router now installs under one name, rig-router; the duplicate rig alias is removed so the unsigned AT-PB-3 candidate lists one router.
 ---
 Done: the same router was projected twice on native hosts (`rig-router` and a `rig` alias) plus a second `.rig/skills/rig` copy on instruction-only hosts. Removed the alias in `rig/lib/project.js` and `rig/manifest.json`, pointed the `routing.md` fallback at `rig-router`, and updated the RIG-149 checks, `vendored-skills-install`, the v5-parity fixture, and the unsigned AT-PB-3 candidate (test and patch) to expect nine skills, not ten. Targeted suites pass (bootstrap RIG-149, router hygiene, corpus contract/projection, migrate-v5, vendored install, AT-PB-3 candidate). In flight: full `npm test` not yet run. Next: run it, then sign AT-PB-3 once in the batched session.

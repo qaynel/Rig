@@ -3,7 +3,7 @@ date: 2026-10-18
 source: agent
 topics: distribution-and-release, review-receipts, testing-strategy
 decisions:
-status: current
+status: historical
 supersedes:
 tags: review, migration, path-safety
 summary: The post-link deletion race is closed by retaining failed publication links, but a pre-link parent swap still allows publication through a substituted path and keeps Finding 17 open.
