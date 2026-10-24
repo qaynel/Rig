@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.property-fuzz.shrinking",
+  "input": "rig-services/testing.property-fuzz.shrinking.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a failure predicate, preserved constraints and the drop-failure flag are declared; it does not shrink inputs.",
+  "offer": "Reduce a failing input while preserving both the failure and the relevant domain constraints. A smaller case that no longer triggers the defect is not a useful shrink result.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "Declare the predicate that identifies the failure. A shrinker without it cannot tell failure from success, so write the check."
+      }
+    ],
+    "mid": [
+      {
+        "field": "preserved_constraints",
+        "op": "nonempty",
+        "reason": "List the domain constraints a shrunk input must keep. Violating them yields invalid cases, so name each constraint."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "drop_failure_during_shrink",
+        "op": "equals",
+        "value": false,
+        "reason": "Set dropping the failure during shrink to false. A smaller input that no longer fails is useless, so keep the failure while reducing."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "shrinking-slice-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "Declare the predicate that identifies the failure. A shrinker without it cannot tell failure from success, so write the check."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "shrinking-slice-behavior-oracle",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "Declare the predicate that identifies the failure. A shrinker without it cannot tell failure from success, so write the check."
+      }
+    },
+    "property-floor": {
+      "check_id": "shrinking-slice-property-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "Declare the predicate that identifies the failure. A shrinker without it cannot tell failure from success, so write the check."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "shrinking-slice-mutation-floor",
+      "rule": {
+        "field": "failure_predicate",
+        "op": "nonempty",
+        "reason": "Declare the predicate that identifies the failure. A shrinker without it cannot tell failure from success, so write the check."
+      }
+    }
+  }
+}

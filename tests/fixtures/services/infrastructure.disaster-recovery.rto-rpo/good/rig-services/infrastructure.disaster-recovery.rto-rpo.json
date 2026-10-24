@@ -1,0 +1,5 @@
+{
+  "rto_minutes": 30,
+  "rpo_minutes": 5,
+  "claim_targets_without_exercise": false
+}

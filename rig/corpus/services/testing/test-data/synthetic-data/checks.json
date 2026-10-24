@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.test-data.synthetic-data",
+  "input": "rig-services/testing.test-data.synthetic-data.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms generation rules, a seed and the customer-records flag are declared; it does not generate data.",
+  "offer": "Produce deterministic synthetic records that satisfy real domain constraints. Customer data must not become a convenient test-data source when a reproducible generator can cover the behavior.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "generation_rules",
+        "op": "nonempty",
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
+      }
+    ],
+    "mid": [
+      {
+        "field": "seed",
+        "op": "minimum",
+        "value": 42,
+        "reason": "Fix a seed, at least 42 as a value. Deterministic output makes failures reproducible, so record it."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "use_customer_records",
+        "op": "equals",
+        "value": false,
+        "reason": "Set using customer records to false. Real customer data must not become test data, so generate it instead."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "synthetic-data-slice-floor",
+      "rule": {
+        "field": "generation_rules",
+        "op": "nonempty",
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "synthetic-data-slice-behavior-oracle",
+      "rule": {
+        "field": "generation_rules",
+        "op": "nonempty",
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
+      }
+    },
+    "property-floor": {
+      "check_id": "synthetic-data-slice-property-floor",
+      "rule": {
+        "field": "generation_rules",
+        "op": "nonempty",
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "synthetic-data-slice-mutation-floor",
+      "rule": {
+        "field": "generation_rules",
+        "op": "nonempty",
+        "reason": "List the rules that keep synthetic records valid for the domain. Rule-free data breaks constraints, so write them."
+      }
+    }
+  }
+}

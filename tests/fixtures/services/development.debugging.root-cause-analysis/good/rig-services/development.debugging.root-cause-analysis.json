@@ -1,0 +1,7 @@
+{
+  "failure_boundary": "parser rejects malformed record",
+  "causal_evidence": [
+    "repro case fails at parser"
+  ],
+  "symptom_only_fix": false
+}

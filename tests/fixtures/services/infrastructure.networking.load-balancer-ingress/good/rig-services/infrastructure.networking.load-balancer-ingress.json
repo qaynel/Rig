@@ -1,0 +1,5 @@
+{
+  "backend_health_path": "/health",
+  "request_timeout_ms": 5000,
+  "expose_admin_route": false
+}

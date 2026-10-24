@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-quality.lint-format",
+  "input": "rig-services/development.code-quality.lint-format.json",
+  "format": "json",
+  "ceiling": "Policy requires approved repository-adapted executable formatter checks; Context additionally requires current semantic review; Evidence additionally requires matching independent replay and a bound receipt. Configuration predicates only supplement executable checks.",
+  "offer": "Reuse the component-owned formatter and lint tasks. Read-only verification must preserve source bytes; invoke autofix only under a separately approved action.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "format_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
+      }
+    ],
+    "mid": [
+      {
+        "field": "lint_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own lint command. A missing command leaves lint unchecked, so reuse the repository's existing task."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "autofix_during_check",
+        "op": "equals",
+        "value": false,
+        "reason": "Set autofix during a check to false. A check that rewrites source breaks the read-only guarantee, so run autofix only under a separate approved action."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "lint-format-slice-floor",
+      "rule": {
+        "field": "format_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "lint-format-slice-behavior-oracle",
+      "rule": {
+        "field": "format_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
+      }
+    },
+    "property-floor": {
+      "check_id": "lint-format-slice-property-floor",
+      "rule": {
+        "field": "format_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "lint-format-slice-mutation-floor",
+      "rule": {
+        "field": "format_command",
+        "op": "nonempty",
+        "reason": "Declare the component's own formatter command. Without it formatting cannot be verified read-only, so reuse the repository's existing task."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.license-compliance.license-diff",
+  "input": "rig-services/product-security.license-compliance.license-diff.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms previous and current inventories and the auto-accept flag are declared; it does not compute a diff.",
+  "offer": "Compare license inventories across the actual release change. New or changed obligations require a deliberate disposition before the update is accepted.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory."
+      }
+    ],
+    "mid": [
+      {
+        "field": "current_inventory",
+        "op": "nonempty",
+        "reason": "Provide the current license inventory. A diff needs both sides, so reference the inventory for this release."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "accept_new_licenses_automatically",
+        "op": "equals",
+        "value": false,
+        "reason": "Set accepting new licenses automatically to false. New or changed obligations need a deliberate disposition, so review each one."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "license-diff-slice-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "license-diff-slice-behavior-oracle",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory."
+      }
+    },
+    "property-floor": {
+      "check_id": "license-diff-slice-property-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "license-diff-slice-mutation-floor",
+      "rule": {
+        "field": "previous_inventory",
+        "op": "nonempty",
+        "reason": "Provide the previous license inventory for the release. Without a baseline changes cannot be seen, so reference the earlier inventory."
+      }
+    }
+  }
+}

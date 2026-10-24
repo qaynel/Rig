@@ -183,19 +183,21 @@ test('AT-HOST-5b network-capable MCP entries obey the same active policy as shel
     materializeOne(target, 'claude', httpOnly);
     const receipt = JSON.parse(read(target, '.rig/basic-receipt.json'));
     const mcpDecision = receipt.networkPolicy.find((entry) => entry.host === 'claude');
-    const shellEquivalent = evaluateAction(baseline, { surface: 'shell', category: 'network_access', target: httpOnly.variants[0].url });
+    const shellEquivalent = evaluateAction(baseline, { surface: 'shell', category: 'outbound_network', target: httpOnly.variants[0].url });
     assert.equal(mcpDecision.decision, shellEquivalent.decision, 'mcp surface gets the identical decision shell/web would get');
     assert.equal(mcpDecision.decision, 'deny', 'default policy denies network access by default');
   });
 
   withRepo((target) => {
+    // Editing the user-owned candidate changes no decision; only an activated bundle does.
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(target, '.rig', 'network-policy.json'), JSON.stringify({
-      schema_version: 1, enabled: true, controls: {}, enforcement: { shell: true, web: true, mcp: false }, allow: [], secrets: { model_assisted_triage: false },
+      schema_version: 1, enabled: true, controls: {}, enforcement: { shell: true, web: true, mcp: false }, allow: ['outbound_network'], secrets: { model_assisted_triage: false },
     }));
     materializeOne(target, 'claude', httpOnly);
-    const receipt = JSON.parse(read(target, '.rig/basic-receipt.json'));
-    assert.equal(receipt.networkPolicy.find((entry) => entry.host === 'claude').decision, 'disabled', 'disabling the mcp surface disables it, same as shell/web would');
+    const entry = JSON.parse(read(target, '.rig/basic-receipt.json')).networkPolicy.find((item) => item.host === 'claude');
+    assert.equal(entry.decision, 'deny', 'an unapproved candidate edit grants nothing');
+    assert.equal(entry.advisory, true, 'the recorded decision is advisory, not enforcement');
   });
 
   withRepo((target) => {

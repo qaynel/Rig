@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.refactoring",
+  "input": "rig-services/development.code-creation.refactoring.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms preserved behaviors, a zero API-change count and a rollback route are declared; it does not show that behavior is unchanged.",
+  "offer": "A refactor changes structure while preserving behavior. Enumerate the observable contract and keep public API changes at zero; retain a direct way to revert the restructuring.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract."
+      }
+    ],
+    "mid": [
+      {
+        "field": "public_api_changes",
+        "op": "equals",
+        "value": 0,
+        "reason": "Public API changes must be 0. A refactor that alters a public surface is a feature change, so split it out or revise the declaration."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "rollback_strategy",
+        "op": "nonempty",
+        "reason": "Record how to revert the restructuring. If the refactor misbehaves there is no way back otherwise, so name the commit, branch or command."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "refactoring-slice-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "refactoring-slice-behavior-oracle",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract."
+      }
+    },
+    "property-floor": {
+      "check_id": "refactoring-slice-property-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "refactoring-slice-mutation-floor",
+      "rule": {
+        "field": "preserved_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors the refactor must preserve. Without them nothing distinguishes restructuring from a behavior change, so name the observable contract."
+      }
+    }
+  }
+}

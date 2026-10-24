@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
-const { runPayload } = require('../rig/lib/payload');
+const { runPayload, journalWriter, upsertGraftSection } = require('../rig/lib/payload');
 const { uninstall } = require('../rig/lib/lifecycle');
 const { PROVIDERS, applyCiPlan, planCiIntegration, GITHUB_WORKFLOW_POINTER } = require('../rig/lib/ci-adapters');
 const { writePlanApproval } = require('./helpers/advanced');
@@ -23,6 +23,96 @@ function withTarget(fn) {
 }
 
 const digest = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const appliedRecord = (seq, path, body, options = {}) => {
+  const ownership = options.ownership || 'create_owned';
+  const resultDigest = body === null ? null : digest(body);
+  return {
+    seq, path, ownership, operation: options.operation || ownership,
+    transaction_kind: options.transaction_kind || 'install', state: 'applied',
+    preimage_digest: options.preimage_digest ?? null,
+    desired_digest: resultDigest, digest: resultDigest,
+    ...options,
+  };
+};
+
+test('public uninstall discloses absent installation evidence instead of certifying an empty record list', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  fs.writeFileSync(file, '# User instructions\n', { mode: 0o640 });
+  const result = uninstall(target);
+  assert.equal(result.status, 'removed', 'idempotent legacy teardown remains compatible');
+  assert.equal(result.verification.status, 'best_effort');
+  assert.ok(result.verification.files.includes('.rig/install-manifest.jsonl'));
+  assert.equal(result.verification.differences[0].reason, 'manifest-unavailable');
+  assert.equal(fs.readFileSync(file, 'utf8'), '# User instructions\n');
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+}));
+
+test('public uninstall verifies real preimages while preserving later outside edits and mode', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  const original = '# User instructions\r\n';
+  fs.writeFileSync(file, original, { mode: 0o640 });
+  const writer = journalWriter(target);
+  upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+  writer.finish();
+  fs.appendFileSync(file, 'Later user note.\r\n');
+  const run = spawnSync(process.execPath, [materializer, 'uninstall', '--target', target], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  const result = JSON.parse(run.stdout);
+  assert.equal(result.verification.status, 'verified_clean');
+  assert.deepEqual(result.verification.files, []);
+  const expected = Buffer.from(original + 'Later user note.\r\n');
+  assert.deepEqual(fs.readFileSync(file), expected, 'preimage is evidence, never a restore source');
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+  assert.equal(fs.existsSync(path.join(target, '.rig/preimages')), false, 'graft removal does not orphan its own newly journaled snapshots');
+  const difference = result.verification.differences.find(row => row.path === 'AGENTS.md');
+  assert.equal(difference.preimage_digest, digest(original));
+  assert.equal(difference.postimage_digest, digest(expected));
+  assert.equal(difference.status, 'outside_changes');
+  const report = JSON.parse(fs.readFileSync(path.join(target, 'reports/rig/last-uninstall.json')));
+  assert.deepEqual(report.verification, result.verification);
+}));
+
+test('public uninstall names missing or corrupt preimage evidence without restoring user bytes', () => {
+  for (const kind of ['missing', 'corrupt']) withTarget((target) => {
+    const original = '# User instructions\n';
+    const file = path.join(target, 'AGENTS.md');
+    fs.writeFileSync(file, original, { mode: 0o640 });
+    const writer = journalWriter(target);
+    upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+    writer.finish();
+    fs.appendFileSync(file, 'Later user note.\n');
+    const preimage = path.join(target, '.rig/preimages', digest(original));
+    if (kind === 'missing') fs.rmSync(path.dirname(preimage), { recursive: true });
+    else fs.writeFileSync(preimage, 'corrupt evidence\n');
+    const result = uninstall(target);
+    assert.equal(result.status, 'best_effort', kind);
+    assert.equal(result.verification.status, 'best_effort', kind);
+    assert.ok(result.verification.files.includes('AGENTS.md'), kind);
+    const difference = result.verification.differences.find(row => row.path === 'AGENTS.md');
+    assert.equal(difference.reason, `preimage-${kind}`, kind);
+    assert.deepEqual(fs.readFileSync(file), Buffer.from(original + 'Later user note.\n'), kind);
+    assert.equal(fs.statSync(file).mode & 0o777, 0o640, kind);
+    assert.equal(fs.existsSync(path.join(target, '.rig/install-manifest.jsonl')), true, 'retain retry evidence');
+  });
+});
+
+test('public uninstall verification refuses rewritten managed markers and names the untouched file', () => withTarget((target) => {
+  const file = path.join(target, 'AGENTS.md');
+  const original = '# User instructions\n';
+  fs.writeFileSync(file, original, { mode: 0o640 });
+  const writer = journalWriter(target);
+  upsertGraftSection(target, { path: 'AGENTS.md', capability: 'review.code-and-pull-request', version: 1, content: 'Review changes.', expected_file_digest: digest(original) }, writer);
+  writer.finish();
+  const changed = fs.readFileSync(file, 'utf8').replace(/<!-- rig:graft[^\n]+-->/g, '<!-- another tool rewrote the marker -->') + 'Later user note.\n';
+  fs.writeFileSync(file, changed);
+  const result = uninstall(target);
+  assert.equal(result.status, 'best_effort');
+  assert.equal(result.verification.status, 'best_effort');
+  assert.ok(result.verification.files.includes('AGENTS.md'));
+  assert.equal(result.verification.differences.find(row => row.path === 'AGENTS.md').status, 'best_effort');
+  assert.deepEqual(fs.readFileSync(file), Buffer.from(changed));
+  assert.equal(fs.statSync(file).mode & 0o777, 0o640);
+}));
 
 test('public uninstall reverses a default bootstrap install', () => withTarget((target) => {
   const agents = path.join(target, 'AGENTS.md');
@@ -63,14 +153,7 @@ test('a forged create-owned record cannot delete an existing Jenkins pipeline', 
   const file = path.join(target, 'Jenkinsfile');
   fs.writeFileSync(file, body);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: 'Jenkinsfile',
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'create_owned',
-    digest: digest(body),
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, 'Jenkinsfile', body))}\n`);
 
   const result = uninstall(target);
 
@@ -92,14 +175,7 @@ test('forged records cannot delete non-Rig CI files inside provider directories'
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, body);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: rel,
-      state: 'applied',
-      transaction_kind: 'install',
-      ownership: 'create_owned',
-      digest: digest(body),
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, rel, body))}\n`);
 
     const result = uninstall(target);
 
@@ -111,13 +187,15 @@ test('forged records cannot delete non-Rig CI files inside provider directories'
 
 test('uninstall preserves a user CI file that Rig merged into', () => withTarget((target) => {
   const file = path.join(target, 'Jenkinsfile');
-  fs.writeFileSync(file, 'pipeline { stages { /* user stage */ } }\n');
+  const original = 'pipeline { stages { /* user stage */ } }\n';
+  fs.writeFileSync(file, original);
   applyCiPlan(target, planCiIntegration(target, { provider: 'jenkins', approved: true }));
 
   const result = uninstall(target);
 
-  assert.equal(result.status, 'best_effort');
-  assert.match(fs.readFileSync(file, 'utf8'), /user stage/);
+  assert.equal(result.status, 'removed');
+  assert.equal(fs.readFileSync(file, 'utf8'), original);
+  assert.equal(result.verification.status, 'verified_clean');
 }));
 
 test('a forged managed_line record cannot strip lines from a CI file', () => {
@@ -127,14 +205,7 @@ test('a forged managed_line record cannot strip lines from a CI file', () => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, body);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: rel,
-      state: 'applied',
-      transaction_kind: 'install',
-      ownership: 'create_owned',
-      managed_line: 'line-b',
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, rel, body, { managed_line: 'line-b' }))}\n`);
 
     const result = uninstall(target);
 
@@ -152,15 +223,7 @@ test('a forged append_managed record cannot strip arbitrary lines from a CI file
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, body);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: rel,
-      state: 'applied',
-      transaction_kind: 'install',
-      ownership: 'append_managed',
-      managed_line: 'line-b',
-      ...extra,
-    })}\n`);
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, rel, body, { ownership: 'append_managed', managed_line: 'line-b', ...extra }))}\n`);
 
     const result = uninstall(target);
 
@@ -201,15 +264,7 @@ test('a forged unique create_owned record cannot strip lines from a user-edited 
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, body);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: rel,
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'create_owned',
-    managed_line: '      - run: echo user',
-    digest: digest('other bytes\n'),
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, rel, 'other bytes\n', { managed_line: '      - run: echo user' }))}\n`);
 
   const result = uninstall(target);
 
@@ -231,15 +286,10 @@ test('a lexical journal alias cannot delete a user CI file via an install-tree p
     const file = path.join(target, 'Jenkinsfile');
     fs.writeFileSync(file, body);
     fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-      seq: 1,
-      path: record.path,
-      state: 'applied',
-      transaction_kind: 'install',
+    fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, record.path, body, {
       ownership: record.ownership,
-      ...(record.digest ? { digest: digest(body) } : {}),
       ...(record.managed_line ? { managed_line: record.managed_line } : {}),
-    })}\n`);
+    }))}\n`);
 
     const result = uninstall(target);
 
@@ -255,14 +305,7 @@ test('an in-repo symlink at the unique CI path cannot rewrite a user pipeline', 
   fs.mkdirSync(path.join(target, '.github/workflows'), { recursive: true });
   fs.symlinkSync(jenkins, path.join(target, '.github/workflows/rig.yml'));
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: '.github/workflows/rig.yml',
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'create_owned',
-    managed_line: "pipeline { steps { echo 'user' } }",
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, '.github/workflows/rig.yml', body, { managed_line: "pipeline { steps { echo 'user' } }" }))}\n`);
 
   const result = uninstall(target);
 
@@ -276,14 +319,7 @@ test('a forged pointer record cannot delete an empty GitHub workflow', () => wit
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, '');
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: rel,
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'append_managed',
-    managed_line: GITHUB_WORKFLOW_POINTER,
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, rel, '', { ownership: 'append_managed', managed_line: GITHUB_WORKFLOW_POINTER }))}\n`);
 
   const result = uninstall(target);
 
@@ -298,14 +334,7 @@ test('an install-tree directory symlink cannot retarget uninstall at a user CI f
   fs.writeFileSync(file, body);
   fs.symlinkSync('.', path.join(target, '.pi'));
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: '.pi/Jenkinsfile',
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'create_owned',
-    digest: digest(body),
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, '.pi/Jenkinsfile', body))}\n`);
 
   const result = uninstall(target);
 
@@ -319,14 +348,7 @@ test('a hard link from an install tree cannot rewrite a user CI file', () => wit
   fs.writeFileSync(file, body);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
   fs.linkSync(file, path.join(target, '.rig', 'owned'));
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: '.rig/owned',
-    state: 'applied',
-    transaction_kind: 'install',
-    ownership: 'create_owned',
-    managed_line: 'line-b',
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, '.rig/owned', body, { managed_line: 'line-b' }))}\n`);
 
   const result = uninstall(target);
 
@@ -363,9 +385,9 @@ test('a corrupted middle journal record fails closed before removal', () => with
   fs.writeFileSync(second, 'second\n');
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
-    JSON.stringify({ seq: 1, path: 'first.txt', state: 'applied', transaction_kind: 'install', digest: digest('first\n') }),
+    JSON.stringify(appliedRecord(1, 'first.txt', 'first\n')),
     '{ malformed',
-    JSON.stringify({ seq: 2, path: 'second.txt', state: 'applied', transaction_kind: 'install', digest: digest('second\n') }),
+    JSON.stringify(appliedRecord(2, 'second.txt', 'second\n')),
     '',
   ].join('\n'));
   assert.throws(() => uninstall(target), /manifest|record|JSON/i);
@@ -374,18 +396,19 @@ test('a corrupted middle journal record fails closed before removal', () => with
 }));
 
 test('uninstall removes preimages empty instruction files and empty Rig directories', () => withTarget((target) => {
-  const preimage = path.join(target, '.rig', 'preimages', 'saved');
+  const savedPreimage = 'original user bytes\n';
+  const preimage = path.join(target, '.rig', 'preimages', digest(savedPreimage));
   const agents = path.join(target, 'AGENTS.md');
   const skill = path.join(target, '.claude', 'skills', 'rig-example', 'SKILL.md');
   fs.mkdirSync(path.dirname(preimage), { recursive: true });
   fs.mkdirSync(path.dirname(skill), { recursive: true });
-  fs.writeFileSync(preimage, 'original user bytes\n');
+  fs.writeFileSync(preimage, savedPreimage);
   fs.writeFileSync(agents, 'Before acting, read `.rig/routing.md`.\n');
   fs.writeFileSync(skill, 'skill\n');
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
-    JSON.stringify({ seq: 1, path: '.rig/preimages/saved', state: 'applied', transaction_kind: 'install', digest: digest('original user bytes\n') }),
-    JSON.stringify({ seq: 2, path: 'AGENTS.md', state: 'applied', transaction_kind: 'install', managed_line: 'Before acting, read `.rig/routing.md`.' }),
-    JSON.stringify({ seq: 3, path: '.claude/skills/rig-example/SKILL.md', state: 'applied', transaction_kind: 'install', digest: digest('skill\n') }),
+    JSON.stringify(appliedRecord(1, `.rig/preimages/${digest('original user bytes\n')}`, 'original user bytes\n')),
+    JSON.stringify(appliedRecord(2, 'AGENTS.md', 'Before acting, read `.rig/routing.md`.\n', { ownership: 'append_managed', managed_line: 'Before acting, read `.rig/routing.md`.' })),
+    JSON.stringify(appliedRecord(3, '.claude/skills/rig-example/SKILL.md', 'skill\n')),
     '',
   ].join('\n'));
   const result = uninstall(target);
@@ -399,13 +422,7 @@ test('missing OpenClaw tooling does not stop unrelated local removal', () => wit
   const local = path.join(target, '.rig', 'local-rig-file');
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
   fs.writeFileSync(local, 'remove me\n');
-  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
-    seq: 1,
-    path: '.rig/local-rig-file',
-    state: 'applied',
-    transaction_kind: 'install',
-    digest: digest('remove me\n'),
-  })}\n`);
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify(appliedRecord(1, '.rig/local-rig-file', 'remove me\n'))}\n`);
   fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), JSON.stringify({
     entries: [{ kind: 'openclaw-mcp', path: '~/.openclaw/config.json', install_id: 'fixture', runtime: '.rig/runtime' }],
   }) + '\n');
@@ -526,8 +543,8 @@ test('best-effort shim keeps the chained backup even when that record is process
   fs.writeFileSync(path.join(hookDir, 'pre-commit.rig-chained'), original);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
-    JSON.stringify({ seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: digest(shim) }),
-    JSON.stringify({ seq: 2, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: digest(original) }),
+    JSON.stringify(appliedRecord(1, '.git/hooks/pre-commit', shim)),
+    JSON.stringify(appliedRecord(2, '.git/hooks/pre-commit.rig-chained', original)),
     '',
   ].join('\n'));
   const result = uninstall(target);
@@ -545,8 +562,8 @@ test('missing shim restores the chained backup instead of orphaning it', () => w
   fs.writeFileSync(path.join(hookDir, 'pre-commit.rig-chained'), original);
   fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
   fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), [
-    JSON.stringify({ seq: 1, path: '.git/hooks/pre-commit', state: 'applied', transaction_kind: 'install', digest: digest(shim) }),
-    JSON.stringify({ seq: 2, path: '.git/hooks/pre-commit.rig-chained', state: 'applied', transaction_kind: 'install', digest: digest(original) }),
+    JSON.stringify(appliedRecord(1, '.git/hooks/pre-commit', shim)),
+    JSON.stringify(appliedRecord(2, '.git/hooks/pre-commit.rig-chained', original)),
     '',
   ].join('\n'));
   const result = uninstall(target);
@@ -554,4 +571,77 @@ test('missing shim restores the chained backup instead of orphaning it', () => w
   assert.equal(fs.readFileSync(path.join(hookDir, 'pre-commit'), 'utf8'), original);
   assert.equal(fs.existsSync(path.join(hookDir, 'pre-commit.rig-chained')), false);
   assert.equal(fs.existsSync(path.join(target, '.rig', 'install-manifest.jsonl')), false);
+}));
+
+test('RIG-127.11 uninstall leaves a corrupted global config byte-identical and reports it best-effort', () => withTarget((target) => {
+  const globalFile = path.join(target, 'global-config.json');
+  const corrupt = '{"rig": {"repo-a": {"enabled": true}, oops\n';
+  fs.writeFileSync(globalFile, corrupt);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), `${JSON.stringify({
+    entries: [{ kind: 'json-namespace', path: globalFile, install_id: 'repo-a' }],
+  })}\n`);
+
+  let result;
+  assert.doesNotThrow(() => { result = uninstall(target); });
+
+  assert.equal(result.status, 'best_effort');
+  assert.ok(result.best_effort.includes(globalFile));
+  assert.equal(fs.readFileSync(globalFile, 'utf8'), corrupt);
+}));
+
+test('uninstall preserves every valid-but-wrong-shaped global namespace as best effort', () => withTarget((target) => {
+  for (const value of ['string', 7, true, [], null]) {
+    const globalFile = path.join(target, `global-${String(value)}.json`);
+    const body = `${JSON.stringify({ rig: value })}\n`;
+    fs.writeFileSync(globalFile, body);
+    fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+    fs.writeFileSync(path.join(target, '.rig', 'global-writes.json'), `${JSON.stringify({ entries: [{ kind: 'json-namespace', path: globalFile, install_id: 'repo-a' }] })}\n`);
+    const result = uninstall(target);
+    assert.ok(result.best_effort.includes(globalFile));
+    assert.equal(fs.readFileSync(globalFile, 'utf8'), body);
+    fs.rmSync(path.join(target, '.rig'), { recursive: true, force: true });
+  }
+}));
+
+function writeLegacyNamelessRecord(target, rel, preimage, file) {
+  fs.writeFileSync(path.join(target, rel), file);
+  fs.mkdirSync(path.join(target, '.rig'), { recursive: true });
+  fs.writeFileSync(path.join(target, '.rig', 'install-manifest.jsonl'), `${JSON.stringify({
+    seq: 1,
+    path: rel,
+    operation: 'append_managed',
+    state: 'applied',
+    transaction_kind: 'install',
+    ownership: 'append_managed',
+    desired_digest: digest(file),
+    preimage_digest: digest(preimage),
+    digest: digest(file),
+  })}\n`);
+}
+
+test('RIG-127.12 a legacy nameless managed-block record strips only the block Rig appended', () => withTarget((target) => {
+  const rel = 'AGENTS.md';
+  const preimage = 'user text\n<!-- rig:other-tool:start -->\nsomeone else\n<!-- rig:other-tool:end -->\n';
+  const owned = '<!-- rig:legacy-graft:start -->\nrig wrote this\n<!-- rig:legacy-graft:end -->\n';
+  writeLegacyNamelessRecord(target, rel, preimage, `${preimage}${owned}`);
+
+  const result = uninstall(target);
+
+  assert.ok(result.removed.includes(rel));
+  assert.equal(fs.readFileSync(path.join(target, rel), 'utf8'), preimage);
+}));
+
+test('RIG-127.12 a legacy nameless record that cannot attribute a block is best-effort and the file is untouched', () => withTarget((target) => {
+  const rel = 'AGENTS.md';
+  const preimage = 'user text\n';
+  const body = `${preimage}<!-- rig:legacy-graft:start -->\nrig wrote this\n<!-- rig:legacy-graft:end -->\n`
+    + '<!-- rig:other-tool:start -->\nadded later by someone else\n<!-- rig:other-tool:end -->\n';
+  writeLegacyNamelessRecord(target, rel, preimage, body);
+
+  const result = uninstall(target);
+
+  assert.equal(result.status, 'best_effort');
+  assert.ok(result.best_effort.includes(rel));
+  assert.equal(fs.readFileSync(path.join(target, rel), 'utf8'), body);
 }));

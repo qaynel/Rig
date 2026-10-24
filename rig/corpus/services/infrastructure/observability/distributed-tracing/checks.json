@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.observability.distributed-tracing",
+  "input": "rig-services/infrastructure.observability.distributed-tracing.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms trace propagation, a sampling policy and the sensitive-payload flag are declared; it does not show traces are collected.",
+  "offer": "Propagate trace context across HTTP and asynchronous boundaries and bound sampling costs. Sensitive request bodies must not become trace attributes.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
+      }
+    ],
+    "mid": [
+      {
+        "field": "sampling_policy",
+        "op": "nonempty",
+        "reason": "Declare the sampling policy. Unbounded sampling costs money and storage, so set a rate or rule."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "record_sensitive_payloads",
+        "op": "equals",
+        "value": false,
+        "reason": "Set recording sensitive payloads to false. Request bodies as trace attributes leak data, so record identifiers only."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "distributed-tracing-slice-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "distributed-tracing-slice-behavior-oracle",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
+      }
+    },
+    "property-floor": {
+      "check_id": "distributed-tracing-slice-property-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "distributed-tracing-slice-mutation-floor",
+      "rule": {
+        "field": "trace_propagation",
+        "op": "nonempty",
+        "reason": "Declare how trace context propagates across HTTP and async hops. Broken propagation splits a request into orphan traces, so state the headers or carriers."
+      }
+    }
+  }
+}

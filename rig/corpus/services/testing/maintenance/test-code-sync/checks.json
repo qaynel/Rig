@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.maintenance.test-code-sync",
+  "input": "rig-services/testing.maintenance.test-code-sync.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms changed behaviors, updated cases and the follow-output flag are declared; it does not compare tests with code.",
+  "offer": "Update tests from the intended contract when behavior changes. Copying new output into old assertions without a behavioral decision creates circular evidence.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
+      }
+    ],
+    "mid": [
+      {
+        "field": "updated_cases",
+        "op": "nonempty",
+        "reason": "List the test cases updated for those behaviors. A changed behavior with no updated case leaves stale tests, so map each."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "tests_follow_output_blindly",
+        "op": "equals",
+        "value": false,
+        "reason": "Set tests following output blindly to false. Copying new output into old assertions makes circular evidence, so decide the intended behavior first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "test-code-sync-slice-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "test-code-sync-slice-behavior-oracle",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
+      }
+    },
+    "property-floor": {
+      "check_id": "test-code-sync-slice-property-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "test-code-sync-slice-mutation-floor",
+      "rule": {
+        "field": "changed_behaviors",
+        "op": "nonempty",
+        "reason": "List the behaviors that changed. Tests cannot follow a change nobody named, so state each one."
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.regression.suite-curation",
+  "input": "rig-services/testing.regression.suite-curation.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms retained suites, retirement reasons and the no-owner flag are declared; it does not run the suites.",
+  "offer": "Keep the regressions that protect live behavior and give obsolete tests a written retirement reason. Removing a slow test without identifying its behavior owner can silently reopen a defect.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
+      }
+    ],
+    "mid": [
+      {
+        "field": "retirement_reasons",
+        "op": "nonempty",
+        "reason": "Give a written reason for each retired test. Removal without a reason can reopen a defect, so record why it was safe."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "remove_without_behavior_owner",
+        "op": "equals",
+        "value": false,
+        "reason": "Set removing without a behavior owner to false. A test with no identified owner is deleted blindly, so name who owns the behavior first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "suite-curation-slice-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "suite-curation-slice-behavior-oracle",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
+      }
+    },
+    "property-floor": {
+      "check_id": "suite-curation-slice-property-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "suite-curation-slice-mutation-floor",
+      "rule": {
+        "field": "retained_suites",
+        "op": "nonempty",
+        "reason": "List the suites kept because they guard live behavior. Without it nothing protects against removal, so name them."
+      }
+    }
+  }
+}

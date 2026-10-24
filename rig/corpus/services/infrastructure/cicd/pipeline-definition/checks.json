@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.pipeline-definition",
+  "input": "rig-services/infrastructure.cicd.pipeline-definition.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms pipeline stages, required checks and the deploy-after-failure flag are declared; it does not show the pipeline blocks a failing build.",
+  "offer": "Make build, verification and deployment ordering explicit in the pipeline. Deployment must be blocked when a required check fails rather than merely recording a red stage.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
+      }
+    ],
+    "mid": [
+      {
+        "field": "required_checks",
+        "op": "nonempty",
+        "reason": "List the checks a deploy requires. A pipeline that does not name required checks can ship unverified code, so declare them."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "deploy_after_failed_checks",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deploying after failed checks to false. A red stage that does not block deployment only records the failure, so make deploy depend on the checks."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "pipeline-definition-slice-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "pipeline-definition-slice-behavior-oracle",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
+      }
+    },
+    "property-floor": {
+      "check_id": "pipeline-definition-slice-property-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "pipeline-definition-slice-mutation-floor",
+      "rule": {
+        "field": "stages",
+        "op": "nonempty",
+        "reason": "List the pipeline stages in order. Implicit ordering lets deploy run before verification, so name build, verify and deploy explicitly."
+      }
+    }
+  }
+}

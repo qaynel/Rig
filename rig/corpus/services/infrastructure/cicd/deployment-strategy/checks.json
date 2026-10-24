@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.deployment-strategy",
+  "input": "rig-services/infrastructure.cicd.deployment-strategy.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the rollout strategy, rollback trigger and the no-unchecked-rollout flag are declared; it does not show a canary or rollback ever ran.",
+  "offer": "Select a deployment strategy with measurable rollout and rollback conditions. Configuration validates the declared controls; live canary outcomes need separately available deployment tooling.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
+      }
+    ],
+    "mid": [
+      {
+        "field": "rollback_trigger",
+        "op": "nonempty",
+        "reason": "State the measurable condition that triggers rollback, such as an error-rate threshold. Without a trigger a bad release keeps rolling, so write the number."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "automatic_full_rollout_without_checks",
+        "op": "equals",
+        "value": false,
+        "reason": "Set automatic full rollout without checks to false. Skipping the staged checks defeats the strategy, so gate the final step on them."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "deployment-strategy-slice-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "deployment-strategy-slice-behavior-oracle",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
+      }
+    },
+    "property-floor": {
+      "check_id": "deployment-strategy-slice-property-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "deployment-strategy-slice-mutation-floor",
+      "rule": {
+        "field": "strategy",
+        "op": "nonempty",
+        "reason": "Name the deployment strategy, such as canary or blue-green. An unnamed strategy has no measurable rollout, so declare which one ships."
+      }
+    }
+  }
+}

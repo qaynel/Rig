@@ -22,10 +22,17 @@ function implementationDigest(root) {
   const hash = crypto.createHash('sha256');
   for (const rel of files) {
     const absolute = path.join(root, rel);
-    const stat = fs.lstatSync(absolute);
+    let stat;
+    try { stat = fs.lstatSync(absolute); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      throw new Error(`implementation digest inventory failed: ${rel} is tracked but missing; stage its deletion first`);
+    }
     const kind = stat.isSymbolicLink() ? 'symlink' : 'file';
+    // Match Git's executable bit, rather than machine-local umask permissions.
+    const mode = stat.isSymbolicLink() ? 0o777 : stat.mode & 0o100 ? 0o755 : 0o644;
     const body = stat.isSymbolicLink() ? Buffer.from(fs.readlinkSync(absolute)) : fs.readFileSync(absolute);
-    hash.update(`${kind}\0${(stat.mode & 0o777).toString(8)}\0${rel}\0${body.length}\0`).update(body);
+    hash.update(`${kind}\0${mode.toString(8)}\0${rel}\0${body.length}\0`).update(body);
   }
   return { digest: hash.digest('hex'), files: files.length };
 }
@@ -33,7 +40,8 @@ function implementationDigest(root) {
 function catalogueDigest(catalogPath) {
   const catalogBytes = fs.readFileSync(catalogPath);
   const catalog = JSON.parse(catalogBytes);
-  const rigRoot = path.dirname(catalogPath);
+  // Fragment paths are relative to `rig/`; the catalogue itself lives in `rig/corpus/`.
+  const rigRoot = path.resolve(path.dirname(catalogPath), '..');
   const fragments = [...new Set((catalog.services || []).flatMap((service) => [
     ...Object.values(service.fragments || {}),
     ...Object.values(service.slices || {}).map((slice) => slice && slice.fragment).filter(Boolean),

@@ -1,0 +1,7 @@
+{
+  "generation_rules": [
+    "valid account IDs"
+  ],
+  "seed": 42,
+  "use_customer_records": false
+}

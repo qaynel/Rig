@@ -1,0 +1,7 @@
+{
+  "reviewed_interfaces": [],
+  "tradeoffs": [
+    "latency versus durability"
+  ],
+  "unresolved_tradeoffs": 0
+}

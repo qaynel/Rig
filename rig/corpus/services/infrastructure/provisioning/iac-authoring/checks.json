@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.provisioning.iac-authoring",
+  "input": "rig-services/infrastructure.provisioning.iac-authoring.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms resource names, a state backend and the unreviewed-apply flag are declared; it does not read live infrastructure.",
+  "offer": "Declare infrastructure resources with a recoverable state backend and inspect the exact plan before applying. Configuration checks do not establish live infrastructure behavior.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
+      }
+    ],
+    "mid": [
+      {
+        "field": "state_backend",
+        "op": "nonempty",
+        "reason": "Declare a recoverable state backend. Local state is lost with the machine, so configure remote locked storage."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "apply_without_reviewed_plan",
+        "op": "equals",
+        "value": false,
+        "reason": "Set applying without a reviewed plan to false. Applying unseen changes can destroy resources, so inspect the exact plan first."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "iac-authoring-slice-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "iac-authoring-slice-behavior-oracle",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
+      }
+    },
+    "property-floor": {
+      "check_id": "iac-authoring-slice-property-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "iac-authoring-slice-mutation-floor",
+      "rule": {
+        "field": "resource_names",
+        "op": "nonempty",
+        "reason": "List the resources the code declares. Unlisted resources escape review, so name each one."
+      }
+    }
+  }
+}

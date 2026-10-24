@@ -59,12 +59,14 @@ test('TP-X.4 materialize.js is orchestration-only, not a second implementation',
   );
 });
 
-test('TP-X.5 canonical payload data is owned by rig/manifest.json and loaded by payload.js', () => {
+test('TP-X.5 canonical payload data is owned by rig/manifest.json and the corpus, projected by project.js for payload.js', () => {
   const manifest = JSON.parse(read(canonicalManifestPath));
   assert.ok(Array.isArray(manifest.payload) && manifest.payload.length > 0, 'canonical manifest contains payload operations');
+  assert.ok(manifest.payload.every((row) => row.host === 'neutral'), 'host-specific rows live in the corpus projectors, not the manifest');
 
   const payloadSource = read(payloadPath);
-  assert.ok(/['"]rig['"]\s*,\s*['"]manifest\.json['"]/.test(payloadSource), 'payload module loads rig/manifest.json');
+  assert.ok(/loadCorpus/.test(payloadSource) && /projectAll/.test(payloadSource), 'payload module installs what project() returns');
+  assert.ok(/['"]rig['"]\s*,\s*['"]manifest\.json['"]/.test(read(path.join(root, 'rig', 'lib', 'corpus.js'))), 'corpus loader reads rig/manifest.json');
 
   const cliSource = read(cliPath);
   assert.ok(!/\bconst\s+(?:PAYLOAD|FALLBACK_SKILLS)\b/.test(cliSource), 'CLI does not duplicate canonical payload data');

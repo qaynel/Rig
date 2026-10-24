@@ -1,0 +1,7 @@
+{
+  "authoritative_sources": [
+    "config/production.json"
+  ],
+  "comparison_schedule": "daily",
+  "silent_drift_acceptance": false
+}

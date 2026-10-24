@@ -106,8 +106,14 @@ if (failed) {
 
 // Pre-v5 gate scripts (RIG-131, RIG-132 ratchet). Invoked here so they run
 // before the Node test glob without editing the signed package.json scripts.
-for (const rel of ['scripts/check-ticket-traceability.js', 'scripts/check-raw-registry-access.js']) {
-  const result = spawnSync(process.execPath, [path.join(root, rel)], {
+// `build-skill-catalog.js --check` joins them: the generated skill shelf is a
+// committed artefact, so drift from its frontmatter sources is a gate failure.
+for (const [rel, ...args] of [
+  ['scripts/check-ticket-traceability.js'],
+  ['scripts/check-raw-registry-access.js'],
+  ['scripts/build-skill-catalog.js', '--check'],
+]) {
+  const result = spawnSync(process.execPath, [path.join(root, rel), ...args], {
     cwd: root,
     encoding: 'utf8',
     stdio: 'inherit',

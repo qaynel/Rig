@@ -1,0 +1,8 @@
+# development.debugging.structured-debugging — minimal
+
+Capture a repeatable failure before changing code and rank hypotheses from evidence. One experiment should separate explanations; speculative fixes before reproduction erase useful evidence.
+
+Policy grade, minimal: Write the steps that reproduce the failure. A fix made without a repeatable failure erases evidence, so capture the commands and input first. Binding checks: structured-debugging-source-code-boundary.
+
+Acceptance target: policy:development.debugging.structured-debugging:minimal:structured-debugging-source-code-boundary.
+Declared predicates: structured-debugging-source-code-boundary: `reproduction_steps` is nonempty (a string or array).

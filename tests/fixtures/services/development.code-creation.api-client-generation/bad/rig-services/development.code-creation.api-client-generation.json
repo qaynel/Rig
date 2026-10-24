@@ -1,0 +1,5 @@
+{
+  "specification_path": "",
+  "compatibility_version": "1.0.0",
+  "unknown_response_policy": "fail-explicitly"
+}

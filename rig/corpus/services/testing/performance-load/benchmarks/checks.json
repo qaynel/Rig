@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.performance-load.benchmarks",
+  "input": "rig-services/testing.performance-load.benchmarks.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a benchmark workload, sample count and the single-sample flag are declared; it does not run benchmarks.",
+  "offer": "Benchmark a named workload with enough repeated samples to characterize variance. A single timing measurement cannot support a regression or optimization claim.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
+      }
+    ],
+    "mid": [
+      {
+        "field": "samples",
+        "op": "minimum",
+        "value": 30,
+        "reason": "Take at least 30 samples. Fewer cannot characterize variance, so declare the sample count."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "single_sample_conclusion",
+        "op": "equals",
+        "value": false,
+        "reason": "Set concluding from a single sample to false. One timing cannot support a regression or optimization claim, so compare distributions."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "benchmarks-slice-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "benchmarks-slice-behavior-oracle",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
+      }
+    },
+    "property-floor": {
+      "check_id": "benchmarks-slice-property-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "benchmarks-slice-mutation-floor",
+      "rule": {
+        "field": "benchmark_workload",
+        "op": "nonempty",
+        "reason": "Name the workload benchmarked. A benchmark of an unspecified input cannot be compared, so describe it."
+      }
+    }
+  }
+}

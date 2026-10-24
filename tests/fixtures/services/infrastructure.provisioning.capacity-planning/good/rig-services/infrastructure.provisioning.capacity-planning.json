@@ -1,0 +1,5 @@
+{
+  "peak_requests_per_second": 100,
+  "headroom_percent": 30,
+  "ignore_growth_forecast": false
+}

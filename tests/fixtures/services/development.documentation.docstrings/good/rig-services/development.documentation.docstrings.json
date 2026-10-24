@@ -1,0 +1,9 @@
+{
+  "documented_symbols": [
+    "parseRecord"
+  ],
+  "parameters": [
+    "raw: serialized record"
+  ],
+  "failure_contract": "throws on malformed records"
+}

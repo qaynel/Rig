@@ -28,12 +28,31 @@ rig-*.gif
 # Claude Code local settings (machine-specific permission grants)
 .claude/settings.local.json
 
-# Obsidian local app/plugin state for the wiki (editor cache + vendored plugin
-# binaries); the board markdown is tracked, this machine-specific state is not.
-wiki/.obsidian/
+# The project wiki lives locally for agents and on the GitHub Wiki tab for the
+# community. It is not tracked here, except the Gate 1 oracle. prod's gate1-pin
+# job reads those files from the candidate commit: pull_request_target runs the
+# workflow from the base branch, so a restore step added only on this branch
+# never runs.
+wiki/*
+!wiki/gate1/
+wiki/gate1/*
+!wiki/gate1/acceptance.md
+!wiki/gate1/business-spec.md
+!wiki/gate1/gate1.allowed-signers
+!wiki/gate1/gate1.sig
+!wiki/gate1/package-scripts.json
+!wiki/gate1/testing-infrastructure.manifest
 
 # agentic benchmark workspaces (agent output, kept locally for inspection)
 benchmarks/agentic/runs/
 
 # PR/branch review harness scratch dir (worktree, diff, meta) — net-zero by design
 .pr-review/
+
+# superpowers agent scratch (per-task SDD reports, run state) — authoring-time only
+.superpowers/
+
+# agent workspace scratch (signing inputs, context notes) — machine-local only
+# approve-gate1.js writes rig-oracle-freeze-v2.txt here before signing; it is
+# a convenience echo, not a trust input (check-advanced-spec.js recomputes it).
+.context/

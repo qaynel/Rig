@@ -1,0 +1,10 @@
+{
+  "allowed_licenses": [
+    "MIT",
+    "Apache-2.0"
+  ],
+  "restricted_licenses": [
+    "AGPL-3.0-only"
+  ],
+  "ignore_license_conflicts": false
+}

@@ -4,9 +4,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { genericSuccessBinding } = require('./check-runner');
 
 const ROOT = path.join(__dirname, '..', '..');
-const CATALOG_PATH = path.join(ROOT, 'rig', 'catalog.json');
+const CATALOG_PATH = path.join(ROOT, 'rig', 'corpus', 'catalogue.json');
 const GRADES = ['minimal', 'mid', 'maximal'];
 const VERDICTS = ['ALLOW', 'ALLOW_WITH_RESTRICTIONS', 'QUARANTINE', 'BLOCK'];
 const KNOWN_RESTRICTIONS = new Set([
@@ -15,6 +16,19 @@ const KNOWN_RESTRICTIONS = new Set([
   'read-only-fs',
   'require-human-approval',
 ]);
+
+function findingVerdict(findings) {
+  let quarantine = false;
+  for (const finding of findings) {
+    if (finding && (finding.severity === 'blocker' || finding.kind === 'suspicious_directive')) return 'BLOCK';
+    if (!finding || ['secret_shaped', 'oversized', 'unreadable', 'non-utf8', 'malformed-frontmatter'].includes(finding.kind)) {
+      quarantine = true;
+    } else if (!['info', 'warning', 'minor'].includes(finding.severity)) {
+      quarantine = true;
+    }
+  }
+  return quarantine ? 'QUARANTINE' : 'ALLOW';
+}
 
 function loadCatalog(catalogPath = CATALOG_PATH) {
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
@@ -125,6 +139,8 @@ function validateReview(review, options = {}) {
   if (!Array.isArray(review.unverifiable)) throw new Error('unverifiable must be array');
 
   let verdict = review.verdict;
+  const detected = findingVerdict(review.findings);
+  if (detected === 'BLOCK' || (detected === 'QUARANTINE' && verdict !== 'BLOCK')) verdict = detected;
   const unknown = [];
   for (const restriction of review.restrictions) {
     const id = restriction && restriction.id;
@@ -171,6 +187,78 @@ const POLICY_GRADE = /Policy(?:-| )grade/i;
 const PLACEHOLDER = /TODO|TBD|Concrete convention|describes the .* service\. This authoring|enforces the Policy-grade checks declared in the catalogue|carries the shared invariant the parent service depends on/i;
 const GENERIC_CHECK = /-(?:core|extended|thorough)$/;
 const LINT_FORMAT_ID = 'development.code-quality.lint-format';
+const KNOWN_AUTHORED_BOILERPLATE = /generic baseline practice|not repository-tailored|not tailored to the installing repository|Service-specific evidence cues:/i;
+// A convention reason must say something about this service: the bare keywords
+// the old check accepted, boilerplate, or one repeated phrase do not count.
+const CONVENTION_KEYWORDS = /repository|repo-specific|service-specific|tailored|convention:?/gi;
+
+function conventionReasonGap(reason, serviceId) {
+  const text = String(reason || '');
+  if (KNOWN_AUTHORED_BOILERPLATE.test(text) || PLACEHOLDER.test(text)) return 'boilerplate';
+  const words = text.replace(CONVENTION_KEYWORDS, ' ').toLowerCase().match(/[a-z][a-z-]{2,}/g) || [];
+  if (new Set(words).size < 5) return 'too little service-specific content';
+  const name = String(serviceId || '').split('.').pop();
+  const tokens = name.split('-').filter((token) => token.length > 3);
+  if (tokens.length && !tokens.some((token) => text.toLowerCase().includes(token))) return `does not mention ${name}`;
+  return null;
+}
+
+const BROKEN_AUTHORED_SENTENCE = /contract\.\.|\. is false\.|\.json\.\./i;
+const MAX_SHARED_BODY_FRACTION = 0.8;
+
+function authoredBodiesReport(entries) {
+  const failures = [];
+  const prior = new Map();
+  for (const entry of entries) {
+    const body = String(entry.text || '').split(/\r?\n/).slice(1).join(' ').replace(/\s+/g, ' ').trim();
+    if (KNOWN_AUTHORED_BOILERPLATE.test(body)) {
+      failures.push({ id: entry.id, part: entry.part, reason: 'known boilerplate sentence' });
+    }
+    if (BROKEN_AUTHORED_SENTENCE.test(body)) {
+      failures.push({ id: entry.id, part: entry.part, reason: 'broken generated sentence' });
+    }
+    const normalized = body.toLowerCase();
+    // rig: Eight-character overlap catches copied wording cheaply; it cannot identify semantic paraphrases. Upgrade to a semantic duplicate detector only if authored volume makes the gate miss paraphrased copies.
+    const shingles = new Set(Array.from({ length: Math.max(0, normalized.length - 7) }, (_, index) => normalized.slice(index, index + 8)));
+    if (shingles.size === 0) continue;
+    const group = prior.get(entry.part) || [];
+    for (const previous of group) {
+      if (previous.id === entry.id) continue;
+      const shared = [...shingles].filter((shingle) => previous.shingles.has(shingle)).length;
+      const fraction = shared / Math.max(shingles.size, previous.shingles.size);
+      if (fraction > MAX_SHARED_BODY_FRACTION) {
+        failures.push({
+          id: entry.id,
+          part: entry.part,
+          reason: `shares ${(fraction * 100).toFixed(1)}% of its body with ${previous.id}`,
+        });
+      }
+    }
+    group.push({ id: entry.id, shingles });
+    prior.set(entry.part, group);
+  }
+  return failures;
+}
+
+function corpusAuthoredBodies(services) {
+  const bodies = [];
+  for (const service of services) {
+    const targets = new Map();
+    for (const [part, rel] of Object.entries(service.fragments || {})) {
+      if (typeof rel === 'string') targets.set(`${part}:${rel}`, { part, rel });
+    }
+    for (const [name, slice] of Object.entries(service.slices || {})) {
+      if (slice?.fragment) targets.set(`slice:${slice.fragment}`, { part: 'slice', rel: slice.fragment });
+    }
+    for (const { part, rel } of targets.values()) {
+      const file = path.join(ROOT, 'rig', rel);
+      try {
+        bodies.push({ id: service.id, part, text: fs.readFileSync(file, 'utf8') });
+      } catch {}
+    }
+  }
+  return bodies;
+}
 
 function inspectFragment(service, part, rel) {
   const serviceId = service.id;
@@ -233,11 +321,18 @@ function authorshipReport() {
   const rows = [];
   const failures = [];
   const bodies = new Map();
+  failures.push(...authoredBodiesReport(corpusAuthoredBodies(services)));
   for (const service of services) {
     counts[service.family] = (counts[service.family] || 0) + 1;
     const disposition = service.disposition || null;
     if (!disposition || !['executable', 'convention', 'surfaceless'].includes(disposition.kind) || !disposition.reason) {
       failures.push({ id: service.id, reason: 'missing honest disposition contract' });
+    } else if (disposition.kind === 'executable') {
+      const stub = genericSuccessBinding(disposition.argv);
+      if (stub) failures.push({ id: service.id, reason: `executable disposition is a ${stub}` });
+    } else if (disposition.kind === 'convention') {
+      const gap = conventionReasonGap(disposition.reason, service.id);
+      if (gap) failures.push({ id: service.id, reason: `convention disposition ${gap}` });
     }
     const evidenceTargets = [];
     const seen = new Set();
@@ -274,6 +369,7 @@ function authorshipReport() {
 
 module.exports = {
   ROOT,
+  conventionReasonGap,
   CATALOG_PATH,
   GRADES,
   VERDICTS,
@@ -286,6 +382,8 @@ module.exports = {
   validateRigJson,
   validateReview,
   isReviewAccepted,
+  findingVerdict,
   selectFromMenu,
   authorshipReport,
+  authoredBodiesReport,
 };

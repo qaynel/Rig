@@ -27,6 +27,18 @@ test('staged credential-shaped diff is blocked by secret floor', () => {
     assert.equal(planned.status, 0, planned.stderr);
     assert.equal(apply(target, { review: reviewPath, plan: planned.outPath }).status, 0);
 
+    // The installed baseline now checks the real staged context as well as the
+    // secret floor. Supply a current review before making the safe seed commit.
+    const docs = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md'].filter(rel => fs.existsSync(path.join(target, rel)));
+    fs.writeFileSync(path.join(target, '.rig/context-index.json'), JSON.stringify({
+      documents: docs.map(path => ({ path })),
+      review: {
+        schema_version: 1, reviewer: { kind: 'host-agent', identity: 'secret-floor-fixture' }, status: 'pass',
+        inputs: docs.map(rel => ({ path: rel, digest: require('node:crypto').createHash('sha256').update(fs.readFileSync(path.join(target, rel))).digest('hex') })),
+        relationships: docs.flatMap((from, i) => docs.slice(i + 1).map(to => ({ from, to, status: 'consistent', reason: 'Fixture instructions use the same review authority.' }))),
+      },
+    }));
+    execFileSync('git', ['add', ...docs], { cwd: target, stdio: 'pipe' });
     seedCredentialStagedDiff(target);
     const guard =
       [
@@ -41,7 +53,7 @@ test('staged credential-shaped diff is blocked by secret floor', () => {
   });
 });
 
-test('first enable of selectable pre-commit secret service invokes a vetted history scanner', () => {
+test('first enable rejects an executable impersonating a vetted history scanner', () => {
   withTempDir('rig-scanner-bin-', (binDir) => {
     const marker = path.join(binDir, 'marker.txt');
     fs.writeFileSync(
@@ -68,12 +80,10 @@ test('first enable of selectable pre-commit secret service invokes a vetted hist
       const applied = apply(target, { review: reviewPath, plan: planned.outPath }, {
         env: { PATH: `${binDir}:${process.env.PATH}` },
       });
-      assert.equal(applied.status, 0, applied.stderr);
-      assert.match(fs.readFileSync(marker, 'utf8'), /detect .*--source \./);
-      const receipt = JSON.parse(
-        fs.readFileSync(path.join(target, '.rig', 'catalog-receipt.json'), 'utf8'),
-      );
-      assert.equal(receipt.history_scan.status, 'verified');
+      assert.notEqual(applied.status, 0, 'an arbitrary no-op cannot establish history clean');
+      assert.match(fs.readFileSync(marker, 'utf8'), /version/);
+      assert.equal(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')), false);
+      assert.ok(fs.existsSync(path.join(target, '.rig', 'hooks', 'secret-guard.sh')));
     });
   });
 });

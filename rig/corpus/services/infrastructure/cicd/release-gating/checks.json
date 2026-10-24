@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.cicd.release-gating",
+  "input": "rig-services/infrastructure.cicd.release-gating.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms required gates, the release revision and the stale-result flag are declared; it does not show the gates passed for that artifact.",
+  "offer": "Bind release gates to the revision and artifact that will ship. Earlier green results do not authorize a different commit or rebuilt artifact.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "List the gates a release must pass. With none declared any build can ship, so name each required gate."
+      }
+    ],
+    "mid": [
+      {
+        "field": "release_revision",
+        "op": "nonempty",
+        "reason": "Bind the gates to the release revision. Earlier green results do not authorize a different commit, so record the exact revision or artifact digest."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "use_stale_gate_results",
+        "op": "equals",
+        "value": false,
+        "reason": "Set using stale gate results to false. Reusing results from another commit or rebuilt artifact approves what was never checked, so rerun the gates."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "release-gating-slice-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "List the gates a release must pass. With none declared any build can ship, so name each required gate."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "release-gating-slice-behavior-oracle",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "List the gates a release must pass. With none declared any build can ship, so name each required gate."
+      }
+    },
+    "property-floor": {
+      "check_id": "release-gating-slice-property-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "List the gates a release must pass. With none declared any build can ship, so name each required gate."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "release-gating-slice-mutation-floor",
+      "rule": {
+        "field": "required_gates",
+        "op": "nonempty",
+        "reason": "List the gates a release must pass. With none declared any build can ship, so name each required gate."
+      }
+    }
+  }
+}

@@ -4,9 +4,22 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { redact } = require('./inspect');
+const { redact } = require('./redaction');
+const { gitPath } = require('./path-safety');
+const { installState } = require('./journal-records');
 
-const ALLOWED = new Set(['failed', 'vacuous', 'coverage_gap']);
+const ALLOWED = new Set(['failed', 'command_not_found', 'not_run_due_to_dependency', 'vacuous', 'coverage_gap', 'timeout', 'cancelled', 'missing_dependency', 'partial_output', 'signalled', 'memory_exceeded', 'memory_ceiling_unavailable', 'mutated', 'not_authorized', 'filesystem_isolation_unavailable', 'network_isolation_unavailable', 'missing_tool', 'runner_error', 'command_drift', 'boundary_violation', 'capability_not_authorized', 'capability_policy_invalid', 'capability_policy_not_committed']);
+
+// Local reports hold finding detail, so a blanket `git add` must never stage them.
+// The clone-local exclude file keeps the repository's tracked .gitignore untouched.
+function excludeReports(target) {
+  const file = gitPath(target, 'info/exclude');
+  if (!file) return;
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  if (existing.split('\n').includes('/reports/rig/')) return;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.appendFileSync(file, `${existing && !existing.endsWith('\n') ? '\n' : ''}/reports/rig/\n`);
+}
 
 function writeReport(target, report) {
   if (!ALLOWED.has(report.status)) {
@@ -14,7 +27,8 @@ function writeReport(target, report) {
   }
   const dir = path.join(target, 'reports', 'rig');
   fs.mkdirSync(dir, { recursive: true });
-  const body = {
+  excludeReports(target);
+  const body = JSON.parse(JSON.stringify({
     schema_version: 1,
     run_id: report.run_id || `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
     service_id: report.service_id,
@@ -26,16 +40,13 @@ function writeReport(target, report) {
     reason: redact(report.reason || ''),
     evidence: (report.evidence || []).map((e) => redact(typeof e === 'string' ? e : JSON.stringify(e))),
     fix_context: (report.fix_context || []).map((c) => redact(typeof c === 'string' ? c : JSON.stringify(c))),
+    ...(!installState(target).complete ? { install: 'incomplete', protection: 'withheld' } : {}),
     rerun: report.rerun || ['node', '.rig/bin/check.js', '--scope', report.scope || 'repo'],
-  };
+  }, (_key, value) => typeof value === 'string' ? redact(value) : value));
   const digest = crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 12);
   const file = path.join(dir, `${body.run_id}-${digest}.json`);
-  const fd = fs.openSync(file, 'wx');
-  try {
-    fs.writeFileSync(fd, `${JSON.stringify(body, null, 2)}\n`);
-  } finally {
-    fs.closeSync(fd);
-  }
+  if (fs.existsSync(file)) throw new Error('rig: evidence report already exists');
+  require('./evidence-artifacts').writeEvidence(target, path.relative(target, file).split(path.sep).join('/'), `${JSON.stringify(body, null, 2)}\n`);
   return file;
 }
 
@@ -44,11 +55,13 @@ function projectCiResult(local) {
   const counts = {};
   const rules = [];
   for (const finding of findings) {
-    const rule = finding.rule || 'unknown';
-    counts[rule] = (counts[rule] || 0) + 1;
+    const value = finding.rule || finding.kind || 'unknown';
+    const rule = typeof value === 'string' && /^[a-z][a-z0-9._:-]{0,127}$/i.test(value) && redact(value) === value ? value : 'unknown';
+    counts[rule] = (Object.hasOwn(counts, rule) ? counts[rule] : 0) + 1;
     if (!rules.includes(rule)) rules.push(rule);
   }
-  const verdict = (local && local.status === 'failed') || findings.length ? 'fail' : 'pass';
+  const status = local?.status;
+  const verdict = findings.length || ![0, 'pass', 'passed', 'clean', 'completed'].includes(status) ? 'fail' : 'pass';
   return { verdict, counts, rules };
 }
 
@@ -84,16 +97,18 @@ function projectForAgent(report, options = {}) {
   const findings = (report && report.findings) || [];
   let authorized = false;
   if (options.target) {
-    const status = require('./policy').policyStatus(options.target);
-    authorized = status.model_assisted_triage.authorized === true;
+    try {
+      const status = require('./policy').policyStatus(options.target);
+      authorized = status.model_assisted_triage.authorized === true;
+    } catch { /* Invalid or stale activation closes the matched-content field. */ }
   }
   if (authorized) {
     return { findings: findings.map((f) => ({ ...f })) };
   }
   return {
     findings: findings.map((f) => ({
-      rule: f.rule || null,
-      path: f.path || null,
+      rule: f.rule ? redact(f.rule) : null,
+      path: f.path ? redact(f.path) : null,
       redacted: true,
     })),
   };

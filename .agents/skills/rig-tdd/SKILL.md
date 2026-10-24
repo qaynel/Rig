@@ -2,6 +2,16 @@
 name: rig-tdd
 status: ready
 description: Drive one behavior at a time through a strict red-green-refactor loop using agreed seams and non-tautological tests.
+family: testing
+tool: host-agent
+capability: testing.test-driven-development
+guarantees:
+  - Drives one observable behaviour through red, green, and refactor.
+  - Does not weaken the approved oracle.
+overlap_tags:
+  - tdd
+  - test-driven-development
+  - testing
 ---
 
 # TDD
@@ -10,7 +20,9 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 
 - `[mattpocock]` Read `CONTEXT.md`, ADRs, and nearby tests for domain vocabulary.
 - `[mattpocock]` Agree the test seam and public behavior with the user before
-  writing a test. Gate 1 acceptance artifacts remain frozen.
+  writing a test. Gate 1 acceptance artifacts remain frozen. Never edit a
+  frozen test directly: first open a filled unfreeze request with evidence,
+  then have the human key holder re-run `node scripts/approve-gate1.js`.
 - `[mattpocock]` Choose a tracer-bullet slice that crosses the real stack while
   proving one behavior.
 
@@ -26,7 +38,7 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 5. `[superpowers]` Run the test and relevant nearby suite; inspect the output.
    The inner loop is `npm run test:rig` or the single test file for the
    behavior under test — never the full `npm test` gate, which runs once,
-   right before push. `(RIG-124)`
+   right before push.
 6. `[superpowers]` Refactor production and local test artifacts now while all
    tests stay green. Do not defer local cleanup to review.
 7. Repeat for the next behavior.
@@ -44,7 +56,9 @@ description: Drive one behavior at a time through a strict red-green-refactor lo
 
 `[superpowers]` Show the final test command failing before the implementation
 and passing after it, all relevant tests green, and no debug-only test artifacts
-left behind.
+left behind. The change uses the least new mechanism necessary, reuses existing
+semantic authorities where possible, and removes superseded paths rather than
+leaving parallel implementations behind.
 
 ## Decision Questions
 

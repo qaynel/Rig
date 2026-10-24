@@ -1,0 +1,7 @@
+{
+  "observed_conditions": [],
+  "reproduction_attempts": [
+    "repeat with scheduler seed"
+  ],
+  "blame_randomness_without_evidence": false
+}

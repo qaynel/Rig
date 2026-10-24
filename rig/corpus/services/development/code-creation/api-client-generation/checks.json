@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.api-client-generation",
+  "input": "rig-services/development.code-creation.api-client-generation.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms the specification path, compatibility version and unknown-response policy are declared; it does not show the generated client matches the live API.",
+  "offer": "Generate clients from the authoritative API document and expose the compatibility version. Treat unknown response variants explicitly so schema drift cannot become a plausible successful response.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
+      }
+    ],
+    "mid": [
+      {
+        "field": "compatibility_version",
+        "op": "nonempty",
+        "reason": "Declare the API compatibility version the client targets. Callers cannot tell which contract they rely on otherwise, so record the version string."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "unknown_response_policy",
+        "op": "nonempty",
+        "reason": "State how the client treats response variants it does not recognise. Silent acceptance turns schema drift into success, so name the explicit policy such as fail or surface."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "api-client-generation-slice-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "api-client-generation-slice-behavior-oracle",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
+      }
+    },
+    "property-floor": {
+      "check_id": "api-client-generation-slice-property-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "api-client-generation-slice-mutation-floor",
+      "rule": {
+        "field": "specification_path",
+        "op": "nonempty",
+        "reason": "Point to the authoritative API document the client is generated from. Without a path the client can drift from the contract, so declare the specification file."
+      }
+    }
+  }
+}

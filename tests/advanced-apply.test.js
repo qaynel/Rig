@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const {
   withRepo,
   createRepoFixture,
@@ -15,8 +15,11 @@ const {
   plan,
   apply,
   writePlanApproval,
+  writeRemediationApproval,
   readJson,
-} = require('./helpers/advanced');
+} = require('./helpers/advanced-signed');
+const { signApproval, TRUST_ROOT_REL } = require('./helpers/path-b-approval');
+const { applyPlan } = require('../rig/lib/apply');
 const { uninstall } = require('../rig/lib/lifecycle');
 
 test('apply is compare-and-swap on preimages and writes receipt last', () => {
@@ -49,6 +52,70 @@ test('apply requires exact plan approval before writing', () => {
     const wrong = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.notEqual(wrong.status, 0, 'wrong approval digest must fail closed');
     assert.equal(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')), false);
+
+    const forgedPath = path.join(target, '.rig-test', 'forged-approval.json');
+    fs.mkdirSync(path.dirname(forgedPath), { recursive: true });
+    fs.writeFileSync(forgedPath, `${JSON.stringify({
+      schema_version: 1,
+      kind: 'plan-approval',
+      plan_digest: readJson(planned.outPath).plan_digest,
+      approval: { method: 'host-native', verified: true },
+    })}\n`);
+    const forged = apply(target, { review: reviewPath, plan: planned.outPath, approval: forgedPath });
+    assert.notEqual(forged.status, 0, 'caller-asserted verification must not grant approval');
+    assert.equal(fs.existsSync(path.join(target, '.rig', 'catalog-receipt.json')), false);
+  });
+});
+
+test('apply trust root rejects a different signing key and a valid signature replayed across repositories', () => {
+  withRepo((targetA) => {
+    createRepoFixture('existing-agents-router', targetA);
+    const reviewA = allowedReview(targetA, { harness_digest: 'a'.repeat(64) });
+    writeSelection(targetA, { 'development.documentation.adrs': 'minimal' });
+    const plannedA = plan(targetA, { review: reviewA.reviewPath });
+    assert.equal(plannedA.status, 0, plannedA.stderr);
+
+    const approvalAPath = writePlanApproval(targetA, plannedA.outPath);
+    const approvalA = readJson(approvalAPath);
+    const planA = readJson(plannedA.outPath);
+    const wrongKey = signApproval(targetA, planA.plan_digest, {
+      namespace: 'rig-catalog-apply',
+      identity: 'wrong-key@rig.test',
+      trustIdentity: false,
+      message: `rig-catalog-apply\ntarget=${path.resolve(targetA)}\nplan=${planA.plan_digest}\n`,
+    });
+    const wrongKeyPath = path.join(targetA, '.rig-test', 'wrong-key-approval.json');
+    fs.writeFileSync(wrongKeyPath, `${JSON.stringify(wrongKey)}\n`);
+    const beforeA = fs.readFileSync(path.join(targetA, 'AGENTS.md'));
+    const wrongKeyResult = apply(targetA, {
+      review: reviewA.reviewPath,
+      plan: plannedA.outPath,
+      approval: wrongKeyPath,
+    });
+    assert.notEqual(wrongKeyResult.status, 0);
+    assert.deepEqual(fs.readFileSync(path.join(targetA, 'AGENTS.md')), beforeA);
+    assert.equal(fs.existsSync(path.join(targetA, '.rig', 'catalog-receipt.json')), false);
+
+    withRepo((targetB) => {
+      createRepoFixture('existing-agents-router', targetB);
+      const reviewB = allowedReview(targetB, { harness_digest: 'a'.repeat(64) });
+      writeSelection(targetB, { 'development.documentation.adrs': 'minimal' });
+      const plannedB = plan(targetB, { review: reviewB.reviewPath });
+      assert.equal(plannedB.status, 0, plannedB.stderr);
+      const planB = readJson(plannedB.outPath);
+      assert.equal(planB.plan_digest, planA.plan_digest, 'the two fixture proposals are otherwise identical');
+
+      fs.mkdirSync(path.dirname(path.join(targetB, TRUST_ROOT_REL)), { recursive: true });
+      fs.copyFileSync(path.join(targetA, TRUST_ROOT_REL), path.join(targetB, TRUST_ROOT_REL));
+      const beforeB = fs.readFileSync(path.join(targetB, 'AGENTS.md'));
+      assert.throws(
+        () => applyPlan(targetB, readJson(path.join(targetB, 'rig.json')), readJson(reviewB.reviewPath), planB, { approval: approvalA }),
+        /signature|approval/i,
+        'a trusted approval signed for repository A cannot authorize repository B',
+      );
+      assert.deepEqual(fs.readFileSync(path.join(targetB, 'AGENTS.md')), beforeB);
+      assert.equal(fs.existsSync(path.join(targetB, '.rig', 'catalog-receipt.json')), false);
+    });
   });
 });
 
@@ -210,7 +277,7 @@ test('a CI file the approved plan recorded is CAS-protected like every other own
 test('apply does not write a CI path the signed plan never listed', () => {
   withRepo((target) => {
     createRepoFixture('generic-git', target);
-    fs.writeFileSync(path.join(target, 'azure-pipelines.yml'), 'trigger: none\n');
+    fs.writeFileSync(path.join(target, 'azure-pipelines.yml'), 'trigger: none\njobs:\n');
     const { reviewPath } = allowedReview(target);
     writeSelection(target, { 'development.code-creation.feature-implementation': 'maximal' });
 
@@ -223,18 +290,18 @@ test('apply does not write a CI path the signed plan never listed', () => {
 
     // After signing, a YAML twin appears. Re-resolving at apply time would
     // pick that unsigned path and overwrite it without CAS. Apply must not.
-    fs.writeFileSync(path.join(target, 'azure-pipelines.yaml'), 'trigger: none\n# unsigned\n');
+    fs.writeFileSync(path.join(target, 'azure-pipelines.yaml'), 'trigger: none\njobs:\n# unsigned\n');
     const approvalPath = writePlanApproval(target, planned.outPath);
     const result = apply(target, { review: reviewPath, plan: planned.outPath, approval: approvalPath });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(
       fs.readFileSync(path.join(target, 'azure-pipelines.yaml'), 'utf8'),
-      'trigger: none\n# unsigned\n',
+      'trigger: none\njobs:\n# unsigned\n',
       'apply must not write a CI file the signed plan never listed',
     );
     assert.equal(
       fs.readFileSync(path.join(target, 'azure-pipelines.yml'), 'utf8'),
-      'trigger: none\n',
+      'trigger: none\njobs:\n',
       'the signed yml must not be silently skipped in favor of an unsigned yaml twin',
     );
   });
@@ -250,14 +317,90 @@ test('approved remediation applies a bounded rewrite', () => {
     const proposalPath = path.join(target, '.rig-test', 'proposal.json');
     fs.mkdirSync(path.dirname(proposalPath), { recursive: true });
     fs.writeFileSync(proposalPath, `${JSON.stringify(proposal, null, 2)}\n`);
-    const digest = crypto.createHash('sha256').update(JSON.stringify(proposal)).digest('hex');
+    const approval = writeRemediationApproval(target, proposalPath);
 
-    const result = require('./helpers/advanced').remediate(target, {
+    const result = require('./helpers/advanced-signed').remediate(target, {
       proposal: proposalPath,
-      approve: digest,
+      approval,
     });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
+  });
+});
+
+test('remediation rejects digest-only consent and stale preimages without overwriting current bytes', () => {
+  withRepo((target) => {
+    createRepoFixture('malicious-agents', target);
+    const proposal = { schema_version: 1, actions: [{ op: 'rewrite', path: 'AGENTS.md', content: '# cleaned\n' }] };
+    const proposalPath = path.join(target, '.rig-test', 'proposal.json');
+    fs.mkdirSync(path.dirname(proposalPath), { recursive: true });
+    fs.writeFileSync(proposalPath, `${JSON.stringify(proposal)}\n`);
+    const digestOnly = path.join(target, '.rig-test', 'digest-only.json');
+    fs.writeFileSync(digestOnly, `${JSON.stringify({ schema_version: 1, kind: 'remediation-approval', proposal_digest: crypto.createHash('sha256').update(JSON.stringify(proposal)).digest('hex'), preimage_digest: '0'.repeat(64) })}\n`);
+    const forged = require('./helpers/advanced-signed').remediate(target, { proposal: proposalPath, approval: digestOnly });
+    assert.notEqual(forged.status, 0);
+    assert.notEqual(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
+
+    const approval = writeRemediationApproval(target, proposalPath);
+    const edited = '# concurrent user edit\n';
+    fs.writeFileSync(path.join(target, 'AGENTS.md'), edited);
+    const stale = require('./helpers/advanced-signed').remediate(target, { proposal: proposalPath, approval });
+    assert.notEqual(stale.status, 0);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), edited);
+  });
+});
+
+test('remediation recovers a process killed after a write from its durable preimage journal', () => {
+  withRepo((target) => {
+    createRepoFixture('malicious-agents', target);
+    const proposal = { schema_version: 1, actions: [{ op: 'rewrite', path: 'AGENTS.md', content: '# cleaned\n' }] };
+    const proposalPath = path.join(target, '.rig-test', 'proposal.json');
+    fs.mkdirSync(path.dirname(proposalPath), { recursive: true });
+    fs.writeFileSync(proposalPath, `${JSON.stringify(proposal)}\n`);
+    const approvalPath = writeRemediationApproval(target, proposalPath);
+    const child = spawnSync(process.execPath, ['-e', `
+      const fs = require('node:fs');
+      const rename = fs.renameSync;
+      fs.renameSync = (from, to) => { rename(from, to); process.kill(process.pid, 'SIGKILL'); };
+      const [target, proposal, approval] = process.argv.slice(1);
+      require(${JSON.stringify(path.join(__dirname, '..', 'rig/lib/apply.js'))}).remediate(target, JSON.parse(fs.readFileSync(proposal)), JSON.parse(fs.readFileSync(approval)));
+    `, target, proposalPath, approvalPath], { encoding: 'utf8' });
+    assert.equal(child.signal, 'SIGKILL', `${child.status}: ${child.stderr}`);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
+    const retried = require('./helpers/advanced-signed').remediate(target, { proposal: proposalPath, approval: approvalPath });
+    assert.equal(retried.status, 0, retried.stderr);
+    assert.equal(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
+    const journal = fs.readFileSync(path.join(target, '.rig/remediation.jsonl'), 'utf8');
+    assert.match(journal, /recovered interrupted transaction/);
+    assert.match(journal, /"state":"complete"/);
+  });
+});
+
+test('remediation rolls back earlier writes when a later replacement fails', () => {
+  withRepo((target) => {
+    createRepoFixture('malicious-agents', target);
+    fs.writeFileSync(path.join(target, 'README.md'), 'old readme\n');
+    const proposal = { schema_version: 1, actions: [
+      { op: 'rewrite', path: 'AGENTS.md', content: '# cleaned\n' },
+      { op: 'rewrite', path: 'README.md', content: 'new readme\n' },
+    ] };
+    const proposalPath = path.join(target, '.rig-test', 'proposal.json');
+    fs.mkdirSync(path.dirname(proposalPath), { recursive: true });
+    fs.writeFileSync(proposalPath, `${JSON.stringify(proposal)}\n`);
+    const approvalPath = writeRemediationApproval(target, proposalPath);
+    const originalRename = fs.renameSync;
+    fs.renameSync = (from, to) => {
+      if (to === path.join(fs.realpathSync(target), 'README.md')) throw new Error('injected second-write failure');
+      return originalRename(from, to);
+    };
+    try {
+      assert.throws(() => require('../rig/lib/apply').remediate(target, proposal, readJson(approvalPath)), /injected second-write failure/);
+    } finally {
+      fs.renameSync = originalRename;
+    }
+    assert.notEqual(fs.readFileSync(path.join(target, 'AGENTS.md'), 'utf8'), '# cleaned\n');
+    assert.equal(fs.readFileSync(path.join(target, 'README.md'), 'utf8'), 'old readme\n');
+    assert.match(fs.readFileSync(path.join(target, '.rig/remediation.jsonl'), 'utf8'), /"state":"rolled_back"/);
   });
 });
 

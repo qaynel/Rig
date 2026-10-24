@@ -1,0 +1,7 @@
+{
+  "remediation_cases": [],
+  "target_behaviors": [
+    "limit enforcement"
+  ],
+  "add_implementation_mirrors": false
+}

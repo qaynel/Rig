@@ -4,74 +4,123 @@
 const fs = require('node:fs');
 const path = require('node:path');
 // spawnSync-shaped results preserve the existing command-runner contract.
-const { writeReport } = require('./reports');
-const { loadCatalog, servicesOf } = require('./catalog');
+const writeReport = (...args) => require('./reports').writeReport(...args);
+const conventionReasonGap = (...args) => require('./catalog').conventionReasonGap(...args);
 const { containedPath } = require('./path-safety');
 // runArgv/runBinding are the canonical implementation shared with the
 // installed CI/git-floor runner (rig/catalog/baseline/check.js) — see
 // GA-38. Do not re-implement containment or argv-execution logic here; a
 // hand-duplicated copy is exactly the defect class RIG-144 found and fixed.
-const { runArgv, runBinding } = require('./check-runner');
+const { runArgv, runBinding, renderDiagnostic, genericSuccessBinding } = require('./check-runner');
+const { redact } = require('./redaction');
+const crypto = require('node:crypto');
+const { isHarness } = require('./git-dispatch');
 
 function loadBindings(target) {
   const file = path.join(target, '.rig', 'service-bindings.json');
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
 }
 
-function checkCopies(target) {
-  const mapPath = path.join(target, '.rig', 'sync-map.json');
-  if (fs.existsSync(mapPath)) {
-    const map = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
-    for (const group of map.groups || []) {
-      const digests = new Set();
-      for (const rel of group) {
-        // sync-map.json is a repo-supplied config; refuse group entries that
-        // resolve outside the install target — including through a symlink
-        // whose lexical path looks contained but whose target isn't — so a
-        // manipulated map cannot trick this drift-check into reading
-        // arbitrary bytes from elsewhere on disk.
-        if (typeof rel !== 'string' || !rel) continue;
+function checkCopies(target, { readFile } = {}) {
+  const mapPath = containedPath(target, '.rig/sync-map.json');
+  let mapBytes = null;
+  if (readFile) {
+    mapBytes = readFile('.rig/sync-map.json');
+    if (mapBytes == null && fs.existsSync(mapPath)) mapBytes = fs.readFileSync(mapPath);
+  } else if (fs.existsSync(mapPath)) mapBytes = fs.readFileSync(mapPath);
+  if (mapBytes !== null) {
+    const map = JSON.parse(Buffer.from(mapBytes).toString('utf8'));
+    if (!Array.isArray(map.groups)) throw new Error('exact-copy: malformed sync groups');
+    for (const group of map.groups) {
+      const entries = Array.isArray(group) ? group : (group && Array.isArray(group.copies) ? [group.canonical, ...group.copies] : null);
+      if (!entries || entries.some((rel) => typeof rel !== 'string' || !rel)) throw new Error('exact-copy: malformed sync group');
+      const bytes = entries.map((rel) => {
         const abs = containedPath(target, rel);
-        if (!fs.existsSync(abs)) continue;
-        digests.add(fs.readFileSync(abs).toString('utf8'));
-      }
-      if (digests.size > 1) {
-        throw new Error(`drift detected across sync group ${group.join(', ')}`);
-      }
+        return readFile ? readFile(rel) : fs.readFileSync(abs);
+      });
+      if (bytes.some((body) => !Buffer.from(body).equals(Buffer.from(bytes[0])))) throw new Error(`drift detected across sync group ${entries.join(', ')}`);
     }
+    return { status: 0 };
   }
   const script = path.join(target, '.rig', 'bin', 'check-copies.js');
-  if (!fs.existsSync(script)) return { status: 0 };
-  return runArgv(process.execPath, [script], target);
+  return fs.existsSync(script) ? runArgv(process.execPath, [script], target) : { status: 0 };
 }
 
-function semanticDrift(target) {
+function contextHarnesses(target) {
+  const found = [];
+  const walk = (directory, relative = '') => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (!relative && ['.git', 'node_modules', '.rig'].includes(entry.name)) continue;
+      const rel = relative ? `${relative}/${entry.name}` : entry.name;
+      const abs = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(abs, rel);
+      else if (entry.isFile() && isHarness(rel)) found.push(rel);
+    }
+  };
+  walk(target);
+  return found.sort();
+}
+
+function semanticDrift(target, { readFile, requiredPaths = contextHarnesses(target) } = {}) {
   const findings = [];
-  const indexPath = path.join(target, '.rig', 'context-index.json');
-  if (fs.existsSync(indexPath)) {
-    const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
-    for (const doc of index.documents || []) {
-      if (!doc || typeof doc.path !== 'string') {
-        findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_document_entry' });
-        continue;
+  const read = readFile || ((rel) => fs.readFileSync(containedPath(target, rel)));
+  let index;
+  try {
+    let bytes = readFile ? read('.rig/context-index.json') : null;
+    // Installed host metadata can be ignored by Git. Use it only when no
+    // staged blob exists; an actual staged blob always owns this decision.
+    const indexPath = containedPath(target, '.rig/context-index.json');
+    if (bytes == null && fs.existsSync(indexPath)) bytes = readFile ? fs.readFileSync(indexPath) : read('.rig/context-index.json');
+    index = bytes === null ? null : JSON.parse(Buffer.from(bytes).toString('utf8'));
+  } catch { return [{ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_context_index' }]; }
+  if (!index && requiredPaths.length) findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'missing_context_index' });
+  const documents = index?.documents || requiredPaths.map((path) => ({ path }));
+  if (!Array.isArray(documents)) return [{ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_document_entries' }];
+  const listed = new Set(documents.map((doc) => doc?.path).filter((rel) => typeof rel === 'string'));
+  const omitted = requiredPaths.filter((rel) => !listed.has(rel));
+  if (omitted.length) findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'context_harness_omitted', documents: omitted });
+  const current = new Map();
+  for (const doc of documents) {
+    if (!doc || typeof doc.path !== 'string' || !doc.path || current.has(doc.path)) {
+      findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_document_entry' }); continue;
+    }
+    try {
+      try { containedPath(target, doc.path); } catch {
+        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'escaping_context_path' }); continue;
       }
-      let abs;
-      try {
-        abs = containedPath(target, doc.path);
-      } catch {
-        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'escaping_context_path' });
-        continue;
+      current.set(doc.path, crypto.createHash('sha256').update(read(doc.path)).digest('hex'));
+    } catch {
+      findings.push({ path: doc.path, status: 'coverage_gap', reason: 'missing_or_escaping_context' }); continue;
+    }
+    if (doc.digest && doc.digest !== current.get(doc.path)) findings.push({ path: doc.path, status: 'stale', reason: 'digest_changed' });
+    if (doc.status === 'deprecated') findings.push({ path: doc.path, status: 'stale', reason: 'deprecated_context' });
+  }
+  if (current.size || requiredPaths.length) {
+    const review = index?.review;
+    const valid = review?.schema_version === 1 && review.reviewer?.kind === 'host-agent' && typeof review.reviewer.identity === 'string' && review.reviewer.identity.trim() &&
+      ['pass', 'fail'].includes(review.status) && Array.isArray(review.inputs) && Array.isArray(review.relationships);
+    if (!valid) findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'missing_or_note_only_review' });
+    else {
+      const inputs = new Map(review.inputs.map((input) => [input?.path, input?.digest]));
+      if (inputs.size !== current.size || inputs.size !== review.inputs.length || [...current].some(([rel, hash]) => inputs.get(rel) !== hash)) {
+        findings.push({ path: '.rig/context-index.json', status: 'stale', reason: 'semantic_review_input_digest_changed' });
       }
-      if (!fs.existsSync(abs)) {
-        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'missing_context' });
-        continue;
+      const judged = new Set();
+      for (const relation of review.relationships) {
+        if (!relation || !current.has(relation.from) || !current.has(relation.to) || relation.from === relation.to ||
+            !['consistent', 'contradiction'].includes(relation.status) || typeof relation.reason !== 'string' || !relation.reason.trim()) {
+          findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'malformed_semantic_relationship' }); continue;
+        }
+        const pair = [relation.from, relation.to].sort().join('\0');
+        if (judged.has(pair)) findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'duplicate_semantic_relationship' });
+        judged.add(pair);
+        if (relation.status === 'contradiction') findings.push({ path: relation.from, related: relation.to, status: 'failed', reason: 'semantic_contradiction' });
       }
-      const current = require('node:crypto').createHash('sha256').update(fs.readFileSync(abs)).digest('hex');
-      if (doc.digest && doc.digest !== current) findings.push({ path: doc.path, status: 'stale', reason: 'digest_changed' });
-      if (doc.status === 'deprecated') findings.push({ path: doc.path, status: 'stale', replaces: doc.replaces || null });
-      if (doc.review && (doc.review.status !== 'pass' || !doc.review.input_digest)) {
-        findings.push({ path: doc.path, status: 'coverage_gap', reason: 'missing_or_note_only_review' });
-      }
+      // rig: all-pairs review is intentionally bounded by the explicit context
+      // index. Split large context sets into reviewed relationship groups if
+      // repositories outgrow this simple, auditable coverage contract.
+      if (judged.size !== current.size * (current.size - 1) / 2) findings.push({ path: '.rig/context-index.json', status: 'coverage_gap', reason: 'missing_semantic_relationship_review' });
+      if (review.status !== 'pass') findings.push({ path: '.rig/context-index.json', status: 'failed', reason: 'semantic_review_failed' });
     }
   }
   const wikiDir = path.join(target, 'wiki');
@@ -80,16 +129,13 @@ function semanticDrift(target) {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const abs = path.join(dir, entry.name);
         if (entry.isDirectory()) { walk(abs); continue; }
+        if (!entry.isFile()) continue;
         const rel = path.relative(target, abs);
-        try {
-          const body = fs.readFileSync(abs, 'utf8');
-          const frontmatter = body.startsWith('---\n') ? body.slice(4, body.indexOf('\n---\n', 4)) : '';
-          const explicitlyDeprecated = /^status:\s*deprecated\s*$/mi.test(frontmatter) ||
-            /\b(?:use|follow) deprecated (?:tier|workflow|instructions?)\b/i.test(body);
-          if (explicitlyDeprecated && !findings.some((f) => f.path === rel)) {
-            findings.push({ path: rel, status: 'stale' });
-          }
-        } catch { /* ignore */ }
+        const body = fs.readFileSync(containedPath(target, rel), 'utf8');
+        const frontmatter = body.startsWith('---\n') ? body.slice(4, body.indexOf('\n---\n', 4)) : '';
+        if (/^status:\s*deprecated\s*$/mi.test(frontmatter) || /\b(?:use|follow) deprecated (?:tier|workflow|instructions?)\b/i.test(body)) {
+          if (!findings.some((f) => f.path === rel)) findings.push({ path: rel, status: 'stale', reason: 'deprecated_context' });
+        }
       }
     };
     walk(wikiDir);
@@ -104,11 +150,12 @@ function validateDisposition(disposition) {
     if (!Array.isArray(disposition.argv) || disposition.argv.length === 0) {
       throw new Error('executable disposition needs argv: coverage gap');
     }
+    const stub = genericSuccessBinding(disposition.argv);
+    if (stub) throw new Error(`executable disposition is a ${stub}: coverage gap`);
     return { kind: 'executable' };
   }
   if (kind === 'convention') {
-    const reason = disposition.reason || '';
-    if (!/repository|repo-specific|service-specific|tailored|convention:/i.test(reason)) {
+    if (conventionReasonGap(disposition.reason, disposition.service)) {
       throw new Error('convention disposition needs service-specific reason');
     }
     return { kind: 'convention' };
@@ -125,38 +172,19 @@ function resolveRunScope({ environment, changed }) {
   return { kind: 'diff', files: changed || [] };
 }
 
-function runChecks(target, { scope = 'repo', service = null } = {}) {
-  let copy;
-  try {
-    copy = checkCopies(target);
-  } catch (error) {
-    copy = { status: 1, stdout: '', stderr: error.message };
+function runChecksLocal(target, { scope, service = null } = {}) {
+  const ci = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+  scope = scope || (ci ? 'repo' : 'diff');
+  let baseline;
+  try { baseline = require('./policy-baseline').runBaseline(target, { surface: ci ? 'ci.repo' : 'git.pre_commit', scope }); }
+  catch (error) { return { status: 1, stdout: '', stderr: `baseline: ${redact(error.message)}\n` }; }
+  for (const entry of baseline.results.filter((entry) => entry.status === 'failed')) {
+    writeReport(target, { service_id: `baseline.${entry.control}`, scope, status: 'failed',
+      summary: `${entry.control} check failed`, reason: entry.findings.map((finding) => finding.kind).join(', '),
+      evidence: [entry], fix_context: ['Resolve the reported current-input failure and rerun the check.'] });
   }
-  if (copy.status !== 0) {
-    writeReport(target, {
-      service_id: 'baseline.exact-copy',
-      scope,
-      status: 'failed',
-      summary: 'Exact-copy sync check failed',
-      reason: copy.stderr || copy.stdout || 'byte drift',
-      fix_context: ['restore duplicates to match canonical bytes in .rig/sync-map.json'],
-    });
-    return { status: 1, stdout: copy.stdout, stderr: copy.stderr };
-  }
-
-  const driftFindings = semanticDrift(target);
-  if (driftFindings && driftFindings.length) {
-    const first = driftFindings[0];
-    writeReport(target, {
-      status: 'failed',
-      service_id: 'baseline.semantic-drift',
-      summary: 'Semantic drift detected',
-      reason: `stale/deprecated context at ${first.path}`,
-      fix_context: [`deprecated document ${first.path}`],
-      scope,
-    });
-    return { status: 1, stdout: '', stderr: `stale/deprecated context at ${first.path}` };
-  }
+  if (baseline.status !== 0) return { status: 1, findings: baseline.results.filter(entry => entry.status === 'failed').flatMap(entry => entry.findings.map(finding => ({ rule: `baseline.${entry.control}.${finding.kind}` }))), stdout: '', stderr: `baseline failed: ${baseline.results.filter((entry) => entry.status === 'failed').map((entry) => entry.control).join(', ')}\n` };
+  if (!baseline.surface_enabled) return { status: 0, stdout: 'Rig checks disabled on this surface.\n', stderr: '' };
 
   const bindings = loadBindings(target);
   const receiptPath = path.join(target, '.rig', 'catalog-receipt.json');
@@ -165,17 +193,16 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
     : { order: Object.keys(bindings), services: {} };
   const order = receipt.order || Object.keys(bindings);
   const selected = service ? [service] : order;
-  const catalog = loadCatalog();
-  const byId = Object.fromEntries(servicesOf(catalog).map((s) => [s.id, s]));
   let failedEarlier = null;
   let failure = null;
+  let diagnostics = '';
 
   for (const serviceId of selected) {
     if (failedEarlier) {
       writeReport(target, {
         service_id: serviceId,
         scope,
-        status: 'failed',
+        status: 'not_run_due_to_dependency',
         summary: 'Not run due to earlier ladder failure',
         reason: `not_run_due_to_dependency:${failedEarlier}`,
         fix_context: ['not_run_due_to_dependency', `fix ${failedEarlier} first`],
@@ -183,39 +210,8 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
       continue;
     }
 
-    const serviceMeta = byId[serviceId];
     const binding = bindings[serviceId];
-    const needsUi =
-      serviceMeta &&
-      (serviceMeta.applicability?.not_recommended_without || []).includes('ui-surface');
-    const hasUi =
-      fs.existsSync(path.join(target, 'index.html')) ||
-      fs.existsSync(path.join(target, 'public')) ||
-      (() => {
-        try {
-          const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'));
-          return /react|vue|svelte|angular|browser|next/i.test(JSON.stringify(pkg));
-        } catch {
-          return false;
-        }
-      })();
-
-    if (needsUi && !hasUi) {
-      writeReport(target, {
-        service_id: serviceId,
-        scope,
-        status: 'vacuous',
-        summary: 'Nothing to pin here.',
-        reason: serviceMeta.surfaceless_reason || 'No browser or UI surface was detected.',
-        fix_context: ['surfaceless'],
-      });
-      continue;
-    }
-
     if (!binding) {
-      // rig: dependency-only slices predate runnable slice bindings; keep their
-      // legacy skip until the first authored dependency adapter defines one.
-      if (!service && !receipt.services?.[serviceId] && !receipt.installed?.[serviceId]) continue;
       writeReport(target, {
         service_id: serviceId,
         scope,
@@ -224,9 +220,16 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
         reason: 'No service binding is installed',
         fix_context: ['coverage_gap'],
       });
-      return { status: 1, stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
+      const missingBinding = { status: 1, kind: 'coverage_gap', stdout: '', stderr: `${serviceId}: coverage gap: binding is missing\n` };
+      failedEarlier = serviceId;
+      failure = missingBinding;
+      continue;
     }
+    if (ci && serviceId === 'development.code-quality.lint-format' && binding.grade !== 'maximal') continue;
     const result = runBinding(serviceId, binding, scope, target);
+    for (const diagnostic of result.diagnostics || (result.diagnostic ? [result.diagnostic] : [])) {
+      diagnostics += renderDiagnostic(serviceId, diagnostic);
+    }
     if (result.error || result.status !== 0) {
       failedEarlier = serviceId;
       const reason = result.reason || result.stderr || result.stdout || String(result.error || 'non-zero exit');
@@ -234,18 +237,41 @@ function runChecks(target, { scope = 'repo', service = null } = {}) {
         service_id: serviceId,
         scope,
         status:
-          result.kind === 'coverage_gap' || (result.error && /ENOENT/.test(String(result.error)))
-            ? 'coverage_gap'
-            : 'failed',
+          require('./reports').ALLOWED.has(result.kind) ? result.kind : (result.error && /ENOENT/.test(String(result.error))) ? 'command_not_found' : 'failed',
         summary: `${serviceId} failed`,
         reason,
+        evidence: result.changed_paths || result.changes || result.commands ? [{
+          ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+          ...(result.changes ? { changes: result.changes } : {}),
+          ...(result.commands ? { commands: result.commands, executed_count: result.executed_count } : {}),
+        }] : [],
         fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
       });
-      failure = { status: 1, stdout: result.stdout || '', stderr: result.stderr || `${reason}\n` };
+      failure = {
+        status: 1, kind: result.kind || 'failed', checkId: result.checkId,
+        stdout: result.stdout || '', stderr: result.stderr || `${reason}\n`,
+        ...(result.changed_paths ? { changed_paths: result.changed_paths } : {}),
+        ...(result.changes ? { changes: result.changes } : {}),
+        ...(result.commands ? { commands: result.commands, executed_count: result.executed_count } : {}),
+      };
     }
   }
 
-  return failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
+  const outcome = failure || { status: 0, stdout: 'Rig check passed.\n', stderr: '' };
+  return diagnostics ? { ...outcome, stderr: `${diagnostics}${outcome.stderr}` } : outcome;
+}
+
+// Publish once after execution: CI receives safe aggregates; local diagnostics
+// retain actionable detail after the same scrubber used by persisted reports.
+function runChecks(target, options = {}) {
+  let result;
+  try { result = runChecksLocal(target, options); }
+  catch (error) { result = { status: 1, kind: 'runner_error', stdout: '', stderr: redact(error.message) + '\n' }; }
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    const findings = result.findings || (result.status === 0 ? [] : [{ rule: result.checkId || result.kind || 'check_failed' }]);
+    return { status: result.status, stdout: JSON.stringify(require('./reports').projectCiResult({ status: result.status, findings })) + '\n', stderr: '' };
+  }
+  return JSON.parse(JSON.stringify({ ...result, stdout: result.stdout || '', stderr: result.stderr || '' }, (_key, value) => typeof value === 'string' ? redact(value) : value));
 }
 
 module.exports = {
@@ -253,6 +279,7 @@ module.exports = {
   runBinding,
   runChecks,
   checkCopies,
+  contextHarnesses,
   semanticDrift,
   validateDisposition,
   resolveRunScope,

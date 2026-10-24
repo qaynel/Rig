@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "product-security.red-team.blast-radius",
+  "input": "rig-services/product-security.red-team.blast-radius.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms privilege scopes, isolation boundaries and the cross-tenant flag are declared; it does not test compromise.",
+  "offer": "Bound the damage from a compromised identity with explicit privilege and isolation scopes. Cross-tenant access defeats the intended blast-radius boundary.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
+      }
+    ],
+    "mid": [
+      {
+        "field": "isolation_boundaries",
+        "op": "nonempty",
+        "reason": "List the isolation boundaries, such as tenant or network separation. An unnamed boundary is not enforced, so declare it."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "cross_tenant_access",
+        "op": "equals",
+        "value": false,
+        "reason": "Set cross-tenant access to false. Access across tenants defeats the boundary, so deny it."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "blast-radius-slice-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "blast-radius-slice-behavior-oracle",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
+      }
+    },
+    "property-floor": {
+      "check_id": "blast-radius-slice-property-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "blast-radius-slice-mutation-floor",
+      "rule": {
+        "field": "privilege_scopes",
+        "op": "nonempty",
+        "reason": "List the privilege scopes an identity can hold. Without them the blast radius is unknown, so enumerate each scope."
+      }
+    }
+  }
+}

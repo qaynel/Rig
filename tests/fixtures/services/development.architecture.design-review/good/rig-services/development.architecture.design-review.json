@@ -1,0 +1,9 @@
+{
+  "reviewed_interfaces": [
+    "items API"
+  ],
+  "tradeoffs": [
+    "latency versus durability"
+  ],
+  "unresolved_tradeoffs": 0
+}

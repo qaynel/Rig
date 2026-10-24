@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.code-creation.feature-implementation",
+  "input": "rig-services/development.code-creation.feature-implementation.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms acceptance cases, change scope and compatibility notes are declared; it does not show the implemented feature meets them.",
+  "offer": "Name observable outcomes before touching source. Keep the change inside the agreed files, and make compatibility expectations explicit.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
+      }
+    ],
+    "mid": [
+      {
+        "field": "change_scope",
+        "op": "nonempty",
+        "reason": "List the files or modules the change may touch. An empty scope lets edits spread unreviewed, so declare the agreed boundary."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "compatibility",
+        "op": "nonempty",
+        "reason": "State the compatibility expectations for existing callers or data. Leaving them implicit hides breaking changes, so record what must keep working."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "feature-implementation-slice-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "feature-implementation-slice-behavior-oracle",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
+      }
+    },
+    "property-floor": {
+      "check_id": "feature-implementation-slice-property-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "feature-implementation-slice-mutation-floor",
+      "rule": {
+        "field": "acceptance_cases",
+        "op": "nonempty",
+        "reason": "Write the observable acceptance cases before touching source. An empty list means no outcome defines done, so name what a user or caller will see."
+      }
+    }
+  }
+}

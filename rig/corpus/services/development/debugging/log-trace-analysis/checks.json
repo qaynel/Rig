@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.debugging.log-trace-analysis",
+  "input": "rig-services/development.debugging.log-trace-analysis.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms trace fields, redacted fields and the no-credential-logging setting are declared; it does not show logs are actually clean.",
+  "offer": "Correlate events across requests using stable trace fields. Remove authorization material before analysis; raw credentials must never enter the diagnostic log.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields."
+      }
+    ],
+    "mid": [
+      {
+        "field": "redacted_fields",
+        "op": "nonempty",
+        "reason": "List the fields redacted before analysis, such as authorization headers. An empty list can leak credentials into a diagnostic log, so name each sensitive field."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "log_credentials",
+        "op": "equals",
+        "value": false,
+        "reason": "Set logging credentials to false. Raw credentials in a diagnostic log are a leak, so strip or mask them at the source."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "log-trace-analysis-slice-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "log-trace-analysis-slice-behavior-oracle",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields."
+      }
+    },
+    "property-floor": {
+      "check_id": "log-trace-analysis-slice-property-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "log-trace-analysis-slice-mutation-floor",
+      "rule": {
+        "field": "trace_fields",
+        "op": "nonempty",
+        "reason": "List the stable trace fields that correlate events across requests, such as request or trace id. Without them events cannot be joined, so name the fields."
+      }
+    }
+  }
+}

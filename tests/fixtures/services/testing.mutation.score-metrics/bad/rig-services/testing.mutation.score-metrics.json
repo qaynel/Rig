@@ -1,0 +1,5 @@
+{
+  "killed_mutants": -1,
+  "valid_mutants": 10,
+  "include_invalid_mutants_in_score": false
+}

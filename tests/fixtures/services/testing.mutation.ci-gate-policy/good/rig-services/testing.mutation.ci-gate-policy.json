@@ -1,0 +1,5 @@
+{
+  "minimum_score_percent": 70,
+  "timeout_policy": "fail-inconclusive",
+  "allow_unrun_mutants": false
+}

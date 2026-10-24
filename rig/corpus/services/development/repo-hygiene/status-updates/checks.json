@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "service_id": "development.repo-hygiene.status-updates",
+  "input": "rig-services/development.repo-hygiene.status-updates.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms completed work, in-flight work and a next action are written; it does not show the status is accurate.",
+  "offer": "Report observed progress, the work in flight and the next resolving action. Distinguish finished evidence from intended work so another contributor can resume accurately.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "completed",
+        "op": "nonempty",
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
+      }
+    ],
+    "mid": [
+      {
+        "field": "in_flight",
+        "op": "nonempty",
+        "reason": "List the work in flight. Another contributor cannot resume without it, so name the open tasks and who holds them."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "next_action",
+        "op": "nonempty",
+        "reason": "State the next resolving action. A status without a next step leaves the work stalled, so write the single action that moves it forward."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "status-updates-slice-floor",
+      "rule": {
+        "field": "completed",
+        "op": "nonempty",
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "status-updates-slice-behavior-oracle",
+      "rule": {
+        "field": "completed",
+        "op": "nonempty",
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
+      }
+    },
+    "property-floor": {
+      "check_id": "status-updates-slice-property-floor",
+      "rule": {
+        "field": "completed",
+        "op": "nonempty",
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "status-updates-slice-mutation-floor",
+      "rule": {
+        "field": "completed",
+        "op": "nonempty",
+        "reason": "List what is completed with evidence. Mixing intent with finished work misleads the reader, so record only done items."
+      }
+    }
+  }
+}

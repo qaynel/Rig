@@ -1,0 +1,9 @@
+{
+  "target_versions": [
+    "library@2.0.0"
+  ],
+  "migration_steps": [
+    "replace removed API"
+  ],
+  "rollback_available": true
+}

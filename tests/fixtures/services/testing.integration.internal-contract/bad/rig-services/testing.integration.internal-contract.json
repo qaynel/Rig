@@ -1,0 +1,8 @@
+{
+  "producer_schema": "",
+  "consumer_versions": [
+    "v1",
+    "v2"
+  ],
+  "allow_breaking_change": false
+}

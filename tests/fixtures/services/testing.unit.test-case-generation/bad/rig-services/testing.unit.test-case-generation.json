@@ -1,0 +1,7 @@
+{
+  "behavior_cases": [],
+  "asserted_outcomes": [
+    "throws invalid record"
+  ],
+  "assert_implementation_details": false
+}

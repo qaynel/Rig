@@ -152,24 +152,19 @@ function apply(target, { manifest, review, plan: planPath, approval } = {}, opti
     planPath,
   ];
   if (approval) args.push('--approval', approval);
-  return runMaterialize(args, options);
+  const result = runMaterialize(args, options);
+  if (result.status === 0) {
+    const review = require('./semantic-review').writeFixtureSemanticReview(target, { reason: 'Reviewed fixture guidance consistently delegates coding work to the central Rig routing and retains the repository-owned instructions.' });
+    if (spawnSync('git', ['rev-parse', '--git-dir'], { cwd: target, stdio: 'pipe' }).status === 0) for (const input of review.review.inputs) execFileSync('git', ['add', '--', input.path], { cwd: target, stdio: 'pipe' });
+  }
+  return result;
 }
 
 function writePlanApproval(target, planPath, overrides = {}) {
-  const planned = readJson(planPath);
-  const approval = {
-    schema_version: 1,
-    kind: 'plan-approval',
-    plan_digest: planned.plan_digest,
-    approval: {
-      method: 'external-sshsig',
-      verified: true,
-    },
-    ...overrides,
-  };
-  const approvalPath = path.join(target, '.rig-test', 'plan-approval.json');
-  writeJson(approvalPath, approval);
-  return approvalPath;
+  // This helper is in the frozen oracle, so its change is staged for the
+  // key holder's explicit amendment and signature. Positive apply fixtures
+  // must produce a real fixture SSHSIG; asserted metadata is not consent.
+  return require('./advanced-signed').writePlanApproval(target, planPath, overrides);
 }
 
 function remediate(target, { proposal, approve } = {}) {

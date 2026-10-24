@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "testing.performance-load.load-stress-scripts",
+  "input": "rig-services/testing.performance-load.load-stress-scripts.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms a load profile, stop conditions and the production-default flag are declared; it does not generate load.",
+  "offer": "Define the load profile and automatic stop conditions before generating pressure. Stress scripts must target an approved isolated environment instead of defaulting to production.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "load_profile",
+        "op": "nonempty",
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
+      }
+    ],
+    "mid": [
+      {
+        "field": "stop_conditions",
+        "op": "nonempty",
+        "reason": "Define the stop conditions that end the test automatically. An unbounded stress run can damage an environment, so write the abort limits."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "target_production_by_default",
+        "op": "equals",
+        "value": false,
+        "reason": "Set targeting production by default to false. Stress scripts must aim at an approved isolated environment, so require an explicit target."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "load-stress-scripts-slice-floor",
+      "rule": {
+        "field": "load_profile",
+        "op": "nonempty",
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "load-stress-scripts-slice-behavior-oracle",
+      "rule": {
+        "field": "load_profile",
+        "op": "nonempty",
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
+      }
+    },
+    "property-floor": {
+      "check_id": "load-stress-scripts-slice-property-floor",
+      "rule": {
+        "field": "load_profile",
+        "op": "nonempty",
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "load-stress-scripts-slice-mutation-floor",
+      "rule": {
+        "field": "load_profile",
+        "op": "nonempty",
+        "reason": "Define the load profile, such as ramp and peak rate. Without it pressure is arbitrary, so write the shape."
+      }
+    }
+  }
+}

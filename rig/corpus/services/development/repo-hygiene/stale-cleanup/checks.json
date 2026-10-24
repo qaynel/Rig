@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "development.repo-hygiene.stale-cleanup",
+  "input": "rig-services/development.repo-hygiene.stale-cleanup.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms candidate paths, reference checks and the no-recovery-delete flag are declared; it does not show the candidates are really unused.",
+  "offer": "Establish that a stale candidate has no remaining callers before removing it. Retain a recoverable deletion and preserve user-owned files that only look unused.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
+      }
+    ],
+    "mid": [
+      {
+        "field": "reference_checks",
+        "op": "nonempty",
+        "reason": "Record the check that shows no callers remain, such as a search or build. Deleting without it can break hidden users, so attach the reference check."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "delete_without_recovery",
+        "op": "equals",
+        "value": false,
+        "reason": "Set deleting without recovery to false. A deletion that cannot be undone destroys user files that only look unused, so keep it recoverable."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "stale-cleanup-slice-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "stale-cleanup-slice-behavior-oracle",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
+      }
+    },
+    "property-floor": {
+      "check_id": "stale-cleanup-slice-property-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "stale-cleanup-slice-mutation-floor",
+      "rule": {
+        "field": "candidate_paths",
+        "op": "nonempty",
+        "reason": "List the stale candidates by path. Without paths nothing identifies what will be removed, so name each file or directory."
+      }
+    }
+  }
+}

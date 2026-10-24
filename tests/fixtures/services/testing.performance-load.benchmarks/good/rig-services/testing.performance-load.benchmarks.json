@@ -1,0 +1,5 @@
+{
+  "benchmark_workload": "serialize 1000 records",
+  "samples": 30,
+  "single_sample_conclusion": false
+}

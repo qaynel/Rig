@@ -1,0 +1,8 @@
+{
+  "compatible_readers": [
+    "v1",
+    "v2"
+  ],
+  "unknown_field_policy": "ignore-additive-fields",
+  "remove_required_fields": false
+}

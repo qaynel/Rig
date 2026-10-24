@@ -1,0 +1,7 @@
+{
+  "target_versions": [],
+  "migration_steps": [
+    "replace removed API"
+  ],
+  "rollback_available": true
+}

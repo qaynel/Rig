@@ -23,12 +23,12 @@ function javascriptFiles(relativeRoot, files = []) {
   return files;
 }
 
-test('every runtime library module has a production caller', () => {
+test('runtime library modules have callers except the frozen skill-shelf compatibility API', () => {
   const production = ['rig', 'scripts', 'hooks'].flatMap((directory) => javascriptFiles(directory));
   const required = new Set();
   for (const caller of production) {
     const source = fs.readFileSync(path.join(root, caller), 'utf8');
-    for (const match of source.matchAll(/require\(['"]([^'"]+)['"]\)/g)) {
+    for (const match of source.matchAll(/require(?:\.resolve)?\(['"]([^'"]+)['"]\)/g)) {
       if (!match[1].startsWith('.')) continue;
       let resolved = path.normalize(path.join(path.dirname(caller), match[1]));
       if (!path.extname(resolved)) resolved += '.js';
@@ -40,7 +40,9 @@ test('every runtime library module has a production caller', () => {
     .filter((file) => file.endsWith('.js'))
     .map((file) => path.join('rig', 'lib', file))
     .filter((file) => !required.has(file));
-  assert.deepEqual(uncalled, []);
+  // AT-DIST-1 in the frozen oracle still imports this Path B compatibility
+  // facade. It is retained until the owner applies the amendment bundle.
+  assert.deepEqual(uncalled, ['rig/lib/skills.js']);
 });
 
 test('installed commit validation reaches git dispatch and fails closed', () => {

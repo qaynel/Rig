@@ -1,0 +1,5 @@
+{
+  "backup_schedule": "",
+  "restore_test_schedule": "monthly",
+  "backup_without_restore_test": false
+}

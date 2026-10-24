@@ -75,7 +75,9 @@ test('legacy-pointer migration is journaled and uninstall removes only its named
     assert.notEqual(afterRecords, beforeRecords, 'migration must append journal records');
 
     fs.appendFileSync(agents, '<!-- rig:user-note:start -->\nkeep me\n<!-- rig:user-note:end -->\n');
-    assert.equal(uninstall(target).status, 'removed');
+    const removal = uninstall(target);
+    assert.equal(removal.status, 'removed');
+    assert.equal(removal.verification.status, 'verified_clean', JSON.stringify(removal.verification));
     const remaining = fs.readFileSync(agents, 'utf8');
     assert.doesNotMatch(remaining, /rig:catalog-routing/);
     assert.match(remaining, /rig:user-note:start[\s\S]*keep me[\s\S]*rig:user-note:end/);

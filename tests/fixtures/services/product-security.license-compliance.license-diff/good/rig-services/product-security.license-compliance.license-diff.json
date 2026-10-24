@@ -1,0 +1,5 @@
+{
+  "previous_inventory": "licenses.previous.json",
+  "current_inventory": "licenses.current.json",
+  "accept_new_licenses_automatically": false
+}

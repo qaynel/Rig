@@ -1,0 +1,9 @@
+{
+  "deprecated_apis": [
+    "legacyClient"
+  ],
+  "replacement_owners": [
+    "platform"
+  ],
+  "ignore_removal_deadline": false
+}

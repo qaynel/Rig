@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "service_id": "infrastructure.environment-config.secret-injection",
+  "input": "rig-services/infrastructure.environment-config.secret-injection.json",
+  "format": "json",
+  "ceiling": "Configuration validation only, so it confirms secret references, the delivery mechanism and the plaintext flag are declared; it does not read any secret store.",
+  "offer": "Reference the secret authority and inject through workload identity where available. Declared plaintext values in configuration cross the secret boundary and are rejected.",
+  "checks": {
+    "minimal": [
+      {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
+      }
+    ],
+    "mid": [
+      {
+        "field": "delivery_mechanism",
+        "op": "nonempty",
+        "reason": "Declare how secrets reach the workload, such as workload identity. An undefined path invites plaintext files, so name the mechanism."
+      }
+    ],
+    "maximal": [
+      {
+        "field": "plaintext_secret_values",
+        "op": "equals",
+        "value": false,
+        "reason": "Set plaintext secret values to false. A literal value in configuration is a leak, so remove it and rotate the secret."
+      }
+    ]
+  },
+  "slices": {
+    "floor": {
+      "check_id": "secret-injection-slice-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
+      }
+    },
+    "behavior-oracle": {
+      "check_id": "secret-injection-slice-behavior-oracle",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
+      }
+    },
+    "property-floor": {
+      "check_id": "secret-injection-slice-property-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
+      }
+    },
+    "mutation-floor": {
+      "check_id": "secret-injection-slice-mutation-floor",
+      "rule": {
+        "field": "secret_references",
+        "op": "nonempty",
+        "reason": "List secrets by reference to the authority that holds them. Values in configuration cross the secret boundary, so point to the store."
+      }
+    }
+  }
+}

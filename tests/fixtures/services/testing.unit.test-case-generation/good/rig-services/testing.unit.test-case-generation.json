@@ -1,0 +1,9 @@
+{
+  "behavior_cases": [
+    "reject malformed input"
+  ],
+  "asserted_outcomes": [
+    "throws invalid record"
+  ],
+  "assert_implementation_details": false
+}

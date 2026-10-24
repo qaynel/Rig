@@ -5,15 +5,17 @@ const fs = require('node:fs');
 const { inspectTarget, hostReview } = require('./inspect');
 const { recommend } = require('./profile');
 const { createPlan } = require('./plan');
-const { applyPlan, remediate } = require('./apply');
+const { applyPlan, remediate, remediationChallenge } = require('./apply');
 const { runChecks } = require('./checks');
 const { loadCatalog, validateReview, selectFromMenu } = require('./catalog');
-const { activatePolicy, policyStatus, proposePolicy, proposeRecovery, recoverPolicy, grantApproval } = require('./policy');
+const { activatePolicy, policyStatus, proposePolicy, grantApproval, loadActivePolicy, parsePolicyBytes, recoverPolicyActivation } = require('./policy');
+const { dispatchAction, createActionApprovalProposal } = require('./enforcement');
 const { uninstall } = require('./uninstall');
 const { runPreCommit } = require('./git-dispatch');
 const { verifyManualMcp } = require('./credentials');
+const { handleOnboarding } = require('./onboarding');
 
-const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit']);
+const ADVANCED = new Set(['inspect', 'recommend', 'host-review', 'select', 'plan', 'apply', 'remediate', 'check', 'policy', 'uninstall', 'validate-commit', 'onboarding', 'migrate']);
 
 function parseFlag(argv, name) {
   const idx = argv.indexOf(name);
@@ -58,6 +60,31 @@ function runAdvanced(subcommand, argv) {
     return;
   }
 
+  // Onboarding requests carry their own target, so the adapter must not
+  // require the legacy --target flag before reading the JSON request.
+  if (subcommand === 'onboarding') {
+    const inputPath = parseFlag(argv, '--input');
+    if (!inputPath || !fs.existsSync(inputPath)) throw new Error('rig: --input <request.json> is required');
+    const response = handleOnboarding(readJson(inputPath));
+    process.stdout.write(`${JSON.stringify(response)}\n`);
+    if (response.phase === 'failed') process.exitCode = 1;
+    return;
+  }
+
+  // Upgrade an existing v5 install to the corpus layout (journaled, resumable).
+  if (subcommand === 'migrate') {
+    const migrateTarget = parseFlag(argv, '--target');
+    if (!migrateTarget || !fs.existsSync(migrateTarget)) throw new Error('rig: --target <dir> is required and must exist');
+    const hostsFlag = parseFlag(argv, '--hosts');
+    const report = require('./migrate').migrate(migrateTarget, {
+      ...(hostsFlag ? { hosts: hostsFlag.split(',').map((h) => h.trim()).filter(Boolean) } : {}),
+      dryRun: argv.includes('--dry-run'),
+    });
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    if (report.status === 'refused') process.exitCode = 1;
+    return;
+  }
+
   const hostCheck = subcommand === 'check' && parseFlag(argv, '--host');
   const target = parseFlag(argv, '--target') || (hostCheck ? process.cwd() : null);
   if (!target || !fs.existsSync(target)) {
@@ -67,6 +94,7 @@ function runAdvanced(subcommand, argv) {
   if (subcommand === 'uninstall') {
     const result = uninstall(target, {
       purge: argv.includes('--purge'),
+      purgeGenerated: argv.includes('--purge-generated'),
       beforePurge: (paths) => process.stdout.write(`${JSON.stringify({ purge: paths })}\n`),
     });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -102,23 +130,26 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       return;
     }
-    if (action === 'recovery-challenge') {
-      const replacementPath = parseFlag(argv, '--replacement');
-      const identity = parseFlag(argv, '--identity');
-      const out = parseFlag(argv, '--out');
-      if (!replacementPath || !identity || !out || !fs.existsSync(replacementPath)) {
-        throw new Error('rig: policy recovery-challenge requires --replacement --identity --out');
-      }
-      writeOut(out, proposeRecovery(target, readJson(replacementPath), identity));
+    if (action === 'recover-activation') {
+      process.stdout.write(`${JSON.stringify(recoverPolicyActivation(target), null, 2)}\n`);
       return;
     }
-    if (action === 'recover') {
-      const challengePath = parseFlag(argv, '--challenge');
-      const approvalPath = parseFlag(argv, '--approval');
-      if (!challengePath || !approvalPath || !fs.existsSync(challengePath) || !fs.existsSync(approvalPath)) {
-        throw new Error('rig: policy recover requires --challenge and --approval');
-      }
-      process.stdout.write(`${JSON.stringify(recoverPolicy(target, readJson(challengePath), readJson(approvalPath)), null, 2)}\n`);
+    if (action === 'grant-proposal') {
+      const actionPath = parseFlag(argv, '--action');
+      const out = parseFlag(argv, '--out');
+      if (!actionPath || !out) throw new Error('rig: policy grant-proposal requires --action and --out');
+      writeOut(out, createActionApprovalProposal(target, readJson(actionPath)));
+      return;
+    }
+    if (action === 'evaluate') {
+      // The entrypoint a host pre-tool hook calls: the activated bundle decides, and
+      // missing or invalid evidence is a named deny, never a default grant.
+      const actionPath = parseFlag(argv, '--action');
+      if (!actionPath || !fs.existsSync(actionPath)) throw new Error('rig: policy evaluate requires --action <action.json>');
+      let result;
+      try { const approvalPath = parseFlag(argv, '--approval'); result = dispatchAction(target, readJson(actionPath), { approval: approvalPath ? readJson(approvalPath) : undefined }); } catch (err) { result = { decision: 'deny', reason: err.message }; }
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      if (result.decision === 'deny') process.exitCode = 1;
       return;
     }
     if (action === 'grant-approval') {
@@ -127,10 +158,13 @@ function runAdvanced(subcommand, argv) {
       if (!actionPath || !fs.existsSync(actionPath) || !out) {
         throw new Error('rig: policy grant-approval requires --action <action.json> and --out');
       }
-      writeOut(out, grantApproval(target, readJson(actionPath)));
+      const proposalPath = parseFlag(argv, '--proposal');
+      const approvalPath = parseFlag(argv, '--approval');
+      if (!proposalPath || !approvalPath) throw new Error('rig: policy grant-approval requires signed --proposal and --approval');
+      writeOut(out, grantApproval(target, readJson(actionPath), { proposal: readJson(proposalPath), approval: readJson(approvalPath) }).approval);
       return;
     }
-    throw new Error('rig: policy requires status, propose, activate, recovery-challenge, recover, or grant-approval');
+    throw new Error('rig: policy requires status, propose, activate, evaluate, or grant-approval');
   }
 
   if (subcommand === 'inspect') {
@@ -194,9 +228,25 @@ function runAdvanced(subcommand, argv) {
 
   if (subcommand === 'remediate') {
     const proposalPath = parseFlag(argv, '--proposal');
-    const approve = parseFlag(argv, '--approve');
     if (!proposalPath || !fs.existsSync(proposalPath)) throw new Error('rig: --proposal is required');
-    remediate(target, readJson(proposalPath), approve);
+    const proposal = readJson(proposalPath);
+    if (argv.includes('--challenge')) {
+      process.stdout.write(`${JSON.stringify(remediationChallenge(target, proposal), null, 2)}\n`);
+      return;
+    }
+    const approvalPath = parseFlag(argv, '--approval');
+    if (!approvalPath || !fs.existsSync(approvalPath)) throw new Error('rig: remediate requires --approval <signed-approval.json>');
+    const result = remediate(target, proposal, readJson(approvalPath));
+    process.stdout.write(`${JSON.stringify({
+      status: result.status,
+      proposal_digest: result.proposal_digest,
+      scan: {
+        verdict: result.scan.status === 0 ? 'pass' : 'fail',
+        remaining_findings: result.scan.status === 0 ? [] : 'see redacted local reports under reports/rig/',
+        report_directory: 'reports/rig/',
+      },
+    }, null, 2)}\n`);
+    if (!result.ok) process.exit(1);
     return;
   }
 
@@ -212,7 +262,7 @@ function runAdvanced(subcommand, argv) {
       process.stdout.write(output);
       return;
     }
-    const scope = parseFlag(argv, '--scope') || 'repo';
+    const scope = parseFlag(argv, '--scope') || (process.env.CI === 'true' ? 'repo' : 'diff');
     const service = parseFlag(argv, '--service');
     const result = runChecks(target, { scope, service });
     if (result.status !== 0) {
@@ -220,13 +270,14 @@ function runAdvanced(subcommand, argv) {
       if (result.stdout) process.stdout.write(result.stdout);
       process.exit(result.status || 1);
     }
-    process.stdout.write('check passed\n');
+    process.stdout.write(process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true' ? result.stdout : 'check passed\n');
   }
 
   if (subcommand === 'validate-commit') {
-    const policyPath = parseFlag(argv, '--policy');
-    const policy = policyPath && fs.existsSync(policyPath) ? readJson(policyPath) : null;
-    const result = runPreCommit(target, policy);
+    // The caller cannot replace activated permissions with a command-line file.
+    let result;
+    try { loadActivePolicy(target); result = runPreCommit(target); }
+    catch (error) { process.stderr.write(`rig: validate-commit refused: ${error.message}\n`); process.exit(1); }
     if (!result.allowed) {
       process.stderr.write(`${JSON.stringify(result, null, 2)}\n`);
       process.exit(1);

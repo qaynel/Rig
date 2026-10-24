@@ -1,0 +1,5 @@
+{
+  "allowed_ingress": [],
+  "default_action": "deny",
+  "allow_world_admin_access": false
+}
