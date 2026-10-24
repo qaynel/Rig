@@ -315,7 +315,7 @@ function repairSource(parsed, name) {
 function rootCause(repo, { symptom, seam }) {
   const parsed = parseSymptom(symptom);
   if (parsed.handoff) return { reproduced: false, handoff: parsed.handoff };
-  const seamAbs = path.resolve(repo, seam);
+  const seamAbs = containedPath(repo, seam);
   const seamRel = toPosix(path.relative(repo, seamAbs));
   const callers = trackedFiles(repo)
     .filter((rel) => rel.endsWith('.js') && rel !== seamRel && requiresSeam(repo, rel, seamAbs))
