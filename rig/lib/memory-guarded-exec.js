@@ -32,7 +32,7 @@ const SIGNAL_SUPERVISOR_SOURCE = `
 const fs = require('node:fs');
 const os = require('node:os');
 const { spawn } = require('node:child_process');
-const [limitRaw, command, ...args] = process.argv.slice(1);
+const [limitRaw, command, ...args] = (process.argv[1] === '-e' ? process.argv.slice(2) : process.argv.slice(1));
 const marker = ${JSON.stringify(SIGNAL_RESULT_MARKER)};
 const limit = Number(limitRaw) > 0 ? Number(limitRaw) : 1024 * 1024;
 const outputs = { stdout: [], stderr: [] };

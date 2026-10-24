@@ -8,6 +8,17 @@ const { spawnSync } = require('node:child_process');
 const release = require('../rig/catalog/baseline/release-evidence');
 const signoff = require('../rig/catalog/baseline/user-signoff');
 
+function signMessage(key, message, namespace) {
+  const tmp = key + '.msg';
+  fs.writeFileSync(tmp, message);
+  const r = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', namespace, tmp], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  const sig = fs.readFileSync(tmp + '.sig', 'utf8');
+  fs.rmSync(tmp, { force: true });
+  fs.rmSync(tmp + '.sig', { force: true });
+  return sig;
+}
+
 function fixture(t, mode) {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-release-security-'));
   t.after(() => fs.rmSync(repo, { recursive: true, force: true }));
@@ -18,7 +29,11 @@ function fixture(t, mode) {
   assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]).status, 0);
   fs.mkdirSync(path.join(repo, '.rig/trust'), { recursive: true });
   fs.writeFileSync(path.join(repo, '.rig/trust/gate1.allowed-signers'), `test-owner ${fs.readFileSync(key + '.pub', 'utf8')}`);
-  if (mode) signoff.select(repo, { confirm: true, mode, release_integrity: 'self-attestation' });
+  if (mode) {
+    const action = { purpose: 'rig-signoff-select', mode, release_integrity: 'self-attestation', key_protection: 'unspecified' };
+    const authorization = { identity: 'test-owner', signature: signMessage(key, signoff.approvalMessage(repo, action), 'rig-signoff') };
+    signoff.select(repo, { confirm: true, mode, release_integrity: 'self-attestation', authorization });
+  }
   const commit = release.record(repo, { kind: 'qa-commit' }).commit;
   for (const kind of ['full-gate', 'security', 'independent-review', 'scenario-coherence', 'health', 'clean-install']) {
     release.record(repo, { kind, status: 'pass', commit, source: 'real-download' });

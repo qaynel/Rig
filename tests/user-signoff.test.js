@@ -117,7 +117,8 @@ test('cryptographic mode rejects a typed name, a missing trust root, and a downg
 test('a verified signature publishes, and weakening the mode requires one', (t) => {
   const dir = repo(t);
   const key = enroll(t, dir);
-  signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt' });
+  const selectAction = { purpose: 'rig-signoff-select', mode: 'cryptographic', release_integrity: 'signature', key_protection: 'platform-prompt' };
+  signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt', authorization: { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, selectAction), 'rig-signoff') } });
   const commit = evidence(dir);
   const published = release.publish(dir, { commit, authorization: releaseAuthorization(dir, key, commit) });
   assert.equal(published.published, true, published.reason);
@@ -139,7 +140,8 @@ test('a verified signature publishes, and weakening the mode requires one', (t) 
 test('a sign-off change signature binds the requested key protection', (t) => {
   const dir = repo(t);
   const key = enroll(t, dir);
-  signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt' });
+  const selectAction = { purpose: 'rig-signoff-select', mode: 'cryptographic', release_integrity: 'signature', key_protection: 'platform-prompt' };
+  signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt', authorization: { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, selectAction), 'rig-signoff') } });
   const action = {
     purpose: 'rig-signoff-change',
     from: 'cryptographic',
@@ -155,6 +157,22 @@ test('a sign-off change signature binds the requested key protection', (t) => {
     authorization,
   });
   assert.equal(next.key_protection, 'security-key');
+});
+
+test('select requires owner authorization when a trust root is enrolled', (t) => {
+  const dir = repo(t);
+  const key = enroll(t, dir);
+  assert.throws(
+    () => signoff.select(dir, { confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation' }),
+    /trust root enrolled/,
+  );
+  assert.equal(signoff.current(dir), null);
+  const action = { purpose: 'rig-signoff-select', mode: 'acknowledgement', release_integrity: 'self-attestation', key_protection: 'unspecified' };
+  signoff.select(dir, {
+    confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation',
+    authorization: { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, action), 'rig-signoff') },
+  });
+  assert.equal(signoff.current(dir).mode, 'acknowledgement');
 });
 
 test('platform mode refuses approval without a verified adapter', (t) => {

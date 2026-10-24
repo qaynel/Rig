@@ -11,11 +11,9 @@
 // satisfy them. One Gate 1 trust root verifies signatures; this module does
 // not enrol a second key.
 //
-// rig: a raw rewrite of the policy file can point a new unsigned candidate at
-// acknowledgement. It cannot mint cryptographic_signature. Sealing the file
-// against that rewrite would mean failing closed unless the owner key has
-// signed the policy body; that seal is the change() signature, not a second
-// trust root.
+// When a trust root is enrolled, select() and change() both require an owner
+// signature. A raw policy file rewrite still bypasses this in a repo without a
+// trust root (acknowledgement mode), but cannot mint cryptographic_signature.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -138,6 +136,13 @@ function select(repo, choice = {}) {
   requireRepo(repo);
   if (choice.confirm !== true) throw new Error('sign-off selection requires explicit confirmation');
   if (current(repo)) throw new Error('a sign-off mode is already selected; change it under that mode');
+  const trustRootPath = path.join(repo, '.rig', 'trust', 'gate1.allowed-signers');
+  if (fs.existsSync(trustRootPath)) {
+    const norm = normalise(choice);
+    const action = { purpose: 'rig-signoff-select', mode: norm.mode, release_integrity: norm.release_integrity, key_protection: norm.key_protection };
+    const gate = verifyPolicySignature(repo, action, choice.authorization);
+    if (!gate.ok) throw new Error(`trust root enrolled; initial sign-off selection requires owner authorization: ${gate.reason}`);
+  }
   const policy = { ...normalise(choice), selected_at: new Date().toISOString() };
   writeJson(repo, POLICY_REL, policy);
   audit(repo, { event: 'select', mode: policy.mode, release_integrity: policy.release_integrity });
