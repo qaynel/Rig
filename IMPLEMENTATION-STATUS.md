@@ -2,23 +2,33 @@
 
 ## PR 159 repair loop — 2026-10-25
 
-Current branch and PR head: `vaibhav-kodiyan/ai-sdlc-harness` at
-`0bbe1c26d23e34eb20f89f79a4c9ffe6e46bc4c3`; clean at loop start.
+The loop began on `vaibhav-kodiyan/ai-sdlc-harness` at
+`0bbe1c26d23e34eb20f89f79a4c9ffe6e46bc4c3`. The first repair commit,
+`6636ac3f655eb0ba98a9bd6fa1d9eb617a7e8114`, was pushed to PR 159.
 Both Gate 1 contracts verify under `gate1-owner`. The rows below are current
 work; historical checkpoints follow.
 
 The integrated `npm test` run exited 0 on the nine-file repair diff: main Node
 suite 1445 total (1440 pass, 0 fail, 5 skipped), secret checks 15 pass, Pi
-extension 15 pass, MCP 6 pass. Log: `.context/pr159-npm-test.log`. This status
-update is a tracked edit after that run, so the exact final bytes must pass a
-fresh full gate before push. Independent report-only review is saved at
+extension 15 pass, MCP 6 pass. The same full gate passed on the exact first
+repair-commit bytes. Logs: `.context/pr159-npm-test.log` and
+`.context/pr159-npm-test-final.log`. Independent report-only review is saved at
 `.context/pr159-independent-review.md`; it found no code defect in the repair
 diff, but found the absent private reporting channel a high release risk.
+
+A second, still-uncommitted repair diff (`.gitattributes`, the two path-
+normalization fixes below, and the MCP dependency bump) also passed the full
+gate: `npm test` exited 0 with the same 1445/1440/0/5 main-suite numbers, plus
+`rig-mcp` 6/6. Log: `.context/pr159-npm-test-deps-windows-final.log`.
+Independent review of the Windows-only portion is saved at
+`.context/pr159-windows-independent-review.md` (no defect found).
 
 | Failure | Environment and observed error | Hypothesis / attempted correction | Evidence and status | Next action |
 |---|---|---|---|---|
 | Main `test`, `tests/coherence.test.js` | GitHub Actions Ubuntu at the old run, 25 live issue states disagreed with candidate declarations. | Live tracker snapshot changed after that run; candidate/delivered semantics are behaving as designed. No code correction. | `node scripts/check-coherence.js` now passes: 66 declarations match 66 live issues; focused integration test passed 1/1 in 65.9 s. | Recheck the exact new PR head after a verified push; do not weaken candidate comparison. |
 | Catalogue shard 5 lint-format | GitHub Actions Linux/Node 22, expected `checked`, got `failed`; a matching unprivileged container reports `filesystem_isolation_unavailable` before task launch. | The shard job omitted bubblewrap install and namespace preflight already used by the full test job. Added the same setup to `.github/workflows/test.yml`; isolation stays enforced. | Linux/Node 22 full shard: 24/24 with namespace capability, 23/24 without it; Docker actionlint and `git diff --check` pass. Historical hosted probe stderr was not retained. | Rerun shard 5 in GitHub Actions on the new exact commit. |
+| Windows AI-SDLC advisory | Windows checkout expanded LF to CRLF, changing the pinned tokenizer bytes and archive manifest; the signed test ceremony also emitted backslash paths, and the reviewer diff path used backslashes. | No `.gitattributes` existed; an isolated `core.autocrlf=true` clone reproduced tokenizer size 249218 vs pinned 219690 and modified thousands of tracked text files. Added LF checkout policy and normalized repository paths at the two code boundaries. | Full local gate and independent review both pass on the uncommitted diff; pushed in this commit. | Inspect the hosted Windows advisory on the new exact PR head; local macOS passes cannot substitute for that run. |
+| MCP dependency vulnerabilities | `npm audit` on `rig-mcp` and `rig/mcp-runtime` reported zod <4.6.6 (high, memory exhaustion), body-parser 2.0.0–2.3.0 (high, DoS), fast-uri 3.0.0–3.1.8 (moderate, scheme/host confusion). | Bumped `zod` to `^4.6.7` in both package.json files, clean-installed, then `npm audit fix` for the transitive body-parser/fast-uri bumps; mirrored the identical package.json/package-lock.json into `rig/mcp-runtime` per `check-rule-copies.js`. | Both trees: `npm audit` → 0 vulnerabilities. Resolved versions: zod 4.6.7, `@modelcontextprotocol/sdk` 1.32.1 (within existing `^1.26.0` range), body-parser 2.4.0, fast-uri 3.1.9. Verified every zod API this repo's `index.js` uses (`record`, `enum`, `number().int()`, `nullable`) against zod 4, and confirmed the SDK's peerDependencies already accept `^4.0`. `rig-mcp` test suite 6/6; `check-rule-copies.js` parity gate passes. | None; integrated into this commit. |
 | Advisory PT-017 | Shared CI runners have no enrolled owner key. | Owner-controlled environment, not a software test substitute. | Fails explicitly as environment-bound; both contracts verify locally. | Owner runs the enrolled-key proof when requested. |
 | Advisory PT-046 | Positive signed fixture lacks `independent-review` and `scenario-coherence` evidence required by current public-release policy. | Protected fixture and tightened policy conflict; no protected edit or policy downgrade. | Reproduced locally with focused PT-046 (exit 1); exact two-line amendment candidate prepared in the local wiki. | Owner reviews and signs a protected fixture amendment after independent work. |
 | Offline public-download PT-068/PT-077 | Docker job downloads v6.0.0 GitHub source tarball; installer reports `archive has no rig-archive.json`. | Older release artifact predates the new self-contained archive. | Real download is genuine but the published artifact is incompatible. | Keep gap visible until the approved new release artifact exists. |

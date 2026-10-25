@@ -195,7 +195,7 @@ function gitNewFileDiff(repo, rel) {
 function diffText(repo, diff) {
   const rels = Array.isArray(diff) ? diff : [diff];
   if (rels.length && rels.every((rel) => isFile(inside(repo, rel)))) {
-    return rels.map((rel) => gitNewFileDiff(repo, path.relative(repo, inside(repo, rel)))).join('');
+    return rels.map((rel) => gitNewFileDiff(repo, path.relative(repo, inside(repo, rel)).split(path.sep).join('/'))).join('');
   }
   return Array.isArray(diff) ? diff.join('\n') : diff;
 }
