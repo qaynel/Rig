@@ -1,5 +1,33 @@
 # Implementation status — configurable user sign-off
 
+## PR 159 repair loop — 2026-10-25
+
+Current branch and PR head: `vaibhav-kodiyan/ai-sdlc-harness` at
+`0bbe1c26d23e34eb20f89f79a4c9ffe6e46bc4c3`; clean at loop start.
+Both Gate 1 contracts verify under `gate1-owner`. The rows below are current
+work; historical checkpoints follow.
+
+The integrated `npm test` run exited 0 on the nine-file repair diff: main Node
+suite 1445 total (1440 pass, 0 fail, 5 skipped), secret checks 15 pass, Pi
+extension 15 pass, MCP 6 pass. Log: `.context/pr159-npm-test.log`. This status
+update is a tracked edit after that run, so the exact final bytes must pass a
+fresh full gate before push. Independent report-only review is saved at
+`.context/pr159-independent-review.md`; it found no code defect in the repair
+diff, but found the absent private reporting channel a high release risk.
+
+| Failure | Environment and observed error | Hypothesis / attempted correction | Evidence and status | Next action |
+|---|---|---|---|---|
+| Main `test`, `tests/coherence.test.js` | GitHub Actions Ubuntu at the old run, 25 live issue states disagreed with candidate declarations. | Live tracker snapshot changed after that run; candidate/delivered semantics are behaving as designed. No code correction. | `node scripts/check-coherence.js` now passes: 66 declarations match 66 live issues; focused integration test passed 1/1 in 65.9 s. | Recheck the exact new PR head after a verified push; do not weaken candidate comparison. |
+| Catalogue shard 5 lint-format | GitHub Actions Linux/Node 22, expected `checked`, got `failed`; a matching unprivileged container reports `filesystem_isolation_unavailable` before task launch. | The shard job omitted bubblewrap install and namespace preflight already used by the full test job. Added the same setup to `.github/workflows/test.yml`; isolation stays enforced. | Linux/Node 22 full shard: 24/24 with namespace capability, 23/24 without it; Docker actionlint and `git diff --check` pass. Historical hosted probe stderr was not retained. | Rerun shard 5 in GitHub Actions on the new exact commit. |
+| Advisory PT-017 | Shared CI runners have no enrolled owner key. | Owner-controlled environment, not a software test substitute. | Fails explicitly as environment-bound; both contracts verify locally. | Owner runs the enrolled-key proof when requested. |
+| Advisory PT-046 | Positive signed fixture lacks `independent-review` and `scenario-coherence` evidence required by current public-release policy. | Protected fixture and tightened policy conflict; no protected edit or policy downgrade. | Reproduced locally with focused PT-046 (exit 1); exact two-line amendment candidate prepared in the local wiki. | Owner reviews and signs a protected fixture amendment after independent work. |
+| Offline public-download PT-068/PT-077 | Docker job downloads v6.0.0 GitHub source tarball; installer reports `archive has no rig-archive.json`. | Older release artifact predates the new self-contained archive. | Real download is genuine but the published artifact is incompatible. | Keep gap visible until the approved new release artifact exists. |
+| Public security reporting | GitHub API reports `private-vulnerability-reporting.enabled=false`; `SECURITY.md`, conduct policy and issue contact link point to that endpoint. | Published guidance claims a private channel that is disabled. | Read-only API query confirmed the configuration. | Correct public wording and request owner-controlled enablement before claiming a private channel. |
+
+Restart: read this table and the latest dated wiki reasoning trace, inspect the
+actual PR head/checks, and continue the smallest failing loop. Do not use the
+historical results below as current-candidate evidence.
+
 ## QA candidate checkpoint — 2026-10-24
 
 The sections below record earlier checkpoints. The current candidate includes

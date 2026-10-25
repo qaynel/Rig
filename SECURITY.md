@@ -7,16 +7,15 @@ Older releases are not maintained on separate security branches.
 
 ## Reporting a vulnerability
 
-Report vulnerabilities privately through GitHub Security Advisories:
+Private vulnerability reporting is currently unavailable: GitHub private
+vulnerability reporting is not enabled for this repository. Do not submit a
+suspected vulnerability through a public issue, pull request, or discussion.
+The repository owner must enable private vulnerability reporting in GitHub's
+repository security settings before this project can accept reports privately.
 
-https://github.com/qaynel/Rig/security/advisories/new
-
-Do not open a public issue, pull request, or discussion for a suspected
-vulnerability.
-
-Include a description, the version or commit you tested, and steps to
-reproduce when you can share them without publishing an exploit. The
-maintainers will reply on that advisory.
+When private reporting is enabled, include a description, the version or commit
+you tested, and steps to reproduce when you can share them without publishing
+an exploit. The maintainers will reply through the private report.
 
 ## Scope
 

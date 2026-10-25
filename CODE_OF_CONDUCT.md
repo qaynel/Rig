@@ -58,16 +58,21 @@ appointed representative at an online or offline event.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-https://github.com/qaynel/Rig/security/advisories/new.
-All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior should be
+reported privately to the community leaders responsible for enforcement.
+This repository currently has no configured private reporting channel; its
+GitHub private vulnerability reporting is disabled. Do not report an incident
+in a public issue, pull request, or discussion. The repository owner must
+enable a private reporting channel before this project can accept reports
+through GitHub. See [SECURITY.md](SECURITY.md) for the current reporting
+status.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
 
-Title the report `Code of Conduct` so it is routed separately from a software
-vulnerability. See [SUPPORT.md](SUPPORT.md) for other kinds of contact.
+When a private reporting channel is available, title the report `Code of
+Conduct` so it is routed separately from a software vulnerability. See
+[SUPPORT.md](SUPPORT.md) for other kinds of contact.
 
 ## Enforcement Guidelines
 

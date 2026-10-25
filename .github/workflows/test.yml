@@ -85,6 +85,15 @@ jobs:
         with:
           python-version: '3.12'
 
+      # Match the full test job: Ubuntu 24.04 restricts rootless user
+      # namespaces through AppArmor, while the Linux task sandbox needs them.
+      - name: Prepare task sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+
       - name: Restore local wiki
         run: |
           node scripts/ensure-wiki.js

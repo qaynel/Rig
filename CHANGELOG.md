@@ -8,6 +8,9 @@
   every sign-off mode.
 - Document these boundaries in `docs/install.md`, `docs/vision.md`, and
   `docs/architecture.md`.
+- Align contributor PR guidance with the QA branch, and disclose the currently
+  disabled private reporting channel in `CONTRIBUTING.md`, `SECURITY.md`,
+  `CODE_OF_CONDUCT.md`, `SUPPORT.md`, and the GitHub issue templates.
 
 ## [6.0.0] - 2026-10-24
 

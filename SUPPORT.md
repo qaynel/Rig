@@ -13,13 +13,17 @@ Use the issue templates for bugs and feature requests. Code changes follow
 
 ## Security
 
-Do not report a vulnerability in a public issue. Use
-[SECURITY.md](SECURITY.md).
+Do not report a vulnerability in a public issue, pull request, or discussion.
+Private vulnerability reporting is currently disabled for this repository,
+so there is no configured private reporting channel yet. See
+[SECURITY.md](SECURITY.md) for the status and required repository-owner setup.
 
 ## Conduct
 
 Report unacceptable behavior as described in
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). This repository currently has no
+configured private reporting channel for those reports; do not use a public
+issue, pull request, or discussion.
 
 ## Accessibility
 
