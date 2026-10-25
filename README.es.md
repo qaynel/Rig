@@ -16,10 +16,10 @@ apruebas la adaptación exacta. Rig no instala niveles de capacidad fijos.
 ## Instalar
 
 En una máquina con Git, ejecuta este comando para obtener el instalador de la versión
-6.0.0 e instalar Rig en un repositorio:
+6.0.1 e instalar Rig en un repositorio:
 
 ```sh
-git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0 && /tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
+git clone --depth 1 --branch v6.0.1 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.1 && /tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/repository
 ```
 
 El instalador detecta la configuración de agente existente y añade las instrucciones

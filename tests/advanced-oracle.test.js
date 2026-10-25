@@ -945,7 +945,7 @@ test('AT-DIST-1 stranger installs complete named-tag release', () => {
   // authority across every version-bearing file. Pinning a literal version
   // here duplicates that authority and goes stale on every release.
   const packageJson = json(path.join(__dirname, '..', 'package.json'));
-  assert.equal(packageJson.version, '6.0.0');
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
   const skills = api('skills.js', 'listVendoredSkills')();
   assert.equal(skills.length, 55);
   assert.equal(new Set(skills.map((entry) => entry.name)).size, 55);

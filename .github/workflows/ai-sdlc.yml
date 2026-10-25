@@ -17,6 +17,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore and verify the signed AI-SDLC contract
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/approve-gate1.js status --programme ai-sdlc
       - name: Check CI preparation
         run: node --test scripts/ci-preparation.test.js
       - name: Build self-contained archive
@@ -27,6 +31,13 @@ jobs:
           path: |
             .context/dist/rig-public-*.tar.gz
             .context/dist/rig-public-*.tar.gz.sha256
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-sdlc-contract-${{ github.sha }}
+          path: wiki/specs/ai-sdlc-harness/
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 14
@@ -54,6 +65,10 @@ jobs:
         with:
           name: rig-public-${{ github.sha }}
           path: .context/downloaded
+      - uses: actions/download-artifact@v4
+        with:
+          name: ai-sdlc-contract-${{ github.sha }}
+          path: wiki/specs/ai-sdlc-harness
       - name: Select downloaded archive
         shell: bash
         run: |
@@ -78,21 +93,26 @@ jobs:
           retention-days: 14
 
   # D1 — real-download offline lane (PT-068, PT-077) in a clean Linux
-  # container. RIG_PUBLIC_ARCHIVE_URL is the owner-supplied public release
-  # source tarball. Until the AI-SDLC release ships a self-contained
-  # rig-public-<version>.tar.gz (rig-archive.json plus inference assets),
-  # PT-068/PT-077 fail against it; that failure is the named gap, visible by
-  # design. The sidecar records the downloaded bytes (transport evidence):
-  # GitHub tag tarballs are not byte-stable, so nothing pre-pins their digest.
+  # container. Set the repository variable to the self-contained public
+  # rig-public-<version>.tar.gz release asset after publication. The fallback
+  # is the old v6.0.0 source tarball, which intentionally lacks rig-archive.json
+  # and keeps both criteria red until that real release asset exists. The
+  # sidecar records downloaded bytes (transport evidence); GitHub tag tarballs
+  # are not byte-stable, so nothing pre-pins their digest.
   test-offline:
     name: offline public archive (docker)
+    needs: archive
     runs-on: ubuntu-latest
     container: node:22-bookworm
     continue-on-error: true
     env:
-      RIG_PUBLIC_ARCHIVE_URL: https://github.com/qaynel/Rig/archive/refs/tags/v6.0.0.tar.gz
+      RIG_PUBLIC_ARCHIVE_URL: ${{ vars.RIG_PUBLIC_ARCHIVE_URL || 'https://github.com/qaynel/Rig/archive/refs/tags/v6.0.0.tar.gz' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ai-sdlc-contract-${{ github.sha }}
+          path: wiki/specs/ai-sdlc-harness
       - name: Download the public archive (real download)
         run: |
           mkdir -p .context/downloaded

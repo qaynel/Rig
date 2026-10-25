@@ -36,6 +36,6 @@ const summary = { platform: process.platform, commit: process.env.GITHUB_SHA || 
 fs.writeFileSync(path.join(output, 'result.json'), `${JSON.stringify(summary, null, 2)}\n`);
 const report = `### AI-SDLC acceptance: ${process.platform}\n\nExit: ${result.status ?? result.signal ?? 'spawn error'}; counts: ${JSON.stringify(counts)}\n\n`
   + (failures.length ? failures.map((name) => `- ${name}`).join('\n') : 'No failed tests reported.')
-  + '\n\nThe complete lane runs unchanged. Failures remain failures, including the protected human-authentication criterion awaiting an owner amendment. This advisory workflow is separate from the repository gate.\n';
+  + '\n\nThe complete lane runs unchanged. Hosted PT-017 uses a throwaway key only to test sign/verify mechanics; it does not represent owner approval. Real owner-key and public-archive evidence still require their respective owner and release environments. This advisory workflow is separate from the repository gate.\n';
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, report);
 process.exitCode = result.status === 0 ? 0 : result.status || 1;

@@ -12,6 +12,13 @@
   disabled private reporting channel in `CONTRIBUTING.md`, `SECURITY.md`,
   `CODE_OF_CONDUCT.md`, `SUPPORT.md`, and the GitHub issue templates.
 
+## [6.0.1] - Unreleased
+
+- Prepare the self-contained public archive with its `rig-archive.json`
+  manifest and pinned local inference assets for offline semantic search.
+- Keep clean real-download verification as a required release check; the
+  v6.0.0 GitHub source tarball is not a compatible public archive.
+
 ## [6.0.0] - 2026-10-24
 
 - Deliver Rig's agent workflow, catalogue services, and standards from the

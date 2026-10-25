@@ -8,11 +8,11 @@ does not install fixed capability tiers.
 
 ## Install
 
-On a machine with Git, run this command to fetch the 6.0.0 installer and install
+On a machine with Git, run this command to fetch the 6.0.1 installer and install
 Rig into a repository:
 
 ```sh
-git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0 && /tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
+git clone --depth 1 --branch v6.0.1 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.1 && /tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/repository
 ```
 
 The installer detects existing agent configuration and adds the shared Rig

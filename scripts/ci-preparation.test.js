@@ -86,3 +86,54 @@ test('acceptance runner executes every file and preserves a failing exit and fai
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('fresh checkout restores the wiki contract without replacing the tracked oracle', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-ci-wiki-'));
+  const wikiRemote = path.join(root, 'Rig.wiki.git');
+  const wikiSource = path.join(root, 'wiki-source');
+  const checkout = path.join(root, 'checkout');
+  const git = (args, cwd) => {
+    const result = spawnSync('git', ['-c', 'core.hooksPath=', ...args], { cwd, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    return result;
+  };
+  const writeFile = (base, rel, body) => {
+    const file = path.join(base, rel);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, body);
+  };
+  try {
+    fs.mkdirSync(wikiSource);
+    git(['init', '--bare', wikiRemote], root);
+    git(['init'], wikiSource);
+    git(['config', 'user.email', 'ci@example.invalid'], wikiSource);
+    git(['config', 'user.name', 'CI fixture'], wikiSource);
+    writeFile(wikiSource, 'agent-primer.md', '# restored wiki\n');
+    writeFile(wikiSource, 'specs/ai-sdlc-harness/15-gate1-contract.md', 'signed contract bytes\n');
+    writeFile(wikiSource, 'specs/ai-sdlc-harness/16-test-manifest.md', 'test manifest bytes\n');
+    git(['add', '.'], wikiSource);
+    git(['commit', '-m', 'wiki fixture'], wikiSource);
+    git(['remote', 'add', 'origin', wikiRemote], wikiSource);
+    git(['push', 'origin', 'HEAD'], wikiSource);
+
+    fs.mkdirSync(path.join(checkout, 'scripts'), { recursive: true });
+    fs.copyFileSync(path.join(__dirname, 'ensure-wiki.js'), path.join(checkout, 'scripts/ensure-wiki.js'));
+    fs.mkdirSync(path.join(checkout, 'wiki/gate1'), { recursive: true });
+    fs.writeFileSync(path.join(checkout, 'wiki/gate1/acceptance.md'), 'tracked oracle bytes\n');
+    writeFile(checkout, 'wiki/specs/ai-sdlc-harness/16-test-manifest.md', 'checkout bytes\n');
+    git(['init'], checkout);
+    git(['remote', 'add', 'origin', path.join(root, 'Rig.git')], checkout);
+
+    const restored = spawnSync(process.execPath, [path.join(checkout, 'scripts/ensure-wiki.js')], {
+      cwd: checkout, encoding: 'utf8',
+    });
+    assert.equal(restored.status, 0, restored.stderr || restored.stdout);
+    assert.equal(fs.readFileSync(path.join(checkout, 'wiki/agent-primer.md'), 'utf8'), '# restored wiki\n');
+    assert.equal(fs.readFileSync(path.join(checkout, 'wiki/specs/ai-sdlc-harness/15-gate1-contract.md'), 'utf8'), 'signed contract bytes\n');
+    assert.equal(fs.readFileSync(path.join(checkout, 'wiki/specs/ai-sdlc-harness/16-test-manifest.md'), 'utf8'), 'checkout bytes\n');
+    assert.equal(fs.readFileSync(path.join(checkout, 'wiki/gate1/acceptance.md'), 'utf8'), 'tracked oracle bytes\n');
+    assert.equal(fs.existsSync(path.join(checkout, 'wiki/.git')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
