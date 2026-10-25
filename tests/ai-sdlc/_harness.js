@@ -42,7 +42,8 @@ function tempRepo(prefix = 'rig-acc-') {
 function write(dir, rel, body) {
   const abs = path.join(dir, rel);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, typeof body === 'string' ? body : JSON.stringify(body, null, 2));
+  const raw = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body, null, 2);
+  fs.writeFileSync(abs, raw);
   return abs;
 }
 

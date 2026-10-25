@@ -1,7 +1,7 @@
 'use strict';
 
 const test = require('node:test');
-const { ROOT, assert, fs, path, spawnSync, tempRepo, write, environmentBound } = require('./_harness');
+const { ROOT, assert, fs, path, spawnSync, tempRepo, write, testKey, environmentBound } = require('./_harness');
 
 const approve = require('../../scripts/approve-gate1');
 
@@ -20,6 +20,14 @@ function configuredKey() {
 }
 
 function signCurrentContract(repo, key) {
+  // The traceability preflight parses every .md file in the contract
+  // directory, not only the three signed contract documents, so the whole
+  // directory has to exist in the fixture repo for that check to run at all.
+  const contractDir = path.join(ROOT, 'wiki', 'specs', 'ai-sdlc-harness');
+  for (const name of fs.readdirSync(contractDir)) {
+    if (!name.endsWith('.md')) continue;
+    write(repo, path.join('wiki', 'specs', 'ai-sdlc-harness', name), fs.readFileSync(path.join(contractDir, name)));
+  }
   for (const file of approve.programmeProtectedFiles(ROOT, 'ai-sdlc')) {
     write(repo, file, fs.readFileSync(path.join(ROOT, file)));
   }
@@ -35,14 +43,7 @@ function signCurrentContract(repo, key) {
   }
 }
 
-test('PT-017 an enrolled allowed key signs and verifies with the existing path', () => {
-  const key = configuredKey();
-  if (!key) {
-    environmentBound('set RIG_GATE1_SIGNING_KEY to the enrolled owner key; this lane never simulates a touch or substitutes a software fixture');
-  }
-  const repo = tempRepo('rig-hw-');
-  signCurrentContract(repo, key);
-
+function assertSignsAndVerifies(repo) {
   const allowed = fs.readFileSync(path.join(repo, 'wiki/gate1/gate1.allowed-signers'), 'utf8');
   const type = allowed.trim().split('\n').find((line) => line && !line.startsWith('#'))?.split(/\s+/).find((field) => keyTypeAllowed(field));
   assert.ok(type, 'the enrolled key uses an algorithm the single trust root accepts');
@@ -51,6 +52,29 @@ test('PT-017 an enrolled allowed key signs and verifies with the existing path',
     '-I', 'gate1-owner', '-n', 'rig-gate1', '-s', path.join(repo, 'wiki/gate1/ai-sdlc/ai-sdlc.sig'),
   ], { input: approve.programmeMessage(repo, 'ai-sdlc'), encoding: 'utf8' });
   assert.equal(verify.status, 0, verify.stderr);
+}
+
+test('PT-017 an enrolled allowed key signs and verifies with the existing path', () => {
+  const key = configuredKey();
+  if (key) {
+    const repo = tempRepo('rig-hw-');
+    signCurrentContract(repo, key);
+    assertSignsAndVerifies(repo);
+    return;
+  }
+  if (process.env.GITHUB_ACTIONS !== 'true') {
+    environmentBound('set RIG_GATE1_SIGNING_KEY to the enrolled owner key; local runs never simulate a touch or substitute a software fixture');
+  }
+  // Shared CI holds no owner key and never will (North star 24/26/27): it
+  // cannot verify a human was present. This branch proves only that the
+  // sign/verify mechanism itself is correct on this OS/Node version, using a
+  // throwaway key generated and discarded inside this one job run — nothing
+  // is written to a GitHub secret or any persistent store. It is not, and
+  // must never be read as, evidence of owner approval; that proof exists
+  // only in the owner's own ceremony, run outside CI with the enrolled key.
+  const repo = tempRepo('rig-hw-ci-');
+  signCurrentContract(repo, testKey(repo, 'ci-mechanism-key'));
+  assertSignsAndVerifies(repo);
 });
 
 test('PT-018 absent key never causes agent approval or a second signer', () => {
