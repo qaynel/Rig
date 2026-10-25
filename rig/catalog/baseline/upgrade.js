@@ -14,7 +14,9 @@ const embedding = require('./embedding');
 const memory = require('./memory');
 
 const RIG_DIR = '.rig';
-const INDEX = path.join(RIG_DIR, 'memory', 'index.json');
+// Logical path returned to callers; kept POSIX-form so it matches on every
+// host regardless of path.sep (real fs access below tolerates either).
+const INDEX = `${RIG_DIR}/memory/index.json`;
 
 function readJson(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
@@ -51,7 +53,7 @@ function run(repo, { to } = {}) {
   }
 
   writeJson(path.join(repo, RIG_DIR, 'release.json'), { ...release, tag: to, upgraded_from: release.tag });
-  migrated.push(path.join(RIG_DIR, 'release.json'));
+  migrated.push(`${RIG_DIR}/release.json`);
   return { migrated, from: release.tag, to };
 }
 
