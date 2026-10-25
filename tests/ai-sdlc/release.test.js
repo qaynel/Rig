@@ -56,7 +56,7 @@ test('PT-046 a readiness report alone cannot execute a protected action', () => 
   const repo = releaseRepo();
   const release = capability('release-evidence');
   const commit = release.record(repo, { kind: 'qa-commit' }).commit;
-  for (const kind of ['health', 'clean-install', 'review', 'security']) {
+  for (const kind of ['health', 'clean-install', 'security', 'independent-review', 'scenario-coherence']) {
     release.record(repo, { kind, status: 'pass', commit, source: 'real-download' });
   }
   assert.equal(release.eligible(repo, { commit }).eligible, true, 'the readiness report may say ready');
@@ -71,7 +71,7 @@ test('PT-046 a readiness report alone cannot execute a protected action', () => 
   const signoff = capability('user-signoff');
   signoff.select(repo, { confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation' });
   const chosen = release.record(repo, { kind: 'qa-commit' }).commit;
-  for (const kind of ['health', 'clean-install', 'review', 'security']) {
+  for (const kind of ['health', 'clean-install', 'security', 'independent-review', 'scenario-coherence']) {
     release.record(repo, { kind, status: 'pass', commit: chosen, source: 'real-download' });
   }
   const forged = release.publish(repo, { commit: chosen, authorization: { signed_by: 'gate1-owner', owner_approved: true } });
