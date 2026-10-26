@@ -11,6 +11,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { containedPath } = require('../../lib/path-safety');
+const { policyPath, atomicWrite } = require('../../lib/policy-transaction');
 const { readTrustRoot, verifyTrustRootApproval } = require('../../lib/trust-root');
 const traceability = require('./check-traceability');
 const release = require('./release-evidence');
@@ -135,18 +136,18 @@ function enter(repo, to) {
   catch (error) { return { allowed: false, missing: [{ artefact: `validated inputs for ${phase}`, remedy: `repair inputs before retrying: ${error.message}` }] }; }
 
   // A corrupt run record is refused, not overwritten: its contents may be evidence.
-  const runPath = path.join(repo, '.rig', 'run.json');
-  const state = readRun(runPath);
-  if (!state) {
-    return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: 'repair or remove .rig/run.json: it is not a JSON object' }] };
+  try {
+    const runPath = policyPath(repo, '.rig/run.json');
+    const state = readRun(runPath);
+    if (!state) {
+      return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: 'repair or remove .rig/run.json: it is not a JSON object' }] };
+    }
+    state.phase = to;
+    atomicWrite(repo, '.rig/run.json', `${JSON.stringify(state, null, 2)}\n`);
+    return { allowed: true, missing: [] };
+  } catch (error) {
+    return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: `repair the run record path before retrying: ${error.message}` }] };
   }
-
-  state.phase = to;
-  fs.mkdirSync(path.dirname(runPath), { recursive: true });
-  const tmp = `${runPath}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify(state, null, 2)}\n`);
-  fs.renameSync(tmp, runPath);
-  return { allowed: true, missing: [] };
 }
 
 module.exports = { enter, verifyInputs };

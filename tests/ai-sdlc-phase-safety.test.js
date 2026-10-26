@@ -23,6 +23,38 @@ test('phase entry refuses fake signatures and failed gate evidence without mutat
   assert.equal(preflight.enter(repo, 'release_ready').allowed, false);
   assert.equal(JSON.parse(fs.readFileSync(path.join(repo, '.rig/run.json'))).phase, 'designed');
 });
+test('phase entry refuses a .rig directory symlink before reading or writing the run record', (t) => {
+  const { repo } = fixture(t);
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-phase-outside-'));
+  t.after(() => fs.rmSync(outside, { recursive: true, force: true }));
+  const rules = path.join(outside, '.rig/rules/rig.md');
+  const run = path.join(outside, '.rig/run.json');
+  fs.mkdirSync(path.dirname(rules), { recursive: true });
+  fs.writeFileSync(rules, '# Outside instructions\n');
+  fs.writeFileSync(run, '{"phase":"draft"}\n');
+  fs.symlinkSync(path.join(outside, '.rig'), path.join(repo, '.rig'));
+
+  const result = preflight.enter(repo, 'onboarded');
+
+  assert.equal(result.allowed, false);
+  assert.equal(fs.readFileSync(run, 'utf8'), '{"phase":"draft"}\n');
+});
+test('phase entry does not follow a planted predictable temporary-file symlink', (t) => {
+  const { repo, write } = fixture(t);
+  write('.rig/rules/rig.md', '# Rig instructions\n');
+  write('.rig/run.json', { phase: 'intent_draft' });
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-phase-outside-'));
+  t.after(() => fs.rmSync(outside, { recursive: true, force: true }));
+  const victim = path.join(outside, 'target');
+  fs.writeFileSync(victim, 'keep this file byte-for-byte\n');
+  fs.symlinkSync(victim, `${path.join(repo, '.rig/run.json')}.${process.pid}.tmp`);
+
+  const result = preflight.enter(repo, 'onboarded');
+
+  assert.equal(result.allowed, true, JSON.stringify(result));
+  assert.equal(fs.readFileSync(victim, 'utf8'), 'keep this file byte-for-byte\n');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(repo, '.rig/run.json'), 'utf8')).phase, 'onboarded');
+});
 test('completion requires positive evidence for this phase and current candidate', (t) => {
   const { repo, write } = fixture(t);
   write('app.js', 'module.exports = 1;');

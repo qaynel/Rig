@@ -14,6 +14,8 @@
 
 ## [6.0.1] - Unreleased
 
+- Harden AI-SDLC phase transitions against escaping `.rig` symlinks and planted
+  temporary-file symlinks by reusing the contained, exclusive atomic state writer.
 - Prepare the self-contained public archive with its `rig-archive.json`
   manifest and pinned local inference assets for offline semantic search.
 - Keep clean real-download verification as a required release check; the
