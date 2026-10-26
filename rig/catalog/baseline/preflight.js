@@ -52,8 +52,9 @@ const REQUIRED = {
 const PHASES = Object.keys(REQUIRED);
 const ALIASES = { implementing: 'implementation', verifying: 'verification' };
 
-function present(abs, artefact) {
+function present(repo, artefact) {
   try {
+    const abs = containedPath(repo, artefact);
     const st = fs.statSync(abs);
     return artefact.endsWith('/') ? st.isDirectory() && fs.readdirSync(abs).length > 0 : st.isFile();
   } catch {
@@ -129,7 +130,7 @@ function enter(repo, to) {
   }
 
   const missing = REQUIRED[phase]
-    .filter(({ artefact }) => !present(path.join(repo, artefact), artefact))
+    .filter(({ artefact }) => !present(repo, artefact))
     .map(({ artefact, remedy }) => ({ artefact, remedy }));
   if (missing.length) return { allowed: false, missing };
   try { verifyInputs(repo, phase); }
@@ -142,8 +143,24 @@ function enter(repo, to) {
     if (!state) {
       return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: 'repair or remove .rig/run.json: it is not a JSON object' }] };
     }
+    if (state.phase === to) return { allowed: true, missing: [] };
     state.phase = to;
-    atomicWrite(repo, '.rig/run.json', `${JSON.stringify(state, null, 2)}\n`);
+    const nextRun = `${JSON.stringify(state, null, 2)}\n`;
+    try {
+      atomicWrite(repo, '.rig/run.json', nextRun);
+    } catch (error) {
+      try {
+        if (fs.readFileSync(policyPath(repo, '.rig/run.json'), 'utf8') === nextRun) {
+          return {
+            allowed: true,
+            missing: [],
+            durability: 'uncertain',
+            warnings: [`run record is visible, but durability could not be confirmed: ${error.message}`],
+          };
+        }
+      } catch { /* Refuse when the committed bytes cannot be safely confirmed. */ }
+      throw error;
+    }
     return { allowed: true, missing: [] };
   } catch (error) {
     return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: `repair the run record path before retrying: ${error.message}` }] };

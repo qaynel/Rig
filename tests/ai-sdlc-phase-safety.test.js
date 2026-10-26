@@ -55,6 +55,79 @@ test('phase entry does not follow a planted predictable temporary-file symlink',
   assert.equal(fs.readFileSync(victim, 'utf8'), 'keep this file byte-for-byte\n');
   assert.equal(JSON.parse(fs.readFileSync(path.join(repo, '.rig/run.json'), 'utf8')).phase, 'onboarded');
 });
+test('phase entry refuses a required artifact symlink that escapes the repository', (t) => {
+  const { repo, write } = fixture(t);
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-phase-outside-'));
+  t.after(() => fs.rmSync(outside, { recursive: true, force: true }));
+  write('.rig/run.json', { phase: 'draft' });
+  fs.mkdirSync(path.join(repo, '.rig/rules'), { recursive: true });
+  const externalRules = path.join(outside, 'rig.md');
+  fs.writeFileSync(externalRules, '# External rules\n');
+  fs.symlinkSync(externalRules, path.join(repo, '.rig/rules/rig.md'));
+
+  const result = preflight.enter(repo, 'onboarded');
+
+  assert.equal(result.allowed, false);
+  assert.ok(result.missing.some(({ artefact }) => artefact === '.rig/rules/rig.md'));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(repo, '.rig/run.json'), 'utf8')).phase, 'draft');
+});
+test('phase entry denies a failed run-record write before rename without losing state', (t) => {
+  const { repo, write } = fixture(t);
+  write('.rig/rules/rig.md', '# Rig instructions\n');
+  write('.rig/run.json', { phase: 'intent_draft' });
+  const runPath = path.join(fs.realpathSync(repo), '.rig/run.json');
+  const originalRename = fs.renameSync;
+  fs.renameSync = function (from, to) {
+    if (to === runPath) throw new Error('injected before rename');
+    return originalRename.call(this, from, to);
+  };
+
+  let result;
+  try { result = preflight.enter(repo, 'onboarded'); }
+  finally { fs.renameSync = originalRename; }
+
+  assert.equal(result.allowed, false);
+  assert.equal(JSON.parse(fs.readFileSync(runPath, 'utf8')).phase, 'intent_draft');
+});
+test('phase entry treats an already-current phase as ordinary success without rewriting state', (t) => {
+  const { repo, write } = fixture(t);
+  write('.rig/rules/rig.md', '# Rig instructions\n');
+  write('.rig/run.json', '{\n  "phase": "onboarded"\n}\n');
+  const runPath = path.join(fs.realpathSync(repo), '.rig/run.json');
+  const originalRename = fs.renameSync;
+  fs.renameSync = function (from, to) {
+    if (to === runPath) throw new Error('unexpected rewrite');
+    return originalRename.call(this, from, to);
+  };
+
+  let result;
+  try { result = preflight.enter(repo, 'onboarded'); }
+  finally { fs.renameSync = originalRename; }
+
+  assert.equal(result.allowed, true, JSON.stringify(result));
+  assert.equal(result.durability, undefined);
+  assert.equal(fs.readFileSync(runPath, 'utf8'), '{\n  "phase": "onboarded"\n}\n');
+});
+test('phase entry reports visible state with uncertain durability after directory fsync failure', (t) => {
+  const { repo, write } = fixture(t);
+  write('.rig/rules/rig.md', '# Rig instructions\n');
+  write('.rig/run.json', { phase: 'intent_draft' });
+  const runPath = path.join(fs.realpathSync(repo), '.rig/run.json');
+  const originalFsync = fs.fsyncSync;
+  fs.fsyncSync = function (fd) {
+    if (fs.fstatSync(fd).isDirectory()) throw new Error('injected directory fsync failure');
+    return originalFsync.call(this, fd);
+  };
+
+  let result;
+  try { result = preflight.enter(repo, 'onboarded'); }
+  finally { fs.fsyncSync = originalFsync; }
+
+  assert.equal(result.allowed, true, JSON.stringify(result));
+  assert.equal(result.durability, 'uncertain');
+  assert.ok(result.warnings?.some((warning) => /directory fsync failure/i.test(warning)));
+  assert.equal(fs.readFileSync(runPath, 'utf8'), `${JSON.stringify({ phase: 'onboarded' }, null, 2)}\n`);
+});
 test('completion requires positive evidence for this phase and current candidate', (t) => {
   const { repo, write } = fixture(t);
   write('app.js', 'module.exports = 1;');
