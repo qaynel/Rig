@@ -44,6 +44,19 @@ test('candidate acceptance stays provisional and public archive evidence runs on
     'missing trusted digest remains a hard failure');
 });
 
+test('Linux candidate acceptance prepares and verifies the replay sandbox before tests run', () => {
+  const acceptance = job('acceptance');
+  const setup = /- name: Prepare task sandbox\n        if: runner\.os == 'Linux'\n        run: \|\n((?:          .*\n)+)/.exec(acceptance)?.[0];
+  assert.ok(setup, 'the Linux-only sandbox setup must be in the candidate acceptance job');
+  assert.match(setup, /apt-get install --yes bubblewrap/);
+  assert.match(setup, /kernel\.apparmor_restrict_unprivileged_userns=0/);
+  assert.match(setup, /unshare --user --map-root-user --net -- true/);
+  assert.ok(acceptance.indexOf(setup) < acceptance.indexOf('Run candidate acceptance lane'),
+    'sandbox prerequisites are established before the protected acceptance suite starts');
+  assert.match(setup, /if: runner\.os == 'Linux'/,
+    'Windows retains its current fail-closed unsupported-platform behavior');
+});
+
 test('release event metadata selects only the matching canonical public asset', () => {
   const script = /ASSET_URL="\$\(node <<'NODE'\n([\s\S]*?)\n\s*NODE\n\s*\)"/.exec(job('test-offline'))?.[1];
   assert.ok(script, 'the workflow must contain an executable release asset selector');

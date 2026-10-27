@@ -64,6 +64,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # Match the verified task sandbox used by the ordinary Linux test job.
+      - name: Prepare task sandbox
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
       # Candidate transport integrity only; this is not authenticated publication evidence.
       - uses: actions/download-artifact@v4
         with:
