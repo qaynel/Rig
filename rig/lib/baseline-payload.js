@@ -9,7 +9,7 @@ const MODULES = [
   'resolve', 'service-catalogue', 'journal-records',
   'evidence-artifacts', 'checks', 'git-dispatch', 'policy', 'policy-transaction',
   'policy-baseline', 'trust-root', 'enforcement', 'reports', 'inspect', 'catalog',
-  'host-capabilities', 'skill-catalog', 'guard',
+  'host-capabilities', 'skill-catalog', 'guard', 'ssh-keygen',
 ];
 const entries = [
   ...MODULES.map(name => ({ from: `lib/${name}.js`, to: `.rig/lib/${name}.js`, mode: 0o644 })),

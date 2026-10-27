@@ -9,6 +9,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const { check, oracleMessage, parseManifest, sha256 } = require('./check-advanced-spec');
+const { sshKeygenPath } = require('../rig/lib/ssh-keygen');
 const traceability = require('./check-traceability');
 
 const ENV_NAME = 'RIG_GATE1_SIGNING_KEY';
@@ -91,7 +92,7 @@ function run(command, args, options) {
 }
 
 function validatePublicKey(publicKey) {
-  run('ssh-keygen', ['-lf', '-'], { input: `${publicKey.trim()}\n` });
+  run(sshKeygenPath(), ['-lf', '-'], { input: `${publicKey.trim()}\n` });
 }
 
 function publicKeyForSigningKey(signingKey) {
@@ -100,7 +101,7 @@ function publicKeyForSigningKey(signingKey) {
     validatePublicKey(publicKey);
     return publicKey;
   }
-  const publicKey = run('ssh-keygen', ['-y', '-f', signingKey]).trim();
+  const publicKey = run(sshKeygenPath(), ['-y', '-f', signingKey]).trim();
   validatePublicKey(publicKey);
   return publicKey;
 }
@@ -229,7 +230,7 @@ function verifyProgramme(root = process.cwd(), name = 'ai-sdlc') {
   assert.ok(fs.existsSync(allowed), `${ALLOWED_SIGNERS} is missing: the one trust root is not established`);
   const signature = path.join(root, spec.signature);
   assert.ok(fs.existsSync(signature), `${name} contract is unsigned (${spec.signature} is missing)`);
-  const result = spawnSync('ssh-keygen', [
+  const result = spawnSync(sshKeygenPath(), [
     '-Y', 'verify', '-f', allowed, '-I', PRINCIPAL, '-n', NAMESPACE, '-s', signature,
   ], { input: programmeMessage(root, name), encoding: 'utf8' });
   assert.equal(result.status, 0, `${name} contract signature does not verify`);
@@ -279,7 +280,7 @@ function approveProgramme(root = process.cwd(), name = 'ai-sdlc', options = {}) 
   const messageFile = path.join(context, `${spec.prefix}.txt`);
   fs.writeFileSync(messageFile, programmeMessage(root, name));
   fs.rmSync(`${messageFile}.sig`, { force: true });
-  run('ssh-keygen', ['-Y', 'sign', '-f', signingKey, '-n', NAMESPACE, messageFile], { env });
+  run(sshKeygenPath(), ['-Y', 'sign', '-f', signingKey, '-n', NAMESPACE, messageFile], { env });
   fs.renameSync(`${messageFile}.sig`, path.join(root, spec.signature));
 
   if (options.check !== false) verifyProgramme(root, name);
@@ -304,7 +305,7 @@ function approveGate1(root = process.cwd(), options = {}) {
   fs.writeFileSync(messageFile, oracleMessage(root));
   fs.rmSync(`${messageFile}.sig`, { force: true });
 
-  run('ssh-keygen', ['-Y', 'sign', '-f', signingKey, '-n', NAMESPACE, messageFile], { env });
+  run(sshKeygenPath(), ['-Y', 'sign', '-f', signingKey, '-n', NAMESPACE, messageFile], { env });
 
   // Validate that the existing allowed-signers file has no non-owner principals
   const allowedSignersPath = path.join(root, 'wiki/gate1/gate1.allowed-signers');
