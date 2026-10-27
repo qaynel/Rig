@@ -155,6 +155,21 @@ Before any scope, design, test, or support question, check it against this list.
     signature.
     `wiki/reasoning/2026-10-24-configurable-user-signoff-owner-directive.md`.
 
+28. **QA CI, production certification and published-byte verification are separate.**
+    Feature → `qa-prod` needs ordinary unprivileged CI, never a release,
+    publication digest or interactive owner signature. Exact-QA production
+    promotion retains comprehensive health, provenance and binding review.
+    Authenticated publication precedes real published-archive verification;
+    publication must not depend on its own future public-download evidence.
+    Existing-CI identities verify external checks; one batch signed by the
+    existing owner key certifies provisional integrated local work for release.
+    Review uses comprehensive preflight, one full binding review, batched fixes
+    and targeted re-review with explicit escalation, preserved history and no
+    suppression of serious new defects. Provider failures consume no verdict
+    attempt. Exactly one additional binding attempt is authorised for PR159
+    only after readiness; it is not a counter reset.
+    `wiki/reasoning/2026-10-27-pr159-owner-lifecycle-and-convergence.md`.
+
 When the owner states a product decision, add it here in the same change.
 
 Rig installs a curated agent workflow into other repositories from one central corpus.

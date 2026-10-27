@@ -119,8 +119,9 @@ test('unknown host capabilities fail closed while registered hosts retain their 
   assert.deepEqual(result.pointers, []);
 });
 
-function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [], env = {}, stub, reported: reportOverride }) {
+function runReviewReceipt(target, { verdict, authorContext, out, implementationRoot, extraArgs = [], env = {}, stub, reported: reportOverride }) {
   const root = path.join(__dirname, '..');
+  implementationRoot = implementationRoot || root;
   const bin = path.join(target, 'bin');
   if (!fs.existsSync(bin)) fs.mkdirSync(bin);
   const invocations = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-review-invocations-'));
@@ -141,8 +142,13 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
       '#!/usr/bin/env node',
       "'use strict';",
       'process.stdin.resume();',
+      'let prompt = "";',
+      'process.stdin.on(\'data\', (chunk) => { prompt += chunk; });',
       'process.stdin.on(\'end\', () => {',
       `  require('node:fs').appendFileSync(${JSON.stringify(invocationMarker)}, 'x');`,
+      '  if (process.env.RIG_CAPTURE_REVIEW_PROMPT) require("node:fs").writeFileSync(process.env.RIG_CAPTURE_REVIEW_PROMPT, prompt);',
+      '  if (process.env.RIG_MUTATE_IMPLEMENTATION) require("node:fs").appendFileSync(process.env.RIG_MUTATE_IMPLEMENTATION, "// changed during review\\n");',
+      '  if (process.env.RIG_CAPTURE_REVIEW_ARGV) require("node:fs").writeFileSync(process.env.RIG_CAPTURE_REVIEW_ARGV, JSON.stringify(process.argv.slice(2)));',
       `  process.stdout.write(${JSON.stringify(response)});`,
       '});',
       '',
@@ -153,7 +159,7 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
     path.join(root, 'scripts/review-receipt.js'),
     '--target', path.join(root, 'wiki/gate2/technical-spec.md'),
     '--catalogue', path.join(root, 'rig/corpus/catalogue.json'),
-    '--implementation-root', root,
+    '--implementation-root', implementationRoot,
     '--base', 'origin/implement-advanced-a-la-carte-catalogue',
     '--gate1', path.join(root, 'wiki/gate1/business-spec.md') + ',' + path.join(root, 'wiki/gate1/acceptance.md'),
     '--author-context', authorContext,
@@ -165,6 +171,21 @@ function runReviewReceipt(target, { verdict, authorContext, out, extraArgs = [],
   fs.rmSync(invocations, { recursive: true, force: true });
   return { run, invocationCount };
 }
+
+test('Claude review is read-only even when permission prompts are disabled', () => withTarget((target) => {
+  const argvFile = path.join(target, 'reviewer-argv.json');
+  const out = path.join(target, 'receipt.json');
+  const result = runReviewReceipt(target, {
+    verdict: 'pass', authorContext: 'readonly-review', out,
+    env: { RIG_CAPTURE_REVIEW_ARGV: argvFile },
+  });
+  assert.equal(result.run.status, 0, result.run.stderr);
+  const argv = JSON.parse(fs.readFileSync(argvFile, 'utf8'));
+  const toolsIndex = argv.indexOf('--tools');
+  assert.notEqual(toolsIndex, -1);
+  assert.equal(argv[toolsIndex + 1], 'Read,Grep,Glob');
+  assert.doesNotMatch(argv[toolsIndex + 1], /Bash|Write|Edit/);
+}));
 
 function signPolicyProposal(target, proposal) {
   const key = path.join(target, 'policy-test-key');
@@ -1179,6 +1200,124 @@ test('review wrapper output validates without schema translation', () => {
   });
 });
 
+test('review-receipt persists the complete batch and runs one explicit targeted re-review on changed bytes', () => {
+  withTarget((target) => {
+    const root = path.join(__dirname, '..');
+    const candidate = path.join(target, 'candidate');
+    const out = path.join(target, 'receipt.json');
+    const promptPath = path.join(target, 'remediation-prompt.txt');
+    const authorContext = 'review-convergence';
+    fs.mkdirSync(candidate);
+    assert.equal(spawnSync('git', ['init', '-q'], { cwd: candidate }).status, 0);
+    fs.writeFileSync(path.join(candidate, 'candidate.js'), 'module.exports = 1;\n');
+    spawnSync('git', ['add', 'candidate.js'], { cwd: candidate });
+
+    const first = runReviewReceipt(target, { verdict: 'fail', authorContext, out, implementationRoot: candidate });
+    assert.notEqual(first.run.status, 0);
+    const outcomesPath = `${out}.reviews.jsonl`;
+    const original = JSON.parse(fs.readFileSync(outcomesPath, 'utf8').trim());
+    assert.equal(original.review_phase, 'comprehensive');
+    assert.equal(original.verdict, 'fail');
+    assert.equal(original.finding_batch.length, 1);
+    const priorFinding = original.finding_batch[0];
+
+    const unchanged = runReviewReceipt(target, {
+      verdict: 'pass', authorContext, out, implementationRoot: candidate, extraArgs: ['--remediate'],
+    });
+    assert.notEqual(unchanged.run.status, 0);
+    assert.match(unchanged.run.stderr, /requires a changed candidate/);
+    assert.equal(unchanged.invocationCount, 0);
+
+    fs.writeFileSync(path.join(candidate, 'candidate.js'), 'module.exports = 2;\n');
+    const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
+    const ids = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))].sort();
+    const remediationReport = {
+      verdict: 'pass',
+      verdicts: ids.map((id) => ({ id, verdict: 'pass', note: 'reviewed changed candidate' })),
+      findings: [],
+      finding_dispositions: [{
+        id: priorFinding.id,
+        status: 'resolved',
+        evidence: {
+          path: 'candidate.js',
+          digest: sha256(fs.readFileSync(path.join(candidate, 'candidate.js'))),
+          check: { command: 'node --test candidate.test.js', result: 'pass' },
+        },
+      }],
+      unresolved: [],
+    };
+    const rerun = runReviewReceipt(target, {
+      verdict: 'pass', authorContext, out, implementationRoot: candidate,
+      extraArgs: ['--remediate'],
+      env: { RIG_CAPTURE_REVIEW_PROMPT: promptPath },
+      reported: remediationReport,
+    });
+    assert.equal(rerun.run.status, 0, rerun.run.stderr);
+    const prompt = fs.readFileSync(promptPath, 'utf8');
+    assert.match(prompt, /REMEDIATION RE-REVIEW/);
+    assert.match(prompt, /Prior finding batch/);
+    assert.match(prompt, new RegExp(priorFinding.id));
+    assert.match(prompt, /serious new defects/);
+    assert.match(prompt, /Return every acceptance verdict as usual/);
+
+    const records = fs.readFileSync(outcomesPath, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+    assert.equal(records.length, 2, 'both full review outcomes remain available');
+    assert.equal(records[1].review_phase, 'remediation');
+    assert.equal(records[1].remediates_review_id, original.review_id);
+    assert.equal(JSON.parse(fs.readFileSync(out, 'utf8')).review_phase, 'remediation');
+    const attempts = JSON.parse(fs.readFileSync(`${out}.attempts.json`, 'utf8'));
+    assert.equal(attempts.failures, 1, 'the pass does not clear the completed failure count');
+    assert.equal(attempts.attempts.length, 2, 'attempt history is retained after pass');
+
+    fs.writeFileSync(path.join(candidate, 'candidate.js'), 'module.exports = 3;\n');
+    const staleBatch = runReviewReceipt(target, {
+      verdict: 'pass', authorContext, out, implementationRoot: candidate, extraArgs: ['--remediate'],
+    });
+    assert.notEqual(staleBatch.run.status, 0);
+    assert.match(staleBatch.run.stderr, /latest completed binding review to be a failure/);
+    assert.equal(staleBatch.invocationCount, 0, 'a prior failed batch cannot be replayed after a passing remediation');
+  });
+});
+
+test('review-receipt does not charge incomplete acceptance coverage as a finding batch', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const incomplete = runReviewReceipt(target, {
+      verdict: 'fail', authorContext: 'incomplete-review', out,
+      reported: { verdict: 'fail', verdicts: [], findings: [], unresolved: [] },
+    });
+    assert.notEqual(incomplete.run.status, 0);
+    assert.match(incomplete.run.stderr, /reviewer returned an incomplete review: review verdict coverage mismatch/);
+    assert.equal(JSON.parse(fs.readFileSync(`${out}.attempts.json`, 'utf8')).failures, 0);
+    assert.equal(fs.existsSync(`${out}.reviews.jsonl`), false, 'an incomplete review cannot become a remediation batch');
+  });
+});
+
+test('review-receipt rejects a candidate that changes while the independent reviewer runs', () => {
+  withTarget((target) => {
+    const root = path.join(__dirname, '..');
+    const candidate = path.join(target, 'candidate');
+    const out = path.join(target, 'receipt.json');
+    fs.mkdirSync(candidate);
+    assert.equal(spawnSync('git', ['init', '-q'], { cwd: candidate }).status, 0);
+    const source = path.join(candidate, 'candidate.js');
+    fs.writeFileSync(source, 'module.exports = 1;\n');
+    spawnSync('git', ['add', 'candidate.js'], { cwd: candidate });
+
+    const acceptance = fs.readFileSync(path.join(root, 'wiki/gate1/acceptance.md'), 'utf8');
+    const ids = [...new Set([...acceptance.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]))].sort();
+    const result = runReviewReceipt(target, {
+      verdict: 'pass', authorContext: 'moving-candidate', out, implementationRoot: candidate,
+      env: { RIG_MUTATE_IMPLEMENTATION: source },
+      reported: { verdict: 'pass', verdicts: ids.map((id) => ({ id, verdict: 'pass', note: 'covered' })), findings: [], unresolved: [] },
+    });
+    assert.notEqual(result.run.status, 0);
+    assert.match(result.run.stderr, /candidate changed during review/);
+    assert.ok(!fs.existsSync(out), 'a report on moving bytes never produces a receipt');
+    assert.equal(JSON.parse(fs.readFileSync(`${out}.attempts.json`, 'utf8')).failures, 0);
+  });
+});
+
 test('the POSIX installer downloads and executes a named tagged archive', { timeout: 30000 }, () => {
   withTarget((target) => {
     const root = path.join(__dirname, '..');
@@ -1262,12 +1401,22 @@ test('review-receipt caps re-review after one retry for the same author-context 
     assert.match(third.run.stderr, /re-review cap reached/);
     assert.equal(third.invocationCount, 0, 'the capped attempt must not spawn another reviewer');
 
+    const forcedInterim = runReviewReceipt(target, {
+      verdict: 'pass', authorContext, out, extraArgs: ['--force-rereview', '--interim'],
+    });
+    assert.equal(forcedInterim.run.status, 0, forcedInterim.run.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(`${out}.attempts.json`, 'utf8')).extra_review_used, false,
+      'an interim pass does not consume the extra binding authorization');
+
     const forced = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--force-rereview'] });
-    assert.equal(forced.invocationCount, 1, '--force-rereview is an explicit, visible override');
+    assert.equal(forced.invocationCount, 1, '--force-rereview grants one explicit additional binding attempt');
+    const repeatedForce = runReviewReceipt(target, { verdict: 'fail', authorContext, out, extraArgs: ['--force-rereview'] });
+    assert.equal(repeatedForce.invocationCount, 0, 'the one extra binding authorization cannot be replayed');
+    assert.match(repeatedForce.run.stderr, /already been consumed/);
   });
 });
 
-test('review-receipt cap is scoped per author-context and clears on a passing verdict (RIG-124)', () => {
+test('review-receipt cap is scoped per author-context and a pass does not reset failures (RIG-124)', () => {
   withTarget((target) => {
     const out = path.join(target, 'receipt.json');
 
@@ -1285,7 +1434,28 @@ test('review-receipt cap is scoped per author-context and clears on a passing ve
     assert.ok(fs.existsSync(out));
 
     const again = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-b', out });
-    assert.equal(again.invocationCount, 1, 'a passing verdict resets the cap for later, unrelated review needs');
+    assert.equal(again.invocationCount, 1, 'the pass did not clear the one remaining completed-review authorization');
+
+    const switchedBack = runReviewReceipt(target, { verdict: 'fail', authorContext: 'release-attempt-a', out });
+    assert.equal(switchedBack.invocationCount, 0, 'switching contexts cannot erase the earlier context cap');
+    assert.match(switchedBack.run.stderr, /re-review cap reached/);
+  });
+});
+
+test('review-receipt fails closed on corrupt attempt state and outcome journals before spawning', () => {
+  withTarget((target) => {
+    const out = path.join(target, 'receipt.json');
+    const authorContext = 'review-corrupt-history';
+    fs.writeFileSync(`${out}.attempts.json`, '{ truncated');
+    const badState = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(badState.invocationCount, 0);
+    assert.match(badState.run.stderr, /attempt history is corrupt/);
+
+    fs.unlinkSync(`${out}.attempts.json`);
+    fs.writeFileSync(`${out}.reviews.jsonl`, '{ truncated\n');
+    const badJournal = runReviewReceipt(target, { verdict: 'fail', authorContext, out });
+    assert.equal(badJournal.invocationCount, 0);
+    assert.match(badJournal.run.stderr, /review outcome journal is corrupt/);
   });
 });
 
@@ -1312,13 +1482,14 @@ test('a pass report that fails receipt validation is an execution failure, not a
     assert.equal(afterInvalid.in_flight, null, 'the attempt is closed, not left in flight');
     assert.equal(afterInvalid.attempts.at(-1).state, 'failed');
 
-    // Uncharged does not mean unlimited: three in a row stop the loop.
+    // There is no internal retry loop; every provider/execution retry must be
+    // an explicit caller action and these failures never spend review auth.
     runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
     runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
-    const blocked = runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
-    assert.notEqual(blocked.run.status, 0);
-    assert.match(blocked.run.stderr, /BLOCKER: 3 consecutive infrastructure failures/);
-    assert.equal(blocked.invocationCount, 0, 'the bounded retry must not spawn a fourth reviewer');
+    const retried = runReviewReceipt(target, { verdict: 'pass', authorContext, out, reported: malformedPass });
+    assert.notEqual(retried.run.status, 0);
+    assert.equal(retried.invocationCount, 1, 'provider failures do not consume review authorization');
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 1);
   });
 });
 
@@ -1490,9 +1661,7 @@ test('review-receipt carries finding classes into the next round and flags gradu
     ].join('\n');
     runReviewReceipt(target, { verdict: 'fail', authorContext, out, stub: capturePromptStub });
     const prompt = fs.readFileSync(promptLog, 'utf8');
-    assert.match(prompt, /PRIOR ROUNDS/, 'the next round is told what already fired');
-    assert.match(prompt, /correctness — fired in 1 prior round/);
-    assert.match(prompt, /at: x/, 'the anchor travels with the finding');
+    assert.doesNotMatch(prompt, /PRIOR ROUNDS/, 'a fresh review is independent of prior finding history');
 
     // A real second finding of the same class reaches the graduation threshold.
     // No --force-rereview needed: the prompt-probe round produced no verdict, so
@@ -1566,7 +1735,8 @@ test('review-receipt --interim reports findings and leaves no authorization spen
     assert.match(passing.run.stdout, /interim pass — no receipt written/);
     assert.match(passing.run.stdout, /verdict  pass — 0 finding\(s\), 0 blocker\(s\), 0 unresolved/);
     assert.ok(!fs.existsSync(out), 'an interim pass never writes the binding receipt');
-    assert.ok(!fs.existsSync(attemptsPath), 'an interim pass clears the cap like any pass');
+    assert.ok(fs.existsSync(attemptsPath), 'an interim pass preserves the attempt history');
+    assert.equal(JSON.parse(fs.readFileSync(attemptsPath, 'utf8')).failures, 1, 'an interim pass does not refund a failure');
     assert.deepEqual(
       JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds,
       [1],
@@ -1643,11 +1813,12 @@ test('review-receipt finding-class history survives a passing verdict (RIG-124.2
     runReviewReceipt(target, { verdict: 'fail', authorContext, out });
     const passing = runReviewReceipt(target, { verdict: 'pass', authorContext, out });
     assert.equal(passing.run.status, 0, passing.run.stderr);
-    assert.ok(!fs.existsSync(`${out}.attempts.json`), 'a pass clears the cap');
+    assert.ok(fs.existsSync(`${out}.attempts.json`), 'a pass preserves the attempt history');
+    assert.equal(JSON.parse(fs.readFileSync(`${out}.attempts.json`, 'utf8')).failures, 1, 'a pass does not refund a failure');
     assert.deepEqual(
       JSON.parse(fs.readFileSync(historyPath, 'utf8'))[authorContext].items['correctness|x'].rounds,
       [1],
-      'a pass must NOT erase what earlier rounds found: that finding is exactly what to re-check',
+      'a pass does not erase what earlier rounds found',
     );
   });
 });

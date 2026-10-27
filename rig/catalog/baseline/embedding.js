@@ -26,6 +26,14 @@ const ASSETS = path.join(__dirname, 'assets', 'potion-base-2m');
 
 let loaded = null;
 
+function assetFingerprint() {
+  return ['model.json', 'embeddings.i8', 'vocab.txt'].map(file => path.join(ASSETS, file))
+    .concat(__filename).map(file => {
+      const stat = fs.statSync(file, { bigint: true });
+      return [stat.dev, stat.ino, stat.size, stat.mtimeNs, stat.ctimeNs].join(':');
+    }).join('|');
+}
+
 function verify(manifest, root = ROOT) {
   if (!Number.isSafeInteger(manifest.rows) || manifest.rows <= 0
       || !Number.isSafeInteger(manifest.dims) || manifest.dims <= 0
@@ -57,10 +65,10 @@ function verify(manifest, root = ROOT) {
 }
 
 function load() {
-  const manifest = JSON.parse(fs.readFileSync(path.join(ASSETS, 'model.json'), 'utf8'));
-  const digests = verify(manifest);
-  const fingerprint = JSON.stringify(manifest) + Object.values(digests).join(':');
+  const fingerprint = assetFingerprint();
   if (loaded?.fingerprint === fingerprint) return loaded;
+  const manifest = JSON.parse(fs.readFileSync(path.join(ASSETS, 'model.json'), 'utf8'));
+  verify(manifest);
   const { rows, dims } = manifest;
   const raw = fs.readFileSync(path.join(ASSETS, 'embeddings.i8'));
   if (raw.length !== rows * 4 + rows * dims) throw new Error('embedding table is truncated');
@@ -73,7 +81,8 @@ function load() {
   for (let i = 0; i < lines.length; i += 1) if (lines[i] !== '') vocab.set(lines[i], i);
   if (vocab.size !== rows) throw new Error('vocabulary does not match the embedding table');
 
-  loaded = { manifest, rows, dims, scales, table, vocab, fingerprint };
+  if (assetFingerprint() !== fingerprint) throw new Error('embedding assets changed while loading');
+  loaded = { manifest, rows, dims, scales, table, vocab, fingerprint, vectors: new Map() };
   return loaded;
 }
 
@@ -131,7 +140,9 @@ function tokenize(vocab, text) {
 
 /** Adapted from Model2Vec StaticModel._encode_batch: token mean then L2 norm. */
 function embed(text) {
-  const { dims, scales, table, vocab } = load();
+  const { dims, scales, table, vocab, vectors } = load();
+  const key = String(text);
+  if (vectors.has(key)) return vectors.get(key).slice();
   const ids = tokenize(vocab, text);
   const vector = new Float64Array(dims);
   if (ids.length === 0) return vector;
@@ -146,6 +157,12 @@ function embed(text) {
   // matters for the zero vector, which was returned above.
   norm = Math.sqrt(norm) + 1e-32;
   for (let d = 0; d < dims; d += 1) vector[d] /= norm;
+  // rig: bounded process-local cache; index() warms the same verified vectors
+  // used by recall. Larger corpora can use a separately verified persistent index.
+  if (key.length <= 4096) {
+    if (vectors.size >= 256) vectors.delete(vectors.keys().next().value);
+    vectors.set(key, vector.slice());
+  }
   return vector;
 }
 

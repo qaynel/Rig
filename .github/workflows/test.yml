@@ -99,6 +99,6 @@ jobs:
           node scripts/ensure-wiki.js
           node scripts/build-wiki-index.js
 
-      - name: Run catalogue tests (shard ${{ matrix.shard }}/5)
-        run: CATALOGUE_SHARD=${{ matrix.shard }}/5 node --test tests/catalogue-all-services.test.js
+      - name: Run catalogue tests (job ${{ strategy.job-index }} of ${{ strategy.job-total }})
+        run: CATALOGUE_SHARD=$(( ${{ strategy.job-index }} + 1 ))/${{ strategy.job-total }} node --test tests/catalogue-all-services.test.js
         timeout-minutes: 10

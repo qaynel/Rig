@@ -178,8 +178,11 @@ function programmeProtectedFiles(root = process.cwd(), name = 'ai-sdlc') {
     .map((file) => path.join(spec.contract, file));
   const testManifest = path.join(root, spec.contract, '16-test-manifest.md');
   assert.ok(fs.existsSync(testManifest), `missing protected file: ${path.relative(root, testManifest)}`);
-  const testFiles = [...fs.readFileSync(testManifest, 'utf8').matchAll(/`(tests\/ai-sdlc\/[a-z-]+\.test\.js)`/g)]
+  const testFiles = [...fs.readFileSync(testManifest, 'utf8').matchAll(/`(tests\/ai-sdlc\/[^`]+\.test\.js)`/g)]
     .map((match) => match[1]);
+  for (const file of testFiles) {
+    assert.match(file, /^tests\/ai-sdlc\/[A-Za-z0-9_.-]+\.test\.js$/, `invalid proving-test path: ${file}`);
+  }
   assert.ok(testFiles.length, 'the AI-SDLC test manifest names no proving-test files');
   const files = [...new Set([...spec.protected, ...contractFiles, ...testFiles]
     .map((file) => file.split(path.sep).join('/')))].sort();

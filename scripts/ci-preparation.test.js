@@ -72,14 +72,17 @@ test('acceptance runner executes every file and preserves a failing exit and fai
     fs.mkdirSync(path.join(root, 'tests/ai-sdlc'), { recursive: true });
     fs.writeFileSync(path.join(root, 'tests/ai-sdlc/first.test.js'), "require('node:test')('first', () => {});\n");
     fs.writeFileSync(path.join(root, 'tests/ai-sdlc/second.test.js'), "require('node:test')('second fails', () => { throw new Error('regression fixture'); });\n");
+    fs.writeFileSync(path.join(root, 'tests/ai-sdlc/third.test.js'), "require('node:test')('third lacks evidence', () => { throw new Error('environment-bound criterion: public archive missing'); });\n");
     // Node marks test descendants to suppress nested --test discovery; launch
     // this CLI fixture as an ordinary command, with no authentication changes.
     const { NODE_TEST_CONTEXT, ...env } = process.env;
     const result = spawnSync(process.execPath, [path.join(root, 'scripts/run-ai-sdlc.js')], { encoding: 'utf8', env });
     assert.equal(result.status, 1);
     const summary = JSON.parse(fs.readFileSync(path.join(root, '.context/ai-sdlc/result.json'), 'utf8'));
-    assert.deepEqual(summary.counts, { tests: 2, pass: 1, fail: 1, cancelled: 0, skipped: 0, todo: 0 });
-    assert.deepEqual(summary.failures, ['second fails']);
+    assert.deepEqual(summary.counts, { tests: 3, pass: 1, fail: 2, cancelled: 0, skipped: 0, todo: 0 });
+    assert.deepEqual(summary.failures, ['second fails', 'third lacks evidence']);
+    assert.deepEqual(summary.regressions, ['second fails']);
+    assert.deepEqual(summary.environment_gaps, [{ test: 'third lacks evidence', reason: 'public archive missing' }]);
     assert.equal(summary.exit_code, 1);
     assert.match(fs.readFileSync(path.join(root, '.context/ai-sdlc/acceptance.tap'), 'utf8'), /regression fixture/);
   } finally {

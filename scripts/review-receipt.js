@@ -14,7 +14,8 @@
 // non-interactive reviewer and binds its receipt to the reviewed bytes.
 
 const { createHash, randomUUID } = require('node:crypto');
-const { readFileSync, writeFileSync, existsSync, unlinkSync } = require('node:fs');
+const { readFileSync, writeFileSync, appendFileSync, existsSync, realpathSync } = require('node:fs');
+const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { catalogueDigest, implementationDigest, validateReviewReceipt } = require('../rig/lib/release-evidence');
 
@@ -22,9 +23,8 @@ const WRAPPER_VERSION = 4;
 // Test-only override so a regression test can force the reviewer spawn to
 // hit its timeout without waiting 30 minutes; unset in production.
 const TIMEOUT_MS = Number(process.env.RIG_REVIEW_RECEIPT_TIMEOUT_MS) || 30 * 60 * 1000;
-// RIG-124: a `fail` verdict is real signal. Cap automatic fix-and-re-review
-// cycles for one author-context at one re-review (two attempts total); a
-// second consecutive fail must stop and be surfaced, not retried again.
+// RIG-124: completed failing reviews are cumulative for this author-context.
+// A pass does not refund prior failures; force-rereview remains explicit.
 const MAX_RE_REVIEWS = 1;
 // RIG-124.2: a finding class that has already fired is not news. Rounds used to
 // share nothing but a failure count, so each review was an independent draw
@@ -43,10 +43,9 @@ const GRADUATION_THRESHOLD = 2;
 // output evidence is the only reliable signal available.
 //
 // RIG-124.1's safety intent (an attempt must never be silently dropped) is
-// preserved by a different mechanism: every attempt is persisted, an
-// interrupted in-flight attempt is recovered exactly once, and consecutive
-// infrastructure failures are bounded so uncharged retries cannot loop.
-const INFRA_STREAK_LIMIT = 3;
+// preserved by a different mechanism: every attempt is persisted and an
+// interrupted in-flight attempt is recovered exactly once. Every invocation
+// is explicit; provider failures do not spend review authorization.
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
@@ -71,6 +70,7 @@ const gate1Paths = (arg('gate1') || '').split(',').filter(Boolean);
 const interim = process.argv.includes('--interim');
 const forceRereview = process.argv.includes('--force-rereview');
 const ingestPath = arg('ingest');
+const remediation = process.argv.includes('--remediate');
 
 // RIG-124: interim passes are a cheap sanity check during a release attempt
 // (use a cheap --model) and never write the binding receipt. Only a run
@@ -78,31 +78,55 @@ const ingestPath = arg('ingest');
 // the receipt is never generated mid-development.
 // RIG-124.3: one persisted record per author-context. `failures` counts only
 // completed failing reviews and is the only thing the re-review cap charges;
-// `infra_streak` counts consecutive infrastructure failures and is what bounds
-// uncharged retries; `in_flight` marks an attempt whose outcome was never
+// `infra_streak` counts consecutive infrastructure failures; `in_flight` marks
+// an attempt whose outcome was never
 // written because this process died mid-spawn, so the next run can account for
 // it exactly once; `attempts` is the audit log of every attempt and its state.
 const attemptsPath = `${outPath}.attempts.json`;
-const ATTEMPT_LOG_LIMIT = 20;
-const state = (() => {
-  const empty = { authorContext, failures: 0, infra_streak: 0, in_flight: null, attempts: [] };
-  if (!existsSync(attemptsPath)) return empty;
-  try {
-    const parsed = JSON.parse(readFileSync(attemptsPath, 'utf8'));
-    if (!parsed || parsed.authorContext !== authorContext) return empty;
-    return {
-      authorContext,
-      failures: parsed.failures || 0,
-      infra_streak: parsed.infra_streak || 0,
-      in_flight: parsed.in_flight || null,
-      attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
-    };
-  } catch {
-    return empty;
+const emptyState = (context) => ({ authorContext: context, failures: 0, extra_review_used: false, infra_streak: 0, in_flight: null, attempts: [] });
+function validContextState(value, context) {
+  return value && value.authorContext === context
+    && Number.isSafeInteger(value.failures) && value.failures >= 0
+    && Number.isSafeInteger(value.infra_streak) && value.infra_streak >= 0
+    && (value.extra_review_used === undefined || typeof value.extra_review_used === 'boolean')
+    && (value.in_flight === null || (value.in_flight && typeof value.in_flight === 'object'))
+    && Array.isArray(value.attempts);
+}
+function normalizeContextState(value) {
+  return { ...value, extra_review_used: value.extra_review_used === true };
+}
+let persistedContexts = {};
+let state = emptyState(authorContext);
+if (existsSync(attemptsPath)) {
+  let parsed;
+  try { parsed = JSON.parse(readFileSync(attemptsPath, 'utf8')); }
+  catch (error) { fail(`attempt history is corrupt; refusing to reset authorization state (${error.message})`); }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    fail('attempt history is corrupt; refusing to reset authorization state');
   }
-})();
+  if (parsed.contexts !== undefined) {
+    if (!parsed.contexts || typeof parsed.contexts !== 'object' || Array.isArray(parsed.contexts)) {
+      fail('attempt history contexts are corrupt; refusing to reset authorization state');
+    }
+    persistedContexts = { ...parsed.contexts };
+    for (const [context, entry] of Object.entries(persistedContexts)) {
+      if (!validContextState(entry, context)) fail(`attempt history for author-context "${context}" is corrupt; refusing to reset authorization state`);
+      persistedContexts[context] = normalizeContextState(entry);
+    }
+  } else if (typeof parsed.authorContext === 'string' && validContextState(parsed, parsed.authorContext)) {
+    // Legacy single-context state is migrated into the durable context map on
+    // the next write; asking for another context must not erase this one.
+    persistedContexts[parsed.authorContext] = normalizeContextState(parsed);
+  } else {
+    fail('attempt history has an invalid schema; refusing to reset authorization state');
+  }
+  state = persistedContexts[authorContext] || emptyState(authorContext);
+}
 function writeState() {
-  writeFileSync(attemptsPath, `${JSON.stringify(state, null, 2)}\n`);
+  persistedContexts[authorContext] = state;
+  // Keep the active context at top level for existing diagnostics while storing
+  // every context so switching an --out path cannot reset a prior cap.
+  writeFileSync(attemptsPath, `${JSON.stringify({ ...state, contexts: persistedContexts }, null, 2)}\n`);
 }
 // One entry per attempt: a later state for the same nonce replaces the earlier
 // one, so an attempt can never be accounted for twice.
@@ -110,12 +134,11 @@ function logAttempt(nonce, attemptState, reason) {
   state.attempts = [
     ...state.attempts.filter((entry) => entry.nonce !== nonce),
     { nonce, state: attemptState, at: new Date().toISOString(), ...(reason ? { reason } : {}) },
-  ].slice(-ATTEMPT_LOG_LIMIT);
+  ];
 }
 
-// --ingest only reads; it must stay reachable after the cap or the streak limit
-// has stopped automatic reviewing, since that is exactly when the owner hands
-// over a report by hand.
+// --ingest only reads; it remains reachable after the completed-review cap
+// stops another binding review, when the owner may supply a report by hand.
 if (!ingestPath) {
   // An in-flight marker that outlived its process means that attempt was
   // interrupted before it could classify itself. Account for it once — as an
@@ -133,33 +156,20 @@ if (!ingestPath) {
     );
   }
 
-  if (state.failures > MAX_RE_REVIEWS && !forceRereview) {
+  const overCap = state.failures > MAX_RE_REVIEWS;
+  if (!interim && overCap && (!forceRereview || state.extra_review_used)) {
     fail(
       `re-review cap reached for author-context "${authorContext}" (${state.failures} failing reviews). ` +
-      'A failing release review is real signal: stop and report it to the user rather than retrying ' +
-      'automatically. Pass --force-rereview only after explicit user/owner approval to continue.'
+      (state.extra_review_used
+        ? 'the one explicitly authorized extra binding review has already been consumed.'
+        : 'stop and report it, or pass --force-rereview for the single explicit extra binding review.')
     );
   }
 
-  // RIG-124.3: uncharged retries must still be bounded, or a broken reviewer
-  // loops forever at full token cost without ever reaching the cap.
-  if (state.infra_streak >= INFRA_STREAK_LIMIT && !forceRereview) {
-    fail(
-      `BLOCKER: ${state.infra_streak} consecutive infrastructure failures and no completed review for ` +
-      `author-context "${authorContext}". The reviewer is not running: a provider outage, an unusable ` +
-      `--model, a missing reviewer CLI, or a timeout too short for this target. Report this and fix the ` +
-      `cause; do not keep retrying. --force-rereview overrides once the cause is understood.\n` +
-      state.attempts
-        .slice(-INFRA_STREAK_LIMIT)
-        .map((entry) => `  ${entry.at} ${entry.state}: ${entry.reason || ''}`)
-        .join('\n')
-    );
-  }
 }
 
-// RIG-124.2: finding-class history is kept beside the receipt in its own file so
-// that clearing the cap on a passing verdict does not erase what past rounds
-// found. Keyed by author-context, same as the cap.
+// RIG-124.2: finding-class history is kept beside the receipt in its own file;
+// a passing verdict does not erase what past rounds found. Keyed by author-context.
 const historyPath = `${outPath}.history.json`;
 function readHistory() {
   if (!existsSync(historyPath)) return {};
@@ -180,6 +190,9 @@ const recurring = Object.entries(priorItems)
 // category alone. There are only seven categories, so a category-level counter
 // would reach the graduation threshold on nearly every failing release and the
 // signal would be worthless. Prior art: alibaba/open-code-review's
+// Copyright 2026 alibaba/open-code-review Contributors; Apache-2.0.
+// Modified for Rig: JavaScript normalization and Rig finding fields.
+// Full licence: rig/catalog/baseline/licenses/open-code-review-Apache-2.0.txt.
 // internal/session/compare.go findingKey (Apache-2.0), which keys on normalized
 // path + category + normalized snippet and deliberately omits line numbers so
 // that line drift still matches.
@@ -190,6 +203,30 @@ const findingBody = (finding) => normalizeKeyPart(finding.evidence)
   || normalizeKeyPart(finding.detail);
 function findingKey(finding) {
   return `${normalizeKeyPart(finding.category) || 'uncategorized'}|${findingBody(finding)}`;
+}
+
+function validateDispositionEvidence(evidence, status) {
+  if (!evidence || typeof evidence !== 'object' || typeof evidence.path !== 'string'
+    || !/^[a-f0-9]{64}$/.test(evidence.digest || '')
+    || !evidence.check || typeof evidence.check.command !== 'string' || !evidence.check.command.trim()
+    || evidence.check.result !== (status === 'resolved' ? 'pass' : 'fail')) {
+    throw new Error('disposition evidence needs a repository path, SHA-256, and matching check command/result');
+  }
+  const root = path.resolve(implementationRoot);
+  const file = path.resolve(root, evidence.path);
+  const rel = path.relative(root, file);
+  if (!rel || rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel) || !existsSync(file)) {
+    throw new Error(`disposition evidence path is missing or outside the candidate: ${evidence.path}`);
+  }
+  const rootReal = realpathSync(root);
+  const fileReal = realpathSync(file);
+  const realRel = path.relative(rootReal, fileReal);
+  if (!realRel || realRel === '..' || realRel.startsWith(`..${path.sep}`) || path.isAbsolute(realRel)) {
+    throw new Error(`disposition evidence path escapes the candidate: ${evidence.path}`);
+  }
+  const bytes = readFileSync(fileReal);
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  if (digest !== evidence.digest) throw new Error(`disposition evidence digest is stale: ${evidence.path}`);
 }
 
 function recordClasses(findings) {
@@ -300,8 +337,56 @@ const acceptanceIds = [...new Set(gate1.flatMap((entry) =>
   [...entry.text.matchAll(/^- \*\*(AT-[A-Z]+-?\d+)/gm)].map((match) => match[1]),
 ))].sort();
 if (!acceptanceIds.length) fail('--gate1 must include the acceptance document');
+function validateCompletedCoverage(report) {
+  if (!Array.isArray(report.verdicts) || !Array.isArray(report.findings)
+    || (report.unresolved !== undefined && !Array.isArray(report.unresolved))) {
+    throw new Error('completed review must include verdicts, findings, and unresolved arrays');
+  }
+  const rows = report.verdicts.map((entry) => typeof entry === 'string' ? { id: entry, verdict: 'pass' } : entry);
+  const ids = rows.map((entry) => entry && entry.id);
+  if (new Set(ids).size !== ids.length) throw new Error('duplicate review verdict coverage');
+  if (rows.some((entry) => !entry || !['pass', 'fail'].includes(entry.verdict))) {
+    throw new Error('each acceptance case needs a pass/fail verdict');
+  }
+  const actual = [...ids].sort();
+  const wanted = [...acceptanceIds].sort();
+  const missing = wanted.filter((id) => !actual.includes(id));
+  const extra = actual.filter((id) => !wanted.includes(id));
+  if (missing.length || extra.length) {
+    throw new Error(`review verdict coverage mismatch: missing ${missing.join(',') || 'none'}; extra ${extra.join(',') || 'none'}`);
+  }
+}
 const boundCatalogueDigest = catalogueDigest(cataloguePath);
 const implementation = implementationDigest(implementationRoot);
+const outcomesPath = `${outPath}.reviews.jsonl`;
+let reviewOutcomes = [];
+if (existsSync(outcomesPath)) {
+  try {
+    reviewOutcomes = readFileSync(outcomesPath, 'utf8').split('\n').filter((line) => line.trim()).map((line, index) => {
+      const outcome = JSON.parse(line);
+      if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)
+        || typeof outcome.author_context !== 'string' || typeof outcome.binding !== 'boolean'
+        || !['pass', 'fail'].includes(outcome.verdict) || !Array.isArray(outcome.finding_batch)) {
+        throw new Error(`invalid outcome schema on line ${index + 1}`);
+      }
+      return outcome;
+    });
+  } catch (error) {
+    fail(`review outcome journal is corrupt; refusing to lose completed review history (${error.message})`);
+  }
+}
+let priorReview = null;
+if (remediation) {
+  if (!reviewOutcomes.length) fail('--remediate requires a persisted completed review batch');
+  const outcomes = reviewOutcomes.filter((entry) => entry.author_context === authorContext && entry.binding === true);
+  priorReview = outcomes.at(-1) || null;
+  if (!priorReview || priorReview.verdict !== 'fail') {
+    fail('--remediate requires the latest completed binding review to be a failure for this author-context');
+  }
+  if (priorReview.implementation_digest === implementation.digest) {
+    fail('--remediate requires a changed candidate; unchanged findings cannot be reopened without new evidence');
+  }
+}
 
 const prompt = `You are performing a REPORT-ONLY release review. You have no
 authority to edit anything and must not attempt to. Report findings only.
@@ -341,16 +426,21 @@ Judge these questions, in this order of importance:
 Be adversarial and specific. A finding that names a section and quotes the
 offending text is useful; a general impression is not. If the specification is
 sound on a dimension, say so rather than inventing a finding.
-${recurring.length ? `
-PRIOR ROUNDS. These finding classes have already fired for this author-context.
-Check every one of them FIRST, before looking for anything new, and state in a
-verdict note whether each still recurs or is now genuinely resolved. A class
-listed here recurring again is a stronger signal than a novel minor finding.
-Do not treat this list as a quota: if a listed class is clean, say it is clean.
+${remediation ? `
+REMEDIATION RE-REVIEW. This is one explicit targeted re-review after a complete
+finding batch. First examine the exact prior findings below and decide each as
+resolved or still open, citing changed code/tests as evidence. Review the full
+candidate's acceptance cases again and check remediation interactions. Also scan
+the full candidate for serious new defects; report them even when absent from
+the prior batch. Do not reopen an unchanged finding unless new evidence shows
+it remains or has regressed. Return every acceptance verdict as usual; prior
+verdicts are not carried forward. Include exactly one finding_dispositions
+entry for each prior finding id, with status "resolved" or "open" and specific
+evidence. If open, include that finding in findings and retain its id. An open
+blocker or major finding must keep verdict "fail".
 
-${recurring.map(([, entry]) =>
-  `  ${entry.category || 'uncategorized'} — fired in ${entry.rounds.length} prior round(s)${entry.anchor ? `, at: ${entry.anchor}` : ''}`
-).join('\n')}
+Prior finding batch (bound to ${priorReview.implementation_digest}):
+${JSON.stringify(priorReview.finding_batch, null, 2)}
 ` : ''}
 Reply with ONE fenced json block and nothing else, in this exact shape:
 
@@ -362,12 +452,16 @@ Reply with ONE fenced json block and nothing else, in this exact shape:
   ],
   "findings": [
     {
+      "id": "<prior finding id when this finding remains open; omit for new findings>",
       "severity": "blocker" | "major" | "minor",
       "category": "coverage" | "correctness" | "contradiction" | "testability" | "architecture" | "placeholder" | "overreach",
       "anchor": "<file, behavior, or design clause>",
       "evidence": "<verbatim quote of the offending line(s) or clause>",
       "detail": "<what is wrong and why it matters>"
     }
+  ],
+  "finding_dispositions": [
+    { "id": "<prior finding id>", "status": "resolved" | "open", "evidence": { "path": "<candidate-relative file>", "digest": "<SHA-256 of current bytes>", "check": { "command": "<test/check command>", "result": "pass" | "fail" } } }
   ],
   "unresolved": ["<gate 1 id with no adequate contract>"]
 }
@@ -387,13 +481,14 @@ ${targetBytes.toString('utf8')}
 const reviewerCommand = reviewerDriver === 'codex' ? 'codex' : 'claude';
 const reviewerArgs = reviewerDriver === 'codex'
   ? ['exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--enable', 'code_mode_host', '--enable', 'shell_tool', '--sandbox', 'read-only', '--cd', implementationRoot, '--model', model, '-']
-  : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob,Bash'];
+  : ['-p', '--model', model, '--safe-mode', '--no-session-persistence', '--permission-mode', 'dontAsk', '--tools', 'Read,Grep,Glob'];
 
 // RIG-124.3: mark the attempt in flight before the spawn. A process killed by
 // its own timeout or any other signal exits before it could write an outcome;
 // this marker is what the next run uses to account for that attempt exactly
 // once (RIG-124.1's safety intent, without charging it as review signal).
 const attemptNonce = randomUUID();
+const usingExtraBindingAuthorization = !interim && state.failures > MAX_RE_REVIEWS && forceRereview;
 state.in_flight = { nonce: attemptNonce, started_at: new Date().toISOString() };
 logAttempt(attemptNonce, 'running');
 writeState();
@@ -434,12 +529,10 @@ function finishAttempt(attemptState, reason) {
 // so it spends no authorization — but it is still a loud, non-zero exit.
 function infraFailure(reason) {
   finishAttempt('failed', reason);
-  const left = INFRA_STREAK_LIMIT - state.infra_streak;
   console.error(
     `review-receipt: infrastructure failure, not review signal — authorization not spent. ` +
-    `cap unchanged at ${state.failures}/${MAX_RE_REVIEWS + 1} for author-context "${authorContext}"; ` +
-    `${left > 0 ? `${left} uncharged retr${left === 1 ? 'y' : 'ies'} left` : 'uncharged retry limit reached'} ` +
-    `(${state.infra_streak}/${INFRA_STREAK_LIMIT} consecutive).`
+    `completed-review authorization unchanged at ${state.failures}/${MAX_RE_REVIEWS + 1} ` +
+    `for author-context "${authorContext}" (${state.infra_streak} consecutive infrastructure failure(s)).`
   );
   fail(reason);
 }
@@ -473,15 +566,64 @@ if (!['pass', 'fail'].includes(reported.verdict) || !Array.isArray(reported.verd
   infraFailure(`reviewer returned no valid verdict (verdict=${JSON.stringify(reported.verdict)}, ` +
     `verdicts ${Array.isArray(reported.verdicts) ? 'ok' : 'missing or not an array'})`);
 }
+try {
+  validateCompletedCoverage(reported);
+} catch (error) {
+  infraFailure(`reviewer returned an incomplete review: ${error.message}`);
+}
+
+const priorFindingIds = new Set((priorReview?.finding_batch || []).map((finding) => finding.id));
+const findingBatch = (reported.findings || []).map((finding, index) => ({
+  ...finding,
+  id: remediation && priorFindingIds.has(finding.id)
+    ? finding.id
+    : `F-${createHash('sha256').update(findingKey(finding)).digest('hex').slice(0, 16)}-${index + 1}`,
+}));
+if (remediation) {
+  const previous = priorReview.finding_batch || [];
+  const dispositions = reported.finding_dispositions;
+  if (!Array.isArray(dispositions) || dispositions.length !== previous.length) {
+    infraFailure(`remediation report must disposition all ${previous.length} prior findings`);
+  }
+  const byId = new Map();
+  for (const item of dispositions) {
+    if (!item || !['resolved', 'open'].includes(item.status)) infraFailure('remediation finding dispositions need an id and resolved/open status');
+    try { validateDispositionEvidence(item.evidence, item.status); }
+    catch (error) { infraFailure(error.message); }
+    if (byId.has(item.id)) infraFailure(`duplicate disposition for ${item.id}`);
+    byId.set(item.id, item);
+  }
+  for (const finding of previous) {
+    const disposition = byId.get(finding.id);
+    if (!disposition) infraFailure(`remediation report omitted prior finding ${finding.id}`);
+    if (disposition.status === 'open' && !findingBatch.some((item) => item.id === finding.id)) {
+      infraFailure(`open prior finding ${finding.id} must remain in current findings with its id`);
+    }
+    if (disposition.status === 'open' && ['blocker', 'major'].includes(finding.severity) && reported.verdict === 'pass') {
+      infraFailure(`remediation report cannot pass while ${finding.severity} finding ${finding.id} remains open`);
+    }
+  }
+}
+
+const afterReview = implementationDigest(implementationRoot);
+const targetDigestAfter = createHash('sha256').update(readFileSync(targetPath)).digest('hex');
+const catalogueDigestAfter = catalogueDigest(cataloguePath);
+const gate1DigestsAfter = gate1Paths.map((file) => createHash('sha256').update(readFileSync(file)).digest('hex'));
+if (afterReview.digest !== implementation.digest
+  || targetDigestAfter !== targetDigest
+  || catalogueDigestAfter !== boundCatalogueDigest
+  || gate1DigestsAfter.some((digest, index) => digest !== gate1[index].digest)) {
+  infraFailure('candidate changed during review; frozen-candidate binding failed');
+}
 
 // A `fail` verdict is a completed review as it stands: nothing downstream can
 // make it less true, and it is charged here because the validation gate below
 // rejects every failing receipt and exits. A `pass` is only a completed review
 // once its report proves coherent, so it stays in flight until validation.
 if (reported.verdict === 'fail') {
-  finishAttempt('completed', 'verdict fail');
   state.failures += 1;
-  writeState();
+  if (usingExtraBindingAuthorization) state.extra_review_used = true;
+  finishAttempt('completed', 'verdict fail');
 }
 
 // RIG-124.2: the report is well-formed, so its finding classes are real signal
@@ -509,9 +651,28 @@ const receipt = {
   reviewed_at: new Date().toISOString(),
   verdict: reported.verdict,
   verdicts: reported.verdicts,
-  findings: reported.findings || [],
+  findings: findingBatch,
   unresolved: reported.unresolved || [],
+  review_phase: remediation ? 'remediation' : 'comprehensive',
+  ...(remediation ? { remediates_review_id: priorReview.review_id } : {}),
 };
+
+function persistOutcome() {
+  appendFileSync(outcomesPath, `${JSON.stringify({
+    review_id: attemptNonce,
+    author_context: authorContext,
+    reviewed_at: receipt.reviewed_at,
+    review_phase: receipt.review_phase,
+    binding: !interim,
+    ...(receipt.remediates_review_id ? { remediates_review_id: receipt.remediates_review_id } : {}),
+    implementation_digest: implementation.digest,
+    target_digest: targetDigest,
+    verdict: receipt.verdict,
+    finding_batch: findingBatch,
+    finding_dispositions: reported.finding_dispositions || [],
+    unresolved: reported.unresolved || [],
+  })}\n`);
+}
 
 try {
   validateReviewReceipt(receipt, {
@@ -522,6 +683,7 @@ try {
     acceptance_ids: acceptanceIds,
   });
 } catch (error) {
+  persistOutcome();
   console.error(`review-receipt: rejected reviewer report\n${JSON.stringify({
     verdict: reported.verdict,
     findings: reported.findings || [],
@@ -532,15 +694,16 @@ try {
   // is a self-contradictory report (passing with blockers, with unresolved
   // cases, or without covering every acceptance id): an execution failure, not
   // a completed review, and one that must not be able to buy an authorization
-  // by being malformed. The infrastructure streak bounds a reviewer that keeps
-  // producing them.
+  // by being malformed. It remains an uncharged execution failure.
   if (reported.verdict === 'pass') {
     infraFailure(`reviewer returned an invalid receipt with a pass verdict: ${error.message}`);
   }
   fail(`reviewer returned an invalid or failing receipt: ${error.message}`);
 }
 
+if (usingExtraBindingAuthorization) state.extra_review_used = true;
 finishAttempt('completed', 'verdict pass');
+persistOutcome();
 
 if (interim) {
   const findings = reported.findings || [];
@@ -553,7 +716,6 @@ if (interim) {
       `${(reported.unresolved || []).length} unresolved`
   );
   if (findings.length) console.log(JSON.stringify(findings, null, 2));
-  if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
   process.exit(0);
 }
 
@@ -567,8 +729,6 @@ writeFileSync(
     2
   )}\n`
 );
-
-if (existsSync(attemptsPath)) unlinkSync(attemptsPath);
 
 const findings = reported.findings || [];
 const blockers = findings.filter((f) => f.severity === 'blocker').length;

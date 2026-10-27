@@ -5,6 +5,7 @@
 // download, and an ordinary SSH key is not proof of a hardware-presence prompt.
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -25,6 +26,8 @@ function repo(t, prefix) {
   const dir = scratch(t, prefix);
   const init = spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
   assert.equal(init.status, 0, init.stderr);
+  const remote = spawnSync('git', ['remote', 'add', 'origin', 'https://github.com/owner/repo.git'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(remote.status, 0, remote.stderr);
   return dir;
 }
 
@@ -210,9 +213,22 @@ test('E2E-J09 independent review carries a defect through repair and resolution'
     { file: 'src/rotate.js', line: 1, problem: 'rotation threshold exceeds monthly policy' },
   ] });
   assert.equal(failed.unresolved.length, 1);
-  assert.match(review.prepare(dir, { round: 2, diff: ['src/rotate.js'] }).unresolved[0].problem, /threshold/);
   write(dir, 'src/rotate.js', 'function rotate(days) { return days > 30; }\nmodule.exports = rotate;\n');
-  const passed = review.record(dir, { round: 2, verdict: 'pass', reviewer: 'reviewer-b', findings: [] });
+  const plan = review.prepare(dir, { round: 2, diff: ['src/rotate.js'] });
+  assert.equal(plan.phase, 'remediation');
+  assert.match(plan.unresolved[0].problem, /threshold/);
+  const passed = review.record(dir, {
+    round: 2, verdict: 'pass', reviewer: 'reviewer-b', findings: [],
+    dispositions: [{
+      class: plan.prior_batch[0].class,
+      status: 'resolved',
+      evidence: {
+        path: 'src/rotate.js',
+        digest: crypto.createHash('sha256').update(fs.readFileSync(path.join(dir, 'src/rotate.js'))).digest('hex'),
+        check: { command: 'node --test tests/rotate.test.js', result: 'pass' },
+      },
+    }],
+  });
   assert.equal(passed.unresolved.length, 0);
   assert.equal(review.attempts(dir), 2);
 });
@@ -306,13 +322,18 @@ test('E2E-J14 provider failure consumes a bounded attempt and corrupt local mode
 test('E2E-J15 temporary release requires exact evidence and owner signature', async (t) => {
   const dir = repo(t), release = require(`${BASELINE}/release-evidence`);
   write(dir, 'src/app.js', 'module.exports=1;\n');
-  const ownerKey = path.join(dir, 'ephemeral-release-owner'), wrongKey = path.join(dir, 'wrong-release-device');
+  const keys = scratch(t, 'rig-journey-release-keys-');
+  const ownerKey = path.join(keys, 'ephemeral-release-owner'), wrongKey = path.join(keys, 'wrong-release-device');
   for (const key of [ownerKey, wrongKey]) {
     const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
     assert.equal(generated.status, 0, generated.stderr);
   }
   const publicKey = fs.readFileSync(`${ownerKey}.pub`, 'utf8').trim().replace(/^\S+\s+/, '');
   write(dir, '.rig/trust/gate1.allowed-signers', `journey-owner ssh-ed25519 ${publicKey}\n`);
+  spawnSync('git', ['-C', dir, 'add', '-A']);
+  const frozen = spawnSync('git', ['-C', dir, '-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Journey Test', '-c', 'user.email=journey@example.invalid', 'commit', '-qm', 'candidate']);
+  assert.equal(frozen.status, 0, frozen.stderr?.toString());
+  const gitSha = spawnSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
   const candidate = release.sourceDigest(dir);
   const missing = release.publicReadiness(dir, { commit: candidate });
   assert.equal(missing.ready, false);
@@ -341,22 +362,34 @@ test('E2E-J15 temporary release requires exact evidence and owner signature', as
   assert.equal(installed.installed, true);
   release.record(dir, { kind: 'clean-install', commit: candidate, status: 'pass', source: 'real-download' });
   assert.equal(release.publicReadiness(dir, { commit: candidate }).ready, true);
+  write(dir, '.rig/workers/state.json', JSON.stringify({ WP01: { status: 'accepted', candidate_digest: candidate,
+    evidence: [{ source: 'local-worker', status: 'pass', package: 'WP01', candidate_digest: candidate }] } }));
+  const integration = release.prepareIntegrationBatch(dir, { commit: gitSha, repository: 'owner/repo' });
+  release.storeIntegrationBatch(dir, { commit: gitSha, repository: 'owner/repo', identity: 'journey-owner', signature: sign(ownerKey, integration.message, dir, 'rig-integration') });
+  const savedFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = savedFetch; });
+  globalThis.fetch = async (url) => String(url).includes('/runs?')
+    ? new Response(JSON.stringify({ workflow_runs: [
+      { id: 42, workflow_id: 7, head_sha: gitSha, head_branch: 'qa-prod', head_repository: { full_name: 'owner/repo' }, event: 'workflow_dispatch', status: 'completed', conclusion: 'success' },
+    ] }), { status: 200 })
+    : new Response(JSON.stringify({ id: 7, path: '.github/workflows/release-eligibility.yml', state: 'active' }), { status: 200 });
+  const external_checks = await release.verifyExternalChecks(dir, { commit: gitSha, repository: 'owner/repo', token: 'test-token' });
   const expires_at = new Date(Date.now() + 5 * 60 * 1000).toISOString();
   const authorization = { identity: 'journey-owner', nonce: require('node:crypto').randomBytes(16).toString('hex'), expires_at };
   const message = release.authorizationMessage(dir, { commit: candidate, ...authorization });
-  assert.equal(release.publish(dir, { commit: candidate, authorization: {
+  assert.equal((await release.publish(dir, { commit: candidate, authorization: {
     ...authorization, signature: sign(wrongKey, message, dir, 'rig-release'),
-  } }).published, false, 'a different key cannot publish the candidate');
-  const published = release.publish(dir, { commit: candidate, authorization: {
+  }, external_checks, token: 'test-token' })).published, false, 'a different key cannot publish the candidate');
+  const published = await release.publish(dir, { commit: candidate, authorization: {
     ...authorization, signature: sign(ownerKey, message, dir, 'rig-release'),
-  } });
+  }, external_checks, token: 'test-token' });
   assert.equal(published.published, true, published.reason);
   assert.ok(fs.existsSync(path.join(dir, published.artifact)));
   fs.appendFileSync(path.join(dir, 'src/app.js'), '// changed\n');
   const stale = release.publicReadiness(dir, { commit: candidate });
   assert.equal(stale.ready, false);
   assert.match(stale.reason, /stale candidate/);
-  assert.equal(release.publish(dir, { commit: candidate, authorization }).published, false, 'stale candidate cannot be republished');
+  assert.equal((await release.publish(dir, { commit: candidate, authorization, external_checks, token: 'test-token' })).published, false, 'stale candidate cannot be republished');
 });
 
 test('E2E-J16 scoped recall handles paraphrase, conflict, cap and hostile inert content', (t) => {

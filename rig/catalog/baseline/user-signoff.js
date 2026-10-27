@@ -137,13 +137,16 @@ function select(repo, choice = {}) {
   if (choice.confirm !== true) throw new Error('sign-off selection requires explicit confirmation');
   if (current(repo)) throw new Error('a sign-off mode is already selected; change it under that mode');
   const trustRootPath = path.join(repo, '.rig', 'trust', 'gate1.allowed-signers');
+  const norm = normalise(choice);
+  if (norm.mode === 'platform' && !fs.existsSync(trustRootPath)) {
+    throw new Error('platform mode is unavailable without an enrolled Gate 1 trust root for recovery');
+  }
   if (fs.existsSync(trustRootPath)) {
-    const norm = normalise(choice);
     const action = { purpose: 'rig-signoff-select', mode: norm.mode, release_integrity: norm.release_integrity, key_protection: norm.key_protection };
     const gate = verifyPolicySignature(repo, action, choice.authorization);
     if (!gate.ok) throw new Error(`trust root enrolled; initial sign-off selection requires owner authorization: ${gate.reason}`);
   }
-  const policy = { ...normalise(choice), selected_at: new Date().toISOString() };
+  const policy = { ...norm, selected_at: new Date().toISOString() };
   writeJson(repo, POLICY_REL, policy);
   audit(repo, { event: 'select', mode: policy.mode, release_integrity: policy.release_integrity });
   return policy;
@@ -338,7 +341,11 @@ function change(repo, choice = {}) {
     key_protection: next.key_protection,
   };
   const gate = approve(repo, { action, authorization: choice.authorization });
-  if (!gate.ok) throw new Error(`sign-off change refused under the current ${policy.mode} policy: ${gate.reason}`);
+  // rig: an unavailable platform adapter may only be escaped by strengthening
+  // to cryptographic mode under the same Gate 1 root; weakening stays refused.
+  const recovery = !gate.ok && policy.mode === 'platform' && next.mode === 'cryptographic'
+    ? verifyPolicySignature(repo, action, choice.authorization) : null;
+  if (!gate.ok && !recovery?.ok) throw new Error(`sign-off change refused under the current ${policy.mode} policy: ${gate.reason}`);
   const saved = { ...next, selected_at: policy.selected_at, changed_at: new Date().toISOString() };
   writeJson(repo, POLICY_REL, saved);
   audit(repo, { event: 'change', from: policy.mode, to: next.mode, release_integrity: next.release_integrity });

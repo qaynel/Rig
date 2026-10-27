@@ -58,3 +58,16 @@ test('pinned model known vector remains the mean pooled, L2-normalized inference
   const digest = crypto.createHash('sha256').update(Buffer.from(vector.buffer)).digest('hex');
   assert.equal(digest, '9d9d74ceff433f382b4bc012a525eeaed64f91030c4f056e6711d010834711ba');
 });
+
+test('inherited model and vocabulary licences retain exact provenance and complete notices', () => {
+  assert.equal(model.provenance.model.commit, '389b9f64be5aa4ae7a6bc6fe95ef20ce485ae5da');
+  assert.equal(model.provenance.base_model.licence, 'MIT');
+  assert.equal(model.provenance.vocabulary.licence, 'Apache-2.0');
+  assert.equal(model.assets.find(asset => asset.kind === 'tokenizer').licence, 'MIT AND Apache-2.0');
+  for (const [file, digest] of [
+    ['assets/potion-base-2m/BGE-MIT.txt', '587a673933425dbc36ec61268d3b954051b2d3ef3c9b322ede357976055ffdd5'],
+    ['assets/potion-base-2m/BERT-Apache-2.0.txt', '43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1'],
+    ['licenses/open-code-review-Apache-2.0.txt', '1945665fdb6968a66ea29438ddee0aee23035365c862e5c4a75b62b303340acf'],
+  ]) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(baseline, file))).digest('hex'), digest);
+  assert.match(fs.readFileSync(path.join(baseline, 'UPSTREAM-NOTICES.md'), 'utf8'), /Copyright 2026 alibaba\/open-code-review Contributors/);
+});

@@ -36,6 +36,8 @@ function loadLedger(repo) {
     infra_failures: 0,
     rounds: [],
     findings: [],
+    preparations: [],
+    prepared: null,
   };
 }
 
@@ -89,6 +91,27 @@ function normalize(repo, f) {
   };
 }
 
+function validateDispositionEvidence(repo, item) {
+  const evidence = item.evidence;
+  if (!evidence || typeof evidence !== 'object' || typeof evidence.path !== 'string'
+    || !/^[a-f0-9]{64}$/.test(evidence.digest || '')
+    || !evidence.check || typeof evidence.check.command !== 'string'
+    || !evidence.check.command.trim()
+    || evidence.check.result !== (item.status === 'resolved' ? 'pass' : 'fail')) {
+    throw new Error('disposition evidence needs a repository path, SHA-256, and matching check command/result');
+  }
+  const abs = inside(repo, evidence.path);
+  if (!isFile(abs)) throw new Error(`disposition evidence file is missing or outside the repository: ${evidence.path}`);
+  const rootPath = fs.realpathSync(repo);
+  const filePath = fs.realpathSync(abs);
+  const rel = path.relative(rootPath, filePath);
+  if (!rel || rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
+    throw new Error(`disposition evidence file escapes the repository: ${evidence.path}`);
+  }
+  const actual = crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+  if (actual !== evidence.digest) throw new Error(`disposition evidence digest is stale: ${evidence.path}`);
+}
+
 function infraMessage(error, verdict) {
   if (error) {
     return /timeout/i.test(String(error)) ? `review timeout: ${error}` : `review provider outage: ${error}`;
@@ -113,7 +136,7 @@ function independencePolicy(repo) {
   return { level: parsed.level, same_model: parsed.level === 'session' };
 }
 
-function record(repo, { round, verdict, findings = [], reviewer, reviewer_provider, author_provider, error } = {}) {
+function record(repo, { round, verdict, findings = [], dispositions = [], reviewer, reviewer_provider, author_provider, error } = {}) {
   assertRepo(repo);
   const ledger = loadLedger(repo);
 
@@ -125,16 +148,56 @@ function record(repo, { round, verdict, findings = [], reviewer, reviewer_provid
   if (reviewer && reviewer === ledger.author) {
     throw new Error('review must be independent: procedural separation requires author and reviewer identifiers differ (self-review refused)');
   }
+  if (openOf(ledger).length && (!ledger.prepared || ledger.prepared.round !== round)) {
+    throw new Error('remediation review requires a prepared candidate and frozen prior finding batch');
+  }
+  const candidateDigest = sourceDigest(repo);
+  if (ledger.prepared && ledger.prepared.round === round && ledger.prepared.candidate_digest !== candidateDigest) {
+    throw new Error('candidate changed after review preflight; prepare the new frozen candidate');
+  }
   const independence = independencePolicy(repo);
   if (independence.level === 'provider' && (typeof reviewer_provider !== 'string' || !reviewer_provider.trim()
     || typeof author_provider !== 'string' || !author_provider.trim() || reviewer_provider === author_provider)) {
     throw new Error('review independence requires a different provider from the author session');
   }
-  if (verdict === 'pass' && (typeof reviewer !== 'string' || !reviewer.trim() || !Array.isArray(findings) || findings.length)) {
+  if (!Array.isArray(findings) || !Array.isArray(dispositions)) {
+    throw new Error('review findings and dispositions must be arrays');
+  }
+  if (verdict === 'pass' && (typeof reviewer !== 'string' || !reviewer.trim() || findings.length)) {
     throw new Error('completed passing review requires an independent reviewer and no open findings');
   }
 
-  const list = Array.isArray(findings) ? findings : [];
+  const list = findings;
+  const open = ledger.findings.filter((f) => f.status === 'open');
+  const dispositionByClass = new Map();
+  for (const item of dispositions) {
+    if (!item || !['resolved', 'open'].includes(item.status)) throw new Error('each finding disposition needs a class and resolved/open status');
+    validateDispositionEvidence(repo, item);
+    if (dispositionByClass.has(item.class)) throw new Error(`duplicate disposition for ${item.class}`);
+    dispositionByClass.set(item.class, item);
+  }
+  if (dispositionByClass.size !== open.length || open.some((f) => !dispositionByClass.has(f.class))) {
+    throw new Error('review must disposition every carried finding from the prior batch');
+  }
+  const incoming = new Map(list.map((f) => {
+    const n = normalize(repo, f);
+    return [n.class, n];
+  }));
+  for (const finding of open) {
+    const disposition = dispositionByClass.get(finding.class);
+    if (disposition.status === 'resolved' && incoming.has(finding.class)) {
+      throw new Error(`resolved finding ${finding.class} cannot remain in the current findings batch`);
+    }
+    if (disposition.status === 'open' && !incoming.has(finding.class)) {
+      throw new Error(`open finding ${finding.class} must remain in the current report with its id/class`);
+    }
+    if (verdict === 'pass' && disposition.status !== 'resolved') {
+      throw new Error(`passing review cannot leave finding ${finding.class} open`);
+    }
+  }
+  if (verdict === 'pass' && open.some((f) => dispositionByClass.get(f.class).status !== 'resolved')) {
+    throw new Error('passing review cannot leave mandatory findings unresolved');
+  }
   ledger.attempts += 1;
   ledger.rounds.push({
     round,
@@ -142,7 +205,9 @@ function record(repo, { round, verdict, findings = [], reviewer, reviewer_provid
     reviewer: reviewer ?? null,
     findings_count: list.length,
     recorded_at: new Date().toISOString(),
-    candidate_digest: sourceDigest(repo),
+    candidate_digest: candidateDigest,
+    finding_batch: [...incoming.values()],
+    dispositions: dispositions.map((item) => ({ ...item })),
   });
 
   if (verdict === 'fail') {
@@ -155,15 +220,25 @@ function record(repo, { round, verdict, findings = [], reviewer, reviewer_provid
     for (const f of batch.values()) {
       const known = ledger.findings.find((x) => x.class === f.class);
       if (known) {
-        Object.assign(known, { line: f.line, anchor: f.anchor, status: 'open', seen_in_rounds: known.seen_in_rounds + 1 });
+        const disposition = dispositionByClass.get(f.class);
+        if (disposition && disposition.status === 'resolved') {
+          known.status = 'resolved';
+        } else {
+          Object.assign(known, { line: f.line, anchor: f.anchor, status: 'open', seen_in_rounds: known.seen_in_rounds + 1 });
+        }
       } else {
         ledger.findings.push({ ...f, status: 'open', seen_in_rounds: 1 });
       }
     }
+    for (const finding of open) {
+      const disposition = dispositionByClass.get(finding.class);
+      if (disposition.status === 'resolved') finding.status = 'resolved';
+    }
   } else {
-    for (const f of ledger.findings) if (f.status === 'open') f.status = 'resolved';
+    for (const f of open) f.status = 'resolved';
   }
 
+  if (ledger.prepared?.round === round) ledger.prepared = null;
   saveLedger(repo, ledger);
   return { round, verdict, attempts: ledger.attempts, unresolved: openOf(ledger) };
 }
@@ -205,10 +280,25 @@ function prepare(repo, { round, diff } = {}) {
   const ledger = loadLedger(repo);
   const unresolved = ledger.findings.filter((f) => f.status === 'open').map((f) => reanchor(repo, f));
   saveLedger(repo, ledger);
-  return {
-    round, author: ledger.author, diff: diffText(repo, diff), unresolved, attempts: ledger.attempts,
+  const lastFailed = [...ledger.rounds].reverse().find((entry) => entry.verdict === 'fail');
+  const plan = {
+    round, phase: unresolved.length ? 'remediation' : 'comprehensive', author: ledger.author,
+    diff: diffText(repo, diff), unresolved, prior_batch: unresolved,
+    candidate_digest: sourceDigest(repo),
+    prior_review_digest: lastFailed?.candidate_digest || null,
+    attempts: ledger.attempts,
     independence: independencePolicy(repo),
   };
+  ledger.prepared = {
+    round,
+    phase: plan.phase,
+    candidate_digest: plan.candidate_digest,
+    prior_batch: unresolved,
+    prepared_at: new Date().toISOString(),
+  };
+  ledger.preparations = [...(ledger.preparations || []), { ...ledger.prepared }];
+  saveLedger(repo, ledger);
+  return plan;
 }
 
 // Read-only: reports 0 for a repository with no ledger and creates no state.

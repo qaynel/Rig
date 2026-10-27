@@ -110,11 +110,15 @@ function audit(repo, { file, approved = [], persist = true } = {}) {
 
   const sorted = topoOrder(pkgs, known, flag);
   const workers = require('./workers');
-  const digest = require('./release-evidence').sourceDigest(repo);
-  const complete = new Set(pkgs.filter(({ id }) => { const state = workers.state(repo, id); return state.status === 'accepted' && state.candidate_digest === digest; }).map(({ id }) => id));
+  const release = require('./release-evidence');
+  const digest = release.sourceDigest(repo);
+  const accepted = pkgs.filter(({ id }) => { const state = workers.state(repo, id); return state.status === 'accepted' && state.candidate_digest === digest; });
+  const integrated = release.integrationStatus(repo).valid;
+  const complete = new Set(accepted.map(({ id }) => id));
+  const provisional = integrated ? [] : accepted.map(({ id }) => id);
   const runnable = sorted.filter((id) => !complete.has(id) && !blocked.has(id) && known.get(id).depends.every((d) => complete.has(d)));
 
-  const result = { order: sorted, runnable, problems };
+  const result = { order: sorted, runnable, provisional, problems };
   if (persist) {
     fs.mkdirSync(path.join(repo, '.rig'), { recursive: true });
     fs.writeFileSync(path.join(repo, '.rig', 'work-packages-audit.json'), `${JSON.stringify(result, null, 2)}\n`);

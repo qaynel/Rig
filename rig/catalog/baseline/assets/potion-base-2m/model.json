@@ -50,16 +50,43 @@
       "path": "rig/catalog/baseline/assets/potion-base-2m/vocab.txt",
       "bytes": 219690,
       "digest": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c",
-      "licence": "MIT",
+      "licence": "MIT AND Apache-2.0",
       "downloaded_at_first_run": false
     },
     {
       "kind": "runtime",
       "path": "rig/catalog/baseline/embedding.js",
-      "bytes": 7962,
-      "digest": "21633d4d1b52388520b75688c8c07b2be1e7df30b5f6a75e54badf640e12aaa3",
+      "bytes": 8747,
+      "digest": "d37cbe67ae07b3b6cd24c6318ebd5d52f1ceff9af6e569fa057df9195fa07d78",
       "licence": "MIT",
       "downloaded_at_first_run": false
     }
-  ]
+  ],
+  "provenance": {
+    "model": {
+      "repository": "https://huggingface.co/minishlab/potion-base-2M",
+      "commit": "389b9f64be5aa4ae7a6bc6fe95ef20ce485ae5da",
+      "file": "model.safetensors",
+      "sha256": "f95ffde02ad06f63ae38eb9d400038cd5ccaf8411ec3cb650c6025113f96cbb8",
+      "model_card_sha256": "38af170acce93b5eb0c4e18659ab0b30581b2f6860f3e12d8ba8b8751e249363",
+      "licence": "MIT"
+    },
+    "base_model": {
+      "repository": "https://huggingface.co/BAAI/bge-base-en-v1.5",
+      "commit": "a5beb1e3e68b9ab74eb54cfd186867f64f240e1a",
+      "licence": "MIT",
+      "model_card_sha256": "fd29e6117a8c2bc83f8eafb73f261d35341702dcd95c9cc0b34f5be75afa8231",
+      "licence_source": "https://github.com/FlagOpen/FlagEmbedding/blob/fd1a2bdf69488ffebe0327999d4400d8c8058a0b/LICENSE",
+      "licence_file": "BGE-MIT.txt"
+    },
+    "vocabulary": {
+      "repository": "https://huggingface.co/google-bert/bert-base-uncased",
+      "commit": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "file": "vocab.txt",
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+      "relationship": "BGE vocabulary is byte-identical; potion vocabulary is a subset, checked 2026-10-26",
+      "licence": "Apache-2.0",
+      "licence_file": "BERT-Apache-2.0.txt"
+    }
+  }
 }

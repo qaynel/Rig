@@ -89,6 +89,26 @@ test('embedding rechecks same-length asset corruption after its cache has loaded
   assert.equal(embedding.available(), false);
 }));
 
+test('unchanged embedding assets are not reread for every record and cached vectors remain caller-owned', () => withTemp((dir) => {
+  const embedding = isolatedEmbedding(dir);
+  const first = embedding.embed('rotate credentials every month');
+  const expected = Array.from(first);
+  const read = fs.readFileSync;
+  const realRoot = fs.realpathSync(dir);
+  let reads = 0;
+  fs.readFileSync = function (file, ...args) {
+    if (String(file).startsWith(path.join(realRoot, 'rig'))) reads += 1;
+    return read.call(this, file, ...args);
+  };
+  try {
+    first.fill(0);
+    assert.deepEqual(Array.from(embedding.embed('rotate credentials every month')), expected);
+    embedding.embed('change the signing password');
+    assert.equal(embedding.failure(), null);
+    assert.equal(reads, 0, 'verified immutable buffers are reused until file metadata changes');
+  } finally { fs.readFileSync = read; }
+}));
+
 test('embedding asset report preserves declared digest and reports mismatch', () => withTemp((dir) => {
   const embedding = isolatedEmbedding(dir);
   const manifest = path.join(dir, 'rig', 'catalog', 'baseline', 'assets', 'potion-base-2m', 'model.json');

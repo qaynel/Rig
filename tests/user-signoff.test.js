@@ -17,6 +17,11 @@ function repo(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-signoff-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, 'app.js'), 'module.exports = 1;\n');
+  spawnSync('git', ['init', '-q'], { cwd: dir });
+  spawnSync('git', ['remote', 'add', 'origin', 'https://github.com/owner/repo.git'], { cwd: dir });
+  spawnSync('git', ['add', '-A'], { cwd: dir });
+  const created = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Rig Test', '-c', 'user.email=rig@example.invalid', 'commit', '-qm', 'candidate'], { cwd: dir });
+  assert.equal(created.status, 0, created.stderr?.toString());
   return dir;
 }
 
@@ -28,6 +33,12 @@ function evidence(dir) {
   return commit;
 }
 
+function freezeCandidate(dir) {
+  spawnSync('git', ['add', '-A'], { cwd: dir });
+  const result = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Rig Test', '-c', 'user.email=rig@example.invalid', 'commit', '--amend', '--no-edit', '-qm', 'candidate'], { cwd: dir });
+  assert.equal(result.status, 0, result.stderr?.toString());
+}
+
 function enroll(t, dir) {
   const keys = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-signoff-key-'));
   t.after(() => fs.rmSync(keys, { recursive: true, force: true }));
@@ -35,7 +46,31 @@ function enroll(t, dir) {
   assert.equal(spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key]).status, 0);
   fs.mkdirSync(path.join(dir, '.rig/trust'), { recursive: true });
   fs.writeFileSync(path.join(dir, '.rig/trust/gate1.allowed-signers'), `test-owner ${fs.readFileSync(`${key}.pub`, 'utf8')}`);
+  spawnSync('git', ['add', '.rig/trust/gate1.allowed-signers'], { cwd: dir });
+  const committed = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Rig Test', '-c', 'user.email=rig@example.invalid', 'commit', '--amend', '--no-edit', '-qm', 'candidate'], { cwd: dir });
+  assert.equal(committed.status, 0, committed.stderr?.toString());
   return key;
+}
+
+async function externallyVerified(t, dir, key, commit) {
+  const gitSha = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+  const digest = release.sourceDigest(dir);
+  fs.mkdirSync(path.join(dir, '.rig/workers'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.rig/workers/state.json'), JSON.stringify({ WP1: {
+    status: 'accepted', candidate_digest: digest,
+    evidence: [{ source: 'local-worker', status: 'pass', package: 'WP1', candidate_digest: digest }],
+  } }));
+  const batch = release.prepareIntegrationBatch(dir, { commit: gitSha, repository: 'owner/repo' });
+  const integration = { commit: gitSha, repository: 'owner/repo', identity: 'test-owner', signature: sign(key, batch.message, 'rig-integration') };
+  release.storeIntegrationBatch(dir, integration);
+  const savedFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = savedFetch; });
+  globalThis.fetch = async (url) => String(url).includes('/runs?')
+    ? new Response(JSON.stringify({ workflow_runs: [
+      { id: 42, workflow_id: 7, head_sha: gitSha, head_branch: 'qa-prod', head_repository: { full_name: 'owner/repo' }, event: 'workflow_dispatch', status: 'completed', conclusion: 'success' },
+    ] }), { status: 200 })
+    : new Response(JSON.stringify({ id: 7, path: '.github/workflows/release-eligibility.yml', state: 'active' }), { status: 200 });
+  return release.verifyExternalChecks(dir, { commit: gitSha, repository: 'owner/repo', token: 'test-token' });
 }
 
 function sign(key, message, namespace) {
@@ -73,39 +108,36 @@ test('sign-off is not selected silently and a missing choice is refused', (t) =>
   assert.ok(proposal.signoff.platform.mechanisms.some((item) => item.id === 'sudo-or-password-prompt' && item.human_presence === 'not-guaranteed'));
 });
 
-test('acknowledgement publishes only as a labeled declaration and a typed name does not', (t) => {
+test('acknowledgement and typed identity cannot publish production artifacts', async (t) => {
   const dir = repo(t);
   signoff.select(dir, { confirm: true, mode: 'acknowledgement', release_integrity: 'self-attestation' });
   const commit = evidence(dir);
-  const named = release.publish(dir, { commit, authorization: { signed_by: 'gate1-owner', owner_approved: true } });
+  const named = await release.publish(dir, { commit, authorization: { signed_by: 'gate1-owner', owner_approved: true } });
   assert.equal(named.published, false);
   assert.equal(named.cryptographic_signature, false);
   const action = signoff.releaseAction(commit);
   const ack = signoff.acknowledge(dir, { action });
-  const published = release.publish(dir, { commit, authorization: { acknowledgement: ack.id } });
-  assert.equal(published.published, true, published.reason);
-  assert.equal(published.assurance.cryptographic_signature, false);
-  assert.equal(published.assurance.artifact_integrity, 'unsigned');
-  assert.match(published.assurance.ceiling, /forge|declaration/i);
-  const bytes = fs.readFileSync(path.join(dir, published.artifact), 'utf8');
-  assert.equal(JSON.parse(bytes).assurance.cryptographic_signature, false);
-  assert.equal(release.publish(dir, { commit, authorization: { acknowledgement: 'deadbeef'.repeat(4) } }).published, false);
+  const published = await release.publish(dir, { commit, authorization: { acknowledgement: ack.id } });
+  assert.equal(published.published, false);
+  assert.match(published.reason, /real signature.*Gate 1 trust root/i);
+  assert.equal(fs.existsSync(path.join(dir, '.rig/release/published')), false);
+  assert.equal((await release.publish(dir, { commit, authorization: { acknowledgement: 'deadbeef'.repeat(4) } })).published, false);
 });
 
-test('cryptographic mode rejects a typed name, a missing trust root, and a downgrade without a signature', (t) => {
+test('cryptographic mode rejects a typed name, a missing trust root, and a downgrade without a signature', async (t) => {
   const dir = repo(t);
   signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt' });
   const open = evidence(dir);
-  const unnamed = release.publish(dir, { commit: open, authorization: { signed_by: 'gate1-owner' } });
+  const unnamed = await release.publish(dir, { commit: open, authorization: { signed_by: 'gate1-owner' } });
   assert.equal(unnamed.published, false);
   assert.match(unnamed.reason, /typed name|signature/i);
   assert.equal(signoff.current(dir).mode, 'cryptographic');
-  const fake = release.publish(dir, {
+  const fake = await release.publish(dir, {
     commit: open,
     authorization: { identity: 'test-owner', nonce: 'b'.repeat(32), expires_at: new Date(Date.now() + 60000).toISOString(), signature: 'nope' },
   });
   assert.equal(fake.published, false);
-  assert.match(fake.reason, /trust root is missing/);
+  assert.match(fake.reason, /Gate 1 trust root|real signature/i);
   assert.equal(signoff.current(dir).mode, 'cryptographic');
   assert.throws(
     () => signoff.change(dir, { mode: 'acknowledgement', release_integrity: 'self-attestation', authorization: { signed_by: 'agent', owner_approved: true } }),
@@ -114,19 +146,32 @@ test('cryptographic mode rejects a typed name, a missing trust root, and a downg
   assert.equal(signoff.current(dir).mode, 'cryptographic');
 });
 
-test('a verified signature publishes, and weakening the mode requires one', (t) => {
+test('a verified signature and external candidate evidence publish, and weakening the mode requires one', async (t) => {
   const dir = repo(t);
   const key = enroll(t, dir);
   const selectAction = { purpose: 'rig-signoff-select', mode: 'cryptographic', release_integrity: 'signature', key_protection: 'platform-prompt' };
   signoff.select(dir, { confirm: true, mode: 'cryptographic', key_protection: 'platform-prompt', authorization: { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, selectAction), 'rig-signoff') } });
+  freezeCandidate(dir);
   const commit = evidence(dir);
-  const published = release.publish(dir, { commit, authorization: releaseAuthorization(dir, key, commit) });
+  const external_checks = await externallyVerified(t, dir, key, commit);
+  const realNow = Date.now;
+  let offset = 20 * 60 * 1000;
+  Date.now = () => realNow() + offset;
+  let published;
+  try {
+    published = await release.publish(dir, { commit, authorization: releaseAuthorization(dir, key, commit), external_checks, token: 'test-token' });
+  } finally { Date.now = realNow; }
   assert.equal(published.published, true, published.reason);
   assert.equal(published.cryptographic_signature, true);
   assert.equal(published.assurance.human_presence, 'designated-not-proven');
   assert.equal(published.assurance.signer_identity, 'verified');
   const bytes = fs.readFileSync(path.join(dir, published.artifact), 'utf8');
   assert.ok(!bytes.includes('test-owner') && !bytes.includes('SSH SIGNATURE'));
+  offset = 22 * 60 * 1000;
+  Date.now = () => realNow() + offset;
+  try { assert.equal(release.validatePublished(dir, { artifact: published.artifact, health: 'pass' }).healthy, true,
+    'the release signature remains verifiable after its authorization expires'); }
+  finally { Date.now = realNow; }
 
   const action = { purpose: 'rig-signoff-change', from: 'cryptographic', to: 'acknowledgement', release_integrity: 'self-attestation', key_protection: 'unspecified' };
   const authorization = { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, action), 'rig-signoff') };
@@ -175,24 +220,30 @@ test('select requires owner authorization when a trust root is enrolled', (t) =>
   assert.equal(signoff.current(dir).mode, 'acknowledgement');
 });
 
-test('platform mode refuses approval without a verified adapter', (t) => {
+test('platform mode refuses approval without a verified adapter', async (t) => {
   const dir = repo(t);
-  signoff.select(dir, { confirm: true, mode: 'platform', release_integrity: 'self-attestation' });
+  assert.throws(() => signoff.select(dir, { confirm: true, mode: 'platform', release_integrity: 'self-attestation' }), /Gate 1 trust root/);
+  const key = enroll(t, dir);
+  const selection = { purpose: 'rig-signoff-select', mode: 'platform', release_integrity: 'self-attestation', key_protection: 'unspecified' };
+  signoff.select(dir, {
+    confirm: true, mode: 'platform', release_integrity: 'self-attestation',
+    authorization: { identity: 'test-owner', signature: sign(key, signoff.approvalMessage(dir, selection), 'rig-signoff') },
+  });
   const commit = evidence(dir);
   const action = signoff.releaseAction(commit);
   assert.throws(() => signoff.authorizePlatform(dir, { action }), /unavailable/);
-  const published = release.publish(dir, { commit, authorization: { receipt: 'f'.repeat(32), human_presence: 'verified' } });
+  const published = await release.publish(dir, { commit, authorization: { receipt: 'f'.repeat(32), human_presence: 'verified' } });
   assert.equal(published.published, false);
-  assert.match(published.reason, /unavailable/);
+  assert.match(published.reason, /real signature.*Gate 1 trust root/i);
 });
 
-test('an unconfigured repository refuses typed-name publication', (t) => {
+test('an unconfigured repository refuses typed-name publication', async (t) => {
   const dir = repo(t);
   const commit = evidence(dir);
-  const published = release.publish(dir, { commit, authorization: { signed_by: 'gate1-owner' } });
+  const published = await release.publish(dir, { commit, authorization: { signed_by: 'gate1-owner' } });
   assert.equal(published.published, false);
   assert.equal(published.cryptographic_signature, false);
-  assert.match(published.reason, /authoriz/i);
+  assert.match(published.reason, /real signature|authoriz/i);
 });
 
 test('declared learning history is not admitted, and a promoted check required execution', (t) => {

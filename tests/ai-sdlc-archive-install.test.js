@@ -26,31 +26,36 @@ function archive(work, changes = {}) {
   for (const [rel, body] of Object.entries(changes)) files.set(rel, Buffer.from(body));
   const meta = JSON.parse(files.get('rig-archive.json'));
   meta.files = Object.fromEntries([...files].filter(([rel]) => rel !== 'rig-archive.json').map(([rel, bytes]) => [rel, sha(bytes)]));
-  files.set('rig-archive.json', Buffer.from(JSON.stringify(meta)));
+  files.set('rig-archive.json', Buffer.from(`${JSON.stringify(meta, null, 2)}\n`));
   const blocks = [...files].flatMap(([rel, bytes]) => tarEntry(`release/${rel}`, { bytes, mode: 0o644 }));
   const file = path.join(work, 'download.tar.gz');
   fs.writeFileSync(file, zlib.gzipSync(Buffer.concat([...blocks, Buffer.alloc(1024)])));
   return file;
 }
 
-test('archive install projects downloaded corpus data without executing downloaded installer code', () => fixture((work) => {
+test('archive install uses the complete trusted release bytes and never executes downloaded installer code', () => fixture((work) => {
   const repo = path.join(work, 'repo');
   fs.mkdirSync(repo);
-  const marker = '\nARCHIVE_DATA_MARKER\n';
-  const file = archive(work, {
-    'rig/corpus/routing.md': fs.readFileSync(path.join(root, 'rig/corpus/routing.md'), 'utf8') + marker,
-    'rig/lib/payload.js': 'throw new Error("UNTRUSTED_INSTALLER_EXECUTED");',
-    'rig/corpus/projections/claude.js': 'throw new Error("UNTRUSTED_PROJECTOR_EXECUTED");',
-  });
+  const file = archive(work);
   const result = portability.installArchive(repo, file);
   try {
-    assert.match(fs.readFileSync(path.join(repo, '.rig/routing.md'), 'utf8'), /ARCHIVE_DATA_MARKER/);
-    assert.match(fs.readFileSync(path.join(repo, '.rig/kit/rig/lib/payload.js'), 'utf8'), /UNTRUSTED_INSTALLER_EXECUTED/);
+    assert.equal(fs.readFileSync(path.join(repo, '.rig/routing.md'), 'utf8'), fs.readFileSync(path.join(root, 'rig/corpus/routing.md'), 'utf8'));
+    assert.doesNotMatch(fs.readFileSync(path.join(repo, '.rig/kit/rig/lib/payload.js'), 'utf8'), /UNTRUSTED_INSTALLER_EXECUTED/);
     const other = path.join(work, 'host-repo');
     fs.mkdirSync(other);
     runPayload(other, ['claude'], { sourceRoot: result.extracted_to });
     assert.ok(fs.existsSync(path.join(other, 'CLAUDE.md')), 'trusted projector handles downloaded data');
   } finally { fs.rmSync(result.extracted_to, { recursive: true, force: true }); }
+}));
+
+test('self-consistent archive digests cannot authorize changed release bytes', () => fixture((work) => {
+  const repo = path.join(work, 'repo');
+  fs.mkdirSync(repo);
+  const file = archive(work, {
+    'rig/catalog/baseline/embedding.js': 'throw new Error("FORGED_RUNTIME_EXECUTED");',
+  });
+  assert.throws(() => portability.installArchive(repo, file), /complete trusted release bytes/);
+  assert.equal(fs.existsSync(path.join(repo, '.rig')), false);
 }));
 
 test('default payload ships the complete inert capability kit and working installed inference', () => fixture((work) => {
@@ -89,7 +94,7 @@ test('self-consistent archive cannot change trusted projection destinations', ()
   fs.mkdirSync(repo);
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'rig/manifest.json')));
   manifest.payload[0].to = '.git/hooks/post-checkout';
-  assert.throws(() => portability.installArchive(repo, archive(work, { 'rig/manifest.json': JSON.stringify(manifest) })), /trusted.*projection|projection.*trusted/);
+  assert.throws(() => portability.installArchive(repo, archive(work, { 'rig/manifest.json': JSON.stringify(manifest) })), /trusted.*release bytes|trusted.*projection|projection.*trusted/);
   assert.equal(fs.existsSync(path.join(repo, '.git/hooks/post-checkout')), false);
 }));
 
@@ -100,7 +105,7 @@ test('archive cannot replace the trust anchor or introduce Windows path aliases'
     { 'rig/corpus/ROUTING.md': 'case alias' },
   ]) {
     const repo = fs.mkdtempSync(path.join(work, 'repo-'));
-    assert.throws(() => portability.installArchive(repo, archive(work, changes)), /trusted projection|not portable/);
+    assert.throws(() => portability.installArchive(repo, archive(work, changes)), /trusted release bytes|trusted projection|not portable/);
     assert.equal(fs.existsSync(path.join(repo, '.rig')), false);
   }
 }));

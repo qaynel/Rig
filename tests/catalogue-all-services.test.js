@@ -25,11 +25,13 @@ function inShard(index, spec = process.env.CATALOGUE_SHARD) {
 
 test('catalogue shards partition the service list', () => {
   const n = catalog.services.length;
-  const seen = Array(n).fill(0);
-  for (let part = 1; part <= 5; part += 1) {
-    for (let i = 0; i < n; i += 1) if (inShard(i, `${part}/5`)) seen[i] += 1;
+  for (const count of [1, 4, 5, 7]) {
+    const seen = Array(n).fill(0);
+    for (let part = 1; part <= count; part += 1) {
+      for (let i = 0; i < n; i += 1) if (inShard(i, `${part}/${count}`)) seen[i] += 1;
+    }
+    assert.deepEqual(seen, Array(n).fill(1));
   }
-  assert.deepEqual(seen, Array(n).fill(1));
   // An explicit empty spec means "every service". Passing undefined would
   // reuse the process default and fail inside a shard job.
   assert.equal(inShard(0, ''), true);

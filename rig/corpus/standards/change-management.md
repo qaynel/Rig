@@ -6,6 +6,29 @@ evidence from one set of bytes never counts for another. This is the policy the
 owner should never have to restate: if a release is in motion, this document is
 the checklist.
 
+## Lifecycle boundaries
+
+Feature branches enter `qa-prod` on ordinary builds, unit/integration tests,
+security and applicable regressions. Existing oracle verification is read-only;
+it does not require another signature for each candidate. No public release,
+published archive digest or interactive authentication gates this transition.
+The full release sequence below applies to production promotion/publication.
+
+Before publication, exact-QA health and clean-install checks may download the
+exact source commit and compare its complete tree against the checkout. This
+proves candidate readiness, not authenticated public-release installation.
+After authenticated publication, verify the actual release asset against its
+independently trusted SHA-256 and run offline installation on those bytes.
+These post-publication checks cannot be prerequisites for their own publication.
+Their failures block certification/closeout and invoke recovery.
+
+Routine CI evidence is verified through the existing CI provider and exact
+repository, workflow and commit identity. Local worker evidence is provisional;
+production certification requires one integration batch signed by the existing
+Gate 1 root. Actual release publication separately requires a real signature,
+even if the everyday sign-off mode allows acknowledgements. No new trust root
+or routine-QA signing ceremony is introduced.
+
 It sits on top of the delivery SOP (`delivery-sop.md`, how the work gets done)
 and the AI development standards (`ai-sdlc.md`, what counts as evidence).
 
@@ -71,9 +94,22 @@ implementation digest hashes every publishable file, so a receipt committed —
 or left untracked — inside the repository changes the very bytes it claims to
 describe.
 
-A failing verdict is real signal. The re-review cap exists so a `fail` is
-reported rather than retried; a second consecutive fail stops the release and
-goes to the owner.
+Before a binding attempt, finish deterministic checks, consolidate all known
+findings, optionally obtain independent nonbinding reviews, freeze the candidate
+and establish green relevant CI. One comprehensive binding review examines the
+complete candidate. Fix every finding in one batch with relevant regressions.
+Re-review targets that batch, the remediation and its interactions while still
+returning every required acceptance verdict. Serious new defects are recorded
+and fixed; unchanged findings need new evidence to reopen.
+
+No automatic review/fix loop runs. Persist the exact reviewed candidate, complete
+report, finding batch and attempt history; a pass or interim check never resets
+that history. Provider errors, malformed output and timeouts do not consume a
+completed-verdict attempt. The existing authorization cap escalates unresolved
+work to the owner; an explicit additional attempt does not erase history or
+authorize another retry. Success requires every mandatory finding resolved and
+all required checks green. The PR159 owner authorization permits exactly one
+additional binding attempt, only after the candidate is ready.
 
 ### 5. Docs, trackers and version agree
 
@@ -101,7 +137,9 @@ as well as production. A check that reports without blocking is not a gate.
 ### 7. QA promotion on exact-SHA automated evidence
 
 Promotion runs against the exact QA head commit and nothing else: an automated
-health run plus a real-download clean install. No manual
+health run plus a real-download clean install of that exact candidate source.
+This prepublication download is distinct from the authenticated release asset.
+No manual
 outside-the-repository install step gates the promotion.
 
 ### 8. Tag, release, then close
@@ -114,7 +152,8 @@ and the tag — so no task stays open against a closed issue.
 ### 9. On any red step
 
 Fix forward. Then re-enter the sequence at step 3, because the bytes changed:
-a new full gate run, a new receipt. Never carry evidence across a code change.
+a new full gate run and an exact-byte receipt from the controlled remediation
+review. Never carry evidence across a code change or silently reset attempts.
 
 ## What this policy refuses
 

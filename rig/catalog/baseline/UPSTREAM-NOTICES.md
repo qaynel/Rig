@@ -66,3 +66,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Distilled weights and inherited vocabulary
+
+The potion-base-2M publisher declares MIT at immutable revision
+`389b9f64be5aa4ae7a6bc6fe95ef20ce485ae5da`. Its config names
+`baai/bge-base-en-v1.5` as its tokenizer source; the BGE model card declares MIT.
+The complete BGE MIT notice is retained beside the assets in `BGE-MIT.txt`.
+The potion vocabulary is a subset of BGE's vocabulary, which is byte-identical
+to google-bert/bert-base-uncased at revision
+`86b5e0934494bd15c9632b12f734a8a67f723594`. Its Apache-2.0 terms are retained in
+`BERT-Apache-2.0.txt`, alongside potion's MIT terms. `model.json` records
+immutable source pins, source digests and this relationship; `PROVENANCE.md`
+records byte-for-byte weight conversion verification. No BGE/BERT weight
+runtime is bundled.
+
+## Open-Code-Review finding continuity
+
+Source: https://github.com/alibaba/open-code-review/blob/375f64cd6f67a48a135da83cfcf59c52669a09cb/internal/session/compare.go
+
+Copyright 2026 alibaba/open-code-review Contributors
+SPDX-License-Identifier: Apache-2.0
+
+Rig's JavaScript finding-key adaptation in scripts/review-receipt.js changes
+normalization and available finding fields, retaining continuity across line
+movement. The complete upstream Apache-2.0 licence ships in
+`licenses/open-code-review-Apache-2.0.txt`. The pinned upstream tree has no
+root NOTICE file. Source SHA256:
+`af0799ce805a9e3b7fd39baddd792db828330fc61df210d05b10ab0f36e548d2`.

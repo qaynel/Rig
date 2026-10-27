@@ -20,6 +20,8 @@ const MANIFEST = '.rig/inference/manifest.json';
 const ASSET_KINDS = ['model', 'tokenizer', 'runtime'];
 const PLATFORMS = ['darwin', 'linux', 'win32'];
 const ARCHIVE_MAX_BYTES = 1024 * 1024 * 1024;
+const ARCHIVE_INCLUDE = ['rig', 'skills/rig', 'package.json', 'LICENSE'];
+const ARCHIVE_SKIP = new Set(['.DS_Store', 'node_modules', '__pycache__']);
 
 // Step names are host-independent; each step's host-specific part is its body.
 // A step returns { ok, runtime } where runtime names what it actually used.
@@ -88,9 +90,29 @@ function portableNames(files) {
   }
 }
 
-// Self-declared digests prove consistency, not permission to execute code or
-// replace the projection plan. Use this trusted installer/projectors with the
-// downloaded data only. An incompatible plan needs an installer upgrade.
+function trustedArchiveFiles() {
+  const files = new Map();
+  const root = fs.realpathSync(TRUSTED_ROOT);
+  function collect(rel, ancestors = new Set()) {
+    if (ARCHIVE_SKIP.has(path.basename(rel)) || path.basename(rel).startsWith('._')) return;
+    const abs = path.join(root, rel);
+    const real = fs.realpathSync(abs);
+    if (!real.startsWith(`${root}${path.sep}`)) throw new Error(`trusted archive source escapes checkout: ${rel}`);
+    const stat = fs.statSync(abs);
+    if (stat.isDirectory()) {
+      if (ancestors.has(real)) throw new Error(`trusted archive source has a directory cycle: ${rel}`);
+      for (const name of fs.readdirSync(abs).sort()) collect(path.join(rel, name), new Set([...ancestors, real]));
+    } else {
+      if (!stat.isFile()) throw new Error(`trusted archive source is not a regular file: ${rel}`);
+      files.set(rel.split(path.sep).join('/'), fs.readFileSync(abs));
+    }
+  }
+  for (const rel of ARCHIVE_INCLUDE) collect(rel);
+  return files;
+}
+
+// Self-declared digests prove consistency only. Bind the complete public
+// archive to this independently trusted checkout before using any downloaded data.
 function installArchive(repo, archive) {
   if (typeof archive !== 'string' || !fs.existsSync(archive) || !fs.statSync(archive).isFile()) {
     throw new Error(`archive is not a file: ${archive}`);
@@ -108,6 +130,18 @@ function installArchive(repo, archive) {
   }
   for (const rel of [...Object.keys(meta.files), ...INSTALLED]) {
     if (!files.has(rel)) throw new Error(`archive is missing declared file "${rel}"`);
+  }
+  const trustedFiles = trustedArchiveFiles();
+  const archiveFiles = new Map([...files].filter(([rel]) => rel !== ARCHIVE_META));
+  const version = JSON.parse(fs.readFileSync(path.join(TRUSTED_ROOT, 'package.json'), 'utf8')).version;
+  const digests = Object.fromEntries([...trustedFiles]
+    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .map(([rel, bytes]) => [rel, sha256(bytes)]));
+  const trustedMeta = Buffer.from(`${JSON.stringify({ version, platforms: PLATFORMS, files: digests }, null, 2)}\n`);
+  if (!files.get(ARCHIVE_META).equals(trustedMeta)
+      || archiveFiles.size !== trustedFiles.size
+      || [...trustedFiles].some(([rel, bytes]) => !archiveFiles.has(rel) || !archiveFiles.get(rel).equals(bytes))) {
+    throw new Error('archive differs from the complete trusted release bytes');
   }
   for (const rel of ['rig/manifest.json', 'rig/corpus/corpus.json', 'rig/corpus/trust/gate1.allowed-signers']) {
     if (!files.has(rel) || !files.get(rel).equals(fs.readFileSync(path.join(TRUSTED_ROOT, rel)))) {

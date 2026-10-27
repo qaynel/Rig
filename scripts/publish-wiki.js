@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { scanStagedSnapshot } = require('./repo-secret-scan');
 
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'wiki');
@@ -64,13 +65,28 @@ try {
     }
     copy(SRC, staging);
     must(['add', '-A'], staging);
-    const dirty = git(['status', '--porcelain'], staging);
-    if (!dirty.stdout.trim()) {
-      console.log('GitHub Wiki already matches the local wiki');
+    let findings;
+    try { findings = scanStagedSnapshot(staging); }
+    catch (error) {
+      console.error(`Wiki secret preflight failed: ${error.message}`);
+      failed = 1;
+      findings = null;
+    }
+    if (findings === null || findings.length) {
+      if (findings) {
+        console.error('Wiki publish blocked by the mandatory secret preflight:');
+        for (const finding of findings) console.error(`  secret finding: ${finding.split(':').at(-1).trim()}`);
+      }
+      failed = 1;
     } else {
-      must(['commit', '-m', 'Publish local wiki snapshot'], staging);
-      must(['push', 'origin', 'HEAD'], staging);
-      console.log('Published local wiki to ' + wikiRemote);
+      const dirty = git(['status', '--porcelain'], staging);
+      if (!dirty.stdout.trim()) {
+        console.log('GitHub Wiki already matches the local wiki');
+      } else {
+        must(['commit', '-m', 'Publish local wiki snapshot'], staging);
+        must(['push', 'origin', 'HEAD'], staging);
+        console.log('Published local wiki to ' + wikiRemote);
+      }
     }
   }
 } finally {

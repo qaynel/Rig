@@ -9,9 +9,10 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { spawnSync } = require('node:child_process');
+const os = require('node:os');
 const { containedPath } = require('../../lib/path-safety');
-const { sourceDigest } = require('./release-evidence');
+const { detectSandboxSync, runSandboxed } = require('../../lib/sandbox');
+const { sourceDigest, sourceSnapshot, sourceFileCovered } = require('./release-evidence');
 const journal = require('./run-journal');
 
 const OUTCOMES = ['helped', 'hurt', 'no observed effect', 'confounded'];
@@ -84,24 +85,71 @@ function evaluate(repo, id, { before, check } = {}) {
   const where = (h.findings || []).filter((f) => candidate.sources.includes(f.id)).map((f) => f.where);
   const replay = {};
   for (const c of h.cases || []) replay[c.id] = { caught: null, before: null, expected: c.fails_before === true };
-  const candidate_digest = sourceDigest(repo);
+  const candidate_snapshot = sourceSnapshot(repo);
+  const candidate_digest = candidate_snapshot.digest;
   let failure = null;
   let evidence_kind = 'gap';
   if (before && check && (h.cases || []).every((c) => Object.hasOwn(c, 'input') && typeof c.fails_before === 'boolean')) {
-    const script = `const fs=require('node:fs'); const p=JSON.parse(fs.readFileSync(0,'utf8'));
-      const before=require(p.before), after=require(p.check);
-      process.stdout.write(JSON.stringify(p.cases.map(c=>({id:c.id,before:before(c.input),caught:after(c.input)}))));`;
-    const result = spawnSync(process.execPath, ['-e', script], { cwd: repo,
-      env: { PATH: process.env.PATH || '' }, encoding: 'utf8', timeout: 5000, maxBuffer: 1024 * 1024,
-      input: JSON.stringify({ before: containedPath(repo, before), check: containedPath(repo, check), cases: h.cases }) });
-    failure = result.error ? result.error.message : (result.status !== 0 ? 'executable replay failed' : null);
-    if (!failure) {
-      try {
-        const rows = JSON.parse(result.stdout);
-        if (!Array.isArray(rows) || rows.length !== h.cases.length || rows.some((r) =>
-          !Object.hasOwn(replay, r.id) || typeof r.before !== 'boolean' || typeof r.caught !== 'boolean')) throw new Error('malformed replay output');
-        for (const row of rows) Object.assign(replay[row.id], row);
-      } catch (e) { failure = e.message; }
+    const beforeFile = containedPath(repo, before);
+    const checkFile = containedPath(repo, check);
+    if (!sourceFileCovered(repo, before) || !sourceFileCovered(repo, check)) {
+      failure = 'replay scripts must be regular files covered by the candidate digest';
+    } else {
+      const sandbox = detectSandboxSync();
+      if (!sandbox.available) failure = `replay sandbox unavailable (${sandbox.code}): ${sandbox.reason}`;
+      else {
+        const work = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-learning-replay-'));
+        const scratch = path.join(work, 'scratch');
+        const fixtures = path.join(work, 'fixtures');
+        fs.mkdirSync(scratch);
+        fs.mkdirSync(fixtures);
+        try {
+          const script = path.join(scratch, 'replay.js');
+          const beforeCopy = path.join(fixtures, 'before.js');
+          const checkCopy = path.join(fixtures, 'check.js');
+          const beforeBytes = fs.readFileSync(beforeFile);
+          const checkBytes = fs.readFileSync(checkFile);
+          const expected = (file, bytes) => {
+            const rel = path.relative(fs.realpathSync(repo), file).split(path.sep).join('/');
+            const mode = candidate_snapshot.modes[rel];
+            return mode === undefined ? null : crypto.createHash('sha256')
+              .update(Buffer.concat([Buffer.from(`file\0${mode}\0`), bytes])).digest('hex');
+          };
+          if (expected(beforeFile, beforeBytes) !== candidate_snapshot.files[path.relative(fs.realpathSync(repo), beforeFile).split(path.sep).join('/')]
+            || expected(checkFile, checkBytes) !== candidate_snapshot.files[path.relative(fs.realpathSync(repo), checkFile).split(path.sep).join('/')]) {
+            failure = 'replay fixture bytes changed after candidate snapshot';
+          } else {
+            fs.writeFileSync(beforeCopy, beforeBytes);
+            fs.writeFileSync(checkCopy, checkBytes);
+          }
+          if (!failure && sourceDigest(repo) !== candidate_digest) throw new Error('candidate bytes changed while copying replay fixtures');
+          if (!failure) {
+            const source = `const fs=require('node:fs'),vm=require('node:vm');
+              const load=file=>{const module={exports:{}}; vm.runInNewContext(fs.readFileSync(file,'utf8'),
+                {module,exports:module.exports}, {filename:file, timeout:1000,
+                  contextCodeGeneration:{strings:false,wasm:false}});
+                if(typeof module.exports!=='function') throw new Error('replay fixture must export a function');
+                return module.exports;};
+              const before=load(${JSON.stringify(beforeCopy)}), after=load(${JSON.stringify(checkCopy)});
+              const rows=${JSON.stringify(h.cases)}.map(c=>({id:c.id,before:before(c.input),caught:after(c.input)}));
+              process.stdout.write(JSON.stringify(rows));`;
+            fs.writeFileSync(script, source);
+            // Only copied, digest-checked fixtures are visible. The repo itself
+            // is not mounted, so even a VM escape cannot read mutable evidence.
+            const result = runSandboxed(sandbox.kind, { script, outDir: scratch, readDirs: [fixtures], timeoutMs: 5000 });
+            failure = result.timedOut ? 'executable replay timed out'
+              : result.status !== 0 ? (result.stderr.trim() || 'executable replay failed') : null;
+            if (!failure) {
+              try {
+                const rows = JSON.parse(result.stdout);
+                if (!Array.isArray(rows) || rows.length !== h.cases.length || rows.some((r) =>
+                  !Object.hasOwn(replay, r.id) || typeof r.before !== 'boolean' || typeof r.caught !== 'boolean')) throw new Error('malformed replay output');
+                for (const row of rows) Object.assign(replay[row.id], row);
+              } catch (e) { failure = e.message; }
+            }
+          }
+        } finally { fs.rmSync(work, { recursive: true, force: true }); }
+      }
     }
     if (sourceDigest(repo) !== candidate_digest) failure = 'candidate bytes changed during replay';
     evidence_kind = failure ? 'gap' : 'executed';
