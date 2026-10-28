@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { sshKeygenPath } = require('./ssh-keygen');
 const { TRIAGE_DISCLOSURE } = require('./reports');
 const { verifyTrustRootApproval } = require('./trust-root');
 const { policyPath, atomicWrite, withPolicyLock, syncDirectory } = require('./policy-transaction');
@@ -120,7 +121,7 @@ function signerFingerprint(allowedSigners, identity) {
   const pub = path.join(dir, 'signer.pub');
   try {
     fs.writeFileSync(pub, `${match[1]} ${match[2]}\n`);
-    const result = spawnSync(fs.existsSync('/usr/bin/ssh-keygen') ? '/usr/bin/ssh-keygen' : 'ssh-keygen', ['-lf', pub], { encoding: 'utf8', shell: false });
+    const result = spawnSync(sshKeygenPath(), ['-lf', pub], { encoding: 'utf8', shell: false });
     if (result.status !== 0) throw new Error('activatePolicy: cannot fingerprint allowed signer');
     const fingerprint = result.stdout.match(/\bSHA256:[A-Za-z0-9+/=]+/);
     if (!fingerprint) throw new Error('activatePolicy: fingerprint output malformed');
@@ -139,7 +140,7 @@ function verifySshsig({ allowedSigners, identity, namespace, message, signature 
   const signatureFile = path.join(dir, 'approval.sig');
   try {
     fs.writeFileSync(signatureFile, signature, { mode: 0o600 });
-    const result = spawnSync(fs.existsSync('/usr/bin/ssh-keygen') ? '/usr/bin/ssh-keygen' : 'ssh-keygen', [
+    const result = spawnSync(sshKeygenPath(), [
       '-Y', 'verify', '-f', allowedSigners, '-I', identity,
       '-n', namespace, '-s', signatureFile,
     ], { input: message, encoding: 'utf8', shell: false });

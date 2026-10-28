@@ -61,7 +61,20 @@ test('AT-GATE-2 signed oracle runs before code', () => {
   writeManifest(root, ['tests/oracle.test.js']);
   assert.deepEqual(gate.verifySignature(root, gate.oracleMessage(root)), { armed: false });
   sign(root);
-  const verified = gate.verifySignature(root, gate.oracleMessage(root));
+  const originalPath = process.env.PATH;
+  const bin = path.join(root, 'bin');
+  fs.mkdirSync(bin);
+  const marker = path.join(root, 'path-ssh-keygen-ran');
+  if (process.platform !== 'win32') {
+    const fake = path.join(bin, 'ssh-keygen');
+    fs.writeFileSync(fake, `#!/bin/sh\nprintf invoked > '${marker}'\nexit 91\n`);
+    fs.chmodSync(fake, 0o755);
+  }
+  process.env.PATH = process.platform === 'win32' ? '' : bin;
+  let verified;
+  try { verified = gate.verifySignature(root, gate.oracleMessage(root)); }
+  finally { process.env.PATH = originalPath; }
+  assert.equal(fs.existsSync(marker), false, 'PATH-provided ssh-keygen must not run');
   assert.equal(verified.principal, 'owner');
   assert.match(verified.fingerprint, /^SHA256:/);
   const allowed = path.join(root, 'wiki/gate1/gate1.allowed-signers');
@@ -98,7 +111,9 @@ test('AT-GATE-2 signed oracle runs before code', () => {
     // The actual npm entrypoint must stop before its code command. These are
     // disposable TEST keys and scripts, never the repository's signing helper.
     fs.mkdirSync(path.join(sentinelRoot, 'scripts'));
+    fs.mkdirSync(path.join(sentinelRoot, 'rig/lib'), { recursive: true });
     fs.copyFileSync(path.join(__dirname, '../scripts/check-advanced-spec.js'), path.join(sentinelRoot, 'scripts/check-advanced-spec.js'));
+    fs.copyFileSync(path.join(__dirname, '../rig/lib/ssh-keygen.js'), path.join(sentinelRoot, 'rig/lib/ssh-keygen.js'));
     const scripts = { test: 'node scripts/check-advanced-spec.js && npm run test:code', 'test:code': 'node code-sentinel.js' };
     fs.writeFileSync(path.join(sentinelRoot, 'package.json'), JSON.stringify({ private: true, scripts }));
     fs.writeFileSync(path.join(sentinelRoot, 'code-sentinel.js'), "require('node:fs').writeFileSync('CODE-RAN', 'unexpected')");

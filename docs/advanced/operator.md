@@ -222,14 +222,50 @@ prompt and receipt validator when the default driver is unavailable. It is a
 release-only gate — never a mid-development inner loop; use `rig-tdd`'s
 `npm run test:rig` / single-test-file loop for that instead.
 
-A `fail` verdict is real signal: fix it, then re-review once. The wrapper
-enforces the cap itself — a third consecutive fail for the same
+A binding review starts only after deterministic preflight, all known findings
+are resolved, the candidate is frozen and relevant CI is green. Consolidate a
+failing review into one remediation batch. Re-review focuses on that batch and
+its interactions, retains all required acceptance verdicts, and records any
+serious new defect. No mandatory finding may remain open at success.
+
+The wrapper enforces authorization — a third completed failing review for the same
 `--author-context` refuses to spawn another reviewer (`--force-rereview`
-overrides it, as an explicit, visible step, not silent retry). Pass `--interim`
+overrides it only after explicit owner authorization, without resetting history).
+Provider errors and timeouts do not consume completed-verdict attempts.
+Pass `--interim`
 for a cheap sanity-check pass with a cheap `--model`: it prints the verdict and
 findings but never writes the binding receipt. Only a run without `--interim`
 produces the receipt the gate relies on, and it should use the model the
-release designates.
+release designates. A pass never deletes the review audit trail.
+
+Use `--remediate` for the one targeted follow-up to the latest completed failed
+binding report. The wrapper refuses an unchanged candidate or an already-resolved
+batch. Return all acceptance verdicts and one disposition per carried finding,
+with a current repository-file SHA-256 reference and an explicit reviewer check
+assessment. That assessment is not proof the command executed: use independently
+verified CI and the signed integration batch for execution provenance. An
+exhausted cap needs the explicit owner-authorized `--force-rereview`; that flag
+permits one additional completed binding attempt per author context. Provider
+errors and interim checks do not spend it; a pass cannot replenish it. Corrupt
+history refuses rather than resetting counters, and changing contexts preserves
+each context's existing history.
+
+Ordinary feature-to-`qa-prod` CI does not require a release signature, public
+release or published archive digest. Exact-QA production promotion runs the
+comprehensive release gates. Authenticated publication uses the existing owner
+key; afterward, set `RIG_PUBLIC_ARCHIVE_SHA256` from the authenticated archive
+and run the post-publication workflow against the actual release asset. A local
+archive or CI artifact cannot satisfy public-release acceptance.
+
+The installed release-evidence API labels mutable local readiness as provisional.
+Production uses the existing GitHub origin/workflow identity and a batch signed
+under the existing Gate 1 root over the exact Git SHA, source, worker state and
+check evidence. Publication requires its own real signature over the exact
+candidate, evidence and artifact; the guarded handoff reuses that key. Historical
+artifact validation verifies the public signature proof kept in local release
+state. The shipped artifact contains no signer identity, key reference or
+signature. Verify actual public bytes after publication against the independently
+trusted digest; do not treat local publication fixtures as public-release proof.
 
 Direct payload materialization, for a prepared manifest:
 

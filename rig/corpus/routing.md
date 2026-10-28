@@ -59,6 +59,12 @@ Spec-driven requests route through `rig-grilling` and then `rig-product-design`.
 1. Grill the intent — `rig-grilling`
 2. Design the approach — `rig-product-design`
 3. Sign the key — `node scripts/approve-gate1.js` ([Gate 1 signing](../../wiki/topics/gate1-signing.md))
+
+   Before step 3, the requirement → acceptance → proving-test graph must be
+   complete: `node .rig/bin/check-traceability.js`. One requirement, one
+   primary criterion, one proving test — see `.rig/standards/traceability.md`.
+   Implementation planning does not start while that check is red, and the
+   signing ceremony refuses before producing any signature.
 4. Drive code test-first — `rig-tdd`
 5. Implement to the smallest correct diff — `rig-implementation`
 6. Coordinate independent work + verify evidence — `rig-execution` (only when parallel work)

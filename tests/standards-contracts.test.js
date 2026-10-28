@@ -46,7 +46,8 @@ test('routing and contributor instructions preserve the lightweight carveout and
 });
 test('README documents the single 6.0.0 install command and agent-led onboarding without a host matrix',()=>{
   const readme=read('README.md');
-  assert.match(readme,/## Install[\s\S]*git clone --depth 1 --branch v6\.0\.0/);
+  const version=JSON.parse(read('package.json')).version;
+  assert.match(readme,new RegExp(`## Install[\\s\\S]*git clone --depth 1 --branch v${version.replaceAll('.','\\.')}`));
   assert.match(readme,/invoke `rig-onboarding`/);
   assert.match(readme,/catalogue services and grades/);
   assert.doesNotMatch(readme,/per-host support matrix|\| Claude Code \|.*\| Codex \|/i);

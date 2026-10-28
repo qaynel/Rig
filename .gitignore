@@ -42,6 +42,11 @@ wiki/gate1/*
 !wiki/gate1/gate1.sig
 !wiki/gate1/package-scripts.json
 !wiki/gate1/testing-infrastructure.manifest
+# Keep only the signed AI-SDLC oracle metadata in git; its instructions stay local.
+!wiki/gate1/ai-sdlc/
+wiki/gate1/ai-sdlc/*
+!wiki/gate1/ai-sdlc/contract.manifest
+!wiki/gate1/ai-sdlc/ai-sdlc.sig
 
 # agentic benchmark workspaces (agent output, kept locally for inspection)
 benchmarks/agentic/runs/

@@ -21,12 +21,13 @@ install `requirements-dev.txt`.
 
 ## Pull requests
 
-- Branch from the default branch.
+- Branch from `qa-prod` for release-bound changes.
 - Keep the change focused on one problem.
 - Run `npm test` before asking for review.
 - Fill in the pull request template.
 
-Open a pull request against the default branch (`prod`).
+Open a pull request against `qa-prod`. Promotion to `prod` follows the release
+checks and owner approval.
 
 ## Reporting
 

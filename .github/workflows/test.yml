@@ -43,7 +43,9 @@ jobs:
           unshare --user --map-root-user --net -- true
 
       - name: Restore local wiki
-        run: node scripts/ensure-wiki.js
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/build-wiki-index.js
 
       # Runs on its own, before everything else. `npm test` chains with `&&`, so
       # a failure in an unrelated check would otherwise stop the secret guard
@@ -60,3 +62,43 @@ jobs:
         run: env -u CI -u GITHUB_ACTIONS npm test
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  # One catalogue file cannot be split by Node's file-level --test-shard:
+  # four of five jobs would run zero tests and exit 0. CATALOGUE_SHARD slices
+  # the 115 service tests inside the file. Unset, the same file runs them all.
+  catalogue-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Match the full test job: Ubuntu 24.04 restricts rootless user
+      # namespaces through AppArmor, while the Linux task sandbox needs them.
+      - name: Prepare task sandbox
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+
+      - name: Restore local wiki
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/build-wiki-index.js
+
+      - name: Run catalogue tests (job ${{ strategy.job-index }} of ${{ strategy.job-total }})
+        run: CATALOGUE_SHARD=$(( ${{ strategy.job-index }} + 1 ))/${{ strategy.job-total }} node --test tests/catalogue-all-services.test.js
+        timeout-minutes: 10

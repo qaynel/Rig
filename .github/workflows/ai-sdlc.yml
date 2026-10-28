@@ -1,0 +1,158 @@
+name: AI-SDLC acceptance (advisory)
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore and verify the signed AI-SDLC contract
+        run: |
+          node scripts/ensure-wiki.js
+          node scripts/approve-gate1.js status --programme ai-sdlc
+      - name: Check CI preparation
+        run: node --test scripts/ci-preparation.test.js
+      - name: Build provisional candidate archive
+        run: node scripts/build-public-archive.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rig-public-${{ github.sha }}
+          path: |
+            .context/dist/rig-public-*.tar.gz
+            .context/dist/rig-public-*.tar.gz.sha256
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-sdlc-contract-${{ github.sha }}
+          path: wiki/specs/ai-sdlc-harness/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+
+  acceptance:
+    if: github.event_name != 'release'
+    name: AI-SDLC advisory (${{ matrix.os }})
+    needs: archive
+    runs-on: ${{ matrix.os }}
+    # PT-017 verifies the enrolled owner key on a developer machine; shared
+    # runners hold no such key, so in CI this test instead proves the
+    # sign/verify mechanism works with a throwaway key generated and
+    # discarded inside the job. That is a real pass, not owner approval.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Match the verified task sandbox used by the ordinary Linux test job.
+      - name: Prepare task sandbox
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          unshare --user --map-root-user --net -- true
+      # Candidate transport integrity only; this is not authenticated publication evidence.
+      - uses: actions/download-artifact@v4
+        with:
+          name: rig-public-${{ github.sha }}
+          path: .context/downloaded
+      - uses: actions/download-artifact@v4
+        with:
+          name: ai-sdlc-contract-${{ github.sha }}
+          path: wiki/specs/ai-sdlc-harness
+      - name: Select downloaded archive
+        shell: bash
+        run: |
+          node -e 'const fs=require("node:fs"),path=require("node:path");const dir=path.resolve(".context/downloaded");const files=fs.readdirSync(dir).filter(f=>f.endsWith(".tar.gz"));if(files.length!==1)throw new Error("Expected one downloaded public archive");fs.appendFileSync(process.env.GITHUB_ENV,`RIG_PUBLIC_ARCHIVE=${path.join(dir,files[0])}\n`);'
+      - name: Run candidate acceptance lane (provisional archive)
+        id: acceptance
+        run: node scripts/run-ai-sdlc.js
+      - name: Record step outcome
+        if: always()
+        shell: bash
+        env:
+          ACCEPTANCE_OUTCOME: ${{ steps.acceptance.outcome }}
+        run: |
+          node -e 'require("node:fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,`\nAcceptance step outcome: **${process.env.ACCEPTANCE_OUTCOME}**. Artifact download is CI transport evidence, not a published-release download.\n`);'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-sdlc-results-${{ matrix.os }}-${{ github.sha }}
+          path: .context/ai-sdlc/
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14
+
+  # PT-068/PT-077 run only after a stable release is publicly published. This
+  # cannot gate the publication that triggers it. Candidate sidecars above are
+  # transport integrity only; this lane requires the admin-configured digest.
+  test-offline:
+    if: github.event_name == 'release' && github.event.action == 'published' && github.event.release.draft == false && github.event.release.prerelease == false
+    name: verify published archive (post-publication)
+    runs-on: ubuntu-latest
+    container: node:22-bookworm
+    env:
+      RIG_PUBLIC_ARCHIVE_SHA256: ${{ vars.RIG_PUBLIC_ARCHIVE_SHA256 }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download the matching public release asset
+        run: |
+          mkdir -p .context/downloaded
+          ASSET_NAME="rig-public-${RELEASE_TAG#v}.tar.gz"
+          ASSET_URL="$(node <<'NODE'
+          const fs = require('node:fs');
+          const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          const tag = process.env.RELEASE_TAG;
+          const asset = `rig-public-${tag.replace(/^v/, '')}.tar.gz`;
+          const matches = (event.release?.assets || []).filter((item) => item.name === asset);
+          if (matches.length !== 1) throw new Error(`expected exactly one published ${asset} release asset`);
+          const url = new URL(matches[0].browser_download_url);
+          const expectedPath = `/${process.env.GITHUB_REPOSITORY}/releases/download/${encodeURIComponent(tag)}/${asset}`;
+          if (url.origin !== 'https://github.com' || url.pathname !== expectedPath) {
+            throw new Error('published archive URL is outside the canonical GitHub release asset path');
+          }
+          process.stdout.write(url.href);
+          NODE
+          )"
+          curl --fail --location --silent --show-error "$ASSET_URL" -o ".context/downloaded/$ASSET_NAME"
+          node scripts/verify-public-archive-digest.js ".context/downloaded/$ASSET_NAME"
+          printf 'RIG_PUBLIC_ARCHIVE=%s\n' "$PWD/.context/downloaded/$ASSET_NAME" >> "$GITHUB_ENV"
+      - name: Run published-byte offline install acceptance
+        run: |
+          node --test tests/ai-sdlc/portability.test.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: published-archive-digest-${{ github.event.release.tag_name }}
+          path: .context/downloaded/*.sha256
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 90

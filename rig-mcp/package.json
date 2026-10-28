@@ -1,6 +1,6 @@
 {
   "name": "rig-mcp",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "MCP server that serves Rig's lazy-senior-dev instructions as a prompt and a tool.",
   "private": true,
   "type": "module",
@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "zod": "^3.23.0"
+    "zod": "^4.6.7"
   }
 }

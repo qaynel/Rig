@@ -1,0 +1,92 @@
+{
+  "name": "potion-base-2M",
+  "revision": "sha256:2bec4d2f2a9519840152876b2daa04f553e8b21ad6417458d24b01ad1191979f",
+  "source": "https://huggingface.co/minishlab/potion-base-2M",
+  "licence": "MIT",
+  "kind": "static sentence embedding (model2vec distillation of baai/bge-base-en-v1.5)",
+  "tokenizer": "bert wordpiece, uncased (vocab.txt as published)",
+  "inference_source": {
+    "model2vec": {
+      "repository": "https://github.com/MinishLab/model2vec",
+      "commit": "40deb6bbb023f9bb1e9c2c9e6b089164ebafc0fd",
+      "file": "model2vec/model.py",
+      "sha256": "bcec77bda1c8f5e936310a99efcab202f58ea290d5de1b112996cdd49e22ec8e",
+      "symbols": [
+        "StaticModel.tokenize",
+        "StaticModel._encode_batch"
+      ]
+    },
+    "wordpiece": {
+      "repository": "https://github.com/robrua/easy-bert",
+      "commit": "c6b893090e13e6a86174b31323169fbb08ff5c89",
+      "files": {
+        "basic_tokenizer": "src/main/java/com/robrua/nlp/bert/BasicTokenizer.java",
+        "wordpiece_tokenizer": "src/main/java/com/robrua/nlp/bert/WordpieceTokenizer.java"
+      },
+      "sha256": {
+        "basic_tokenizer": "5bfc790e4390661cf561c03756ba09e5e3ac5ec221dc9af2c7f279cd5c1b87e9",
+        "wordpiece_tokenizer": "bb67e86059c95a2d9be930aa8092004b6c3906079cdd76cef0570ee4b71c9106"
+      },
+      "symbols": [
+        "BasicTokenizer.tokenize",
+        "WordpieceTokenizer.splitToken"
+      ]
+    }
+  },
+  "rows": 29528,
+  "dims": 64,
+  "quantisation": "per-row symmetric int8; 4-byte little-endian float scale per row, then rows*dims unsigned bytes offset by 128",
+  "assets": [
+    {
+      "kind": "model",
+      "path": "rig/catalog/baseline/assets/potion-base-2m/embeddings.i8",
+      "bytes": 2007904,
+      "digest": "e08aab892fcc8684fb221ae2ee868a8d2abe513ccdbb3dcb0f9c65ce525a5f98",
+      "licence": "MIT",
+      "downloaded_at_first_run": false
+    },
+    {
+      "kind": "tokenizer",
+      "path": "rig/catalog/baseline/assets/potion-base-2m/vocab.txt",
+      "bytes": 219690,
+      "digest": "1394523a67ddd404a825428018c0582a6998bcfa044ecbcbf1f4d71adb94c61c",
+      "licence": "MIT AND Apache-2.0",
+      "downloaded_at_first_run": false
+    },
+    {
+      "kind": "runtime",
+      "path": "rig/catalog/baseline/embedding.js",
+      "bytes": 8747,
+      "digest": "d37cbe67ae07b3b6cd24c6318ebd5d52f1ceff9af6e569fa057df9195fa07d78",
+      "licence": "MIT",
+      "downloaded_at_first_run": false
+    }
+  ],
+  "provenance": {
+    "model": {
+      "repository": "https://huggingface.co/minishlab/potion-base-2M",
+      "commit": "389b9f64be5aa4ae7a6bc6fe95ef20ce485ae5da",
+      "file": "model.safetensors",
+      "sha256": "f95ffde02ad06f63ae38eb9d400038cd5ccaf8411ec3cb650c6025113f96cbb8",
+      "model_card_sha256": "38af170acce93b5eb0c4e18659ab0b30581b2f6860f3e12d8ba8b8751e249363",
+      "licence": "MIT"
+    },
+    "base_model": {
+      "repository": "https://huggingface.co/BAAI/bge-base-en-v1.5",
+      "commit": "a5beb1e3e68b9ab74eb54cfd186867f64f240e1a",
+      "licence": "MIT",
+      "model_card_sha256": "fd29e6117a8c2bc83f8eafb73f261d35341702dcd95c9cc0b34f5be75afa8231",
+      "licence_source": "https://github.com/FlagOpen/FlagEmbedding/blob/fd1a2bdf69488ffebe0327999d4400d8c8058a0b/LICENSE",
+      "licence_file": "BGE-MIT.txt"
+    },
+    "vocabulary": {
+      "repository": "https://huggingface.co/google-bert/bert-base-uncased",
+      "commit": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "file": "vocab.txt",
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+      "relationship": "BGE vocabulary is byte-identical; potion vocabulary is a subset, checked 2026-10-26",
+      "licence": "Apache-2.0",
+      "licence_file": "BERT-Apache-2.0.txt"
+    }
+  }
+}

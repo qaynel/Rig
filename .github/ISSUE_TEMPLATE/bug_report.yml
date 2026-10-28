@@ -1,5 +1,7 @@
 name: Bug report
-description: Report a problem in Rig
+description: >-
+  Report a problem in Rig. Do not include suspected security vulnerabilities;
+  see SECURITY.md.
 title: "Bug: "
 body:
   - type: textarea

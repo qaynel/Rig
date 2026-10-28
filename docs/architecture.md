@@ -41,6 +41,12 @@ flowchart TD
 
 The target repository contains `.rig/` plus host entrypoints and managed sections outside it. Rig's source-release checks are separate: the signed acceptance oracle is Gate 1, Gate 2 is the working technical design checked for presence, and deployment checks govern Rig releases. These release scripts and workflows are not installed into the target.
 
+The installed baseline records the repository owner's sign-off selection.
+Cryptographic approvals use Rig's existing trust root. Acknowledgement is
+unsigned and labeled as such. Platform mode has no verified adapter yet, so it
+refuses approvals. Public release evidence checks current security and review
+readiness for every sign-off mode.
+
 ```mermaid
 flowchart TB
     subgraph Corpus ["Rig Corpus (rig/corpus/)"]

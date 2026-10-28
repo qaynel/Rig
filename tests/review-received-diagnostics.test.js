@@ -75,6 +75,7 @@ function installedCheckRun(binding, env = {}) {
     fs.mkdirSync(path.join(dir, '.rig', 'bin'), { recursive: true });
     fs.mkdirSync(path.join(dir, '.rig', 'lib'), { recursive: true });
     for (const entry of require('../rig/lib/baseline-payload').entries) {
+      if (!entry.to.startsWith('.rig/bin/') && !entry.to.startsWith('.rig/lib/')) continue;
       fs.copyFileSync(path.join(root, 'rig', entry.from), path.join(dir, entry.to));
     }
     fs.writeFileSync(path.join(dir, 'AGENTS.md'), 'Follow the repository workflow.\n');

@@ -14,11 +14,11 @@ Rig은 코딩 에이전트를 위한 도구 상자다. 공유 워크플로 지�
 
 ## 설치
 
-Git이 설치된 머신에서 다음 명령어를 실행해 6.0.0 인스톨러를 가져오고 저장소에
+Git이 설치된 머신에서 다음 명령어를 실행해 6.0.1 인스톨러를 가져오고 저장소에
 Rig을 설치한다:
 
 ```sh
-git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0 && /tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
+git clone --depth 1 --branch v6.0.1 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.1 && /tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/repository
 ```
 
 인스톨러는 기존 에이전트 설정을 감지하고, 공유 Rig 지시문, 안전 기준선, 카탈로그,

@@ -5,6 +5,14 @@ it onto the repository as it already is. Rig code does not infer what this
 repository needs and never decides for you. The human approves one exact
 proposal before any repository-owned byte changes. Follow the steps in order.
 
+Rig ships offline meaning-based search over the repository's retained memory,
+using bundled local model assets; it works without a network call, provider
+account, or first-run model download. Offer it when the repository needs
+meaning-based recall across prior decisions or work notes. First inspect whether
+the repository already has equivalent search, then let the host agent choose
+the smallest useful graft. The lexical search path is a cited fallback if local
+semantic inference fails; it does not replace the semantic capability.
+
 ## 0. What is already here
 
 The installer put the corpus under `.rig/`: `routing.md`, `rules/`, `skills/`,

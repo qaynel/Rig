@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const vm = require('node:vm');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 
@@ -61,6 +62,48 @@ test('Gate 1 approval signs the canonical oracle message', () => {
   const verified = gate.verifySignature(root, gate.oracleMessage(root));
   assert.equal(verified.principal, 'gate1-owner');
   assert.match(verified.fingerprint, /^SHA256:/);
+});
+
+test('signing tool resolution ignores PATH entries', () => {
+  const root = tempRoot();
+  const key = makeKey(root);
+  const bin = path.join(root, 'bin');
+  fs.mkdirSync(bin);
+  const marker = path.join(root, 'path-ssh-keygen-ran');
+  if (process.platform !== 'win32') {
+    const fake = path.join(bin, 'ssh-keygen');
+    fs.writeFileSync(fake, `#!/bin/sh\nprintf invoked > '${marker}'\nexit 91\n`);
+    fs.chmodSync(fake, 0o755);
+  }
+
+  const originalPath = process.env.PATH;
+  process.env.PATH = bin;
+  try {
+    approve.approveGate1(root, { check: false, env: { RIG_GATE1_SIGNING_KEY: key, PATH: bin } });
+  } finally {
+    process.env.PATH = originalPath;
+  }
+  assert.equal(fs.existsSync(marker), false, 'PATH-provided ssh-keygen must not run');
+  assert.equal(gate.verifySignature(root, gate.oracleMessage(root)).principal, 'gate1-owner');
+});
+
+test('Windows ssh-keygen resolution requires a drive or share qualified system root', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../rig/lib/ssh-keygen.js'), 'utf8');
+  const resolveWithRoot = (systemRoot) => {
+    const helper = { exports: {} };
+    vm.runInNewContext(source, {
+      module: helper,
+      exports: helper.exports,
+      process: { platform: 'win32', env: { SystemRoot: systemRoot } },
+      require: (name) => name === 'node:fs' ? { existsSync: () => true } : path,
+    });
+    return helper.exports.sshKeygenPath();
+  };
+
+  assert.throws(() => resolveWithRoot('Windows'), /drive-qualified or UNC/);
+  assert.throws(() => resolveWithRoot('\\Windows'), /drive-qualified or UNC/);
+  assert.equal(resolveWithRoot('D:\\Windows'), 'D:\\Windows\\System32\\OpenSSH\\ssh-keygen.exe');
+  assert.equal(resolveWithRoot('\\\\server\\share\\Windows'), '\\\\server\\share\\Windows\\System32\\OpenSSH\\ssh-keygen.exe');
 });
 
 test('lock requires explicit confirmation of the exact oracle digest before signing changed bytes', () => {

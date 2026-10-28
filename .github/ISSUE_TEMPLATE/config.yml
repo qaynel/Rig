@@ -1,8 +1,12 @@
 blank_issues_enabled: true
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/qaynel/Rig/security/advisories/new
-    about: Report a vulnerability in private. Do not open a public issue.
+    url: https://github.com/qaynel/Rig/blob/prod/SECURITY.md
+    about: >-
+      Private vulnerability reporting is currently disabled. Do not report
+      vulnerabilities publicly; see SECURITY.md.
   - name: Code of Conduct
     url: https://github.com/qaynel/Rig/blob/prod/CODE_OF_CONDUCT.md
-    about: Read how to report unacceptable behavior in private.
+    about: >-
+      Read the Code of Conduct. Its private reporting channel is currently
+      unavailable; do not report incidents publicly.

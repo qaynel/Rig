@@ -629,7 +629,7 @@ function applyEntry(target, entry, writeFile) {
   else throw new Error(`rig: unknown projection op "${op}"`);
 }
 
-function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPayload = null } = {}) {
+function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPayload = null, sourceRoot = ROOT } = {}) {
   const hostEntries = hosts === undefined
     ? discoverHosts(target)
     : [...new Set(hosts)].map((id) => {
@@ -642,15 +642,20 @@ function runPayload(target, hosts, { releaseTag, activeDelivery = false, afterPa
   // projection; the legacy default install keeps its fan-out. The gates that
   // decide this live in project(), not here.
   const selection = { hosts: selected, delivery: activeDelivery ? 'active' : 'default' };
-  const entries = projectAll(loadCorpus(selection), selection);
+  // Only the data root varies. Projectors and the writer remain this trusted
+  // implementation; a downloaded archive never supplies executable projectors.
+  const entries = projectAll(loadCorpus(selection, sourceRoot), selection);
+  const baseline = require('./baseline-payload').entries.map((entry) => ({
+    ...entry, bytes: fs.readFileSync(path.join(sourceRoot, 'rig', entry.from)),
+  }));
   const writeFile = journalWriter(target);
   const writesBefore = writeFile.appliedCount();
   writeFile.begin();
   for (const entry of entries) applyEntry(target, entry, writeFile);
-  for (const entry of require('./baseline-payload').entries) {
+  for (const entry of baseline) {
     const abs = containedPath(target, entry.to);
     fs.mkdirSync(path.dirname(abs), { recursive: true });
-    writeFile(target, entry.to, fs.readFileSync(path.join(ROOT, 'rig', entry.from)), entry.mode);
+    writeFile(target, entry.to, entry.bytes, entry.mode);
   }
   if (releaseTag) {
     const installedHostIds = [...new Set(selected)].sort();

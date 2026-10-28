@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+- Add explicit user sign-off selection and bind signed mode changes to key
+  protection. Platform sign-off refuses approval until a verified adapter exists.
+- Require current security and review readiness before public publication in
+  every sign-off mode.
+- Document these boundaries in `docs/install.md`, `docs/vision.md`, and
+  `docs/architecture.md`.
+- Align contributor PR guidance with the QA branch, and disclose the currently
+  disabled private reporting channel in `CONTRIBUTING.md`, `SECURITY.md`,
+  `CODE_OF_CONDUCT.md`, `SUPPORT.md`, and the GitHub issue templates.
+
+## [6.0.1] - Unreleased
+
+- Harden AI-SDLC phase transitions against escaping `.rig` and required-artifact
+  symlinks; reconcile exact visible run-record bytes after a post-rename error
+  and report uncertain durability without refusing an already-applied phase.
+- Prepare the self-contained public archive with its `rig-archive.json`
+  manifest and pinned local inference assets for offline semantic search.
+- Keep clean real-download verification as a required release check; the
+  v6.0.0 GitHub source tarball is not a compatible public archive.
+
 ## [6.0.0] - 2026-10-24
 
 - Deliver Rig's agent workflow, catalogue services, and standards from the

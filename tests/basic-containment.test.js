@@ -67,6 +67,7 @@ test('TP-X.2 installed repo contains shared corpus and mandatory safety baseline
     // per-tool `package.json` files under `.rig/plumbing/lib/*/`. Scope this
     // no-runtime check to the Tier-1 surface by excluding those roots.
     const isVendored = (rel) => rel.includes('/plumbing/')
+      || rel.startsWith('.rig/kit/')
       || /(?:^|\/)\.rig\/skills\/[^/]+\//.test(rel)
       || /(?:^|\/)\.claude\/skills\/rig-[^/]+\//.test(rel)
       || /(?:^|\/)\.agents\/skills\/rig-[^/]+\//.test(rel);
@@ -82,9 +83,9 @@ test('TP-X.2 installed repo contains shared corpus and mandatory safety baseline
     // outside the curated skill/plumbing support directories.
     const allowedExecutable = new Set([
       '.git/hooks/pre-commit', '.rig/hooks/secret-guard.sh',
-      '.rig/bin/check.js', '.rig/bin/check-copies.js',
+      '.rig/bin/check.js', '.rig/bin/check-copies.js', '.rig/bin/check-traceability.js',
     ]);
-    for (const rel of ['.rig/bin/check.js', '.rig/bin/check-copies.js', '.rig/lib/policy-baseline.js']) {
+    for (const rel of ['.rig/bin/check.js', '.rig/bin/check-copies.js', '.rig/bin/check-traceability.js', '.rig/lib/policy-baseline.js']) {
       assert.ok(files.includes(rel), `${rel} is part of the mandatory baseline`);
     }
     const unexpectedExecutables = files.filter((rel) => {

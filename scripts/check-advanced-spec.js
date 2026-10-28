@@ -6,6 +6,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { sshKeygenPath } = require('../rig/lib/ssh-keygen');
 
 const ROOT = path.resolve(__dirname, '..');
 const GATE_DIR = path.join('wiki', 'gate1');
@@ -62,7 +63,7 @@ function signerFingerprint(text, principal) {
     const fields = line.split(/\s+/);
     const keyIndex = fields.findIndex((field) => /^(?:ssh-|ecdsa-|sk-)/.test(field));
     assert.ok(keyIndex >= 0 && fields[keyIndex + 1], `allowed signer ${principal} has no public key`);
-    const result = spawnSync('ssh-keygen', ['-lf', '-'], {
+    const result = spawnSync(sshKeygenPath(), ['-lf', '-'], {
       input: `${fields[keyIndex]} ${fields[keyIndex + 1]}\n`,
       encoding: 'utf8',
     });
@@ -95,7 +96,7 @@ function verifySignature(root, message) {
   assert.equal(namespaceField, 'namespaces="rig-gate1"', 'Gate 1 signer must be restricted to the rig-gate1 namespace');
 
   // Verify against the single principal
-  const result = spawnSync('ssh-keygen', [
+  const result = spawnSync(sshKeygenPath(), [
     '-Y', 'verify', '-f', allowed, '-I', principal,
     '-n', 'rig-gate1', '-s', signature,
   ], { input: message, encoding: 'utf8' });

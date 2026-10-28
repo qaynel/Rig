@@ -15,7 +15,7 @@
 Copy and run this. Replace `/path/to/repository` with your actual repo path.
 
 ```sh
-git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0 && /tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
+git clone --depth 1 --branch v6.0.1 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.1 && /tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/repository
 ```
 
 Then open your agent and type: `rig-onboarding`
@@ -29,7 +29,7 @@ Then open your agent and type: `rig-onboarding`
 This downloads the Rig installer at a pinned version so your install is reproducible.
 
 ```sh
-git clone --depth 1 --branch v6.0.0 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.0
+git clone --depth 1 --branch v6.0.1 https://github.com/qaynel/Rig.git /tmp/rig-v6.0.1
 ```
 
 You should see a standard `git clone` output finishing with "done."
@@ -39,7 +39,7 @@ You should see a standard `git clone` output finishing with "done."
 This copies Rig's workflow, safety baseline, and catalogue into your repository. It preserves user content while adding Rig-owned files, host entrypoints, and managed `.gitignore` lines.
 
 ```sh
-/tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/repository
+/tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/repository
 ```
 
 When it finishes, your repository will have a `.rig/` directory. The full list of installed files is recorded in `.rig/install-manifest.jsonl`.
@@ -61,6 +61,12 @@ rig-onboarding
 ```
 
 The agent reads your repository and proposes the smallest useful adaptation — which services to enable, which workflow steps apply to your stack.
+Before a sensitive action, it also asks you to select a sign-off mode. The choice
+is explicit and recorded; a missing signing key never switches to a weaker mode.
+Cryptographic mode verifies the enrolled owner key. Acknowledgement is only a
+self-declaration that an agent with file access could forge. Platform mode is
+currently selectable but refuses approvals until a verified platform adapter
+is available.
 
 ### Step 4 — Review and approve
 
@@ -87,7 +93,7 @@ If you want deeper plugin support beyond the base install, pick your host:
 Run the same install command pointing at your existing v5 repository:
 
 ```sh
-/tmp/rig-v6.0.0/install rig --version v6.0.0 --target /path/to/v5-repository
+/tmp/rig-v6.0.1/install rig --version v6.0.1 --target /path/to/v5-repository
 ```
 
 First fetch the installer using Step 1 above if you have not already done so. Your existing configuration and legacy catalogue selection (`rig.json`) are preserved. Current adaptive onboarding selects services in its approved proposal and records state in `.rig/state.json`. After the install, run `rig-onboarding` once to review and approve the updated proposal.
