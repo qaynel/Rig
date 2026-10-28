@@ -59,6 +59,58 @@ function testKey(dir, name = 'test-key') {
   return key;
 }
 
+function signMessage(key, message, namespace) {
+  const file = `${key}.message`;
+  fs.writeFileSync(file, message);
+  const result = spawnSync('ssh-keygen', ['-Y', 'sign', '-f', key, '-n', namespace, file], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const signature = fs.readFileSync(`${file}.sig`, 'utf8');
+  fs.rmSync(file, { force: true });
+  fs.rmSync(`${file}.sig`, { force: true });
+  return signature;
+}
+
+// Offline acceptance fixture: the SSH signatures are real and use a throwaway
+// key; only the GitHub API transport is mocked. This proves signature and
+// binding behavior without claiming that the fake workflow run happened.
+async function signedCertifiedCandidate(repo, release, kinds, t) {
+  spawnSync('git', ['remote', 'add', 'origin', 'https://github.com/owner/repo.git'], { cwd: repo });
+  spawnSync('git', ['add', '-A'], { cwd: repo });
+  const initial = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Fixture Owner', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'candidate'], { cwd: repo });
+  assert.equal(initial.status, 0, initial.stderr?.toString());
+  const keyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-amendment-key-'));
+  const key = path.join(keyDir, 'owner');
+  const generated = spawnSync('ssh-keygen', ['-q', '-t', 'ed25519', '-N', '', '-f', key], { encoding: 'utf8' });
+  assert.equal(generated.status, 0, generated.stderr);
+  write(repo, '.rig/trust/gate1.allowed-signers', `test-owner ${fs.readFileSync(`${key}.pub`, 'utf8')}`);
+  spawnSync('git', ['add', '-A'], { cwd: repo });
+  const committed = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Fixture Owner', '-c', 'user.email=fixture@example.invalid', 'commit', '--amend', '--no-edit', '-qm', 'signed candidate'], { cwd: repo });
+  assert.equal(committed.status, 0, committed.stderr?.toString());
+
+  const commit = release.record(repo, { kind: 'qa-commit' }).commit;
+  for (const kind of kinds) release.record(repo, { kind, status: 'pass', commit, source: 'real-download' });
+  const digest = release.sourceDigest(repo);
+  write(repo, '.rig/workers/state.json', { WP01: { status: 'accepted', candidate_digest: digest,
+    evidence: [{ source: 'local-worker', status: 'pass', package: 'WP01', candidate_digest: digest }] } });
+  const gitSha = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).stdout.trim();
+  const batch = release.prepareIntegrationBatch(repo, { commit: gitSha, repository: 'owner/repo' });
+  release.storeIntegrationBatch(repo, { commit: gitSha, repository: 'owner/repo', identity: 'test-owner',
+    signature: signMessage(key, batch.message, 'rig-integration') });
+
+  const savedFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = savedFetch; });
+  globalThis.fetch = async (url) => String(url).includes('/runs?')
+    ? new Response(JSON.stringify({ workflow_runs: [{ id: 42, workflow_id: 7, head_sha: gitSha,
+      head_branch: 'qa-prod', head_repository: { full_name: 'owner/repo' }, event: 'workflow_dispatch',
+      status: 'completed', conclusion: 'success' }] }), { status: 200 })
+    : new Response(JSON.stringify({ id: 7, path: '.github/workflows/release-eligibility.yml', state: 'active' }), { status: 200 });
+  const external_checks = await release.verifyExternalChecks(repo, { commit: gitSha, repository: 'owner/repo', token: 'offline-fixture-token' });
+  const authorization = { identity: 'test-owner', nonce: 'a'.repeat(32), expires_at: new Date(Date.now() + 60000).toISOString() };
+  authorization.signature = signMessage(key, release.authorizationMessage(repo, { commit, ...authorization }), 'rig-release');
+  fs.rmSync(keyDir, { recursive: true, force: true });
+  return { commit, gitSha, external_checks, authorization, token: 'offline-fixture-token' };
+}
+
 // Secret-shaped fixtures are assembled at runtime; the repository's own
 // hygiene gate refuses a literal one in a tracked file.
 const SECRET_FIXTURE = ['sk', 'live', 'not', 'a', 'real', 'secret', 'fixture'].join('-');
@@ -93,4 +145,4 @@ function environmentBound(reason) {
   throw err;
 }
 
-module.exports = { ROOT, BASELINE, SECRET_FIXTURE, assert, fs, path, spawnSync, capability, tempRepo, write, read, testKey, denyNetwork, environmentBound };
+module.exports = { ROOT, BASELINE, SECRET_FIXTURE, assert, fs, path, spawnSync, capability, tempRepo, write, read, testKey, signMessage, signedCertifiedCandidate, denyNetwork, environmentBound };

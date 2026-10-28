@@ -41,7 +41,7 @@ test('PT-067 secret fixture is absent from child payload and published artifacts
   }
 });
 
-test('PT-031 worker self-report alone cannot complete a package', () => {
+test('PT-031 worker self-report alone cannot complete a package', async (t) => {
   const repo = workerRepo();
   const workers = capability('workers');
 
@@ -50,6 +50,28 @@ test('PT-031 worker self-report alone cannot complete a package', () => {
   assert.equal(result.accepted, false);
   assert.match(result.reason, /independent|evidence/i);
   assert.equal(workers.state(repo, 'WP01').status, 'open', 'the package stays open without independent evidence');
+
+  const forged = workers.accept(repo, { package: 'WP01', evidence: [{
+    source: 'verified-ci', status: 'pass', passed: true, exit_code: 0,
+    package: 'WP01', candidate_digest: capability('release-evidence').sourceDigest(repo),
+    full_gate: true, independent_review: true,
+  }] });
+  assert.equal(forged.accepted, false, 'caller supplied CI and review labels do not replace stored verification');
+  assert.match(forged.reason, /verification|review/i);
+  assert.equal(workers.state(repo, 'WP01').status, 'open', 'forged provenance never closes the package');
+
+  const release = capability('release-evidence');
+  const signed = require('./_harness').signedCertifiedCandidate(repo, release, [
+    'health', 'clean-install', 'security', 'independent-review', 'scenario-coherence',
+  ], t);
+  return signed.then((candidate) => {
+    assert.equal(release.integrationStatus(repo, { commit: candidate.gitSha }).valid, true,
+      'the owner-signed integration batch authenticates the accepted worker-state bytes');
+    write(repo, '.rig/workers/state.json', { WP01: { status: 'accepted', candidate_digest: release.sourceDigest(repo),
+      evidence: [{ source: 'caller-forgery', status: 'pass', package: 'WP01', candidate_digest: release.sourceDigest(repo) }] } });
+    assert.equal(release.integrationStatus(repo, { commit: candidate.gitSha }).valid, false,
+      'editing the mutable worker row invalidates the signed batch');
+  });
 });
 
 test('PT-029 concurrent writers with overlapping ownership stop before conflicting mutation', () => {

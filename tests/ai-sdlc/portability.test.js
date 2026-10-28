@@ -1,7 +1,7 @@
 'use strict';
 
 const test = require('node:test');
-const { assert, fs, path, capability, tempRepo, write, denyNetwork, environmentBound } = require('./_harness');
+const { ROOT, assert, fs, path, capability, tempRepo, write, denyNetwork, environmentBound } = require('./_harness');
 
 // F27 — a fresh real-download install on each supported environment, with the
 // network denied and no provider credential.
@@ -24,6 +24,14 @@ test('PT-066 two supported host entrypoints run the same contract journey', () =
     assert.equal(run.required_vendor_runtime, false, 'the core must not require a vendor runtime');
     assert.equal(run.completed, true);
   }
+  for (const [file, expected] of [
+    ['CLAUDE.md', 'Before acting, read `.rig/routing.md` and route this task through its skill table.\n'],
+    ['AGENTS.md', 'Before acting, read `.rig/routing.md` and route this task through its skill table.\n'],
+  ]) {
+    assert.deepEqual(fs.readFileSync(path.join(repo, file)), Buffer.from(expected), `${file} contains the emitted instruction bytes`);
+  }
+  assert.deepEqual(fs.readFileSync(path.join(repo, '.rig/routing.md')), fs.readFileSync(path.join(ROOT, 'rig/corpus/routing.md')),
+    'the installed router bytes match the actual corpus router');
 });
 
 test('PT-068 offline install completes a meaning-based memory query from shipped assets', () => {
@@ -70,4 +78,34 @@ test('PT-077 a clean real-download install finds the pinned model, tokenizer and
     assert.ok(SUPPORTED.includes(platform), `unexpected claimed platform ${platform}`);
   }
   assert.ok(claimed.includes(process.platform), 'this environment is one of the claimed platforms');
+
+  const guard = denyNetwork();
+  try {
+    for (const asset of assets) {
+      const file = path.join(repo, asset.path);
+      const original = fs.readFileSync(file);
+      assert.ok(original.length > 0, `${asset.kind} has bytes to test`);
+      try {
+        const changed = Buffer.from(original);
+        changed[0] ^= 1;
+        fs.writeFileSync(file, changed);
+        assert.equal(fs.statSync(file).size, original.length, `${asset.kind} mutation preserves file length`);
+        assert.throws(() => portability.memoryQuery(repo, {
+          store: 'Steps to stop an automatic subscription charge.',
+          query: 'How do I cancel a recurring payment?',
+        }), /digest does not match/, `${asset.kind} mutation blocks semantic search`);
+      } finally {
+        fs.writeFileSync(file, original);
+      }
+      assert.deepEqual(fs.readFileSync(file), original, `${asset.kind} bytes are restored exactly`);
+      const result = portability.memoryQuery(repo, {
+        store: 'Steps to stop an automatic subscription charge.',
+        query: 'How do I cancel a recurring payment?',
+      });
+      assert.equal(result.provider_account_required, false);
+      assert.equal(result.separate_service_required, false);
+      assert.ok(result.hit && result.hit.source, `${asset.kind} restoration restores a cited offline result`);
+    }
+  } finally { guard.restore(); }
+  assert.deepEqual(guard.calls, [], 'asset validation and restored semantic queries make no network calls');
 });

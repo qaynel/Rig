@@ -1,7 +1,7 @@
 'use strict';
 
 const test = require('node:test');
-const { assert, capability, tempRepo, write } = require('./_harness');
+const { assert, capability, tempRepo, write, environmentBound } = require('./_harness');
 
 // F25 — the same defect twice and the same instruction twice, one positive and
 // one negative historical case, a proposed check or skill, and an injected
@@ -56,6 +56,9 @@ test('PT-060 before/after fixture and positive/negative replay are attached', ()
   write(repo, 'check.js', 'module.exports = (value) => value === null;\n');
   const evaluation = learning.evaluate(repo, candidate.id, { before: 'before.js', check: 'check.js' });
 
+  if (evaluation.evidence_kind === 'gap' && /^replay sandbox unavailable \(sandbox-(?:tool-missing|unsupported-platform)\): .+$/.test(evaluation.gap || '')) {
+    environmentBound(`PT-060 ${evaluation.gap}`);
+  }
   assert.equal(evaluation.evidence_kind, 'executed');
   assert.equal(evaluation.replay.pos.caught, true, 'the previously failing case is caught by running the check');
   assert.equal(evaluation.replay.neg.caught, false, 'a known-good case is not newly flagged');
