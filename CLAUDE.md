@@ -26,7 +26,7 @@ Before any scope, design, test, or support question, check it against this list.
 5. **Close bar:** code is cheap. Fix it; "replaced" needs a strong written
    reason; difficulty or priority is never a reason.
    `wiki/reasoning/2026-10-13-close-everything-owner-answers-round1.md`.
-6. **Third-party skills are fetched during onboarding for this release.**
+6. **Superseded for the rebuild:** see the rebuild design document named in 29.
    `wiki/reasoning/2026-10-13-close-everything-review-owner-fetch.md`.
 7. **The canonical corpus uses one new root, `rig/corpus/`.**
    `wiki/reasoning/2026-10-13-close-everything-review-owner-corpus-root.md`.
@@ -170,74 +170,12 @@ Before any scope, design, test, or support question, check it against this list.
     only after readiness; it is not a counter reset.
     `wiki/reasoning/2026-10-27-pr159-owner-lifecycle-and-convergence.md`.
 
-29. **The 90-day audience is independent builders who want one end-to-end kit.**
-    Individual software developers and professionals new to coding agents, and
-    idea-rich product-minded builders, who don't want to hunt for, install and
-    combine many GitHub harnesses themselves. Rig forks those harnesses into one
-    consolidated, full-stack pack and keeps it maintained. College hardware
-    teams are not the target; embedded work is out of scope. Rig's claim is
-    that it makes a syntax-level agent behave like a senior engineer. A
-    benchmark against existing harnesses is the first proof.
-    `wiki/reasoning/2026-10-27-office-hours-target-audience-owner.md`,
-    `wiki/reasoning/2026-10-27-office-hours-consolidated-pack-owner.md`.
+29. **The Rig rebuild is governed by one design document:**
+    `wiki/specs/rebuild/design.md`. Every product decision, conflict ruling and
+    open question for the rebuild lives there, not here.
 
-30. **Fork, don't invent.** Rig is a distribution of the current leading
-    open-source harnesses and skill packs on GitHub, Chinese ecosystems
-    included. When an existing project already does something, fork it at
-    source level (pinned, licensed, attributed) instead of writing a home-grown
-    version. Rig's own code is limited to what no upstream provides.
-    `wiki/reasoning/2026-10-27-office-hours-fork-dont-invent-owner.md`.
-
-31. **Rig is a forward-deployed harness.** The distribution forks every
-    available open-source harness, keeps the best of each per capability, and
-    packages them with instructions for the host agent to unpack them to suit
-    the repository. Per repository the host agent installs, or upgrades if
-    already present, only the pieces it needs: no security pack for a
-    calculator app, integration-testing tools for an integration service, no
-    UI tooling without a UI. When the project's scope grows or changes, the
-    harness is re-fitted (pieces added, upgraded or removed). Refines North
-    stars 2 and 25.
-    `wiki/reasoning/2026-10-27-office-hours-forward-deployed-owner.md`,
-    `wiki/reasoning/2026-10-27-office-hours-all-harnesses-refit-owner.md`.
-
-32. **Rig turns the latest open-source AI breakthroughs into SDLC practice.**
-    Keep forking the newest non-proprietary harness and research releases
-    (for example a recursive self-improvement paper's repository), show how
-    each applies to the AI SDLC, and release it; users get it by upgrading.
-    The fixed parts are the forward-deployed engine, locked acceptance
-    criteria and the best open-source memory, forked rather than home-grown.
-    No adoption gates while the owner is the only user. This extends the
-    existing product; it is not a rewrite. Benchmarking is built into the
-    system: a new piece is integrated, benchmarked and iterated until it beats
-    the current result before it replaces anything. Phase 1 forks the best
-    existing harnesses into one distributed pack; research intake such as
-    recursive self-improvement comes after. Phase 1 is a snapshot pegged to
-    2026-10-27; per capability it ships the de-duplicated union of upstream
-    features (refining "best of each" in 31), composed by role rather than
-    merged into one prompt (North star 33). Maintenance automation is
-    deferred; later updates take only significant upstream releases.
-    `wiki/reasoning/2026-10-27-office-hours-research-intake-owner.md`,
-    `wiki/reasoning/2026-10-27-ceo-review-benchmark-loop-phasing-owner.md`,
-    `wiki/reasoning/2026-10-27-ceo-review-peg-union-owner.md`.
-
-33. **Rig composes harnesses by role, and its value is model uplift.** Each
-    harness keeps its specialty (gstack thinks and plans, Ponytail keeps code
-    minimal, Superpowers executes through subagents); Rig's own contribution is
-    the orchestration that assigns roles, using both their prompts and their
-    code. The benchmark measures whether a cheaper model with Rig matches a
-    stronger model without it (token economy). Locked acceptance tests are a
-    security feature against agents claiming work they did not do. Users carry
-    a portable preference profile between projects; per-repository tailoring
-    is discarded when they move on. Build the coherent final state, then
-    benchmark and fine-tune. Rig is one coordinating harness, not several
-    disjointed ones; tailoring adds or removes pieces per repository; bounded
-    tasks go to small, lightweight subagents that report back. The harness
-    asserts test strength against written standards. The current prod release
-    is the benchmark baseline, and every release after it is benchmarked.
-    `wiki/reasoning/2026-10-27-ceo-review-composition-profile-owner.md`,
-    `wiki/reasoning/2026-10-27-ceo-review-coordinator-test-strength-owner.md`.
-
-When the owner states a product decision, add it here in the same change.
+Product decisions go into the wiki (for the rebuild, the design document in
+29) in the same change; this file keeps only pointers.
 
 Rig installs a curated agent workflow into other repositories from one central corpus.
 Rig supports the repository's static agent-host entrypoints through

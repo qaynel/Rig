@@ -61,3 +61,6 @@ benchmarks/agentic/runs/
 # approve-gate1.js writes rig-oracle-freeze-v2.txt here before signing; it is
 # a convenience echo, not a trust input (check-advanced-spec.js recomputes it).
 .context/
+
+# Dropped forked harnesses (unzipped vendor trees; not committed or run)
+fork/
