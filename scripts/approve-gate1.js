@@ -343,6 +343,7 @@ function usage() {
     '',
     `  --programme  sign a second contract under the same key (${Object.keys(PROGRAMMES).join(', ')});`,
     '               omit it for the 6.0.0 oracle, which the flag never modifies',
+    '               rebuild supports status only, checking the recorded owner declaration',
   ].join('\n');
 }
 
@@ -354,6 +355,13 @@ function main(argv = process.argv.slice(2)) {
   }
   const programmeIndex = argv.indexOf('--programme');
   const programmeName = programmeIndex === -1 ? undefined : argv[programmeIndex + 1];
+  if (programmeName === 'rebuild') {
+    assert.equal(command, 'status', 'the rebuild uses recorded owner words; only status is supported, never agent approval');
+    const result = require('./rebuild/check-contract').checkContract(process.cwd(), { approval: true });
+    assert.equal(result.errors.length, 0, result.errors.join('\n'));
+    process.stdout.write(`rebuild contract owner declaration recorded; SHA-256 ${result.digest}; no cryptographic signature asserted\n`);
+    return;
+  }
   if (programmeName) {
     const confirmIndex = argv.indexOf('--confirm-digest-delta');
     if (command === 'status') {

@@ -488,6 +488,11 @@
         "active/windsurf"
       ],
       "reason": "Intended change (policy evaluation): the shipped rules name the four protected categories, the leaf switches, and the available-but-not-integrated surfaces the evaluator and status now report."
+    },
+    {
+      "path": ".rig/rules/communication.md",
+      "configs": "*",
+      "reason": "The communication rule gained an \"Asking the user to decide\" section (owner, 2026-10-31): every option states its consequence and risk in plain words, says which settings stay user-configurable at onboarding, and offers \"give me more context\"."
     }
   ]
 }
