@@ -82,3 +82,60 @@ test('RB-COORD-6 bounded delegation selects the cheaper available model or stays
   assert.equal(unsupported.reason, 'host_unsupported');
   assert.equal(providerCalls, 0);
 });
+
+// Owner rulings 2026-10-31 (register C9, C10, C15): one fix loop for upgrades and speed; reviewers chosen per plan.
+const failing = (calls) => (run, route) => { calls.push([run, route]); return { fixed: false }; };
+
+test('RB-COORD-7 the fix loop makes three runs by default', () => {
+  const { fixLoop } = product('rig/lib/coordinator.js');
+  const calls = [];
+  const result = fixLoop({ attempt: failing(calls), consent: () => true });
+  assert.equal(result.runs.length, 3);
+  assert.equal(calls.length, 3);
+  assert.equal(result.stopped, 'limit');
+});
+
+test('RB-COORD-8 a configured run count is honoured and extra runs happen only on request', () => {
+  const { fixLoop } = product('rig/lib/coordinator.js');
+  const five = []; fixLoop({ attempt: failing(five), consent: () => true, runs: 5 });
+  assert.equal(five.length, 5);
+  const extended = []; fixLoop({ attempt: failing(extended), consent: () => true, runs: 3, extra: 2 });
+  assert.equal(extended.length, 5);
+  const plain = []; fixLoop({ attempt: failing(plain), consent: () => true, runs: 3 });
+  assert.equal(plain.length, 3);
+});
+
+test('RB-COORD-9 the fix loop asks for consent before the second run and stops without it', () => {
+  const { fixLoop } = product('rig/lib/coordinator.js');
+  const asked = [];
+  const calls = [];
+  const result = fixLoop({ attempt: failing(calls), consent: (run) => { asked.push(run); return false; } });
+  assert.deepEqual(asked, [2]);
+  assert.equal(calls.length, 1);
+  assert.equal(result.stopped, 'no-consent');
+  const granted = []; const grantedAsks = [];
+  fixLoop({ attempt: failing(granted), consent: (run) => { grantedAsks.push(run); return true; } });
+  assert.equal(grantedAsks[0], 2, 'consent must be requested before run two');
+  assert.ok(!grantedAsks.includes(1), 'run one needs no consent');
+});
+
+test('RB-COORD-10 framework-specific guidance is used only after the general route fails', () => {
+  const { fixLoop } = product('rig/lib/coordinator.js');
+  const calls = [];
+  fixLoop({ attempt: failing(calls), consent: () => true, specificAvailable: true });
+  assert.equal(calls[0][1], 'general');
+  assert.equal(calls[1][1], 'specific');
+  const fixedFirst = [];
+  const result = fixLoop({ attempt: (run, route) => { fixedFirst.push(route); return { fixed: true }; }, consent: () => true, specificAvailable: true });
+  assert.deepEqual(fixedFirst, ['general']);
+  assert.equal(result.stopped, 'fixed');
+});
+
+test('RB-COORD-11 plan review runs the lenses chosen for the plan and records which ran', () => {
+  const { planReview } = product('rig/lib/coordinator.js');
+  assert.deepEqual(planReview({ lenses: ['design'] }).ran, ['design']);
+  assert.deepEqual(planReview({ lenses: ['business', 'engineering'] }).ran, ['business', 'engineering']);
+  assert.deepEqual([...planReview({ lenses: ['business', 'design', 'engineering'] }).ran].sort(), ['business', 'design', 'engineering']);
+  assert.throws(() => planReview({ lenses: [] }), /lens/i);
+  assert.throws(() => planReview({ lenses: ['marketing'] }), /lens/i);
+});

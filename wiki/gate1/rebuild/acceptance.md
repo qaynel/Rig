@@ -88,3 +88,34 @@ Each outcome names the observable result exercised by its one proving test. Thes
 | AC-RB-SNAP-6 | RB-SNAP-6 | inventory retains upstream identity and exact pinned commits. |
 | AC-RB-SNAP-7 | RB-SNAP-7 | excluded upstreams have a reason and ship no payload. |
 | AC-RB-SNAP-8 | RB-SNAP-8 | included upstreams meet pin eligibility and owners carry source-grounded unique capability evidence. |
+| AC-RB-CAT-6 | RB-CAT-6 | inspect-repo reports repository size facts for sizing memory without a decision. |
+| AC-RB-CAT-7 | RB-CAT-7 | every catalogue capability has a default route that needs no paid account. |
+| AC-RB-CAT-8 | RB-CAT-8 | a service the user registers replaces only the default route of that capability. |
+| AC-RB-CAT-9 | RB-CAT-9 | no catalogue role names an upstream brand in its id, title or triggers. |
+| AC-RB-CAT-10 | RB-CAT-10 | the catalogue ships one English copy of each piece and no translated duplicates. |
+| AC-RB-CAT-11 | RB-CAT-11 | plan review offers the business, design and engineering lenses under one trigger. |
+| AC-RB-CAT-12 | RB-CAT-12 | inspect-repo reports the Conductor app as a host fact and no catalogue role is named after it. |
+| AC-RB-COORD-7 | RB-COORD-7 | the fix loop makes three runs by default. |
+| AC-RB-COORD-8 | RB-COORD-8 | a configured run count is honoured and extra runs happen only on request. |
+| AC-RB-COORD-9 | RB-COORD-9 | the fix loop asks for consent before the second run and stops without it. |
+| AC-RB-COORD-10 | RB-COORD-10 | framework-specific guidance is used only after the general route fails. |
+| AC-RB-COORD-11 | RB-COORD-11 | plan review runs the lenses chosen for the plan and records which ran. |
+| AC-RB-DOOR-5 | RB-DOOR-5 | the onboarding interview offers every configurable setting with its default and a question. |
+| AC-RB-DOOR-6 | RB-DOOR-6 | a recorded onboarding choice overrides the ruled default and unchosen settings keep it. |
+| AC-RB-DOOR-7 | RB-DOOR-7 | declining every expansion completes onboarding with no network attempt and no expansion files. |
+| AC-RB-DOOR-8 | RB-DOOR-8 | an expansion downloads only after the user enables it by name. |
+| AC-RB-DOOR-9 | RB-DOOR-9 | enabling the larger search model shows its licence terms before any download. |
+| AC-RB-DOOR-10 | RB-DOOR-10 | every expansion is offered with the question "Enable this for better performance?". |
+| AC-RB-MEM-5 | RB-MEM-5 | a compaction request lists only sessions older than the verbatim window and names the shipped summary instruction without any network call. |
+| AC-RB-MEM-6 | RB-MEM-6 | sessions inside the verbatim window are recalled word for word and never offered for summarising. |
+| AC-RB-MEM-7 | RB-MEM-7 | an applied summary is recalled in place of its old session and links to the retained original. |
+| AC-RB-MEM-8 | RB-MEM-8 | the memory engine and its summary instruction name no model provider or remote endpoint. |
+| AC-RB-MEM-9 | RB-MEM-9 | one recall over the light store and an added heavy store returns each record once. |
+| AC-RB-OVL-5 | RB-OVL-5 | installed roles carry Rig names and no upstream brand while the pinned originals stay unchanged. |
+| AC-RB-OVL-6 | RB-OVL-6 | installed roles contain no upstream telemetry, self-update or paid-service upsell instructions. |
+| AC-RB-SNAP-9 | RB-SNAP-9 | the inventory discovers pieces inside test, fixture, build, dist and vendor folders. |
+| AC-RB-SNAP-10 | RB-SNAP-10 | the release notices name every included upstream with its licence and copyright line. |
+| AC-RB-SPEC-1 | RB-SPEC-1 | a requirement without SHALL or MUST fails the spec-format check. |
+| AC-RB-SPEC-2 | RB-SPEC-2 | a requirement without an example scenario fails the spec-format check. |
+| AC-RB-SPEC-3 | RB-SPEC-3 | a well-formed spec whose requirement has no proving test fails the traceability check. |
+| AC-RB-SPEC-4 | RB-SPEC-4 | the format check runs before the traceability check and stops the run. |

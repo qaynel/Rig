@@ -85,3 +85,41 @@ function listFiles(dir) {
     return entry.isDirectory() ? listFiles(file) : [file];
   });
 }
+
+// Owner ruling 2026-10-31: inherit the engineering, remove the branding; users see Rig's names and structure.
+const OVL_BRANDS = /\b(gstack|superpowers|ponytail|openspec|spec-?kit|speckit|ruflo|claude-flow|hermes|caveman|mempalace|claude-mem|oh-my-claudecode|omc|wshobson|mattpocock|archify|deepagents|forgecode|ui-ux-pro-max|skillsbench|everything-claude-code|ecc)\b/i;
+const UPSTREAM_PLUMBING = /^#+\s*(Telemetry|Preamble \(run first\)|Operational Self-Improvement|Artifacts Sync)|gstack-(telemetry|update-check|config)|telemetry-log|auto-?update|self-update|CMEM Pro|cmem\.ai|Upgrade to Pro/im;
+const installedRoles = () => {
+  const onboarding = product('rig/catalog/baseline/onboarding.js');
+  const repo = tempDir('rig-overlay-installed-');
+  const proposal = onboarding.propose(repo, { fit: { active: ['code-review', 'plan-review', 'test-first-build', 'specification'], dormant: [] } });
+  onboarding.apply(repo, proposal, { approved_digest: proposal.digest });
+  const root = path.join(repo, '.agents/skills');
+  assert.ok(fs.existsSync(root), 'fit installed no roles');
+  const dirs = fs.readdirSync(root).filter((name) => name.startsWith('rig-'));
+  assert.equal(dirs.length, 4);
+  return dirs.map((name) => ({ name, files: listFiles(path.join(root, name)) }));
+};
+
+test('RB-OVL-5 installed roles carry Rig names and no upstream brand while the pinned originals stay unchanged', () => {
+  const lock = JSON.parse(fs.readFileSync(path.join(ROOT, 'rig/upstreams/lock.json'), 'utf8'));
+  const before = lock.upstreams.flatMap((upstream) => upstream.paths.map((entry) => [path.join(ROOT, 'rig/upstreams', upstream.id, entry.path), entry.sha256]));
+  assert.ok(before.length > 0);
+  for (const { name, files } of installedRoles()) {
+    const skill = files.find((file) => path.basename(file) === 'SKILL.md');
+    assert.ok(skill, `${name} has no SKILL.md`);
+    assert.match(fs.readFileSync(skill, 'utf8'), new RegExp(`^---[\\s\\S]*?^name:\\s*${name}\\s*$`, 'm'));
+    for (const file of files) {
+      const text = fs.readFileSync(file, 'utf8');
+      assert.equal(OVL_BRANDS.test(text), false, `${name}/${path.basename(file)} shows upstream brand ${text.match(OVL_BRANDS)?.[0]}`);
+    }
+  }
+  for (const [file, digest] of before) assert.equal(sha256(fs.readFileSync(file)), digest, `pinned original changed: ${file}`);
+});
+
+test('RB-OVL-6 installed roles contain no upstream telemetry, self-update or paid-service upsell instructions', () => {
+  for (const { name, files } of installedRoles()) for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    assert.equal(UPSTREAM_PLUMBING.test(text), false, `${name}/${path.basename(file)} keeps upstream plumbing: ${text.match(UPSTREAM_PLUMBING)?.[0]}`);
+  }
+});

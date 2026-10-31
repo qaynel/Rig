@@ -204,3 +204,84 @@ test('RB-REL-6 every rebuild requirement maps to one passing proving test', () =
   assert.deepEqual(evidence.tests.map((row) => row.id).sort(), rows.map((row) => row.id).sort());
   for (const row of evidence.tests) assert.equal(row.status, 'pass', `${row.id} has ${row.status} lane evidence`);
 });
+
+// Owner rulings 2026-10-31 (design 5.4): every ruled default is the user's choice at onboarding; expansions are opt-in.
+const onboardingModule = () => require(path.join(ROOT, 'rig/catalog/baseline/onboarding.js'));
+const REQUIRED_SETTINGS = ['memory', 'plan-review-lenses', 'fix-loop-runs', 'expansions'];
+
+test('RB-DOOR-5 the onboarding interview offers every configurable setting with its default and a question', () => {
+  const settings = onboardingModule().configurableSettings();
+  assert.ok(Array.isArray(settings));
+  for (const id of REQUIRED_SETTINGS) {
+    const row = settings.find((setting) => setting.id === id);
+    assert.ok(row, `missing configurable setting ${id}`);
+    assert.ok(Object.hasOwn(row, 'default'), `${id} has no default`);
+    assert.ok(row.question?.trim(), `${id} has no interview question`);
+  }
+  assert.equal(settings.find((setting) => setting.id === 'fix-loop-runs').default, 3);
+});
+
+test('RB-DOOR-6 a recorded onboarding choice overrides the ruled default and unchosen settings keep it', () => {
+  const onboarding = onboardingModule();
+  const repo = tempDir('rig-onboarding-choice-');
+  const proposal = onboarding.propose(repo, { fit: { active: ['code-review'], dormant: [] }, choices: { 'fix-loop-runs': 5 } });
+  assert.equal(proposal.settings['fix-loop-runs'], 5);
+  const defaults = Object.fromEntries(onboarding.configurableSettings().map((row) => [row.id, row.default]));
+  for (const id of REQUIRED_SETTINGS.filter((name) => name !== 'fix-loop-runs')) assert.deepEqual(proposal.settings[id], defaults[id], id);
+  const other = onboarding.propose(tempDir('rig-onboarding-default-'), { fit: { active: ['code-review'], dormant: [] } });
+  assert.equal(other.settings['fix-loop-runs'], 3);
+});
+
+test('RB-DOOR-7 declining every expansion completes onboarding with no network attempt and no expansion files', () => {
+  const onboarding = onboardingModule();
+  const repo = tempDir('rig-onboarding-decline-');
+  const net = require('node:net'); const http = require('node:http'); const https = require('node:https');
+  const saved = { connect: net.Socket.prototype.connect, http: http.request, https: https.request, fetch: global.fetch };
+  let attempts = 0;
+  const deny = () => { attempts += 1; throw new Error('network denied'); };
+  net.Socket.prototype.connect = deny; http.request = deny; https.request = deny; global.fetch = deny;
+  try {
+    const proposal = onboarding.propose(repo, { fit: { active: ['code-review'], dormant: [] }, choices: { expansions: [] } });
+    onboarding.apply(repo, proposal, { approved_digest: proposal.digest });
+  } finally {
+    net.Socket.prototype.connect = saved.connect; http.request = saved.http; https.request = saved.https; global.fetch = saved.fetch;
+  }
+  assert.equal(attempts, 0);
+  assert.equal(fs.existsSync(path.join(repo, '.rig/expansions')), false);
+  assert.ok(onboarding.expansions().length >= 2, 'heavy memory and the larger search model must be offered as expansions');
+});
+
+test('RB-DOOR-8 an expansion downloads only after the user enables it by name', () => {
+  const onboarding = onboardingModule();
+  const repo = tempDir('rig-onboarding-enable-');
+  const downloads = [];
+  const download = (id) => { downloads.push(id); return { ok: true }; };
+  assert.throws(() => onboarding.enableExpansion(repo, 'heavy-memory', { confirm: false, download, show: () => {} }), /confirm|enable|consent/i);
+  assert.deepEqual(downloads, []);
+  onboarding.enableExpansion(repo, 'heavy-memory', { confirm: true, download, show: () => {} });
+  assert.deepEqual(downloads, ['heavy-memory']);
+});
+
+test('RB-DOOR-9 enabling the larger search model shows its licence terms before any download', () => {
+  const onboarding = onboardingModule();
+  const repo = tempDir('rig-onboarding-licence-');
+  const events = [];
+  onboarding.enableExpansion(repo, 'multilingual-search-model', {
+    confirm: true,
+    show: (text) => events.push(['show', text]),
+    download: (id) => { events.push(['download', id]); return { ok: true }; },
+  });
+  const shown = events.findIndex(([kind, text]) => kind === 'show' && /gemma/i.test(text) && /terms|licen[cs]e/i.test(text));
+  const downloaded = events.findIndex(([kind]) => kind === 'download');
+  assert.ok(shown >= 0, 'licence terms were not shown');
+  assert.ok(downloaded > shown, 'download happened before the licence terms were shown');
+});
+
+test('RB-DOOR-10 every expansion is offered with the question "Enable this for better performance?"', () => {
+  const offered = onboardingModule().expansions();
+  assert.ok(offered.length > 0);
+  for (const row of offered) {
+    assert.ok(row.id?.trim());
+    assert.equal(row.prompt, 'Enable this for better performance?', row.id);
+  }
+});

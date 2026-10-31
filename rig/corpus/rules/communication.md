@@ -48,6 +48,29 @@ naming the artifact where it lives.
 - **No linked structure of prior questions.** Do not write `Q1(a)`,
   `Q2 depends on Q1`. Each question stands alone in plain words.
 
+## Asking the user to decide
+
+Write for someone with clear ideas and goals but no implementation
+knowledge. The words must make the problem easiest for that person to
+understand.
+
+- **Make the conflict concrete.** Say what is happening and give one
+  everyday example of how it would affect their project. If a sentence
+  could mean several things, rewrite it until it means one.
+- **Give every option its consequence and its risk.** Say what the user
+  gains, what they lose or pay (time, money, download size, safety), and
+  what could go wrong. An option without a stated consequence and risk is
+  not ready to send.
+- **Frame it against the product goal.** Say how each option serves or
+  works against what the product promises.
+- **Say when the choice can be left to the user's setup.** If the
+  setting could be chosen per project during onboarding, say so, and ask
+  only for the default.
+- **Preserve before you cut.** Prefer options that merge approaches so no
+  capability is lost. When an option drops something, name what is lost.
+- **Offer "give me more context"** whenever the user may need more
+  background before choosing.
+
 ## What "restate the fact" looks like
 
 **Don't:** "Two of the honesty checks in the catalogue module are tautological

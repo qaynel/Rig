@@ -145,3 +145,36 @@ test('RB-SNAP-8 included upstreams meet pin eligibility and owners carry source-
     assert.ok(source.includes(evidence.excerpt), `${role.id}: evidence excerpt does not occur in pinned source`);
   }
 });
+
+// Owner rulings 2026-10-31: the scan skips no folder (register C12); branding goes, licence notices stay.
+test('RB-SNAP-9 the inventory discovers pieces inside test, fixture, build, dist and vendor folders', t => {
+  const { execFileSync } = require('node:child_process');
+  const temp = tempDir('rig-inventory-noskip-');
+  t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
+  const pack = path.join(temp, 'fork', 'skill-packs', 'alice__noskip');
+  write(pack, 'LICENSE', 'MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.');
+  const folders = ['tests/unit', 'fixtures', 'build', 'dist', 'vendor', 'test-driven-development'];
+  for (const folder of folders) write(pack, `${folder}/skill-${folders.indexOf(folder)}/SKILL.md`, `---\nname: hidden-${folders.indexOf(folder)}\ndescription: in ${folder}\n---\n`);
+  const zips = path.join(temp, 'zips'); fs.mkdirSync(zips);
+  const zip = path.join(zips, 'noskip-main.zip');
+  execFileSync('zip', ['-qr', zip, '.'], { cwd: pack });
+  execFileSync('zip', ['-z', zip], { input: '0123456789abcdef0123456789abcdef01234567\n' });
+  const { buildInventory } = product('scripts/rebuild/inventory.js');
+  const names = buildInventory(path.join(temp, 'fork'), zips).upstreams[0].pieces.filter((piece) => piece.kind === 'skill').map((piece) => piece.name).sort();
+  assert.deepEqual(names, folders.map((_, index) => `hidden-${index}`).sort());
+});
+
+test('RB-SNAP-10 the release notices name every included upstream with its licence and copyright line', () => {
+  const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+  const notices = fs.readFileSync(path.join(upstreamRoot, 'NOTICES.md'), 'utf8');
+  const included = lock.upstreams.filter((upstream) => upstream.included);
+  assert.ok(included.length > 0);
+  for (const upstream of included) {
+    assert.ok(notices.includes(upstream.repo), `${upstream.id} missing from notices`);
+    assert.ok(notices.includes(upstream.licence), `${upstream.id} licence missing from notices`);
+    const licenceEntry = upstream.paths.find((entry) => /^(LICEN[CS]E|COPYING)(\.|$)/i.test(path.basename(entry.path)) && !entry.path.includes('/'));
+    assert.ok(licenceEntry, `${upstream.id} ships no root licence file`);
+    const copyright = fs.readFileSync(path.join(upstreamRoot, upstream.id, licenceEntry.path), 'utf8').split('\n').find((line) => /copyright/i.test(line) && /\d{4}/.test(line));
+    if (copyright) assert.ok(notices.includes(copyright.trim()), `${upstream.id} copyright line missing: ${copyright.trim()}`);
+  }
+});

@@ -61,9 +61,10 @@ test('inventory lists pieces with hashes and rejects unknown licences', (t) => {
   assert.ok(pack);
   assert.equal(pack.licence, 'MIT');
   assert.equal(pack.commit, '0123456789abcdef0123456789abcdef01234567');
-  assert.deepEqual(pack.pieces.map((piece) => piece.kind).sort(), ['agent', 'hook', 'skill']);
-  assert.ok(!pack.pieces.some((piece) => piece.name === 'test-driven-development'));
-  assert.ok(!pack.pieces.some((piece) => piece.name === 'test-fixture'));
+  assert.deepEqual(pack.pieces.map((piece) => piece.kind).sort(), ['agent', 'hook', 'skill', 'skill', 'skill']);
+  // No folder is skipped: test-named and fixture folders are discovered and classified later.
+  assert.ok(pack.pieces.some((piece) => piece.name === 'test-driven-development'));
+  assert.ok(pack.pieces.some((piece) => piece.name === 'test-fixture'));
   for (const piece of pack.pieces) {
     const file = path.join(mit, piece.path);
     assert.equal(piece.sha256, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'));

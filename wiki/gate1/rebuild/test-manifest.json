@@ -586,5 +586,222 @@
     "file": "tests/rebuild/snapshot.test.js",
     "title": "RB-SNAP-8 included upstreams meet pin eligibility and owners carry source-grounded unique capability evidence",
     "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-6",
+    "criterion": "AC-RB-CAT-6",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-6 inspect-repo reports repository size facts for sizing memory without a decision",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-7",
+    "criterion": "AC-RB-CAT-7",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-7 every catalogue capability has a default route that needs no paid account",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-8",
+    "criterion": "AC-RB-CAT-8",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-8 a service the user registers replaces only the default route of that capability",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-9",
+    "criterion": "AC-RB-CAT-9",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-9 no catalogue role names an upstream brand in its id, title or triggers",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-10",
+    "criterion": "AC-RB-CAT-10",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-10 the catalogue ships one English copy of each piece and no translated duplicates",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-11",
+    "criterion": "AC-RB-CAT-11",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-11 plan review offers the business, design and engineering lenses under one trigger",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-12",
+    "criterion": "AC-RB-CAT-12",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-12 inspect-repo reports the Conductor app as a host fact and no catalogue role is named after it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-7",
+    "criterion": "AC-RB-COORD-7",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-7 the fix loop makes three runs by default",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-8",
+    "criterion": "AC-RB-COORD-8",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-8 a configured run count is honoured and extra runs happen only on request",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-9",
+    "criterion": "AC-RB-COORD-9",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-9 the fix loop asks for consent before the second run and stops without it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-10",
+    "criterion": "AC-RB-COORD-10",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-10 framework-specific guidance is used only after the general route fails",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-11",
+    "criterion": "AC-RB-COORD-11",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-11 plan review runs the lenses chosen for the plan and records which ran",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-5",
+    "criterion": "AC-RB-DOOR-5",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-5 the onboarding interview offers every configurable setting with its default and a question",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-6",
+    "criterion": "AC-RB-DOOR-6",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-6 a recorded onboarding choice overrides the ruled default and unchosen settings keep it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-7",
+    "criterion": "AC-RB-DOOR-7",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-7 declining every expansion completes onboarding with no network attempt and no expansion files",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-DOOR-8",
+    "criterion": "AC-RB-DOOR-8",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-8 an expansion downloads only after the user enables it by name",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-9",
+    "criterion": "AC-RB-DOOR-9",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-9 enabling the larger search model shows its licence terms before any download",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-10",
+    "criterion": "AC-RB-DOOR-10",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-10 every expansion is offered with the question \"Enable this for better performance?\"",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-5",
+    "criterion": "AC-RB-MEM-5",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-5 a compaction request lists only sessions older than the verbatim window and names the shipped summary instruction without any network call",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-6",
+    "criterion": "AC-RB-MEM-6",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-6 sessions inside the verbatim window are recalled word for word and never offered for summarising",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-7",
+    "criterion": "AC-RB-MEM-7",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-7 an applied summary is recalled in place of its old session and links to the retained original",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-8",
+    "criterion": "AC-RB-MEM-8",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-8 the memory engine and its summary instruction name no model provider or remote endpoint",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-9",
+    "criterion": "AC-RB-MEM-9",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-9 one recall over the light store and an added heavy store returns each record once",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-OVL-5",
+    "criterion": "AC-RB-OVL-5",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-5 installed roles carry Rig names and no upstream brand while the pinned originals stay unchanged",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-OVL-6",
+    "criterion": "AC-RB-OVL-6",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-6 installed roles contain no upstream telemetry, self-update or paid-service upsell instructions",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-SNAP-9",
+    "criterion": "AC-RB-SNAP-9",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-9 the inventory discovers pieces inside test, fixture, build, dist and vendor folders",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-10",
+    "criterion": "AC-RB-SNAP-10",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-10 the release notices name every included upstream with its licence and copyright line",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-1",
+    "criterion": "AC-RB-SPEC-1",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-1 a requirement without SHALL or MUST fails the spec-format check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-2",
+    "criterion": "AC-RB-SPEC-2",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-2 a requirement without an example scenario fails the spec-format check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-3",
+    "criterion": "AC-RB-SPEC-3",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-3 a well-formed spec whose requirement has no proving test fails the traceability check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-4",
+    "criterion": "AC-RB-SPEC-4",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-4 the format check runs before the traceability check and stops the run",
+    "lane": "unit"
   }
 ]

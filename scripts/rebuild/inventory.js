@@ -5,7 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'vendor', 'fixtures']);
 const RULE_FILES = new Set(['claude.md', 'agents.md', 'gemini.md']);
 const COMMIT_RE = /^[0-9a-f]{40}$/i;
 
@@ -23,7 +22,8 @@ function parseArgs(args) {
   return values;
 }
 
-function walk(root, includeSkipped = false) {
+// Owner ruling 2026-10-31 (register C12): no folder is skipped; classification, not discovery, excludes test scaffolding.
+function walk(root) {
   const files = [];
   if (fs.lstatSync(root).isSymbolicLink()) throw new Error(`Symlinked upstream root is not supported: ${root}`);
   const realRoot = fs.realpathSync(root);
@@ -49,7 +49,7 @@ function walk(root, includeSkipped = false) {
         }
         if (!insideRoot(target)) throw new Error(`Symlink escapes upstream: ${relative(root, file)} -> ${target}`);
         if (stats.isDirectory()) {
-          if (includeSkipped || (!SKIP_DIRS.has(entry.name) && !/^test/i.test(entry.name))) visit(file, nextAncestors);
+          visit(file, nextAncestors);
         } else if (stats.isFile()) {
           files.push(file);
         } else {
@@ -58,7 +58,7 @@ function walk(root, includeSkipped = false) {
         continue;
       }
       if (entry.isDirectory()) {
-        if (includeSkipped || (!SKIP_DIRS.has(entry.name) && !/^test/i.test(entry.name))) visit(file, nextAncestors);
+        visit(file, nextAncestors);
       } else if (entry.isFile()) {
         files.push(file);
       }
@@ -212,7 +212,7 @@ function buildInventory(forkDir, zipsDir) {
       category,
       commit: commits.get(root),
       ...licence,
-      sizeKb: Math.round(directoryBytes(walk(root, true)) / 1024 * 1000) / 1000,
+      sizeKb: Math.round(directoryBytes(files) / 1024 * 1000) / 1000,
       pieces: discoverPieces(root, files),
     };
   });

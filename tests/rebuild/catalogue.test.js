@@ -69,3 +69,86 @@ test('RB-CAT-5 first-session report has an outcome and recommendation for every 
   const upstreamNames = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'rig/upstreams/lock.json'), 'utf8')).upstreams.map((row) => row.id));
   for (const name of upstreamNames) assert.ok(!rendered.text.toLowerCase().includes(name.toLowerCase()), `report exposes upstream id ${name}`);
 });
+
+// Owner rulings 2026-10-31 (design 5.4, register C7, C9, C14, C18).
+const BRANDS = /\b(gstack|superpowers|ponytail|openspec|spec-?kit|speckit|ruflo|claude-flow|hermes|caveman|mempalace|claude-mem|oh-my-claudecode|omc|wshobson|mattpocock|archify|deepagents|forgecode|ui-ux-pro-max|skillsbench|everything-claude-code|ecc)\b/i;
+const LOCALE_DIR = /(^|\/)(docs|i18n|locales?)\/(ar|bn|cs|da|de|el|es|fi|fr|he|hi|hu|id|it|ja|ja-JP|ko|ko-KR|nl|no|pl|pt|pt-BR|ro|ru|sv|th|tl|tr|uk|ur|vi|zh|zh-CN|zh-TW|zh-Hans|zh-Hant)\//;
+const git = (repo, ...args) => run('git', args, { cwd: repo, env: { ...process.env, GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid' } });
+
+test('RB-CAT-6 inspect-repo reports repository size facts for sizing memory without a decision', () => {
+  const repo = tempDir('rig-inspect-size-');
+  write(repo, 'src/a.js', 'const a = 1;\nconst b = 2;\n');
+  write(repo, 'src/b.js', 'module.exports = 3;\n');
+  write(repo, 'README.md', '# fixture\n');
+  git(repo, 'init', '-q'); git(repo, 'add', '.'); git(repo, 'commit', '-qm', 'one');
+  write(repo, 'src/c.js', 'module.exports = 4;\n');
+  git(repo, 'add', '.'); git(repo, 'commit', '-qm', 'two');
+  const result = run(process.execPath, [path.join(ROOT, 'rig/bin/inspect-repo.js'), repo, '--json'], { cwd: ROOT });
+  assert.equal(result.status, 0, result.stderr);
+  const data = JSON.parse(result.stdout);
+  assert.equal(data.size?.commits, 2);
+  assert.equal(data.size?.files, 4);
+  assert.equal(data.size?.sourceLines, 4);
+  for (const key of ['recommend', 'should', 'needs', 'memoryChoice']) assert.equal(Object.hasOwn(data.size, key), false);
+});
+
+test('RB-CAT-7 every catalogue capability has a default route that needs no paid account', () => {
+  const entries = catalogue().roles;
+  assert.ok(entries.length > 0);
+  for (const row of entries) {
+    const defaults = (row.services || []).filter((service) => service.default);
+    assert.ok(defaults.length <= 1, `${row.id} has several default services`);
+    for (const service of defaults) assert.notEqual(service.paid, true, `${row.id} defaults to paid service ${service.id}`);
+  }
+  const search = entries.find((row) => row.id === 'llm-application-engineering');
+  assert.ok(search?.services?.some((service) => service.default && service.paid === false), 'search guidance must ship a free default route');
+  assert.ok(search.services.some((service) => service.paid === true && !service.default), 'paid services must be listed as optional');
+});
+
+test('RB-CAT-8 a service the user registers replaces only the default route of that capability', () => {
+  const services = product('rig/lib/services.js');
+  const entries = catalogue().roles;
+  const search = entries.find((row) => row.id === 'llm-application-engineering');
+  const paid = search.services.find((service) => service.paid === true);
+  const other = entries.find((row) => row.id !== search.id && row.services?.some((service) => service.default));
+  const profile = { services: { [search.id]: paid.id } };
+  assert.equal(services.routeFor(search, profile).id, paid.id);
+  assert.equal(services.routeFor(search, {}).id, search.services.find((service) => service.default).id);
+  if (other) assert.equal(services.routeFor(other, profile).id, other.services.find((service) => service.default).id);
+});
+
+test('RB-CAT-9 no catalogue role names an upstream brand in its id, title or triggers', () => {
+  const entries = catalogue().roles;
+  assert.ok(entries.length > 0);
+  for (const row of entries) {
+    const text = [row.id, row.title, ...(row.triggers || [])].join(' | ');
+    assert.equal(BRANDS.test(text), false, `${row.id} shows upstream brand ${text.match(BRANDS)?.[0]}`);
+  }
+});
+
+test('RB-CAT-10 the catalogue ships one English copy of each piece and no translated duplicates', () => {
+  const entries = catalogue().roles;
+  assert.ok(entries.some((row) => row.pieces?.length));
+  const distinctChinese = /skills\/(chinese-code-review|chinese-commit-conventions|chinese-documentation|chinese-git-workflow|workflow-runner)\/SKILL\.md$/;
+  for (const row of entries) for (const piece of row.pieces || []) {
+    assert.equal(LOCALE_DIR.test(piece.path), false, `${row.id} ships translated copy ${piece.upstream}/${piece.path}`);
+    if (piece.upstream === 'jnMetaCode__superpowers-zh' && /SKILL\.md$/.test(piece.path)) assert.ok(distinctChinese.test(piece.path), `${row.id} ships translated copy ${piece.path}`);
+  }
+});
+
+test('RB-CAT-11 plan review offers the business, design and engineering lenses under one trigger', () => {
+  const review = catalogue().roles.find((row) => row.id === 'plan-review');
+  assert.ok(review, 'plan-review role missing from the catalogue');
+  assert.deepEqual([...(review.lenses || [])].sort(), ['business', 'design', 'engineering']);
+  assert.equal(review.triggers.length, 1);
+});
+
+test('RB-CAT-12 inspect-repo reports the Conductor app as a host fact and no catalogue role is named after it', () => {
+  const repo = tempDir('rig-inspect-conductor-');
+  write(repo, 'conductor.json', JSON.stringify({ scripts: { setup: 'npm install' } }));
+  const result = run(process.execPath, [path.join(ROOT, 'rig/bin/inspect-repo.js'), repo, '--json'], { cwd: ROOT });
+  assert.equal(result.status, 0, result.stderr);
+  const data = JSON.parse(result.stdout);
+  assert.ok(data.facts.some((fact) => fact.kind === 'host' && fact.value === 'conductor-app'), JSON.stringify(data.facts));
+  for (const row of catalogue().roles) assert.equal(/conductor/i.test(`${row.id} ${row.title}`), false, `${row.id} is named after the Conductor app`);
+});

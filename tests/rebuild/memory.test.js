@@ -117,3 +117,89 @@ test('RB-MEM-4 memory role changes only when its full result interval beats the 
     assert.equal(decision.owner_after, decision.shipped_owner, 'without a measured win the shipped offline memory remains active');
   }
 });
+
+// Owner rulings 2026-10-31 (register C8, C13): one memory system; old sessions summarised by the user's own model.
+const DAY = 24 * 60 * 60 * 1000;
+const NOW = Date.parse('2026-10-31T12:00:00Z');
+const memoryRepo = (t) => {
+  const repo = tempDir('rig-memory-sessions-');
+  const saved = process.env.RIG_HOME;
+  process.env.RIG_HOME = path.join(repo, 'isolated-home');
+  t.after(() => { if (saved === undefined) delete process.env.RIG_HOME; else process.env.RIG_HOME = saved; fs.rmSync(repo, { recursive: true, force: true }); });
+  return repo;
+};
+const withNetworkCounter = (fn) => {
+  const net = require('node:net'); const http = require('node:http'); const https = require('node:https');
+  const saved = { connect: net.Socket.prototype.connect, http: http.request, https: https.request, fetch: global.fetch };
+  let attempts = 0;
+  const deny = () => { attempts += 1; throw new Error('network denied'); };
+  net.Socket.prototype.connect = deny; http.request = deny; https.request = deny; global.fetch = deny;
+  try { return { value: fn(), attempts: () => attempts }; } finally {
+    net.Socket.prototype.connect = saved.connect; http.request = saved.http; https.request = saved.https; global.fetch = saved.fetch;
+  }
+};
+
+test('RB-MEM-5 a compaction request lists only sessions older than the verbatim window and names the shipped summary instruction without any network call', t => {
+  const memory = product('rig/catalog/baseline/memory.js');
+  const repo = memoryRepo(t);
+  memory.putSession(repo, { id: 'old-a', at: new Date(NOW - 40 * DAY).toISOString(), text: 'We chose Postgres for the order history because of reporting joins.' });
+  memory.putSession(repo, { id: 'old-b', at: new Date(NOW - 20 * DAY).toISOString(), text: 'The checkout retries card payments once before showing an error.' });
+  memory.putSession(repo, { id: 'recent', at: new Date(NOW - 2 * DAY).toISOString(), text: 'Today we renamed the cart service.' });
+  const { value: request, attempts } = withNetworkCounter(() => memory.compactionRequest(repo, { now: NOW, verbatimDays: 14 }));
+  assert.equal(attempts(), 0);
+  assert.deepEqual(request.sessions.map((row) => row.id).sort(), ['old-a', 'old-b']);
+  assert.match(request.instruction, /\.md$/);
+  assert.ok(fs.existsSync(path.join(ROOT, request.instruction)), `missing shipped instruction ${request.instruction}`);
+});
+
+test('RB-MEM-6 sessions inside the verbatim window are recalled word for word and never offered for summarising', t => {
+  const memory = product('rig/catalog/baseline/memory.js');
+  const repo = memoryRepo(t);
+  const text = 'Today we renamed the cart service to basket and kept the old route as a redirect.';
+  memory.putSession(repo, { id: 'recent', at: new Date(NOW - 1 * DAY).toISOString(), text });
+  const request = memory.compactionRequest(repo, { now: NOW, verbatimDays: 14 });
+  assert.equal(request.sessions.some((row) => row.id === 'recent'), false);
+  const hit = memory.recallDetailed(repo, 'what did we rename the cart service to', { now: NOW }).hits.find((row) => row.id === 'recent');
+  assert.ok(hit, 'recent session must be recallable');
+  assert.equal(hit.kind, 'verbatim');
+  assert.equal(hit.value, text);
+});
+
+test('RB-MEM-7 an applied summary is recalled in place of its old session and links to the retained original', t => {
+  const memory = product('rig/catalog/baseline/memory.js');
+  const repo = memoryRepo(t);
+  const original = 'Long discussion: we compared Postgres and Mongo, measured reporting joins, and chose Postgres for order history.';
+  memory.putSession(repo, { id: 'old-a', at: new Date(NOW - 40 * DAY).toISOString(), text: original });
+  memory.applySummary(repo, { sessionId: 'old-a', summary: 'Chose Postgres for order history (reporting joins).', model: 'the user agent model' });
+  const hits = memory.recallDetailed(repo, 'which database did we choose for order history', { now: NOW }).hits;
+  const top = hits.find((row) => row.original === 'old-a');
+  assert.ok(top, 'summary must be recallable');
+  assert.equal(top.kind, 'summary');
+  assert.equal(hits.filter((row) => row.id === 'old-a' && row.kind === 'verbatim').length, 0, 'the summarised session must not also be returned verbatim');
+  assert.equal(memory.getSession(repo, 'old-a').text, original, 'the original must be retained as evidence');
+});
+
+test('RB-MEM-8 the memory engine and its summary instruction name no model provider or remote endpoint', t => {
+  const memory = product('rig/catalog/baseline/memory.js');
+  const repo = memoryRepo(t);
+  memory.putSession(repo, { id: 'old', at: new Date(NOW - 40 * DAY).toISOString(), text: 'old note' });
+  const { instruction } = memory.compactionRequest(repo, { now: NOW, verbatimDays: 14 });
+  const provider = /\b(openai|anthropic|voyage|cohere|gemini|openrouter|mistral|bedrock|vertex)\b|@anthropic-ai|api[_-]?key|https?:\/\//i;
+  for (const file of ['rig/catalog/baseline/memory.js', 'rig/catalog/baseline/embedding.js', instruction]) {
+    const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    assert.equal(provider.test(text), false, `${file} names a provider or endpoint: ${text.match(provider)?.[0]}`);
+  }
+});
+
+test('RB-MEM-9 one recall over the light store and an added heavy store returns each record once', t => {
+  const memory = product('rig/catalog/baseline/memory.js');
+  const repo = memoryRepo(t);
+  memory.put(repo, { id: 'garage', value: 'Keep the car inside the garage.', source: 'fixture:light' });
+  memory.registerStore(repo, 'heavy', { search: () => [
+    { id: 'garage', value: 'Keep the car inside the garage.', source: 'fixture:heavy-copy', score: 0.9 },
+    { id: 'driveway', value: 'Visitors park on the driveway.', source: 'fixture:heavy', score: 0.8 },
+  ] });
+  const ids = memory.recallDetailed(repo, 'where should the car be parked').hits.map((row) => row.id);
+  assert.equal(new Set(ids).size, ids.length, `duplicate records: ${ids.join(', ')}`);
+  assert.ok(ids.includes('garage') && ids.includes('driveway'), ids.join(', '));
+});
