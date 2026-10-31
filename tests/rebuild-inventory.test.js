@@ -94,7 +94,10 @@ test('inventory rejects an unpinned zip comment and a zip reused by two upstream
 
   fs.rmSync(path.join(fork, 'two'), { recursive: true, force: true });
   for (const comment of ['', 'not-a-commit', '0123456789abcdef0123456789abcdef01234567\n89abcdef0123456789abcdef0123456789abcdef']) {
-    execFileSync('zip', ['-z', zip], { input: `${comment}\n` });
+    fs.rmSync(zip);
+    execFileSync('zip', ['-qr', zip, '.'], { cwd: first });
+    // rig: a fresh archive has no comment; Ubuntu zip crashes clearing one via stdin.
+    if (comment) execFileSync('zip', ['-z', zip], { input: `${comment}\n` });
     const invalidPin = spawnSync(process.execPath, [script, '--fork', fork, '--zips', zips, '--out', out], { encoding: 'utf8' });
     assert.notEqual(invalidPin.status, 0);
     assert.match(invalidPin.stderr, /40-character commit/);
