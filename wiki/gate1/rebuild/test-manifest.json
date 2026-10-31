@@ -1,0 +1,807 @@
+[
+  {
+    "id": "RB-BENCH-1",
+    "criterion": "AC-RB-BENCH-1",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-1 committed benchmark split has a seed, disjoint partitions, and all 89 tasks",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-2",
+    "criterion": "AC-RB-BENCH-2",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-2 planted hidden-test tampering is reported as tampered and failed",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-3",
+    "criterion": "AC-RB-BENCH-3",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-3 report applies every match condition to fixture session data",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-4",
+    "criterion": "AC-RB-BENCH-4",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-4 plain arm selects no Rig reference and writes no .rig directory",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-5",
+    "criterion": "AC-RB-BENCH-5",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-5 at least 30 vague-intent tasks keep grading tests outside agent-visible files",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-6",
+    "criterion": "AC-RB-BENCH-6",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-6 a filename-only gain fails the counterfactual robustness check",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-7",
+    "criterion": "AC-RB-BENCH-7",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-7 test split cannot run during tuning and final scoring is single-use",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-8",
+    "criterion": "AC-RB-BENCH-8",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-8 every tuning decision carries its floor candidate",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-9",
+    "criterion": "AC-RB-BENCH-9",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-9 benchmark arms contain all three model ladder comparisons",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-10",
+    "criterion": "AC-RB-BENCH-10",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-10 fit input tokens contribute to measured session cost",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-11",
+    "criterion": "AC-RB-BENCH-11",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-11 report includes tokens, tampering, source lines and human interventions",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-12",
+    "criterion": "AC-RB-BENCH-12",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-12 published result uses a passing ladder step or the closest measured step",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-13",
+    "criterion": "AC-RB-BENCH-13",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-13 untouched test split is scored once and SkillsBench remains held back",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-14",
+    "criterion": "AC-RB-BENCH-14",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-14 tuning stops after three non-improving rounds or the release date",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-15",
+    "criterion": "AC-RB-BENCH-15",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-15 benchmark runner completes three paired runs per task and arm",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-16",
+    "criterion": "AC-RB-BENCH-16",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-16 comparison raw sessions use pinned models and one common window",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-BENCH-17",
+    "criterion": "AC-RB-BENCH-17",
+    "file": "tests/rebuild/benchmark.test.js",
+    "title": "RB-BENCH-17 Sonnet benchmark includes one ablation arm per mapped role",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-CAT-1",
+    "criterion": "AC-RB-CAT-1",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-1 each mapped role has one complete plain-language catalogue entry",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-2",
+    "criterion": "AC-RB-CAT-2",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-2 every catalogue piece path exists in the applied overlay output",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-3",
+    "criterion": "AC-RB-CAT-3",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-3 inspect-repo reports dependency and existing harness facts without decisions",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-4",
+    "criterion": "AC-RB-CAT-4",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-4 inspect-repo makes no outbound network request",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-5",
+    "criterion": "AC-RB-CAT-5",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-5 first-session report has an outcome and recommendation for every role question",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-1",
+    "criterion": "AC-RB-COORD-1",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-1 each active role trigger routes to one matching role",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-2",
+    "criterion": "AC-RB-COORD-2",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-2 unmatched situations use general fallback and matched ones do not",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-3",
+    "criterion": "AC-RB-COORD-3",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-3 lock safety wins a conflicting upstream trigger and is written first",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-4",
+    "criterion": "AC-RB-COORD-4",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-4 profile cannot disable locked tests and the refusal is logged",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-5",
+    "criterion": "AC-RB-COORD-5",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-5 startup returns one ordered instruction sequence despite multiple upstream hooks",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-6",
+    "criterion": "AC-RB-COORD-6",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-6 bounded delegation selects the cheaper available model or stays inline when unsupported",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-1",
+    "criterion": "AC-RB-DOOR-1",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-1 proposing a first-session fit writes nothing to host install targets",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-DOOR-2",
+    "criterion": "AC-RB-DOOR-2",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-2 generated first-session questions recommend outcomes and accept the proposed answer",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-DOOR-3",
+    "criterion": "AC-RB-DOOR-3",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-3 sign-off interview requires an explicit selection before install",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-DOOR-4",
+    "criterion": "AC-RB-DOOR-4",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-4 marketplace and shell routes produce the same installed tree for one fit",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FETCH-1",
+    "criterion": "AC-RB-FETCH-1",
+    "file": "tests/rebuild/fetch.test.js",
+    "title": "RB-FETCH-1 fresh install succeeds while outbound sockets are blocked",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FETCH-2",
+    "criterion": "AC-RB-FETCH-2",
+    "file": "tests/rebuild/fetch.test.js",
+    "title": "RB-FETCH-2 installed .rig contains no fetched-upstream state or metadata",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FETCH-3",
+    "criterion": "AC-RB-FETCH-3",
+    "file": "tests/rebuild/fetch.test.js",
+    "title": "RB-FETCH-3 no payload module supports fetching upstreams during setup",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FETCH-4",
+    "criterion": "AC-RB-FETCH-4",
+    "file": "tests/rebuild/fetch.test.js",
+    "title": "RB-FETCH-4 source, scripts, and tests contain no old fetch module references",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-1",
+    "criterion": "AC-RB-FIT-1",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-1 a fit above the byte budget is rejected with BUDGET",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-2",
+    "criterion": "AC-RB-FIT-2",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-2 active roles with a user-edited shared trigger fail and name both roles",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-3",
+    "criterion": "AC-RB-FIT-3",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-3 dormant roles are absent from host targets and their hooks do not run at startup",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-4",
+    "criterion": "AC-RB-FIT-4",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-4 an existing harness skill remains the sole discoverable copy",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-5",
+    "criterion": "AC-RB-FIT-5",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-5 repository growth proposes UI and browser roles, then approved fit matches fresh fit",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-6",
+    "criterion": "AC-RB-FIT-6",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-6 removing dormant files leaves a valid fit",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-7",
+    "criterion": "AC-RB-FIT-7",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-7 uninstalling one graft preserves other Rig roles and user files",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-8",
+    "criterion": "AC-RB-FIT-8",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-8 the web-UI refit benchmark task passes hidden tests at least as often as fresh fit",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-FIT-9",
+    "criterion": "AC-RB-FIT-9",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-9 an overlay-created trigger overlap is rejected with TRIGGER_OVERLAP",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-10",
+    "criterion": "AC-RB-FIT-10",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-10 locally edited installed skill bytes are retained and reported",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-11",
+    "criterion": "AC-RB-FIT-11",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-11 the fit validator reports missing active capability facts",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-FIT-12",
+    "criterion": "AC-RB-FIT-12",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-12 approved refit materializes the same active role tree as a fresh fit",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-13",
+    "criterion": "AC-RB-FIT-13",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-13 changed proposal digest refuses before altering installed files",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-FIT-14",
+    "criterion": "AC-RB-FIT-14",
+    "file": "tests/rebuild/fit.test.js",
+    "title": "RB-FIT-14 existing harness reuse keeps a hand-edited installed role byte-for-byte",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-LAUNCH-1",
+    "criterion": "AC-RB-LAUNCH-1",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-LAUNCH-1 results page includes every arm and agrees with the final report values",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-LOCK-1",
+    "criterion": "AC-RB-LOCK-1",
+    "file": "tests/rebuild/lock-strength.test.js",
+    "title": "RB-LOCK-1 an installed repository refuses edits to a locked test and names the path",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-LOCK-2",
+    "criterion": "AC-RB-LOCK-2",
+    "file": "tests/rebuild/lock-strength.test.js",
+    "title": "RB-LOCK-2 mutation score below 70 percent blocks locking",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-LOCK-3",
+    "criterion": "AC-RB-LOCK-3",
+    "file": "tests/rebuild/lock-strength.test.js",
+    "title": "RB-LOCK-3 missing mutation tooling is a named gap and fails closed",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-LOCK-4",
+    "criterion": "AC-RB-LOCK-4",
+    "file": "tests/rebuild/lock-strength.test.js",
+    "title": "RB-LOCK-4 passwordless sudo is detected but never counts as user approval",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-LOCK-5",
+    "criterion": "AC-RB-LOCK-5",
+    "file": "tests/rebuild/lock-strength.test.js",
+    "title": "RB-LOCK-5 sudo probe is non-interactive when a password is required",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-MEM-1",
+    "criterion": "AC-RB-MEM-1",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-1 memory recall finds a meaning match with networking disabled and no model download",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-2",
+    "criterion": "AC-RB-MEM-2",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-2 active view stays within 8 KB after 1,000 writes",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-3",
+    "criterion": "AC-RB-MEM-3",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-3 memory benchmark report compares pass rate and solved-task cost with intervals",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-MEM-4",
+    "criterion": "AC-RB-MEM-4",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-4 memory role changes only when its full result interval beats the incumbent",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-OVL-1",
+    "criterion": "AC-RB-OVL-1",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-1 all overlays apply cleanly and preserve pinned upstream bytes",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-OVL-2",
+    "criterion": "AC-RB-OVL-2",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-2 changed patched context names exactly the failing patch and source file",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-OVL-3",
+    "criterion": "AC-RB-OVL-3",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-3 every overlay carries a non-empty reason and a known ruling",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-OVL-4",
+    "criterion": "AC-RB-OVL-4",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-4 every pinned file matches its lock digest",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-POL-1",
+    "criterion": "AC-RB-POL-1",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-POL-1 decision prose without a wiki pointer fails with a line number and current CLAUDE passes",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-POL-2",
+    "criterion": "AC-RB-POL-2",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-POL-2 wiki specifications changed without a reasoning trace are rejected",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-POL-3",
+    "criterion": "AC-RB-POL-3",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-POL-3 policy flags technical confirmation wording and accepts a plain recommendation",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-PROF-1",
+    "criterion": "AC-RB-PROF-1",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-PROF-1 profile exports preferences from one repository and imports them into another",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-PROF-2",
+    "criterion": "AC-RB-PROF-2",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-PROF-2 home profile contains no secret values or repository paths",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-PROF-3",
+    "criterion": "AC-RB-PROF-3",
+    "file": "tests/rebuild/profile-policy.test.js",
+    "title": "RB-PROF-3 uninstall removes repository tailoring and retains the portable profile",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-REL-1",
+    "criterion": "AC-RB-REL-1",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-1 archive snapshot bytes equal the selected S15 winner commit",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-REL-2",
+    "criterion": "AC-RB-REL-2",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-2 installing the published archive makes no outbound setup request",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-REL-3",
+    "criterion": "AC-RB-REL-3",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-3 published archive plus local search assets fits the cap or names its overrun",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-REL-4",
+    "criterion": "AC-RB-REL-4",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-4 release archive passes the executable and content safety scan",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-REL-5",
+    "criterion": "AC-RB-REL-5",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-5 release beats the same-window v6.0.0 baseline beyond the interval",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-REL-6",
+    "criterion": "AC-RB-REL-6",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-REL-6 every rebuild requirement maps to one passing proving test",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-SNAP-1",
+    "criterion": "AC-RB-SNAP-1",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-1 lock lists exactly every vendored file with matching byte count and SHA-256",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-2",
+    "criterion": "AC-RB-SNAP-2",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-2 lock validates allowed licences, inclusion flags, reasons, and excluded payload absence",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-3",
+    "criterion": "AC-RB-SNAP-3",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-3 valid locked fixture with network-bearing hook fails and names the hook path",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-4",
+    "criterion": "AC-RB-SNAP-4",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-4 valid locked fixture with an unapproved harmless executable fails the safety scan",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-5",
+    "criterion": "AC-RB-SNAP-5",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-5 size check reports measured payload plus local model bytes and cap overrun",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-6",
+    "criterion": "AC-RB-SNAP-6",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-6 inventory retains upstream identity and exact pinned commits",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-7",
+    "criterion": "AC-RB-SNAP-7",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-7 excluded upstreams have a reason and ship no payload",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-8",
+    "criterion": "AC-RB-SNAP-8",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-8 included upstreams meet pin eligibility and owners carry source-grounded unique capability evidence",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-6",
+    "criterion": "AC-RB-CAT-6",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-6 inspect-repo reports repository size facts for sizing memory without a decision",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-7",
+    "criterion": "AC-RB-CAT-7",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-7 every catalogue capability has a default route that needs no paid account",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-8",
+    "criterion": "AC-RB-CAT-8",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-8 a service the user registers replaces only the default route of that capability",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-9",
+    "criterion": "AC-RB-CAT-9",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-9 no catalogue role names an upstream brand in its id, title or triggers",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-10",
+    "criterion": "AC-RB-CAT-10",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-10 the catalogue ships one English copy of each piece and no translated duplicates",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-11",
+    "criterion": "AC-RB-CAT-11",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-11 plan review offers the business, design and engineering lenses under one trigger",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CAT-12",
+    "criterion": "AC-RB-CAT-12",
+    "file": "tests/rebuild/catalogue.test.js",
+    "title": "RB-CAT-12 inspect-repo reports the Conductor app as a host fact and no catalogue role is named after it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-7",
+    "criterion": "AC-RB-COORD-7",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-7 the fix loop makes three runs by default",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-8",
+    "criterion": "AC-RB-COORD-8",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-8 a configured run count is honoured and extra runs happen only on request",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-9",
+    "criterion": "AC-RB-COORD-9",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-9 the fix loop asks for consent before the second run and stops without it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-10",
+    "criterion": "AC-RB-COORD-10",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-10 framework-specific guidance is used only after the general route fails",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-COORD-11",
+    "criterion": "AC-RB-COORD-11",
+    "file": "tests/rebuild/coordinator.test.js",
+    "title": "RB-COORD-11 plan review runs the lenses chosen for the plan and records which ran",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-5",
+    "criterion": "AC-RB-DOOR-5",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-5 the onboarding interview offers every configurable setting with its default and a question",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-6",
+    "criterion": "AC-RB-DOOR-6",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-6 a recorded onboarding choice overrides the ruled default and unchosen settings keep it",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-7",
+    "criterion": "AC-RB-DOOR-7",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-7 declining every expansion completes onboarding with no network attempt and no expansion files",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-DOOR-8",
+    "criterion": "AC-RB-DOOR-8",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-8 an expansion downloads only after the user enables it by name",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-9",
+    "criterion": "AC-RB-DOOR-9",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-9 enabling the larger search model shows its licence terms before any download",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-DOOR-10",
+    "criterion": "AC-RB-DOOR-10",
+    "file": "tests/rebuild/front-door-release.test.js",
+    "title": "RB-DOOR-10 every expansion is offered with the question \"Enable this for better performance?\"",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-5",
+    "criterion": "AC-RB-MEM-5",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-5 a compaction request lists only sessions older than the verbatim window and names the shipped summary instruction without any network call",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-6",
+    "criterion": "AC-RB-MEM-6",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-6 sessions inside the verbatim window are recalled word for word and never offered for summarising",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-7",
+    "criterion": "AC-RB-MEM-7",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-7 an applied summary is recalled in place of its old session and links to the retained original",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-8",
+    "criterion": "AC-RB-MEM-8",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-8 the memory engine and its summary instruction name no model provider or remote endpoint",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-MEM-9",
+    "criterion": "AC-RB-MEM-9",
+    "file": "tests/rebuild/memory.test.js",
+    "title": "RB-MEM-9 one recall over the light store and an added heavy store returns each record once",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-OVL-5",
+    "criterion": "AC-RB-OVL-5",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-5 installed roles carry Rig names and no upstream brand while the pinned originals stay unchanged",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-OVL-6",
+    "criterion": "AC-RB-OVL-6",
+    "file": "tests/rebuild/overlays.test.js",
+    "title": "RB-OVL-6 installed roles contain no upstream telemetry, self-update or paid-service upsell instructions",
+    "lane": "installed-repo"
+  },
+  {
+    "id": "RB-SNAP-9",
+    "criterion": "AC-RB-SNAP-9",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-9 the inventory discovers pieces inside test, fixture, build, dist and vendor folders",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SNAP-10",
+    "criterion": "AC-RB-SNAP-10",
+    "file": "tests/rebuild/snapshot.test.js",
+    "title": "RB-SNAP-10 the release notices name every included upstream with its licence and copyright line",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-1",
+    "criterion": "AC-RB-SPEC-1",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-1 a requirement without SHALL or MUST fails the spec-format check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-2",
+    "criterion": "AC-RB-SPEC-2",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-2 a requirement without an example scenario fails the spec-format check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-3",
+    "criterion": "AC-RB-SPEC-3",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-3 a well-formed spec whose requirement has no proving test fails the traceability check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-SPEC-4",
+    "criterion": "AC-RB-SPEC-4",
+    "file": "tests/rebuild/spec.test.js",
+    "title": "RB-SPEC-4 the format check runs before the traceability check and stops the run",
+    "lane": "unit"
+  }
+]
