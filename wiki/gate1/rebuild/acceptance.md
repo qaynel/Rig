@@ -1,6 +1,6 @@
-# Rebuild acceptance criteria (unsigned draft)
+# Rebuild acceptance criteria
 
-Each outcome names the observable result exercised by its one proving test. These criteria remain unsigned until the owner sitting.
+Each outcome names the observable result exercised by its one proving test. The owner approves these criteria by written declaration (design 5.3).
 
 | Criterion | Requirement | Outcome |
 |---|---|---|
@@ -119,3 +119,15 @@ Each outcome names the observable result exercised by its one proving test. Thes
 | AC-RB-SPEC-2 | RB-SPEC-2 | a requirement without an example scenario fails the spec-format check. |
 | AC-RB-SPEC-3 | RB-SPEC-3 | a well-formed spec whose requirement has no proving test fails the traceability check. |
 | AC-RB-SPEC-4 | RB-SPEC-4 | the format check runs before the traceability check and stops the run. |
+| AC-RB-CLEAN-1 | RB-CLEAN-1 | at release an open retirement row without a later release and an owner reason fails the check. |
+| AC-RB-CLEAN-2 | RB-CLEAN-2 | a release payload holding a closed retirement path fails the check. |
+| AC-RB-CLEAN-3 | RB-CLEAN-3 | a code, test or manifest reference to a closed retirement path fails the check. |
+| AC-RB-CLEAN-4 | RB-CLEAN-4 | a shipped file that nothing reaches fails the check. |
+| AC-RB-CLEAN-5 | RB-CLEAN-5 | a current wiki page describing a removed part fails the check. |
+| AC-RB-CLEAN-6 | RB-CLEAN-6 | an overdue retirement row fails the check. |
+| AC-RB-CLEAN-7 | RB-CLEAN-7 | the retirement check runs in the ordinary test gate. |
+| AC-RB-CLEAN-8 | RB-CLEAN-8 | startup lists cleanup after building and before verification. |
+| AC-RB-CLEAN-9 | RB-CLEAN-9 | done building routes to the least-code role. |
+| AC-RB-CLEAN-10 | RB-CLEAN-10 | every benchmark session records its four cleanup measures. |
+| AC-RB-CLEAN-11 | RB-CLEAN-11 | every benchmark session records the harness size. |
+| AC-RB-CLEAN-12 | RB-CLEAN-12 | every tuning decision holds a removal candidate. |

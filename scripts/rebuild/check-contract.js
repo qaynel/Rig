@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Authoring-time checks for the rebuild's unsigned draft. The older signed
+// Authoring-time checks for the rebuild contract. The older signed
 // validator and oracle remain untouched. Written approval is an owner declaration,
 // not cryptographic proof of identity or presence (rebuild design 5.3).
 const fs = require('node:fs');

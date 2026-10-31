@@ -13,6 +13,6 @@ if (require.main === module) {
   if (args[programme + 1] !== 'rebuild') throw new Error('unknown traceability programme');
   const result = require('./rebuild/check-contract').checkContract();
   console.log(args.includes('--json') ? JSON.stringify(result, null, 2)
-    : result.errors.length ? result.errors.join('\n') : `rebuild traceability: ${result.counts.requirements} requirements, criteria and proving tests; owner approval pending unless recorded separately`);
+    : result.errors.length ? result.errors.join('\n') : `rebuild traceability: ${result.counts.requirements} requirements, criteria and proving tests; owner approval ${result.approved ? 'recorded' : 'pending'}`);
   process.exit(result.errors.length ? 1 : 0);
 }

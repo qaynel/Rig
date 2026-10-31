@@ -1,4 +1,4 @@
-# Rebuild requirements (unsigned draft)
+# Rebuild requirements
 
 One independently observable obligation per row. Each source points to its owning stage and relevant design decisions; acceptance and test IDs are bijective.
 
@@ -119,3 +119,15 @@ One independently observable obligation per row. Each source points to its ownin
 | RB-SPEC-2 | wiki/specs/rebuild/buildout/stage-07-overlays.md (design §5.4; owner rulings 2026-10-31) | a requirement without an example scenario fails the spec-format check. | AC-RB-SPEC-2 | RB-SPEC-2 |
 | RB-SPEC-3 | wiki/specs/rebuild/buildout/stage-07-overlays.md (design §5.4; owner rulings 2026-10-31) | a well-formed spec whose requirement has no proving test fails the traceability check. | AC-RB-SPEC-3 | RB-SPEC-3 |
 | RB-SPEC-4 | wiki/specs/rebuild/buildout/stage-07-overlays.md (design §5.4; owner rulings 2026-10-31) | the format check runs before the traceability check and stops the run. | AC-RB-SPEC-4 | RB-SPEC-4 |
+| RB-CLEAN-1 | wiki/specs/rebuild/buildout/stage-17-cleanup-and-transition.md (design §5.5; owner 2026-10-31) | at release an open retirement row without a later release and an owner reason fails the check. | AC-RB-CLEAN-1 | RB-CLEAN-1 |
+| RB-CLEAN-2 | wiki/specs/rebuild/buildout/stage-17-cleanup-and-transition.md (design §5.5; owner 2026-10-31) | a release payload holding a closed retirement path fails the check. | AC-RB-CLEAN-2 | RB-CLEAN-2 |
+| RB-CLEAN-3 | wiki/specs/rebuild/buildout/stage-17-cleanup-and-transition.md (design §5.5; owner 2026-10-31) | a code, test or manifest reference to a closed retirement path fails the check. | AC-RB-CLEAN-3 | RB-CLEAN-3 |
+| RB-CLEAN-4 | wiki/specs/rebuild/buildout/stage-17-cleanup-and-transition.md (design §5.5; owner 2026-10-31) | a shipped file that nothing reaches fails the check. | AC-RB-CLEAN-4 | RB-CLEAN-4 |
+| RB-CLEAN-5 | wiki/specs/rebuild/buildout/stage-17-cleanup-and-transition.md (design §5.5; owner 2026-10-31) | a current wiki page describing a removed part fails the check. | AC-RB-CLEAN-5 | RB-CLEAN-5 |
+| RB-CLEAN-6 | wiki/specs/rebuild/buildout/stage-12-profile-and-policy-checks.md (design §5.5; owner 2026-10-31) | an overdue retirement row fails the check. | AC-RB-CLEAN-6 | RB-CLEAN-6 |
+| RB-CLEAN-7 | wiki/specs/rebuild/buildout/stage-12-profile-and-policy-checks.md (design §5.5; owner 2026-10-31) | the retirement check runs in the ordinary test gate. | AC-RB-CLEAN-7 | RB-CLEAN-7 |
+| RB-CLEAN-8 | wiki/specs/rebuild/buildout/stage-09-coordinator.md (design §5.5; owner 2026-10-31) | startup lists cleanup after building and before verification. | AC-RB-CLEAN-8 | RB-CLEAN-8 |
+| RB-CLEAN-9 | wiki/specs/rebuild/buildout/stage-09-coordinator.md (design §5.5; owner 2026-10-31) | done building routes to the least-code role. | AC-RB-CLEAN-9 | RB-CLEAN-9 |
+| RB-CLEAN-10 | wiki/specs/rebuild/buildout/stage-05-benchmark-and-baseline.md (design §5.5; owner 2026-10-31) | every benchmark session records its four cleanup measures. | AC-RB-CLEAN-10 | RB-CLEAN-10 |
+| RB-CLEAN-11 | wiki/specs/rebuild/buildout/stage-05-benchmark-and-baseline.md (design §5.5; owner 2026-10-31) | every benchmark session records the harness size. | AC-RB-CLEAN-11 | RB-CLEAN-11 |
+| RB-CLEAN-12 | wiki/specs/rebuild/buildout/stage-15-tune.md (design §5.5; owner 2026-10-31) | every tuning decision holds a removal candidate. | AC-RB-CLEAN-12 | RB-CLEAN-12 |

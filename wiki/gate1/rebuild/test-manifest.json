@@ -803,5 +803,89 @@
     "file": "tests/rebuild/spec.test.js",
     "title": "RB-SPEC-4 the format check runs before the traceability check and stops the run",
     "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-1",
+    "criterion": "AC-RB-CLEAN-1",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-1 at release an open retirement row without a later release and an owner reason fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-2",
+    "criterion": "AC-RB-CLEAN-2",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-2 a release payload holding a closed retirement path fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-3",
+    "criterion": "AC-RB-CLEAN-3",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-3 a code, test or manifest reference to a closed retirement path fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-4",
+    "criterion": "AC-RB-CLEAN-4",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-4 a shipped file that nothing reaches fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-5",
+    "criterion": "AC-RB-CLEAN-5",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-5 a current wiki page describing a removed part fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-6",
+    "criterion": "AC-RB-CLEAN-6",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-6 an overdue retirement row fails the check",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-7",
+    "criterion": "AC-RB-CLEAN-7",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-7 the retirement check runs in the ordinary test gate",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-8",
+    "criterion": "AC-RB-CLEAN-8",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-8 startup lists cleanup after building and before verification",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-9",
+    "criterion": "AC-RB-CLEAN-9",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-9 done building routes to the least-code role",
+    "lane": "unit"
+  },
+  {
+    "id": "RB-CLEAN-10",
+    "criterion": "AC-RB-CLEAN-10",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-10 every benchmark session records its four cleanup measures",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-CLEAN-11",
+    "criterion": "AC-RB-CLEAN-11",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-11 every benchmark session records the harness size",
+    "lane": "benchmark"
+  },
+  {
+    "id": "RB-CLEAN-12",
+    "criterion": "AC-RB-CLEAN-12",
+    "file": "tests/rebuild/cleanup.test.js",
+    "title": "RB-CLEAN-12 every tuning decision holds a removal candidate",
+    "lane": "benchmark"
   }
 ]
