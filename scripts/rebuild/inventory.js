@@ -25,12 +25,42 @@ function parseArgs(args) {
 
 function walk(root, includeSkipped = false) {
   const files = [];
-  function visit(dir) {
+  if (fs.lstatSync(root).isSymbolicLink()) throw new Error(`Symlinked upstream root is not supported: ${root}`);
+  const realRoot = fs.realpathSync(root);
+  // Resolve links inside the fork only; cycles and links outside this upstream fail closed.
+  function insideRoot(target) {
+    const rel = path.relative(realRoot, target);
+    return rel === '' || (!path.isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${path.sep}`));
+  }
+  function visit(dir, ancestors = new Set()) {
+    const realDir = fs.realpathSync(dir);
+    if (ancestors.has(realDir)) throw new Error(`Symlink cycle inside upstream: ${relative(root, dir) || '.'}`);
+    const nextAncestors = new Set(ancestors).add(realDir);
     for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const file = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) {
+        let target;
+        let stats;
+        try {
+          target = fs.realpathSync(file);
+          stats = fs.statSync(file);
+        } catch (error) {
+          throw new Error(`Broken symlink inside upstream: ${relative(root, file)} (${error.message})`);
+        }
+        if (!insideRoot(target)) throw new Error(`Symlink escapes upstream: ${relative(root, file)} -> ${target}`);
+        if (stats.isDirectory()) {
+          if (includeSkipped || (!SKIP_DIRS.has(entry.name) && !/^test/i.test(entry.name))) visit(file, nextAncestors);
+        } else if (stats.isFile()) {
+          files.push(file);
+        } else {
+          throw new Error(`Unsupported symlink target inside upstream: ${relative(root, file)}`);
+        }
+        continue;
+      }
       if (entry.isDirectory()) {
-        if (includeSkipped || (!SKIP_DIRS.has(entry.name) && !/^test/i.test(entry.name))) visit(path.join(dir, entry.name));
+        if (includeSkipped || (!SKIP_DIRS.has(entry.name) && !/^test/i.test(entry.name))) visit(file, nextAncestors);
       } else if (entry.isFile()) {
-        files.push(path.join(dir, entry.name));
+        files.push(file);
       }
     }
   }
@@ -68,23 +98,20 @@ function parseFrontmatter(text) {
 }
 
 function licenseInfo(files, root) {
-  const names = files.filter((file) => /^(licen[cs]e(?:\..*)?|copying(?:\..*)?)$/i.test(path.basename(file)));
-  const file = names.sort((a, b) => {
-    const left = relative(root, a);
-    const right = relative(root, b);
-    const leftRoot = left.includes('/') ? 1 : 0;
-    const rightRoot = right.includes('/') ? 1 : 0;
-    return leftRoot - rightRoot || left.localeCompare(right);
-  })[0];
+  const file = files.filter((candidate) => !relative(root, candidate).includes('/') && /^(licen[cs]e(?:\..*)?|copying(?:\..*)?)$/i.test(path.basename(candidate))).sort((a, b) => a.localeCompare(b))[0];
   if (!file) return { licence: 'UNKNOWN', licenceFile: '' };
   const text = fs.readFileSync(file, 'utf8');
-  const normalized = text.replace(/\s+/g, ' ');
+  const normalized = text.replace(/[“”]/g, '"').replace(/\s+/g, ' ');
   let licence = 'UNKNOWN';
-  if (/\bMIT License\b|Permission is hereby granted, free of charge, to any person obtaining a copy/i.test(text)) licence = 'MIT';
-  else if (/Apache License\s*\n\s*Version 2\.0|Apache-2\.0/i.test(text)) licence = 'Apache-2.0';
-  else if (/BSD 3-Clause|Redistribution and use in source and binary forms.*Neither the name/i.test(normalized)) licence = 'BSD-3-Clause';
-  else if (/BSD 2-Clause|Redistribution and use in source and binary forms.*provided that the following conditions/i.test(normalized)) licence = 'BSD-2-Clause';
-  else if (/ISC License|Permission to use, copy, modify, and\/or distribute this software/i.test(text)) licence = 'ISC';
+  const hasSpdx = (id) => new RegExp(`SPDX-License-Identifier:\\s*${id}\\b`, 'i').test(text);
+  const standardMitText = /Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files/i.test(normalized)
+    && /The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software/i.test(normalized)
+    && /THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND/i.test(normalized);
+  if (hasSpdx('MIT') || standardMitText) licence = 'MIT';
+  else if (hasSpdx('Apache-2\\.0') || /Apache License Version 2\.0, January 2004 http:\/\/www\.apache\.org\/licenses\//i.test(normalized)) licence = 'Apache-2.0';
+  else if (hasSpdx('BSD-3-Clause') || (/Redistribution and use in source and binary forms.*Neither the name/i.test(normalized) && /THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"/i.test(normalized))) licence = 'BSD-3-Clause';
+  else if (hasSpdx('BSD-2-Clause') || (/Redistribution and use in source and binary forms.*provided that the following conditions/i.test(normalized) && /THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"/i.test(normalized))) licence = 'BSD-2-Clause';
+  else if (hasSpdx('ISC') || (/Permission to use, copy, modify, and\/or distribute this software/i.test(text) && /THE SOFTWARE IS PROVIDED "AS IS"/i.test(text))) licence = 'ISC';
   return { licence, licenceFile: relative(root, file) };
 }
 
@@ -154,14 +181,25 @@ function zipMap(zipsDir, roots) {
 }
 
 function directoryBytes(files) {
-  return files.reduce((total, file) => total + fs.statSync(file).size, 0);
+  const seen = new Set();
+  let total = 0;
+  for (const file of files) {
+    const target = fs.realpathSync(file);
+    if (!seen.has(target)) {
+      seen.add(target);
+      total += fs.statSync(target).size;
+    }
+  }
+  return total;
 }
 
 function buildInventory(forkDir, zipsDir) {
   const roots = [];
   for (const category of fs.readdirSync(forkDir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (category.isSymbolicLink()) throw new Error(`Symlinked upstream category is not supported: ${category.name}`);
     if (!category.isDirectory() || category.name.startsWith('_')) continue;
     for (const repo of fs.readdirSync(path.join(forkDir, category.name), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      if (repo.isSymbolicLink()) throw new Error(`Symlinked upstream root is not supported: ${category.name}/${repo.name}`);
       if (repo.isDirectory()) roots.push({ root: path.join(forkDir, category.name, repo.name), category: category.name });
     }
   }

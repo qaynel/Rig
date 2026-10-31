@@ -1,7 +1,7 @@
 'use strict';
 
 const test = require('node:test');
-const { assert, fs, path, ROOT, tempDir, run } = require('./_harness');
+const { assert, fs, path, ROOT, tempDir, run, networkBlockerSource } = require('./_harness');
 
 function filesUnder(root) {
   const out = [];
@@ -17,12 +17,14 @@ function filesUnder(root) {
 test('RB-FETCH-1 fresh install succeeds while outbound sockets are blocked', () => {
   const target = tempDir('rig-fetch-install-');
   const deny = path.join(target, 'deny-network.cjs');
-  fs.writeFileSync(deny, `const net=require('node:net');const http=require('node:http');const https=require('node:https');const fail=()=>{throw Error('unexpected network')};net.Socket.prototype.connect=fail;http.request=fail;https.request=fail;global.fetch=fail;`);
+  const calls = path.join(target, 'network-attempts.log');
+  fs.writeFileSync(deny, networkBlockerSource(calls));
   const result = run('sh', [path.join(ROOT, 'install.sh'), '--target', target, '--hosts', 'codex'], {
     cwd: ROOT,
     env: { ...process.env, NODE_OPTIONS: `--require=${deny}` },
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(fs.existsSync(calls), false, fs.existsSync(calls) ? fs.readFileSync(calls, 'utf8') : '');
 });
 
 test('RB-FETCH-2 installed .rig contains no fetched-upstream state or metadata', () => {

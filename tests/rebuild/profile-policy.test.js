@@ -3,12 +3,14 @@
 const test = require('node:test');
 const { assert, fs, path, tempDir, write, product } = require('./_harness');
 
-test('RB-PROF-1 profile exports preferences from one repository and imports them into another', () => {
+test('RB-PROF-1 profile exports preferences from one repository and imports them into another', (t) => {
   const profile = product('rig/catalog/baseline/profile.js');
   const home = tempDir('rig-profile-home-');
   const a = tempDir('rig-profile-a-');
   const b = tempDir('rig-profile-b-');
+  const previousHome = process.env.RIG_PROFILE_HOME;
   process.env.RIG_PROFILE_HOME = home;
+  t.after(() => { if (previousHome === undefined) delete process.env.RIG_PROFILE_HOME; else process.env.RIG_PROFILE_HOME = previousHome; });
   write(a, '.rig/preferences.json', JSON.stringify({ concise: true }));
   const exported = profile.export(a);
   const profileFile = path.join(home, 'profile.json');
@@ -18,27 +20,41 @@ test('RB-PROF-1 profile exports preferences from one repository and imports them
   assert.ok(exported);
 });
 
-test('RB-PROF-2 home profile contains no secret values or repository paths', () => {
+test('RB-PROF-2 home profile contains no secret values or repository paths', (t) => {
   const profile = product('rig/catalog/baseline/profile.js');
   const home = tempDir('rig-profile-secret-');
   const repo = tempDir('rig-profile-source-');
+  const previousHome = process.env.RIG_PROFILE_HOME;
   process.env.RIG_PROFILE_HOME = home;
-  write(repo, '.rig/preferences.json', JSON.stringify({ style: 'brief', token: 'sk-live-never-include-this' }));
+  t.after(() => { if (previousHome === undefined) delete process.env.RIG_PROFILE_HOME; else process.env.RIG_PROFILE_HOME = previousHome; });
+  const secretValue = ['sk', 'live', 'never', 'include', 'this'].join('-');
+  write(repo, '.rig/preferences.json', JSON.stringify({ style: 'brief', token: secretValue }));
   profile.export(repo);
   const text = fs.readFileSync(path.join(home, 'profile.json'), 'utf8');
-  assert.doesNotMatch(text, /sk-live-never-include-this/);
+  assert.ok(!text.includes(secretValue));
   assert.doesNotMatch(text, new RegExp(repo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('RB-PROF-3 uninstall removes repository tailoring and retains the portable profile', () => {
   const { uninstall } = product('rig/lib/uninstall.js');
+  const profile = product('rig/catalog/baseline/profile.js');
   const repo = tempDir('rig-profile-uninstall-');
-  const profile = path.join(tempDir('rig-profile-kept-'), 'profile.json');
-  write(repo, '.rig/preferences.json', '{"concise":true}');
-  write(profile, '', '{"schema_version":1,"preferences":{"concise":true}}');
-  uninstall(repo);
-  assert.equal(fs.existsSync(path.join(repo, '.rig/preferences.json')), false);
-  assert.equal(fs.existsSync(profile), true);
+  const home = tempDir('rig-profile-kept-');
+  const previousHome = process.env.RIG_PROFILE_HOME;
+  process.env.RIG_PROFILE_HOME = home;
+  try {
+    write(repo, '.rig/preferences.json', '{"concise":true}');
+    const exported = profile.export(repo);
+    const profileFile = path.join(home, 'profile.json');
+    const bytes = fs.readFileSync(profileFile);
+    assert.ok(exported);
+    uninstall(repo);
+    assert.equal(fs.existsSync(path.join(repo, '.rig/preferences.json')), false);
+    assert.deepEqual(fs.readFileSync(profileFile), bytes, 'uninstall must retain the portable profile actually used for export');
+  } finally {
+    if (previousHome === undefined) delete process.env.RIG_PROFILE_HOME;
+    else process.env.RIG_PROFILE_HOME = previousHome;
+  }
 });
 
 test('RB-POL-1 decision prose without a wiki pointer fails with a line number and current CLAUDE passes', () => {

@@ -7,11 +7,170 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 
 const directory = 'wiki/gate1/rebuild/';
 const idPattern = /^RB-[A-Z]+-[1-9]\d*$/;
 const testPath = /^tests\/rebuild\/[A-Za-z0-9_-]+\.test\.js$/;
 const sha256 = value => createHash('sha256').update(value).digest('hex');
+
+// rig: recognize authored direct test('RB-ID title', ...) calls only; aliases
+// and computed registration require a real parser and fail closed as missing.
+function tokens(source) {
+  const result = [];
+  let i = 0;
+  const push = (type, value) => result.push({ type, value });
+  const canStartRegex = () => {
+    const previous = result.at(-1);
+    return !previous || (previous.type === 'punct' && ['(', '[', '{', '=', ',', ':', ';', '!', '?', '=>'].includes(previous.value))
+      || (previous.type === 'id' && ['return', 'throw', 'case', 'typeof', 'void', 'delete', 'in', 'of', 'yield', 'await'].includes(previous.value));
+  };
+  while (i < source.length) {
+    const c = source[i];
+    if (/\s/.test(c)) { i += 1; continue; }
+    if (source.startsWith('//', i)) { i = source.indexOf('\n', i + 2); if (i < 0) break; continue; }
+    if (source.startsWith('/*', i)) { const end = source.indexOf('*/', i + 2); i = end < 0 ? source.length : end + 2; continue; }
+    if (c === '"' || c === "'") {
+      const quote = c;
+      i += 1;
+      let value = '';
+      while (i < source.length && source[i] !== quote) {
+        if (source[i] === '\\' && i + 1 < source.length) { value += source[i + 1]; i += 2; }
+        else value += source[i++];
+      }
+      if (i < source.length) i += 1;
+      push('string', value);
+      continue;
+    }
+    if (c === '`') {
+      i += 1;
+      while (i < source.length) {
+        if (source[i] === '\\') i += 2;
+        else if (source[i++] === '`') break;
+      }
+      push('template', '');
+      continue;
+    }
+    if (c === '/' && canStartRegex()) {
+      i += 1;
+      let inClass = false;
+      while (i < source.length) {
+        if (source[i] === '\\') i += 2;
+        else if (source[i] === '[') { inClass = true; i += 1; }
+        else if (source[i] === ']') { inClass = false; i += 1; }
+        else if (source[i] === '/' && !inClass) { i += 1; while (/[a-z]/i.test(source[i] || '')) i += 1; break; }
+        else if (source[i] === '\n') break;
+        else i += 1;
+      }
+      push('regex', '');
+      continue;
+    }
+    if (/[$\w]/.test(c)) {
+      const start = i++;
+      while (/[$\w]/.test(source[i] || '')) i += 1;
+      push('id', source.slice(start, i));
+      continue;
+    }
+    const punct = ['?.', '=>', '==', '!=', '&&', '||', '??', '++', '--'].find(value => source.startsWith(value, i)) || c;
+    push('punct', punct);
+    i += punct.length;
+  }
+  return result;
+}
+
+function provingDeclarations(source) {
+  const parsed = tokens(source);
+  const declarations = [];
+  const errors = [];
+  for (let i = 0; i < parsed.length; i += 1) {
+    if (parsed[i].type !== 'id' || parsed[i].value !== 'test') continue;
+    if (parsed[i + 1]?.value === '.' && ['skip', 'todo', 'only'].includes(parsed[i + 2]?.value) && parsed[i + 3]?.value === '(') {
+      errors.push('disabled');
+      continue;
+    }
+    if (parsed[i + 1]?.value !== '(' || ['.', '?.'].includes(parsed[i - 1]?.value)) continue;
+    const title = parsed[i + 2];
+    if (title?.type !== 'string' || !/^RB-[A-Z]+-[1-9]\d* /.test(title.value)) continue;
+    let depth = 0;
+    let firstComma = -1;
+    let secondComma = -1;
+    for (let j = i + 2; j < parsed.length; j += 1) {
+      const value = parsed[j].value;
+      if (['(', '[', '{'].includes(value)) depth += 1;
+      else if ([')', ']', '}'].includes(value)) {
+        if (value === ')' && depth === 0) break;
+        depth -= 1;
+      } else if (value === ',' && depth === 0) {
+        if (firstComma < 0) firstComma = j;
+        else { secondComma = j; break; }
+      }
+    }
+    if (firstComma >= 0 && parsed[firstComma + 1]?.value === '{') {
+      const end = secondComma < 0 ? parsed.length : secondComma;
+      for (let j = firstComma + 2; j + 1 < end; j += 1) {
+        const key = parsed[j].value;
+        const disabledKey = ['skip', 'todo', 'only'].includes(key);
+        if (disabledKey && [':', ',', '}'].includes(parsed[j + 1].value)
+          || parsed[j].value === '[' && parsed[j + 1]?.type === 'string'
+            && ['skip', 'todo', 'only'].includes(parsed[j + 1].value) && parsed[j + 2]?.value === ']' && parsed[j + 3]?.value === ':') errors.push('disabled');
+      }
+    }
+    const callback = parsed[firstComma + 1];
+    if (!callback || !['(', 'function', 'async'].includes(callback.value)
+      && !(callback.type === 'id' && parsed[firstComma + 2]?.value === '=>')) errors.push('unsupported options or callback alias');
+    declarations.push(title.value);
+  }
+  return { declarations, errors };
+}
+
+function sourceTreeDigest(root = process.cwd()) {
+  const hash = createHash('sha256');
+  const files = [];
+  // Hash candidate source bytes and the local inputs consumed by proving tests.
+  const add = file => {
+    const full = path.join(root, file);
+    if (!fs.existsSync(full)) return;
+    const stat = fs.lstatSync(full);
+    if (stat.isSymbolicLink()) throw new Error(`symlink in rebuild evidence sources: ${file}`);
+    if (stat.isFile()) { files.push(file); return; }
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(full, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+        add(path.posix.join(file.replaceAll(path.sep, '/'), entry.name));
+      }
+    }
+  };
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  if (listed.status === 0) {
+    for (const file of [...new Set(listed.stdout.split('\0').filter(Boolean))].sort()) {
+      const full = path.join(root, file);
+      hash.update(file).update('\0');
+      try {
+        const stat = fs.lstatSync(full);
+        hash.update(String(stat.mode & 0o777)).update('\0');
+        hash.update(stat.isSymbolicLink() ? fs.readlinkSync(full) : fs.readFileSync(full));
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+        hash.update('missing');
+      }
+      hash.update('\0');
+    }
+  } else {
+    for (const file of ['rig', 'scripts/rebuild', 'scripts/run-ai-sdlc.js', 'scripts/approve-gate1.js',
+      'scripts/check-traceability.js', 'tests/rebuild', 'benchmarks', 'install', 'install.sh']) add(file);
+  }
+  // These inputs stay local/ignored, but changing them still invalidates evidence.
+  for (const file of ['wiki/gate1/rebuild', 'wiki/specs/rebuild/role-map.json',
+    'wiki/specs/rebuild/conflict-register.md', 'wiki/specs/rebuild/benchmark-results']) add(file);
+  for (const file of files.sort()) {
+    hash.update(file.replaceAll(path.sep, '/')).update('\0').update(fs.readFileSync(path.join(root, file))).update('\0');
+  }
+  return hash.digest('hex');
+}
+
+function currentGitHead(root = process.cwd()) {
+  const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+  return result.status === 0 && /^[a-f0-9]{40,64}$/i.test(result.stdout.trim()) ? result.stdout.trim().toLowerCase() : null;
+}
 
 function checkContract(root = process.cwd(), { hashes = true, approval = false } = {}) {
   const errors = [];
@@ -60,9 +219,9 @@ function checkContract(root = process.cwd(), { hashes = true, approval = false }
     for (const file of files) {
       const relative = `tests/rebuild/${file}`;
       const body = read(relative);
-      if (/\btest\.(?:skip|todo|only)\s*\(/.test(body)) errors.push(`focused or disabled proving test in ${relative}`);
-      for (const match of body.matchAll(/\btest\s*\(\s*(['"`])(RB-[^\n]*?)\1/g)) {
-        const title = match[2];
+      const parsed = provingDeclarations(body);
+      if (parsed.errors.length) errors.push(`focused or disabled proving test in ${relative}`);
+      for (const title of parsed.declarations) {
         const id = title.split(' ')[0];
         if (declarations.has(title)) errors.push(`duplicate test declaration ${title}`);
         declarations.set(title, relative);
@@ -102,7 +261,24 @@ function checkContract(root = process.cwd(), { hashes = true, approval = false }
             && new RegExp(`\\b${result.digest}\\b`).test(words) && /\bI authori[sz]e\b/i.test(words);
         });
     }
-    if (approval && !result.approved) errors.push('owner approval for the current contract manifest is pending');
+    if (approval) {
+      if (!result.approved) errors.push('owner approval for the current contract manifest is pending');
+      try {
+        const evidence = JSON.parse(read('.context/rebuild/lane-results.json'));
+        if (evidence.contract_manifest_sha256 !== result.digest) errors.push('rebuild lane evidence is for a stale contract manifest');
+        if (evidence.git_head !== currentGitHead(root)) errors.push('rebuild lane evidence is for a stale Git head');
+        if (evidence.source_tree_sha256 !== sourceTreeDigest(root)) errors.push('rebuild lane evidence is for a stale source tree');
+        const statuses = new Map();
+        for (const row of evidence.tests || []) {
+          if (!row || !tests.has(row.id) || statuses.has(row.id) || !['pass', 'fail'].includes(row.status)) {
+            errors.push('rebuild lane evidence has an unexpected, duplicate, or inactive test result');
+          } else statuses.set(row.id, row.status);
+        }
+        for (const id of tests.keys()) if (!statuses.has(id)) errors.push(`rebuild lane evidence is missing ${id}`);
+      } catch (error) {
+        errors.push(`rebuild lane evidence unavailable: ${error.message}`);
+      }
+    }
     if (errors.length) result.approved = false;
   } catch (error) {
     errors.push(error.message);
@@ -119,4 +295,4 @@ if (require.main === module) {
   process.exitCode = result.errors.length ? 1 : 0;
 }
 
-module.exports = { checkContract };
+module.exports = { checkContract, currentGitHead, sourceTreeDigest };

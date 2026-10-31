@@ -343,6 +343,7 @@ function usage() {
     '',
     `  --programme  sign a second contract under the same key (${Object.keys(PROGRAMMES).join(', ')});`,
     '               omit it for the 6.0.0 oracle, which the flag never modifies',
+    '               rebuild supports status only, checking the recorded owner declaration',
   ].join('\n');
 }
 
