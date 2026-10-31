@@ -15,3 +15,9 @@ body:
       label: Proposed change
     validations:
       required: false
+  - type: markdown
+    attributes:
+      value: |
+        Implementers: take a branch from `qa-prod`, open the pull request
+        against `qa-prod`, and resolve this issue with `Closes #<n>` in the
+        PR body. See CONTRIBUTING.md and docs/open-source-standards.md.

@@ -68,4 +68,4 @@ paso de selección de servicios por separado.
 ## Comunidad
 
 Políticas del proyecto y cómo participar. Los documentos están en inglés.
-→ [Código de conducta](CODE_OF_CONDUCT.md) · [Contribuir](CONTRIBUTING.md) · [Seguridad](SECURITY.md) · [Accesibilidad](ACCESSIBILITY.md) · [Soporte](SUPPORT.md) · [Licencia](LICENSE)
+→ [Código de conducta](CODE_OF_CONDUCT.md) · [Contribuir](CONTRIBUTING.md) · [Estándares de código abierto](docs/open-source-standards.md) · [Seguridad](SECURITY.md) · [Accesibilidad](ACCESSIBILITY.md) · [Soporte](SUPPORT.md) · [Licencia](LICENSE)

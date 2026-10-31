@@ -87,3 +87,4 @@ Third-party skills are fetched from pinned upstream sources and digest-verified 
 
 - [Installation guide](install.md) — step-by-step setup
 - [Host portability details](agent-portability.md) — per-host entrypoints and MCP config
+- [Open-source standards](open-source-standards.md) — contribution policy, licences, and the QA-production workflow
