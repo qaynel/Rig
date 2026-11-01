@@ -130,6 +130,17 @@ test('exact pinned upstream template placeholders pass while neighboring credent
   }
 });
 
+test('installed baseline masks only hash-pinned source placeholders and rejects a neighboring credential', () => {
+  const { repositorySecretFindings } = require('../rig/lib/policy-baseline');
+  for (const [path, [, placeholders]] of SOURCE_PLACEHOLDERS) {
+    const bytes = fs.readFileSync(path);
+    const installedPath = `.rig/kit/${path}`;
+    assert.deepEqual(repositorySecretFindings([{ path: installedPath, bytes }]), [], installedPath);
+    const changed = Buffer.from(bytes.toString('utf8').replace(placeholders[0], `${placeholders[0]} ${secret('AKIA', '0123456789ABCDEF')}`));
+    assert.deepEqual(repositorySecretFindings([{ path: installedPath, bytes: changed }]), [{ path: installedPath, kind: 'repository_secret' }], installedPath);
+  }
+});
+
 test('repository files do not contain literal secret-shaped fixtures', () => {
   assert.deepEqual(secretShapedLines(repoRoot), []);
 });

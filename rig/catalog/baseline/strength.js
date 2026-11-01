@@ -171,11 +171,13 @@ function scorePit(repo, files, tool, language) {
     ? executable(repo, 'mvn', ['mvnw'])
     : gradle ? executable(repo, process.platform === 'win32' ? 'gradlew.bat' : './gradlew', ['gradlew']) : null;
   if (!launcher) return null;
-  const classes = files.map((file) => {
+  const classes = files.flatMap((file) => {
     const source = fs.readFileSync(path.join(repo, file), 'utf8');
     const pkg = source.match(/^\s*package\s+([\w.]+)\s*;?/m)?.[1];
     const base = path.basename(file).replace(/\.(?:java|kt)$/i, '');
-    return `${pkg ? `${pkg}.` : ''}${base}*`;
+    const declarations = [...source.matchAll(/^\s*(?:(?:public|protected|private|internal|abstract|final|open|sealed|data|enum|annotation|value|static|expect|actual|companion|inner)\s+)*(?:class|interface|enum(?:\s+class)?|record|object)\s+([A-Za-z_$][\w$]*)/gm)].map((match) => match[1]);
+    const names = [...new Set(declarations.length ? declarations : [language === 'kotlin' ? `${base}Kt` : base])];
+    return names.flatMap((name) => [`${pkg ? `${pkg}.` : ''}${name}`, `${pkg ? `${pkg}.` : ''}${name}$*`]);
   });
   const reports = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'rig-pit-'));
   const args = maven

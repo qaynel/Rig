@@ -96,11 +96,24 @@ test('PIT reads only fresh XML for changed Java classes and refuses a failed run
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-pit-'));
   fs.mkdirSync(path.join(repo, 'src/main/java/com/acme'), { recursive: true });
   fs.writeFileSync(path.join(repo, 'src/main/java/com/acme/App.java'), 'package com.acme; class App {}\n');
+  fs.writeFileSync(path.join(repo, 'src/main/java/com/acme/AppBar.java'), 'package com.acme; class AppBar {}\n');
   fs.writeFileSync(path.join(repo, 'pom.xml'), '<plugin>pitest-maven</plugin>');
-  fs.writeFileSync(path.join(repo, 'mvnw'), '#!/bin/sh\nif [ -f .pit-fail ]; then exit 1; fi\ntouch .pit-fail\nfor arg in "$@"; do case "$arg" in -DreportsDirectory=*) out=${arg#*=};; esac; done\nmkdir -p "$out"\nprintf \'<mutations><mutation status="KILLED" detected="true"/><mutation status="SURVIVED" detected="false"/></mutations>\' > "$out/mutations.xml"\nexit 0\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(repo, 'mvnw'), '#!/bin/sh\nif [ -f .pit-fail ]; then exit 1; fi\ntouch .pit-fail\nfor arg in "$@"; do case "$arg" in -DreportsDirectory=*) out=${arg#*=};; -DtargetClasses=*) printf \'%s\\n\' "${arg#*=}" > .targets;; esac; done\nmkdir -p "$out"\nprintf \'<mutations><mutation status="KILLED" detected="true"/><mutation status="SURVIVED" detected="false"/></mutations>\' > "$out/mutations.xml"\nexit 0\n', { mode: 0o755 });
   const result = strength.measure({ repo, changedFiles: ['src/main/java/com/acme/App.java'], language: 'java' });
   assert.equal(result.score, 0.5);
+  assert.equal(fs.readFileSync(path.join(repo, '.targets'), 'utf8').trim(), 'com.acme.App,com.acme.App$*');
   const failed = strength.measure({ repo, changedFiles: ['src/main/java/com/acme/App.java'], language: 'java' });
   assert.equal(failed.ok, false);
   assert.match(failed.gap, /PIT could not measure/);
+});
+
+test('PIT targets the Kotlin file facade for top-level functions', () => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-pit-kotlin-'));
+  fs.mkdirSync(path.join(repo, 'src/main/kotlin/com/acme'), { recursive: true });
+  fs.writeFileSync(path.join(repo, 'src/main/kotlin/com/acme/Helpers.kt'), 'package com.acme\nfun value() = 1\n');
+  fs.writeFileSync(path.join(repo, 'pom.xml'), '<plugin>pitest-maven</plugin>');
+  fs.writeFileSync(path.join(repo, 'mvnw'), '#!/bin/sh\nfor arg in "$@"; do case "$arg" in -DreportsDirectory=*) out=${arg#*=};; -DtargetClasses=*) printf \'%s\\n\' "${arg#*=}" > .targets;; esac; done\nmkdir -p "$out"\nprintf \'<mutations><mutation status="KILLED" detected="true"/></mutations>\' > "$out/mutations.xml"\n', { mode: 0o755 });
+  const result = strength.measure({ repo, changedFiles: ['src/main/kotlin/com/acme/Helpers.kt'], language: 'kotlin' });
+  assert.equal(result.score, 1);
+  assert.equal(fs.readFileSync(path.join(repo, '.targets'), 'utf8').trim(), 'com.acme.HelpersKt,com.acme.HelpersKt$*');
 });
