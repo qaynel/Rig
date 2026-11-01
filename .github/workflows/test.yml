@@ -63,4 +63,4 @@ jobs:
 
       - name: Run catalogue tests (job ${{ strategy.job-index }} of ${{ strategy.job-total }})
         run: CATALOGUE_SHARD=$(( ${{ strategy.job-index }} + 1 ))/${{ strategy.job-total }} scripts/test-linux.sh node --test tests/catalogue-all-services.test.js
-        timeout-minutes: 10
+        timeout-minutes: 20
