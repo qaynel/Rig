@@ -58,7 +58,7 @@ function baselineSnapshot(target, scope) {
   const scanned = scope === 'repo' ? repositoryFiles(target) : stagedFiles(target);
   const files = scanned.files || [];
   const inputDigest = hash(JSON.stringify(files.map((file) => [file.path, hash(file.bytes || Buffer.from(file.text))])));
-  const implementation = hash(['policy-baseline.js', 'git-dispatch.js', 'checks.js', 'inspect.js', 'redaction.js', 'policy.js', 'guard.js', 'path-safety.js', 'trust-root.js', 'policy-transaction.js'].map((name) => fs.readFileSync(path.join(__dirname, name))).reduce((a, b) => Buffer.concat([a, b]), Buffer.alloc(0)));
+  const implementation = hash(['policy-baseline.js', 'git-dispatch.js', 'checks.js', 'inspect.js', 'redaction.js', 'policy.js', 'guard.js', 'path-safety.js', 'trust-root.js', 'policy-transaction.js', 'secret-placeholders.js'].map((name) => fs.readFileSync(path.join(__dirname, name))).reduce((a, b) => Buffer.concat([a, b]), Buffer.alloc(0)));
   const stagedChanges = scope === 'diff' ? stagedMetadataPaths(target) : null;
   // Metadata drives the checks too; changing a review or sync relation must
   // invalidate a prior pass even when the ordinary source bytes are unchanged.
