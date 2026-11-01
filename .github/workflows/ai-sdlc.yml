@@ -20,10 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Restore and verify the signed AI-SDLC contract
-        run: |
-          node scripts/ensure-wiki.js
-          node scripts/approve-gate1.js status --programme ai-sdlc
+      # Hash-only: the signature and the tracked proving tests are verified; the
+      # contract text itself is never published to CI.
+      - name: Verify the signed AI-SDLC contract (hash-only)
+        run: node scripts/approve-gate1.js status --programme ai-sdlc
       - name: Check CI preparation
         run: node --test scripts/ci-preparation.test.js
       - name: Build provisional candidate archive
@@ -34,13 +34,6 @@ jobs:
           path: |
             .context/dist/rig-public-*.tar.gz
             .context/dist/rig-public-*.tar.gz.sha256
-          if-no-files-found: error
-          include-hidden-files: true
-          retention-days: 14
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ai-sdlc-contract-${{ github.sha }}
-          path: wiki/specs/ai-sdlc-harness/
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 14
@@ -77,10 +70,6 @@ jobs:
         with:
           name: rig-public-${{ github.sha }}
           path: .context/downloaded
-      - uses: actions/download-artifact@v4
-        with:
-          name: ai-sdlc-contract-${{ github.sha }}
-          path: wiki/specs/ai-sdlc-harness
       - name: Select downloaded archive
         shell: bash
         run: |

@@ -12,6 +12,7 @@ const { FLOOR_PATTERN, GUARD_SCRIPT } = require('./guard');
 const FLOOR_RE = new RegExp(FLOOR_PATTERN);
 const { isHarness, stagedFiles } = require('./git-dispatch');
 const { checkCopies, semanticDrift } = require('./checks');
+const { maskSourcePlaceholders } = require('./secret-placeholders');
 const hash = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
 function repositoryFiles(target) {
   const list = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { cwd: target, encoding: 'utf8', shell: false, maxBuffer: 32 * 1024 * 1024 });
@@ -32,6 +33,14 @@ function surfaceEnabled(policy, surface) {
   const status = effectiveStatus(policy);
   return Object.hasOwn(policy.enforcement || {}, surface) ? status.enforcement[surface] === 'enabled' : controlEnabled(policy, 'git_ci', 'git_ci');
 }
+function repositorySecretFindings(files) {
+  return files.flatMap((file) => {
+    if (/(^|\/)\.env$/.test(file.path)) return [{ path: file.path, kind: 'repository_secret' }];
+    const bytes = file.bytes || Buffer.from(file.text);
+    const hasSecret = bytes.toString('utf8').split(/\r?\n/).some((line) => FLOOR_RE.test(maskSourcePlaceholders(file.path, bytes, line)));
+    return hasSecret ? [{ path: file.path, kind: 'repository_secret' }] : [];
+  });
+}
 function stagedMetadataPaths(target) {
   const changed = spawnSync('git', ['diff', '--cached', '--name-only', '-z'], { cwd: target, encoding: 'utf8', shell: false, maxBuffer: 16 * 1024 * 1024 });
   return changed.error || changed.status !== 0 ? null : new Set(changed.stdout.split('\0').filter(Boolean));
@@ -49,7 +58,7 @@ function baselineSnapshot(target, scope) {
   const scanned = scope === 'repo' ? repositoryFiles(target) : stagedFiles(target);
   const files = scanned.files || [];
   const inputDigest = hash(JSON.stringify(files.map((file) => [file.path, hash(file.bytes || Buffer.from(file.text))])));
-  const implementation = hash(['policy-baseline.js', 'git-dispatch.js', 'checks.js', 'inspect.js', 'redaction.js', 'policy.js', 'guard.js', 'path-safety.js', 'trust-root.js', 'policy-transaction.js'].map((name) => fs.readFileSync(path.join(__dirname, name))).reduce((a, b) => Buffer.concat([a, b]), Buffer.alloc(0)));
+  const implementation = hash(['policy-baseline.js', 'git-dispatch.js', 'checks.js', 'inspect.js', 'redaction.js', 'policy.js', 'guard.js', 'path-safety.js', 'trust-root.js', 'policy-transaction.js', 'secret-placeholders.js'].map((name) => fs.readFileSync(path.join(__dirname, name))).reduce((a, b) => Buffer.concat([a, b]), Buffer.alloc(0)));
   const stagedChanges = scope === 'diff' ? stagedMetadataPaths(target) : null;
   // Metadata drives the checks too; changing a review or sync relation must
   // invalidate a prior pass even when the ordinary source bytes are unchanged.
@@ -107,7 +116,7 @@ function runBaseline(target, { surface = 'ci.repo', scope = surface === 'ci.repo
       if (observed.error || observed.status === null) return [{ kind: 'staged_scanner_unavailable' }];
       return observed.status === 0 ? [] : [{ kind: 'staged_secret', reason: safe.find(line => line.startsWith('rig secret guard:')) || 'staged secret check failed' }];
     }
-    return files.flatMap(file => /(^|\/)\.env$/.test(file.path) || FLOOR_RE.test(file.text) ? [{ path: file.path, kind: 'repository_secret' }] : []);
+    return repositorySecretFindings(files);
   };
   const definitions = [
     ['sanitation', 'sanitation', 'sanitation.harness', () => files.filter((file) => isHarness(file.path)).flatMap((file) => scanHarnessText(file.text).map((finding) => ({ path: file.path, kind: finding.kind })))],
@@ -135,4 +144,4 @@ function runBaseline(target, { surface = 'ci.repo', scope = surface === 'ci.repo
   atomicWrite(target, '.rig/policy/control-evidence.json', `${JSON.stringify({ schema_version: 1, results }, null, 2)}\n`);
   return { status: results.some((entry) => entry.status === 'failed') ? 1 : 0, results, surface_enabled: enabledSurface, diagnostics };
 }
-module.exports = { runBaseline, surfaceEnabled, repositoryFiles, baselineSnapshot };
+module.exports = { runBaseline, surfaceEnabled, repositoryFiles, baselineSnapshot, repositorySecretFindings };

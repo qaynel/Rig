@@ -1,0 +1,10 @@
+{
+  "merged": [],
+  "rows": [
+    { "paths": ["rig/lib/upstream-fetch.js", "tests/upstream-fetch.test.js"], "replacedBy": "bundled upstream packs", "deleteIn": "S4", "reason": "Setup and onboarding use bytes shipped in the release.", "wikiPhrases": ["fetch-at-setup", "fetches optional"] },
+    { "paths": ["rig/catalog/skills", "rig/catalog/plumbing"], "replacedBy": "pinned upstream snapshot and role catalogue", "deleteIn": "S17", "reason": "S8 and S10 move callers to the role catalogue.", "wikiPhrases": ["gstack 1.60.1.0", "115-service"] },
+    { "paths": ["rig/corpus/catalogue.json"], "replacedBy": "roles array", "deleteIn": "S17", "reason": "Keep service compatibility for existing installs through one release.", "laterRelease": "first release after rebuild", "ownerReason": "Existing installs retain the compatibility path for one release." },
+    { "paths": ["wiki/gate2/technical-spec.md"], "replacedBy": "rebuild design and stage files", "deleteIn": "S17", "reason": "Signed legacy wording is amended by the owner; remaining docs are archived in S17." },
+    { "paths": ["scripts/rebuild/probe-tests.js"], "replacedBy": "real stage checks", "deleteIn": "S17", "reason": "The probe is temporary until all stages land." }
+  ]
+}

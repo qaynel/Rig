@@ -123,7 +123,7 @@ function verifyInputs(repo, phase) {
   }
 }
 
-function enter(repo, to) {
+function enterBase(repo, to) {
   const phase = Object.hasOwn(ALIASES, to) ? ALIASES[to] : to;
   if (!PHASES.includes(phase)) {
     return { allowed: false, missing: [{ artefact: `phase:${to}`, remedy: `use a known phase: ${PHASES.join(', ')}` }] };
@@ -165,6 +165,26 @@ function enter(repo, to) {
   } catch (error) {
     return { allowed: false, missing: [{ artefact: '.rig/run.json', remedy: `repair the run record path before retrying: ${error.message}` }] };
   }
+}
+
+function enter(repo, to, options = {}) {
+  if (!options.strength) return enterBase(repo, to);
+  let strength;
+  try { strength = require('./strength').measure({ repo, ...options.strength }); }
+  catch (error) { return { allowed: false, missing: [{ artefact: 'test strength', remedy: error.message }] }; }
+  if (!strength.ok) {
+    if (!strength.gap || options.acceptGap !== true) return { allowed: false, missing: [{ artefact: 'test strength', remedy: strength.gap || `mutation score ${strength.score} is below ${strength.floor}` }], strength };
+    const rel = '.rig/strength-gaps.json';
+    try {
+      const file = containedPath(repo, rel);
+      let records = [];
+      try { records = JSON.parse(fs.readFileSync(file, 'utf8')); if (!Array.isArray(records)) throw new Error(); }
+      catch (error) { if (error.code !== 'ENOENT') throw new Error(`${rel} is invalid JSON`); }
+      records.push({ language: strength.language, gap: strength.gap, changedFiles: options.strength.changedFiles, accepted_at: new Date().toISOString() });
+      atomicWrite(repo, rel, `${JSON.stringify(records, null, 2)}\n`);
+    } catch (error) { return { allowed: false, missing: [{ artefact: rel, remedy: `record the accepted gap safely: ${error.message}` }], strength }; }
+  }
+  return { ...enterBase(repo, to), strength };
 }
 
 module.exports = { enter, verifyInputs };

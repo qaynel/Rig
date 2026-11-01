@@ -215,17 +215,23 @@ function refreshProgrammeManifest(root, name, confirmation) {
 
 function verifyProgramme(root = process.cwd(), name = 'ai-sdlc') {
   const spec = programme(name);
-  traceabilityPreflight(root, name);
   const entries = parseManifest(fs.readFileSync(path.join(root, spec.manifest), 'utf8'));
-  const listed = entries.map(({ file }) => file);
-  const expected = programmeProtectedFiles(root, name);
-  const missing = expected.filter((file) => !listed.includes(file));
-  const unexpected = listed.filter((file, index) => expected.includes(file) ? listed.indexOf(file) !== index : true);
-  assert.equal(
-    missing.length + unexpected.length,
-    0,
-    `${name} contract manifest protected set mismatch; missing: ${missing.join(', ') || 'none'}; unexpected or duplicate: ${unexpected.join(', ') || 'none'}`,
-  );
+  // Hash-only mode: the contract text stays out of the repository (CI has only the
+  // signed manifest). The signature still pins every hash; the set check and the
+  // traceability graph need the text, so they run only where the text exists.
+  const textPresent = fs.existsSync(path.join(root, spec.contract));
+  if (textPresent) {
+    traceabilityPreflight(root, name);
+    const listed = entries.map(({ file }) => file);
+    const expected = programmeProtectedFiles(root, name);
+    const missing = expected.filter((file) => !listed.includes(file));
+    const unexpected = listed.filter((file, index) => expected.includes(file) ? listed.indexOf(file) !== index : true);
+    assert.equal(
+      missing.length + unexpected.length,
+      0,
+      `${name} contract manifest protected set mismatch; missing: ${missing.join(', ') || 'none'}; unexpected or duplicate: ${unexpected.join(', ') || 'none'}`,
+    );
+  }
   const allowed = path.join(root, ALLOWED_SIGNERS);
   assert.ok(fs.existsSync(allowed), `${ALLOWED_SIGNERS} is missing: the one trust root is not established`);
   const signature = path.join(root, spec.signature);
@@ -235,11 +241,12 @@ function verifyProgramme(root = process.cwd(), name = 'ai-sdlc') {
   ], { input: programmeMessage(root, name), encoding: 'utf8' });
   assert.equal(result.status, 0, `${name} contract signature does not verify`);
   for (const { digest: want, file } of entries) {
+    if (!textPresent && file.startsWith(`${spec.contract.split(path.sep).join('/')}/`)) continue;
     const absolute = path.join(root, file);
     assert.ok(fs.existsSync(absolute), `missing protected file: ${file}`);
     assert.equal(sha256(fs.readFileSync(absolute)), want, `changed protected file: ${file}`);
   }
-  return { armed: true, principal: PRINCIPAL, programme: name };
+  return { armed: true, principal: PRINCIPAL, programme: name, contractText: textPresent };
 }
 
 function approveProgramme(root = process.cwd(), name = 'ai-sdlc', options = {}) {
@@ -366,7 +373,7 @@ function main(argv = process.argv.slice(2)) {
     const confirmIndex = argv.indexOf('--confirm-digest-delta');
     if (command === 'status') {
       const verified = verifyProgramme(process.cwd(), programmeName);
-      process.stdout.write(`${programmeName} contract protected: principal=${verified.principal}\n`);
+      process.stdout.write(`${programmeName} contract protected: principal=${verified.principal}${verified.contractText ? '' : ' (hash-only: signature and tests verified; contract text not present here)'}\n`);
       return;
     }
     if (command !== 'lock' && command !== 'approve') throw new Error(usage());

@@ -109,7 +109,7 @@ if (failed) {
 // `build-skill-catalog.js --check` joins them: the generated skill shelf is a
 // committed artefact, so drift from its frontmatter sources is a gate failure.
 for (const [rel, ...args] of [
-  ['scripts/check-ticket-traceability.js'],
+  ...(process.env.RIG_CI_NO_WIKI === '1' ? [] : [['scripts/check-ticket-traceability.js']]),
   ['scripts/check-raw-registry-access.js'],
   ['scripts/build-skill-catalog.js', '--check'],
 ]) {

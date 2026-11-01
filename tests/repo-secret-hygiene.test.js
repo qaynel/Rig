@@ -230,6 +230,8 @@ function publisherFixture(fn) {
     fs.writeFileSync(path.join(wiki, 'agent-primer.md'), '# Primer\n');
     fs.copyFileSync(path.join(__dirname, '../scripts/publish-wiki.js'), path.join(scripts, 'publish-wiki.js'));
     fs.copyFileSync(path.join(__dirname, '../scripts/repo-secret-scan.js'), path.join(scripts, 'repo-secret-scan.js'));
+    fs.mkdirSync(path.join(root, 'rig/lib'), { recursive: true });
+    fs.copyFileSync(path.join(__dirname, '../rig/lib/secret-placeholders.js'), path.join(root, 'rig/lib/secret-placeholders.js'));
     git(target, ['init', '--bare', '-q', bare]);
     fs.mkdirSync(seed);
     git(seed, ['init', '-q', '-b', 'main']);

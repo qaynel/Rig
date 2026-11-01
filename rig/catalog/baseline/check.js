@@ -7,6 +7,14 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
+const { containedPath } = (() => {
+  try { return require('../lib/path-safety'); } catch { return require('../../lib/path-safety'); }
+})();
+const installedLib = (name) => {
+  try { return require(`../lib/${name}`); } catch { return require(`../../lib/${name}`); }
+};
 // runArgv/runBinding are the canonical implementation, shared with the
 // interactive `rig check` command (rig/lib/checks.js) — see GA-38. This file
 // must not carry its own copy of that logic: a hand-duplicated copy is
@@ -14,9 +22,11 @@ const path = require('node:path');
 // silently missed the other). `apply.js` materializes `check-runner.js`
 // alongside this file's other `../lib/*` requires so the installed
 // `.rig/bin/check.js` resolves the same module.
-const { runArgv, runBinding, renderDiagnostic } = require('../lib/check-runner');
-const { projectCiResult } = require('../lib/reports');
-const { redact } = require('../lib/redaction');
+const { runArgv, runBinding, renderDiagnostic } = (() => {
+  try { return require('../lib/check-runner'); } catch { return require('../../lib/check-runner'); }
+})();
+const { projectCiResult } = installedLib('reports');
+const { redact } = installedLib('redaction');
 const inCi = () => process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
 function parseArgs(argv) {
@@ -41,7 +51,7 @@ function loadJson(rel) {
 }
 
 function writeLocalFailureReport(target, serviceId, scope, status, reason, result = {}) {
-  const { ALLOWED, writeReport } = require('../lib/reports');
+  const { ALLOWED, writeReport } = installedLib('reports');
   writeReport(target, {
     service_id: serviceId,
     scope,
@@ -54,6 +64,32 @@ function writeLocalFailureReport(target, serviceId, scope, status, reason, resul
     }] : [],
     fix_context: result.checkId ? [`check ${result.checkId}`] : ['coverage_gap'],
   });
+}
+
+function checkLockedFiles(repoRoot) {
+  const manifestFile = containedPath(repoRoot, '.rig/oracle/manifest.json');
+  if (!fs.existsSync(manifestFile)) return [];
+  const committedManifest = spawnSync('git', ['-C', repoRoot, 'show', 'HEAD:.rig/oracle/manifest.json'], { encoding: 'buffer' });
+  const stagedManifest = spawnSync('git', ['-C', repoRoot, 'show', ':.rig/oracle/manifest.json'], { encoding: 'buffer' });
+  const approvedBytes = committedManifest.status === 0 ? committedManifest.stdout
+    : stagedManifest.status === 0 ? stagedManifest.stdout : fs.readFileSync(manifestFile);
+  const errors = [];
+  if (!fs.readFileSync(manifestFile).equals(approvedBytes)) errors.push('.rig/oracle/manifest.json: locked-test manifest changed after approval');
+  if (stagedManifest.status === 0 && !stagedManifest.stdout.equals(approvedBytes)) errors.push('.rig/oracle/manifest.json: staged locked-test manifest changed after approval');
+  let manifest;
+  try { manifest = JSON.parse(approvedBytes.toString('utf8')); }
+  catch { return [...errors, '.rig/oracle/manifest.json: locked-test manifest is invalid JSON']; }
+  if (!manifest.files || typeof manifest.files !== 'object' || Array.isArray(manifest.files)) return [...errors, '.rig/oracle/manifest.json: locked-test manifest has no files map'];
+  for (const [rel, expected] of Object.entries(manifest.files)) {
+    try {
+      const bytes = fs.readFileSync(containedPath(repoRoot, rel));
+      const actual = crypto.createHash('sha256').update(bytes).digest('hex');
+      if (actual !== expected) errors.push(`${rel}: locked test changed`);
+      const staged = spawnSync('git', ['-C', repoRoot, 'show', `:${rel}`], { encoding: 'buffer' });
+      if (staged.status === 0 && crypto.createHash('sha256').update(staged.stdout).digest('hex') !== expected) errors.push(`${rel}: staged locked test changed`);
+    } catch { errors.push(`${rel}: locked test is missing or unreadable`); }
+  }
+  return errors;
 }
 
 function main() {
@@ -71,6 +107,9 @@ function main() {
     if (inCi()) process.stdout.write(JSON.stringify(projectCiResult({ status, findings: failures })) + '\n');
     if (status !== 0) process.exitCode = 1;
   };
+  const locked = checkLockedFiles(repoRoot);
+  for (const message of locked) fail('locked_test_changed', message);
+  if (locked.length) return publish(1);
   const baseline = require('../lib/policy-baseline').runBaseline(repoRoot, { surface, scope: surface === 'ci.repo' ? 'repo' : args.scope });
   if (!inCi()) for (const diagnostic of baseline.diagnostics || []) process.stderr.write(redact(diagnostic) + '\n');
   for (const entry of baseline.results) {
@@ -135,4 +174,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseArgs, runArgv, runBinding };
+module.exports = { checkLockedFiles, parseArgs, runArgv, runBinding };

@@ -34,13 +34,6 @@
       "host": "neutral"
     },
     {
-      "op": "copy_tree",
-      "from": "rig/corpus/upstream",
-      "to": ".rig/upstream",
-      "host": "neutral",
-      "gate": "active_delivery"
-    },
-    {
       "op": "copy",
       "from": "rig/corpus/trust/gate1.allowed-signers",
       "to": ".rig/trust/gate1.allowed-signers",
@@ -231,6 +224,20 @@
       "op": "copy_tree",
       "from": "rig/catalog/baseline",
       "to": ".rig/runtime/rig/catalog/baseline",
+      "host": "neutral",
+      "gate": "active_delivery"
+    },
+    {
+      "op": "copy_tree",
+      "from": "rig/catalog/skills",
+      "to": ".rig/runtime/rig/catalog/skills",
+      "host": "neutral",
+      "gate": "active_delivery"
+    },
+    {
+      "op": "copy_tree",
+      "from": "rig/catalog/plumbing",
+      "to": ".rig/runtime/rig/catalog/plumbing",
       "host": "neutral",
       "gate": "active_delivery"
     },
