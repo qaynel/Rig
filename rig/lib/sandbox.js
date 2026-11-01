@@ -85,9 +85,13 @@ function commandFor(kind, { script, outDir, outDirs, readDirs, home, argv, cwd =
   }
   // bubblewrap: start from an empty root. Binding the host root read-only
   // still exposes credentials and unrelated repositories to task reads.
+  // rig: use only the namespaces this boundary needs. `--unshare-all` also
+  // requests optional namespaces whose availability differs across hosted
+  // Linux runners; the filesystem and network guarantees need user, pid,
+  // ipc, uts and (for denied tasks) network isolation only.
   const args = ['--die-with-parent', '--new-session', ...(network
     ? ['--unshare-user', '--unshare-pid', '--unshare-ipc', '--unshare-uts']
-    : ['--unshare-all']), '--tmpfs', '/'];
+    : ['--unshare-user', '--unshare-pid', '--unshare-ipc', '--unshare-uts', '--unshare-net']), '--tmpfs', '/'];
   const tempRoot = path.resolve(os.tmpdir());
   if (fs.existsSync(tempRoot)) {
     args.push('--dir', tempRoot, '--tmpfs', tempRoot);

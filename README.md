@@ -61,4 +61,4 @@ separate service-picker step.
 ## Community
 
 Project policies and how to take part.
-→ [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Accessibility](ACCESSIBILITY.md) · [Support](SUPPORT.md) · [License](LICENSE)
+→ [Code of Conduct](CODE_OF_CONDUCT.md) · [Contributing](CONTRIBUTING.md) · [Open-source standards](docs/open-source-standards.md) · [Security](SECURITY.md) · [Accessibility](ACCESSIBILITY.md) · [Support](SUPPORT.md) · [License](LICENSE)

@@ -64,4 +64,4 @@ Hermes 네이티브 플러그인(`plugin.yaml`)으로 Rig을 설치한다. `pre_
 ## 커뮤니티
 
 프로젝트 정책과 참여 방법. 문서는 영어입니다.
-→ [행동 강령](CODE_OF_CONDUCT.md) · [기여](CONTRIBUTING.md) · [보안](SECURITY.md) · [접근성](ACCESSIBILITY.md) · [지원](SUPPORT.md) · [라이선스](LICENSE)
+→ [행동 강령](CODE_OF_CONDUCT.md) · [기여](CONTRIBUTING.md) · [오픈소스 표준](docs/open-source-standards.md) · [보안](SECURITY.md) · [접근성](ACCESSIBILITY.md) · [지원](SUPPORT.md) · [라이선스](LICENSE)

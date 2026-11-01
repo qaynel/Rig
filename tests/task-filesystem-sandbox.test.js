@@ -24,6 +24,9 @@ test('Linux task mount plan starts empty and exposes only runtime paths plus tas
     const rootBind = spec.args.findIndex((value, index) => value === '--ro-bind'
       && spec.args[index + 1] === '/' && spec.args[index + 2] === '/');
     assert.equal(rootBind, -1, 'the host root is never mounted into an untrusted task');
+    assert.ok(spec.args.includes('--unshare-user'));
+    assert.ok(spec.args.includes('--unshare-net'));
+    assert.equal(spec.args.includes('--unshare-all'), false, 'hosted runners may not expose optional namespaces');
     assert.ok(spec.args.includes('--tmpfs') && spec.args[spec.args.indexOf('--tmpfs') + 1] === '/');
     assert.ok(spec.args.some((value, index) => value === '--bind'
       && spec.args[index + 1] === target && spec.args[index + 2] === target));

@@ -9,7 +9,8 @@ answer is not there, open a GitHub issue and describe what you already tried.
 ## Bugs and changes
 
 Use the issue templates for bugs and feature requests. Code changes follow
-[CONTRIBUTING.md](CONTRIBUTING.md).
+[CONTRIBUTING.md](CONTRIBUTING.md) and the
+[open-source standards](docs/open-source-standards.md).
 
 ## Security
 

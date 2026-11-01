@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Document open-source contribution standards and the QA-production
+  branch/merge/resolve workflow in `docs/open-source-standards.md` and
+  `CONTRIBUTING.md`.
 - Add explicit user sign-off selection and bind signed mode changes to key
   protection. Platform sign-off refuses approval until a verified adapter exists.
 - Require current security and review readiness before public publication in
