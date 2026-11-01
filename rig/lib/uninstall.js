@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { RECEIPT_PATH, readReceipt } = require('./receipt');
 const { uninstall: uninstallJournal } = require('./lifecycle');
-const { gitPath } = require('./path-safety');
+const { gitPath, containedPath } = require('./path-safety');
 
 function uninstall(target, opts = {}) {
   const result = uninstallJournal(target, opts);
@@ -48,10 +48,20 @@ function cleanupReceiptArtifacts(target, journalResult = {}) {
   const lintFormatDir = path.join(target, '.rig', 'lint-format');
   if (fs.existsSync(lintFormatDir)) fs.rmSync(lintFormatDir, { recursive: true, force: true });
 
+  // Repository-specific tailoring leaves with the install; portable profile data lives outside.
+  rmContained(target, '.rig/preferences.json');
+
   for (const rel of ['.rig/hooks', '.rig']) {
     const dir = path.join(target, rel);
     if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
   }
+}
+
+function rmContained(target, rel) {
+  let file;
+  try { file = containedPath(target, rel); }
+  catch { return; }
+  if (fs.existsSync(file)) fs.rmSync(file, { force: true });
 }
 
 function unmerge(target, file, serverName) {

@@ -1,0 +1,128 @@
+arms:
+  - {id: plain, inner: claude-code, model: claude-sonnet-4-6, rig_ref: none, pack: null}
+  - {id: haiku-rig, inner: claude-code, model: claude-haiku-4-5-20251001, rig_ref: v6.0.0, pack: null}
+  - {id: sonnet-plain, inner: claude-code, model: claude-sonnet-4-6, rig_ref: none, pack: null}
+  - {id: sonnet-rig, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null}
+  - {id: opus-plain, inner: claude-code, model: claude-opus-4-1, rig_ref: none, pack: null}
+  - {id: opus-rig, inner: claude-code, model: claude-opus-4-1, rig_ref: v6.0.0, pack: null}
+  - {id: fable-plain, inner: claude-code, model: fable, rig_ref: none, pack: null}
+  - {id: fable-rig, inner: claude-code, model: fable, rig_ref: v6.0.0, pack: null}
+  - {id: sonnet-ecc, inner: claude-code, model: claude-sonnet-4-6, rig_ref: none, pack: ecc}
+  - {id: sonnet-hand-stacked, inner: claude-code, model: claude-sonnet-4-6, rig_ref: none, pack: hand-stacked}
+  - {id: sonnet-ablate-intent-grilling, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: intent-grilling}
+  - {id: sonnet-ablate-specification, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: specification}
+  - {id: sonnet-ablate-plan-review, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: plan-review}
+  - {id: sonnet-ablate-plan-writing, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: plan-writing}
+  - {id: sonnet-ablate-test-first-build, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: test-first-build}
+  - {id: sonnet-ablate-least-code, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: least-code}
+  - {id: sonnet-ablate-subagent-execution, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: subagent-execution}
+  - {id: sonnet-ablate-debugging, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: debugging}
+  - {id: sonnet-ablate-code-review, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: code-review}
+  - {id: sonnet-ablate-security-review, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: security-review}
+  - {id: sonnet-ablate-ui-design, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: ui-design}
+  - {id: sonnet-ablate-browser-qa, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: browser-qa}
+  - {id: sonnet-ablate-repository-understanding, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: repository-understanding}
+  - {id: sonnet-ablate-response-economy, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: response-economy}
+  - {id: sonnet-ablate-shipping, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: shipping}
+  - {id: sonnet-ablate-memory, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: memory}
+  - {id: sonnet-ablate-harness-architecture, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: harness-architecture}
+  - {id: sonnet-ablate-team-architecture, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: team-architecture}
+  - {id: sonnet-ablate-python-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: python-engineering}
+  - {id: sonnet-ablate-typescript-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: typescript-engineering}
+  - {id: sonnet-ablate-api-backend, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: api-backend}
+  - {id: sonnet-ablate-fastapi-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: fastapi-engineering}
+  - {id: sonnet-ablate-database-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: database-engineering}
+  - {id: sonnet-ablate-payments-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: payments-engineering}
+  - {id: sonnet-ablate-ci-cd-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: ci-cd-engineering}
+  - {id: sonnet-ablate-observability-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: observability-engineering}
+  - {id: sonnet-ablate-accessibility-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: accessibility-engineering}
+  - {id: sonnet-ablate-cloud-infrastructure, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: cloud-infrastructure}
+  - {id: sonnet-ablate-mobile-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: mobile-engineering}
+  - {id: sonnet-ablate-mcp-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: mcp-engineering}
+  - {id: sonnet-ablate-blockchain-web3, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: blockchain-web3}
+  - {id: sonnet-ablate-data-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: data-engineering}
+  - {id: sonnet-ablate-llm-application-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: llm-application-engineering}
+  - {id: sonnet-ablate-llm-finetuning, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: llm-finetuning}
+  - {id: sonnet-ablate-kubernetes-operations, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: kubernetes-operations}
+  - {id: sonnet-ablate-incident-response, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: incident-response}
+  - {id: sonnet-ablate-shell-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: shell-engineering}
+  - {id: sonnet-ablate-systems-programming, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: systems-programming}
+  - {id: sonnet-ablate-framework-migration, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: framework-migration}
+  - {id: sonnet-ablate-reverse-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: reverse-engineering}
+  - {id: sonnet-ablate-ml-operations, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: ml-operations}
+  - {id: sonnet-ablate-quality-constraints, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: quality-constraints}
+  - {id: sonnet-ablate-architecture-decision-records, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: architecture-decision-records}
+  - {id: sonnet-ablate-version-control-workflow, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: version-control-workflow}
+  - {id: sonnet-ablate-incremental-implementation, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: incremental-implementation}
+  - {id: sonnet-ablate-performance-optimization, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: performance-optimization}
+  - {id: sonnet-ablate-source-driven-implementation, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: source-driven-implementation}
+  - {id: sonnet-ablate-adversarial-review, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: adversarial-review}
+  - {id: sonnet-ablate-implement-approved-spec, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: implement-approved-spec}
+  - {id: sonnet-ablate-prototype-to-answer, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: prototype-to-answer}
+  - {id: sonnet-ablate-work-item-triage, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: work-item-triage}
+  - {id: sonnet-ablate-long-range-work-planning, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: long-range-work-planning}
+  - {id: sonnet-ablate-agent-handoff, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-handoff}
+  - {id: sonnet-ablate-agent-instruction-authoring, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-instruction-authoring}
+  - {id: sonnet-ablate-codebase-module-design, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: codebase-module-design}
+  - {id: sonnet-ablate-session-retrospective, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: session-retrospective}
+  - {id: sonnet-ablate-change-ticket-breakdown, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: change-ticket-breakdown}
+  - {id: sonnet-ablate-archive-completed-spec, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: archive-completed-spec}
+  - {id: sonnet-ablate-verify-completion, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: verify-completion}
+  - {id: sonnet-ablate-execute-approved-plan, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: execute-approved-plan}
+  - {id: sonnet-ablate-review-feedback, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: review-feedback}
+  - {id: sonnet-ablate-ios-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: ios-engineering}
+  - {id: sonnet-ablate-dotnet-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: dotnet-engineering}
+  - {id: sonnet-ablate-monorepo-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: monorepo-engineering}
+  - {id: sonnet-ablate-error-handling-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: error-handling-engineering}
+  - {id: sonnet-ablate-build-performance, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: build-performance}
+  - {id: sonnet-ablate-game-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: game-engineering}
+  - {id: sonnet-ablate-quantitative-software, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: quantitative-software}
+  - {id: sonnet-ablate-context-driven-development, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: context-driven-development}
+  - {id: sonnet-ablate-agent-evaluation, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-evaluation}
+  - {id: sonnet-ablate-localization-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: localization-engineering}
+  - {id: sonnet-ablate-recommendation-systems, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: recommendation-systems}
+  - {id: sonnet-ablate-video-software-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: video-software-engineering}
+  - {id: sonnet-ablate-frontend-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: frontend-engineering}
+  - {id: sonnet-ablate-bengali-language-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: bengali-language-engineering}
+  - {id: sonnet-ablate-software-documentation, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: software-documentation}
+  - {id: sonnet-ablate-cli-integration-testing, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: cli-integration-testing}
+  - {id: sonnet-ablate-test-reliability, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: test-reliability}
+  - {id: sonnet-ablate-data-visualization, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: data-visualization}
+  - {id: sonnet-ablate-effect-typescript-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: effect-typescript-engineering}
+  - {id: sonnet-ablate-cordis-plugin-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: cordis-plugin-engineering}
+  - {id: sonnet-ablate-session-state-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: session-state-engineering}
+  - {id: sonnet-ablate-forge-agent-extension-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: forge-agent-extension-engineering}
+  - {id: sonnet-ablate-cli-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: cli-engineering}
+  - {id: sonnet-ablate-qwen-extension-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: qwen-extension-engineering}
+  - {id: sonnet-ablate-domain-modeling, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: domain-modeling}
+  - {id: sonnet-ablate-desktop-application-qa, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: desktop-application-qa}
+  - {id: sonnet-ablate-codex-configuration, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: codex-configuration}
+  - {id: sonnet-ablate-hook-lifecycle-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: hook-lifecycle-engineering}
+  - {id: sonnet-ablate-prompt-architecture-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: prompt-architecture-engineering}
+  - {id: sonnet-ablate-agent-conversation-ui-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-conversation-ui-engineering}
+  - {id: sonnet-ablate-web-audio-dictation-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: web-audio-dictation-engineering}
+  - {id: sonnet-ablate-single-file-web-apps, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: single-file-web-apps}
+  - {id: sonnet-ablate-conversation-title-generation, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: conversation-title-generation}
+  - {id: sonnet-ablate-product-opportunity-assessment, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: product-opportunity-assessment}
+  - {id: sonnet-ablate-agent-plugin-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-plugin-engineering}
+  - {id: sonnet-ablate-agent-tool-architecture, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: agent-tool-architecture}
+  - {id: sonnet-ablate-sandboxed-interpreter-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: sandboxed-interpreter-engineering}
+  - {id: sonnet-ablate-solidjs-ui-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: solidjs-ui-engineering}
+  - {id: sonnet-ablate-context-compaction, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: context-compaction}
+  - {id: sonnet-ablate-arm-cortex-firmware-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: arm-cortex-firmware-engineering}
+  - {id: sonnet-ablate-functional-language-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: functional-language-engineering}
+  - {id: sonnet-ablate-jvm-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: jvm-engineering}
+  - {id: sonnet-ablate-flutter-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: flutter-engineering}
+  - {id: sonnet-ablate-unity-game-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: unity-game-engineering}
+  - {id: sonnet-ablate-php-ruby-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: php-ruby-engineering}
+  - {id: sonnet-ablate-web-discoverability-engineering, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: web-discoverability-engineering}
+  - {id: sonnet-ablate-finance-and-trading-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: finance-and-trading-workflows}
+  - {id: sonnet-ablate-research-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: research-workflows}
+  - {id: sonnet-ablate-creative-media-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: creative-media-workflows}
+  - {id: sonnet-ablate-business-operations-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: business-operations-workflows}
+  - {id: sonnet-ablate-business-growth-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: business-growth-workflows}
+  - {id: sonnet-ablate-personal-productivity-workflows, inner: claude-code, model: claude-sonnet-4-6, rig_ref: v6.0.0, pack: null, ablate_role: personal-productivity-workflows}
+comparisons:
+  - {step: haiku-rig-v-sonnet-plain, rig_arm: haiku-rig, plain_arm: sonnet-plain}
+  - {step: sonnet-rig-v-opus-plain, rig_arm: sonnet-rig, plain_arm: opus-plain}
+  - {step: opus-rig-v-fable-plain, rig_arm: opus-rig, plain_arm: fable-plain}

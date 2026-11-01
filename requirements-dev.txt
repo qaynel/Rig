@@ -1,1 +1,2 @@
 pandas>=2,<3
+harbor @ git+https://github.com/harbor-framework/harbor.git@7d9a0b688898a11cd03cf14a21d51a9ab45d3b94

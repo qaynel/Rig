@@ -43,6 +43,19 @@ Lint setup: lint-setup --input <request.json>; request action=propose or apply, 
     console.log(JSON.stringify(result, null, 2));
     return;
   }
+  if (argv[0] === 'profile') {
+    const profile = require('./catalog/baseline/profile');
+    if (argv[1] === 'export' && argv.length <= 3) {
+      const file = profile.exportHome(argv[2] ? require('node:path').resolve(argv[2]) : null);
+      console.log(file);
+      return;
+    }
+    if (argv[1] === 'import' && argv.length === 4) {
+      console.log(JSON.stringify(profile.importHome(argv[2], require('node:path').resolve(argv[3])), null, 2));
+      return;
+    }
+    throw new Error('rig: profile requires export [repo] or import <file> <repo>');
+  }
   if (argv.length && ADVANCED.has(argv[0])) {
     runAdvanced(argv[0], argv.slice(1));
     return;

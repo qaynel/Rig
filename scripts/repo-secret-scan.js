@@ -1,6 +1,7 @@
 'use strict';
 
 const { spawnSync } = require('node:child_process');
+const { SOURCE_PLACEHOLDERS, maskSourcePlaceholders } = require('../rig/lib/secret-placeholders');
 
 const PATCH_EXAMPLES = new Set([
   ['-placeholder filter passes obvious docs examples (e.g. `', 'AKIAIOSFODNN7', 'EXAMPLE', '`):'].join(''),
@@ -37,7 +38,8 @@ function scanFiles(files) {
     for (const [rule, re] of PATH_RULES) if (re.test(rel)) hits.push(`${rel}: ${rule}`);
     content.toString('utf8').split(/\r?\n/).forEach((line, i) => {
       if (rel === 'rig/corpus/upstream/patches/shelf-overlay.patch' && PATCH_EXAMPLES.has(line)) return;
-      for (const [rule, re] of CONTENT_RULES) if (re.test(line)) hits.push(`${rel}:${i + 1}: ${rule}`);
+      const scanLine = maskSourcePlaceholders(rel, content, line);
+      for (const [rule, re] of CONTENT_RULES) if (re.test(scanLine)) hits.push(`${rel}:${i + 1}: ${rule}`);
     });
   }
   return hits.sort();
@@ -56,4 +58,4 @@ function scanStagedSnapshot(cwd) {
   return scanFiles(files);
 }
 
-module.exports = { scanFiles, scanStagedSnapshot, CONTENT_RULES, PATH_RULES };
+module.exports = { scanFiles, scanStagedSnapshot, CONTENT_RULES, PATH_RULES, SOURCE_PLACEHOLDERS, maskSourcePlaceholders };

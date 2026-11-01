@@ -9,7 +9,7 @@ const MODULES = [
   'resolve', 'service-catalogue', 'journal-records',
   'evidence-artifacts', 'checks', 'git-dispatch', 'policy', 'policy-transaction',
   'policy-baseline', 'trust-root', 'enforcement', 'reports', 'inspect', 'catalog',
-  'host-capabilities', 'skill-catalog', 'guard', 'ssh-keygen',
+  'host-capabilities', 'skill-catalog', 'guard', 'ssh-keygen', 'secret-placeholders',
 ];
 const entries = [
   ...MODULES.map(name => ({ from: `lib/${name}.js`, to: `.rig/lib/${name}.js`, mode: 0o644 })),
@@ -22,10 +22,10 @@ const entries = [
 // The complete capability kit is mandatory data for the host agent to inspect
 // and graft. Keep its canonical layout so relative dependencies and model paths
 // work. Staging a kit selects no services and activates no optional runtime.
-function kitTree(from, to) {
+function kitTree(from, to, preserveFiles = false) {
   for (const name of fs.readdirSync(path.join(ROOT, from)).sort()) {
-    if (['node_modules', '__pycache__', '.DS_Store', 'TODOS-format.md', 'upstream'].includes(name)
-      || name.startsWith('._') || name.endsWith('.tmpl')) continue;
+    if (!preserveFiles && (['node_modules', '__pycache__', '.DS_Store', 'TODOS-format.md', 'upstream'].includes(name)
+      || name.startsWith('._') || name.endsWith('.tmpl'))) continue;
     const src = `${from}/${name}`;
     const dst = `${to}/${name}`;
     // Already projected to .rig/routing.md and .rig/skills/onboarding/SKILL.md.
@@ -35,7 +35,7 @@ function kitTree(from, to) {
     if (dst === '.rig/kit/rig/corpus/routing.md'
       || dst === '.rig/kit/rig/corpus/skills/onboarding/playbook.md') continue;
     const stat = fs.statSync(path.join(ROOT, src));
-    if (stat.isDirectory()) kitTree(src, dst);
+    if (stat.isDirectory()) kitTree(src, dst, preserveFiles);
     else if (stat.isFile()) entries.push({ from: src, to: dst, mode: stat.mode & 0o111 ? 0o755 : 0o644 });
     else throw new Error(`rig: kit source is not a regular file: ${src}`);
   }
@@ -44,6 +44,7 @@ function kitTree(from, to) {
 // catalogue apply path reuses the complete kit already staged beside it.
 const kitFrom = fs.existsSync(path.join(ROOT, 'catalog', 'plumbing')) ? '' : '../../kit/rig/';
 for (const rel of ['lib', 'corpus', 'catalog/baseline', 'catalog/plumbing']) kitTree(`${kitFrom}${rel}`, `.rig/kit/rig/${rel}`);
+kitTree(`${kitFrom}upstreams`, '.rig/kit/rig/upstreams', true);
 kitTree(`${kitFrom}../skills/rig`, '.rig/kit/skills/rig');
 for (const rel of ['manifest.json', ...['catalog.json', 'families.json', 'migrations.json', 'LICENSE.upstream', 'UPSTREAM.md', 'README.md']
   .map((name) => `catalog/skills/${name}`)]) {

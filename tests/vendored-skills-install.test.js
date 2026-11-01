@@ -33,16 +33,17 @@ test('default install projects mandatory skills only and carries no runtime code
   });
 });
 
-test('active install pins fetch metadata without staging the optional shelf', () => {
+test('active install stages the bundled optional shelf without fetch metadata', () => {
   withTempTarget((target) => {
     runPayload(target, ['codex'], { activeDelivery: true });
     assert.deepEqual(discovered(target), CORE);
-    assert.ok(fs.existsSync(path.join(target, '.rig/upstream/gstack-shelf.json')));
+    assert.equal(fs.existsSync(path.join(target, '.rig/upstream/gstack-shelf.json')), false);
     const stagedSkills = fs.existsSync(path.join(target, '.rig/runtime/rig/catalog/skills'))
       ? fs.readdirSync(path.join(target, '.rig/runtime/rig/catalog/skills'), { recursive: true })
         .filter((file) => path.basename(file) === 'SKILL.md')
       : [];
-    assert.equal(stagedSkills.length, 0, 'catalogue metadata remains, but vendored skills do not');
+    assert.ok(stagedSkills.length > 0, 'the release includes optional skills before any onboarding step');
+    assert.ok(fs.existsSync(path.join(target, '.rig/runtime/rig/catalog/plumbing/bin/rig-diff-scope')));
     assert.equal(fs.existsSync(path.join(target, '.agents/skills/rig-browse')), false);
   });
 });

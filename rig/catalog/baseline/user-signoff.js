@@ -18,6 +18,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 const { containedPath } = require('../../lib/path-safety');
 const { readTrustRoot, verifyTrustRootApproval, keyTypeAllowed } = require('../../lib/trust-root');
 
@@ -353,11 +354,15 @@ function change(repo, choice = {}) {
 }
 
 function assessPlatform() {
+  const sudoProbe = process.platform === 'win32' ? null : spawnSync('sudo', ['-n', 'true'], { stdio: ['ignore', 'ignore', 'ignore'] });
+  const passwordless = Boolean(sudoProbe && !sudoProbe.error && sudoProbe.status === 0);
   const mechanisms = [{
     id: 'sudo-or-password-prompt',
     available: process.platform !== 'win32',
     agent_resistant: false,
     human_presence: 'not-guaranteed',
+    passwordless,
+    counts_as_approval: false,
     why: 'An agent may have cached credentials, an authorised session, or the ability to invoke a privileged command. A successful sudo or password prompt is not human presence.',
   }];
   if (process.platform === 'darwin') {

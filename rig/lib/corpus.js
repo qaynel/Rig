@@ -46,7 +46,7 @@ function loadCorpus(selection = {}, root = ROOT) {
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'rig', 'manifest.json'), 'utf8'));
   const descriptor = JSON.parse(fs.readFileSync(path.join(root, CORPUS_REL, 'corpus.json'), 'utf8'));
-  addTree(CORPUS_REL);
+  addTree(CORPUS_REL, (rel) => !rel.startsWith(`${CORPUS_REL}/upstream/`));
   for (const rel of Object.values(descriptor.skills)) addFile(rel);
   // Host projectors copy the provenance notices next to the vendored skills.
   for (const name of ['LICENSE.upstream', 'UPSTREAM.md']) addFile(`rig/catalog/skills/${name}`);
