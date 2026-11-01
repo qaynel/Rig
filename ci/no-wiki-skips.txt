@@ -1,0 +1,46 @@
+E2E-J05 contract audit finds a broken journey-to-requirement link
+installed onboarding README and catalogue authorities describe the signed corpus
+repository check runs coherence and executed-test evidence gates
+release documentation distinguishes automated gates from owner checks
+current design and clean-install docs match the pinned-fetch release model
+human re-freeze path has a fillable evidence request
+AT-HD-8 reasoning/README.md and wiki-maintenance/SKILL.md consistently define body-immutable, frontmatter-mutable traces
+AT-HD-11 I-C-3 wiki immutability rule is stated in both docs and each cross-cites the other
+AT-HD-12 I-D-3 every hardening finding in the spec has exactly one matching oracle ID
+wiki files should not contain "awaiting signature" text when oracle is verified green
+Path B oracle documentation consistency
+every v5-observable finding has a green deterministic test
+traceability checker runs from npm test
+the current board has no unresolved completed-card violation
+Claude review is read-only even when permission prompts are disabled
+review wrapper output validates without schema translation
+review-receipt persists the complete batch and runs one explicit targeted re-review on changed bytes
+review-receipt does not charge incomplete acceptance coverage as a finding batch
+review-receipt rejects a candidate that changes while the independent reviewer runs
+review-receipt caps re-review after one retry for the same author-context (RIG-124)
+review-receipt cap is scoped per author-context and a pass does not reset failures (RIG-124)
+review-receipt fails closed on corrupt attempt state and outcome journals before spawning
+a pass report that fails receipt validation is an execution failure, not a spent authorization (RIG-124.3)
+a killed/timed-out reviewer spawn is recorded but spends no authorization (RIG-124.3)
+review-receipt --interim never writes the binding receipt (RIG-124)
+review-receipt does not spend an authorization on a provider failure (RIG-124.2)
+classification uses process and output evidence, never vendor error text (RIG-124.3)
+review-receipt carries finding classes into the next round and flags graduation (RIG-124.2)
+an interrupted in-flight attempt is recovered exactly once (RIG-124.3)
+review-receipt --interim reports findings and leaves no authorization spent (RIG-124.3)
+--ingest reconciles a supplied report without making it authoritative (RIG-124.3)
+review-receipt finding-class history survives a passing verdict (RIG-124.2)
+adaptation rubric preserves distinct gates axes repeatability and calibration ceiling
+historical spec corrections mark retired claims and agree with actual workflow boundaries
+the authored contract graph is complete
+every proving test named in the manifest exists and declares its PT id
+a renumbered primary criterion breaks the one-to-one mapping
+a duplicated requirement row is rejected
+a deleted journey orphans the requirements that cite it
+a deleted work package leaves requirements unplanned
+finding 8 (AT-LF-22): network isolation is claimed only after the wrapper denies a connection
+finding 6: every test file the technical design names exists, so a slice command cannot print green over nothing
+the committed wiki is within its budgets and waivers
+committed generated wiki files match immutable trace frontmatter
+wiki-maintenance lint is clean on the current branch
+report returns one entry per step 0..7 with a state

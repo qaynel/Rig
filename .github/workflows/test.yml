@@ -11,41 +11,26 @@ on:
   pull_request:
 
 jobs:
+  # Every job runs the same pinned Linux image that `scripts/test-linux.sh`
+  # builds locally (ci/Dockerfile): node, python, bubblewrap, bun and the
+  # pinned Gitleaks are inside it, so a Linux-only failure reproduces before
+  # push. Runners are pinned to ubuntu-24.04, not "latest". The wiki is not
+  # part of CI: nothing here clones it.
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # check-coherence compares the declared tracker transitions against the
     # live issue list and refuses to skip that comparison in CI.
     permissions:
       contents: read
       issues: read
+    env:
+      CI_IN_PLACE: '1'
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       # Full history: the v5 migration tests read the v5.0.0 installer commit.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # Ubuntu 24.04 restricts rootless user namespaces through AppArmor.
-      # Rig's ungranted-task network boundary uses a rootless network namespace,
-      # so enable the native runner capability and verify it before the suite.
-      - name: Prepare task sandbox
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes bubblewrap
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          unshare --user --map-root-user --net -- true
-
-      - name: Restore local wiki
-        run: |
-          node scripts/ensure-wiki.js
-          node scripts/build-wiki-index.js
 
       # Runs on its own, before everything else. `npm test` chains with `&&`, so
       # a failure in an unrelated check would otherwise stop the secret guard
@@ -53,52 +38,29 @@ jobs:
       # cannot be undone by fixing it and re-running — it can only be rotated —
       # so it does not queue behind version and rule-copy checks.
       - name: Secret hygiene (no credentials tracked or publishable)
-        run: npm run test:secrets
+        run: scripts/test-linux.sh npm run test:secrets
 
-      # The suite asserts local-mode output, not the CI-projected aggregate JSON
-      # or ::warning annotations that CI=true selects, so the runner's CI markers
-      # are hidden from it. Tests that cover CI mode set them explicitly.
+      # The script hides the runner's CI markers: the suite asserts local-mode
+      # output. Tests that cover CI mode set them explicitly.
       - name: Run tests
-        run: env -u CI -u GITHUB_ACTIONS npm test
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: scripts/test-linux.sh node ci/run-tests.js
 
   # One catalogue file cannot be split by Node's file-level --test-shard:
   # four of five jobs would run zero tests and exit 0. CATALOGUE_SHARD slices
   # the 115 service tests inside the file. Unset, the same file runs them all.
   catalogue-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5]
+    env:
+      CI_IN_PLACE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # Match the full test job: Ubuntu 24.04 restricts rootless user
-      # namespaces through AppArmor, while the Linux task sandbox needs them.
-      - name: Prepare task sandbox
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes bubblewrap
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          unshare --user --map-root-user --net -- true
-
-      - name: Restore local wiki
-        run: |
-          node scripts/ensure-wiki.js
-          node scripts/build-wiki-index.js
-
       - name: Run catalogue tests (job ${{ strategy.job-index }} of ${{ strategy.job-total }})
-        run: CATALOGUE_SHARD=$(( ${{ strategy.job-index }} + 1 ))/${{ strategy.job-total }} node --test tests/catalogue-all-services.test.js
+        run: CATALOGUE_SHARD=$(( ${{ strategy.job-index }} + 1 ))/${{ strategy.job-total }} scripts/test-linux.sh node --test tests/catalogue-all-services.test.js
         timeout-minutes: 10

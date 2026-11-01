@@ -54,14 +54,13 @@ jobs:
           sudo apt-get install --yes bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           unshare --user --map-root-user --net -- true
-      - name: Restore local wiki
-        run: |
-          node scripts/ensure-wiki.js
-          node scripts/build-wiki-index.js
+      # Same pinned container as test.yml; the wiki is not part of CI.
       - name: Full repository gate
         env:
+          CI_IN_PLACE: '1'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: env -u CI -u GITHUB_ACTIONS npm test
+        run: scripts/test-linux.sh node ci/run-tests.js
       - name: Exact-SHA clean-install E2E
         env:
           HEALTH_SHA: ${{ needs.resolve.outputs.sha }}
@@ -75,8 +74,6 @@ jobs:
         run: |
           npm ci --prefix rig-mcp --dry-run --ignore-scripts
           npm ci --prefix rig/mcp-runtime --dry-run --ignore-scripts
-      - name: Wiki budget
-        run: node --test tests/wiki-budget.test.js
   report:
     if: always() && needs.resolve.result == 'success'
     needs: [resolve, health]

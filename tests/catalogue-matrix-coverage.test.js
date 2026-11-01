@@ -14,6 +14,7 @@ test('catalogue CI derives both shard coordinates from the actual job matrix', (
     const seen = Array(services).fill(0);
     for (let job = 0; job < total; job += 1) {
       const expanded = command.trim().slice('run: '.length)
+        .replace('scripts/test-linux.sh ', '')
         .replace(/\$\{\{ strategy\.job-index \}\}/g, job)
         .replace(/\$\{\{ strategy\.job-total \}\}/g, total);
       const result = require('node:child_process').spawnSync('sh', ['-c', expanded.replace(/node --test .*/, "node -p 'process.env.CATALOGUE_SHARD'")], { encoding: 'utf8' });
